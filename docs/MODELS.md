@@ -261,8 +261,8 @@ Two different situations, two different mechanisms:
 
   ```bash
   adb push primary-llm.gguf /sdcard/Download/
-  adb shell run-as team.sopa.aoair mkdir -p files/models
-  adb shell run-as team.sopa.aoair cp /sdcard/Download/primary-llm.gguf files/models/primary-llm.gguf
+  adb shell run-as team.sopa.aoair.dev mkdir -p files/models
+  adb shell run-as team.sopa.aoair.dev cp /sdcard/Download/primary-llm.gguf files/models/primary-llm.gguf
   ```
 
   Repeat per asset. Two things must match exactly or `ModelManager.statusOf`

@@ -2,7 +2,8 @@
 // parsing and the exact adb commands, as data. Nothing here runs a
 // process, so --dry-run and the tests can use it without a phone.
 
-export const DEFAULT_PACKAGE = "team.sopa.aoair";
+// Debug builds install with a ".dev" suffix (plugins/withDevVariant.js); only they are debuggable.
+export const DEFAULT_PACKAGE = "team.sopa.aoair.dev";
 export const METRO_PORT = 8081;
 export const REQUESTS_DIR = "files/eval/requests";
 
@@ -140,7 +141,7 @@ export function commands({ serial, pkg, slug, requestId }) {
     devices: ["adb", "devices"],
     packageInstalled: adb(serial, "shell", `pm list packages ${pkg}`),
     packageInfo: adb(serial, "shell", `dumpsys package ${pkg}`),
-    install: ["npx", "expo", "run:android", "--no-bundler"],
+    install: ["npx", "expo", "run:android", "--no-bundler", "--app-id", pkg],
     reverse: adb(serial, "reverse", `tcp:${METRO_PORT}`, `tcp:${METRO_PORT}`),
     writeRequest: (request) => {
       const b64 = Buffer.from(JSON.stringify(request)).toString("base64");

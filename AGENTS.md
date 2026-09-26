@@ -78,6 +78,12 @@ phone. An APK signed with a different key can't install over an existing BOAR:
 Android requires uninstalling first, which deletes the app's downloaded models.
 A first release build takes about 40 minutes.
 
+Debug builds install as `team.sopa.aoair.dev` ("BOAR Dev", `plugins/withDevVariant.js`),
+so a development build and the release APK can be installed side by side, each
+with its own data. `run-as` and the USB scripts (`eval:device`, `pack:push`) need
+the debuggable one, so they default to `team.sopa.aoair.dev`; `npx expo run:android`
+needs `--app-id team.sopa.aoair.dev` to launch it (`make run-android` passes it).
+
 ## No local Android SDK: build via EAS instead
 
 ```bash
@@ -145,7 +151,7 @@ Before and during a run:
 - **Check the phone isn't busy.** `eval:device` reloads the app. Don't run it,
   reinstall, force-stop or reload while a model download is in progress
   (`adb shell dumpsys power | grep BOAR:ModelDownload`, or a growing file in
-  `adb exec-out run-as team.sopa.aoair ls -l files/models`); downloads can't
+  `adb exec-out run-as team.sopa.aoair.dev ls -l files/models`); downloads can't
   resume after a restart. The phone's owner may be using it: ask first.
 - **Don't edit app source files while a run is going.** Metro hot-reloads them
   into the running app, which can interrupt the evaluation. Docs and scripts are

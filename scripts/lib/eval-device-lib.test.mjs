@@ -14,7 +14,7 @@ import {
 
 describe("parseArgs", () => {
   it("defaults to everything installed, with reload on", () => {
-    expect(parseArgs([])).toMatchObject({ models: undefined, adaptive: false, queries: undefined, pkg: "team.sopa.aoair", reload: true, dryRun: false, timeoutMin: 240 });
+    expect(parseArgs([])).toMatchObject({ models: undefined, adaptive: false, queries: undefined, pkg: "team.sopa.aoair.dev", reload: true, dryRun: false, timeoutMin: 240 });
   });
 
   it("parses selections and flags", () => {

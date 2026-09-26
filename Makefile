@@ -51,12 +51,12 @@ start:
 
 run-android:
 	npx expo prebuild -p android
-	npx expo run:android --device
+	npx expo run:android --device --app-id team.sopa.aoair.dev
 
 # Use this ONLY if native builds get corrupted or when updating Expo plugins
 clean-android:
 	npx expo prebuild -p android --clean 
-	npx expo run:android
+	npx expo run:android --app-id team.sopa.aoair.dev
 
 build-eas:
 	npx eas-cli build --platform android --profile preview

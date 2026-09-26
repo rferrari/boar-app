@@ -10,7 +10,7 @@ npm run eval:device -- --models lfm2.5
 
 ```
 ✓ device SSYLAQFILNBEKBEQ
-✓ team.sopa.aoair installed (debuggable)
+✓ team.sopa.aoair.dev installed (debuggable)
 ✓ Metro running, adb reverse tcp:8081 set
 ✓ request req-20260924t054219-safr written: {"requestId":"req-20260924t054219-safr","models":["lfm2.5"]}
 ✓ app reloading from Metro

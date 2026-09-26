@@ -212,7 +212,7 @@ async function devFlow() {
   const serial = await connectPhone();
   if (!serial) return;
   say("\n  Building and installing the development build (several minutes the first time)…");
-  if (!run("npx", ["expo", "run:android", "--device"], { env: { ...process.env, ANDROID_SERIAL: serial } })) return;
+  if (!run("npx", ["expo", "run:android", "--device", "--app-id", "team.sopa.aoair.dev"], { env: { ...process.env, ANDROID_SERIAL: serial } })) return;
   ok("development build installed");
   say("\n  Next time, keep `make start` running in a terminal (it serves the code over USB),");
   say("  then open BOAR on the phone. Benchmark models with `npm run eval:device` (docs/DEVICE_EVALUATION.md).");

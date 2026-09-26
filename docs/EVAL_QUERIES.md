@@ -97,7 +97,7 @@ progress), and the script polls for completion and pulls the result.
 - The phone connected over USB with **USB debugging** enabled and this computer
   **authorized** (accept the "Allow USB debugging" prompt). `adb devices` must
   list it as `device`, not `unauthorized` or `offline`.
-- A **debuggable development build** of the app (package `team.sopa.aoair`),
+- A **debuggable development build** of the app (package `team.sopa.aoair.dev`),
   e.g. from `npx expo run:android`. Release/EAS builds don't work: reading the
   results needs `run-as`, and the request pickup only exists in development
   builds. With `--install` (or if the app is missing) the script builds and
@@ -128,7 +128,7 @@ and lists what is installed.
 ### What it does
 
 1. Checks `adb devices` for exactly one authorized device (or `--serial`).
-2. Checks that `team.sopa.aoair` is installed and debuggable, installing it if
+2. Checks that `team.sopa.aoair.dev` is installed and debuggable, installing it if
    missing.
 3. Checks Metro and runs `adb reverse tcp:8081 tcp:8081`.
 4. Writes `files/eval/requests/pending.json` through `run-as` and reloads the
@@ -184,8 +184,8 @@ Any of these works:
 - **adb** (debuggable/dev-client builds):
 
   ```bash
-  adb exec-out run-as team.sopa.aoair ls files/eval
-  adb exec-out run-as team.sopa.aoair cat files/eval/<runId>.jsonl > <runId>.jsonl
+  adb exec-out run-as team.sopa.aoair.dev ls files/eval
+  adb exec-out run-as team.sopa.aoair.dev cat files/eval/<runId>.jsonl > <runId>.jsonl
   ```
 
 Every row is also written to the regular execution telemetry, so eval runs show
