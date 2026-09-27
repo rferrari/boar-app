@@ -10,6 +10,7 @@
  */
 import type { EventSubscription } from "expo-modules-core";
 import { NativeEngine, type EngineOutput } from "native-engine";
+import { getDeviceTotalRamBytes } from "ram-monitor";
 import type { CatalogModel } from "../models/manifest";
 import type { ChatMessageInput, GenerateOptions } from "./LlamaEngine";
 
@@ -70,6 +71,19 @@ export function renderOlmoe(messages: ChatMessageInput[]): string {
     else out += `<|user|>\n${m.content}\n`;
   }
   return out + "<|assistant|>\n";
+}
+
+/**
+ * Hex CPU mask of the `n` fastest cores (by highest frequency, lowest index first on ties), the
+ * format BMOE_CPUMASK takes: "f0" is cpus 4-7. "" when frequencies are unknown.
+ */
+export function fastCoreMask(maxFreqKHz: number[], n: number): string {
+  if (!maxFreqKHz.some((f) => f > 0)) return "";
+  const picked = maxFreqKHz
+    .map((f, cpu) => ({ f, cpu }))
+    .sort((a, b) => b.f - a.f || a.cpu - b.cpu)
+    .slice(0, Math.max(1, n));
+  return picked.reduce((mask, { cpu }) => mask | (1n << BigInt(cpu)), 0n).toString(16);
 }
 
 /** Shared process plumbing: one engine process at a time, output lines routed to the active handler. */
@@ -210,15 +224,38 @@ export class BmoeEngine extends ProcessEngine {
   /** Let reasoning models think before answering (slower); shown behind the 💭 toggle. */
   static think = false;
 
+  /** Expert cache in MiB on phones with at least 11 GiB of RAM (AndroidLM's measured default). */
+  static bigCacheMiB = 5000;
+
+  async load(model: CatalogModel, opts: { nCtx: number; nThreads: number }): Promise<void> {
+    // Built with i8mm (scripts/build-native-engines.sh): an older core would crash with SIGILL.
+    if (!NativeEngine.cpuInfo().features.split(/\s+/).includes("i8mm")) {
+      throw new Error("This BigMoeOnEdge build needs a CPU with i8mm (Cortex-A715 class or newer).");
+    }
+    return super.load(model, opts);
+  }
+
   protected args(model: CatalogModel, opts: { nCtx: number; nThreads: number }): string[] {
-    // Upstream's app settings: a micro-batch no wider than 512 tokens (without it the compute
-    // buffer was sized for the whole context, ~4 GB at 4096) and an expert cache sized to the
-    // phone's free RAM.
+    // Upstream's session settings, plus what AndroidLM measured on a Pixel 8 Pro
+    // (notes/2026-09-24-speed-levers.md): a bigger expert cache, 2 read lanes overlapping compute,
+    // and dense weights in memory the kernel won't reclaim. The micro-batch stays at 512 tokens:
+    // without it the compute buffer was sized for the whole context (~4 GB at 4096).
+    let ramBytes = 0;
+    try {
+      ramBytes = getDeviceTotalRamBytes();
+    } catch {}
+    const cache = ramBytes >= 11 * 1024 ** 3 ? String(BmoeEngine.bigCacheMiB) : "auto";
     return [
       "-m", model.externalPath!, "-t", String(opts.nThreads), "-c", String(opts.nCtx),
       "--ubatch", String(Math.min(512, opts.nCtx)), "--chatml", "--session",
-      "--moe-stream", "--cache-mb", "auto",
+      "--moe-stream", "--cache-mb", cache, "--io-threads", "2", "--overlap", "--dense-weights", "ahwb",
     ];
+  }
+
+  /** AndroidLM's engine patches (patches/bigmoeonedge): priority, fast-core pinning, repacked dense weights. */
+  protected env(_model: CatalogModel, opts: { nCtx: number; nThreads: number }): Record<string, string> {
+    const mask = fastCoreMask(NativeEngine.cpuInfo().maxFreqKHz, opts.nThreads);
+    return { BMOE_NICE: "-16", BMOE_REPACK: "1", ...(mask ? { BMOE_CPUMASK: mask } : {}) };
   }
   protected isReady(e: EngineOutput): boolean {
     return e.kind === "line" && e.text.startsWith("BMOE_READY");

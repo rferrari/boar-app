@@ -27,6 +27,21 @@ chooses among llama.rn models. Retrieval, sources, Stop and the reasoning view w
 - `LlamaEngine` hands generate, stop and unload to the engine whenever the selected catalog
   model sets `engine`, and frees llama.rn's model first. There's only ever one model in memory.
 
+## Speed settings for BigMoeOnEdge
+
+These are from [AndroidLM](https://github.com/Phineas1500/AndroidLM)'s measurements on a Pixel 8
+Pro (`notes/2026-09-24-speed-levers.md`), where together they took generation from about 3.5 to
+5.7 tok/s:
+
+| Setting | Where |
+|---|---|
+| AndroidLM's engine patches: pinned thread pool, priority, fast-core placement, repacked dense weights, ik_llama.cpp's 2/3-bit ARM kernels (about 2x faster prompt reading) | `patches/bigmoeonedge/`, applied by the build script |
+| Built with `i8mm`; the app refuses to start it on a CPU without i8mm instead of crashing | `BMOE_ARM_ARCH` in the build script, `BmoeEngine.load` |
+| 5,000 MiB expert cache on phones with 11 GiB+ of RAM (`auto` otherwise), 2 read lanes overlapping compute, dense weights in memory the kernel won't reclaim | `BmoeEngine.args` |
+| Priority -16, compute threads pinned to the fastest cores, repacked dense weights | `BmoeEngine.env` (`BMOE_NICE`, `BMOE_CPUMASK`, `BMOE_REPACK`) |
+| 2 retrieved articles instead of 4, so there's less prompt to read | `ChatScreen` |
+| The answer reaches the screen at most 4 times a second | `ChatScreen` |
+
 ## Build the engines
 
 ```bash
