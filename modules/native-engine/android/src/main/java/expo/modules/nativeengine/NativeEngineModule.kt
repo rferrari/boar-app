@@ -44,6 +44,20 @@ class NativeEngineModule : Module() {
       }
     }
 
+    // CPU feature flags (from /proc/cpuinfo) and each core's highest frequency in kHz, so JS can
+    // tell whether an engine build's instructions are supported and which cores are the fast ones.
+    Function("cpuInfo") {
+      val features = try {
+        File("/proc/cpuinfo").readLines().firstOrNull { it.startsWith("Features") }?.substringAfter(':')?.trim() ?: ""
+      } catch (_: Exception) { "" }
+      val maxFreq = (0 until Runtime.getRuntime().availableProcessors()).map { cpu ->
+        try {
+          File("/sys/devices/system/cpu/cpu$cpu/cpufreq/cpuinfo_max_freq").readText().trim().toInt()
+        } catch (_: Exception) { 0 }
+      }
+      mapOf("features" to features, "maxFreqKHz" to maxFreq)
+    }
+
     Function("isRunning") {
       process?.isAlive == true
     }

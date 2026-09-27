@@ -9,6 +9,7 @@ export type EngineOutput =
 interface NativeEngineModule {
   nativeLibraryDir(): string;
   pathSize(path: string): number;
+  cpuInfo(): { features: string; maxFreqKHz: number[] };
   isRunning(): boolean;
   start(binary: string, args: string[], env: Record<string, string>): Promise<boolean>;
   write(text: string): void;
@@ -32,6 +33,8 @@ export const NativeEngine = {
   nativeLibraryDir: () => native?.nativeLibraryDir() ?? "",
   /** Bytes at an absolute path (a directory's files added up), or -1 when missing or unreadable. */
   pathSize: (path: string) => native?.pathSize(path) ?? -1,
+  /** CPU feature flags and each core's highest frequency (kHz, 0 when unknown). */
+  cpuInfo: () => native?.cpuInfo() ?? { features: "", maxFreqKHz: [] },
   isRunning: () => native?.isRunning() ?? false,
   start: (binary: string, args: string[], env: Record<string, string> = {}) => need().start(binary, args, env),
   write: (text: string) => need().write(text),
