@@ -36,7 +36,8 @@
         }
       ],
       "./plugins/withReleaseSigning",
-      "./plugins/withDevVariant"
+      "./plugins/withDevVariant",
+      "./plugins/withNativeEngines"
     ],
     "extra": {
       "eas": {

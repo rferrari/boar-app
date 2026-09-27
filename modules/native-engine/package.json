@@ -1,0 +1,7 @@
+{
+  "name": "native-engine",
+  "version": "0.1.0",
+  "description": "Local Expo module that runs a bundled inference engine executable as a child process and streams its output.",
+  "main": "index.ts",
+  "license": "MIT"
+}

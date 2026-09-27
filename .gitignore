@@ -54,3 +54,6 @@ build/knowledge-pack/
 
 # Raw demo recording (31 MB); the compressed copy is docs/demo/boar_demo_small.mp4
 docs/demo/boar_demo.mp4
+
+# Engine binaries built by scripts/build-native-engines.sh
+modules/native-engine/android/src/main/jniLibs/
