@@ -60,6 +60,18 @@ export interface CatalogModel {
    * embeddings, opened directly (src/rag/packs.ts).
    */
   format?: "json" | "sqlite-pack";
+  /**
+   * The inference engine that runs this model: llama.rn (default), or an experimental external
+   * engine run as a child process (src/inference/externalEngines.ts): "colibri" streams OLMoE's
+   * experts from storage, "bmoe" (BigMoeOnEdge) streams a GGUF MoE bigger than RAM.
+   */
+  engine?: "llama" | "colibri" | "bmoe";
+  /**
+   * Absolute path on the device, outside app storage, for a model placed there with adb instead
+   * of downloaded (a file, or colibri's model folder). Such a model is never size-checked or
+   * deleted by ModelManager.
+   */
+  externalPath?: string;
 }
 
 export const STORAGE_BUDGET_BYTES = 50 * 1024 * 1024 * 1024; // 50GB
@@ -161,6 +173,38 @@ export const MODEL_CATALOG: CatalogModel[] = [
     sourceUrl: "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf",
     license: "Apache-2.0",
     description: "Google's on-device model, ~4B effective parameters, quantization-aware Q4_0. ~5.2GB.",
+    required: false,
+  },
+  // Experimental external engines (src/inference/externalEngines.ts): the model is copied to the
+  // phone over USB, not downloaded (docs/NATIVE_ENGINES.md), and runs in its own engine process.
+  {
+    id: "olmoe-1b-7b-colibri",
+    kind: "llm",
+    engine: "colibri",
+    label: "OLMoE-1B-7B · colibri (experimental)",
+    filename: "external/olmoe-colibri",
+    externalPath: "/data/local/tmp/colibri/olmoe-colibri",
+    sizeBytes: 0,
+    sha256: "",
+    sourceUrl: "",
+    license: "Apache-2.0",
+    description:
+      "Runs on colibri, a pure-C engine that keeps 16 of each layer's 64 experts in RAM and streams the rest from storage (~3 GB peak). Copy the converted model over USB first.",
+    required: false,
+  },
+  {
+    id: "qwen3.6-35b-a3b-bmoe",
+    kind: "llm",
+    engine: "bmoe",
+    label: "Qwen3.6-35B-A3B · BigMoeOnEdge (experimental)",
+    filename: "external/qwen3.6-35b-a3b-ud-q2-k-xl",
+    externalPath: "/data/local/tmp/bmoe/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf",
+    sizeBytes: 12290628576,
+    sha256: "",
+    sourceUrl: "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/resolve/main/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf",
+    license: "Apache-2.0",
+    description:
+      "A 35B mixture of experts (~3B active) that's bigger than the phone's RAM: BigMoeOnEdge keeps the always-used weights in memory and reads each token's experts from flash. Slow, but a real 35B on a phone. Copy it over USB first.",
     required: false,
   },
   {

@@ -45,11 +45,21 @@ describe("MODEL_CATALOG", () => {
     expect(new Set(filenames).size).toBe(filenames.length);
   });
 
-  it("every catalog entry has a non-empty checksum, size, and source URL", () => {
-    for (const m of MODEL_CATALOG) {
+  it("every downloadable entry has a non-empty checksum, size, and source URL", () => {
+    for (const m of MODEL_CATALOG.filter((m) => !m.externalPath)) {
       expect(m.sha256).toMatch(/^[0-9a-f]{64}$/);
       expect(m.sizeBytes).toBeGreaterThan(0);
       expect(m.sourceUrl).toMatch(/^https:\/\//);
+    }
+  });
+
+  it("models placed over USB name their engine and an absolute path, and are never required", () => {
+    const external = MODEL_CATALOG.filter((m) => m.externalPath);
+    expect(external.length).toBeGreaterThan(0);
+    for (const m of external) {
+      expect(["colibri", "bmoe"]).toContain(m.engine);
+      expect(m.externalPath).toMatch(/^\//);
+      expect(m.required).toBe(false);
     }
   });
 });

@@ -2,6 +2,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Crypto from "expo-crypto";
 import { copyBundledAssetToFile } from "bundled-assets";
 import { checkStorageForDownload } from "./storageBudget";
+import { NativeEngine } from "native-engine";
 import {
   CatalogModel,
   MODEL_CATALOG,
@@ -110,6 +111,11 @@ export class ModelManager {
    * green "Downloaded" badge for a file that will fail the moment it's used.
    */
   async statusOf(asset: CatalogModel): Promise<AssetStatus> {
+    // Placed on the device with adb, outside app storage: present when readable, never deleted.
+    if (asset.externalPath) {
+      const size = NativeEngine.pathSize(asset.externalPath);
+      return { asset, present: size >= 0, sizeOnDiskBytes: Math.max(size, 0), checksumOk: null };
+    }
     const path = assetPath(asset);
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) {
@@ -232,6 +238,9 @@ export class ModelManager {
     asset: CatalogModel,
     onProgress?: (p: DownloadProgress) => void
   ): Promise<void> {
+    if (asset.externalPath) {
+      throw new Error(`${asset.label} isn't downloaded by the app: copy it to ${asset.externalPath} over USB (see docs/NATIVE_ENGINES.md).`);
+    }
     const destPath = assetPath(asset);
     const destDir = destPath.substring(0, destPath.lastIndexOf("/"));
     await FileSystem.makeDirectoryAsync(destDir, { intermediates: true }).catch(() => {});
@@ -385,6 +394,7 @@ export class ModelManager {
   }
 
   async deleteModel(asset: CatalogModel): Promise<void> {
+    if (asset.externalPath) return; // not ours to delete: remove it over USB
     await FileSystem.deleteAsync(assetPath(asset), { idempotent: true });
   }
 
