@@ -81,8 +81,11 @@ A first release build takes about 40 minutes.
 Debug builds install as `team.sopa.aoair.dev` ("BOAR Dev", `plugins/withDevVariant.js`),
 so a development build and the release APK can be installed side by side, each
 with its own data. `run-as` and the USB scripts (`eval:device`, `pack:push`) need
-the debuggable one, so they default to `team.sopa.aoair.dev`; `npx expo run:android`
-needs `--app-id team.sopa.aoair.dev` to launch it (`make run-android` passes it).
+the debuggable one, so they default to `team.sopa.aoair.dev`. `npx expo run:android`
+builds and installs it but then fails to open it ("No development build (team.sopa.aoair)"),
+even with `--app-id`, because it checks for the release package first. Use `make run-android`:
+Gradle installs the debug build, adb opens BOAR Dev, then Metro starts. After `make start`, open
+BOAR Dev by hand; Expo's `a` shortcut has the same problem.
 
 ## No local Android SDK: build via EAS instead
 
