@@ -47,6 +47,10 @@ check-android:
 	fi
 
 start:
+	@# Debug builds install as team.sopa.aoair.dev ("BOAR Dev"), which Expo's "a" shortcut can't find:
+	@# open BOAR Dev on the phone yourself. The USB tunnel below is what it connects through.
+	-adb reverse tcp:8081 tcp:8081
+	@echo "Open BOAR Dev on the phone (don't press 'a': it looks for team.sopa.aoair)."
 	npx expo start --localhost
 
 run-android:
