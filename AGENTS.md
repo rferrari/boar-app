@@ -39,7 +39,7 @@ via one of the two paths below) then connects to.
 
 ```bash
 git clone <repo-url>
-cd aoair_app
+cd boar-app
 npm install
 npx expo prebuild -p android --clean   # generates ./android from app.json + plugins — gitignored, regenerate any time
 npx expo run:android --device          # builds the native app AND installs it on the connected device
