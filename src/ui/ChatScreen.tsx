@@ -613,7 +613,10 @@ export function ChatScreen({
           return c;
         };
 
-        const adaptiveRoutingEnabled = await getAdaptiveRoutingEnabled();
+        // A model on an external engine (colibri, BigMoeOnEdge) is only reachable by picking it:
+        // the router chooses among llama.rn models, so it would silently switch away from it.
+        const externalEngine = activeModelRef.current?.engine && activeModelRef.current.engine !== "llama";
+        const adaptiveRoutingEnabled = !externalEngine && (await getAdaptiveRoutingEnabled());
 
         if (adaptiveRoutingEnabled) {
           try {

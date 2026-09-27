@@ -12,6 +12,9 @@ const created: FakeContext[] = [];
 let inFlightInits = 0;
 let maxConcurrentInits = 0;
 
+// External engines run through a native module the JVM-less test runner can't load.
+vi.mock("native-engine", () => ({ NativeEngine: {}, nativeEngineAvailable: false }));
+
 vi.mock("llama.rn", () => ({
   initLlama: async ({ model }: { model: string }) => {
     inFlightInits++;

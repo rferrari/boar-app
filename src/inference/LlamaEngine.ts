@@ -1,6 +1,8 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { initLlama, LlamaContext } from "llama.rn";
 import { getDeviceTotalRamBytes, getMemoryInfo } from "ram-monitor";
+import { MODEL_CATALOG } from "../models/manifest";
+import { externalEngineFor, type ExternalEngine } from "./externalEngines";
 
 export interface ChatMessageInput {
   role: string;
@@ -84,6 +86,9 @@ export class LlamaEngine {
   // runs leaves its promise unsettled forever (the chat stays "generating"),
   // so unload stops it and waits for it first.
   private inFlight: Promise<unknown> | null = null;
+  // Set while a catalog model with its own `engine` is loaded (src/inference/externalEngines.ts);
+  // generate/stop/unload then go to it instead of llama.rn.
+  private external: ExternalEngine | null = null;
 
   private enqueue(task: () => Promise<void>): Promise<void> {
     const run = this.queue.then(task);
@@ -98,6 +103,18 @@ export class LlamaEngine {
   private async loadNow(modelFilename: string, opts?: { nCtx?: number; nThreads?: number }) {
     const nCtx = opts?.nCtx ?? 4096;
     const nThreads = opts?.nThreads ?? 4;
+
+    const externalModel = MODEL_CATALOG.find((m) => m.filename === modelFilename && m.engine && m.engine !== "llama");
+    const engine = externalModel ? externalEngineFor(externalModel) : null;
+    if (externalModel && engine) {
+      if (this.external === engine && this.modelInfo?.filename === modelFilename) return;
+      // One model in memory at a time: free llama.rn (and any other engine) first.
+      await this.unloadNow();
+      await engine.load(externalModel, { nCtx, nThreads });
+      this.external = engine;
+      this.modelInfo = { filename: modelFilename, nCtx, nThreads };
+      return;
+    }
 
     // ChatScreen re-mounts (and calls load() again) every time Settings is
     // closed, even if the user didn't touch the model — re-initializing the
@@ -191,6 +208,12 @@ export class LlamaEngine {
   }
 
   private async unloadNow() {
+    if (this.external) {
+      const engine = this.external;
+      this.external = null;
+      this.modelInfo = null;
+      await engine.unload();
+    }
     // Stop takes effect between tokens, so a completion still processing its
     // prompt can run on for a while; wait for it rather than release under it.
     if (this.inFlight) {
@@ -208,7 +231,12 @@ export class LlamaEngine {
   }
 
   get isLoaded(): boolean {
-    return this.context !== null;
+    return this.context !== null || this.external !== null;
+  }
+
+  /** The external engine running the loaded model, if any (for its own stats). */
+  get externalEngine(): ExternalEngine | null {
+    return this.external;
   }
 
   /**
@@ -217,6 +245,8 @@ export class LlamaEngine {
    * will be formatted in the model's own instruction format.
    */
   hasEmbeddedChatTemplate(): boolean {
+    // External engines apply the model's own template (or ours for colibri's OLMoE).
+    if (this.external) return true;
     return this.context?.isJinjaSupported() ?? false;
   }
 
@@ -230,6 +260,16 @@ export class LlamaEngine {
     timeoutMs,
     onTimeout,
   }: GenerateOptions): Promise<string> {
+    if (this.external) {
+      const engine = this.external;
+      const run = engine.generate({ prompt, messages, nPredict, temperature, onToken, stop });
+      this.inFlight = run;
+      try {
+        return await run;
+      } finally {
+        if (this.inFlight === run) this.inFlight = null;
+      }
+    }
     if (!this.context) throw new Error("LlamaEngine: model not loaded");
     if (!prompt && !messages) {
       throw new Error("LlamaEngine.generate: either prompt or messages must be provided");
@@ -277,6 +317,7 @@ export class LlamaEngine {
    * error/abort path, so no try/catch needed around a stopped generate().
    */
   async stop(): Promise<void> {
+    if (this.external) return this.external.stop();
     await this.context?.stopCompletion();
   }
 }
