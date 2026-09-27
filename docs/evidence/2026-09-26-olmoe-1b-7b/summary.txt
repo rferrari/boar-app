@@ -1,0 +1,28 @@
+BOAR Device Evaluation — eval-2026-09-26T07-27-02-735Z (set v1, 17 queries)
+────────────────────────────────────────────────────────────
+
+OLMoE-1B-7B (Q4_K_M)
+  Config:          model:olmoe-1b-7b-0125-q4km · prompt chat-template
+  Queries:         17 ok · 0 failed · 0 cancelled (of 17)
+  TTFT:            avg 10.0s · p50 9.5s
+  Model load:      avg 9.7s · p50 9.7s over 1 load(s)
+  Generation:      avg 6.7s · p50 5.0s
+  Tokens/sec:      avg 17.4 · p50 17.1
+  Total per query: avg 17.3s · p50 16.4s
+  Peak RSS:        4.66 GB
+  Residency:       cold 0 · switched 1 · resident 16
+  Model switches:  0 within plans · 1 across messages
+  Retrieval:       used 15/17 · expected KB article found 10/10
+
+Qwen2.5-1.5B-Instruct (Q4_K_M)
+  Config:          model:qwen2.5-1.5b-instruct-q4km · prompt chat-template
+  Queries:         17 ok · 0 failed · 0 cancelled (of 17)
+  TTFT:            avg 7.4s · p50 7.4s
+  Model load:      avg 4.4s · p50 4.4s over 1 load(s)
+  Generation:      avg 7.0s · p50 7.1s
+  Tokens/sec:      avg 15.3 · p50 14.9
+  Total per query: avg 14.8s · p50 15.1s
+  Peak RSS:        4.37 GB
+  Residency:       cold 0 · switched 1 · resident 16
+  Model switches:  0 within plans · 1 across messages
+  Retrieval:       used 15/17 · expected KB article found 10/10

@@ -1,0 +1,8 @@
+[stop] 4 stop tokens: 50279 0 1 50280 (3 from the tokenizer's special set)
+olmoe chat — SNAP=/data/local/tmp/colibri/olmoe-colibri, ctx=512, TEMP=0.00, NUCLEUS=0.95
+  type a message and press enter; /reset clears context; Ctrl-D exits
+resident weights loaded in 2.6s | RSS after load: 1.79 GB
+
+> The capital of Australia is Canberra.
+
+> [wall 27s]

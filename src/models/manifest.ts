@@ -164,6 +164,20 @@ export const MODEL_CATALOG: CatalogModel[] = [
     required: false,
   },
   {
+    id: "olmoe-1b-7b-0125-q4km",
+    kind: "llm",
+    label: "OLMoE-1B-7B (Q4_K_M)",
+    filename: "models/hf-allenai-olmoe-1b-7b-0125-instruct-gguf-olmoe-1b-7b-0125-instruct-q4-k-m-gguf.gguf",
+    sizeBytes: 4213512192,
+    sha256: "4ddc0e53159ed512b8dd67914a66e27bc618f694672ba43a9a0454eabd9c684f",
+    sourceUrl:
+      "https://huggingface.co/allenai/OLMoE-1B-7B-0125-Instruct-GGUF/resolve/main/OLMoE-1B-7B-0125-Instruct-Q4_K_M.gguf",
+    license: "Apache-2.0",
+    description:
+      "AllenAI's fully open mixture of experts: 7B total, ~1.3B active per token (64 experts, 8 per token). ~4.2GB.",
+    required: false,
+  },
+  {
     id: "corpus-standard",
     kind: "corpus",
     label: "Standard knowledge base (+1,000 topics)",

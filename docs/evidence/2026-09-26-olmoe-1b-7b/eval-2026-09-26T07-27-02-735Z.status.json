@@ -1,0 +1,18 @@
+{
+  "requestId": "req-20260926t072656-tmdp",
+  "state": "done",
+  "configs": [
+    "model:olmoe-1b-7b-0125-q4km",
+    "model:qwen2.5-1.5b-instruct-q4km"
+  ],
+  "total": 34,
+  "completed": 34,
+  "runId": "eval-2026-09-26T07-27-02-735Z",
+  "resultPath": "files/eval/eval-2026-09-26T07-27-02-735Z.jsonl",
+  "stopped": false,
+  "installedModels": [
+    "qwen2.5-1.5b-instruct-q4km",
+    "olmoe-1b-7b-0125-q4km"
+  ],
+  "updatedAt": 1790408169946
+}
