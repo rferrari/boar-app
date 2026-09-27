@@ -540,6 +540,22 @@ export function ChatScreen({
 
       let firstToken = true;
       let firstTokenTime = 0;
+      // External engines (colibri, BigMoeOnEdge) compete with the UI for the same big cores, so
+      // their text reaches the screen at most four times a second instead of on every token.
+      const onExternalEngine = !!activeModelRef.current?.engine && activeModelRef.current.engine !== "llama";
+      let pendingText = "";
+      let lastFlush = 0;
+      let flushTimer: ReturnType<typeof setTimeout> | null = null;
+      const appendToAnswer = (text: string) =>
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, text: m.text + text } : m)));
+      const flushPending = () => {
+        flushTimer = null;
+        lastFlush = performance.now();
+        if (!pendingText) return;
+        const text = pendingText;
+        pendingText = "";
+        appendToAnswer(text);
+      };
       const onToken = (piece: string) => {
         tokensGenerated += 1;
         assistantText += piece;
@@ -552,9 +568,14 @@ export function ChatScreen({
           const elapsedSinceFirst = (performance.now() - firstTokenTime) / 1000;
           if (elapsedSinceFirst > 0) setLiveTokPerSec(tokensGenerated / elapsedSinceFirst);
         }
-        setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? { ...m, text: m.text + piece } : m))
-        );
+        if (!onExternalEngine) {
+          appendToAnswer(piece);
+          return;
+        }
+        pendingText += piece;
+        const sinceFlush = performance.now() - lastFlush;
+        if (sinceFlush >= 250) flushPending();
+        else if (!flushTimer) flushTimer = setTimeout(flushPending, 250 - sinceFlush);
       };
 
       let chunks: RetrievedChunk[];
@@ -599,7 +620,9 @@ export function ChatScreen({
             c = [];
           } else {
             setProcessing({ messageId: assistantId, status: "retrieving" });
-            c = await retrieve(query, ANSWER_CONTEXT_CHUNKS);
+            // Slow engines read every token of the prompt at a few tokens a second: half the
+            // articles roughly halves the wait before the first word.
+            c = await retrieve(query, onExternalEngine ? 2 : ANSWER_CONTEXT_CHUNKS);
           }
           setProcessing({ messageId: assistantId, status: "thinking" });
           // Use the model's own chat template when its file ships one; the
