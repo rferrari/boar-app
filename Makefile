@@ -1,4 +1,4 @@
-.PHONY: help setup install check-android start run-android build-eas test typecheck clean knowledge-pack knowledge-pack-small
+.PHONY: help setup install check-android start run-android clean-android install-dev build-eas test typecheck clean knowledge-pack knowledge-pack-small
 
 help:
 	@echo "BOAR - Adaptive Local Intelligence"
@@ -53,14 +53,26 @@ start:
 	@echo "Open BOAR Dev on the phone (don't press 'a': it looks for team.sopa.aoair)."
 	npx expo start --localhost
 
+# Debug builds install as team.sopa.aoair.dev ("BOAR Dev"). `expo run:android` still looks for
+# team.sopa.aoair before opening the app and fails, so Gradle installs it and adb opens it.
+DEV_APP = team.sopa.aoair.dev
+ABI ?= arm64-v8a
+
 run-android:
 	npx expo prebuild -p android
-	npx expo run:android --device --app-id team.sopa.aoair.dev
+	$(MAKE) install-dev
+
+clean-android:
+	npx expo prebuild -p android --clean
+	$(MAKE) install-dev
+
+install-dev:
+	cd android && ./gradlew installDebug -PreactNativeArchitectures=$(ABI)
+	-adb reverse tcp:8081 tcp:8081
+	adb shell monkey -p $(DEV_APP) -c android.intent.category.LAUNCHER 1 >/dev/null
+	npx expo start --localhost
 
 # Use this ONLY if native builds get corrupted or when updating Expo plugins
-clean-android:
-	npx expo prebuild -p android --clean 
-	npx expo run:android --app-id team.sopa.aoair.dev
 
 build-eas:
 	npx eas-cli build --platform android --profile preview
