@@ -72,6 +72,43 @@ llama.rn.
 5. **Evaluate:** run `npm run eval:device` with and without the filter: answer quality, first-token
    time and memory. Keep the filter only if it helps.
 
+## Results of steps 1–2 (2026-09-28)
+
+**Export (desktop):** `scripts/laya/export_onnx.py` exports `laya-multilingual` with PyTorch's
+dynamo exporter. The TorchScript exporter baked the sequence length into the head's attention
+reshapes, so any other length failed.
+
+| | Size | Largest P(yes) difference from PyTorch | Desktop CPU per question |
+|---|---|---|---|
+| fp32 ONNX | 1,290 MB | 0.0000 | 69 ms |
+| int8 ONNX (dynamic, per-tensor) | 325 MB | 0.24, too lossy: try per-channel next | 45 ms |
+
+**Phone:** POCO X6 Pro, Dimensity 8300, 4 fast cores, 34.9 °C.
+`scripts/laya/phone_bench.cpp` with ONNX Runtime 1.30.0 (Maven), run with the int8 model:
+
+| Load | Peak RSS | 64 tokens | 256 tokens | 512 tokens |
+|---|---|---|---|---|
+| 1.4 s | **577 MB** | **115 ms** (fastest 86) | 614 ms | 886 ms |
+
+**Answer quality (PyTorch, zero-shot, multilingual):**
+
+- **Urgency:** emergencies rank above calm text, but with low confidence. "My friend collapsed and
+  isn't breathing" got 0.03–0.49 depending on the wording, with 0.49 for "Is someone in danger
+  right now?". Calm questions got 0.00–0.03.
+- **Relevance to "What is the capital of Australia?":** it rejects off-topic text (photosynthesis
+  0.00), but not a related wrong passage: Canberra 0.67 against Sydney 0.62 for "Is this text
+  relevant…".
+
+**Verdict so far:**
+
+- **Retrieval filtering: no.** It costs about 0.5 s per chunk, and it only separates off-topic
+  chunks, which the existing lexical and semantic thresholds already drop.
+- **Urgency check: possible**, at about 115 ms per short prompt, but its signal is weak. It needs
+  a labelled test set, and probably fine-tuning (the Laya README links a free Kaggle notebook),
+  before it can drive anything in the app.
+- **Memory is 577 MB,** above the ~400 MB budget. The vocabulary table is 197M of the 322M
+  parameters.
+
 ## Open questions
 
 - Does mmBERT's attention (global plus sliding window, RoPE) export cleanly to ONNX, or does it
