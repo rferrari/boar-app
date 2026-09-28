@@ -1,5 +1,28 @@
 # Laya in BOAR: proposal
 
+> **Status: parked (2026-09-28).** Laya runs on the phone, and a short check is fast enough
+> (115 ms), but zero-shot it isn't good enough at either job BOAR needs:
+>
+> - **Relevance filtering:** it rejects off-topic chunks, which search already drops, but can't
+>   tell a right passage from a related wrong one (Canberra 0.67 against Sydney 0.62). It would
+>   add about 0.5 s per chunk.
+> - **Urgency check:** "My friend collapsed and isn't breathing" scored only 0.03–0.49,
+>   depending on the wording.
+> - **Memory and accuracy:** it uses 577 MB of RAM, not the planned ~200–400 MB, and int8
+>   shifts answers by up to 0.24.
+>
+> To pick it up again:
+>
+> 1. **Fine-tune for BOAR's two tasks** (the Laya README links a free Kaggle notebook), using a
+>    small labelled set: emergency or not, and does this passage answer the question.
+> 2. **Re-export and re-measure** with the tools here. Try per-channel int8, and possibly a
+>    vocabulary pruned to the languages BOAR serves, to cut memory.
+> 3. **Or first check whether the English checkpoint** (421M, likely 2–3× slower) is clearly
+>    better.
+>
+> The details are below. Tools: `scripts/laya/export_onnx.py` (export and check against
+> PyTorch) and `scripts/laya/phone_bench.cpp` (ONNX Runtime on the phone over adb).
+
 [Laya](https://github.com/NandhaKishorM/laya) (Apache-2.0) is a "System 1" decision model: a
 bidirectional encoder with a small decision head. It answers typed questions about a text (yes/no,
 score, or choice) zero-shot, in one forward pass per question. Mood Lab (`~/projects/mood-lab`)
