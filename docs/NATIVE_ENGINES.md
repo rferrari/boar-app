@@ -1,5 +1,44 @@
 # Experimental engines: colibri and BigMoeOnEdge
 
+> **Status: parked (2026-09-28).** Both engines run inside BOAR Dev, but neither beats llama.rn
+> on the test phone (POCO X6 Pro, Dimensity 8300, 11.6 GB RAM, UFS 4.0).
+>
+> **What we measured** (same phone, same question unless noted):
+>
+> | Engine and model | Where the weights are | Generation | Peak RAM |
+> |---|---|---|---|
+> | llama.cpp (llama.rn), OLMoE-1B-7B Q4_K_M | all in RAM | **21.6 tok/s** | ~4.2 GB |
+> | colibri, OLMoE-1B-7B int8, 16/64 experts cached | streamed from storage | ~1.8 tok/s (whole run) | 3.0 GB |
+> | llama.cpp, OLMoE-1B-7B Q8_0 | bigger than free RAM | 0.07 tok/s | fills RAM |
+> | BigMoeOnEdge, Qwen3.6-35B-A3B Q2_K_XL (12.3 GB), upstream | streamed from storage | 1.25 tok/s (cold cache) | ~5 GB |
+> | the same, with AndroidLM's patches and settings (below) | streamed from storage | 1.53 tok/s at 35.5 °C, 87% cache hits | ~7 GB |
+>
+> **What that means:**
+>
+> - **Streaming works:** when the model doesn't fit in RAM, colibri was about 25x faster than
+>   llama.cpp and used less than half the memory.
+> - **When the model fits, llama.cpp wins by far.** So colibri has no use on this phone: its
+>   bigger engines need 16–24 GB of RAM.
+> - **A real 35B mixture of experts runs on the phone,** but at about 1.5 tok/s against the 4–6
+>   AndroidLM reports on a Pixel 8 Pro. That phone is similar: comparable fast cores, and slower
+>   storage. The engine's stats point to memory, not storage or heat: reads took 0.12 s per token,
+>   compute 0.57 s, with **~8,400 major page faults per token**. The 5,000 MiB expert cache is
+>   likely too big for this phone's free RAM, so it swaps.
+>
+> **Why parked:** it's slower than llama.rn for every model that fits in RAM, and the 35B isn't
+> fast enough for everyday use yet. The default model gets far more from better retrieval (see
+> the `rag-precision` branch).
+>
+> **To pick it up again:**
+>
+> 1. Repeat the 35B test with `--cache-mb 3000` and `auto`, and watch `majflt_tok` in BMOE_DONE.
+> 2. Run the same test without the patches, in case one of them is worse on MediaTek.
+> 3. Try `--mtp` if the model file has a multi-token prediction head.
+>
+> If none of these gets it above ~3 tok/s, keep it as a demo. Either way, the app should choose
+> the engine automatically (llama.rn when the model fits, BigMoeOnEdge for a MoE bigger than
+> RAM) rather than asking the user.
+
 BOAR runs its models with llama.cpp through llama.rn. This branch adds two more engines for
 mixture-of-experts models bigger than the phone's free RAM. Each one runs as its own process and
 **streams the experts from storage** instead of holding the whole model in memory:
