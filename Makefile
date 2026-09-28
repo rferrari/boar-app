@@ -47,11 +47,9 @@ check-android:
 	fi
 
 start:
-	@# Debug builds install as team.sopa.aoair.dev ("BOAR Dev"), which Expo's "a" shortcut can't find:
-	@# open BOAR Dev on the phone yourself. The USB tunnel below is what it connects through.
+	@# BOAR_DEV_APP=1 points Expo at BOAR Dev (team.sopa.aoair.dev, see app.config.js).
 	-adb reverse tcp:8081 tcp:8081
-	@echo "Open BOAR Dev on the phone (don't press 'a': it looks for team.sopa.aoair)."
-	npx expo start --localhost
+	BOAR_DEV_APP=1 npx expo start --localhost
 
 # Debug builds install as team.sopa.aoair.dev ("BOAR Dev"). `expo run:android` still looks for
 # team.sopa.aoair before opening the app and fails, so Gradle installs it and adb opens it.
@@ -70,7 +68,7 @@ install-dev:
 	cd android && ./gradlew installDebug -PreactNativeArchitectures=$(ABI)
 	-adb reverse tcp:8081 tcp:8081
 	adb shell monkey -p $(DEV_APP) -c android.intent.category.LAUNCHER 1 >/dev/null
-	npx expo start --localhost
+	BOAR_DEV_APP=1 npx expo start --localhost
 
 # Use this ONLY if native builds get corrupted or when updating Expo plugins
 
