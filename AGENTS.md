@@ -81,11 +81,10 @@ A first release build takes about 40 minutes.
 Debug builds install as `team.sopa.aoair.dev` ("BOAR Dev", `plugins/withDevVariant.js`),
 so a development build and the release APK can be installed side by side, each
 with its own data. `run-as` and the USB scripts (`eval:device`, `pack:push`) need
-the debuggable one, so they default to `team.sopa.aoair.dev`. `app.json` keeps the release
-package, and Expo's CLI opens the app by that name ("No development build (team.sopa.aoair)"), so
-`app.config.js` switches it to `.dev` when `BOAR_DEV_APP=1` is set. `make start` and
-`make run-android` set it; prebuild must not (the plugin adds the suffix). `make run-android`
-installs the debug build with Gradle, opens BOAR Dev with adb, then starts Metro.
+the debuggable one, so they default to `team.sopa.aoair.dev`. The plugin makes `.dev` the default
+`applicationId` in `build.gradle` and sets the plain one back for release builds: Expo's CLI opens
+the app by the id it reads there, so pressing `a` after `make start` opens BOAR Dev.
+`make run-android` installs the debug build with Gradle, opens it with adb, then starts Metro.
 
 ## No local Android SDK: build via EAS instead
 

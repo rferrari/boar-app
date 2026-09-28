@@ -47,9 +47,8 @@ check-android:
 	fi
 
 start:
-	@# BOAR_DEV_APP=1 points Expo at BOAR Dev (team.sopa.aoair.dev, see app.config.js).
 	-adb reverse tcp:8081 tcp:8081
-	BOAR_DEV_APP=1 npx expo start --localhost
+	npx expo start --localhost
 
 # Debug builds install as team.sopa.aoair.dev ("BOAR Dev"). `expo run:android` still looks for
 # team.sopa.aoair before opening the app and fails, so Gradle installs it and adb opens it.
@@ -68,7 +67,7 @@ install-dev:
 	cd android && ./gradlew installDebug -PreactNativeArchitectures=$(ABI)
 	-adb reverse tcp:8081 tcp:8081
 	adb shell monkey -p $(DEV_APP) -c android.intent.category.LAUNCHER 1 >/dev/null
-	BOAR_DEV_APP=1 npx expo start --localhost
+	npx expo start --localhost
 
 # Use this ONLY if native builds get corrupted or when updating Expo plugins
 
