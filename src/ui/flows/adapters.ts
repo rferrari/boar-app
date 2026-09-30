@@ -10,6 +10,8 @@
  * - Position: modules/offline-location (GPS only, no Google Play Services) is wired.
  */
 import type { CatalogModel } from "../../models/manifest";
+// Topic packs live in their own module (no native imports) so they can be tested; re-exported for existing callers.
+export { topicPacks, packName, type PackSource, type TopicPack } from "./topicPacks";
 import { confirmLargeModel as confirmLargeModelSetting, getLargeModelConfirmedIds, getLoadCrashedIds, getPlaceTileNames, setPlaceTileNames } from "../../models/settings";
 import { loadGuard } from "../../inference/loadGuard";
 import * as Downloads from "../../services/downloadManager";
@@ -27,8 +29,6 @@ import { tileIdOf, type InstalledTile } from "./placeTiles";
 import type { NativePosition } from "../../services/location.pure";
 import * as OfflineLocation from "offline-location";
 // Importing the module also registers the pack with the asset registry.
-import { PREPAREDNESS_PACK, PREPAREDNESS_SOURCES, preparednessEntry as bramblePreparednessEntry } from "../../rag/preparedness";
-import { CRYPTO_PACK, CRYPTO_SOURCES, cryptoEntry } from "../../rag/cryptoPack";
 
 /**
  * Total and available RAM now: three synchronous native calls (two are Binder IPCs on Android),
@@ -142,43 +142,6 @@ export async function nameTilesAfter(city: string, assets: CatalogModel[]): Prom
 /** Forgets the names of removed tiles. */
 export async function forgetTileNames(tileIds: string[]): Promise<void> {
   if (tileIds.length > 0) await setPlaceTileNames(Object.fromEntries(tileIds.map((id) => [id, null])));
-}
-
-export interface PackSource {
-  name: string;
-  license: string;
-  url?: string;
-}
-
-/** A topic pack (Bramble's src/rag/*Pack.ts): its catalog entry, localized name, size in documents and sources to attribute. */
-export interface TopicPack {
-  entry: CatalogModel;
-  name: { en: string; pt: string };
-  docCount: number;
-  sources: PackSource[];
-}
-
-/** Every topic pack in the app, for the Knowledge list and the About attributions. A new pack is one line here. */
-export function topicPacks(): TopicPack[] {
-  return [
-    {
-      entry: bramblePreparednessEntry(),
-      name: PREPAREDNESS_PACK.name,
-      docCount: PREPAREDNESS_PACK.docCount,
-      sources: PREPAREDNESS_SOURCES.map(({ name, license, url }) => ({ name, license, url })),
-    },
-    {
-      entry: cryptoEntry(),
-      name: CRYPTO_PACK.name,
-      docCount: CRYPTO_PACK.docCount,
-      sources: CRYPTO_SOURCES.map(({ name, license, url }) => ({ name, license, url })),
-    },
-  ];
-}
-
-/** The pack's name in the UI language (English for anything but Portuguese). */
-export function packName(pack: TopicPack, lang: string): string {
-  return lang.startsWith("pt") ? pack.name.pt : pack.name.en;
 }
 
 /**
