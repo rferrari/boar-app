@@ -1,0 +1,58 @@
+# On camera (POLISH #1 flow 1a): fresh app -> setup 1 (language switch: EN run goes PT and back, PT run picks PT)
+# -> 2 (pack) -> 3 (import) -> system picker -> the first seconds of step 4 (import progress). 01b continues from there.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element: "Português"
+    optional: true
+- tapOn: "Português"
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      true: ${L == 'en'}
+    commands:
+      - tapOn: "English"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- scrollUntilVisible:
+    element: ${T_START}
+    optional: true
+- tapOn: ${T_START}
+- extendedWaitUntil:
+    visible:
+      text: "${T_ESSENTIAL}, .*"
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "${T_ESSENTIAL}, .*"
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_CONTINUE}
+- tapOn: ${T_CONTINUE}
+- extendedWaitUntil:
+    visible: ${T_PICK}
+    timeout: 20000
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_PICK}
+- tapOn: "Show roots"
+- tapOn: "Downloads"
+- tapOn:
+    text: "List view"
+    optional: true
+- longPressOn:
+    text: ".*\\.gguf"
+- tapOn: "More options"
+- tapOn: "Select all"
+- tapOn: "Select"
+# hold 8 s on the import progress (no-op wait)
+- extendedWaitUntil:
+    visible: "__hold__"
+    timeout: 8000
+    optional: true

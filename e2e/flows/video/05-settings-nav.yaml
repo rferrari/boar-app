@@ -1,0 +1,50 @@
+# On camera (POLISH #1 flow 5): Settings -> Assistant -> back; Models; Knowledge; Performance (push/pop), back to the chat.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- runFlow: ../perf/to-chat.yaml
+- tapOn: ${T_MENU}
+- tapOn: ${T_SETTINGS}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_ASSISTANT}
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_MODELS}
+    centerElement: true
+- tapOn: ${T_MODELS}
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_KNOWLEDGE}
+    centerElement: true
+- tapOn: ${T_KNOWLEDGE}
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_PERFORMANCE}
+    centerElement: true
+- tapOn: ${T_PERFORMANCE}
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000

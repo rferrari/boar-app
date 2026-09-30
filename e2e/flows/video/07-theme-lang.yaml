@@ -1,0 +1,39 @@
+# On camera (POLISH #1 flow 7): Settings > Appearance: Light -> System (the AVD is in night mode) -> Dark,
+# then language to the other one and back. Ends in Dark and in the run's language.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- runFlow: ../perf/to-chat.yaml
+- tapOn: ${T_MENU}
+- tapOn: ${T_SETTINGS}
+- scrollUntilVisible:
+    element: ${T_LIGHT}
+    centerElement: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_LIGHT}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_SYSTEM}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_DARK}
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_OTHER_LANG}
+    centerElement: true
+- tapOn: ${T_OTHER_LANG}
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn: ${T_BACK_LANG}
+- waitForAnimationToEnd:
+    timeout: 4000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000

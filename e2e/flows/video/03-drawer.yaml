@@ -1,0 +1,39 @@
+# On camera (POLISH #1 flow 3): open/close the drawer, New chat, then switch back to the sourced conversation.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- runFlow: ../perf/to-chat.yaml
+- runFlow:
+    when:
+      notVisible:
+        text: "${T_CONV_MONSOON}"
+    commands:
+      - tapOn: ${T_MENU}
+      - tapOn:
+          text: "${T_CONV_MONSOON}"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- tapOn: ${T_MENU}
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_MENU}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_NEWCHAT}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_MENU}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "${T_CONV_MONSOON}"
+- waitForAnimationToEnd:
+    timeout: 4000

@@ -122,6 +122,19 @@ cold boot, and put it back afterwards.
 
 See `e2e/README.md`.
 
+## 6. Per-build checks on the Mac mini (r4to rule, 28/09: no video per build)
+
+| When | Script | Pass = |
+|---|---|---|
+| Every build | `e2e/scripts/mini/run-smoke.sh <apk> <sha>` (~5 min, mostly the setup import) | rc=0: the EN answer shows body `[1]`, SOURCES, Helpful/Copy answer and Go deeper; PT shows the passage + (note + "Arriscar resposta" or a model answer); dark pixels in the chat area < 99% |
+| When the chat list or its structure changes | `e2e/scripts/mini/run-a11y-order.sh <apk> <sha>` (~6 min) | `order.txt`: older question before newer in tree order, no tree steps going up the screen |
+| Only for a specific animation question, 1 flow, with Boar's OK | `e2e/scripts/mini/run-video.sh` (`FLOWS=02` etc.) | a video for Prism, not a gate |
+
+```bash
+# inside the heavy queue on the mini (from the MacBook: ssh -n -f r4toMacMini "bash -lc '...'")
+FLOOR_GB=7 ~/boar/bin/heavy Piston bash ~/boar/android/run-smoke.sh $(ls ~/boar/android/apk/boar-integration-<sha>*-offline-arm64.apk | head -1) <sha>
+```
+
 ## UNKNOWN
 
 - The Gradle cache size after a clean build (re-measure).

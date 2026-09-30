@@ -1,0 +1,36 @@
+# Smoke (no recording): PT quick passage must show, followed by either the decline note + "Arriscar resposta"
+# or a model answer with actions. Fails the run otherwise.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- runFlow: ../prints/new-chat.yaml
+- runFlow:
+    file: ../prints/ask-paste.yaml
+    env:
+      QUESTION: "O que causa a monção?"
+- extendedWaitUntil:
+    visible: "Parar resposta"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: "Parar resposta"
+    timeout: 180000
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "Da fonte.*"
+    direction: UP
+    timeout: 10000
+- runFlow:
+    when:
+      visible: "Arriscar resposta"
+    commands:
+      - assertVisible:
+          text: "O trecho acima.*"
+- runFlow:
+    when:
+      notVisible: "Arriscar resposta"
+    commands:
+      - scrollUntilVisible:
+          element: "Copiar resposta"
+          timeout: 10000

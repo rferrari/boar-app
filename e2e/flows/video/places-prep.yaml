@@ -1,0 +1,22 @@
+# Off camera, before 04/06: Knowledge > Import places (tile + world gazetteer), then a places answer in a new chat.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- runFlow: ../perf/import-places.yaml
+- runFlow: ../prints/new-chat.yaml
+- runFlow:
+    file: ../prints/ask-paste.yaml
+    env:
+      QUESTION: ${Q_PLACES}
+- extendedWaitUntil:
+    visible: ${T_STOP}
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: ${T_STOP}
+    timeout: 300000

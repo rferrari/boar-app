@@ -1,0 +1,15 @@
+# Off camera: into a new chat with Q_MONSOON pasted in the composer; the keyboard stays up, as when a person taps Send.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- runFlow: ../perf/to-chat.yaml
+- runFlow: ../prints/new-chat.yaml
+- tapOn: ${T_ASK}
+- setClipboard: ${Q_MONSOON}
+- pasteText
+- waitForAnimationToEnd

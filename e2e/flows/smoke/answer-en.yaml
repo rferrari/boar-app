@@ -1,0 +1,44 @@
+# Smoke (no recording): EN model answer must end with body ([1]), sources and actions on screen. Fails the run otherwise.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Ask something"
+    timeout: 60000
+- runFlow: ../prints/new-chat.yaml
+- runFlow:
+    file: ../prints/ask-paste.yaml
+    env:
+      QUESTION: "What causes the monsoon?"
+- extendedWaitUntil:
+    visible: "Stop answer"
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: "Stop answer"
+    timeout: 180000
+- runFlow:
+    when:
+      visible: "Answer with AI"
+    commands:
+      - tapOn: "Answer with AI"
+      - extendedWaitUntil:
+          notVisible: "Stop answer"
+          timeout: 180000
+- waitForAnimationToEnd:
+    timeout: 5000
+- scrollUntilVisible:
+    element:
+      text: "\\[1\\]"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "SOURCES ON THIS PHONE"
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Copy answer"
+    timeout: 10000
+- assertVisible: "Helpful answer"
+- scrollUntilVisible:
+    element: "Go deeper"
+    timeout: 10000

@@ -1,0 +1,37 @@
+# On camera (POLISH #1 flow 2, r4to's priority): Send -> stages card -> instant passage -> streaming -> sources -> receipt.
+# If the quick passage offers "Answer with AI", that is tapped and streamed too. Then one slow swipe to bring sources and
+# the receipt into view, and a hold so the last layout change settles on video.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- tapOn:
+    text: ${T_SEND}
+    waitToSettleTimeoutMs: 200
+- extendedWaitUntil:
+    visible: ${T_STOP}
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: ${T_STOP}
+    timeout: 170000
+- runFlow:
+    when:
+      visible: ${T_ASK_MODEL}
+    commands:
+      - tapOn:
+          text: ${T_ASK_MODEL}
+          waitToSettleTimeoutMs: 200
+      - extendedWaitUntil:
+          visible: ${T_STOP}
+          timeout: 10000
+          optional: true
+      - extendedWaitUntil:
+          notVisible: ${T_STOP}
+          timeout: 170000
+- waitForAnimationToEnd:
+    timeout: 3000
+- swipe:
+    start: 50%, 75%
+    end: 50%, 35%
+    duration: 1500
+- waitForAnimationToEnd:
+    timeout: 3000

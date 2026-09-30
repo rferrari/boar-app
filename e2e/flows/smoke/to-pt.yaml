@@ -1,0 +1,15 @@
+# Smoke: switch the app to Português in Settings, back to the chat.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- tapOn: "Open menu"
+- tapOn: "Settings"
+- scrollUntilVisible:
+    element: "Português"
+    centerElement: true
+- tapOn: "Português"
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- extendedWaitUntil:
+    visible: "Pergunte algo"
+    timeout: 20000

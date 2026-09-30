@@ -1,0 +1,17 @@
+# Scroll the conversation to its start (the oldest question), where a linear TalkBack read begins.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- scrollUntilVisible:
+    element:
+      text: "${Q_A_RE}"
+    direction: UP
+    timeout: 30000
+    optional: true
+- swipe:
+    start: 50%, 30%
+    end: 50%, 80%
+    duration: 600
+- swipe:
+    start: 50%, 30%
+    end: 50%, 80%
+    duration: 600

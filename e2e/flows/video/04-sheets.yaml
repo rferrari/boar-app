@@ -1,0 +1,58 @@
+# On camera (POLISH #1 flow 4), starting on the places answer: place sheet open/close, delete confirmation open/Cancel
+# (nothing is deleted), then the sourced conversation's source sheet open/close. Closes with Android back.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+# launchApp restarts the app: wait for the chat, or to-chat's Back lands on the splash and leaves the app
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 60000
+    optional: true
+- tapOn:
+    text: "${T_PLACE_ROW}"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_MENU}
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "${T_DELETE_CONV}"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: ${T_CANCEL}
+- waitForAnimationToEnd:
+    timeout: 3000
+- runFlow:
+    when:
+      notVisible: ${T_NEWCHAT}
+    commands:
+      - tapOn: ${T_MENU}
+- tapOn:
+    text: "${T_CONV_MONSOON}"
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element:
+      text: "${T_OPEN_SOURCE}"
+    direction: UP
+    optional: true
+- tapOn:
+    text: "${T_OPEN_SOURCE}"
+    optional: true
+- runFlow:
+    when:
+      notVisible: "${T_SOURCE_SHEET}"
+    commands:
+      - tapOn:
+          text: "\\[1\\]"
+          optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- back
+- waitForAnimationToEnd:
+    timeout: 3000

@@ -1,0 +1,18 @@
+# On camera (POLISH #1 flow 1b): import progress (step 4) -> done -> Open BOAR -> the chat's entrance.
+# Recorder cap is 180 s: an import longer than ~165 s cuts the end of this video (README says so when it happens).
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- extendedWaitUntil:
+    visible: ${T_DONE}
+    timeout: 900000
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element: ${T_OPEN}
+    optional: true
+- tapOn: ${T_OPEN}
+- extendedWaitUntil:
+    visible: ${T_ASK}
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 4000

@@ -1,0 +1,28 @@
+# One conversation with 2 questions and 2 answers (Q_A then Q_B), for the TalkBack reading-order check.
+appId: ${APP_ID || "team.sopa.aoair.offline"}
+---
+- launchApp
+- runFlow: ../perf/to-chat.yaml
+- runFlow: ../prints/new-chat.yaml
+- runFlow:
+    file: ../prints/ask-paste.yaml
+    env:
+      QUESTION: ${Q_A}
+- extendedWaitUntil:
+    visible: ${T_STOP}
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: ${T_STOP}
+    timeout: 300000
+- runFlow:
+    file: ../prints/ask-paste.yaml
+    env:
+      QUESTION: ${Q_B}
+- extendedWaitUntil:
+    visible: ${T_STOP}
+    timeout: 10000
+    optional: true
+- extendedWaitUntil:
+    notVisible: ${T_STOP}
+    timeout: 300000
