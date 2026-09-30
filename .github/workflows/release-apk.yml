@@ -2,8 +2,8 @@ name: Release APK
 
 # Builds both Android variants signed with BOAR's release key, checks each one
 # (scripts/check-release-apk.sh: package, versionCode, signer) and, when a tag is
-# given, creates a draft GitHub Release with the downloader APK as its first asset
-# (make setup installs the first .apk it finds). Nobody's laptop needs the key.
+# given, creates a draft GitHub Release with both APKs (make setup picks the downloader one, not
+# the offline one). Nobody's laptop needs the key.
 #
 # The key lives only in the "release" environment's secrets (docs/RELEASING.md),
 # which can only be used from main, so a branch with an edited workflow can't
@@ -123,12 +123,16 @@ jobs:
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "tag must look like v1.2.3"; exit 1; }
           [ "$TAG" = "v$version" ] || { echo "tag $TAG doesn't match app.json's version $version"; exit 1; }
           # An existing tag must be this commit: --target is ignored for a tag that's already there.
-          existing=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha 2>/dev/null || true)
+          # (git ls-remote prints nothing for a missing tag; gh api printed its error JSON instead.)
+          refs=$(git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY.git" "refs/tags/$TAG" "refs/tags/$TAG^{}")
+          # An annotated tag lists its tag object and, as ^{}, the commit it points to.
+          existing=$(awk '$2 ~ /\^\{\}$/ { print $1 }' <<<"$refs")
+          [ -n "$existing" ] || existing=$(awk 'NR == 1 { print $1 }' <<<"$refs")
           if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
             echo "tag $TAG already points to $existing, not this build ($GITHUB_SHA)"; exit 1
           fi
           gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "BOAR $TAG" --notes "Draft: write the notes before publishing."
-          # One at a time, in this order: make setup installs the first .apk.
+          # GitHub lists assets by name whatever the upload order; make setup picks the non-offline APK.
           for f in "boar-$TAG-arm64.apk" "boar-$TAG-arm64.apk.sha256" "boar-offline-$TAG-arm64.apk" "boar-offline-$TAG-arm64.apk.sha256"; do
             gh release upload "$TAG" "out/$f"
           done

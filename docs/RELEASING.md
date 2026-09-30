@@ -3,8 +3,8 @@
 Release APKs are built and signed by GitHub Actions (`.github/workflows/release-apk.yml`), so the
 signing key doesn't have to be on anyone's laptop. The workflow builds both variants, audits them,
 checks each one with `scripts/check-release-apk.sh` (package, versionCode, signed with v1.0.0's key)
-and, given a tag, creates a draft release with the downloader APK first (`make setup` installs the
-first `.apk` it finds).
+and, given a tag, creates a draft release with both APKs (`make setup` installs the downloader one;
+GitHub lists assets by name, so the offline APK shows first).
 
 ## Once: put the key in the `release` environment
 

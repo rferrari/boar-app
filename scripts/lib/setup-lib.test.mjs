@@ -20,6 +20,17 @@ describe("setup helpers", () => {
     };
     expect(pickReleaseApk(release)).toEqual({ name: "boar-v1.0.0.apk", url: "https://x/boar.apk", size: 60e6, shaUrl: "https://x/boar.apk.sha256", tag: "v1.0.0" });
     expect(pickReleaseApk({ assets: [] })).toBeNull();
+    // GitHub sorts assets by name: the offline APK is listed first, the downloader is still picked.
+    const both = {
+      tag_name: "v1.1.0",
+      assets: [
+        { name: "boar-offline-v1.1.0-arm64.apk", browser_download_url: "https://x/off.apk", size: 1 },
+        { name: "boar-offline-v1.1.0-arm64.apk.sha256", browser_download_url: "https://x/off.apk.sha256", size: 1 },
+        { name: "boar-v1.1.0-arm64.apk", browser_download_url: "https://x/boar.apk", size: 2 },
+        { name: "boar-v1.1.0-arm64.apk.sha256", browser_download_url: "https://x/boar.apk.sha256", size: 1 },
+      ],
+    };
+    expect(pickReleaseApk(both)).toMatchObject({ name: "boar-v1.1.0-arm64.apk", shaUrl: "https://x/boar.apk.sha256" });
     expect(pickReleaseApk(null)).toBeNull();
   });
 
