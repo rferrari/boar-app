@@ -157,142 +157,15 @@ export const EVAL_SET: EvalQuery[] = [
 ];
 
 /**
- * Questions the bounty's inspiration, Vitalik Buterin, asks offline research apps: the battery
- * and cases in his Field Atlas fork (github.com/vbuterin/fieldatlas, tools/e2e_battery_cases.json
- * and tools/e2e_cases.json), plus his own interests. Run on its own (`--queries vitalik`), never
- * as part of the standard set, and versioned separately so its rows aren't compared with it.
- * Expected titles are the right Wikipedia articles even when no installed pack has them yet,
- * so the found-article score measures coverage.
+ * Questions on topics Vitalik Buterin, whose post inspired the bounty, writes and talks about
+ * publicly: X (Twitter), zero-knowledge proofs, quadratic funding, far-UVC, Zuzalu, vegan food on
+ * the road. Run on its own (`--queries vitalik`), never as part of the standard set, and versioned
+ * separately so its rows aren't compared with it. Expected titles are the right Wikipedia articles
+ * even when no installed pack has them yet, so the found-article score measures coverage.
  */
 export const VITALIK_SET_VERSION = "vitalik-1";
 
 export const VITALIK_SET: EvalQuery[] = [
-  {
-    id: "vitalik-lions-tigers",
-    category: "vitalik",
-    query: "Are lions or tigers heavier?",
-    expectedKbTitles: ["Tiger", "Lion"],
-    gradingNotes: "Tigers are heavier. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-elephant-rhino",
-    category: "vitalik",
-    query: "Which is heavier, an African elephant or a white rhinoceros?",
-    expectedKbTitles: ["African elephant", "White rhinoceros"],
-    gradingNotes: "The elephant. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-whale-dinosaur",
-    category: "vitalik",
-    query: "Could a blue whale weigh more than the largest dinosaur?",
-    expectedKbTitles: ["Blue whale", "Argentinosaurus"],
-    gradingNotes: "Yes, the blue whale is the heaviest animal known. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-tallest-animal",
-    category: "vitalik",
-    query: "What is the tallest animal in the world?",
-    expectedKbTitles: ["Giraffe"],
-    gradingNotes: "The giraffe (about 5-6 m). Any height must be realistic. (Field Atlas e2e)",
-  },
-  {
-    id: "vitalik-populous-countries",
-    category: "vitalik",
-    query: "What are the most populated countries in the world?",
-    expectedKbTitles: ["World population"],
-    gradingNotes: "India and China. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-japan-nigeria",
-    category: "vitalik",
-    query: "Is Japan's population larger than Nigeria's?",
-    expectedKbTitles: ["Nigeria", "Japan"],
-    gradingNotes: "No: Nigeria's is larger. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-thirty-years-war",
-    category: "vitalik",
-    query: "When did the Thirty Years War take place?",
-    expectedKbTitles: ["Thirty Years' War"],
-    gradingNotes: "1618-1648. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-wwii-dates",
-    category: "vitalik",
-    query: "When did World War II start and end?",
-    expectedKbTitles: ["World War II"],
-    gradingNotes: "1939-1945. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-wwii-ussr",
-    category: "vitalik",
-    query: "Did Germany invade the Soviet Union in World War II?",
-    expectedKbTitles: ["Operation Barbarossa"],
-    gradingNotes: "Yes, Operation Barbarossa, June 1941. (Field Atlas e2e)",
-  },
-  {
-    id: "vitalik-wwi-winner",
-    category: "vitalik",
-    query: "Who won the First World War?",
-    expectedKbTitles: ["World War I"],
-    gradingNotes: "The Allies/Entente; the Central Powers lost. (Field Atlas e2e)",
-  },
-  {
-    id: "vitalik-long-life-diet",
-    category: "vitalik",
-    query: "What should I eat to live a long and healthy life?",
-    expectedKbTitles: ["Mediterranean diet"],
-    gradingNotes: "Mediterranean-style diet, calorie restriction evidence; hedged, no miracle claims. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-meat-eggs-diet",
-    category: "vitalik",
-    query: "Is a diet of only meat and eggs healthy?",
-    expectedKbTitles: [],
-    gradingNotes: "Must hedge or decline; must not declare it healthy. (Field Atlas e2e)",
-  },
-  {
-    id: "vitalik-highest-r0",
-    category: "vitalik",
-    query: "Which viruses have the highest R0?",
-    expectedKbTitles: ["Measles", "Basic reproduction number"],
-    gradingNotes: "Measles (R0 ~12-18). (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-world-cup-2018",
-    category: "vitalik",
-    query: "Who won the 2018 FIFA World Cup final?",
-    expectedKbTitles: [],
-    gradingNotes: "Honest refusal if no source; France only if clearly marked as not from the library. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-about-taiwan",
-    category: "vitalik",
-    query: "Tell me about Taiwan.",
-    expectedKbTitles: ["Taiwan"],
-    gradingNotes: "From the Taiwan article: island in East Asia, ~23 million people, capital Taipei. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-about-paris",
-    category: "vitalik",
-    query: "Tell me about Paris.",
-    expectedKbTitles: ["Paris"],
-    gradingNotes: "Capital of France, facts from the article lede. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-about-everest",
-    category: "vitalik",
-    query: "Tell me about Mount Everest.",
-    expectedKbTitles: ["Mount Everest"],
-    gradingNotes: "Highest mountain above sea level, Himalayas, Nepal/China border. (Field Atlas battery)",
-  },
-  {
-    id: "vitalik-about-argentina",
-    category: "vitalik",
-    query: "Tell me about Argentina.",
-    expectedKbTitles: ["Argentina"],
-    gradingNotes: "Capital Buenos Aires, Spanish, South America, Patagonia. (Field Atlas e2e)",
-  },
   {
     id: "vitalik-about-x",
     category: "vitalik",

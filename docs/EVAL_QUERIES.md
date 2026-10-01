@@ -228,16 +228,11 @@ The metric fields mean exactly what they mean in the execution telemetry (see
 
 ## The Vitalik battery (`vitalik-1`)
 
-A second set of 24 questions in `VITALIK_SET` (`src/eval/evalSet.ts`), run only on request:
+A second set of 6 questions in `VITALIK_SET` (`src/eval/evalSet.ts`), run only on request:
 `npm run eval:device -- --queries vitalik` (or single ids such as `vitalik-about-x`). Its rows are
 recorded as set `vitalik-1`, so they're never compared with the standard set above.
 
-- **From Vitalik Buterin's own tests** in his Field Atlas fork (`github.com/vbuterin/fieldatlas`,
-  `tools/e2e_battery_cases.json` and `tools/e2e_cases.json`): animal sizes, populations, wars, diet,
-  R0, "tell me about" a country or place, and the 2018 World Cup, where an honest "not in my data"
-  is the right answer when no source covers it.
-- **From his interests:** X (Twitter), zk-SNARKs, quadratic funding, far-UVC, Zuzalu, vegan food
-  in Buenos Aires.
-
-Expected titles are the right Wikipedia articles even when no installed pack has them, so the
-"expected article found" count measures library coverage as well as search.
+The questions are our own, on topics Vitalik Buterin (whose post inspired the bounty) writes and
+talks about publicly: X (Twitter), zk-SNARKs, quadratic funding, far-UVC, Zuzalu, and vegan food
+in Buenos Aires. Expected titles are the right Wikipedia articles even when no installed pack has
+them, so the "expected article found" count measures library coverage as well as search.
