@@ -220,9 +220,12 @@ export function compressContext(query: string, chunks: RetrievedChunk[], opts: C
     // Opening a new chunk: its title line and first sentence come first.
     if (!set) {
       const titleCost = count(chunks[s.chunkIndex].title) + 1;
-      if (used + titleCost + cost(s) > budget) continue;
-      used += titleCost;
       const first = scored.find((x) => x.chunkIndex === s.chunkIndex && x.position === 0);
+      // The opening sentence goes in first, so it must fit together with the one that matched:
+      // otherwise the passage would be kept without the sentence that answers.
+      const firstCost = first && first !== s ? cost(first) : 0;
+      if (used + titleCost + firstCost + cost(s) > budget) continue;
+      used += titleCost;
       if (first && first !== s && !tryAdd(first)) {
         used -= titleCost;
         continue;
