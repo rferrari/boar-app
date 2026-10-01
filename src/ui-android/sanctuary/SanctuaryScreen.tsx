@@ -23,6 +23,8 @@ import { ReportSheet } from "./ReportSheet";
 import { PreviewSheet } from "./PreviewSheet";
 import { MATRIX_GREEN } from "./style";
 
+const MASCOT = require("../../../assets/mascot.png");
+
 export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(sanctuaryReducer, initialSanctuary);
@@ -79,8 +81,9 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
           <Pressable style={[styles.btn, have ? styles.btnDone : styles.btnPrimary]} disabled={have} onPress={() => setAcquiring(p)}>
             <Text style={[styles.btnText, !have && styles.btnTextPrimary]}>{have ? t("sanctuary.acquired") : t("sanctuary.get")}</Text>
           </Pressable>
-          <Pressable style={styles.btn} onPress={() => setTipping(p)}>
-            <Text style={styles.btnText}>{t("sanctuary.tip")}</Text>
+          {/* Tip: the BOAR mascot, as in the chat header ($BOAR is the boar's token). */}
+          <Pressable style={styles.tipBtn} onPress={() => setTipping(p)} accessibilityRole="button" accessibilityLabel={t("sanctuary.tip")}>
+            <Image source={MASCOT} style={styles.tipMascot} resizeMode="contain" />
           </Pressable>
           <Pressable style={[styles.btn, state.subscribed[p.id] && styles.btnOn]} onPress={() => dispatch({ type: "toggleSubscribe", packId: p.id })}>
             <Text style={styles.btnText}>{state.subscribed[p.id] ? t("sanctuary.subscribed") : t("sanctuary.subscribe")}</Text>
@@ -272,6 +275,8 @@ const styles = StyleSheet.create({
   previewBtn: { alignSelf: "flex-start", minHeight: 40, paddingHorizontal: spacing.base, borderRadius: radii.full, borderWidth: 1, borderColor: colors.border.elevated, justifyContent: "center" },
   previewBtnText: { ...typography.ui.body, fontWeight: "600", color: colors.text.primary },
   btn: { minHeight: 44, paddingHorizontal: spacing.base, borderRadius: radii.full, backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center" },
+  tipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.amber.border },
+  tipMascot: { width: 34, height: 34 },
   btnSmall: { minHeight: 44, minWidth: 44, borderRadius: radii.full, backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center" },
   btnPrimary: { backgroundColor: colors.emerald[600] },
   btnDone: { backgroundColor: "rgba(34,197,94,0.14)", borderWidth: 1, borderColor: MATRIX_GREEN },
