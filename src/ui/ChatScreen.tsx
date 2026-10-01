@@ -25,6 +25,7 @@ import { llamaEngine } from "../inference/LlamaEngine";
 import { embeddingEngine } from "../rag/embed";
 import { retrieve, assemblePrompt, RetrievedChunk, ConversationTurn } from "../rag/retrieve";
 import { assembleChatMessages, ANSWER_CONTEXT_CHUNKS } from "../rag/pure";
+import { compressForAnswer } from "../rag/compress";
 import { classifyTask, isRetrievalIrrelevant } from "../routing/classify";
 import type { TaskType } from "../routing/types";
 import { onSeedProgress, seedKnowledgeBaseIfEmpty } from "../rag/seedCorpus";
@@ -629,7 +630,8 @@ export function ChatScreen({
             c = [];
           } else {
             setProcessing({ messageId: assistantId, status: "retrieving" });
-            c = await retrieve(query, ANSWER_CONTEXT_CHUNKS);
+            // Only the sentences that answer: a shorter prompt brings the first word sooner.
+            c = compressForAnswer(query, await retrieve(query, ANSWER_CONTEXT_CHUNKS), fixedTaskType).chunks;
           }
           setProcessing({ messageId: assistantId, status: "thinking" });
           // Use the model's own chat template when its file ships one; the

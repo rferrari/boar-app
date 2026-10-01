@@ -76,6 +76,15 @@ export function configStats(group) {
     load: { avg: mean(loads), p50: median(loads), count: loads.length },
     generation: { avg: mean(group.map((r) => r.generationLatencyMs)), p50: median(group.map((r) => r.generationLatencyMs)) },
     total: { avg: mean(group.map((r) => r.totalLatencyMs)), p50: median(group.map((r) => r.totalLatencyMs)) },
+    // Only rows that retrieved: the search's own time, and the context before and after trimming.
+    retrieval: (() => {
+      const r = group.filter((x) => x.retrievalMs != null && x.retrievalUsed);
+      return { avg: mean(r.map((x) => x.retrievalMs)), p50: median(r.map((x) => x.retrievalMs)), count: r.length };
+    })(),
+    context: (() => {
+      const r = group.filter((x) => x.contextTokensBefore > 0);
+      return { before: mean(r.map((x) => x.contextTokensBefore)), after: mean(r.map((x) => x.contextTokensAfter)), count: r.length };
+    })(),
     tokPerSec: { avg: mean(group.map((r) => r.tokPerSec)), p50: median(group.map((r) => r.tokPerSec)) },
     peakRss: max(group.map((r) => r.peakRssBytes)),
     residency: {
@@ -112,6 +121,8 @@ export function formatReport(rows) {
       out.push(`  Model load:      ${s.load.count ? `${avgP50(s.load, fmtSec)} over ${s.load.count} load(s)` : noLoad}`);
       out.push(`  Generation:      ${avgP50(s.generation, fmtSec)}`);
       out.push(`  Tokens/sec:      ${avgP50(s.tokPerSec, fmtNum)}`);
+      if (s.retrieval.count) out.push(`  Search time:     ${avgP50(s.retrieval, fmtSec)} (before the model starts)`);
+      if (s.context.count) out.push(`  Context tokens:  ${Math.round(s.context.before)} → ${Math.round(s.context.after)} avg (trimmed to the answering sentences)`);
       out.push(`  Total per query: ${avgP50(s.total, fmtSec)}`);
       out.push(`  Peak RSS:        ${fmtGb(s.peakRss)}`);
       out.push(`  Residency:       cold ${s.residency.cold} · switched ${s.residency.switched} · resident ${s.residency.resident}`);

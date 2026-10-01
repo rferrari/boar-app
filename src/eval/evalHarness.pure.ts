@@ -41,6 +41,11 @@ export interface EvalResultRow extends Omit<ExecutionTelemetryRecord, "id" | "cr
   category: EvalCategory;
   query: string;
   answer: string;
+  /** The retrieve step alone (embedding, search, merge, trim), in ms. Undefined when nothing was retrieved. */
+  retrievalMs?: number;
+  /** Context tokens before and after keeping only the answering sentences (approximate). */
+  contextTokensBefore?: number;
+  contextTokensAfter?: number;
   /** Prompt format the answer was generated with: the model's own chat template, or the plain fallback. Undefined if no generate step ran. */
   promptFormat?: PromptFormat;
   retrievedTitles: string[];
@@ -119,6 +124,9 @@ export const EVAL_CSV_COLUMNS: Array<keyof EvalResultRow> = [
   "modelResidency",
   "modelLoadMs",
   "ttftMs",
+  "retrievalMs",
+  "contextTokensBefore",
+  "contextTokensAfter",
   "generationLatencyMs",
   "totalLatencyMs",
   "tokensGenerated",

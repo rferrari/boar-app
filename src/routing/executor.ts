@@ -21,6 +21,8 @@
 import { llamaEngine } from "../inference/LlamaEngine";
 import { retrieve } from "../rag/retrieve";
 import { assemblePrompt, assembleChatMessages, ConversationHistory, ANSWER_CONTEXT_CHUNKS } from "../rag/pure";
+import { compressForAnswer } from "../rag/compress";
+import { classifyTask } from "./classify";
 import type { RetrievedChunk } from "../rag/retrieve.types";
 import { RoutingPlan, RoutingStep } from "./router";
 import { VerificationStatus } from "./types";
@@ -114,6 +116,11 @@ export interface PipelineResult {
   modelLoadMs?: number;
   /** From the moment llamaEngine.generate() was called (model already loaded/ready — load time is NOT included) to the first streamed token. */
   ttftMs?: number;
+  /** The retrieve step alone: embedding the question, searching, merging, trimming. */
+  retrievalMs?: number;
+  /** Context the model got, before and after keeping only the sentences that answer (approximate tokens). */
+  contextTokensBefore?: number;
+  contextTokensAfter?: number;
   /** From the first streamed token to the generate() call resolving — i.e. the whole generate() call's duration MINUS ttftMs, matching the existing tokPerSec convention (tokensGenerated / time-after-first-token) already used elsewhere in this app. */
   generationLatencyMs?: number;
   /** Which prompt format the generate step actually used: the model's own chat template, or assemblePrompt's plain text. */
@@ -151,6 +158,9 @@ export async function executeRoutingPlan(
   let modelResidency: ModelResidency | undefined;
   let modelLoadMs: number | undefined;
   let ttftMs: number | undefined;
+  let retrievalMs: number | undefined;
+  let contextTokensBefore: number | undefined;
+  let contextTokensAfter: number | undefined;
   let generationLatencyMs: number | undefined;
   let promptFormat: PromptFormat | undefined;
   let genLoadCaptured = false;
@@ -206,13 +216,18 @@ export async function executeRoutingPlan(
 
   for (const step of plan.steps) {
     if (callbacks.shouldStop?.()) {
-      return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, generationLatencyMs, promptFormat, stopped: true };
+      return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, retrievalMs, contextTokensBefore, contextTokensAfter, generationLatencyMs, promptFormat, stopped: true };
     }
     callbacks.onStepStart?.(step);
 
     switch (step.type) {
       case "retrieve": {
-        citations = await retrieve(input.query, ANSWER_CONTEXT_CHUNKS);
+        const retrieveStart = performance.now();
+        const compressed = compressForAnswer(input.query, await retrieve(input.query, ANSWER_CONTEXT_CHUNKS), classifyTask(input.query));
+        retrievalMs = performance.now() - retrieveStart;
+        citations = compressed.chunks;
+        contextTokensBefore = compressed.tokensBefore;
+        contextTokensAfter = compressed.tokensAfter;
         stepsExecuted++;
         break;
       }
@@ -222,7 +237,7 @@ export async function executeRoutingPlan(
         if (!ok) {
           if (step.required) {
             warnings.push("generate-step-failed-no-model");
-            return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, generationLatencyMs, promptFormat, stopped: false };
+            return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, retrievalMs, contextTokensBefore, contextTokensAfter, generationLatencyMs, promptFormat, stopped: false };
           }
           break;
         }
@@ -315,7 +330,7 @@ export async function executeRoutingPlan(
     }
   }
 
-  return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, generationLatencyMs, promptFormat, stopped: false };
+  return { answer, plan, citations, verification, warnings, stepsExecuted, modelSwitches, timedOut, crossMessageModelSwitch: crossMessageModelSwitch(), modelResidency, modelLoadMs, ttftMs, retrievalMs, contextTokensBefore, contextTokensAfter, generationLatencyMs, promptFormat, stopped: false };
 }
 
 /**
