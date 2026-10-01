@@ -68,6 +68,7 @@ import { ProcessingIndicator, ProcessingStatus } from "./ProcessingIndicator";
 import { Drawer, DrawerItem } from "./Drawer";
 import { AboutScreen } from "./AboutScreen";
 import { KnowledgeBaseScreen } from "./KnowledgeBaseScreen";
+import { SanctuaryScreen } from "./sanctuary/SanctuaryScreen";
 import { ExecutionTelemetryScreen } from "./ExecutionTelemetryScreen";
 import { ModelSetupScreen } from "./ModelSetupScreen";
 import { EvaluationScreen } from "./EvaluationScreen";
@@ -140,6 +141,7 @@ export function ChatScreen({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
+  const [showSanctuary, setShowSanctuary] = useState(false);
   const [showExecutionTelemetry, setShowExecutionTelemetry] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [voiceInputEnabled, setVoiceInputEnabledState] = useState(true);
@@ -864,6 +866,7 @@ export function ChatScreen({
   const drawerItems: DrawerItem[] = [
     { key: "prompts", label: t("chatScreen.drawerItems.prompts"), onPress: () => setShowPromptIdeas(true) },
     { key: "knowledge", label: t("chatScreen.drawerItems.myDocuments"), onPress: () => setShowKnowledgeBase(true) },
+    { key: "sanctuary", label: t("sanctuary.menu"), badge: t("sanctuary.badge"), onPress: () => setShowSanctuary(true) },
     { key: "settings", label: t("chatScreen.drawerItems.settings"), onPress: () => setShowSettings(true) },
     { key: "telemetry", label: t("chatScreen.drawerItems.telemetry"), onPress: () => setShowExecutionTelemetry(true) },
     { key: "about", label: t("chatScreen.drawerItems.about"), onPress: () => setShowAbout(true) },
@@ -900,6 +903,10 @@ export function ChatScreen({
 
   if (showExecutionTelemetry) {
     return <ExecutionTelemetryScreen chatBusy={generating} onClose={() => setShowExecutionTelemetry(false)} />;
+  }
+
+  if (showSanctuary) {
+    return <SanctuaryScreen onClose={() => setShowSanctuary(false)} />;
   }
 
   if (showKnowledgeBase) {

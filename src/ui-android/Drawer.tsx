@@ -15,6 +15,8 @@ const DRAWER_WIDTH = Math.min(310, SCREEN_WIDTH * 0.82);
 export interface DrawerItem {
   key: string;
   label: string;
+  /** A small tag after the label, e.g. PREVIEW for the Knowledge Sanctuary. */
+  badge?: string;
   onPress: () => void;
 }
 
@@ -160,6 +162,7 @@ export function Drawer({
                 }}
               >
                 <Text style={styles.itemLabel}>{item.label}</Text>
+                {item.badge && <Text style={styles.itemBadge}>{item.badge}</Text>}
               </Pressable>
             ))}
           </View>
@@ -265,6 +268,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: radii.md,
+  },
+  itemBadge: {
+    ...typography.ui.caption,
+    fontWeight: "700",
+    color: colors.text.accentAmber,
+    borderWidth: 1,
+    borderColor: colors.amber.border,
+    borderRadius: radii.full,
+    paddingHorizontal: 8,
   },
   itemLabel: {
     ...typography.ui.titleSm,

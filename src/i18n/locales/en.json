@@ -570,5 +570,105 @@
       "fill": "Put in the input to edit",
       "ask": "Ask: {{question}}"
     }
+  },
+  "sanctuary": {
+    "menu": "Knowledge Sanctuary",
+    "badge": "PREVIEW",
+    "previewBar": "PREVIEW · NOT LIVE",
+    "title": "Knowledge Sanctuary",
+    "subtitle": "Community knowledge packs, used offline",
+    "welcome": {
+      "title": "Welcome to the Knowledge Sanctuary",
+      "body": "This is a preview. Nothing here is live or connected to a wallet yet. Explore the flow of the community library we're building: find packs, get them while online, then use them with no connection at all.",
+      "agree": "I understand this is a preview and nothing is live",
+      "dontShow": "Don't show this again"
+    },
+    "dualMode": {
+      "online": "Online: find and get packs",
+      "offline": "Offline: use them anywhere, nothing leaves your phone"
+    },
+    "sessionsTitle": "Sessions",
+    "locked": "Get a pack to unlock",
+    "sessions": {
+      "combat": {
+        "name": "Martial arts & self-defense",
+        "desc": "Martial-arts history and self-defense principles"
+      },
+      "music": {
+        "name": "Music & sound",
+        "desc": "Synth theory, acoustics and music theory"
+      },
+      "code": {
+        "name": "Code & local AI",
+        "desc": "On-device LLMs, Android performance, search"
+      },
+      "survive": {
+        "name": "Off-grid & first aid",
+        "desc": "Wilderness first aid, water and solar"
+      }
+    },
+    "packs": {
+      "self-defense-basics": "Self-Defense Basics",
+      "martial-arts-history": "History of Martial Arts",
+      "synth-design-101": "Synth Design 101",
+      "chords-and-harmony": "Chords & Harmony",
+      "llms-on-a-phone": "Running LLMs on a Phone",
+      "local-search-explained": "Local Search Explained",
+      "wilderness-first-aid": "Wilderness First Aid",
+      "solar-off-grid": "Solar Off-Grid Guide"
+    },
+    "price": {
+      "free": "Free + tips",
+      "once": "{{boar}} $BOAR",
+      "subscription": "{{boar}} $BOAR / month"
+    },
+    "size": "{{mb}} MB",
+    "by": "by @{{creator}}",
+    "get": "Get",
+    "acquired": "In your library",
+    "tip": "Tip",
+    "subscribe": "Subscribe",
+    "subscribed": "Subscribed · preview",
+    "report": "Report bad info",
+    "reported": "Thanks, noted (preview: nothing is sent).",
+    "acquire": {
+      "steps": [
+        "Fetching the pack from the Sanctuary",
+        "Checking its size and signature",
+        "Ready offline"
+      ],
+      "online": "Online",
+      "offlineReady": "Offline ready",
+      "knows": "BOAR knows {{session}} now!",
+      "saved": "Saved to your library. You can turn on airplane mode.",
+      "done": "Done",
+      "preview": "Preview: nothing was downloaded."
+    },
+    "tipSheet": {
+      "title": "Tip @{{creator}}",
+      "send": "Send {{amount}} $BOAR",
+      "sent": "Preview only: no tokens moved.",
+      "cancel": "Cancel"
+    },
+    "publish": {
+      "button": "Publish a pack",
+      "title": "Publish a knowledge pack",
+      "step1": "Pick documents",
+      "noDocs": "No documents yet: add some in My Documents.",
+      "step2": "Name it",
+      "titlePlaceholder": "Pack title",
+      "tagsPlaceholder": "Tags, separated by commas",
+      "category": "Session",
+      "step3": "Pricing",
+      "pricing": {
+        "free": "Free + tips",
+        "once": "One-time purchase",
+        "subscription": "Subscription"
+      },
+      "next": "Next",
+      "back": "Back",
+      "publish": "Publish",
+      "saved": "Draft saved. Sharing goes live in a later phase."
+    }
   }
 }

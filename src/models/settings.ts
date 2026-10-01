@@ -16,6 +16,8 @@ interface Settings {
   activeModelId: Partial<Record<AssetKind, string>>;
   setupProgress?: SetupProgress;
   hidePromptIdeas?: boolean;
+  /** The Knowledge Sanctuary preview's welcome teaser, once "don't show again" was ticked. */
+  hideSanctuaryWelcome?: boolean;
   personalityId?: PersonalityId;
   customSystemPrompt?: string;
   maxTokens?: number;
@@ -210,6 +212,18 @@ export async function setHidePromptIdeas(hide: boolean): Promise<void> {
   return serialized(async () => {
     const s = await readSettings();
     s.hidePromptIdeas = hide;
+    await writeSettings(s);
+  });
+}
+
+export async function getHideSanctuaryWelcome(): Promise<boolean> {
+  return (await readSettings()).hideSanctuaryWelcome ?? false;
+}
+
+export async function setHideSanctuaryWelcome(hide: boolean): Promise<void> {
+  return serialized(async () => {
+    const s = await readSettings();
+    s.hideSanctuaryWelcome = hide;
     await writeSettings(s);
   });
 }

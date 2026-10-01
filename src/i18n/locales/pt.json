@@ -570,5 +570,105 @@
       "fill": "Colocar no campo para editar",
       "ask": "Perguntar: {{question}}"
     }
+  },
+  "sanctuary": {
+    "menu": "Santuário do Conhecimento",
+    "badge": "PRÉVIA",
+    "previewBar": "PRÉVIA · NÃO ESTÁ NO AR",
+    "title": "Santuário do Conhecimento",
+    "subtitle": "Pacotes de conhecimento da comunidade, usados offline",
+    "welcome": {
+      "title": "Bem-vindo ao Santuário do Conhecimento",
+      "body": "Esta é uma prévia. Nada aqui está no ar nem ligado a uma carteira ainda. Explore o fluxo da biblioteca comunitária que estamos construindo: encontre pacotes, baixe-os online e depois use-os sem nenhuma conexão.",
+      "agree": "Entendo que é uma prévia e nada está no ar",
+      "dontShow": "Não mostrar de novo"
+    },
+    "dualMode": {
+      "online": "Online: encontre e baixe pacotes",
+      "offline": "Offline: use em qualquer lugar, nada sai do seu celular"
+    },
+    "sessionsTitle": "Sessões",
+    "locked": "Baixe um pacote para desbloquear",
+    "sessions": {
+      "combat": {
+        "name": "Artes marciais e defesa pessoal",
+        "desc": "História das artes marciais e princípios de defesa pessoal"
+      },
+      "music": {
+        "name": "Música e som",
+        "desc": "Teoria de sintetizadores, acústica e teoria musical"
+      },
+      "code": {
+        "name": "Código e IA local",
+        "desc": "LLMs no aparelho, desempenho no Android, busca"
+      },
+      "survive": {
+        "name": "Vida off-grid e primeiros socorros",
+        "desc": "Primeiros socorros na natureza, água e energia solar"
+      }
+    },
+    "packs": {
+      "self-defense-basics": "Básico de Defesa Pessoal",
+      "martial-arts-history": "História das Artes Marciais",
+      "synth-design-101": "Design de Sintetizadores 101",
+      "chords-and-harmony": "Acordes e Harmonia",
+      "llms-on-a-phone": "LLMs no Celular",
+      "local-search-explained": "Busca Local Explicada",
+      "wilderness-first-aid": "Primeiros Socorros na Natureza",
+      "solar-off-grid": "Guia Solar Off-Grid"
+    },
+    "price": {
+      "free": "Grátis + gorjetas",
+      "once": "{{boar}} $BOAR",
+      "subscription": "{{boar}} $BOAR / mês"
+    },
+    "size": "{{mb}} MB",
+    "by": "por @{{creator}}",
+    "get": "Baixar",
+    "acquired": "Na sua biblioteca",
+    "tip": "Gorjeta",
+    "subscribe": "Assinar",
+    "subscribed": "Assinado · prévia",
+    "report": "Reportar informação ruim",
+    "reported": "Obrigado, anotado (prévia: nada é enviado).",
+    "acquire": {
+      "steps": [
+        "Buscando o pacote no Santuário",
+        "Verificando tamanho e assinatura",
+        "Pronto para usar offline"
+      ],
+      "online": "Online",
+      "offlineReady": "Pronto offline",
+      "knows": "O BOAR agora sabe {{session}}!",
+      "saved": "Salvo na sua biblioteca. Pode ativar o modo avião.",
+      "done": "Pronto",
+      "preview": "Prévia: nada foi baixado."
+    },
+    "tipSheet": {
+      "title": "Gorjeta para @{{creator}}",
+      "send": "Enviar {{amount}} $BOAR",
+      "sent": "Só uma prévia: nenhum token foi movido.",
+      "cancel": "Cancelar"
+    },
+    "publish": {
+      "button": "Publicar um pacote",
+      "title": "Publicar um pacote de conhecimento",
+      "step1": "Escolha documentos",
+      "noDocs": "Nenhum documento ainda: adicione em Meus Documentos.",
+      "step2": "Dê um nome",
+      "titlePlaceholder": "Título do pacote",
+      "tagsPlaceholder": "Tags, separadas por vírgula",
+      "category": "Sessão",
+      "step3": "Preço",
+      "pricing": {
+        "free": "Grátis + gorjetas",
+        "once": "Compra única",
+        "subscription": "Assinatura"
+      },
+      "next": "Avançar",
+      "back": "Voltar",
+      "publish": "Publicar",
+      "saved": "Rascunho salvo. O compartilhamento entra no ar numa fase futura."
+    }
   }
 }
