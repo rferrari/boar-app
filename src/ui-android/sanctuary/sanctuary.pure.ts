@@ -3,7 +3,7 @@
  * subscriptions, tips, reports and publish drafts. In memory only: nothing is sent, no tokens move.
  * Pure: tested without React Native.
  */
-import { PACKS, type SessionId } from "./catalog";
+import { PACKS, type MockPack, type SessionId } from "./catalog";
 
 export interface Draft {
   title: string;
@@ -19,16 +19,20 @@ export interface SanctuaryState {
   subscribed: Record<string, true>;
   /** Preview tips per pack, in $BOAR (never sent). */
   tips: Record<string, number>;
-  reported: Record<string, true>;
+  /** The reason picked in the report sheet, per pack. */
+  reported: Record<string, ReportReason>;
   drafts: Draft[];
 }
+
+export const REPORT_REASONS = ["wrong", "outdated", "spam", "copyright", "other"] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
 
 export type SanctuaryAction =
   | { type: "acquire"; packId: string }
   | { type: "vote"; packId: string; vote: 1 | -1 }
   | { type: "toggleSubscribe"; packId: string }
   | { type: "tip"; packId: string; amount: number }
-  | { type: "report"; packId: string }
+  | { type: "report"; packId: string; reason: ReportReason }
   | { type: "saveDraft"; draft: Draft };
 
 export const initialSanctuary: SanctuaryState = { acquired: {}, votes: {}, subscribed: {}, tips: {}, reported: {}, drafts: [] };
@@ -57,7 +61,8 @@ export function sanctuaryReducer(state: SanctuaryState, action: SanctuaryAction)
       if (!(action.amount > 0) || !Number.isFinite(action.amount)) return state;
       return { ...state, tips: { ...state.tips, [action.packId]: (state.tips[action.packId] ?? 0) + action.amount } };
     case "report":
-      return { ...state, reported: { ...state.reported, [action.packId]: true } };
+      if (state.reported[action.packId]) return state;
+      return { ...state, reported: { ...state.reported, [action.packId]: action.reason } };
     case "saveDraft":
       if (!action.draft.title.trim()) return state;
       return { ...state, drafts: [...state.drafts, { ...action.draft, title: action.draft.title.trim() }] };
@@ -72,4 +77,15 @@ export function sessionAcquired(state: SanctuaryState, session: SessionId): bool
 /** One of the n entrance scenes, at random (the art changes on each open). */
 export function pickEntrance(n: number, random: () => number = Math.random): number {
   return Math.min(n - 1, Math.floor(random() * n));
+}
+
+/** A pack's counts as the card shows them: the community's plus this user's own actions. */
+export function statsOf(pack: MockPack, state: SanctuaryState) {
+  const vote = state.votes[pack.id];
+  return {
+    up: pack.community.up + (vote === 1 ? 1 : 0),
+    down: pack.community.down + (vote === -1 ? 1 : 0),
+    reports: pack.community.reports + (state.reported[pack.id] ? 1 : 0),
+    tippedBoar: pack.community.tippedBoar + (state.tips[pack.id] ?? 0),
+  };
 }

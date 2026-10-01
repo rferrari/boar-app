@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PACKS, SESSIONS, packsOf } from "./catalog";
-import { initialSanctuary, pickEntrance, sanctuaryReducer as r, sessionAcquired } from "./sanctuary.pure";
+import { initialSanctuary, pickEntrance, sanctuaryReducer as r, sessionAcquired, statsOf } from "./sanctuary.pure";
 
 describe("Sanctuary preview state", () => {
   it("acquires a pack once and shows its session's boar", () => {
@@ -37,8 +37,9 @@ describe("Sanctuary preview state", () => {
     expect(s.subscribed["chords-and-harmony"]).toBe(true);
     s = r(s, { type: "toggleSubscribe", packId: "chords-and-harmony" });
     expect(s.subscribed["chords-and-harmony"]).toBeUndefined();
-    s = r(s, { type: "report", packId: "chords-and-harmony" });
-    expect(s.reported["chords-and-harmony"]).toBe(true);
+    s = r(s, { type: "report", packId: "chords-and-harmony", reason: "outdated" });
+    expect(s.reported["chords-and-harmony"]).toBe("outdated");
+    expect(r(s, { type: "report", packId: "chords-and-harmony", reason: "spam" })).toBe(s);
     const draft = { title: "  My notes ", session: "code" as const, tags: [], documents: [], pricing: "free" as const };
     expect(r(s, { type: "saveDraft", draft: { ...draft, title: " " } })).toBe(s);
     expect(r(s, { type: "saveDraft", draft }).drafts[0].title).toBe("My notes");
@@ -65,5 +66,25 @@ describe("welcome button labels", () => {
     for (const current of UNLOCKED_LABELS) {
       for (const r of [0, 0.5, 0.9999]) expect(pickLabel(() => r, current)).not.toBe(current);
     }
+  });
+});
+
+describe("pack stats", () => {
+  it("adds the user's vote, report and tips to the community counts", () => {
+    const pack = PACKS.find((p) => p.id === "synth-design-101")!;
+    let s = r(initialSanctuary, { type: "vote", packId: pack.id, vote: 1 });
+    s = r(s, { type: "tip", packId: pack.id, amount: 25 });
+    s = r(s, { type: "report", packId: pack.id, reason: "wrong" });
+    expect(statsOf(pack, s)).toEqual({
+      up: pack.community.up + 1,
+      down: pack.community.down,
+      reports: pack.community.reports + 1,
+      tippedBoar: pack.community.tippedBoar + 25,
+    });
+    expect(statsOf(pack, initialSanctuary)).toEqual(pack.community);
+  });
+
+  it("every pack has a Markdown preview with a heading", () => {
+    for (const p of PACKS) expect(p.preview.startsWith("# ")).toBe(true);
   });
 });

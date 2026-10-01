@@ -630,7 +630,6 @@
     "subscribe": "Subscribe",
     "subscribed": "Subscribed · preview",
     "report": "Report bad info",
-    "reported": "Thanks, noted (preview: nothing is sent).",
     "acquire": {
       "steps": [
         "Fetching the pack from the Sanctuary",
@@ -669,6 +668,30 @@
       "back": "Back",
       "publish": "Publish",
       "saved": "Draft saved. Sharing goes live in a later phase."
+    },
+    "stats": {
+      "reports_one": "{{count}} report",
+      "reports_other": "{{count}} reports",
+      "tipped": "{{boar}} $BOAR tipped"
+    },
+    "previewSheet": {
+      "open": "Preview",
+      "label": "PREVIEW · SAMPLE OF THE PACK",
+      "note": "A sample of what the pack holds. The full pack is searchable offline once you get it."
+    },
+    "reportSheet": {
+      "title": "Report bad info",
+      "notePlaceholder": "What's wrong? (optional)",
+      "send": "Send report",
+      "thanksTitle": "Thanks for the report",
+      "thanksBody": "Preview: nothing was sent. In the live Sanctuary, reports help the community flag wrong or outdated packs.",
+      "reasons": {
+        "wrong": "Wrong facts",
+        "outdated": "Outdated",
+        "spam": "Spam or low quality",
+        "copyright": "Copyright problem",
+        "other": "Something else"
+      }
     }
   }
 }

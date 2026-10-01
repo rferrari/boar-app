@@ -14,11 +14,13 @@ import { Toast } from "../Toast";
 import { getHideSanctuaryWelcome, setHideSanctuaryWelcome } from "../../models/settings";
 import { ENTRANCES, SESSION_BOARS, SESSION_LOCKED } from "./art";
 import { SESSIONS, packsOf, type MockPack, type SessionId } from "./catalog";
-import { initialSanctuary, pickEntrance, sanctuaryReducer, sessionAcquired } from "./sanctuary.pure";
+import { initialSanctuary, pickEntrance, sanctuaryReducer, sessionAcquired, statsOf } from "./sanctuary.pure";
 import { WelcomeTeaser } from "./WelcomeTeaser";
 import { AcquireModal } from "./AcquireModal";
 import { TipSheet } from "./TipSheet";
 import { PublishWizard } from "./PublishWizard";
+import { ReportSheet } from "./ReportSheet";
+import { PreviewSheet } from "./PreviewSheet";
 import { MATRIX_GREEN } from "./style";
 
 export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
@@ -31,6 +33,8 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
   const [acquiring, setAcquiring] = useState<MockPack | null>(null);
   const [tipping, setTipping] = useState<MockPack | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [reporting, setReporting] = useState<MockPack | null>(null);
+  const [previewing, setPreviewing] = useState<MockPack | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const hideToast = useCallback(() => setToast(null), []);
 
@@ -51,6 +55,7 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
   const packCard = (p: MockPack) => {
     const have = !!state.acquired[p.id];
     const vote = state.votes[p.id];
+    const stats = statsOf(p, state);
     return (
       <View key={p.id} style={styles.pack}>
         <Text style={styles.packTitle}>{t(`sanctuary.packs.${p.id}`)}</Text>
@@ -61,6 +66,15 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
           <Text style={styles.price}>{price(p)}</Text>
           {p.price.kind !== "free" && <Text style={styles.previewTag}>{t("sanctuary.badge")}</Text>}
         </View>
+        <View style={styles.stats}>
+          <Text style={styles.stat}>▲ {stats.up}</Text>
+          <Text style={styles.stat}>▼ {stats.down}</Text>
+          <Text style={styles.stat}>{t("sanctuary.stats.reports", { count: stats.reports })}</Text>
+          <Text style={styles.stat}>{t("sanctuary.stats.tipped", { boar: stats.tippedBoar })}</Text>
+        </View>
+        <Pressable style={styles.previewBtn} onPress={() => setPreviewing(p)} accessibilityRole="button">
+          <Text style={styles.previewBtnText}>{t("sanctuary.previewSheet.open")}</Text>
+        </Pressable>
         <View style={styles.actions}>
           <Pressable style={[styles.btn, have ? styles.btnDone : styles.btnPrimary]} disabled={have} onPress={() => setAcquiring(p)}>
             <Text style={[styles.btnText, !have && styles.btnTextPrimary]}>{have ? t("sanctuary.acquired") : t("sanctuary.get")}</Text>
@@ -83,10 +97,7 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
             <Pressable
               style={styles.btn}
               disabled={!!state.reported[p.id]}
-              onPress={() => {
-                dispatch({ type: "report", packId: p.id });
-                setToast(t("sanctuary.reported"));
-              }}
+              onPress={() => setReporting(p)}
             >
               <Text style={[styles.btnText, !!state.reported[p.id] && styles.dim]}>{t("sanctuary.report")}</Text>
             </Pressable>
@@ -198,6 +209,16 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
           }}
         />
       )}
+      {reporting && (
+        <ReportSheet
+          packTitle={t(`sanctuary.packs.${reporting.id}`)}
+          onClose={() => setReporting(null)}
+          onSubmit={(reason) => dispatch({ type: "report", packId: reporting.id, reason })}
+        />
+      )}
+      {previewing && (
+        <PreviewSheet title={t(`sanctuary.packs.${previewing.id}`)} markdown={previewing.preview} onClose={() => setPreviewing(null)} />
+      )}
       {publishing && (
         <PublishWizard
           onClose={() => setPublishing(false)}
@@ -246,6 +267,10 @@ const styles = StyleSheet.create({
   price: { ...typography.ui.body, fontWeight: "600", color: colors.text.accentEmerald },
   previewTag: { ...typography.ui.caption, fontWeight: "700", color: colors.text.accentAmber, borderWidth: 1, borderColor: colors.amber.border, borderRadius: radii.full, paddingHorizontal: 8 },
   actions: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
+  stats: { flexDirection: "row", flexWrap: "wrap", columnGap: spacing.md, rowGap: 2 },
+  stat: { ...typography.ui.subtext, color: colors.text.secondary },
+  previewBtn: { alignSelf: "flex-start", minHeight: 40, paddingHorizontal: spacing.base, borderRadius: radii.full, borderWidth: 1, borderColor: colors.border.elevated, justifyContent: "center" },
+  previewBtnText: { ...typography.ui.body, fontWeight: "600", color: colors.text.primary },
   btn: { minHeight: 44, paddingHorizontal: spacing.base, borderRadius: radii.full, backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center" },
   btnSmall: { minHeight: 44, minWidth: 44, borderRadius: radii.full, backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center" },
   btnPrimary: { backgroundColor: colors.emerald[600] },

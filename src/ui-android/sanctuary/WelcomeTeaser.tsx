@@ -36,7 +36,10 @@ export function WelcomeTeaser({ entrance, onEnter, onClose }: Props) {
     <Modal visible animationType="fade" onRequestClose={onClose}>
       <SafeAreaView style={styles.container} edges={["top", "bottom", "left", "right"]}>
         <ScrollView contentContainerStyle={styles.body}>
-          <Image source={ENTRANCES[entrance]} style={styles.art} resizeMode="cover" />
+          {/* A square frame that clips and centres the art (an Image sized by aspectRatio alone drifts on Android). */}
+          <View style={styles.art}>
+            <Image source={ENTRANCES[entrance]} style={styles.fill} resizeMode="cover" />
+          </View>
           <View style={styles.previewPill}>
             <Text style={styles.previewText}>{t("sanctuary.previewBar")}</Text>
           </View>
@@ -71,7 +74,8 @@ export function WelcomeTeaser({ entrance, onEnter, onClose }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg.terminal },
   body: { padding: spacing.base, gap: spacing.md, paddingBottom: spacing.xxl },
-  art: { width: "100%", aspectRatio: 1, borderRadius: 20 },
+  art: { width: "100%", aspectRatio: 1, borderRadius: 20, overflow: "hidden" },
+  fill: { width: "100%", height: "100%" },
   previewPill: {
     alignSelf: "flex-start",
     borderRadius: radii.full,

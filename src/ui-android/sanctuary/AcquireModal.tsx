@@ -102,10 +102,11 @@ export function AcquireModal({ pack, sessionName, onDone }: Props) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", padding: spacing.base },
-  card: { borderRadius: 24, overflow: "hidden", backgroundColor: "#07110B", borderWidth: 1, borderColor: MATRIX_GREEN, minHeight: 420 },
+  // The card grows with its content (the done step is taller than the steps); the rain is clipped to it.
+  card: { borderRadius: 24, overflow: "hidden", backgroundColor: "#07110B", borderWidth: 1, borderColor: MATRIX_GREEN },
   rainBox: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" },
   rain: { position: "absolute", top: 0, color: MATRIX_GREEN, fontSize: 13, lineHeight: 18, fontFamily: "monospace" },
-  steps: { flex: 1, justifyContent: "center", padding: spacing.lg, gap: spacing.md, backgroundColor: "rgba(7,17,11,0.55)" },
+  steps: { minHeight: 420, justifyContent: "center", padding: spacing.lg, gap: spacing.md, backgroundColor: "rgba(7,17,11,0.55)" },
   mode: { ...typography.ui.caption, fontWeight: "700", color: MATRIX_GREEN, letterSpacing: 1, textAlign: "center" },
   stepRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   dot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: "rgba(34,197,94,0.4)" },
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   stepText: { ...typography.ui.body, color: "rgba(220,255,230,0.45)", flex: 1 },
   stepTextOn: { color: "#E7FFEE" },
   note: { ...typography.ui.subtext, color: "rgba(220,255,230,0.6)", textAlign: "center", marginTop: spacing.sm },
-  done: { alignItems: "center", paddingHorizontal: spacing.lg, paddingVertical: spacing.xxl, gap: spacing.md, backgroundColor: "rgba(7,17,11,0.4)", flex: 1, justifyContent: "center" },
+  done: { alignItems: "center", paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.xl, gap: spacing.md, backgroundColor: "rgba(7,17,11,0.4)" },
   boar: { width: 220, height: 220, borderRadius: 20, borderWidth: 1, borderColor: MATRIX_GREEN },
   knows: { ...typography.ui.titleLg, color: "#E7FFEE", textAlign: "center" },
   saved: { ...typography.ui.body, color: "rgba(220,255,230,0.75)", textAlign: "center" },

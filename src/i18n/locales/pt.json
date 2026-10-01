@@ -630,7 +630,6 @@
     "subscribe": "Assinar",
     "subscribed": "Assinado · prévia",
     "report": "Reportar informação ruim",
-    "reported": "Obrigado, anotado (prévia: nada é enviado).",
     "acquire": {
       "steps": [
         "Buscando o pacote no Santuário",
@@ -669,6 +668,30 @@
       "back": "Voltar",
       "publish": "Publicar",
       "saved": "Rascunho salvo. O compartilhamento entra no ar numa fase futura."
+    },
+    "stats": {
+      "reports_one": "{{count}} denúncia",
+      "reports_other": "{{count}} denúncias",
+      "tipped": "{{boar}} $BOAR em gorjetas"
+    },
+    "previewSheet": {
+      "open": "Prévia",
+      "label": "PRÉVIA · AMOSTRA DO PACOTE",
+      "note": "Uma amostra do que o pacote contém. O pacote completo fica pesquisável offline depois que você o baixa."
+    },
+    "reportSheet": {
+      "title": "Reportar informação ruim",
+      "notePlaceholder": "O que está errado? (opcional)",
+      "send": "Enviar denúncia",
+      "thanksTitle": "Obrigado pela denúncia",
+      "thanksBody": "Prévia: nada foi enviado. No Santuário de verdade, as denúncias ajudam a comunidade a apontar pacotes errados ou desatualizados.",
+      "reasons": {
+        "wrong": "Fatos errados",
+        "outdated": "Desatualizado",
+        "spam": "Spam ou baixa qualidade",
+        "copyright": "Problema de direitos autorais",
+        "other": "Outra coisa"
+      }
     }
   }
 }
