@@ -14,3 +14,11 @@ export const SESSION_BOARS: Record<SessionId, number> = {
   code: require("../../../assets/sanctuary/boar-code.webp"),
   survive: require("../../../assets/sanctuary/boar-survive.webp"),
 };
+
+/** What a session shows until one of its packs is acquired. */
+export const SESSION_LOCKED: Record<SessionId, number> = {
+  combat: require("../../../assets/sanctuary/locked-combat.webp"),
+  music: require("../../../assets/sanctuary/locked-music.webp"),
+  code: require("../../../assets/sanctuary/locked-code.webp"),
+  survive: require("../../../assets/sanctuary/locked-survive.webp"),
+};

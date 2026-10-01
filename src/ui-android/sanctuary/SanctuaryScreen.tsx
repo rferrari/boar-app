@@ -12,7 +12,7 @@ import { typography } from "../theme/typography";
 import { radii, spacing } from "../theme/spacing";
 import { Toast } from "../Toast";
 import { getHideSanctuaryWelcome, setHideSanctuaryWelcome } from "../../models/settings";
-import { ENTRANCES, SESSION_BOARS } from "./art";
+import { ENTRANCES, SESSION_BOARS, SESSION_LOCKED } from "./art";
 import { SESSIONS, packsOf, type MockPack, type SessionId } from "./catalog";
 import { initialSanctuary, pickEntrance, sanctuaryReducer, sessionAcquired } from "./sanctuary.pure";
 import { WelcomeTeaser } from "./WelcomeTeaser";
@@ -114,7 +114,9 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
       <ScrollView contentContainerStyle={styles.body}>
         {!session ? (
           <>
-            <Image source={ENTRANCES[entrance]} style={styles.hero} resizeMode="cover" />
+            <View style={styles.heroFrame}>
+              <Image source={ENTRANCES[entrance]} style={styles.fill} resizeMode="cover" />
+            </View>
             <View style={styles.modes}>
               <Text style={styles.mode}>{t("sanctuary.dualMode.online")}</Text>
               <Text style={styles.mode}>{t("sanctuary.dualMode.offline")}</Text>
@@ -125,13 +127,15 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
                 const unlocked = sessionAcquired(state, s);
                 return (
                   <Pressable key={s} style={[styles.session, unlocked && styles.sessionOn]} onPress={() => setSession(s)} accessibilityRole="button">
-                    {unlocked ? (
-                      <Image source={SESSION_BOARS[s]} style={styles.sessionArt} resizeMode="cover" />
-                    ) : (
-                      <View style={[styles.sessionArt, styles.lockedArt]}>
-                        <Text style={styles.lockedText}>{t("sanctuary.locked")}</Text>
-                      </View>
-                    )}
+                    {/* A square frame that clips its image, so the art always stays inside the card. */}
+                    <View style={styles.sessionArt}>
+                      <Image source={unlocked ? SESSION_BOARS[s] : SESSION_LOCKED[s]} style={styles.fill} resizeMode="cover" />
+                      {!unlocked && (
+                        <View style={styles.lockedLabel}>
+                          <Text style={styles.lockedText}>{t("sanctuary.locked")}</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text style={styles.sessionName}>{sessionName(s)}</Text>
                     <Text style={styles.sessionDesc} numberOfLines={2}>
                       {t(`sanctuary.sessions.${s}.desc`)}
@@ -144,7 +148,9 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <View style={styles.sessionHeader}>
-              {sessionAcquired(state, session) && <Image source={SESSION_BOARS[session]} style={styles.sessionHeaderArt} />}
+              <View style={styles.sessionHeaderArt}>
+                <Image source={sessionAcquired(state, session) ? SESSION_BOARS[session] : SESSION_LOCKED[session]} style={styles.fill} resizeMode="cover" />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.sessionTitle}>{sessionName(session)}</Text>
                 <Text style={styles.sessionDesc}>{t(`sanctuary.sessions.${session}.desc`)}</Text>
@@ -216,20 +222,22 @@ const styles = StyleSheet.create({
   previewBar: { backgroundColor: colors.amber.bgSubtle, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.amber.border, paddingVertical: 4, alignItems: "center" },
   previewBarText: { ...typography.ui.caption, fontWeight: "700", color: colors.text.accentAmber },
   body: { padding: spacing.base, gap: spacing.md, paddingBottom: 120 },
-  hero: { width: "100%", aspectRatio: 16 / 10, borderRadius: 20 },
+  // The entrance art is square: shown whole, not cropped.
+  heroFrame: { width: "100%", aspectRatio: 1, borderRadius: 20, overflow: "hidden" },
+  fill: { width: "100%", height: "100%" },
   modes: { gap: 4 },
   mode: { ...typography.ui.subtext, color: colors.text.secondary },
   section: { ...typography.ui.titleSm, color: colors.text.heading, marginTop: spacing.sm },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   session: { width: "48%", backgroundColor: colors.bg.card, borderRadius: 18, padding: spacing.sm, gap: 6 },
   sessionOn: { borderWidth: 1, borderColor: MATRIX_GREEN },
-  sessionArt: { width: "100%", aspectRatio: 1, borderRadius: 14 },
-  lockedArt: { backgroundColor: colors.bg.cardHover, alignItems: "center", justifyContent: "center", padding: spacing.sm },
-  lockedText: { ...typography.ui.caption, color: colors.text.dim, textAlign: "center" },
+  sessionArt: { width: "100%", aspectRatio: 1, borderRadius: 14, overflow: "hidden", backgroundColor: colors.bg.cardHover },
+  lockedLabel: { position: "absolute", left: 0, right: 0, bottom: 0, paddingVertical: 4, paddingHorizontal: 6, backgroundColor: "rgba(0,0,0,0.6)" },
+  lockedText: { ...typography.ui.caption, color: colors.text.secondary, textAlign: "center" },
   sessionName: { ...typography.ui.body, fontWeight: "600", color: colors.text.heading },
   sessionDesc: { ...typography.ui.subtext, color: colors.text.muted },
   sessionHeader: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
-  sessionHeaderArt: { width: 72, height: 72, borderRadius: 14, borderWidth: 1, borderColor: MATRIX_GREEN },
+  sessionHeaderArt: { width: 72, height: 72, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: MATRIX_GREEN },
   sessionTitle: { ...typography.ui.titleLg, color: colors.text.heading },
   pack: { backgroundColor: colors.bg.card, borderRadius: 18, padding: spacing.md, gap: spacing.sm },
   packTitle: { ...typography.ui.title, color: colors.text.heading },

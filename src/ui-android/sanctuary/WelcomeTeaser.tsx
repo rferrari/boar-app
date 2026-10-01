@@ -3,7 +3,7 @@
  * stays locked ("You shall not pass!") until the preview disclaimer is ticked, then shows one of
  * the film and book nods in quotes.ts.
  */
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -25,8 +25,12 @@ export function WelcomeTeaser({ entrance, onEnter, onClose }: Props) {
   const { t } = useTranslation();
   const [agreed, setAgreed] = useState(false);
   const [dontShow, setDontShow] = useState(false);
-  // A new nod each time the Sanctuary opens (this component mounts with it).
-  const label = useMemo(() => pickLabel(), []);
+  // A new nod each time the box is ticked (and each time the Sanctuary opens).
+  const [label, setLabel] = useState(() => pickLabel());
+  const toggleAgreed = () => {
+    if (!agreed) setLabel((prev) => pickLabel(Math.random, prev));
+    setAgreed((v) => !v);
+  };
 
   return (
     <Modal visible animationType="fade" onRequestClose={onClose}>
@@ -39,7 +43,7 @@ export function WelcomeTeaser({ entrance, onEnter, onClose }: Props) {
           <Text style={styles.title}>{t("sanctuary.welcome.title")}</Text>
           <Text style={styles.paragraph}>{t("sanctuary.welcome.body")}</Text>
 
-          <Pressable style={styles.row} onPress={() => setAgreed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: agreed }}>
+          <Pressable style={styles.row} onPress={toggleAgreed} accessibilityRole="checkbox" accessibilityState={{ checked: agreed }}>
             <View style={[styles.box, agreed && styles.boxOn]}>{agreed && <View style={styles.boxDot} />}</View>
             <Text style={styles.rowText}>{t("sanctuary.welcome.agree")}</Text>
           </Pressable>

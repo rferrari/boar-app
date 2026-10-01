@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   stepText: { ...typography.ui.body, color: "rgba(220,255,230,0.45)", flex: 1 },
   stepTextOn: { color: "#E7FFEE" },
   note: { ...typography.ui.subtext, color: "rgba(220,255,230,0.6)", textAlign: "center", marginTop: spacing.sm },
-  done: { alignItems: "center", padding: spacing.lg, gap: spacing.sm, backgroundColor: "rgba(7,17,11,0.4)", flex: 1, justifyContent: "center" },
+  done: { alignItems: "center", paddingHorizontal: spacing.lg, paddingVertical: spacing.xxl, gap: spacing.md, backgroundColor: "rgba(7,17,11,0.4)", flex: 1, justifyContent: "center" },
   boar: { width: 220, height: 220, borderRadius: 20, borderWidth: 1, borderColor: MATRIX_GREEN },
   knows: { ...typography.ui.titleLg, color: "#E7FFEE", textAlign: "center" },
   saved: { ...typography.ui.body, color: "rgba(220,255,230,0.75)", textAlign: "center" },

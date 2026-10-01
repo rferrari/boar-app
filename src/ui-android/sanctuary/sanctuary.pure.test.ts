@@ -62,5 +62,8 @@ describe("welcome button labels", () => {
     expect(pickLabel(() => 0)).toBe(UNLOCKED_LABELS[0]);
     expect(pickLabel(() => 0.9999)).toBe(UNLOCKED_LABELS.at(-1));
     for (const label of [LOCKED_LABEL, ...UNLOCKED_LABELS]) expect(label).not.toMatch(/\p{Extended_Pictographic}/u);
+    for (const current of UNLOCKED_LABELS) {
+      for (const r of [0, 0.5, 0.9999]) expect(pickLabel(() => r, current)).not.toBe(current);
+    }
   });
 });

@@ -4,8 +4,8 @@
     python3 scripts/prepare-sanctuary-assets.py [SOURCE_DIR]   # default: assets/
 
 Sources (not committed): boar_sanctuary_entrance_{1x1,1x2,2x1,2x2}.png and
-boar_matrix_download_{combt,music,code,survive}.png. Writes entrance-1..4.webp and
-boar-{combat,music,code,survive}.webp, and a contact sheet to check them by eye.
+boar_matrix_download_{combt,music,code,survive}.png and locked-sanctuary_{1x1,1x2,2x1,2x2}.png.
+Writes entrance-1..4.webp, boar-<session>.webp and locked-<session>.webp, and a contact sheet.
 """
 import sys
 from pathlib import Path
@@ -25,6 +25,10 @@ FILES = {
     "boar-music": "boar_matrix_download_music.png",
     "boar-code": "boar_matrix_download_code.png",
     "boar-survive": "boar_matrix_download_survive.png",
+    "locked-combat": "locked-sanctuary_1x1.png",
+    "locked-music": "locked-sanctuary_1x2.png",
+    "locked-code": "locked-sanctuary_2x1.png",
+    "locked-survive": "locked-sanctuary_2x2.png",
 }
 
 
@@ -45,10 +49,10 @@ def main() -> None:
         img.save(path, "WEBP", quality=82, method=6)
         done.append(img)
         print(f"{path}  {path.stat().st_size // 1024} KB")
-    sheet = Image.new("RGB", (SIZE * 4, SIZE * 2))
+    sheet = Image.new("RGB", (SIZE * 4, SIZE * 3))
     for i, img in enumerate(done):
         sheet.paste(img, ((i % 4) * SIZE, (i // 4) * SIZE))
-    sheet.resize((SIZE * 2, SIZE)).save("build/sanctuary-contact-sheet.jpg", quality=80)
+    sheet.resize((SIZE * 2, SIZE * 3 // 2)).save("build/sanctuary-contact-sheet.jpg", quality=80)
 
 
 if __name__ == "__main__":

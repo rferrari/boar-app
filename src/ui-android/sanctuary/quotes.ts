@@ -17,6 +17,8 @@ export const UNLOCKED_LABELS = [
   "Open the pod bay doors, BOAR",
 ] as const;
 
-export function pickLabel(random: () => number = Math.random): string {
-  return UNLOCKED_LABELS[Math.min(UNLOCKED_LABELS.length - 1, Math.floor(random() * UNLOCKED_LABELS.length))];
+/** One of the labels at random; never `avoid` (the one on screen), so ticking again always shows a new one. */
+export function pickLabel(random: () => number = Math.random, avoid?: string): string {
+  const pool = avoid ? UNLOCKED_LABELS.filter((l) => l !== avoid) : [...UNLOCKED_LABELS];
+  return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
 }
