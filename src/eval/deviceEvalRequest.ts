@@ -8,7 +8,7 @@
  */
 import * as FileSystem from "expo-file-system/legacy";
 import { getRoutingPreset } from "../models/settings";
-import { EVAL_SET } from "./evalSet";
+import { EVAL_SET, VITALIK_SET } from "./evalSet";
 import { EVAL_RESULTS_DIR, listInstalledEvalModels, runEvaluation, RunEvaluationOptions, EvaluationRun } from "./evalHarness";
 import { evalConfigId } from "./evalHarness.pure";
 import { EvalRequest, EvalRequestStatus, parseEvalRequest, resolveEvalRequest } from "./deviceEvalRequest.pure";
@@ -67,7 +67,7 @@ export async function runDeviceEvalRequest(
   const { requestId } = request;
   const [installed, preset] = await Promise.all([listInstalledEvalModels(), getRoutingPreset()]);
   const installedModels = installed.map((m) => m.id);
-  const resolved = resolveEvalRequest(request, installed, EVAL_SET, adaptiveLabel(preset));
+  const resolved = resolveEvalRequest(request, installed, EVAL_SET, adaptiveLabel(preset), VITALIK_SET);
   if (!resolved.ok) {
     await writeStatus({ requestId, state: "failed", error: resolved.error, installedModels });
     return null;

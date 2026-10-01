@@ -85,7 +85,9 @@ export function resolveEvalRequest(
   request: EvalRequest,
   installed: CatalogModel[],
   evalSet: EvalQuery[],
-  adaptiveLabel: string
+  adaptiveLabel: string,
+  /** Sets only run when asked for by id or category (e.g. "vitalik"). */
+  extraSets: EvalQuery[] = []
 ): ResolvedEvalRequest {
   const everything = !request.models?.length && !request.adaptive;
   const configs: EvalConfig[] = [];
@@ -105,9 +107,10 @@ export function resolveEvalRequest(
 
   let queries = evalSet;
   if (request.queries?.length) {
-    const unknown = request.queries.filter((s) => !evalSet.some((q) => q.id === s || q.category === s));
+    const all = [...evalSet, ...extraSets];
+    const unknown = request.queries.filter((s) => !all.some((q) => q.id === s || q.category === s));
     if (unknown.length) return { ok: false, error: `unknown query id or category: ${unknown.join(", ")}` };
-    queries = evalSet.filter((q) => request.queries!.includes(q.id) || request.queries!.includes(q.category));
+    queries = all.filter((q) => request.queries!.includes(q.id) || request.queries!.includes(q.category));
   }
   return { ok: true, configs, queries };
 }

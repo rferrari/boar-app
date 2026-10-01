@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { matchModels, parseEvalRequest, resolveEvalRequest } from "./deviceEvalRequest.pure";
-import { EVAL_SET } from "./evalSet";
+import { EVAL_SET, VITALIK_SET, setVersionOf } from "./evalSet";
 import { MODEL_CATALOG, CatalogModel } from "../models/manifest";
 
 const PHI = MODEL_CATALOG.find((m) => m.id === "phi-3.5-mini-instruct-q4km")!;
@@ -67,6 +67,24 @@ describe("resolveEvalRequest", () => {
     const r = resolve({ queries: ["greeting-1", "reasoning"] });
     expect(r.ok && r.queries.map((q) => q.id)).toEqual(["greeting-1", "reasoning-1", "reasoning-2", "reasoning-3"]);
     expect(resolve({ queries: ["nope"] })).toEqual({ ok: false, error: "unknown query id or category: nope" });
+  });
+
+  it("runs the Vitalik battery only when asked for, never by default", () => {
+    const all = (req: object) => resolveEvalRequest({ requestId: "r", ...req }, installed, EVAL_SET, "Adaptive", VITALIK_SET);
+    const standard = all({});
+    expect(standard.ok && standard.queries).toHaveLength(EVAL_SET.length);
+    const battery = all({ queries: ["vitalik"] });
+    expect(battery.ok && battery.queries).toHaveLength(VITALIK_SET.length);
+    expect(battery.ok && battery.queries.every((q) => setVersionOf(q) === "vitalik-1")).toBe(true);
+    const one = all({ queries: ["vitalik-about-x", "greeting-1"] });
+    expect(one.ok && one.queries.map((q) => q.id)).toEqual(["greeting-1", "vitalik-about-x"]);
+  });
+
+  it("keeps the Vitalik battery's ids unique and apart from the standard set", () => {
+    const ids = [...EVAL_SET, ...VITALIK_SET].map((q) => q.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(EVAL_SET.some((q) => q.category === "vitalik")).toBe(false);
+    expect(EVAL_SET.every((q) => setVersionOf(q) === "1")).toBe(true);
   });
 
   it("still runs adaptive when no model is installed, matching the Evaluation screen", () => {

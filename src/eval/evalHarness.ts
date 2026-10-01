@@ -23,7 +23,7 @@ import { MODEL_CATALOG, CatalogModel } from "../models/manifest";
 import { listDiscoveredModels } from "../models/discoveredModels";
 import { DEFAULT_MAX_TOKENS, getRoutingPreset } from "../models/settings";
 import { DEFAULT_PERSONALITY_ID, getPersonality } from "../constants/personalities";
-import { EVAL_SET, EVAL_SET_VERSION, EvalQuery } from "./evalSet";
+import { EVAL_SET, EVAL_SET_VERSION, EvalQuery, setVersionOf } from "./evalSet";
 import {
   buildFixedModelPlan,
   EvalConfig,
@@ -163,7 +163,7 @@ async function runOne(
   return {
     ...metrics,
     runId,
-    evalSetVersion: EVAL_SET_VERSION,
+    evalSetVersion: setVersionOf(q),
     configId: evalConfigId(config),
     configLabel: config.label,
     routingPreset,
