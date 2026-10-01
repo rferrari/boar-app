@@ -355,6 +355,32 @@ describe("riskyHealthInstruction: exertion in hypothermia (Lantern safety 2026-0
     expect(riskyHealthInstruction("Hypothermia: get them into a warm shelter, remove wet clothing and warm them under dry blankets.")).toBeNull();
     expect(riskyHealthInstruction("After a sprained ankle heals, keep walking a little every day.")).toBeNull();
   });
+  it("flags direct walking instructions, EN and PT (CodeRabbit, #46)", () => {
+    for (const text of [
+      "Hypothermia: walk to shelter to keep warm.",
+      "Hypothermia: start walking to warm up.",
+      "Hipotermia: caminhe até um abrigo.",
+      "Hipotermia: ande até o abrigo para se aquecer.",
+      "Hipotermia: continue andando até o abrigo.",
+    ]) {
+      expect(riskyHealthInstruction(text), text).toBe("exertion-hypothermia");
+    }
+  });
+  it("negation counts only in the exertion's own clause; PT 'no'/'na' is never negation (CodeRabbit, #46)", () => {
+    expect(riskyHealthInstruction("Hypothermia: keep walking and do not remove your coat.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia: mantenha a pessoa caminhando no frio.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia: faça a pessoa andar na neve.")).toBe("exertion-hypothermia");
+    for (const text of [
+      "Hypothermia: do not keep walking.",
+      "Hypothermia: never make them walk; keep them lying down.",
+      "Hypothermia: if the person cannot walk, carry them gently.",
+      "Hipotermia: não continue caminhando.",
+      "Hipotermia: nunca faça a pessoa andar; mantenha-a deitada.",
+      "Hipotermia: evite caminhar; deite a pessoa e aqueça devagar.",
+    ]) {
+      expect(riskyHealthInstruction(text), text).toBeNull();
+    }
+  });
 });
 
 describe("isSafetyQuery (one classifier for the emergency line, engine and chat)", () => {
