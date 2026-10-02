@@ -153,14 +153,13 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   const tierCorpusPackIds = activeTierConfig.corpusPackIds ?? [];
   // No chat model is `required` (one is chosen instead), so add one: an answer model already on
   // the phone, else the default, or the compact one where the default doesn't fit the RAM.
-  const answerModel =
-    ANSWER_MODELS.find((m) => presence[m.id]) ??
-    (tooBigForLowRam(DEFAULT_ANSWER_MODEL, hardware.totalRamBytes) ? COMPACT_ANSWER_MODEL : DEFAULT_ANSWER_MODEL);
-  const tierAssets: CatalogModel[] = [
+  const assetsFor = (pres: Record<string, boolean>): CatalogModel[] => [
     ...MODEL_CATALOG.filter((m) => m.required),
-    answerModel,
+    ANSWER_MODELS.find((m) => pres[m.id]) ??
+      (tooBigForLowRam(DEFAULT_ANSWER_MODEL, hardware.totalRamBytes) ? COMPACT_ANSWER_MODEL : DEFAULT_ANSWER_MODEL),
     ...CORPUS_CATALOG.filter((c) => tierCorpusPackIds.includes(c.id)),
   ];
+  const tierAssets = assetsFor(presence);
 
   const allAssetsPresent = tierAssets.every((m) => presence[m.id]);
 
@@ -169,7 +168,7 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
     setStep(3);
     const presMap = await refreshPresence();
 
-    for (const asset of tierAssets) {
+    for (const asset of assetsFor(presMap)) {
       if (!presMap[asset.id]) {
         // presence (and therefore allAssetsPresent / each PhaseRow's status)
         // is only ever set from an explicit statusAll() scan, not derived
@@ -179,7 +178,7 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
         startDownload(asset).finally(() => refreshPresence());
       }
     }
-  }, [refreshPresence, tierAssets]);
+  }, [refreshPresence, assetsFor]);
 
   // Downloads done: move on to indexing.
   useEffect(() => {
