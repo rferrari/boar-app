@@ -40,8 +40,10 @@ Estes dados são tratados apenas no seu aparelho e o BOAR nunca os envia para n�
 - suas perguntas e as respostas do BOAR, as conversas e seus resumos;
 - os documentos que você importa e as coleções criadas a partir deles;
 - a base de conhecimento e as buscas feitas nela;
-- sua localização: lida do GPS do celular só quando você pergunta sobre lugares por perto, usada no
-  aparelho e nunca enviada (o BOAR não usa serviço de localização pela rede nem geocodificador);
+- sua localização: lida só quando você pergunta sobre lugares por perto, usada no aparelho e nunca
+  enviada pelo BOAR, que não usa geocodificador. No Android, vem só do GPS do celular, sem serviço de
+  localização pela rede. No iPhone, vem do Core Location do iOS, que também pode usar Wi-Fi e rede
+  celular pelo serviço de localização da Apple, sob a política de privacidade da Apple;
 - o registro de desempenho do BOAR (modelo, velocidade e memória de cada resposta), que nunca inclui
   suas perguntas ou respostas e só sai do celular se você mesmo exportá-lo;
 - as rodadas de avaliação (as perguntas de teste fixas do BOAR e as respostas do modelo a elas), até

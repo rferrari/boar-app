@@ -38,8 +38,10 @@ These are processed only on your device and are never sent to us or anyone else 
 - your questions and BOAR's answers, conversations and their summaries;
 - documents you import and the collections made from them;
 - the knowledge base and the searches over it;
-- your location: read from the phone's GPS only when you ask about places near you, used on the
-  phone, and never sent anywhere (BOAR doesn't use a network location service or a geocoder);
+- your location: read only when you ask about places near you, used on the phone, and never sent
+  anywhere by BOAR, which has no geocoder. On Android it comes from the phone's GPS alone, with no
+  network location service. On iPhone it comes from iOS's Core Location, which may also use Wi-Fi and
+  cell signals through Apple's location service, under Apple's privacy policy;
 - BOAR's performance log (model, speed, memory for each answer), which never includes your
   questions or answers, and leaves the phone only if you export it yourself;
 - evaluation runs (BOAR's fixed test questions and the model's answers to them), until you share
