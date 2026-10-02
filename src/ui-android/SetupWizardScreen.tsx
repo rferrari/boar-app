@@ -20,7 +20,10 @@ import {
   MODEL_CATALOG,
   CORPUS_CATALOG,
   CatalogModel,
+  ANSWER_MODELS,
 } from "../models/manifest";
+import { getActiveModelId, setActiveModelId } from "../models/settings";
+import { answerModelToInstall, heavyForPhone, recommendedAnswerModel } from "./setupModel";
 import { ModelManager } from "../models/ModelManager";
 import {
   startDownload,
@@ -50,6 +53,14 @@ interface HardwareScan {
   totalRamBytes: number;
   freeStorageBytes: number;
   scanned: boolean;
+}
+
+function readTotalRam(): number {
+  try {
+    return getDeviceTotalRamBytes();
+  } catch {
+    return 0;
+  }
 }
 
 function formatGB(bytes: number): string {
@@ -86,12 +97,15 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   const { t } = useTranslation();
   const [step, setStep] = useState<WizardStep>(1);
   const [selectedTier, setSelectedTier] = useState<SetupTier>("standard");
+  // The answer model the user tapped; until then, one already on the phone or the recommended one.
+  const [chosenModelId, setChosenModelId] = useState<string | undefined>();
   const [presence, setPresence] = useState<Record<string, boolean>>({});
-  const [hardware, setHardware] = useState<HardwareScan>({
-    totalRamBytes: 0,
+  // RAM is read synchronously here, so the recommended model is right from the first render.
+  const [hardware, setHardware] = useState<HardwareScan>(() => ({
+    totalRamBytes: readTotalRam(),
     freeStorageBytes: 0,
     scanned: false,
-  });
+  }));
   const [indexingPhase, setIndexingPhase] = useState<"waiting" | "building" | "ready" | "error">("waiting");
   const [indexingError, setIndexingError] = useState<string | null>(null);
   const [seedProgress, setSeedProgress] = useState<SeedProgress | null>(null);
@@ -114,13 +128,8 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   // Hardware Diagnostics Scan
   useEffect(() => {
     (async () => {
-      let ram = 0;
+      const ram = readTotalRam();
       let freeStorage = 0;
-      try {
-        ram = getDeviceTotalRamBytes();
-      } catch {
-        ram = 0;
-      }
       try {
         freeStorage = await FileSystem.getFreeDiskStorageAsync();
       } catch {
@@ -145,12 +154,29 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
     refreshPresence();
   }, [refreshPresence]);
 
+  // Reopened after the app was closed mid-download: keep the model chosen then, not today's pick.
+  useEffect(() => {
+    getActiveModelId("llm").then((id) => {
+      if (id && ANSWER_MODELS.some((m) => m.id === id)) setChosenModelId((cur) => cur ?? id);
+    });
+  }, []);
+
   const activeTierConfig = TIERS.find((t) => t.id === selectedTier) ?? TIERS[0];
   const tierCorpusPackIds = activeTierConfig.corpusPackIds ?? [];
-  const tierAssets: CatalogModel[] = [
-    ...MODEL_CATALOG.filter((m) => m.required),
-    ...CORPUS_CATALOG.filter((c) => tierCorpusPackIds.includes(c.id)),
-  ];
+  // No chat model is `required` (one is chosen in step 2), so the downloads add the chosen one.
+  const recommendedModel = recommendedAnswerModel(ANSWER_MODELS, hardware.totalRamBytes);
+  const answerModelFor = (pres: Record<string, boolean>) =>
+    answerModelToInstall(ANSWER_MODELS, pres, hardware.totalRamBytes, chosenModelId);
+  const assetsFor = (pres: Record<string, boolean>): CatalogModel[] => {
+    const answer = answerModelFor(pres);
+    return [
+      ...MODEL_CATALOG.filter((m) => m.required),
+      ...(answer ? [answer] : []),
+      ...CORPUS_CATALOG.filter((c) => tierCorpusPackIds.includes(c.id)),
+    ];
+  };
+  const answerModel = answerModelFor(presence);
+  const tierAssets = assetsFor(presence);
 
   const allAssetsPresent = tierAssets.every((m) => presence[m.id]);
 
@@ -158,8 +184,14 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
     impact(ImpactFeedbackStyle.Medium);
     setStep(3);
     const presMap = await refreshPresence();
+    const answer = answerModelFor(presMap);
+    if (answer) {
+      // Fixed from here on: the RAM scan or a later presence check must not switch the model mid-download.
+      setChosenModelId(answer.id);
+      await setActiveModelId("llm", answer.id);
+    }
 
-    for (const asset of tierAssets) {
+    for (const asset of assetsFor(presMap)) {
       if (!presMap[asset.id]) {
         // presence (and therefore allAssetsPresent / each PhaseRow's status)
         // is only ever set from an explicit statusAll() scan, not derived
@@ -169,7 +201,7 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
         startDownload(asset).finally(() => refreshPresence());
       }
     }
-  }, [refreshPresence, tierAssets]);
+  }, [refreshPresence, assetsFor, answerModelFor]);
 
   // Downloads done: move on to indexing.
   useEffect(() => {
@@ -383,6 +415,58 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
             <Text style={styles.stepSubtitle}>{t("setupWizard.step2.subtitle")}</Text>
           </View>
 
+          {ANSWER_MODELS.map((model) => {
+            const isSelected = answerModel?.id === model.id;
+            const heavy = heavyForPhone(model, hardware.totalRamBytes);
+            return (
+              <Pressable
+                key={model.id}
+                style={[styles.tierCard, isSelected && styles.tierCardActive]}
+                onPress={() => {
+                  impact(ImpactFeedbackStyle.Light);
+                  setChosenModelId(model.id);
+                }}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+              >
+                <View style={styles.tierHeader}>
+                  <View style={styles.tierTitleRow}>
+                    <Text style={styles.tierName}>{model.displayName ?? model.label}</Text>
+                    {model.id === recommendedModel?.id && (
+                      <View style={styles.recommendedPill}>
+                        <Text style={styles.recommendedText}>{t("setupWizard.step2.recommended")}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
+                    {isSelected && <View style={styles.radioDot} />}
+                  </View>
+                </View>
+                <Text style={styles.tierDesc}>{t(`setupWizard.step2.models.${model.answerTier}`)}</Text>
+                <View style={styles.tierMetaRow}>
+                  {presence[model.id] ? (
+                    <View style={styles.compatPillGreen}>
+                      <Text style={styles.compatPillGreenText}>{t("setupWizard.step2.onPhone")}</Text>
+                    </View>
+                  ) : heavy ? (
+                    <View style={styles.heavyPill}>
+                      <Text style={styles.heavyPillText}>{t("setupWizard.step2.heavy")}</Text>
+                    </View>
+                  ) : (
+                    <View />
+                  )}
+                  <Text style={styles.tierFootprint}>{formatGB(model.sizeBytes)}</Text>
+                </View>
+                {heavy && isSelected && <Text style={styles.tierDesc}>{t("setupWizard.step2.heavyNote")}</Text>}
+              </Pressable>
+            );
+          })}
+
+          <View style={styles.stepHeader}>
+            <Text style={styles.stepTitle}>{t("setupWizard.step2.knowledgeTitle")}</Text>
+            <Text style={styles.stepSubtitle}>{t("setupWizard.step2.knowledgeSubtitle")}</Text>
+          </View>
+
           {TIERS.map((tier) => {
             const isSelected = selectedTier === tier.id;
             return (
@@ -414,13 +498,6 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
                 </View>
 
                 <Text style={styles.tierDesc}>{tier.description}</Text>
-
-                <View style={styles.tierMetaRow}>
-                  <View style={styles.compatPillGreen}>
-                    <Text style={styles.compatPillGreenText}>{t("setupWizard.step2.runsGreat")}</Text>
-                  </View>
-                  <Text style={styles.tierFootprint}>{t("setupWizard.step2.ramFootprint")}</Text>
-                </View>
               </Pressable>
             );
           })}
@@ -518,7 +595,7 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
               index="1"
               title={t("setupWizard.step3.phaseModel")}
               status={
-                presence[MODEL_CATALOG.find((m) => m.kind === "llm" && m.required)?.id ?? ""]
+                answerModel && presence[answerModel.id]
                   ? "COMPLETE"
                   : isAnyDownloading
                   ? "STREAMING"
@@ -1016,6 +1093,20 @@ const styles = StyleSheet.create({
     ...typography.mono.xs,
     fontSize: 9,
     color: colors.text.accentEmerald,
+    fontWeight: "700",
+  },
+  heavyPill: {
+    backgroundColor: colors.amber.bgSubtle,
+    borderColor: colors.amber.border,
+    borderWidth: 1,
+    borderRadius: radii.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  heavyPillText: {
+    ...typography.mono.xs,
+    fontSize: 9,
+    color: colors.text.accentAmber,
     fontWeight: "700",
   },
   tierFootprint: {
