@@ -1,6 +1,6 @@
 /**
  * The preview's "Publish a pack" wizard: pick documents (names from My Documents, read only),
- * name and tag it, choose pricing, publish → a draft kept in memory. Nothing is uploaded.
+ * name and tag it, publish → a draft kept in memory. Nothing is uploaded.
  */
 import React, { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -27,7 +27,6 @@ export function PublishWizard({ onPublish, onClose }: Props) {
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState("");
   const [session, setSession] = useState<SessionId>("code");
-  const [pricing, setPricing] = useState<Draft["pricing"]>("free");
 
   useEffect(() => {
     listCustomCollections()
@@ -38,7 +37,7 @@ export function PublishWizard({ onPublish, onClose }: Props) {
   const toggle = (name: string) => setChosen((c) => (c.includes(name) ? c.filter((x) => x !== name) : [...c, name]));
   const canNext = step === 1 ? title.trim().length > 0 : true;
   const publish = () =>
-    onPublish({ title, session, pricing, documents: chosen, tags: tags.split(",").map((s) => s.trim()).filter(Boolean) });
+    onPublish({ title, session, pricing: "free", documents: chosen, tags: tags.split(",").map((s) => s.trim()).filter(Boolean) });
 
   const option = (selected: boolean, label: string, onPress: () => void) => (
     <Pressable key={label} style={[styles.option, selected && styles.optionOn]} onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
@@ -72,12 +71,6 @@ export function PublishWizard({ onPublish, onClose }: Props) {
               {SESSIONS.map((s) => option(session === s, t(`sanctuary.sessions.${s}.name`), () => setSession(s)))}
             </>
           )}
-          {step === 2 && (
-            <>
-              <Text style={styles.stepTitle}>{t("sanctuary.publish.step3")}</Text>
-              {(["free", "once", "subscription"] as const).map((p) => option(pricing === p, t(`sanctuary.publish.pricing.${p}`), () => setPricing(p)))}
-            </>
-          )}
         </ScrollView>
         <View style={styles.footer}>
           {step > 0 && (
@@ -88,9 +81,9 @@ export function PublishWizard({ onPublish, onClose }: Props) {
           <Pressable
             style={[styles.btn, styles.btnPrimary, !canNext && styles.disabled]}
             disabled={!canNext}
-            onPress={() => (step < 2 ? setStep((s) => s + 1) : publish())}
+            onPress={() => (step < 1 ? setStep((s) => s + 1) : publish())}
           >
-            <Text style={styles.btnPrimaryText}>{step < 2 ? t("sanctuary.publish.next") : t("sanctuary.publish.publish")}</Text>
+            <Text style={styles.btnPrimaryText}>{step < 1 ? t("sanctuary.publish.next") : t("sanctuary.publish.publish")}</Text>
           </Pressable>
         </View>
       </SafeAreaView>

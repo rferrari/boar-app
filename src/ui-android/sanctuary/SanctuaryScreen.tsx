@@ -17,7 +17,6 @@ import { SESSIONS, packsOf, type MockPack, type SessionId } from "./catalog";
 import { initialSanctuary, pickEntrance, sanctuaryReducer, sessionAcquired, statsOf } from "./sanctuary.pure";
 import { WelcomeTeaser } from "./WelcomeTeaser";
 import { AcquireModal } from "./AcquireModal";
-import { TipSheet } from "./TipSheet";
 import { PublishWizard } from "./PublishWizard";
 import { ReportSheet } from "./ReportSheet";
 import { PreviewSheet } from "./PreviewSheet";
@@ -33,7 +32,6 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
   const [welcome, setWelcome] = useState<boolean | null>(null);
   const [session, setSession] = useState<SessionId | null>(null);
   const [acquiring, setAcquiring] = useState<MockPack | null>(null);
-  const [tipping, setTipping] = useState<MockPack | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [reporting, setReporting] = useState<MockPack | null>(null);
   const [previewing, setPreviewing] = useState<MockPack | null>(null);
@@ -47,12 +45,6 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
   }, []);
 
   const sessionName = (s: SessionId) => t(`sanctuary.sessions.${s}.name`);
-  const price = (p: MockPack) =>
-    p.price.kind === "free"
-      ? t("sanctuary.price.free")
-      : p.price.kind === "once"
-        ? t("sanctuary.price.once", { boar: p.price.boar })
-        : t("sanctuary.price.subscription", { boar: p.price.boarPerMonth });
 
   const packCard = (p: MockPack) => {
     const have = !!state.acquired[p.id];
@@ -64,15 +56,10 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
         <Text style={styles.packMeta}>
           {t("sanctuary.by", { creator: p.creator })} · {t("sanctuary.size", { mb: p.sizeMb })} · {p.rating.toFixed(1)} / 5
         </Text>
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{price(p)}</Text>
-          {p.price.kind !== "free" && <Text style={styles.previewTag}>{t("sanctuary.badge")}</Text>}
-        </View>
         <View style={styles.stats}>
           <Text style={styles.stat}>▲ {stats.up}</Text>
           <Text style={styles.stat}>▼ {stats.down}</Text>
           <Text style={styles.stat}>{t("sanctuary.stats.reports", { count: stats.reports })}</Text>
-          <Text style={styles.stat}>{t("sanctuary.stats.tipped", { boar: stats.tippedBoar })}</Text>
         </View>
         <Pressable style={styles.previewBtn} onPress={() => setPreviewing(p)} accessibilityRole="button">
           <Text style={styles.previewBtnText}>{t("sanctuary.previewSheet.open")}</Text>
@@ -81,10 +68,10 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
           <Pressable style={[styles.btn, have ? styles.btnDone : styles.btnPrimary]} disabled={have} onPress={() => setAcquiring(p)}>
             <Text style={[styles.btnText, !have && styles.btnTextPrimary]}>{have ? t("sanctuary.acquired") : t("sanctuary.get")}</Text>
           </Pressable>
-          {/* Tip: the BOAR mascot, as in the chat header ($BOAR is the boar's token). */}
-          <Pressable style={styles.tipBtn} onPress={() => setTipping(p)} accessibilityRole="button" accessibilityLabel={t("sanctuary.tip")}>
+          {/* The BOAR mascot, a mystery in the demo: it does nothing yet. */}
+          <View style={styles.tipBtn} accessible={false}>
             <Image source={MASCOT} style={styles.tipMascot} resizeMode="contain" />
-          </Pressable>
+          </View>
           <Pressable style={[styles.btn, state.subscribed[p.id] && styles.btnOn]} onPress={() => dispatch({ type: "toggleSubscribe", packId: p.id })}>
             <Text style={styles.btnText}>{state.subscribed[p.id] ? t("sanctuary.subscribed") : t("sanctuary.subscribe")}</Text>
           </Pressable>
@@ -201,17 +188,6 @@ export function SanctuaryScreen({ onClose }: { onClose: () => void }) {
           }}
         />
       )}
-      {tipping && (
-        <TipSheet
-          creator={tipping.creator}
-          onCancel={() => setTipping(null)}
-          onSend={(amount) => {
-            dispatch({ type: "tip", packId: tipping.id, amount });
-            setTipping(null);
-            setToast(t("sanctuary.tipSheet.sent"));
-          }}
-        />
-      )}
       {reporting && (
         <ReportSheet
           packTitle={t(`sanctuary.packs.${reporting.id}`)}
@@ -266,8 +242,6 @@ const styles = StyleSheet.create({
   pack: { backgroundColor: colors.bg.card, borderRadius: 18, padding: spacing.md, gap: spacing.sm },
   packTitle: { ...typography.ui.title, color: colors.text.heading },
   packMeta: { ...typography.ui.subtext, color: colors.text.muted },
-  priceRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  price: { ...typography.ui.body, fontWeight: "600", color: colors.text.accentEmerald },
   previewTag: { ...typography.ui.caption, fontWeight: "700", color: colors.text.accentAmber, borderWidth: 1, borderColor: colors.amber.border, borderRadius: radii.full, paddingHorizontal: 8 },
   actions: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
   stats: { flexDirection: "row", flexWrap: "wrap", columnGap: spacing.md, rowGap: 2 },

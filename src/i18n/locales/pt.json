@@ -578,7 +578,7 @@
     "subtitle": "Pacotes de conhecimento da comunidade, usados offline",
     "welcome": {
       "title": "Bem-vindo ao Santuário do Conhecimento",
-      "body": "Esta é uma prévia. Nada aqui está no ar nem ligado a uma carteira ainda. Explore o fluxo da biblioteca comunitária que estamos construindo: encontre pacotes, baixe-os online e depois use-os sem nenhuma conexão.",
+      "body": "Esta é uma prévia. Nada aqui está no ar ainda. Explore o fluxo da biblioteca comunitária que estamos construindo: encontre pacotes, baixe-os online e depois use-os sem nenhuma conexão.",
       "agree": "Entendo que é uma prévia e nada está no ar",
       "dontShow": "Não mostrar de novo"
     },
@@ -626,8 +626,8 @@
     "get": "Baixar",
     "acquired": "Na sua biblioteca",
     "tip": "Gorjeta",
-    "subscribe": "Assinar",
-    "subscribed": "Assinado · prévia",
+    "subscribe": "Manter atualizado",
+    "subscribed": "Atualizações ativas",
     "report": "Reportar informação ruim",
     "acquire": {
       "steps": [

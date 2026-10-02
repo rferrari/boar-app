@@ -578,7 +578,7 @@
     "subtitle": "Community knowledge packs, used offline",
     "welcome": {
       "title": "Welcome to the Knowledge Sanctuary",
-      "body": "This is a preview. Nothing here is live or connected to a wallet yet. Explore the flow of the community library we're building: find packs, get them while online, then use them with no connection at all.",
+      "body": "This is a preview. Nothing here is live yet. Explore the flow of the community library we're building: find packs, get them while online, then use them with no connection at all.",
       "agree": "I understand this is a preview and nothing is live",
       "dontShow": "Don't show this again"
     },
@@ -626,8 +626,8 @@
     "get": "Get",
     "acquired": "In your library",
     "tip": "Tip",
-    "subscribe": "Subscribe",
-    "subscribed": "Subscribed · preview",
+    "subscribe": "Keep updated",
+    "subscribed": "Updates on",
     "report": "Report bad info",
     "acquire": {
       "steps": [
