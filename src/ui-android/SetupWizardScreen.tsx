@@ -20,7 +20,11 @@ import {
   MODEL_CATALOG,
   CORPUS_CATALOG,
   CatalogModel,
+  ANSWER_MODELS,
+  DEFAULT_ANSWER_MODEL,
+  COMPACT_ANSWER_MODEL,
 } from "../models/manifest";
+import { tooBigForLowRam } from "../routing/defaultModel";
 import { ModelManager } from "../models/ModelManager";
 import {
   startDownload,
@@ -147,8 +151,14 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
 
   const activeTierConfig = TIERS.find((t) => t.id === selectedTier) ?? TIERS[0];
   const tierCorpusPackIds = activeTierConfig.corpusPackIds ?? [];
+  // No chat model is `required` (one is chosen instead), so add one: an answer model already on
+  // the phone, else the default, or the compact one where the default doesn't fit the RAM.
+  const answerModel =
+    ANSWER_MODELS.find((m) => presence[m.id]) ??
+    (tooBigForLowRam(DEFAULT_ANSWER_MODEL, hardware.totalRamBytes) ? COMPACT_ANSWER_MODEL : DEFAULT_ANSWER_MODEL);
   const tierAssets: CatalogModel[] = [
     ...MODEL_CATALOG.filter((m) => m.required),
+    answerModel,
     ...CORPUS_CATALOG.filter((c) => tierCorpusPackIds.includes(c.id)),
   ];
 
