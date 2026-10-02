@@ -173,6 +173,19 @@ describe("answer(): instant tier", () => {
     expect(sources.map((s) => s.title)).not.toContain("Mold");
   });
 
+  it("'Answer anyway' runs the model even when the source excerpt could stand as the answer", async () => {
+    // The excerpt is already on screen above the decline: asking again with answerAnyway must reach the
+    // model, not end on the same excerpt (iPhone 13, 01/10: with quick answers on, the tap re-ran the
+    // question, instant:final returned the excerpt, and the model never ran).
+    const events: AnswerEvent[] = [];
+    const result = await createAnswerer(f.deps).answer({ query: "What is the capital of Australia?", answerAnyway: true }, (e) => events.push(e), ctx).done;
+    expect(result.tier).toBe("fast");
+    expect(result.receipt.reasonCodes).toContain("instant:off");
+    expect(result.receipt.reasonCodes).not.toContain("instant:final");
+    expect(types(events)).not.toContain("instant");
+    expect(f.generations).toHaveLength(1);
+  });
+
   it("keeps generating when the confident snippet can't answer the question alone", async () => {
     const { events, result } = await collect("What is the capital of Australia and where is it?");
     expect(types(events)).toContain("instant");

@@ -649,7 +649,9 @@ export function createAnswerer(deps: AnswerDeps) {
       const plan: AnswerPlan = planAnswer({
         taskType,
         requestedTier: req.tier ?? "auto",
-        quickFirst: settings.quickFirst,
+        // "Answer anyway" asks for the model's answer: the excerpt is already on screen, and offering it again
+        // (instant:final on a lookup) ended the redo on the same excerpt with no generation.
+        quickFirst: settings.quickFirst && !req.answerAnyway,
         alwaysComplete: settings.alwaysComplete,
         fastModel: fastLlm ? toDepth(fastLlm) : null,
         deepModel,
