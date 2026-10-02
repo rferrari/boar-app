@@ -383,6 +383,28 @@ describe("riskyHealthInstruction: exertion in hypothermia (Lantern safety 2026-0
   });
 });
 
+describe("riskyHealthInstruction: exertion in hypothermia, review follow-ups (CodeRabbit, #65)", () => {
+  it("a negated stop is still exertion advice", () => {
+    expect(riskyHealthInstruction("Hypothermia: do not stop walking until you reach shelter.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hypothermia: never quit walking or you will freeze.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia: não pare de caminhar até o abrigo.")).toBe("exertion-hypothermia");
+    // A plain negation still clears it.
+    expect(riskyHealthInstruction("Hypothermia: do not keep walking.")).toBeNull();
+  });
+  it("'mild' exempts only a sentence about mild hypothermia, not one that also covers worse stages", () => {
+    expect(riskyHealthInstruction("In mild hypothermia walk briskly; in severe cases keep walking to the hut.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia leve ou grave: continue andando até o abrigo.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("In mild hypothermia, gentle exercise such as walking can help you warm up.")).toBeNull();
+  });
+  it("catches moving as the instruction itself, not moving the person gently", () => {
+    expect(riskyHealthInstruction("Hypothermia: move around to warm up.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia: mova-se para se aquecer.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hipotermia: movimente-se sem parar.")).toBe("exertion-hypothermia");
+    expect(riskyHealthInstruction("Hypothermia: move the person gently to a warm shelter.")).toBeNull();
+    expect(riskyHealthInstruction("Hipotermia: mova a pessoa com cuidado para um abrigo.")).toBeNull();
+  });
+});
+
 describe("isSafetyQuery (one classifier for the emergency line, engine and chat)", () => {
   it("includes the chat's broad list and everything that gets strict health grounding", () => {
     for (const q of ["What should I do during an earthquake?", "Is there a gas leak smell?", "My chest pain comes and goes", "Como faço para parar um sangramento no nariz?", "Estou perdido na trilha"]) {
