@@ -22,7 +22,7 @@ import {
   CatalogModel,
   ANSWER_MODELS,
 } from "../models/manifest";
-import { setActiveModelId } from "../models/settings";
+import { getActiveModelId, setActiveModelId } from "../models/settings";
 import { answerModelToInstall, heavyForPhone, recommendedAnswerModel } from "./setupModel";
 import { ModelManager } from "../models/ModelManager";
 import {
@@ -53,6 +53,14 @@ interface HardwareScan {
   totalRamBytes: number;
   freeStorageBytes: number;
   scanned: boolean;
+}
+
+function readTotalRam(): number {
+  try {
+    return getDeviceTotalRamBytes();
+  } catch {
+    return 0;
+  }
 }
 
 function formatGB(bytes: number): string {
@@ -92,11 +100,12 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   // The answer model the user tapped; until then, one already on the phone or the recommended one.
   const [chosenModelId, setChosenModelId] = useState<string | undefined>();
   const [presence, setPresence] = useState<Record<string, boolean>>({});
-  const [hardware, setHardware] = useState<HardwareScan>({
-    totalRamBytes: 0,
+  // RAM is read synchronously here, so the recommended model is right from the first render.
+  const [hardware, setHardware] = useState<HardwareScan>(() => ({
+    totalRamBytes: readTotalRam(),
     freeStorageBytes: 0,
     scanned: false,
-  });
+  }));
   const [indexingPhase, setIndexingPhase] = useState<"waiting" | "building" | "ready" | "error">("waiting");
   const [indexingError, setIndexingError] = useState<string | null>(null);
   const [seedProgress, setSeedProgress] = useState<SeedProgress | null>(null);
@@ -119,13 +128,8 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   // Hardware Diagnostics Scan
   useEffect(() => {
     (async () => {
-      let ram = 0;
+      const ram = readTotalRam();
       let freeStorage = 0;
-      try {
-        ram = getDeviceTotalRamBytes();
-      } catch {
-        ram = 0;
-      }
       try {
         freeStorage = await FileSystem.getFreeDiskStorageAsync();
       } catch {
@@ -149,6 +153,13 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
   useEffect(() => {
     refreshPresence();
   }, [refreshPresence]);
+
+  // Reopened after the app was closed mid-download: keep the model chosen then, not today's pick.
+  useEffect(() => {
+    getActiveModelId("llm").then((id) => {
+      if (id && ANSWER_MODELS.some((m) => m.id === id)) setChosenModelId((cur) => cur ?? id);
+    });
+  }, []);
 
   const activeTierConfig = TIERS.find((t) => t.id === selectedTier) ?? TIERS[0];
   const tierCorpusPackIds = activeTierConfig.corpusPackIds ?? [];
