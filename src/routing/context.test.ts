@@ -390,6 +390,9 @@ describe("riskyHealthInstruction: exertion in hypothermia, review follow-ups (Co
     expect(riskyHealthInstruction("Hipotermia: não pare de caminhar até o abrigo.")).toBe("exertion-hypothermia");
     // A plain negation still clears it.
     expect(riskyHealthInstruction("Hypothermia: do not keep walking.")).toBeNull();
+    // Stopping on its own is the safe advice.
+    expect(riskyHealthInstruction("Hypothermia: stop walking and rest in a sheltered place.")).toBeNull();
+    expect(riskyHealthInstruction("Hipotermia: pare de caminhar e descanse num abrigo.")).toBeNull();
   });
   it("'mild' exempts only a sentence about mild hypothermia, not one that also covers worse stages", () => {
     expect(riskyHealthInstruction("In mild hypothermia walk briskly; in severe cases keep walking to the hut.")).toBe("exertion-hypothermia");

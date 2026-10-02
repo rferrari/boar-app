@@ -1225,7 +1225,7 @@ const EXERTION = new RegExp(
 const MILD = /\bmild\b|\bleve\b/i;
 // A sentence that also names a worse stage still gets checked: "mild" only exempts advice about mild hypothermia.
 const SEVERE = /\b(moderate|severe|serious)\b|(?<![\p{L}])(moderad\p{L}*|grave|severa)(?![\p{L}])/iu;
-// A negated stop is no negation of the exertion: "do not stop walking" means keep walking.
+// Stopping the exertion: on its own it reads as a negation ("stop walking"); negated, it isn't ("do not stop walking").
 const STOPPING = /\b(stop\w*|quit\w*|ceas\w*|halt\w*|give up)\b|(?<![\p{L}])(pare|parar|deix\p{L}* de|interromp\p{L}*|desist\p{L}*)(?![\p{L}])/iu;
 // Negation of the exertion itself: in its clause, right before it. English and Portuguese apart, so the Portuguese
 // preposition "no"/"na" ("caminhando no frio") never counts; "not only … but also" doesn't negate either.
@@ -1239,8 +1239,9 @@ function exertionNegated(sentence: string, index: number): boolean {
   let from = 0;
   for (const m of before.matchAll(CLAUSE_BREAK)) from = (m.index ?? 0) + m[0].length;
   const clause = before.slice(Math.max(from, index - 40)).replace(/\bnot only\b|n[ãa]o s[óo]\b|n[ãa]o apenas\b/giu, "");
-  if (!(EXERTION_NEGATED_EN.test(clause) || EXERTION_NEGATED_PT.test(clause))) return false;
-  return !STOPPING.test(clause);
+  const negated = EXERTION_NEGATED_EN.test(clause) || EXERTION_NEGATED_PT.test(clause);
+  // A stop alone is the safe advice ("stop walking and rest"); a negated stop is not ("do not stop walking").
+  return negated !== STOPPING.test(clause);
 }
 
 /** The first known-dangerous instruction in a generated health answer (not negated in its sentence), or null. */
