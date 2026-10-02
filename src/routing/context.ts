@@ -1201,10 +1201,56 @@ export function noSafeStepsAnswer(pt: boolean): string {
 
 const NEGATED = /\b(do not|don't|dont|never|avoid|not|no|instead of|rather than|without)\b|n[ãa]o\b|nunca|evite/i;
 
+// Exertion advice in a text about hypothermia (Lantern safety 2026-09-30, dng-002): Wikivoyage "Cold weather" led
+// with "Keeping on walking even when tired is important" for a confused, slurring partner. Confusion and slurred
+// speech mean at least moderate hypothermia, where the person is kept horizontal and handled gently (WMS 2019);
+// exercise is allowed only in mild hypothermia, so a sentence that says "mild" stays.
+const HYPOTHERMIA_CONTEXT = /\bhypotherm|hipoterm|\bfrostbite|congelamento/i;
+// Walking, moving on or exercising, as advice ("keep walking", "get them to walk") or as a direct instruction
+// ("walk to shelter", "start walking", PT "caminhe", "ande", "continue andando").
+const EXERTION = new RegExp(
+  [
+    String.raw`\b(keep\w*|continu\w*|stay\w*)\b[^.]{0,20}\b(walk|mov|hik|exercis|march)\w*`,
+    String.raw`\b(get|make|help|encourag)\w*\b[^.]{0,40}\b(walk|rise)\w*`,
+    String.raw`\b(walk\w*|hik(e|es|ed|ing)|jog\w*|march(es|ed|ing)?)\b`,
+    String.raw`\bexercis\w*|\bphysical activity`,
+    String.raw`(?<![\p{L}])(caminh\p{L}*|and(e|em|ar|ando|a)|mexa|se mexer|exercit\p{L}*|exerc[ií]cios?|atividade f[ií]sica)(?![\p{L}])`,
+    String.raw`mant\p{L}* [^.]{0,20}em movimento`,
+    // Moving as the instruction itself ("move around", PT "mova-se"), never moving the person ("move them gently").
+    String.raw`\bmov(e|es|ing) (around|about)\b`,
+    String.raw`(?<![\p{L}])(mova-se|movimente-se|movimentar-se|se movimente)(?![\p{L}])`,
+  ].join("|"),
+  "giu"
+);
+const MILD = /\bmild\b|\bleve\b/i;
+// A sentence that also names a worse stage still gets checked: "mild" only exempts advice about mild hypothermia.
+const SEVERE = /\b(moderate|severe|serious)\b|(?<![\p{L}])(moderad\p{L}*|grave|severa)(?![\p{L}])/iu;
+// Stopping the exertion: on its own it reads as a negation ("stop walking"); negated, it isn't ("do not stop walking").
+const STOPPING = /\b(stop\w*|quit\w*|ceas\w*|halt\w*|give up)\b|(?<![\p{L}])(pare|parar|deix\p{L}* de|interromp\p{L}*|desist\p{L}*)(?![\p{L}])/iu;
+// Negation of the exertion itself: in its clause, right before it. English and Portuguese apart, so the Portuguese
+// preposition "no"/"na" ("caminhando no frio") never counts; "not only … but also" doesn't negate either.
+const EXERTION_NEGATED_EN = /\b(not|don't|dont|do not|never|avoid\w*|cannot|can't|without|instead of|rather than)\b/i;
+const EXERTION_NEGATED_PT = /(?<![\p{L}])(n[ãa]o|nunca|evit\p{L}*|sem|em vez de)(?![\p{L}])/iu;
+const CLAUSE_BREAK = /[,;:—()]|\b(and|but|then|so)\b|(?<![\p{L}])(e|mas|ent[ãa]o)(?![\p{L}])/giu;
+
+/** Whether the exertion at `index` is negated in its own clause ("do not keep walking", "não continue caminhando"). */
+function exertionNegated(sentence: string, index: number): boolean {
+  const before = sentence.slice(0, index);
+  let from = 0;
+  for (const m of before.matchAll(CLAUSE_BREAK)) from = (m.index ?? 0) + m[0].length;
+  const clause = before.slice(Math.max(from, index - 40)).replace(/\bnot only\b|n[ãa]o s[óo]\b|n[ãa]o apenas\b/giu, "");
+  const negated = EXERTION_NEGATED_EN.test(clause) || EXERTION_NEGATED_PT.test(clause);
+  // A stop alone is the safe advice ("stop walking and rest"); a negated stop is not ("do not stop walking").
+  return negated !== STOPPING.test(clause);
+}
+
 /** The first known-dangerous instruction in a generated health answer (not negated in its sentence), or null. */
 export function riskyHealthInstruction(answer: string): string | null {
+  const cold = HYPOTHERMIA_CONTEXT.test(answer);
   for (const sentence of splitSentences(answer)) {
     for (const [id, re] of RISKY_HEALTH) if (re.test(sentence) && !NEGATED.test(sentence)) return id;
+    if (!cold || (MILD.test(sentence) && !SEVERE.test(sentence))) continue;
+    for (const m of sentence.matchAll(EXERTION)) if (!exertionNegated(sentence, m.index ?? 0)) return "exertion-hypothermia";
   }
   return null;
 }
