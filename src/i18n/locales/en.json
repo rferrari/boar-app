@@ -174,7 +174,7 @@
     "estimating": "Estimating…",
     "steps": {
       "hardware": "Hardware",
-      "modelTier": "Model tier",
+      "modelTier": "Model",
       "install": "Install",
       "indexing": "Indexing"
     },
@@ -194,13 +194,20 @@
       "selectTierButton": "Select Model Tier ➔"
     },
     "step2": {
-      "title": "Select offline model tier",
-      "subtitle": "Weights are downloaded once to local storage and executed via mmap.",
+      "title": "Choose your answer model",
+      "subtitle": "It writes the answers on this phone and is downloaded once. You can change it later in Models.",
       "recommended": "RECOMMENDED",
-      "runsGreat": "🟢 Runs Great",
-      "ramFootprint": "RAM: ~1.7 GB Working Set",
-      "installButton": "Install Weights & Index ➔",
-      "backButton": "‹ Back to Diagnostics"
+      "models": {
+        "default": "Qwen3 4B. Fuller explanations and comparisons, a little slower. Best on phones with 12 GB of RAM or more.",
+        "compact": "Qwen2.5 1.5B. Fast and light: answers start in a few seconds on an 8 GB phone. Best on phones with 8 GB of RAM or less."
+      },
+      "onPhone": "ON THIS PHONE",
+      "heavy": "HEAVY FOR THIS PHONE",
+      "heavyNote": "On this phone it may answer slowly, and Android may close BOAR in the background to free memory.",
+      "knowledgeTitle": "Choose your knowledge",
+      "knowledgeSubtitle": "Topics the answers can draw on, offline.",
+      "installButton": "Download and index",
+      "backButton": "Back"
     },
     "step3": {
       "title": "Offline core initialization",

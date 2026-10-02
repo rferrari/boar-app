@@ -174,7 +174,7 @@
     "estimating": "Estimando…",
     "steps": {
       "hardware": "Hardware",
-      "modelTier": "Nível do modelo",
+      "modelTier": "Modelo",
       "install": "Instalação",
       "indexing": "Indexação"
     },
@@ -194,13 +194,20 @@
       "selectTierButton": "Selecionar Nível do Modelo ➔"
     },
     "step2": {
-      "title": "Selecione o nível do modelo offline",
-      "subtitle": "Os pesos são baixados uma vez para o armazenamento local e executados via mmap.",
+      "title": "Escolha o modelo de respostas",
+      "subtitle": "Ele escreve as respostas neste celular e é baixado uma vez. Você pode trocá-lo depois em Modelos.",
       "recommended": "RECOMENDADO",
-      "runsGreat": "🟢 Funciona Muito Bem",
-      "ramFootprint": "RAM: ~1,7 GB em Uso",
-      "installButton": "Instalar Pesos & Indexar ➔",
-      "backButton": "‹ Voltar ao Diagnóstico"
+      "models": {
+        "default": "Qwen3 4B. Explicações e comparações mais completas, um pouco mais lento. Melhor em celulares com 12 GB de RAM ou mais.",
+        "compact": "Qwen2.5 1.5B. Rápido e leve: as respostas começam em poucos segundos num celular de 8 GB. Melhor em celulares com 8 GB de RAM ou menos."
+      },
+      "onPhone": "NESTE CELULAR",
+      "heavy": "PESADO PARA ESTE CELULAR",
+      "heavyNote": "Neste celular ele pode responder devagar, e o Android pode fechar o BOAR em segundo plano para liberar memória.",
+      "knowledgeTitle": "Escolha o conhecimento",
+      "knowledgeSubtitle": "Temas em que as respostas podem se apoiar, offline.",
+      "installButton": "Baixar e indexar",
+      "backButton": "Voltar"
     },
     "step3": {
       "title": "Inicialização do núcleo offline",
