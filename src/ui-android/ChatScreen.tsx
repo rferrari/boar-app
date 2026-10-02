@@ -34,7 +34,6 @@ import { listDiscoveredModels } from "../models/discoveredModels";
 import { subscribeDownloads, listDownloadStates } from "../services/downloadManager";
 import {
   getActiveModelId,
-  getHidePromptIdeas,
   getPersonalityId,
   setPersonalityId,
   getCustomSystemPrompt,
@@ -295,8 +294,6 @@ export function ChatScreen({
 
   useEffect(() => {
     (async () => {
-      const hide = await getHidePromptIdeas();
-      if (!hide) setShowPromptIdeas(true);
       setPersonalityIdState(await getPersonalityId());
       memorySettingsRef.current = await getMemorySettings();
       const drMode = await getDeepResearchMode();

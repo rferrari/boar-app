@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Switch } from "react-native";
+import { View, StyleSheet, Pressable, ScrollView } from "react-native";
 import { Text } from "./components/AppText";
 import { impact, ImpactFeedbackStyle } from "../services/haptics";
 import { useTranslation } from "react-i18next";
-import { setHidePromptIdeas } from "../models/settings";
 import { colors } from "./theme/colors";
 import { typography } from "./theme/typography";
 import { spacing, radii } from "./theme/spacing";
@@ -54,14 +53,12 @@ interface Props {
 export function PromptIdeasCarousel({ onUsePrompt, onDismiss }: Props) {
   const { t } = useTranslation();
   const [index, setIndex] = useState(0);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
   const idea = PROMPT_IDEAS[index];
   const isLast = index === PROMPT_IDEAS.length - 1;
   const isFirst = index === 0;
 
-  const dismiss = async () => {
+  const dismiss = () => {
     impact(ImpactFeedbackStyle.Light);
-    if (dontShowAgain) await setHidePromptIdeas(true);
     onDismiss();
   };
 
@@ -81,8 +78,8 @@ export function PromptIdeasCarousel({ onUsePrompt, onDismiss }: Props) {
   };
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.card}>
+    <Pressable style={styles.overlay} onPress={dismiss}>
+      <Pressable style={styles.card} onPress={() => {}}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>{t("promptIdeasCarousel.title")}</Text>
@@ -92,7 +89,7 @@ export function PromptIdeasCarousel({ onUsePrompt, onDismiss }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.body}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.body}>
           <View style={styles.categoryPill}>
             <Text style={styles.category}>{idea.category}</Text>
           </View>
@@ -128,26 +125,8 @@ export function PromptIdeasCarousel({ onUsePrompt, onDismiss }: Props) {
           </Pressable>
         </View>
 
-        <View style={styles.dismissRow}>
-          <Pressable
-            style={styles.checkboxRow}
-            onPress={() => setDontShowAgain((v) => !v)}
-            hitSlop={8}
-          >
-            <Switch
-              value={dontShowAgain}
-              onValueChange={setDontShowAgain}
-              trackColor={{ false: "#1E293B", true: colors.emerald[600] }}
-              thumbColor={dontShowAgain ? colors.emerald[400] : colors.text.dim}
-            />
-            <Text style={styles.dismissLabel}>{t("promptIdeasCarousel.dontShowAgain")}</Text>
-          </Pressable>
-          <Pressable onPress={dismiss} hitSlop={8}>
-            <Text style={styles.dismissBtn}>{t("common.dismiss")}</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -159,18 +138,18 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.8)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    padding: spacing.base,
   },
+  // Centred, one height for every idea so the buttons don't move between short and long ones.
   card: {
     backgroundColor: colors.bg.cardElevated,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
+    borderRadius: radii.xl,
+    borderWidth: 1,
     borderColor: colors.border.default,
     padding: spacing.md,
-    maxHeight: "75%",
+    height: 420,
+    maxHeight: "90%",
   },
   header: {
     flexDirection: "row",
@@ -197,7 +176,12 @@ const styles = StyleSheet.create({
     color: colors.text.dim,
     fontSize: 16,
   },
+  scroll: {
+    flex: 1,
+  },
   body: {
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
     paddingVertical: spacing.md,
     gap: 8,
@@ -270,28 +254,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#FFFFFF",
     fontWeight: "800",
-  },
-  dismissRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.subtle,
-  },
-  checkboxRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  dismissLabel: {
-    ...typography.ui.caption,
-    color: colors.text.dim,
-  },
-  dismissBtn: {
-    ...typography.mono.xs,
-    color: colors.crimson[400],
-    fontWeight: "600",
   },
 });
