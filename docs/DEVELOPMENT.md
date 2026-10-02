@@ -38,15 +38,16 @@ It offers:
    needed) or locally, and can install the APK over USB.
 3. **Developer mode (advanced):** a live-reloading development build over USB.
 4. **Build a bigger offline knowledge pack** (optional, see
-   [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md)).
+   [docs/KNOWLEDGE_PACKS.md](KNOWLEDGE_PACKS.md)).
 
 The individual steps are also `make` targets (`make help` lists them):
 `make install` (npm dependencies), `make run-android` (local build, needs the
 Android SDK), `make build-eas` (cloud build).
 
 On first launch, the app shows a one-time setup screen that downloads the
-default model, Qwen2.5-1.5B, plus a small embedding model (about 1 GB total, see
-`docs/MODELS.md`) — the only time it needs network access. From
+answer model plus a small embedding model (see `docs/MODELS.md`): builds from
+`main` default to Qwen3-4B (about 2.5 GB in all), the v1.0.0 APK to Qwen2.5-1.5B
+(about 1 GB). That is the only time it needs network access. From
 then on it works fully offline, airplane mode included.
 An in-app "Models" screen lets you optionally download additional/alternate
 models later when you do have connectivity — see
