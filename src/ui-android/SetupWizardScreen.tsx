@@ -174,7 +174,11 @@ export function SetupWizardScreen({ onReady, onSkip }: Props) {
     setStep(3);
     const presMap = await refreshPresence();
     const answer = answerModelFor(presMap);
-    if (answer) await setActiveModelId("llm", answer.id);
+    if (answer) {
+      // Fixed from here on: the RAM scan or a later presence check must not switch the model mid-download.
+      setChosenModelId(answer.id);
+      await setActiveModelId("llm", answer.id);
+    }
 
     for (const asset of assetsFor(presMap)) {
       if (!presMap[asset.id]) {
