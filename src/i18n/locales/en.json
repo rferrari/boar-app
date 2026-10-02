@@ -382,8 +382,7 @@
     "title": "Research prompt benchmarks",
     "prev": "Prev",
     "usePrompt": "Use This Research Prompt",
-    "next": "Next",
-    "dontShowAgain": "Don't show again"
+    "next": "Next"
   },
   "processingIndicator": {
     "retrieving": "🔍 Searching offline corpus…",

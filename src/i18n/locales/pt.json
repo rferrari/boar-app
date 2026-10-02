@@ -382,8 +382,7 @@
     "title": "Prompts de pesquisa de referência",
     "prev": "Anterior",
     "usePrompt": "Usar Este Prompt de Pesquisa",
-    "next": "Próximo",
-    "dontShowAgain": "Não mostrar novamente"
+    "next": "Próximo"
   },
   "processingIndicator": {
     "retrieving": "🔍 Buscando no acervo offline…",
