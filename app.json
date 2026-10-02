@@ -7,7 +7,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "team.sopa.boar",
+      "buildNumber": "2",
+      "icon": "./assets/icon-ios.png",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "BOAR uses the microphone only while voice input is on, to turn your question into text on this device.",
+        "NSSpeechRecognitionUsageDescription": "BOAR transcribes your voice question on this device. Audio is never sent to a server.",
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "BOAR uses your location, read on this device, to answer questions about places near you, such as restaurants in the city you are in. It is never sent anywhere."
+      },
+      "entitlements": {
+        "com.apple.developer.kernel.increased-memory-limit": true,
+        "com.apple.developer.kernel.extended-virtual-addressing": true,
+        "com.apple.developer.devicecheck.appattest-environment": "production"
+      },
+      "userInterfaceStyle": "automatic"
     },
     "android": {
       "package": "team.sopa.aoair",
@@ -34,7 +51,12 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#17110D"
+          "backgroundColor": "#17110D",
+          "ios": {
+            "image": "./assets/splash-icon-ios.png",
+            "imageWidth": 360,
+            "backgroundColor": "#17110D"
+          }
         }
       ],
       "./plugins/withReleaseSigning",
@@ -46,6 +68,10 @@
         "projectId": "cba72560-8333-4fca-af84-f42d1c25abe3"
       }
     },
-    "owner": "vaipraonde"
+    "owner": "vaipraonde",
+    "locales": {
+      "en": "./locales/en.json",
+      "pt": "./locales/pt.json"
+    }
   }
 }

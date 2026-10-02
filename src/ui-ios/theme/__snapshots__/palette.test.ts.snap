@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`departures from the designer's values > are limited to this list 1`] = `
+[
+  "fogueira/dark err: #F0674F -> #F26951",
+  "fogueira/dark bd (strong): #4A3526 -> #866F5E",
+  "fogueira/light mu: #6E5A48 -> #685443",
+  "fogueira/light a (fill): #C4541C -> #B84909",
+  "fogueira/light a (text): #C4541C -> #A23400",
+  "fogueira/light a2 (text): #8A5A06 -> #7C4D00",
+  "fogueira/light ok: #3F7A2E -> #2A6517",
+  "fogueira/light warn: #8A6200 -> #785100",
+  "fogueira/light err: #B8321F -> #A8210D",
+  "fogueira/light bd (strong): #D4BFA3 -> #847157",
+  "luar/dark err: #F0674F -> #F96F57",
+  "luar/dark bd (strong): #323B6E -> #6C78B1",
+  "luar/light a (fill): #B7700A -> #A25D00",
+  "luar/light a (text): #B7700A -> #8F4B00",
+  "luar/light a2 (text): #7A5E10 -> #735702",
+  "luar/light ok: #3F7A2E -> #2D681B",
+  "luar/light warn: #8A6200 -> #7B5400",
+  "luar/light err: #B8321F -> #AC2512",
+  "luar/light bd (strong): #C3C6D9 -> #747687",
+]
+`;
