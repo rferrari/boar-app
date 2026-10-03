@@ -1,0 +1,1244 @@
+{
+ "id": "food-003",
+ "city": "Buenos Aires",
+ "wikidata": "Q1486",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:25:41.587Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:23:48Z",
+  "scope": "admin area Q1486",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 11,
+  "veganYes": 67,
+  "vegetarianOrVegan": 122,
+  "venues": [
+   {
+    "osm": "node/1112458242",
+    "name": "Green Life",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6043197,
+    "lon": -58.3941157,
+    "street": "Avenida Corrientes"
+   },
+   {
+    "osm": "node/1164350050",
+    "name": "McDonald's",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.568013,
+    "lon": -58.4373252,
+    "street": "Avenida Luis María Campos"
+   },
+   {
+    "osm": "node/1186333784",
+    "name": "Happines House",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.5967279,
+    "lon": -58.3919963
+   },
+   {
+    "osm": "node/1370961663",
+    "name": "ABC",
+    "amenity": "restaurant",
+    "cuisine": "german",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6021343,
+    "lon": -58.3745169
+   },
+   {
+    "osm": "node/1821534346",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5706087,
+    "lon": -58.4440623,
+    "street": "Avenida Cabildo",
+    "hours": "Mo-Th 06:30-23:00; Fr 06:30-24:00; Sa 08:00-24:00; Su 09:00-23:00"
+   },
+   {
+    "osm": "node/1821534888",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": -34.5687528,
+    "lon": -58.4439128,
+    "street": "Avenida Federico Lacroze",
+    "hours": "Mo-Su 08:00-21:00"
+   },
+   {
+    "osm": "node/2102238787",
+    "name": "Nobiru",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegetarian": "yes",
+    "lat": -34.5565081,
+    "lon": -58.4500549,
+    "street": "Mendoza",
+    "hours": "Tu-Su 12:00-16:00,18:00-24:00"
+   },
+   {
+    "osm": "node/2511119712",
+    "name": "Venancio",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6329389,
+    "lon": -58.4838758
+   },
+   {
+    "osm": "node/2604918378",
+    "name": "Retaurant Chino Liz",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6016989,
+    "lon": -58.452188,
+    "hours": "Mo-Fr 11:00-15:00+,19:00-23:00+, Sa,Su 11:00-15:00+,19:00-23:30+"
+   },
+   {
+    "osm": "node/2711078129",
+    "name": "Morillo",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": -34.5976825,
+    "lon": -58.4173747,
+    "street": "Avenida Córdoba"
+   },
+   {
+    "osm": "node/2724710589",
+    "name": "Sattva",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.6037912,
+    "lon": -58.3895423,
+    "street": "Montevideo"
+   },
+   {
+    "osm": "node/3046259756",
+    "name": "Lotos",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.5992462,
+    "lon": -58.389397
+   },
+   {
+    "osm": "node/3051189123",
+    "name": "The Brothers",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": -34.6354128,
+    "lon": -58.4892017,
+    "street": "Avenida Rivadavia"
+   },
+   {
+    "osm": "node/3179550395",
+    "name": "Cabaña Villegas",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6096582,
+    "lon": -58.3660942,
+    "street": "Avenida Alicia Moreau de Justo",
+    "hours": "Su-Th 12:00-24:00, Fr,Sa 12:00-01:00"
+   },
+   {
+    "osm": "node/3188334965",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5677712,
+    "lon": -58.4366932,
+    "street": "Maure",
+    "hours": "Mo-Fr 07:00-21:00; Sa 08:00-21:00; Su 09:00-21:00"
+   },
+   {
+    "osm": "node/3205426298",
+    "name": "Ninina Malba",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5769939,
+    "lon": -58.4036099,
+    "street": "Avenida Presidente Figueroa Alcorta",
+    "hours": "Mo-Fr 08:00-21:00; Sa-Su 09:00-21:00"
+   },
+   {
+    "osm": "node/3205426299",
+    "name": "Veggie Medio Oriente",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.5886987,
+    "lon": -58.3921516,
+    "street": "Junín",
+    "hours": "Tu-Su 11:00-01:00"
+   },
+   {
+    "osm": "node/3346319093",
+    "name": "New Veggie",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": -34.5550198,
+    "lon": -58.4525905,
+    "street": "Arribeños",
+    "hours": "Mo-Sa 11:30-15:00"
+   },
+   {
+    "osm": "node/3416791033",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5896775,
+    "lon": -58.4258116,
+    "street": "Malabia",
+    "hours": "Mo-Th 07:30-23:00; Fr 07:30-02:30; Sa 08:00-03:00; Su 08:30-23:30"
+   },
+   {
+    "osm": "node/4179750290",
+    "name": "Sarkis",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.591306,
+    "lon": -58.4362763
+   },
+   {
+    "osm": "node/4314954702",
+    "name": "Cafezenda",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.573279,
+    "lon": -58.4381075,
+    "street": "Avenida Cabildo"
+   },
+   {
+    "osm": "node/4315225523",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": -34.5728802,
+    "lon": -58.4594726,
+    "street": "Avenida Elcano",
+    "hours": "Mo-Su 08:00-21:00"
+   },
+   {
+    "osm": "node/4502978592",
+    "name": "Bs. As. Green",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5733645,
+    "lon": -58.484459,
+    "street": "Monroe",
+    "hours": "Mo-Sa 11:30-15:00"
+   },
+   {
+    "osm": "node/4512994189",
+    "name": "Martin Cocina",
+    "amenity": "fast_food",
+    "cuisine": "burger;sandwich;french;argentinian;local;asian;steak_house;pasta;italian;pizza;chicken;spanish;italian_pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5730894,
+    "lon": -58.4414657,
+    "street": "Zapata",
+    "hours": "Mo-Fr 09:00-19:00"
+   },
+   {
+    "osm": "node/4549346288",
+    "name": "Los Floristas",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": -34.6025448,
+    "lon": -58.425467,
+    "street": "Avenida Corrientes",
+    "hours": "PH,Mo-Su 07:00-01:00"
+   },
+   {
+    "osm": "node/4581697994",
+    "name": "Brioche Dorée",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.5676602,
+    "lon": -58.4376206,
+    "street": "Avenida Luis María Campos"
+   },
+   {
+    "osm": "node/4591850389",
+    "name": "La Cañita",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegetarian": "yes",
+    "lat": -34.5800553,
+    "lon": -58.435703,
+    "street": "Ángel Justiniano Carranza"
+   },
+   {
+    "osm": "node/4592712883",
+    "name": "Pizza Vegana San Telmo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6164107,
+    "lon": -58.3785753,
+    "street": "Chile 882"
+   },
+   {
+    "osm": "node/4592941380",
+    "name": "Veganius",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": -34.5773355,
+    "lon": -58.4306257,
+    "street": "Bonpland"
+   },
+   {
+    "osm": "node/4625675695",
+    "name": "B-Blue",
+    "nameEn": "B-Blue Deli & Natural Bar",
+    "amenity": "cafe",
+    "cuisine": "cake;breakfast;deli",
+    "vegetarian": "yes",
+    "lat": -34.5894348,
+    "lon": -58.4273868,
+    "street": "Armenia"
+   },
+   {
+    "osm": "node/4626925789",
+    "name": "Tienda de Café",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5677846,
+    "lon": -58.4429926
+   },
+   {
+    "osm": "node/4636073792",
+    "name": "Viglio",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.567667,
+    "lon": -58.4366004,
+    "street": "Arce"
+   },
+   {
+    "osm": "node/4636181016",
+    "name": "Havanna",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5673332,
+    "lon": -58.4349701,
+    "street": "Soldado de la Independencia",
+    "hours": "Mo-Su,PH 09:00-19:30"
+   },
+   {
+    "osm": "node/4636181043",
+    "name": "Tienda To Go",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5677273,
+    "lon": -58.4429336,
+    "street": "Avenida Federico Lacroze"
+   },
+   {
+    "osm": "node/4650075039",
+    "name": "Mostaza",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.594975,
+    "lon": -58.4443138,
+    "street": "Avenida Juan Bautista Justo",
+    "hours": "Mo-Sa 07:00-01:00; Su 07:00-24:00"
+   },
+   {
+    "osm": "node/4653379027",
+    "name": "Burger 54",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -34.6005267,
+    "lon": -58.5121179,
+    "street": "Nueva York",
+    "hours": "Su-Th 08:00-24:00; Fr-Sa 08:00-02:00"
+   },
+   {
+    "osm": "node/4675235278",
+    "name": "Siempre Verde",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6081976,
+    "lon": -58.3742757
+   },
+   {
+    "osm": "node/4709185050",
+    "name": "Tienda de Café",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6320854,
+    "lon": -58.4567393,
+    "street": "Avenida Directorio"
+   },
+   {
+    "osm": "node/4727943252",
+    "name": "Tea Connection",
+    "nameEn": "Tea Connection",
+    "amenity": "cafe",
+    "cuisine": "teahouse",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5653697,
+    "lon": -58.4362682,
+    "street": "Migueletes",
+    "hours": "Mo-We 08:00-24:00; Th-Sa 08:00-01:00; Su 09:00-24:00"
+   },
+   {
+    "osm": "node/4730053889",
+    "name": "Vegetariana",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": -34.6196457,
+    "lon": -58.3726818
+   },
+   {
+    "osm": "node/5065168976",
+    "name": "833 Casa de Comidas",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5689362,
+    "lon": -58.4367695,
+    "street": "Avenida Luis María Campos"
+   },
+   {
+    "osm": "node/5067514038",
+    "name": "JU",
+    "amenity": "fast_food",
+    "cuisine": "juice",
+    "vegan": "yes",
+    "lat": -34.5577011,
+    "lon": -58.4496658,
+    "street": "Juramento"
+   },
+   {
+    "osm": "node/5080065653",
+    "name": "Pizzeria Fratelli",
+    "amenity": "fast_food",
+    "cuisine": "pizza;empanada",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": -34.6322701,
+    "lon": -58.5249153
+   },
+   {
+    "osm": "node/5080065654",
+    "name": "Giancarlo",
+    "amenity": "fast_food",
+    "cuisine": "pizza;empanada",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": -34.6316433,
+    "lon": -58.5272086,
+    "hours": "Fr-Su,PH 19:30-24:00"
+   },
+   {
+    "osm": "node/5093760995",
+    "name": "Stars",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5979854,
+    "lon": -58.4265456
+   },
+   {
+    "osm": "node/5141549819",
+    "name": "Williamsburg Burger Bar",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -34.5903854,
+    "lon": -58.4289941,
+    "street": "Armenia",
+    "hours": "Su-Th 12:00-02:00; Fr-Sa 12:00-03:00"
+   },
+   {
+    "osm": "node/5267770431",
+    "name": "Pizza vegana",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -34.5947401,
+    "lon": -58.3960366,
+    "street": "Ayacucho"
+   },
+   {
+    "osm": "node/5267770432",
+    "name": "Los Sabios Restaurante Vegetariano",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.603416,
+    "lon": -58.4174913,
+    "street": "Avenida Corrientes",
+    "hours": "Mo-Fr 11:30-15:00, 19:30-23:30; Sa 12:00-15:00, 19:30-23:30"
+   },
+   {
+    "osm": "node/5267770433",
+    "name": "Pizza vegana",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -34.6308583,
+    "lon": -58.4456912,
+    "street": "Puan"
+   },
+   {
+    "osm": "node/5267770434",
+    "name": "Curcuma",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6054393,
+    "lon": -58.4168634,
+    "street": "Sarmiento"
+   },
+   {
+    "osm": "node/5267784522",
+    "name": "Shiva",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5994351,
+    "lon": -58.4161942,
+    "street": "Mario Bravo"
+   },
+   {
+    "osm": "node/5267784524",
+    "name": "Y la Vaca Chocha",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": -34.6217112,
+    "lon": -58.3716091,
+    "street": "Avenida San Juan",
+    "hours": "11:00-19:00; Sa-Su 11:00-18:00"
+   },
+   {
+    "osm": "node/5269980458",
+    "name": "Feca",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.6251102,
+    "lon": -58.4435642,
+    "street": "Valle",
+    "hours": "Mo-Su 08:00-20:00"
+   },
+   {
+    "osm": "node/5383174722",
+    "name": "La Esquina de las Flores",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegetarian": "yes",
+    "lat": -34.592836,
+    "lon": -58.4346845,
+    "street": "Gurruchaga",
+    "hours": "Mo-Su 10:00-18:30"
+   },
+   {
+    "osm": "node/5383249224",
+    "name": "Arte Sano",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5955497,
+    "lon": -58.4062239,
+    "street": "General Lucio Norberto Mansilla"
+   },
+   {
+    "osm": "node/5422843923",
+    "name": "MIGUEL Café",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5882496,
+    "lon": -58.4231339,
+    "street": "Soler"
+   },
+   {
+    "osm": "node/5503415366",
+    "name": "Accademia della pizza",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;friture;burger;fish;seafood;pizza;chicken;sandwich",
+    "vegetarian": "yes",
+    "lat": -34.6129739,
+    "lon": -58.4417926,
+    "street": "Avenida Doctor Honorio Pueyrredón"
+   },
+   {
+    "osm": "node/5509239028",
+    "name": "Konu",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "only",
+    "lat": -34.6063139,
+    "lon": -58.3854341,
+    "street": "Teniente General Juan Domingo Perón"
+   },
+   {
+    "osm": "node/5509247533",
+    "name": "La Reverde Parilla Vegana",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -34.6085923,
+    "lon": -58.3893192,
+    "street": "Montevideo",
+    "hours": "Tu-Su 13:00-17:00; Th-Su 20:00-24:00"
+   },
+   {
+    "osm": "node/5752649707",
+    "name": "Noble y Natural",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "lat": -34.5640636,
+    "lon": -58.455513,
+    "hours": "Mo-Fr 11:00-20:00; Sa 11:00-17:00; Su off"
+   },
+   {
+    "osm": "node/5757428355",
+    "name": "Natgen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -34.5969192,
+    "lon": -58.4382291,
+    "hours": "Mo-Fr 10:30-20:30, Sa-Su 12:00-19:00"
+   },
+   {
+    "osm": "node/6093604538",
+    "name": "Lepes",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": -34.577804,
+    "lon": -58.4382178,
+    "street": "Nicaragua"
+   },
+   {
+    "osm": "node/6114291352",
+    "name": "La mejor pizza a la piedra",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": -34.6113011,
+    "lon": -58.4469813,
+    "street": "Planes"
+   },
+   {
+    "osm": "node/6226289081",
+    "name": "Eddie",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;burger;pizza;sandwich",
+    "vegetarian": "yes",
+    "lat": -34.6139497,
+    "lon": -58.4407217,
+    "street": "Avenida Doctor Honorio Pueyrredón",
+    "hours": "Tu-Th 08:00-01:00; Fr-Sa 08:00-03:00; Su 08:00-01:00"
+   },
+   {
+    "osm": "node/6284632885",
+    "name": "Bar! Merci",
+    "amenity": "restaurant",
+    "cuisine": "french",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.619495,
+    "lon": -58.3724483,
+    "street": "Carlos Calvo"
+   },
+   {
+    "osm": "node/6297831885",
+    "name": "Buenos Aires Verde",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5844499,
+    "lon": -58.4376263,
+    "street": "Gorriti"
+   },
+   {
+    "osm": "node/6333440323",
+    "name": "PRANZO comida por peso PALERMO",
+    "amenity": "restaurant",
+    "cuisine": "fast_food",
+    "vegan": "yes",
+    "lat": -34.5823227,
+    "lon": -58.4341108,
+    "street": "Fitz Roy",
+    "hours": "Mo-Su 11:30-24:00"
+   },
+   {
+    "osm": "node/6394155126",
+    "name": "Mostaza",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6290428,
+    "lon": -58.4628535
+   },
+   {
+    "osm": "node/6736600833",
+    "name": "Mezze Delicatessen",
+    "amenity": "fast_food",
+    "cuisine": "arab;mediterranean",
+    "vegetarian": "yes",
+    "lat": -34.5696397,
+    "lon": -58.4417168,
+    "street": "Gorostiaga",
+    "hours": "Mo-Fr 11:00-16:00,19:00-23:00; Sa 19:00-23:00"
+   },
+   {
+    "osm": "node/6861965963",
+    "name": "Gigi Pappy",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian",
+    "vegetarian": "yes",
+    "lat": -34.5419089,
+    "lon": -58.4701996,
+    "hours": "Mo-Su 19:00-24:00"
+   },
+   {
+    "osm": "node/6867855087",
+    "name": "Aramburu",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5916844,
+    "lon": -58.3890425,
+    "street": "Vicente López"
+   },
+   {
+    "osm": "node/7253073423",
+    "name": "Buenos Aires Verde",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": -34.5630714,
+    "lon": -58.46147
+   },
+   {
+    "osm": "node/7630683070",
+    "name": "Las Palmeras",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.5654524,
+    "lon": -58.4378364
+   },
+   {
+    "osm": "node/7936101907",
+    "name": "Natural Food",
+    "amenity": "fast_food",
+    "vegetarian": "yes",
+    "lat": -34.5816202,
+    "lon": -58.4745073,
+    "street": "Avenida de los Incas"
+   },
+   {
+    "osm": "node/8933419417",
+    "name": "Shufa",
+    "amenity": "restaurant",
+    "cuisine": "argentinian;cake;chicken;coffee_shop;local;sandwich",
+    "vegetarian": "yes",
+    "lat": -34.5740202,
+    "lon": -58.455281,
+    "street": "Capitán General Ramón Freire"
+   },
+   {
+    "osm": "node/9130374317",
+    "name": "Doc Café",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5982203,
+    "lon": -58.4343031,
+    "street": "Aráoz",
+    "hours": "Mo-Fr 08:00-20:30; PH,Sa,Su 09:00-20:30"
+   },
+   {
+    "osm": "node/9190188817",
+    "name": "La Noire",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;french",
+    "vegetarian": "yes",
+    "lat": -34.5756667,
+    "lon": -58.4562377,
+    "street": "Virrey Loreto",
+    "hours": "Mo-Su 09:00-19:30"
+   },
+   {
+    "osm": "node/9313246217",
+    "name": "Casa Munay",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;coffee_shop;diner;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5819771,
+    "lon": -58.4413846,
+    "street": "Gorriti",
+    "hours": "We-Mo 09:00-23:00"
+   },
+   {
+    "osm": "node/9513761450",
+    "name": "FAYER Buenos Aires",
+    "amenity": "restaurant",
+    "cuisine": "israeli;argentinian;middle_eastern",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5760868,
+    "lon": -58.4202565,
+    "street": "Avenida Cerviño",
+    "hours": "Mo-Su 09:00-24:00"
+   },
+   {
+    "osm": "node/9622638917",
+    "name": "El Mercat Villa Crespo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5937055,
+    "lon": -58.4401898,
+    "street": "Thames",
+    "hours": "Tu-Th 11:00-20:00; Fr,Sa 11:00-24:00+; Su 11:00-20:00"
+   },
+   {
+    "osm": "node/9743871917",
+    "name": "Loreto Garden Bar",
+    "amenity": "restaurant",
+    "cuisine": "argentinian;cake;coffee_shop",
+    "vegetarian": "yes",
+    "lat": -34.5722299,
+    "lon": -58.4535806,
+    "street": "Virrey Loreto",
+    "hours": "Mo-Sa 10:00-15:30"
+   },
+   {
+    "osm": "node/10013790517",
+    "name": "Vegan Fox",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -34.5879617,
+    "lon": -58.4331114,
+    "street": "Gorriti"
+   },
+   {
+    "osm": "node/10579290101",
+    "name": "Pecar",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.5708922,
+    "lon": -58.4349264,
+    "street": "República de Eslovenia"
+   },
+   {
+    "osm": "node/10732977005",
+    "name": "Woke",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6125935,
+    "lon": -58.3760808,
+    "street": "Avenida Belgrano"
+   },
+   {
+    "osm": "node/10787313786",
+    "name": "El Antojo",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegan": "yes",
+    "lat": -34.6004386,
+    "lon": -58.4953483,
+    "street": "Tinogasta",
+    "hours": "Mo-Su 19:30-00:00; Sa 12:00-15:00; Su 12:00-15:30"
+   },
+   {
+    "osm": "node/10821084339",
+    "name": "Joy",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5586759,
+    "lon": -58.4491577
+   },
+   {
+    "osm": "node/10846396654",
+    "name": "Archi",
+    "amenity": "fast_food",
+    "vegetarian": "yes",
+    "lat": -34.5577657,
+    "lon": -58.4506125
+   },
+   {
+    "osm": "node/11032803305",
+    "name": "Puerto",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.588137,
+    "lon": -58.4232536
+   },
+   {
+    "osm": "node/11084637606",
+    "name": "Sampa",
+    "amenity": "restaurant",
+    "cuisine": "local;mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5966406,
+    "lon": -58.433614,
+    "street": "Avenida Raúl Scalabrini Ortiz",
+    "hours": "Tu-Sa 12:00-15:00; Tu-Sa 20:00-23:30"
+   },
+   {
+    "osm": "node/11119920603",
+    "name": "Lattente",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.5802072,
+    "lon": -58.409168
+   },
+   {
+    "osm": "node/11131500547",
+    "name": "Rita",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.5522498,
+    "lon": -58.4683911,
+    "street": "Amenábar",
+    "hours": "08:30-20:00"
+   },
+   {
+    "osm": "node/11205594839",
+    "name": "Totem",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": -34.5818505,
+    "lon": -58.4074093,
+    "street": "Cabello"
+   },
+   {
+    "osm": "node/11228075971",
+    "name": "Nemoral",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": -34.5551652,
+    "lon": -58.4509705,
+    "street": "Montañeses"
+   },
+   {
+    "osm": "node/11232745637",
+    "name": "Sabores Express",
+    "amenity": "fast_food",
+    "cuisine": "pizza;empanada;regional",
+    "vegetarian": "yes",
+    "lat": -34.6041936,
+    "lon": -58.4051986,
+    "street": "Avenida Pueyrredón"
+   },
+   {
+    "osm": "node/11248496337",
+    "name": "Casa Suculenta",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": -34.5815689,
+    "lon": -58.4354573,
+    "street": "Bonpland"
+   },
+   {
+    "osm": "node/11347374550",
+    "name": "Tapas De Lucía",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.619157,
+    "lon": -58.3725906
+   },
+   {
+    "osm": "node/11371676869",
+    "name": "Falafelandia",
+    "amenity": "fast_food",
+    "cuisine": "arab;sandwich;tea;turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5904823,
+    "lon": -58.4360455
+   },
+   {
+    "osm": "node/11374562169",
+    "name": "Let it V",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "only",
+    "lat": -34.6048309,
+    "lon": -58.3900306,
+    "street": "Avenida Corrientes"
+   },
+   {
+    "osm": "node/11377991269",
+    "name": "Manteca negra",
+    "amenity": "fast_food",
+    "cuisine": "pancake",
+    "vegan": "yes",
+    "lat": -34.5527772,
+    "lon": -58.4817439
+   },
+   {
+    "osm": "node/11399268469",
+    "name": "Loving hunt",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegan": "yes",
+    "lat": -34.5897076,
+    "lon": -58.4304843
+   },
+   {
+    "osm": "node/11490261099",
+    "name": "Ramen Dong",
+    "amenity": "fast_food",
+    "cuisine": "ramen",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5569167,
+    "lon": -58.4522791
+   },
+   {
+    "osm": "node/11688559269",
+    "name": "Joy",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "lat": -34.5907489,
+    "lon": -58.4291374
+   },
+   {
+    "osm": "node/11689571570",
+    "name": "Vereda Adentro",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5486515,
+    "lon": -58.4591429
+   },
+   {
+    "osm": "node/11863888670",
+    "name": "El gordo vegano",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -34.5668804,
+    "lon": -58.4622588,
+    "street": "Echeverría",
+    "hours": "Mo-Th,Su 10:00-23:30; Fr-Sa 10:00-24:00"
+   },
+   {
+    "osm": "node/11935465178",
+    "name": "Don Pilo",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5705005,
+    "lon": -58.4337071
+   },
+   {
+    "osm": "node/11992321369",
+    "name": "Central de Pizzas & Empanadas",
+    "amenity": "fast_food",
+    "cuisine": "argentinian;diner;pizza;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6052791,
+    "lon": -58.3789736,
+    "street": "Avenida Presidente Roque Sáenz Peña"
+   },
+   {
+    "osm": "node/11999253717",
+    "name": "Coffelovers Roasters",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.6236026,
+    "lon": -58.454713
+   },
+   {
+    "osm": "node/11999269393",
+    "name": "Asia Box",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegetarian": "yes",
+    "lat": -34.6234443,
+    "lon": -58.4546818
+   },
+   {
+    "osm": "node/11999274409",
+    "name": "Sabores de Oriente",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -34.6234608,
+    "lon": -58.4547318
+   },
+   {
+    "osm": "node/12119257601",
+    "name": "Let it V",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5805385,
+    "lon": -58.4372056,
+    "street": "Costa Rica",
+    "hours": "We-Mo 09:30-23:30"
+   },
+   {
+    "osm": "node/12291023401",
+    "name": "La Vegana",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": -34.6122972,
+    "lon": -58.3861217,
+    "street": "Moreno",
+    "hours": "Su, We-Th 13:00-23:00; Fr-Sa 13:00-00:00"
+   },
+   {
+    "osm": "node/12384970816",
+    "name": "Primi",
+    "amenity": "fast_food",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": -34.5569322,
+    "lon": -58.452098
+   },
+   {
+    "osm": "node/12999430601",
+    "name": "Veggie club",
+    "amenity": "fast_food",
+    "vegetarian": "yes",
+    "lat": -34.5959641,
+    "lon": -58.3973499
+   },
+   {
+    "osm": "node/13246498701",
+    "name": "Relicioso",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": -34.6074029,
+    "lon": -58.3893072,
+    "street": "Montevideo"
+   },
+   {
+    "osm": "node/13534743297",
+    "name": "Achalay",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5846073,
+    "lon": -58.4389725,
+    "street": "Bonpland"
+   },
+   {
+    "osm": "way/465491176",
+    "name": "Il Ritorno",
+    "amenity": "restaurant",
+    "cuisine": "pizza;regional;empanada;tapas;chicken",
+    "vegetarian": "yes",
+    "lat": -34.6681871,
+    "lon": -58.4718292,
+    "street": "Zelarrayán"
+   },
+   {
+    "osm": "way/471635558",
+    "name": "Titola",
+    "amenity": "cafe",
+    "cuisine": "bistro",
+    "vegetarian": "yes",
+    "lat": -34.5713561,
+    "lon": -58.4568787,
+    "street": "Zapiola",
+    "hours": "Tu-Fr 08:00-20:00; Sa-Su 09:00-20:00"
+   },
+   {
+    "osm": "way/473843463",
+    "name": "Naturaleza Sabia",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": -34.6188763,
+    "lon": -58.3700201,
+    "street": "Balcarce"
+   },
+   {
+    "osm": "way/477498438",
+    "name": "Burger 54",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -34.5960159,
+    "lon": -58.3954277,
+    "street": "Avenida Santa Fe",
+    "hours": "Su-Th 07:00-24:00; Fr-Sa 07:00-01:00"
+   },
+   {
+    "osm": "way/477625336",
+    "name": "Imperio",
+    "amenity": "restaurant",
+    "cuisine": "local;pizza",
+    "vegetarian": "yes",
+    "lat": -34.5998242,
+    "lon": -58.4391057,
+    "street": "Avenida Corrientes",
+    "hours": "Mo-Th,Su 06:00-02:00; Fr-Sa 06:00-03:00"
+   },
+   {
+    "osm": "way/933053326",
+    "name": "El Ferroviario",
+    "amenity": "restaurant",
+    "cuisine": "argentinian",
+    "vegetarian": "yes",
+    "lat": -34.6368009,
+    "lon": -58.5210421,
+    "street": "Avenida Reservistas Argentinos"
+   },
+   {
+    "osm": "way/1275419466",
+    "name": "Espacio García",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.5425766,
+    "lon": -58.4351049,
+    "street": "Avenida Costanera Rafael Obligado",
+    "hours": "Tu-Su 09:00-20:30"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Buenos Aires",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

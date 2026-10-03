@@ -1,0 +1,3429 @@
+{
+ "id": "food-010",
+ "city": "Taipei",
+ "wikidata": "Q1867",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:28:23.714Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:25:56Z",
+  "scope": "admin area Q1867",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 16,
+  "veganYes": 122,
+  "vegetarianOrVegan": 349,
+  "venues": [
+   {
+    "osm": "node/469620173",
+    "name": "星巴克",
+    "nameEn": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0174739,
+    "lon": 121.5318717,
+    "street": "羅斯福路三段",
+    "hours": "Mo-Su 07:30-18:00"
+   },
+   {
+    "osm": "node/906718322",
+    "name": "Vegetarian Buffet",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.0554901,
+    "lon": 121.6138715
+   },
+   {
+    "osm": "node/924214891",
+    "name": "小蔬杭 絕對蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0128362,
+    "lon": 121.5368211,
+    "street": "羅斯福路四段",
+    "hours": "Mo-Su 11:30-21:30"
+   },
+   {
+    "osm": "node/1720016589",
+    "name": "西雅圖極品咖啡",
+    "nameEn": "Barista Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.0801564,
+    "lon": 121.5502003,
+    "street": "北安路554巷",
+    "hours": "Mo-Su 07:00-21:00"
+   },
+   {
+    "osm": "node/1837919028",
+    "name": "陽光廚房蔬食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0839106,
+    "lon": 121.5679051,
+    "street": "內湖路一段323巷"
+   },
+   {
+    "osm": "node/1837963116",
+    "name": "韓膳樓",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0766038,
+    "lon": 121.5788573,
+    "street": "江南街65巷"
+   },
+   {
+    "osm": "node/1837963996",
+    "name": "秀羽素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0820137,
+    "lon": 121.5783866,
+    "street": "港墘路"
+   },
+   {
+    "osm": "node/1850962941",
+    "name": "春天素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0265112,
+    "lon": 121.5322572,
+    "street": "和平東路一段"
+   },
+   {
+    "osm": "node/2134041106",
+    "name": "摩斯漢堡",
+    "nameEn": "MOS Burger",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 25.0527308,
+    "lon": 121.5228259,
+    "street": "中山北路二段",
+    "hours": "06:00-23:00"
+   },
+   {
+    "osm": "node/2157329683",
+    "name": "星巴克",
+    "nameEn": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.057789,
+    "lon": 121.5329171,
+    "street": "松江路",
+    "hours": "Mo-Su 07:00-21:30"
+   },
+   {
+    "osm": "node/2178660010",
+    "name": "世界素食館",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0496528,
+    "lon": 121.5200303,
+    "street": "長安西路40巷6弄"
+   },
+   {
+    "osm": "node/2188231676",
+    "name": "全國素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0235292,
+    "lon": 121.5432095,
+    "street": "復興南路二段",
+    "hours": "Mo-Su 10:30-14:00, 16:30-20:00"
+   },
+   {
+    "osm": "node/2296283849",
+    "name": "田園蔬食自助餐",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0513435,
+    "lon": 121.5314041
+   },
+   {
+    "osm": "node/2296283853",
+    "name": "十方齋素食館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0513305,
+    "lon": 121.5318447,
+    "street": "松江路108巷"
+   },
+   {
+    "osm": "node/2297829261",
+    "name": "彩虹園蔬食小館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.080487,
+    "lon": 121.5926705,
+    "street": "成功路四段61巷25弄"
+   },
+   {
+    "osm": "node/2321487376",
+    "name": "古佛素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0539243,
+    "lon": 121.5342685,
+    "street": "伊通街106巷"
+   },
+   {
+    "osm": "node/2392237971",
+    "name": "小麟素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0607621,
+    "lon": 121.5349768,
+    "street": "民權東路二段152巷22弄"
+   },
+   {
+    "osm": "node/2396910203",
+    "name": "蓮池閣素食餐廳",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0339061,
+    "lon": 121.5501334,
+    "street": "信義路四段"
+   },
+   {
+    "osm": "node/2456412697",
+    "name": "菊子日式蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0485183,
+    "lon": 121.5419976
+   },
+   {
+    "osm": "node/2473232910",
+    "name": "Oneway Cafe",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 25.0230398,
+    "lon": 121.5427825
+   },
+   {
+    "osm": "node/2529516103",
+    "name": "至仁堂健康素食餐廳",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 24.98671,
+    "lon": 121.5465429,
+    "street": "木柵路一段"
+   },
+   {
+    "osm": "node/2579109183",
+    "name": "鼎王麻辣鍋",
+    "nameEn": "Tripod King Spicy Hotpot",
+    "amenity": "restaurant",
+    "cuisine": "hotpot",
+    "vegan": "yes",
+    "lat": 25.0426672,
+    "lon": 121.5079857,
+    "street": "中華路一段",
+    "hours": "Mo-Su 11:00-26:00"
+   },
+   {
+    "osm": "node/2631952779",
+    "name": "客來源素坊 (八德店)",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0468064,
+    "lon": 121.539655,
+    "street": "八德路二段"
+   },
+   {
+    "osm": "node/2730242990",
+    "name": "穗科手打烏龍麵",
+    "nameEn": "Hoshina Udon",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0399967,
+    "lon": 121.5534569,
+    "street": "忠孝東路四段216巷27弄"
+   },
+   {
+    "osm": "node/2730242991",
+    "name": "穗科手打烏龍麵",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0588732,
+    "lon": 121.5464737,
+    "street": "復興北路313巷"
+   },
+   {
+    "osm": "node/2734160945",
+    "name": "蓮池會素食館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0437928,
+    "lon": 121.5226346,
+    "street": "青島東路"
+   },
+   {
+    "osm": "node/2756599331",
+    "name": "連成素食店",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.0498758,
+    "lon": 121.5943102,
+    "street": "昆陽街"
+   },
+   {
+    "osm": "node/2756655304",
+    "name": "上頂皇家素食水煎包",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.0466226,
+    "lon": 121.5141067,
+    "street": "忠孝西路一段"
+   },
+   {
+    "osm": "node/2756655309",
+    "name": "修圓素食",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0467196,
+    "lon": 121.5140994,
+    "street": "忠孝西路一段",
+    "hours": "Mo-Su 07:00-20:30"
+   },
+   {
+    "osm": "node/2756655316",
+    "name": "妙緣素食館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0464424,
+    "lon": 121.5141024,
+    "street": "忠孝西路一段"
+   },
+   {
+    "osm": "node/2768351130",
+    "name": "水問蔬食園",
+    "amenity": "restaurant",
+    "cuisine": "sushi",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0600279,
+    "lon": 121.533363,
+    "street": "松江路",
+    "hours": "Tu-Su 11:30-20:00"
+   },
+   {
+    "osm": "node/2794308855",
+    "name": "素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.04237,
+    "lon": 121.5417827
+   },
+   {
+    "osm": "node/2804449464",
+    "name": "Health陽光花園素食主義",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0420499,
+    "lon": 121.5564468,
+    "street": "光復南路200巷"
+   },
+   {
+    "osm": "node/2804449468",
+    "name": "小心上ㄧㄣˇ",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0519802,
+    "lon": 121.5593225,
+    "street": "南京東路五段",
+    "hours": "Mo-Fr 11:30-14:00; Sa-Su 11:30-15:00; 08:00-15:00; Mo-Su 17:30-23:00"
+   },
+   {
+    "osm": "node/2804449469",
+    "name": "有哆創意蔬食洋食館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0518432,
+    "lon": 121.5583781,
+    "street": "南京東路五段"
+   },
+   {
+    "osm": "node/2804565939",
+    "name": "全真素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0452128,
+    "lon": 121.5072127,
+    "street": "漢口街二段34巷",
+    "hours": "Mo-Fr 11:00-15:00, 16:30-21:00; Sa-Su 11:00-21:00"
+   },
+   {
+    "osm": "node/2810324874",
+    "name": "Chamkar 蔬食",
+    "amenity": "restaurant",
+    "cuisine": "asian;french",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.1107058,
+    "lon": 121.53003,
+    "street": "忠誠路二段50巷",
+    "hours": "Tu-Su 11:30-14:30; Tu-Su 17:30-21:30"
+   },
+   {
+    "osm": "node/2812986184",
+    "name": "若荷蔬食時尚餐廳",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0434395,
+    "lon": 121.5466164,
+    "street": "敦化南路一段160巷"
+   },
+   {
+    "osm": "node/2813030301",
+    "name": "卡帛咖啡素食烘焙坊．義式廚房",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.023684,
+    "lon": 121.5430126,
+    "street": "復興南路二段308巷"
+   },
+   {
+    "osm": "node/2825651199",
+    "name": "靜心健康素食坊",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0946286,
+    "lon": 121.5256135,
+    "street": "美德街"
+   },
+   {
+    "osm": "node/2826060615",
+    "name": "如意素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0798838,
+    "lon": 121.5786776,
+    "street": "內湖路一段737巷",
+    "hours": "15:30-24:00"
+   },
+   {
+    "osm": "node/2886412472",
+    "name": "養心茶樓",
+    "nameEn": "Yang Shin",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0528197,
+    "lon": 121.5327892,
+    "street": "松江路",
+    "hours": "11:30-14:30;17:30-21:30"
+   },
+   {
+    "osm": "node/2910295401",
+    "name": "聯安健康廚房",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0523915,
+    "lon": 121.5538441,
+    "street": "南京東路四段133巷4弄"
+   },
+   {
+    "osm": "node/2917259410",
+    "name": "YOGSS廚坊",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0575941,
+    "lon": 121.5243333,
+    "street": "中山北路二段77巷",
+    "hours": "Tu-Su 11:30-21:30"
+   },
+   {
+    "osm": "node/2917544006",
+    "name": "毫光-回田蔬苑",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0943332,
+    "lon": 121.5222077,
+    "street": "中正路",
+    "hours": "11:00-14:00; 17:00-20:00"
+   },
+   {
+    "osm": "node/2918483449",
+    "name": "古佛素食",
+    "nameEn": "Buddhist Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 25.058629,
+    "lon": 121.5474133,
+    "street": "民生東路三段127巷",
+    "hours": "11:00-14:00; 17:00-20:00; Sa-Su off"
+   },
+   {
+    "osm": "node/2918517186",
+    "name": "北平金廚新蔬食料理",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.1181333,
+    "lon": 121.5262175,
+    "street": "天母西路38巷",
+    "hours": "11:30-14:00;17:00-21:00"
+   },
+   {
+    "osm": "node/2918523768",
+    "name": "菠啾花園",
+    "nameEn": "Potager Garden",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0727428,
+    "lon": 121.5746249,
+    "street": "陽光街",
+    "hours": "11:00-17:00;18:00-22:00"
+   },
+   {
+    "osm": "node/2919834859",
+    "name": "Su蔬食料理",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.1359174,
+    "lon": 121.5057449,
+    "street": "光明路",
+    "hours": "11:30-14:30;17:00-21:00"
+   },
+   {
+    "osm": "node/2923728376",
+    "name": "泓得素食店",
+    "nameEn": "Deep Vegetarian Vegan Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0256891,
+    "lon": 121.5226636,
+    "street": "南昌路二段",
+    "hours": "11:00-21:00"
+   },
+   {
+    "osm": "node/2923732898",
+    "name": "果然匯",
+    "nameEn": "Fruitfulfood",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0412164,
+    "lon": 121.5522297,
+    "street": "忠孝東路四段",
+    "hours": "Mo-Fr 11:30-15:00; Mo-Fr17:30-21:30; Sa-Su PH 11:30-14:00; Sa-Su PH 14:20-16:20; Sa-Su PH 17:30-21:00"
+   },
+   {
+    "osm": "node/2923736278",
+    "name": "甘露水雅集",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0422292,
+    "lon": 121.5798788,
+    "street": "忠孝東路五段",
+    "hours": "10:00-21:00"
+   },
+   {
+    "osm": "node/2923759173",
+    "name": "素德蔬食",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0198512,
+    "lon": 121.5316755,
+    "street": "羅斯福路三段283巷"
+   },
+   {
+    "osm": "node/2923774279",
+    "name": "羅馬蕃茄義大利麵蔬食",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 24.9817652,
+    "lon": 121.5616252,
+    "street": "木新路三段",
+    "hours": "17:30-21:00; Tu-Su 11:30-14:00"
+   },
+   {
+    "osm": "node/2923881157",
+    "name": "日月蔬食坊",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 25.0632888,
+    "lon": 121.5172789,
+    "street": "民權西路133巷3弄",
+    "hours": "Mo-Fr 7:00-9:00; Mo-Fr 11:00-14:00"
+   },
+   {
+    "osm": "node/2935765093",
+    "name": "全宏素食自助餐",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0603662,
+    "lon": 121.5345886,
+    "street": "錦州街"
+   },
+   {
+    "osm": "node/2935765094",
+    "name": "又丹新養生素食坊",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0606289,
+    "lon": 121.5338286,
+    "street": "錦州街241巷"
+   },
+   {
+    "osm": "node/2935765095",
+    "name": "生機健康餐",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0607703,
+    "lon": 121.5348052,
+    "street": "錦州街241巷1弄"
+   },
+   {
+    "osm": "node/2935765096",
+    "name": "聖德素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0610197,
+    "lon": 121.5340707,
+    "street": "松江路297巷",
+    "hours": "11:30-14:00;17:00-19:30;Sa-Su off"
+   },
+   {
+    "osm": "node/2939314768",
+    "name": "京其",
+    "nameEn": "JINGQI",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 25.0573911,
+    "lon": 121.5318217,
+    "street": "松江路204巷",
+    "hours": "08:00-21:00"
+   },
+   {
+    "osm": "node/2939314769",
+    "name": "京園素食館 北方麵食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0610819,
+    "lon": 121.5321126,
+    "street": "松江路330巷"
+   },
+   {
+    "osm": "node/2939314771",
+    "name": "沛瀅素食館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0598445,
+    "lon": 121.5315472,
+    "street": "吉林路199巷"
+   },
+   {
+    "osm": "node/2939314772",
+    "name": "皆大歡喜經典素食",
+    "nameEn": "cama cafe",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0580388,
+    "lon": 121.5323925,
+    "street": "民生東路二段"
+   },
+   {
+    "osm": "node/2939314773",
+    "name": "越南養生素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.060413,
+    "lon": 121.531053,
+    "street": "錦州街"
+   },
+   {
+    "osm": "node/2939314774",
+    "name": "食在地 台灣素",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.060413,
+    "lon": 121.5310076,
+    "street": "錦州街"
+   },
+   {
+    "osm": "node/2946903804",
+    "name": "阿英餐廳",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.0196832,
+    "lon": 121.5319567
+   },
+   {
+    "osm": "node/2962450953",
+    "name": "素食之家",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0771464,
+    "lon": 121.5779163,
+    "street": "江南街65巷",
+    "hours": "07:30-20:30;Su off"
+   },
+   {
+    "osm": "node/2966219726",
+    "name": "三來素食館",
+    "nameEn": "Sun Like vegetarian restaurant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0441633,
+    "lon": 121.5122643,
+    "street": "武昌街一段"
+   },
+   {
+    "osm": "node/2974441540",
+    "name": "宜品素食",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.051482,
+    "lon": 121.5935222,
+    "street": "昆陽街"
+   },
+   {
+    "osm": "node/2976044578",
+    "name": "森丼蔬食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0601483,
+    "lon": 121.538978,
+    "street": "錦州街",
+    "hours": "11:30-14:00;17:00-20:30;Su off"
+   },
+   {
+    "osm": "node/3066788304",
+    "name": "方圓涮涮屋大直樂群店",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0798076,
+    "lon": 121.5587652,
+    "street": "樂群二路",
+    "hours": "Mo-Fr 11:30-15:00; Mo-Fr 17:30-22:00; Sa-Su 11:00-15:00; Sa-Su 17:00-22:00"
+   },
+   {
+    "osm": "node/3066796702",
+    "name": "齋之傳說素食餐廳",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0687314,
+    "lon": 121.6168938,
+    "street": "康樂街20巷"
+   },
+   {
+    "osm": "node/3098548178",
+    "name": "荷田素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0849635,
+    "lon": 121.5978538
+   },
+   {
+    "osm": "node/3132488961",
+    "name": "摩斯漢堡",
+    "nameEn": "MOS Burger",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.06248,
+    "lon": 121.5254593,
+    "street": "民權東路一段",
+    "hours": "PH,Mo-Su 06:00-23:00"
+   },
+   {
+    "osm": "node/3188305865",
+    "name": "菜根香素食",
+    "amenity": "restaurant",
+    "cuisine": "noodle;soup",
+    "vegetarian": "yes",
+    "lat": 24.9881766,
+    "lon": 121.5680588,
+    "street": "保儀路26巷"
+   },
+   {
+    "osm": "node/3195838811",
+    "name": "麥當勞",
+    "nameEn": "McDonald's",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegetarian": "yes",
+    "lat": 25.0492082,
+    "lon": 121.5794401
+   },
+   {
+    "osm": "node/3219721312",
+    "name": "八德素食",
+    "amenity": "restaurant",
+    "cuisine": "vegetables",
+    "vegetarian": "only",
+    "lat": 25.0453221,
+    "lon": 121.5363188,
+    "street": "建國南路一段"
+   },
+   {
+    "osm": "node/3322964739",
+    "name": "老凃食堂",
+    "nameEn": "Tu Meal",
+    "amenity": "restaurant",
+    "cuisine": "chinese;taiwanese",
+    "vegetarian": "yes",
+    "lat": 24.993756,
+    "lon": 121.5406749,
+    "street": "羅斯福路六段202巷",
+    "hours": "We-Su 11:30-14:00; 17:30-20:30; Mo-Tu off"
+   },
+   {
+    "osm": "node/3650173143",
+    "name": "西雅圖極品咖啡",
+    "nameEn": "Barista Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "no",
+    "vegetarian": "only",
+    "lat": 25.0411662,
+    "lon": 121.5543896,
+    "street": "忠孝東路四段",
+    "hours": "Su-Th 07:30-23:00, Fr-Sa 07:30-24:00"
+   },
+   {
+    "osm": "node/3704216227",
+    "name": "齊芯蔬食坊",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0535636,
+    "lon": 121.5320563,
+    "street": "四平街",
+    "hours": "Mo-Fr 11:00-13:30, 16:30-19:30; Sa 10:30-14:30"
+   },
+   {
+    "osm": "node/3704217025",
+    "name": "人人素食麵館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0542416,
+    "lon": 121.5314585,
+    "street": "一江街"
+   },
+   {
+    "osm": "node/3707479435",
+    "name": "すき家",
+    "nameEn": "Sukiya",
+    "amenity": "fast_food",
+    "cuisine": "beef_bowl",
+    "vegetarian": "yes",
+    "lat": 25.0333709,
+    "lon": 121.5531196,
+    "street": "信義路四段",
+    "hours": "24/7"
+   },
+   {
+    "osm": "node/3725707057",
+    "name": "宏福素食餐",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.0417523,
+    "lon": 121.511114,
+    "street": "博愛路160巷"
+   },
+   {
+    "osm": "node/3740347526",
+    "name": "全美素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9917181,
+    "lon": 121.5401358,
+    "street": "羅斯福路六段"
+   },
+   {
+    "osm": "node/3767530265",
+    "name": "吉祥素食自助餐",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9888686,
+    "lon": 121.5409893,
+    "street": "景文街"
+   },
+   {
+    "osm": "node/3812406079",
+    "name": "有麵子蔬食料理",
+    "amenity": "restaurant",
+    "cuisine": "noodle;ramen",
+    "vegetarian": "yes",
+    "lat": 24.994731,
+    "lon": 121.5415451,
+    "street": "羅斯福路六段"
+   },
+   {
+    "osm": "node/3836723361",
+    "name": "喜多園素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0563916,
+    "lon": 121.5554415,
+    "street": "光復北路"
+   },
+   {
+    "osm": "node/3846216568",
+    "name": "香屋咖啡 香屋素食西餐",
+    "amenity": "restaurant",
+    "cuisine": "mediterranean;dessert;coffee_shop",
+    "vegetarian": "only",
+    "lat": 24.9822731,
+    "lon": 121.5637518,
+    "street": "木新路三段"
+   },
+   {
+    "osm": "node/3860728330",
+    "name": "慈善專業便當",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.137829,
+    "lon": 121.5416685,
+    "street": "華岡路47巷",
+    "hours": "Mo-Su 10:30-19:45"
+   },
+   {
+    "osm": "node/3867794074",
+    "name": "伊通素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0533372,
+    "lon": 121.5346164
+   },
+   {
+    "osm": "node/3938941048",
+    "name": "JJ's Poké",
+    "nameEn": "JJ's Poké",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0159295,
+    "lon": 121.5316965,
+    "street": "羅斯福路三段284巷",
+    "hours": "Mo-Su 11:00-20:30"
+   },
+   {
+    "osm": "node/3939158489",
+    "name": "素食天地",
+    "nameEn": "Vegetarian Paradise",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0262769,
+    "lon": 121.5296578,
+    "street": "和平東路一段"
+   },
+   {
+    "osm": "node/3953673662",
+    "name": "南京健康素食",
+    "nameEn": "Healthy Vegetarian",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0528413,
+    "lon": 121.5607516
+   },
+   {
+    "osm": "node/4007798839",
+    "name": "歡喜素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9907658,
+    "lon": 121.5414874
+   },
+   {
+    "osm": "node/4031296830",
+    "name": "品盛悅素軒精緻創意蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0516772,
+    "lon": 121.5358687
+   },
+   {
+    "osm": "node/4031296861",
+    "name": "波羅蜜素菜館",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0510322,
+    "lon": 121.5342928,
+    "street": "松江路97巷"
+   },
+   {
+    "osm": "node/4034132391",
+    "name": "故鄉",
+    "nameEn": "Gu Xiang",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.1738325,
+    "lon": 121.5329571
+   },
+   {
+    "osm": "node/4043625910",
+    "name": "素煮意越式素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 24.9894228,
+    "lon": 121.5415425,
+    "street": "景美街"
+   },
+   {
+    "osm": "node/4058519112",
+    "name": "霸氣風味套餐",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9987407,
+    "lon": 121.5446686,
+    "street": "興隆路一段"
+   },
+   {
+    "osm": "node/4121544859",
+    "name": "請請義大利餐廳",
+    "nameEn": "Cin Cin Osteria",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": 25.0527627,
+    "lon": 121.5459374,
+    "street": "慶城街16巷",
+    "hours": "Mo-Su 11:30-21:00"
+   },
+   {
+    "osm": "node/4149564846",
+    "name": "如來素食樂園",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0163108,
+    "lon": 121.5319191,
+    "street": "羅斯福路三段284巷"
+   },
+   {
+    "osm": "node/4150685052",
+    "name": "路易莎咖啡",
+    "nameEn": "Louisa Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.04399,
+    "lon": 121.5135596,
+    "street": "重慶南路一段",
+    "hours": "Mo-Su 07:30-18:00"
+   },
+   {
+    "osm": "node/4201921589",
+    "name": "杭州小籠湯包",
+    "nameEn": "Hangzhou Xiaolongbao",
+    "amenity": "restaurant",
+    "cuisine": "chinese;regional",
+    "vegetarian": "yes",
+    "lat": 25.0340787,
+    "lon": 121.5237494,
+    "street": "杭州南路二段",
+    "hours": "Su-Th 11:00-22:00; Fr-Sa 11:00-23:00"
+   },
+   {
+    "osm": "node/4236823721",
+    "name": "妙林素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0631256,
+    "lon": 121.5328077
+   },
+   {
+    "osm": "node/4269582558",
+    "name": "柯西蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.051051,
+    "lon": 121.5434771,
+    "street": "南京東路三段216巷"
+   },
+   {
+    "osm": "node/4282217989",
+    "name": "JSP 呷尚寶",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9933024,
+    "lon": 121.5402669,
+    "street": "景福街"
+   },
+   {
+    "osm": "node/4298881348",
+    "name": "新卡莎素食西餐廳",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0147676,
+    "lon": 121.5335027,
+    "street": "羅斯福路四段52巷"
+   },
+   {
+    "osm": "node/4307625981",
+    "name": "慈方素食小居",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.053566,
+    "lon": 121.5320963
+   },
+   {
+    "osm": "node/4318548392",
+    "name": "四海豆漿大王",
+    "nameEn": "Sihai Soy Milk",
+    "amenity": "restaurant",
+    "cuisine": "chinese;breakfast;local",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 25.0503149,
+    "lon": 121.5198811,
+    "hours": "Mo-Sa 06:00-20:30; Su 06:00-13:00"
+   },
+   {
+    "osm": "node/4318934288",
+    "name": "寧波生煎包",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.0318313,
+    "lon": 121.5192191
+   },
+   {
+    "osm": "node/4340216595",
+    "name": "寧夏素食",
+    "amenity": "restaurant",
+    "cuisine": "noodles;regional;local",
+    "vegetarian": "only",
+    "lat": 25.0560555,
+    "lon": 121.5151984
+   },
+   {
+    "osm": "node/4366039696",
+    "name": "Ooh Cha Cha自然食",
+    "nameEn": "Ooh Cha Cha",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0250389,
+    "lon": 121.5234422,
+    "street": "南昌路二段",
+    "hours": "Mo-Su 10:00-21:00"
+   },
+   {
+    "osm": "node/4366040190",
+    "name": "Soul R. Vegan Café",
+    "amenity": "cafe",
+    "vegan": "only",
+    "lat": 25.0423903,
+    "lon": 121.5394561,
+    "street": "忠孝東路三段217巷1弄"
+   },
+   {
+    "osm": "node/4438631688",
+    "name": "正饌素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0549202,
+    "lon": 121.5419693,
+    "street": "遼寧街"
+   },
+   {
+    "osm": "node/4524329098",
+    "name": "中一蔬食園",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0177103,
+    "lon": 121.5324879
+   },
+   {
+    "osm": "node/4552484291",
+    "name": "Love Vegetaria",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0541991,
+    "lon": 121.5104026,
+    "street": "南京西路233巷"
+   },
+   {
+    "osm": "node/4709827191",
+    "name": "呷米共食廚房",
+    "nameEn": "Rice Revolution Restaurant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0424389,
+    "lon": 121.5137267,
+    "street": "衡陽路",
+    "hours": "Mo-Sa 10:00-20:00"
+   },
+   {
+    "osm": "node/4725956629",
+    "name": "均合素食點心坊",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0372175,
+    "lon": 121.581352,
+    "street": "福德街"
+   },
+   {
+    "osm": "node/4727092984",
+    "name": "舒果新米蘭蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0262752,
+    "lon": 121.5232823,
+    "street": "羅斯福路二段",
+    "hours": "Mo-Fr 11:30-14:30 17:30-21:30 Holidays 11:30-14:30 17:30-22:00"
+   },
+   {
+    "osm": "node/4796089121",
+    "name": "Loving Hut",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 25.0398786,
+    "lon": 121.556217
+   },
+   {
+    "osm": "node/4810841226",
+    "name": "蒔蘿香草蔬食餐廳",
+    "nameEn": "Dill / Herbs Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "pasta",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.1305337,
+    "lon": 121.4991611,
+    "hours": "Mo-Su 11:00-21:00"
+   },
+   {
+    "osm": "node/4810841230",
+    "name": "食光的好味",
+    "nameEn": "Yummy Vegan House",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.1277718,
+    "lon": 121.5013768,
+    "street": "崇仁路一段",
+    "hours": "Mo-Su 11:30-20:00"
+   },
+   {
+    "osm": "node/4812712623",
+    "name": "阿馬非蔬食餐廳",
+    "nameEn": "Amafai",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;pasta;pizza",
+    "vegetarian": "yes",
+    "lat": 25.1326571,
+    "lon": 121.4972908
+   },
+   {
+    "osm": "node/4834803851",
+    "name": "妙觀音素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0135739,
+    "lon": 121.5342237,
+    "street": "汀州路三段"
+   },
+   {
+    "osm": "node/4838086704",
+    "name": "天外天精緻火鍋",
+    "amenity": "restaurant",
+    "cuisine": "hotpot",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0629032,
+    "lon": 121.5253997,
+    "hours": "PH,Mo-Su 11:00-04:30"
+   },
+   {
+    "osm": "node/4859203322",
+    "name": "精緻早餐",
+    "amenity": "restaurant",
+    "cuisine": "breakfast",
+    "vegetarian": "yes",
+    "lat": 25.0406068,
+    "lon": 121.5047831,
+    "street": "長沙街二段",
+    "hours": "Mo-Sa 06:30-13:30"
+   },
+   {
+    "osm": "node/4978731696",
+    "name": "麗福素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0501429,
+    "lon": 121.5159105,
+    "street": "華陰街"
+   },
+   {
+    "osm": "node/5106589915",
+    "name": "CoCo 都可茶飲",
+    "nameEn": "CoCo Tea",
+    "amenity": "cafe",
+    "vegetarian": "only",
+    "lat": 25.0604066,
+    "lon": 121.5254311,
+    "street": "林森北路",
+    "hours": "Mo-Su 10:30-22:45"
+   },
+   {
+    "osm": "node/5110269763",
+    "name": "宜亨齋蔬食坊",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0482988,
+    "lon": 121.5334408,
+    "street": "長安東路二段"
+   },
+   {
+    "osm": "node/5110348681",
+    "name": "卡樂親子蔬食餐廳",
+    "nameEn": "Kids & Veggles House",
+    "amenity": "restaurant",
+    "cuisine": "vegetable",
+    "vegetarian": "yes",
+    "lat": 25.0494857,
+    "lon": 121.5527104,
+    "street": "北寧路"
+   },
+   {
+    "osm": "node/5110348749",
+    "name": "福美蔬食自助餐",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0515894,
+    "lon": 121.5652998
+   },
+   {
+    "osm": "node/5110349491",
+    "name": "全國健康素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0798936,
+    "lon": 121.5903479
+   },
+   {
+    "osm": "node/5110489730",
+    "name": "丰明殿涮涮鍋殿堂",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0628984,
+    "lon": 121.5251037,
+    "hours": "PH,Mo-Su 11:00-15:30,17:30-22:00"
+   },
+   {
+    "osm": "node/5110491047",
+    "name": "豐味亭",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0632298,
+    "lon": 121.5245351,
+    "street": "雙城街",
+    "hours": "Mo,Tu,Th-Su 11:30-15:00,17:00-22:00"
+   },
+   {
+    "osm": "node/5164852235",
+    "name": "佛航素食小吃部",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0509578,
+    "lon": 121.5163797,
+    "street": "長安西路",
+    "hours": "08:00-14:00,16:00-19:29"
+   },
+   {
+    "osm": "node/5189911221",
+    "name": "尚蔬苑",
+    "nameEn": "Best Vegi Bakery",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0284689,
+    "lon": 121.5672918,
+    "hours": "Mo-Su 11:00-14:00, 17:00-21:00"
+   },
+   {
+    "osm": "node/5205427527",
+    "name": "全國健康素食精緻全自助餐廳",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1183255,
+    "lon": 121.5262858,
+    "street": "天母西路"
+   },
+   {
+    "osm": "node/5205439025",
+    "name": "廣香園蔬食自助餐",
+    "amenity": "fast_food",
+    "vegetarian": "only",
+    "lat": 25.1089348,
+    "lon": 121.5251234,
+    "street": "中山北路六段"
+   },
+   {
+    "osm": "node/5236241182",
+    "name": "善緣堂素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1079071,
+    "lon": 121.528687,
+    "street": "德行東路"
+   },
+   {
+    "osm": "node/5237489117",
+    "name": "聖賢素食",
+    "amenity": "restaurant",
+    "cuisine": "taiwanese;buffet",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0272679,
+    "lon": 121.4959093,
+    "street": "東園街",
+    "hours": "Mo-Fr 11:30-14:00"
+   },
+   {
+    "osm": "node/5251477701",
+    "name": "家和素食",
+    "nameEn": "Jay Hu Vegan",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0599224,
+    "lon": 121.5218954,
+    "street": "中山北路二段96巷",
+    "hours": "Mo-Fr 10:30-14:30, 17:00-19:30; Sa-Su off"
+   },
+   {
+    "osm": "node/5256908024",
+    "name": "大惠素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1109218,
+    "lon": 121.5292538,
+    "street": "德行東路109巷102弄"
+   },
+   {
+    "osm": "node/5293913490",
+    "name": "儷宴會館",
+    "nameEn": "LIYAN Banquet Hall",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 25.0601086,
+    "lon": 121.5259938,
+    "street": "林森北路",
+    "hours": "PH,Mo-Su 11:00-20:00"
+   },
+   {
+    "osm": "node/5296916559",
+    "name": "Mister Donut",
+    "nameEn": "Mister Donut",
+    "amenity": "fast_food",
+    "cuisine": "donut",
+    "vegetarian": "yes",
+    "lat": 25.0408734,
+    "lon": 121.5652844
+   },
+   {
+    "osm": "node/5395150194",
+    "name": "大愛素食館",
+    "amenity": "restaurant",
+    "cuisine": "素食菜;自助餐",
+    "vegetarian": "only",
+    "lat": 25.0415765,
+    "lon": 121.5265247,
+    "street": "濟南路二段",
+    "hours": "Mo-Fr 10:30-13:30,16:30-19:15; Sa 10:30-13:30"
+   },
+   {
+    "osm": "node/5477524780",
+    "name": "如是山房",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0491723,
+    "lon": 121.5345946
+   },
+   {
+    "osm": "node/5564542405",
+    "name": "斐僑素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0556391,
+    "lon": 121.6111574
+   },
+   {
+    "osm": "node/5564542414",
+    "name": "大帥素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0557964,
+    "lon": 121.6110372
+   },
+   {
+    "osm": "node/5564549031",
+    "name": "享味素食漢堡",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0541486,
+    "lon": 121.6154972
+   },
+   {
+    "osm": "node/5569304655",
+    "name": "料理王素食自助餐",
+    "amenity": "fast_food",
+    "vegetarian": "only",
+    "lat": 25.0452456,
+    "lon": 121.5785443
+   },
+   {
+    "osm": "node/5571196675",
+    "name": "美味素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0436885,
+    "lon": 121.5810282
+   },
+   {
+    "osm": "node/5585946791",
+    "name": "家綠素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0450732,
+    "lon": 121.5779977
+   },
+   {
+    "osm": "node/5590410737",
+    "name": "十信素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0429664,
+    "lon": 121.5803132
+   },
+   {
+    "osm": "node/5649726836",
+    "name": "妙觀音素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0223814,
+    "lon": 121.5282723
+   },
+   {
+    "osm": "node/5761781520",
+    "name": "素食茄汁牛肉麵",
+    "nameEn": "Vegetarian Tomato Beef Noodle Restaurant",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0271976,
+    "lon": 121.5693865,
+    "street": "信義路五段150巷"
+   },
+   {
+    "osm": "node/5813700058",
+    "name": "蓮德品素天地",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0298881,
+    "lon": 121.516062
+   },
+   {
+    "osm": "node/5822923926",
+    "name": "全國健康素食",
+    "nameEn": "Vegetarian Buffet",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0603054,
+    "lon": 121.5435696
+   },
+   {
+    "osm": "node/5824757893",
+    "name": "慈心健康素食",
+    "nameEn": "Vegetarian buffet",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.0547155,
+    "lon": 121.5426847
+   },
+   {
+    "osm": "node/5831006788",
+    "name": "真心素食",
+    "nameEn": "Sincerely Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.0259741,
+    "lon": 121.5219053
+   },
+   {
+    "osm": "node/5832044903",
+    "name": "田圆小倌蔬食制作厨房",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0587883,
+    "lon": 121.5474001
+   },
+   {
+    "osm": "node/5839625486",
+    "name": "大樹下餐店",
+    "nameEn": "Under The Tree Health Food Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese;sandwich",
+    "vegetarian": "yes",
+    "lat": 25.0294554,
+    "lon": 121.5091703
+   },
+   {
+    "osm": "node/5839638859",
+    "name": "來賓 印度餐廳和酒吧",
+    "nameEn": "Atithi Indian Restaurant & Bar",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "only",
+    "lat": 25.0244204,
+    "lon": 121.5473291
+   },
+   {
+    "osm": "node/5875366063",
+    "name": "吉祥素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.041581,
+    "lon": 121.505726
+   },
+   {
+    "osm": "node/5890588114",
+    "name": "健康素食",
+    "nameEn": "Healthy Vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0303468,
+    "lon": 121.5177447
+   },
+   {
+    "osm": "node/5937238271",
+    "name": "美蔬菜廚房",
+    "nameEn": "Nice Green",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0420463,
+    "lon": 121.5440091,
+    "street": "復興南路一段"
+   },
+   {
+    "osm": "node/5941564186",
+    "name": "Loving Hut",
+    "nameEn": "Loving Hut Vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 25.0343044,
+    "lon": 121.5747158
+   },
+   {
+    "osm": "node/6004507081",
+    "name": "全國健康素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0947579,
+    "lon": 121.5242135
+   },
+   {
+    "osm": "node/6024222529",
+    "name": "廣香廚素食館",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.0270527,
+    "lon": 121.5665349,
+    "street": "莊敬路"
+   },
+   {
+    "osm": "node/6027040986",
+    "name": "三個傻瓜",
+    "nameEn": "3idiots Toast & Curry",
+    "amenity": "restaurant",
+    "cuisine": "indian;curry",
+    "vegetarian": "yes",
+    "lat": 25.0545301,
+    "lon": 121.540629,
+    "street": "長春路",
+    "hours": "Mo-Fr 11:30-14:30, 17:00-21:30; Sa-Su 11:30-21:30"
+   },
+   {
+    "osm": "node/6074052451",
+    "name": "台灣蔬食廚房",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0897194,
+    "lon": 121.5232873,
+    "street": "小西街"
+   },
+   {
+    "osm": "node/6140337450",
+    "name": "積膳緣養生素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0194823,
+    "lon": 121.5312331
+   },
+   {
+    "osm": "node/6149863585",
+    "name": "元禾食堂",
+    "nameEn": "Flourish",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0402738,
+    "lon": 121.5511248,
+    "street": "敦化南路一段233巷",
+    "hours": "Mo-Su 11:30-21:00"
+   },
+   {
+    "osm": "node/6183794945",
+    "name": "全國食養健康素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0270601,
+    "lon": 121.5637703,
+    "street": "吳興街"
+   },
+   {
+    "osm": "node/6323106717",
+    "name": "饗印印度料理",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 25.0353405,
+    "lon": 121.5606279,
+    "hours": "PH,Mo-Su 11:30-14:30,05:00-22:00"
+   },
+   {
+    "osm": "node/6323106749",
+    "name": "明德素食園",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0490022,
+    "lon": 121.5177222
+   },
+   {
+    "osm": "node/6375243480",
+    "name": "荷田田",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0832479,
+    "lon": 121.5678603
+   },
+   {
+    "osm": "node/6403449999",
+    "name": "八方雲集",
+    "nameEn": "Bafang Dumpling",
+    "amenity": "fast_food",
+    "cuisine": "dumplings",
+    "vegetarian": "yes",
+    "lat": 25.0583779,
+    "lon": 121.5110173,
+    "street": "歸綏街"
+   },
+   {
+    "osm": "node/6405956485",
+    "name": "吐司利亞",
+    "nameEn": "Toasteria Cafe",
+    "amenity": "cafe",
+    "cuisine": "mediterranean",
+    "vegetarian": "yes",
+    "lat": 25.0433084,
+    "lon": 121.5495211,
+    "street": "敦化南路一段169巷",
+    "hours": "Mo, We-Fr 11:00-01:00; Tu, Sa-Su 09:00-01:00"
+   },
+   {
+    "osm": "node/6405996908",
+    "name": "手工包子",
+    "nameEn": "Handmade Baozi",
+    "amenity": "restaurant",
+    "cuisine": "chinese;sandwich",
+    "vegetarian": "yes",
+    "lat": 25.026153,
+    "lon": 121.5220587
+   },
+   {
+    "osm": "node/6515952569",
+    "name": "竹苑素食餐廳",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.1171838,
+    "lon": 121.5169813
+   },
+   {
+    "osm": "node/6529784687",
+    "name": "鑫鑫鋐素食坊",
+    "nameEn": "Xinxin Hong Vegetarian Food",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.0415247,
+    "lon": 121.5052308
+   },
+   {
+    "osm": "node/6594010585",
+    "name": "打卡咖啡館",
+    "amenity": "restaurant",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 25.0370896,
+    "lon": 121.557782,
+    "hours": "Mo-Su 07:30-18:00"
+   },
+   {
+    "osm": "node/6618376315",
+    "name": "三本手工拉麵",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegetarian": "yes",
+    "lat": 25.053076,
+    "lon": 121.5364158,
+    "street": "建國北路二段"
+   },
+   {
+    "osm": "node/6763209782",
+    "name": "青春素麵線",
+    "nameEn": "Ching Chun Veggie",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0399795,
+    "lon": 121.5525869,
+    "street": "忠孝東路四段216巷32弄",
+    "hours": "Mo-Th 11:30-17:30, Fr-Sa 11:30-19:30"
+   },
+   {
+    "osm": "node/6876041245",
+    "name": "素食麵攤",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0010816,
+    "lon": 121.5548587
+   },
+   {
+    "osm": "node/7004130376",
+    "name": "素食牛舌餅",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0455432,
+    "lon": 121.514883
+   },
+   {
+    "osm": "node/7004215987",
+    "name": "Mianto 艾果豐",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.0390111,
+    "lon": 121.5415978
+   },
+   {
+    "osm": "node/7004220040",
+    "name": "法美園素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0806195,
+    "lon": 121.5484301
+   },
+   {
+    "osm": "node/7037337605",
+    "name": "宥祐素食坊",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0472145,
+    "lon": 121.5147494
+   },
+   {
+    "osm": "node/7037347317",
+    "name": "源美素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0578312,
+    "lon": 121.5209608
+   },
+   {
+    "osm": "node/7138715777",
+    "name": "南海素食早點",
+    "amenity": "restaurant",
+    "cuisine": "breakfast",
+    "vegetarian": "only",
+    "lat": 25.1355172,
+    "lon": 121.4990622
+   },
+   {
+    "osm": "node/7138715797",
+    "name": "廣香素食坊",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1338072,
+    "lon": 121.5024165
+   },
+   {
+    "osm": "node/7138715819",
+    "name": "幸福蔬食餐坊",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.1363209,
+    "lon": 121.5463689
+   },
+   {
+    "osm": "node/7138715823",
+    "name": "煎餅果子",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.1379137,
+    "lon": 121.5468723,
+    "street": "菁山路",
+    "hours": "06:00-20:00"
+   },
+   {
+    "osm": "node/7169581034",
+    "name": "廣誠素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0480044,
+    "lon": 121.5544806
+   },
+   {
+    "osm": "node/7170215790",
+    "name": "小太陽素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0817912,
+    "lon": 121.5913107
+   },
+   {
+    "osm": "node/7170236088",
+    "name": "巧果蔬食餐坊",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.1453422,
+    "lon": 121.4931204
+   },
+   {
+    "osm": "node/7175344523",
+    "name": "吉祥素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1363777,
+    "lon": 121.4970782
+   },
+   {
+    "osm": "node/7175344544",
+    "name": "李師傅素食酥餅",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0782185,
+    "lon": 121.5811116
+   },
+   {
+    "osm": "node/7175344550",
+    "name": "興亨素食小吃",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.077586,
+    "lon": 121.5801222
+   },
+   {
+    "osm": "node/7175344574",
+    "name": "齋心坊素食小吃",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0461662,
+    "lon": 121.5776166
+   },
+   {
+    "osm": "node/7175344586",
+    "name": "素食自助餐",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0202693,
+    "lon": 121.496401
+   },
+   {
+    "osm": "node/7175344594",
+    "name": "安娜法蘭法式蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0350469,
+    "lon": 121.5372898
+   },
+   {
+    "osm": "node/7175344599",
+    "name": "妙音素食自助餐",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.027036,
+    "lon": 121.5112481
+   },
+   {
+    "osm": "node/7175344638",
+    "name": "禾欣素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0313383,
+    "lon": 121.5273271
+   },
+   {
+    "osm": "node/7175344674",
+    "name": "耘華居素食茶葉",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0341656,
+    "lon": 121.5387313
+   },
+   {
+    "osm": "node/7175344690",
+    "name": "金華素食滷味素食麵",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0300684,
+    "lon": 121.526725
+   },
+   {
+    "osm": "node/7175344723",
+    "name": "健康素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0461505,
+    "lon": 121.5781009
+   },
+   {
+    "osm": "node/7175344725",
+    "name": "明德素食園",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0724088,
+    "lon": 121.5940064
+   },
+   {
+    "osm": "node/7175344728",
+    "name": "東興素食自助餐廳",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0203022,
+    "lon": 121.495866
+   },
+   {
+    "osm": "node/7175344729",
+    "name": "素真香素食餐館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0462291,
+    "lon": 121.5776147
+   },
+   {
+    "osm": "node/7175344758",
+    "name": "禧園素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0412454,
+    "lon": 121.57541,
+    "hours": "Mo-Fr 11:00-17:00"
+   },
+   {
+    "osm": "node/7175344761",
+    "name": "全國健康素食自助餐",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0300158,
+    "lon": 121.5269482,
+    "hours": "Mo-Su 10:30-14:00, 16:00-20:30"
+   },
+   {
+    "osm": "node/7175344785",
+    "name": "明德素食園",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1203006,
+    "lon": 121.5197979
+   },
+   {
+    "osm": "node/7194693215",
+    "name": "素素如意素食、點心",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0739891,
+    "lon": 121.5136242
+   },
+   {
+    "osm": "node/7194693235",
+    "name": "利生素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.07259,
+    "lon": 121.519184
+   },
+   {
+    "osm": "node/7194693238",
+    "name": "蔬福創意蔬食料理【純素、奶素】",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 24.9905283,
+    "lon": 121.5737739
+   },
+   {
+    "osm": "node/7194706831",
+    "name": "活悅JuiceMeal素食餐廳",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0929572,
+    "lon": 121.5267688
+   },
+   {
+    "osm": "node/7211419021",
+    "name": "觀世音素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0386367,
+    "lon": 121.5848928
+   },
+   {
+    "osm": "node/7211419047",
+    "name": "彌勒佛素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0369955,
+    "lon": 121.5790757
+   },
+   {
+    "osm": "node/7211419080",
+    "name": "廣誠素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0360443,
+    "lon": 121.5781019
+   },
+   {
+    "osm": "node/7211419082",
+    "name": "福德街素食水煎包",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0385388,
+    "lon": 121.5847051
+   },
+   {
+    "osm": "node/7211419083",
+    "name": "福德手工素食包子店",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0386821,
+    "lon": 121.5852175
+   },
+   {
+    "osm": "node/7211425516",
+    "name": "越南健康素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0453713,
+    "lon": 121.5861341
+   },
+   {
+    "osm": "node/7211425562",
+    "name": "祥益素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0454544,
+    "lon": 121.586071
+   },
+   {
+    "osm": "node/7211425563",
+    "name": "陶媽媽素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0674482,
+    "lon": 121.586391
+   },
+   {
+    "osm": "node/7211425569",
+    "name": "素食美濃客家粄條",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0380254,
+    "lon": 121.5848755
+   },
+   {
+    "osm": "node/7211425578",
+    "name": "徐家素食麵",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0380395,
+    "lon": 121.5849153
+   },
+   {
+    "osm": "node/7211425664",
+    "name": "阿娟素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0387229,
+    "lon": 121.5788233
+   },
+   {
+    "osm": "node/7211425703",
+    "name": "好滋味素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0556917,
+    "lon": 121.6068735
+   },
+   {
+    "osm": "node/7211425712",
+    "name": "荃國素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0450244,
+    "lon": 121.5829469,
+    "hours": "Mo-Su 10:30-15:30,16:30-20:00"
+   },
+   {
+    "osm": "node/7211425726",
+    "name": "正慈素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0384398,
+    "lon": 121.584822
+   },
+   {
+    "osm": "node/7211425752",
+    "name": "心蔬果滷味麵線(素食)",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0443362,
+    "lon": 121.5846771
+   },
+   {
+    "osm": "node/7211425760",
+    "name": "天香素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0380686,
+    "lon": 121.5851106
+   },
+   {
+    "osm": "node/7211425761",
+    "name": "天百味素食坊",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0460111,
+    "lon": 121.5871662
+   },
+   {
+    "osm": "node/7212236782",
+    "name": "中一素食園",
+    "amenity": "restaurant",
+    "cuisine": "自助餐",
+    "vegetarian": "only",
+    "lat": 25.0447849,
+    "lon": 121.5165379,
+    "street": "信陽街",
+    "hours": "Mo-Sa 11:00-14:00,17:00-20:00; Su off"
+   },
+   {
+    "osm": "node/7213007973",
+    "name": "貞有緣素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0226176,
+    "lon": 121.5430228
+   },
+   {
+    "osm": "node/7213007976",
+    "name": "慈心素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.022795,
+    "lon": 121.5429376
+   },
+   {
+    "osm": "node/7213007979",
+    "name": "大叔蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0229135,
+    "lon": 121.5429416,
+    "street": "和平東路二段118巷"
+   },
+   {
+    "osm": "node/7213752463",
+    "name": "瓦城泰國料理",
+    "nameEn": "Thai Town",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 25.0493468,
+    "lon": 121.5791515,
+    "street": "松山路"
+   },
+   {
+    "osm": "node/7426547285",
+    "name": "天百味素食",
+    "nameEn": "vegetarian restaurant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0459885,
+    "lon": 121.587117
+   },
+   {
+    "osm": "node/7440627783",
+    "name": "西方蓮臻饌素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0694202,
+    "lon": 121.613883
+   },
+   {
+    "osm": "node/7440634090",
+    "name": "布諾手工窯烤披薩",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 25.0695825,
+    "lon": 121.6149837,
+    "hours": "Mo-Fr 16:00-21:00; Sa,Su 11:30-21:00"
+   },
+   {
+    "osm": "node/7643770585",
+    "name": "文大叔蔬食麵线",
+    "nameEn": "Vege Vermicelli",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0572881,
+    "lon": 121.517293,
+    "street": "民生西路",
+    "hours": "Tu-Su 11:00-20:00"
+   },
+   {
+    "osm": "node/7647240956",
+    "name": "素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0330207,
+    "lon": 121.5447213
+   },
+   {
+    "osm": "node/7676258360",
+    "name": "溥善園精進蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0041591,
+    "lon": 121.5393984,
+    "street": "興隆路一段",
+    "hours": "Mo-Su 11:00-14:00,17:00-20:00"
+   },
+   {
+    "osm": "node/7679769226",
+    "name": "玄德",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0453619,
+    "lon": 121.507261
+   },
+   {
+    "osm": "node/7679769228",
+    "name": "麥味登",
+    "nameEn": "My Warn Day Care & Brunch",
+    "amenity": "restaurant",
+    "cuisine": "american;breakfast",
+    "vegetarian": "yes",
+    "lat": 25.0417784,
+    "lon": 121.5071211,
+    "hours": "Mo-Fr 12:00-20:00; Sa-Su 13:00-18:00; PH 13:00-18:00"
+   },
+   {
+    "osm": "node/7695463329",
+    "name": "仁里居",
+    "nameEn": "Yuli Your Home",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0286643,
+    "lon": 121.5385764,
+    "street": "建國南路二段151巷"
+   },
+   {
+    "osm": "node/7695542992",
+    "name": "富川素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0629818,
+    "lon": 121.5344124
+   },
+   {
+    "osm": "node/7695580469",
+    "name": "素食清粥小菜",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0650728,
+    "lon": 121.5381512
+   },
+   {
+    "osm": "node/7695580474",
+    "name": "來欣素食手工水餃",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0645704,
+    "lon": 121.5347179
+   },
+   {
+    "osm": "node/7695580479",
+    "name": "美華素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0635668,
+    "lon": 121.5350954
+   },
+   {
+    "osm": "node/7695801673",
+    "name": "草菩提素食拉麵",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0331461,
+    "lon": 121.5458118
+   },
+   {
+    "osm": "node/7699355921",
+    "name": "大禾養生蔬食",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 24.9888103,
+    "lon": 121.5638591,
+    "street": "木柵路二段",
+    "hours": "Mo-Fr 10:30-20:00"
+   },
+   {
+    "osm": "node/7699361906",
+    "name": "素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 24.9949972,
+    "lon": 121.5609433
+   },
+   {
+    "osm": "node/7699687687",
+    "name": "尹軒齋蔬食無肉料理",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0262964,
+    "lon": 121.5079491
+   },
+   {
+    "osm": "node/7747683220",
+    "name": "花阿嬤 素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1205035,
+    "lon": 121.5313632
+   },
+   {
+    "osm": "node/7749776781",
+    "name": "世運食品",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 25.0365111,
+    "lon": 121.5554843,
+    "hours": "PH,Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/7749782393",
+    "name": "五福小館",
+    "amenity": "restaurant",
+    "vegan": "no",
+    "vegetarian": "only",
+    "lat": 25.0359291,
+    "lon": 121.5555346,
+    "hours": "PH,Mo-Su 11:00-14:00,17:00-21:00"
+   },
+   {
+    "osm": "node/7749806926",
+    "name": "全國健康素食",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0437144,
+    "lon": 121.5450448,
+    "hours": "Mo-Su 10:30-20:00"
+   },
+   {
+    "osm": "node/7749821101",
+    "name": "橘子屋素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 24.9876284,
+    "lon": 121.5699178,
+    "street": "指南路一段"
+   },
+   {
+    "osm": "node/7759814740",
+    "name": "八鍋臭臭鍋",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.1375915,
+    "lon": 121.5412693,
+    "street": "華岡路47巷",
+    "hours": "Mo-Su 11:00-23:00"
+   },
+   {
+    "osm": "node/7765187645",
+    "name": "健康素食養生家",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 25.0236928,
+    "lon": 121.4976653
+   },
+   {
+    "osm": "node/7765187801",
+    "name": "素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0361166,
+    "lon": 121.5354643
+   },
+   {
+    "osm": "node/7775517786",
+    "name": "閒居賦",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 25.1023508,
+    "lon": 121.5487346
+   },
+   {
+    "osm": "node/7786874208",
+    "name": "和韵WAING",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0613305,
+    "lon": 121.5219017,
+    "hours": "Mo-We 18:00-22:30; Th,Fr 11:30-14:30; Sa 11:30-14:30,06:00-22:30"
+   },
+   {
+    "osm": "node/7786874219",
+    "name": "5味臭臭鍋",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0602298,
+    "lon": 121.522414,
+    "hours": "Mo-Su 11:00-21:00"
+   },
+   {
+    "osm": "node/7787593826",
+    "name": "明德素食園",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0286441,
+    "lon": 121.5391237
+   },
+   {
+    "osm": "node/7795175829",
+    "name": "呷尚寶",
+    "nameEn": "JSP",
+    "amenity": "fast_food",
+    "cuisine": "breakfast;brunch;burger;sandwich",
+    "vegetarian": "yes",
+    "lat": 25.0844533,
+    "lon": 121.5174503
+   },
+   {
+    "osm": "node/7798097827",
+    "name": "素食早餐",
+    "amenity": "restaurant",
+    "cuisine": "breakfast",
+    "vegetarian": "only",
+    "lat": 25.1035652,
+    "lon": 121.5215088
+   },
+   {
+    "osm": "node/7798161880",
+    "name": "陽明素食館",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1056188,
+    "lon": 121.5308469
+   },
+   {
+    "osm": "node/7798168986",
+    "name": "一品蔬食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1055103,
+    "lon": 121.5296026
+   },
+   {
+    "osm": "node/7798185773",
+    "name": "德行素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1094229,
+    "lon": 121.5335784
+   },
+   {
+    "osm": "node/7798210000",
+    "name": "十方素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1075321,
+    "lon": 121.528115,
+    "street": "德行東路"
+   },
+   {
+    "osm": "node/7800498010",
+    "name": "蔬食餐酒館",
+    "nameEn": "BaganHood",
+    "amenity": "restaurant",
+    "cuisine": "burger;pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0444131,
+    "lon": 121.5634077,
+    "street": "忠孝東路四段553巷46弄",
+    "hours": "Mo-Su 11:30-16:00, 17:00-22:00"
+   },
+   {
+    "osm": "node/7800498024",
+    "name": "禪風茶樓",
+    "nameEn": "Zen Tea Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0563119,
+    "lon": 121.5329008,
+    "street": "松江路",
+    "hours": "Mo-Su 11:30-14:00, 17:30-21:00"
+   },
+   {
+    "osm": "node/7800500960",
+    "name": "無口小廚",
+    "nameEn": "Mu Kuchi",
+    "amenity": "restaurant",
+    "cuisine": "ramen",
+    "vegan": "yes",
+    "lat": 25.0622444,
+    "lon": 121.5087401,
+    "street": "迪化街一段342巷"
+   },
+   {
+    "osm": "node/7849377520",
+    "name": "繼光香香雞",
+    "nameEn": "J&G Fried Chicken",
+    "amenity": "fast_food",
+    "cuisine": "fried_food",
+    "vegetarian": "only",
+    "lat": 25.0527246,
+    "lon": 121.6057045,
+    "street": "忠孝東路七段",
+    "hours": "Mo-Fr 08:00-19:00"
+   },
+   {
+    "osm": "node/8065893253",
+    "name": "全國健康素食",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.0765618,
+    "lon": 121.5752367
+   },
+   {
+    "osm": "node/8190405703",
+    "name": "友情雞排",
+    "amenity": "restaurant",
+    "cuisine": "炸物",
+    "vegetarian": "yes",
+    "lat": 25.1378588,
+    "lon": 121.5417271,
+    "street": "華岡路47巷",
+    "hours": "Mo-Su 16:00-24:00"
+   },
+   {
+    "osm": "node/8342830017",
+    "name": "竹里館",
+    "amenity": "restaurant",
+    "cuisine": "chinese;tea",
+    "vegetarian": "yes",
+    "lat": 25.058634,
+    "lon": 121.5453505,
+    "street": "民生東路三段113巷6弄"
+   },
+   {
+    "osm": "node/8383391930",
+    "name": "素食 早上開始",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.1335075,
+    "lon": 121.4985967
+   },
+   {
+    "osm": "node/8426944905",
+    "name": "無老鍋",
+    "nameEn": "Wulao",
+    "amenity": "restaurant",
+    "cuisine": "hotpot",
+    "vegan": "yes",
+    "lat": 25.0423978,
+    "lon": 121.5089148,
+    "street": "中華路一段",
+    "hours": "Mo-Su 11:00-04:00"
+   },
+   {
+    "osm": "node/8441425921",
+    "name": "豆漿哥早點宵夜",
+    "amenity": "fast_food",
+    "cuisine": "regional;chinese",
+    "vegetarian": "yes",
+    "lat": 25.0557299,
+    "lon": 121.6059025,
+    "street": "興華路",
+    "hours": "Mo-Su 04:00-14:00, 16:00-26:00"
+   },
+   {
+    "osm": "node/8496650266",
+    "name": "智靜素食館",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "only",
+    "lat": 25.031557,
+    "lon": 121.5171193,
+    "street": "南昌路一段"
+   },
+   {
+    "osm": "node/9009908717",
+    "name": "MiaCucina 信義店",
+    "nameEn": "Mia Cucina",
+    "amenity": "restaurant",
+    "cuisine": "italian;pizza;pasta;salad;fries;pancake;dessert",
+    "vegetarian": "yes",
+    "lat": 25.0361422,
+    "lon": 121.5671056,
+    "street": "松壽路",
+    "hours": "Mo-Fr 11:00-21:30; Sa-Su 11:00-22:00"
+   },
+   {
+    "osm": "node/9015772860",
+    "name": "觀音亭素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.032183,
+    "lon": 121.5177151,
+    "street": "南昌路一段31巷"
+   },
+   {
+    "osm": "node/9049665945",
+    "name": "The 雞 Spot",
+    "nameEn": "The Ji Spot",
+    "amenity": "restaurant",
+    "cuisine": "american",
+    "vegetarian": "yes",
+    "lat": 25.0420052,
+    "lon": 121.5642929,
+    "street": "基隆路一段190巷",
+    "hours": "Tu-Sa 11:30-15:00, 17:00-19:00"
+   },
+   {
+    "osm": "node/9054233411",
+    "name": "蓮花素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0185021,
+    "lon": 121.5316809
+   },
+   {
+    "osm": "node/9137040768",
+    "name": "極品光復素食包子",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.0365133,
+    "lon": 121.5595741,
+    "street": "光復南路419巷"
+   },
+   {
+    "osm": "node/9375560794",
+    "name": "嘎哩咖啡 ｜ GaliGabi",
+    "amenity": "cafe",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 25.0599383,
+    "lon": 121.5213788,
+    "hours": "Mo-Sa 11:00-20:00"
+   },
+   {
+    "osm": "node/9375560810",
+    "name": "六月三十義式手工冰淇淋台北店",
+    "amenity": "restaurant",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 25.0594206,
+    "lon": 121.5213502,
+    "hours": "Tu-Su 23:00-20:00"
+   },
+   {
+    "osm": "node/9375696093",
+    "name": "路易莎咖啡",
+    "nameEn": "Louisa Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.0557035,
+    "lon": 121.5210253,
+    "hours": "Mo-Su 07:00-21:00"
+   },
+   {
+    "osm": "node/9599444388",
+    "name": "恬園餐廳",
+    "amenity": "restaurant",
+    "cuisine": "italian;asian;japanese;chinese;ice_cream",
+    "vegetarian": "yes",
+    "lat": 25.0238035,
+    "lon": 121.533787
+   },
+   {
+    "osm": "node/9623629191",
+    "name": "夏威魚",
+    "nameEn": "Hawaii Poke Box",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.043101,
+    "lon": 121.5688134,
+    "hours": "Mo-Su 11:30-15:00,16:30-20:30"
+   },
+   {
+    "osm": "node/9631979143",
+    "name": "路易莎咖啡",
+    "nameEn": "Louisa Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.0285332,
+    "lon": 121.5643497,
+    "street": "莊敬路325巷",
+    "hours": "Mo-Su 07:00-17:00"
+   },
+   {
+    "osm": "node/9684273684",
+    "name": "Top 10 Cafe",
+    "amenity": "fast_food",
+    "cuisine": "coffee_shop;burger;sandwich",
+    "vegetarian": "yes",
+    "lat": 25.0323059,
+    "lon": 121.55858,
+    "street": "信義路四段450巷"
+   },
+   {
+    "osm": "node/9829408467",
+    "name": "全家福素食",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 25.112077,
+    "lon": 121.5152523,
+    "street": "石牌路一段166巷",
+    "hours": "Mo-Sa 11:00-14:00,16:00-19:30; Su off"
+   },
+   {
+    "osm": "node/9964091663",
+    "name": "台鐵便當",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.049271,
+    "lon": 121.5783946,
+    "hours": "Mo-Su 10:10-18:00"
+   },
+   {
+    "osm": "node/9988961741",
+    "name": "彼得好咖啡",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 25.0316409,
+    "lon": 121.5188118
+   },
+   {
+    "osm": "node/10241656204",
+    "name": "夏慕尼新香榭鐵板燒 大直敬業店",
+    "amenity": "restaurant",
+    "cuisine": "french;asian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0843884,
+    "lon": 121.5541856,
+    "street": "敬業二路",
+    "hours": "Mo-Su 11:30-14:00,17:30-22:00"
+   },
+   {
+    "osm": "node/10246451209",
+    "name": "植日生手作蔬食",
+    "nameEn": "Veggie Mouse",
+    "amenity": "restaurant",
+    "cuisine": "asian;breakfast",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0496389,
+    "lon": 121.5658036,
+    "street": "南京東路五段250巷",
+    "hours": "Tu-Su 11:00-15:00, 17:00-20:30"
+   },
+   {
+    "osm": "node/10248820409",
+    "name": "米菲蔬食",
+    "nameEn": "Meat Free Restaurant",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0507874,
+    "lon": 121.5602824,
+    "street": "南京東路五段66巷2弄",
+    "hours": "Mo-Su 10:15-21:00"
+   },
+   {
+    "osm": "node/10297663909",
+    "name": "忠孝復興店",
+    "nameEn": "Dreamers Coffee Roasters",
+    "amenity": "cafe",
+    "cuisine": "breakfast;coffee_shop",
+    "vegetarian": "yes",
+    "lat": 25.0427226,
+    "lon": 121.5446898,
+    "street": "復興南路一段135巷",
+    "hours": "Mo-Su 07:00-21:30"
+   },
+   {
+    "osm": "node/10586967812",
+    "name": "明德素食園 京站台北店",
+    "nameEn": "Minder Vegetarian",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.049183,
+    "lon": 121.517073
+   },
+   {
+    "osm": "node/11214926867",
+    "name": "Two Shots",
+    "nameEn": "Two Shots",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0191437,
+    "lon": 121.5301121
+   },
+   {
+    "osm": "node/11294026825",
+    "name": "六津素包",
+    "nameEn": "Liu-Jin Vegetarian Buns",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0393096,
+    "lon": 121.5528148,
+    "street": "忠孝東路四段216巷",
+    "hours": "Mo-Sa 10:00-19:30"
+   },
+   {
+    "osm": "node/11294042858",
+    "name": "屋台村 稻",
+    "amenity": "restaurant",
+    "cuisine": "japanese;taiwanese;sushi",
+    "vegetarian": "yes",
+    "lat": 25.0302057,
+    "lon": 121.5539523,
+    "street": "臨江街",
+    "hours": "Th-Tu 18:00-3:00, We 15:30-3:00"
+   },
+   {
+    "osm": "node/11404705855",
+    "name": "水果兔自然麵包",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": 25.1521162,
+    "lon": 121.547068
+   },
+   {
+    "osm": "node/11433316993",
+    "name": "Cuppa Cuppa",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0420495,
+    "lon": 121.5637298,
+    "street": "忠孝東路四段559巷"
+   },
+   {
+    "osm": "node/11459608112",
+    "name": "一禾堂",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0593692,
+    "lon": 121.5444144,
+    "street": "復興北路",
+    "hours": "Mo-Su 10:30-20:00"
+   },
+   {
+    "osm": "node/11496693136",
+    "name": "發來素食養生粥,麵線",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 25.0444128,
+    "lon": 121.6161433
+   },
+   {
+    "osm": "node/11643222739",
+    "name": "Haloa Poke",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0410088,
+    "lon": 121.5756667
+   },
+   {
+    "osm": "node/11880478130",
+    "name": "宏記豆漿",
+    "nameEn": "Hongji",
+    "amenity": "fast_food",
+    "cuisine": "chinese;regional",
+    "vegetarian": "yes",
+    "lat": 25.043483,
+    "lon": 121.5538649,
+    "street": "延吉街",
+    "hours": "24/7"
+   },
+   {
+    "osm": "node/11961008169",
+    "name": "無所洋食",
+    "nameEn": "SyoSyoHouBou",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0627541,
+    "lon": 121.5090618,
+    "street": "迪化街一段",
+    "hours": "Mo-Su 11:30-15:00; Mo-Su 17:00-20:00"
+   },
+   {
+    "osm": "node/12133457432",
+    "name": "萊客早餐吧",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0447899,
+    "lon": 121.5703847,
+    "street": "永吉路120巷27弄",
+    "hours": "05:00-14:00"
+   },
+   {
+    "osm": "node/12177694738",
+    "name": "Cama",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 25.0449285,
+    "lon": 121.5838854
+   },
+   {
+    "osm": "node/12192636033",
+    "name": "Tamed Fox Xinyi",
+    "amenity": "restaurant",
+    "cuisine": "western",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0371113,
+    "lon": 121.5694266,
+    "street": "四維路76巷",
+    "hours": "Mo-Su 09:00-17:30"
+   },
+   {
+    "osm": "node/12343298931",
+    "name": "菜老師時蔬",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0529793,
+    "lon": 121.5336723
+   },
+   {
+    "osm": "node/12409704001",
+    "name": "炒炒新亞洲蔬食",
+    "nameEn": "Chao",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0431785,
+    "lon": 121.5451219,
+    "street": "大安路一段52巷",
+    "hours": "Mo-Fr 17:00-23:00; Sa-Su 11:00-14:30, 17:00-23:00"
+   },
+   {
+    "osm": "node/12409712901",
+    "name": "小小樹食",
+    "nameEn": "Little Tree Food",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0398998,
+    "lon": 121.5447287,
+    "street": "大安路一段116巷",
+    "hours": "Mo-Su 12:00-21:00"
+   },
+   {
+    "osm": "node/12440374184",
+    "name": "果然匯",
+    "nameEn": "Fruitfulfood",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 25.1115551,
+    "lon": 121.5313822
+   },
+   {
+    "osm": "node/12464293519",
+    "name": "N+n",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0395354,
+    "lon": 121.5787488,
+    "hours": "Mo-Su 07:30-14:30"
+   },
+   {
+    "osm": "node/12477868224",
+    "name": "Chappii",
+    "amenity": "cafe",
+    "cuisine": "bubble_tea",
+    "vegetarian": "yes",
+    "lat": 25.0824029,
+    "lon": 121.5712399
+   },
+   {
+    "osm": "node/12622924540",
+    "name": "菩提樹素食",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.031147,
+    "lon": 121.5600551,
+    "street": "吳興街"
+   },
+   {
+    "osm": "node/12623025632",
+    "name": "Like Tofu",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 25.0304989,
+    "lon": 121.5534729,
+    "street": "臨江街"
+   },
+   {
+    "osm": "node/12791294144",
+    "name": "佛光山滴水坊",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0486768,
+    "lon": 121.5789554,
+    "street": "松隆路"
+   },
+   {
+    "osm": "node/12803399352",
+    "name": "Bean U",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 25.0431827,
+    "lon": 121.5632983
+   },
+   {
+    "osm": "node/12997276261",
+    "name": "Preserve",
+    "amenity": "restaurant",
+    "cuisine": "pasta;麵包",
+    "vegetarian": "yes",
+    "lat": 25.0596651,
+    "lon": 121.6176898,
+    "street": "經貿二路",
+    "hours": "Mo-Su 11:00-21:30"
+   },
+   {
+    "osm": "node/13130475077",
+    "name": "蛋蛋的幸福 蔬食料理",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 24.9881745,
+    "lon": 121.57372,
+    "street": "指南路二段",
+    "hours": "Mo-Sa 11:30-18:30"
+   },
+   {
+    "osm": "node/13130478706",
+    "name": "季旭小吃",
+    "amenity": "restaurant",
+    "cuisine": "chinese;taiwanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 24.9878878,
+    "lon": 121.5766321,
+    "street": "指南路二段119巷",
+    "hours": "11:00–14:00 17:00–19:30"
+   },
+   {
+    "osm": "node/13131122556",
+    "name": "素還真",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 24.9878835,
+    "lon": 121.5742618,
+    "street": "指南路二段"
+   },
+   {
+    "osm": "node/13136578097",
+    "name": "柳廚食堂",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 24.9825838,
+    "lon": 121.5649247,
+    "street": "木新路三段"
+   },
+   {
+    "osm": "node/13327212421",
+    "name": "蔡老師蔬食",
+    "nameEn": "Vegetsai Vegan Deli",
+    "amenity": "restaurant",
+    "cuisine": "taiwanese;japanese",
+    "vegan": "yes",
+    "lat": 25.0520071,
+    "lon": 121.5459467,
+    "street": "南京東路三段",
+    "hours": "Mo-Fr 09:30-20:00"
+   },
+   {
+    "osm": "node/13382906718",
+    "name": "能量小姐",
+    "nameEn": "Miss Energy",
+    "amenity": "restaurant",
+    "cuisine": "health_food;bento",
+    "vegetarian": "yes",
+    "lat": 25.0435671,
+    "lon": 121.5137303,
+    "hours": "Mo-Fr 10:30-19:30"
+   },
+   {
+    "osm": "node/13580662801",
+    "name": "青山素食館",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 25.0253744,
+    "lon": 121.5413408,
+    "street": "和平東路二段"
+   },
+   {
+    "osm": "node/13616054587",
+    "name": "墨歐早午餐",
+    "nameEn": "MELB & CO.",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 25.0306252,
+    "lon": 121.5166117,
+    "hours": "We-Su 09:00-18:00; Mo,Tu off"
+   },
+   {
+    "osm": "node/13622004492",
+    "name": "給力盒子",
+    "nameEn": "Get Power",
+    "amenity": "fast_food",
+    "vegetarian": "yes",
+    "lat": 25.0503663,
+    "lon": 121.5661936,
+    "hours": "Mo-Fr 10:30-14:00,16:00-19:00"
+   },
+   {
+    "osm": "node/13724520041",
+    "name": "Q Burger 信義永吉店(直營)",
+    "nameEn": "Q Burger Xinyi Yongji",
+    "amenity": "restaurant",
+    "cuisine": "taiwanese;breakfast",
+    "vegetarian": "yes",
+    "lat": 25.0452083,
+    "lon": 121.5703581,
+    "street": "永吉路120巷9弄",
+    "hours": "Mo-Fr 06:00-13:30"
+   },
+   {
+    "osm": "node/13744440113",
+    "name": "小青苑 Cyan Cafe",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;dessert",
+    "vegetarian": "yes",
+    "lat": 25.042439,
+    "lon": 121.5670978,
+    "street": "基隆路一段147巷",
+    "hours": "Mo-Sa 13:00-19:00"
+   },
+   {
+    "osm": "node/13784533059",
+    "name": "Q Burger 信義永吉店(直營)",
+    "nameEn": "Q Burger Xinyi Yongji",
+    "amenity": "restaurant",
+    "cuisine": "taiwanese;breakfast",
+    "vegetarian": "yes",
+    "lat": 25.0452082,
+    "lon": 121.570358,
+    "street": "永吉路120巷9弄",
+    "hours": "Mo-Fr 06:00-13:30"
+   },
+   {
+    "osm": "node/14088237801",
+    "name": "Serenity (Zhongzheng)",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0443282,
+    "lon": 121.5217625
+   },
+   {
+    "osm": "node/14088240501",
+    "name": "Serenity (Zhongzheng)",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0443282,
+    "lon": 121.5217625
+   },
+   {
+    "osm": "node/14088242501",
+    "name": "Serenity vegetarian restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0527108,
+    "lon": 121.5463747
+   },
+   {
+    "osm": "node/14088242901",
+    "name": "Serenity vegetarian restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0527108,
+    "lon": 121.5463747
+   },
+   {
+    "osm": "node/14088247301",
+    "name": "Serenity vegetarian restaurant",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 25.0527643,
+    "lon": 121.5463868,
+    "street": "南京東路三段303巷7弄"
+   },
+   {
+    "osm": "way/763092052",
+    "name": "觀音素食",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 25.0569319,
+    "lon": 121.5528448
+   },
+   {
+    "osm": "way/832870673",
+    "name": "慈音山莊景觀餐廳",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 24.9662501,
+    "lon": 121.5662468,
+    "street": "老泉街26巷"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Taipei",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

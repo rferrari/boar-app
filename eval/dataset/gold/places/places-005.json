@@ -1,0 +1,13 @@
+{
+ "id": "places-005",
+ "city": "Velletri",
+ "diet": "kosher",
+ "fetchedAt": "2026-09-28T00:00:53.330Z",
+ "osm": {
+  "snapshot": "2026-09-27T23:59:06Z",
+  "scope": "25 km radius around 41.68573,12.77753",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "dietVenues": 0,
+  "venues": []
+ }
+}

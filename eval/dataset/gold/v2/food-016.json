@@ -1,0 +1,369 @@
+{
+ "id": "food-016",
+ "city": "Cape Town",
+ "wikidata": "Q5465",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:24:26.244Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:22:51Z",
+  "scope": "10 km radius around -33.92527778,18.42388889 (admin area Q5465 not found in OSM)",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 2,
+  "veganYes": 24,
+  "vegetarianOrVegan": 34,
+  "venues": [
+   {
+    "osm": "node/423033574",
+    "name": "Romeo and Vero Vegan Butcherie",
+    "amenity": "restaurant",
+    "cuisine": "local",
+    "vegan": "yes",
+    "lat": -33.9161903,
+    "lon": 18.4177726,
+    "street": "Dixon Street"
+   },
+   {
+    "osm": "node/1393983672",
+    "name": "NY Slice",
+    "amenity": "cafe",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9290721,
+    "lon": 18.4117485,
+    "street": "Kloof Street"
+   },
+   {
+    "osm": "node/1534620760",
+    "name": "Kanéla Café",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.921299,
+    "lon": 18.3826718,
+    "street": "Regent Road"
+   },
+   {
+    "osm": "node/2694343599",
+    "name": "Col'Cacchio",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian;pasta",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9783611,
+    "lon": 18.4823631,
+    "street": "Belvedere Square",
+    "hours": "Mo-Su 11:30-21:00"
+   },
+   {
+    "osm": "node/2940306333",
+    "name": "Cafe Extrablatt",
+    "amenity": "restaurant",
+    "cuisine": "german",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9084435,
+    "lon": 18.410989,
+    "street": "Main Road"
+   },
+   {
+    "osm": "node/3310212140",
+    "name": "Cafe Dijon",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -33.9149588,
+    "lon": 18.4188548
+   },
+   {
+    "osm": "node/3355305293",
+    "name": "Jerry's",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9388982,
+    "lon": 18.4688732
+   },
+   {
+    "osm": "node/3733793199",
+    "name": "Truth Coffee Roasting",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;breakfast;burger;cake;chicken;hot_dog;international;local;pasta;sandwich;tea",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9282267,
+    "lon": 18.4227333
+   },
+   {
+    "osm": "node/5308129338",
+    "name": "Sushi Wave Bar",
+    "amenity": "restaurant",
+    "cuisine": "sushi",
+    "vegan": "yes",
+    "lat": -33.9379882,
+    "lon": 18.4700083
+   },
+   {
+    "osm": "node/5451378121",
+    "name": "Addis in Cape",
+    "nameEn": "Addis in Cape",
+    "amenity": "restaurant",
+    "cuisine": "ethiopian",
+    "vegan": "yes",
+    "lat": -33.924825,
+    "lon": 18.4152335,
+    "street": "Loop Street"
+   },
+   {
+    "osm": "node/5538880561",
+    "name": "Narona Pizza",
+    "amenity": "restaurant",
+    "cuisine": "pizza;pasta",
+    "vegetarian": "yes",
+    "lat": -33.9391868,
+    "lon": 18.4688621,
+    "street": "Trill Road",
+    "hours": "Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/6476678757",
+    "name": "Flourish Bistro",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9274805,
+    "lon": 18.4568387,
+    "street": "Albert Road",
+    "hours": "Mo-Fr 09:00-16:00, Sa 09:00-15:00"
+   },
+   {
+    "osm": "node/8060036611",
+    "name": "Ou Meul Bakery and Cafe Pinelands",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;pizza;burger;sandwich",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": -33.9396504,
+    "lon": 18.4985275,
+    "street": "Central Square",
+    "hours": "Mo-Sa 07:00-21:00; Su 07:00-16:00"
+   },
+   {
+    "osm": "node/8315714313",
+    "name": "The Kind Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;sandwich;burger",
+    "vegan": "yes",
+    "lat": -33.9275379,
+    "lon": 18.4535744,
+    "hours": "Mo-Sa 10:00-15:00"
+   },
+   {
+    "osm": "node/9413095358",
+    "name": "Plushi",
+    "amenity": "restaurant",
+    "cuisine": "sushi",
+    "vegan": "yes",
+    "lat": -33.9343413,
+    "lon": 18.4579279
+   },
+   {
+    "osm": "node/9434728947",
+    "name": "Ms. K's",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegetarian": "yes",
+    "lat": -33.9341087,
+    "lon": 18.4591238,
+    "street": "Victoria Road"
+   },
+   {
+    "osm": "node/9517053600",
+    "name": "Café NUDE & Wild Eatery",
+    "amenity": "restaurant",
+    "cuisine": "falafel;smoothies;tacos",
+    "vegetarian": "yes",
+    "lat": -33.9283228,
+    "lon": 18.4244363,
+    "street": "Constitution Street"
+   },
+   {
+    "osm": "node/9588417735",
+    "name": "Naan Better",
+    "amenity": "restaurant",
+    "cuisine": "indian;regional",
+    "vegetarian": "yes",
+    "lat": -33.9330824,
+    "lon": 18.4667992
+   },
+   {
+    "osm": "node/9709443274",
+    "name": "The Conscious Kitchen",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9387352,
+    "lon": 18.4690589
+   },
+   {
+    "osm": "node/9709877310",
+    "name": "Ground Zero",
+    "amenity": "restaurant",
+    "cuisine": "falafel;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.93685,
+    "lon": 18.4683732,
+    "street": "Lower Main Road"
+   },
+   {
+    "osm": "node/9710887934",
+    "name": "Vegan Streetfood",
+    "amenity": "fast_food",
+    "cuisine": "burger;pastry;hot_dog;wraps",
+    "vegan": "yes",
+    "lat": -33.9397182,
+    "lon": 18.4690285
+   },
+   {
+    "osm": "node/10077557863",
+    "name": "The Fussy Vegan",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -33.9322515,
+    "lon": 18.4159204
+   },
+   {
+    "osm": "node/11135588605",
+    "name": "The Bailey",
+    "nameEn": "The Bailey",
+    "amenity": "restaurant",
+    "cuisine": "mediterranean;seafood",
+    "vegetarian": "yes",
+    "lat": -33.9209418,
+    "lon": 18.4186294,
+    "street": "Breë Street"
+   },
+   {
+    "osm": "node/11483308999",
+    "name": "The Conscious Kitchen",
+    "amenity": "cafe",
+    "vegan": "only",
+    "lat": -33.9286472,
+    "lon": 18.4118914,
+    "street": "Kloof Street"
+   },
+   {
+    "osm": "node/11813443386",
+    "name": "The Greek Fisherman",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9212502,
+    "lon": 18.3826413,
+    "street": "Regent Road",
+    "hours": "Mo 17:30-22:00; Tu-Su 12:00-22:00"
+   },
+   {
+    "osm": "node/12328657601",
+    "name": "Jean's Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "mediterranean",
+    "vegan": "yes",
+    "lat": -33.9599975,
+    "lon": 18.4594155
+   },
+   {
+    "osm": "node/12623968968",
+    "name": "Woolworths Now Now Cafe CTC",
+    "amenity": "cafe",
+    "cuisine": "burger;breakfast;lunch",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9252616,
+    "lon": 18.4228562,
+    "street": "Longmarket Street",
+    "hours": "Mo-Th 06:30-16:00; Fr 06:30-15:00"
+   },
+   {
+    "osm": "node/13521635090",
+    "name": "The Conscious Kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -33.9288316,
+    "lon": 18.4117073
+   },
+   {
+    "osm": "node/13720455474",
+    "name": "Norfolk Deli",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;sandwich;coffee_shop",
+    "vegetarian": "yes",
+    "lat": -33.9110538,
+    "lon": 18.3924089
+   },
+   {
+    "osm": "node/13725182295",
+    "name": "The Falafel Guy",
+    "amenity": "restaurant",
+    "cuisine": "shawarma;middle_eastern",
+    "vegetarian": "yes",
+    "lat": -33.9149852,
+    "lon": 18.390222
+   },
+   {
+    "osm": "way/1032959266",
+    "name": "The Electric",
+    "amenity": "restaurant",
+    "cuisine": "burger;sandwich",
+    "vegan": "yes",
+    "lat": -33.9287005,
+    "lon": 18.4242286,
+    "street": "Canterbury Street"
+   },
+   {
+    "osm": "way/1055526231",
+    "name": "Touch of Madness",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": -33.9387653,
+    "lon": 18.4694396,
+    "street": "Nuttall Road"
+   },
+   {
+    "osm": "way/1066657998",
+    "name": "Pizza Shed",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9309356,
+    "lon": 18.4656783,
+    "street": "Lower Main Road"
+   },
+   {
+    "osm": "way/1353639241",
+    "name": "Pizzasaurus",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "lat": -33.9294134,
+    "lon": 18.4230181,
+    "street": "Harrington Street",
+    "hours": "Mo-Th 10:00-21:00; Fr-Sa 10:00-22:00"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Cape Town",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": [
+   "Lolas"
+  ]
+ }
+}

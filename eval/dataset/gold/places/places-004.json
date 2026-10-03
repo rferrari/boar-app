@@ -1,0 +1,984 @@
+{
+ "id": "places-004",
+ "city": "Rome",
+ "diet": "vegan",
+ "fetchedAt": "2026-09-28T00:00:16.235Z",
+ "osm": {
+  "snapshot": "2026-09-27T23:59:06Z",
+  "scope": "admin area Q220",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "dietVenues": 104,
+  "venues": [
+   {
+    "osm": "node/420958611",
+    "name": "Kalapà",
+    "amenity": "fast_food",
+    "cuisine": "greek",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8894149,
+    "lon": 12.5256203
+   },
+   {
+    "osm": "node/610317751",
+    "name": "L'insalatiera",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.9129016,
+    "lon": 12.4523408
+   },
+   {
+    "osm": "node/757356180",
+    "name": "Old Wild West",
+    "amenity": "restaurant",
+    "cuisine": "american",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7298138,
+    "lon": 12.2768547
+   },
+   {
+    "osm": "node/932316345",
+    "name": "Il Margutta veggy food & art",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9095088,
+    "lon": 12.4783043
+   },
+   {
+    "osm": "node/945460849",
+    "name": "deRione",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7301563,
+    "lon": 12.2772216
+   },
+   {
+    "osm": "node/1330623842",
+    "name": "Le Bistrot",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.8600311,
+    "lon": 12.4938479
+   },
+   {
+    "osm": "node/1759856899",
+    "name": "Il Fiorentino",
+    "amenity": "restaurant",
+    "cuisine": "italian;pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8889741,
+    "lon": 12.5261577
+   },
+   {
+    "osm": "node/1997317558",
+    "name": "Terre e Domus",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "lat": 41.8959791,
+    "lon": 12.4839572
+   },
+   {
+    "osm": "node/2132925442",
+    "name": "Caffé Trastevere",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8869297,
+    "lon": 12.472061
+   },
+   {
+    "osm": "node/2267137974",
+    "name": "Open Baladin",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8935723,
+    "lon": 12.4744376
+   },
+   {
+    "osm": "node/2309515082",
+    "name": "Shawarma Station",
+    "amenity": "fast_food",
+    "cuisine": "arab;kebab;lebanese;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8961045,
+    "lon": 12.4994545
+   },
+   {
+    "osm": "node/2373132879",
+    "name": "Bar",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 41.9063609,
+    "lon": 12.4828936
+   },
+   {
+    "osm": "node/2574719145",
+    "name": "All'antica torretta",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.864866,
+    "lon": 12.4964823
+   },
+   {
+    "osm": "node/2613307703",
+    "name": "Sushi House Roma",
+    "amenity": "restaurant",
+    "cuisine": "asian;fish;friture;japanese;sushi",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9067493,
+    "lon": 12.5169665
+   },
+   {
+    "osm": "node/2627730157",
+    "name": "Pizza Florida",
+    "nameEn": "Pizza Florida",
+    "amenity": "fast_food",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8947809,
+    "lon": 12.4767175
+   },
+   {
+    "osm": "node/2802085358",
+    "name": "Propaganda Italian Cusine",
+    "amenity": "restaurant",
+    "cuisine": "italian;coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8883302,
+    "lon": 12.4942035
+   },
+   {
+    "osm": "node/2941487418",
+    "name": "Nativa Ristorante",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.902393,
+    "lon": 12.4359344
+   },
+   {
+    "osm": "node/3061568273",
+    "name": "Gelateria Valentino",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9015042,
+    "lon": 12.4849583
+   },
+   {
+    "osm": "node/3328850656",
+    "name": "Tenmaya",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8602298,
+    "lon": 12.5602347
+   },
+   {
+    "osm": "node/3836026359",
+    "name": "La Casina dell'Orologio",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9110621,
+    "lon": 12.4804737
+   },
+   {
+    "osm": "node/4092308700",
+    "name": "Ristorante Giapponese Sush'Amo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.731171,
+    "lon": 12.2772533
+   },
+   {
+    "osm": "node/4101505389",
+    "name": "Pizzeria Il Nuovo Tempio",
+    "amenity": "fast_food",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7321788,
+    "lon": 12.2838347
+   },
+   {
+    "osm": "node/4210456494",
+    "name": "Gran Caffè La Notte",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 41.8712239,
+    "lon": 12.4676532
+   },
+   {
+    "osm": "node/4315471036",
+    "name": "Veggy Days Roma",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.8624203,
+    "lon": 12.5515152
+   },
+   {
+    "osm": "node/4346361089",
+    "name": "Origano Trevi",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9030824,
+    "lon": 12.4831255
+   },
+   {
+    "osm": "node/4377755232",
+    "name": "Gandhi 2",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8988777,
+    "lon": 12.4925078
+   },
+   {
+    "osm": "node/4540089691",
+    "name": "Caffè Lido",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7328724,
+    "lon": 12.2841392
+   },
+   {
+    "osm": "node/4719363593",
+    "name": "Flower Burger",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "only",
+    "lat": 41.9078063,
+    "lon": 12.4621685
+   },
+   {
+    "osm": "node/4719363594",
+    "name": "reLab",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9075787,
+    "lon": 12.4574887
+   },
+   {
+    "osm": "node/4803496463",
+    "name": "Ciao Checca",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9021712,
+    "lon": 12.475824
+   },
+   {
+    "osm": "node/4839408522",
+    "name": "Rosemary",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9019465,
+    "lon": 12.493941
+   },
+   {
+    "osm": "node/4868418897",
+    "name": "écru",
+    "amenity": "cafe",
+    "cuisine": "raw_food",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 41.8999604,
+    "lon": 12.4646068
+   },
+   {
+    "osm": "node/5384767301",
+    "name": "Veghometro",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "lat": 41.8715411,
+    "lon": 12.4791986
+   },
+   {
+    "osm": "node/5476882224",
+    "name": "Passione Vegana",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.8149781,
+    "lon": 12.5872413
+   },
+   {
+    "osm": "node/5592820191",
+    "name": "Buddy Veggy Restaurant Cafè",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;burger;cake;coffee_shop;fine_dining;italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8966454,
+    "lon": 12.4746436
+   },
+   {
+    "osm": "node/5762248358",
+    "name": "iVegan",
+    "amenity": "fast_food",
+    "vegan": "only",
+    "lat": 41.9036124,
+    "lon": 12.4450432
+   },
+   {
+    "osm": "node/5834021814",
+    "name": "Tonnarello",
+    "amenity": "restaurant",
+    "cuisine": "italian_pizza;pasta;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.889819,
+    "lon": 12.4693034
+   },
+   {
+    "osm": "node/5896767886",
+    "name": "100% BIO",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;deli;mediterranean;pasta;sandwich",
+    "vegan": "yes",
+    "lat": 41.8770478,
+    "lon": 12.4820703
+   },
+   {
+    "osm": "node/5908476985",
+    "name": "Wani",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 41.8520997,
+    "lon": 12.4785552
+   },
+   {
+    "osm": "node/5940664760",
+    "name": "Fresco Baldo",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8290349,
+    "lon": 12.4738386
+   },
+   {
+    "osm": "node/5971516854",
+    "name": "Cinque Porzioni",
+    "amenity": "fast_food",
+    "cuisine": "international",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9308478,
+    "lon": 12.517267
+   },
+   {
+    "osm": "node/6255562971",
+    "name": "Luppolo e Farina",
+    "amenity": "restaurant",
+    "cuisine": "italian;pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8520993,
+    "lon": 12.491812
+   },
+   {
+    "osm": "node/6436850376",
+    "name": "Alice",
+    "amenity": "fast_food",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7339077,
+    "lon": 12.277318
+   },
+   {
+    "osm": "node/6514904627",
+    "name": "Il Gianforno",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9316403,
+    "lon": 12.5193525
+   },
+   {
+    "osm": "node/6517776485",
+    "name": "Ristorante Isidoro",
+    "amenity": "restaurant",
+    "cuisine": "seafood;mediterranean;pasta;italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8889275,
+    "lon": 12.4983734
+   },
+   {
+    "osm": "node/6600233339",
+    "name": "Gaia Bio",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9252738,
+    "lon": 12.4268015
+   },
+   {
+    "osm": "node/6688404385",
+    "name": "Ops!",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.9112135,
+    "lon": 12.5007717
+   },
+   {
+    "osm": "node/6883695540",
+    "name": "Taverna Sciuscella",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8627036,
+    "lon": 12.4662471
+   },
+   {
+    "osm": "node/6887265744",
+    "name": "Bar Pepe e Tabacchi",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 41.8685768,
+    "lon": 12.4682877
+   },
+   {
+    "osm": "node/6969166328",
+    "name": "Solo crudo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9072621,
+    "lon": 12.4706734
+   },
+   {
+    "osm": "node/6969191038",
+    "name": "Orto",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9064515,
+    "lon": 12.4686208
+   },
+   {
+    "osm": "node/7537442008",
+    "name": "Tre Esse",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 42.0396751,
+    "lon": 12.3083409
+   },
+   {
+    "osm": "node/7859163681",
+    "name": "Mille idee di pizza",
+    "amenity": "fast_food",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8393965,
+    "lon": 12.4225611
+   },
+   {
+    "osm": "node/7922999785",
+    "name": "Le Petit Bio",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "lat": 41.9346528,
+    "lon": 12.5360353
+   },
+   {
+    "osm": "node/8662395316",
+    "name": "Sorelle Giordano",
+    "amenity": "cafe",
+    "cuisine": "breakfast;cake;coffee_shop;tea;pizza",
+    "vegan": "yes",
+    "lat": 41.8540293,
+    "lon": 12.5600584
+   },
+   {
+    "osm": "node/8758866159",
+    "name": "Indigeno Roma",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.8920622,
+    "lon": 12.5381162
+   },
+   {
+    "osm": "node/8784750028",
+    "name": "Aromaticus",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8872734,
+    "lon": 12.4709453
+   },
+   {
+    "osm": "node/8789763222",
+    "name": "Radagast Vegan Bakery",
+    "nameEn": "Radagast Vegan Bakery",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.8897634,
+    "lon": 12.5524053
+   },
+   {
+    "osm": "node/8877998932",
+    "name": "Apulia",
+    "amenity": "restaurant",
+    "cuisine": "italian;regional;apulian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8976695,
+    "lon": 12.5137118
+   },
+   {
+    "osm": "node/9157432757",
+    "name": "BiOsteria Saltatempo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.8784185,
+    "lon": 12.559157
+   },
+   {
+    "osm": "node/9665179217",
+    "name": "Mun Sushi Bar",
+    "amenity": "restaurant",
+    "cuisine": "asian;japanese;oriental;sushi",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8922301,
+    "lon": 12.5622401
+   },
+   {
+    "osm": "node/9774953646",
+    "name": "Briciole di Pane",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7348045,
+    "lon": 12.2777277
+   },
+   {
+    "osm": "node/9835480174",
+    "name": "La Gnoccheria",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7324022,
+    "lon": 12.2742287
+   },
+   {
+    "osm": "node/9841221776",
+    "name": "Flower Burger",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "only",
+    "lat": 41.9107278,
+    "lon": 12.5005901
+   },
+   {
+    "osm": "node/9896970933",
+    "name": "Trecaffè",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9033232,
+    "lon": 12.4851429
+   },
+   {
+    "osm": "node/9900525011",
+    "name": "Krugh A Borgo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9039445,
+    "lon": 12.4590163
+   },
+   {
+    "osm": "node/9961065837",
+    "name": "Rifugio romano",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.9044153,
+    "lon": 12.4996396
+   },
+   {
+    "osm": "node/10269115909",
+    "name": "Impact Food",
+    "amenity": "fast_food",
+    "cuisine": "burger;chicken;sandwich",
+    "vegan": "only",
+    "lat": 41.9285024,
+    "lon": 12.4784331
+   },
+   {
+    "osm": "node/10688835379",
+    "name": "Status Quo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.7301691,
+    "lon": 12.2831154
+   },
+   {
+    "osm": "node/10760752705",
+    "name": "Kebhouze",
+    "amenity": "fast_food",
+    "cuisine": "kebab",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8643129,
+    "lon": 12.4784983
+   },
+   {
+    "osm": "node/10793539905",
+    "name": "Oriental Fonzie",
+    "amenity": "fast_food",
+    "cuisine": "arab;kebab;mediterranean",
+    "vegan": "yes",
+    "lat": 41.8933335,
+    "lon": 12.4765232
+   },
+   {
+    "osm": "node/11146343245",
+    "name": "L'Oasi del gusto",
+    "amenity": "restaurant",
+    "cuisine": "chinese;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8924078,
+    "lon": 12.5614266
+   },
+   {
+    "osm": "node/11146343246",
+    "name": "Pizza & Sfizi",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8910666,
+    "lon": 12.5647418
+   },
+   {
+    "osm": "node/11150047405",
+    "name": "Saravanaa Bhavan",
+    "amenity": "restaurant",
+    "cuisine": "chinese;indian",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.9050325,
+    "lon": 12.498873
+   },
+   {
+    "osm": "node/11915663318",
+    "name": "Vimi Aventino",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8833552,
+    "lon": 12.4873924
+   },
+   {
+    "osm": "node/11937439513",
+    "name": "Pizzeria Il Campione al Pontile",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7307233,
+    "lon": 12.2769196
+   },
+   {
+    "osm": "node/12161565650",
+    "name": "Bar Volo",
+    "amenity": "cafe",
+    "cuisine": "breakfast;coffee_shop;mediterranean",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8793099,
+    "lon": 12.5396225
+   },
+   {
+    "osm": "node/12311737847",
+    "name": "Vrindaa",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.9188078,
+    "lon": 12.4974396
+   },
+   {
+    "osm": "node/12311737848",
+    "name": "Col Cavolo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.9119504,
+    "lon": 12.5003186
+   },
+   {
+    "osm": "node/12715399001",
+    "name": "Al Pachino Roma",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "lat": 41.9489023,
+    "lon": 12.5409523
+   },
+   {
+    "osm": "node/12725755502",
+    "name": "Snug The Comfort Café",
+    "amenity": "cafe",
+    "cuisine": "american;breakfast;cake;coffee_shop;tea",
+    "vegan": "yes",
+    "lat": 41.9030071,
+    "lon": 12.6844876
+   },
+   {
+    "osm": "node/12725805502",
+    "name": "Mordi e Faggi",
+    "amenity": "restaurant",
+    "cuisine": "burger;sandwich",
+    "vegan": "yes",
+    "lat": 41.8843225,
+    "lon": 12.5639184
+   },
+   {
+    "osm": "node/12725805601",
+    "name": "Pandalì",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;mediterranean",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8971446,
+    "lon": 12.476448
+   },
+   {
+    "osm": "node/12766537603",
+    "name": "Sushi Tribu",
+    "amenity": "restaurant",
+    "cuisine": "asian;diner;fish;japanese;oriental;sushi",
+    "vegan": "yes",
+    "lat": 41.8666883,
+    "lon": 12.4789073
+   },
+   {
+    "osm": "node/12769077502",
+    "name": "Ristorante e Pinseria — Saba Caffè & Cucina",
+    "amenity": "restaurant",
+    "cuisine": "italian;pasta;pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8782566,
+    "lon": 12.4848646
+   },
+   {
+    "osm": "node/12770670503",
+    "name": "Sake Boutique",
+    "amenity": "cafe",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8802271,
+    "lon": 12.4842446
+   },
+   {
+    "osm": "node/12804365654",
+    "name": "the roof - foodlab&co.",
+    "nameEn": "the roof - foodlab&co.",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8824096,
+    "lon": 12.5098859
+   },
+   {
+    "osm": "node/12983100472",
+    "name": "Lievito Chiana",
+    "amenity": "restaurant",
+    "cuisine": "burger;italian;pasta;pizza;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9214069,
+    "lon": 12.5057256
+   },
+   {
+    "osm": "node/13110571701",
+    "name": "Luna",
+    "amenity": "cafe",
+    "cuisine": "breakfast;cake;coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9031513,
+    "lon": 12.4884949
+   },
+   {
+    "osm": "node/13155965801",
+    "name": "VEG Joy",
+    "amenity": "restaurant",
+    "cuisine": "greek",
+    "vegan": "yes",
+    "lat": 41.8834868,
+    "lon": 12.512673
+   },
+   {
+    "osm": "node/13197366892",
+    "name": "Osteria Sant' Uffizio",
+    "amenity": "restaurant",
+    "cuisine": "italian;pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8998472,
+    "lon": 12.4565774
+   },
+   {
+    "osm": "node/13516519453",
+    "name": "Kisaki Ramen & Sushi",
+    "amenity": "restaurant",
+    "cuisine": "japanese;sushi;ramen;asian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.905872,
+    "lon": 12.4711836
+   },
+   {
+    "osm": "node/13727533701",
+    "name": "Wu Xin",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8901741,
+    "lon": 12.565244
+   },
+   {
+    "osm": "node/13752848725",
+    "name": "Colors Vegan Sushi",
+    "amenity": "restaurant",
+    "cuisine": "fish;japanese;sushi",
+    "vegan": "yes",
+    "lat": 41.9212562,
+    "lon": 12.4419779
+   },
+   {
+    "osm": "node/13866916201",
+    "name": "Mrgda Vegano",
+    "amenity": "restaurant",
+    "cuisine": "ethiopian",
+    "vegan": "yes",
+    "lat": 41.890166,
+    "lon": 12.5230501
+   },
+   {
+    "osm": "node/13892087053",
+    "name": "Babowls Pokeria",
+    "amenity": "fast_food",
+    "cuisine": "poke",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8535964,
+    "lon": 12.4793611
+   },
+   {
+    "osm": "node/13905428664",
+    "name": "Pinseria Romana Pigneto",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "lat": 41.9046102,
+    "lon": 12.6571026
+   },
+   {
+    "osm": "node/14101919514",
+    "name": "La Piadineria",
+    "amenity": "fast_food",
+    "cuisine": "Piadina",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.8512646,
+    "lon": 12.4933863
+   },
+   {
+    "osm": "node/14109731701",
+    "name": "Kisaki Ramen Lab - Kitchen & Sushi",
+    "amenity": "restaurant",
+    "cuisine": "japanese;ramen;sushi",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9074356,
+    "lon": 12.4617197
+   },
+   {
+    "osm": "node/14197214775",
+    "name": "Cody",
+    "amenity": "restaurant",
+    "cuisine": "sushi;korean",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.9131687,
+    "lon": 12.5202283
+   },
+   {
+    "osm": "way/109117288",
+    "name": "ALT Stazione del Gusto",
+    "amenity": "restaurant",
+    "cuisine": "burger;chicken;dessert",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7315928,
+    "lon": 12.2772381
+   },
+   {
+    "osm": "way/587447156",
+    "name": "Zenzero biorestaurante",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7281624,
+    "lon": 12.3032328
+   },
+   {
+    "osm": "way/889382380",
+    "name": "Chiosco Bar Pineta",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.7228992,
+    "lon": 12.3079776
+   },
+   {
+    "osm": "relation/13007814",
+    "name": "Romeow Cat Bistrot",
+    "nameEn": "Romeow Cat Bistrot",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.8705634,
+    "lon": 12.4816974
+   }
+  ]
+ }
+}

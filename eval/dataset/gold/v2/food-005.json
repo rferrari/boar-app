@@ -1,0 +1,987 @@
+{
+ "id": "food-005",
+ "city": "Chiang Mai",
+ "wikidata": "Q52028",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:26:05.941Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:24:49Z",
+  "scope": "admin area Q52028",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 6,
+  "veganYes": 46,
+  "vegetarianOrVegan": 94,
+  "venues": [
+   {
+    "osm": "node/1006843145",
+    "name": "Cafe de Thaan Aoan",
+    "amenity": "cafe",
+    "cuisine": "breakfast;cake;coffee_shop;local;thai",
+    "vegetarian": "yes",
+    "lat": 18.785469,
+    "lon": 98.988476,
+    "hours": "Mo-Su 07:00-20:00"
+   },
+   {
+    "osm": "node/1041248368",
+    "name": "Ratana's Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "regional;thai",
+    "vegetarian": "yes",
+    "lat": 18.7881758,
+    "lon": 98.9956503
+   },
+   {
+    "osm": "node/1107238261",
+    "name": "Tein Sieng",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.782343,
+    "lon": 98.988951,
+    "hours": "Mo-Su 06:30-16:30"
+   },
+   {
+    "osm": "node/1416857573",
+    "name": "La Fontana",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": 18.7852369,
+    "lon": 98.9910713,
+    "hours": "Mo-Su 11:00-23:00"
+   },
+   {
+    "osm": "node/1491262428",
+    "name": "New Delhi",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 18.7907396,
+    "lon": 98.9906534
+   },
+   {
+    "osm": "node/1491290179",
+    "name": "Kebab House",
+    "nameEn": "Kebab House",
+    "amenity": "restaurant",
+    "cuisine": "kebab;indian",
+    "vegetarian": "yes",
+    "lat": 18.7908088,
+    "lon": 98.9903867,
+    "hours": "Mo-Su 12:00-00:00"
+   },
+   {
+    "osm": "node/1617076520",
+    "name": "Miguel's",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 18.7933965,
+    "lon": 98.9939815,
+    "street": "ถนนชัยภูมิ"
+   },
+   {
+    "osm": "node/1628665655",
+    "name": "เวียงจูมออน",
+    "nameEn": "Vieng Joom On Teahouse",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.791781,
+    "lon": 99.002421
+   },
+   {
+    "osm": "node/2040042303",
+    "name": "Juicy4U",
+    "nameEn": "Juicy4U",
+    "amenity": "cafe",
+    "cuisine": "breakfast;coffee_shop",
+    "vegan": "yes",
+    "lat": 18.7850847,
+    "lon": 98.9925659,
+    "street": "ถนนราชมรรคา",
+    "hours": "Mo-Su 07:00-15:00"
+   },
+   {
+    "osm": "node/2132019005",
+    "name": "Rajdarbar",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7841725,
+    "lon": 98.998851,
+    "street": "Loi Kroh Road",
+    "hours": "Tu-Su 16:00-22:00"
+   },
+   {
+    "osm": "node/2292083007",
+    "name": "Khun Churn",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7954726,
+    "lon": 98.9667732
+   },
+   {
+    "osm": "node/2292111473",
+    "name": "The Peppermint",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7907276,
+    "lon": 98.9907074
+   },
+   {
+    "osm": "node/2294540781",
+    "name": "Bun Song",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.783688,
+    "lon": 99.0127704
+   },
+   {
+    "osm": "node/2404044286",
+    "name": "Akha Ama Phrasingh",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;cake",
+    "vegetarian": "yes",
+    "lat": 18.7884299,
+    "lon": 98.9832154,
+    "hours": "Mo-Sa 08:00-18:00; Su 08:00-20:00"
+   },
+   {
+    "osm": "node/2641740599",
+    "name": "Butter is Better",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegetarian": "yes",
+    "lat": 18.7803911,
+    "lon": 98.9997612,
+    "hours": "Mo-Sa 08:00-20:00; Su 08:00-15:00"
+   },
+   {
+    "osm": "node/2648382124",
+    "name": "The Gallery",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7909836,
+    "lon": 99.0031462
+   },
+   {
+    "osm": "node/2649591567",
+    "name": "The Garden",
+    "amenity": "restaurant",
+    "cuisine": "thai;coffee_shop;bagel;breakfast;sandwich",
+    "vegetarian": "yes",
+    "lat": 18.7858066,
+    "lon": 98.9950742
+   },
+   {
+    "osm": "node/3057318301",
+    "name": "Nong Bee's Burmese Restaurant",
+    "nameEn": "Nong Bee's Burmese Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "burmese;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7966241,
+    "lon": 98.9658495
+   },
+   {
+    "osm": "node/3134796412",
+    "name": "Salsa Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7981381,
+    "lon": 98.9741348,
+    "hours": "Mo-Su 11:00-23:00"
+   },
+   {
+    "osm": "node/3283614977",
+    "name": "แสงวิรุณ",
+    "nameEn": "Sangwiroon",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.8000094,
+    "lon": 98.980251,
+    "hours": "Mo-Fr 07:30-14:30"
+   },
+   {
+    "osm": "node/3298047310",
+    "name": "เจ กันยา",
+    "nameEn": "Che Kanya",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.8050064,
+    "lon": 98.9838038
+   },
+   {
+    "osm": "node/3312188606",
+    "name": "ร้านอาหารเจ สำเภาทิพพย์",
+    "nameEn": "Sampaotip Vegetarian Food",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 18.796516,
+    "lon": 98.98626,
+    "hours": "Mo-Su 05:00-14:00"
+   },
+   {
+    "osm": "node/3371585452",
+    "name": "Bamboo Bee",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.7947249,
+    "lon": 98.9899487,
+    "hours": "Mo-Su 11:00-20:30"
+   },
+   {
+    "osm": "node/3385473023",
+    "name": "Cooking Love",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;thai",
+    "vegetarian": "yes",
+    "lat": 18.7890865,
+    "lon": 98.9923568,
+    "street": "ถนนราชดำเนินซอย 1"
+   },
+   {
+    "osm": "node/3416948044",
+    "name": "Alice's Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "thai;japanese;salad",
+    "vegetarian": "yes",
+    "lat": 18.7841178,
+    "lon": 98.9972572,
+    "street": "Loi Kroh Road",
+    "hours": "Mo-Su 08:00-23:00"
+   },
+   {
+    "osm": "node/3418990696",
+    "name": "The Salad Concept",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 18.7926339,
+    "lon": 98.9939459,
+    "hours": "Mo-Su 09:00-22:00"
+   },
+   {
+    "osm": "node/3843126639",
+    "name": "Cozy Cafe Chiangmai",
+    "nameEn": "Cozy Cafe Chiangmai",
+    "amenity": "cafe",
+    "cuisine": "american;coffee_shop;sandwich;thai",
+    "vegetarian": "yes",
+    "lat": 18.7791532,
+    "lon": 98.9887346,
+    "street": "Suriyawongse Road",
+    "hours": "Mo-Su 09:00-18:00"
+   },
+   {
+    "osm": "node/3907871477",
+    "name": "My Secret Cafe",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;breakfast",
+    "vegetarian": "yes",
+    "lat": 18.7881045,
+    "lon": 98.983226
+   },
+   {
+    "osm": "node/3957108529",
+    "name": "Bodhi Tree 1 Café",
+    "amenity": "cafe",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "lat": 18.7860289,
+    "lon": 98.9914746,
+    "street": "Ratchadamnoen Road Soi 4"
+   },
+   {
+    "osm": "node/4066800751",
+    "name": "Loft Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "thai;european",
+    "vegetarian": "yes",
+    "lat": 18.7868124,
+    "lon": 98.9902403
+   },
+   {
+    "osm": "node/4143980494",
+    "name": "traditional thai vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "only",
+    "lat": 18.7820208,
+    "lon": 98.9829234,
+    "street": "ถนนบํารุงบุรี ซอย1",
+    "hours": "Mo-Su 08:00-20:00"
+   },
+   {
+    "osm": "node/4149593989",
+    "name": "ChiangMai Breakfast World",
+    "nameEn": "ChiangMai Breakfast World",
+    "amenity": "restaurant",
+    "cuisine": "thai;german;breakfast",
+    "vegetarian": "yes",
+    "lat": 18.7841425,
+    "lon": 98.9917108,
+    "hours": "Mo off; Tu,Th-Fr,Su 06:58-17:02; We 06:58-22:02; Sa 06:58-15:02"
+   },
+   {
+    "osm": "node/4182515040",
+    "name": "Vegetarian Society",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 18.7767422,
+    "lon": 98.9765012,
+    "hours": "Tu-Fr 08:00-14:00"
+   },
+   {
+    "osm": "node/4185021629",
+    "name": "Organic Vegetables",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 18.7966414,
+    "lon": 98.9657507
+   },
+   {
+    "osm": "node/4233033292",
+    "name": "A ROI",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 18.7819559,
+    "lon": 98.9889412
+   },
+   {
+    "osm": "node/4281954591",
+    "name": "Mild",
+    "amenity": "cafe",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 18.7936871,
+    "lon": 98.9922111
+   },
+   {
+    "osm": "node/4295719291",
+    "name": "It's Good Kitchen",
+    "nameEn": "Its Good Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 18.7884329,
+    "lon": 98.9831171,
+    "hours": "Mo-We,Fr-Su 11:30-21:00"
+   },
+   {
+    "osm": "node/4333699923",
+    "name": "Mountain view garden restaurant",
+    "amenity": "restaurant",
+    "cuisine": "sandwich;breakfast;ice_cream;tea;sausage;coffee_shop;asian;american;pancake;fish_and_chips;curry;thai",
+    "vegetarian": "yes",
+    "lat": 18.7950885,
+    "lon": 98.9863042,
+    "street": "ถนนศรีภูมิ",
+    "hours": "Mo-Su 07:00-19:00"
+   },
+   {
+    "osm": "node/4403625389",
+    "name": "Naree Coffee De'Klangwaing",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7905184,
+    "lon": 98.9858647
+   },
+   {
+    "osm": "node/4430796190",
+    "name": "Cat House",
+    "nameEn": "Cat house",
+    "amenity": "restaurant",
+    "cuisine": "sandwich;international;breakfast;tea;cake;coffee_shop;asian;chicken;curry;mexican;thai",
+    "vegetarian": "yes",
+    "lat": 18.7924726,
+    "lon": 98.9946202
+   },
+   {
+    "osm": "node/4440847089",
+    "name": "Taa Peng Cat",
+    "nameEn": "Taa Peng Cat",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;sandwich;tea;cake",
+    "vegetarian": "yes",
+    "lat": 18.7875454,
+    "lon": 98.9825295,
+    "street": "ถนนสามล้าน",
+    "hours": "Mo-Su 08:00-17:00"
+   },
+   {
+    "osm": "node/4477017880",
+    "name": "Anchan",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.796691,
+    "lon": 98.9654974,
+    "hours": "Th-Mo 11:30-20:00"
+   },
+   {
+    "osm": "node/4483086589",
+    "name": "Grill Of India",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 18.7831921,
+    "lon": 98.9887786
+   },
+   {
+    "osm": "node/4536364649",
+    "name": "Youta",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.7945606,
+    "lon": 98.9957557
+   },
+   {
+    "osm": "node/4539213082",
+    "name": "Everest 8848",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.78869,
+    "lon": 98.9692845
+   },
+   {
+    "osm": "node/4622953394",
+    "name": "คณเชิญ",
+    "nameEn": "Khun churn",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.8079592,
+    "lon": 98.9947904,
+    "hours": "Mo-Su 10:30-15:00"
+   },
+   {
+    "osm": "node/4925330150",
+    "name": "Bodhi Tree Cafe",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 18.7891596,
+    "lon": 98.9910574
+   },
+   {
+    "osm": "node/5027579121",
+    "name": "เจ",
+    "nameEn": "J Station vegetarian restaurant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7959005,
+    "lon": 98.9837458,
+    "street": "ถนนมณีนพรัตน์"
+   },
+   {
+    "osm": "node/5074576022",
+    "name": "Vegetarian restaurant",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 18.7940024,
+    "lon": 98.9926575
+   },
+   {
+    "osm": "node/5201209728",
+    "name": "ร้านเจกวนอิม",
+    "nameEn": "Che Kuanim Shop",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 18.7594645,
+    "lon": 99.0034609
+   },
+   {
+    "osm": "node/5237522624",
+    "name": "Reform Kafé",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 18.7945436,
+    "lon": 98.9843038,
+    "hours": "Mo-Sa 11:00-20:30; Su 11:00-16:00"
+   },
+   {
+    "osm": "node/5258746823",
+    "name": "Art Cafe",
+    "amenity": "restaurant",
+    "cuisine": "thai;bagel;breakfast;cake;coffee_shop;international;mexican;pizza;sandwich",
+    "vegetarian": "yes",
+    "lat": 18.7878594,
+    "lon": 98.9939452,
+    "hours": "Mo-Su 08:00-23:00"
+   },
+   {
+    "osm": "node/5271447023",
+    "name": "LadyBake",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;lebanese;pasta",
+    "vegan": "yes",
+    "lat": 18.7927693,
+    "lon": 98.9919154
+   },
+   {
+    "osm": "node/5287018021",
+    "name": "Khun Kae's Juice Bar",
+    "nameEn": "Khun Kae's Juice Bar",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 18.7928129,
+    "lon": 98.9916531,
+    "street": "ถนนราชวิถี ซอย 2",
+    "hours": "Mo-Su 10:00-19:30"
+   },
+   {
+    "osm": "node/5310384394",
+    "name": "ร้าน ป.ปลาจุ่ม สาขา 2",
+    "amenity": "restaurant",
+    "cuisine": "shabu-shabu",
+    "vegetarian": "yes",
+    "lat": 18.7771684,
+    "lon": 98.9769761
+   },
+   {
+    "osm": "node/5318090622",
+    "name": "โจ๊กสามย่าน",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.7895194,
+    "lon": 98.9665653
+   },
+   {
+    "osm": "node/5344719921",
+    "name": "Nok Kafe",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 18.7826576,
+    "lon": 98.9826652
+   },
+   {
+    "osm": "node/5484616521",
+    "name": "Aum Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7784432,
+    "lon": 98.9879385,
+    "hours": "Mo-Su 10:30-20:30"
+   },
+   {
+    "osm": "node/5743516159",
+    "name": "Sababa Chiang Mai",
+    "amenity": "restaurant",
+    "cuisine": "middle_eastern;isrealian;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7815673,
+    "lon": 99.0007221,
+    "street": "19 ถนน คชสาร ซอย 5 ตำบล ช้างม่อย อำเภอเมืองเชียงใหม่ เชียงใหม่ 50100",
+    "hours": "11:30-22:00"
+   },
+   {
+    "osm": "node/5992439094",
+    "name": "Pun Pun",
+    "amenity": "restaurant",
+    "cuisine": "pasta;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7875655,
+    "lon": 98.9673024,
+    "street": "Suthep Road",
+    "hours": "Mo-Sa 08:00-16:00"
+   },
+   {
+    "osm": "node/7127576609",
+    "name": "Goodsouls Kitchen - Chang Moi",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 18.7904826,
+    "lon": 98.9941537,
+    "street": "ถนนช้างม่อย",
+    "hours": "Mo-Su 11:00-22:00"
+   },
+   {
+    "osm": "node/7865151033",
+    "name": "Mr. Green Restaurant",
+    "nameEn": "Mr. Green Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "only",
+    "lat": 18.792566,
+    "lon": 98.9931753,
+    "hours": "Mo-Sa 10:00-22:00"
+   },
+   {
+    "osm": "node/8719658314",
+    "name": "Sukjai by Pata Obasan",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7873293,
+    "lon": 99.0063161,
+    "street": "Charoen Muang Rd."
+   },
+   {
+    "osm": "node/8891760799",
+    "name": "29 Coffties",
+    "amenity": "restaurant",
+    "cuisine": "thai;juice",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.8054094,
+    "lon": 98.9752262,
+    "hours": "Mo-Sa 10:30-20:00; Su off"
+   },
+   {
+    "osm": "node/8891761479",
+    "name": "เจไม่จำเจ เชียงใหม่",
+    "nameEn": "Jay Mai Jamjay",
+    "amenity": "restaurant",
+    "cuisine": "burmese;thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7956394,
+    "lon": 98.9922223,
+    "street": "ถนนมณีนพรัตน์",
+    "hours": "closed"
+   },
+   {
+    "osm": "node/8891851001",
+    "name": "Pac Mor Yon Yook Vegetarian Tradtitional Food",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.8000493,
+    "lon": 98.9802673
+   },
+   {
+    "osm": "node/9568101417",
+    "name": "asa vegan kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 18.7881146,
+    "lon": 98.9965689,
+    "hours": "Mo-Su 09:30-19:00; PH off"
+   },
+   {
+    "osm": "node/9872196618",
+    "name": "Chada Vegetarian",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7863652,
+    "lon": 98.9904319,
+    "hours": "Mo-Su 08:30-20:00"
+   },
+   {
+    "osm": "node/9872196817",
+    "name": "Ming Kwan Vegetarian Food",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.7894235,
+    "lon": 98.9669995
+   },
+   {
+    "osm": "node/10791281005",
+    "name": "Vegan society",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegan": "only",
+    "lat": 18.7836875,
+    "lon": 98.9823957
+   },
+   {
+    "osm": "node/10821771284",
+    "name": "Vipuya Bowls & Juice",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "lat": 18.7853254,
+    "lon": 98.990676,
+    "street": "Ratchamanka Rd, Tambon Phra Sing, Mueang",
+    "hours": "Sun-Wed 09:00-18:00 Fri 09:00-18:00"
+   },
+   {
+    "osm": "node/10837362067",
+    "name": "The Donut Cafe",
+    "amenity": "fast_food",
+    "cuisine": "donut",
+    "vegan": "yes",
+    "lat": 18.7991244,
+    "lon": 98.9729649,
+    "hours": "Mon-Sun 07:00-21:00"
+   },
+   {
+    "osm": "node/11369869429",
+    "name": "Air's Kitchen and Cafe",
+    "amenity": "restaurant",
+    "cuisine": "breakfast",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7923809,
+    "lon": 98.9821852,
+    "street": "ถนนสิงหราช",
+    "hours": "Tu-Su 08:00-16:00; Mo off"
+   },
+   {
+    "osm": "node/11386909636",
+    "name": "Bowls & Breads",
+    "amenity": "cafe",
+    "cuisine": "sandwich",
+    "vegetarian": "yes",
+    "lat": 18.7817607,
+    "lon": 98.9807222,
+    "hours": "Mo-Tu,Th-Su 08:30-15:30"
+   },
+   {
+    "osm": "node/11409266290",
+    "name": "Falafel and Salad",
+    "amenity": "restaurant",
+    "cuisine": "lebanese;thai;turkish",
+    "vegetarian": "yes",
+    "lat": 18.7849342,
+    "lon": 98.9818679,
+    "hours": "10:00-21:00"
+   },
+   {
+    "osm": "node/11421707570",
+    "name": "Pure vegan heaven",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7866801,
+    "lon": 98.9901298
+   },
+   {
+    "osm": "node/11478245226",
+    "name": "Veggie First Cafe",
+    "amenity": "restaurant",
+    "cuisine": "salad",
+    "vegetarian": "yes",
+    "lat": 18.7917836,
+    "lon": 98.9785208,
+    "hours": "Mo-Tu,Th-Su 11:00-23:00; We off"
+   },
+   {
+    "osm": "node/12306896388",
+    "name": "Bloomin' Moon",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 18.7829691,
+    "lon": 98.9816274,
+    "hours": "07:00-17:00"
+   },
+   {
+    "osm": "node/12500290176",
+    "name": "May Kaidee vegan cooking classes",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 18.7888548,
+    "lon": 99.0064226,
+    "hours": "Mo-Sa 09:00-21:00"
+   },
+   {
+    "osm": "node/12513656179",
+    "name": "ASMR Cafe & Wellness",
+    "amenity": "cafe",
+    "cuisine": "thai;international;western;fusion",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7953134,
+    "lon": 98.9836456,
+    "street": "ถนนศรีภูมิ"
+   },
+   {
+    "osm": "node/12778850501",
+    "name": "ข้าวแรมฟืนป้ายอด",
+    "nameEn": "Payod Shan Food",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.7979133,
+    "lon": 98.9943542,
+    "hours": "Mo-Su 10:00-21:00"
+   },
+   {
+    "osm": "node/13403843262",
+    "name": "Margaret",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 18.8073239,
+    "lon": 98.9992328,
+    "hours": "Mo-Su,PH 07:00-15:00"
+   },
+   {
+    "osm": "way/259707860",
+    "name": "Blue Diamond The Breakfast Club",
+    "amenity": "restaurant",
+    "cuisine": "burger;sandwich;breakfast;american;pancake;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7938991,
+    "lon": 98.9914245,
+    "street": "ถนนมูลเมือง ซอย 7ก",
+    "hours": "Mo-Sa 07:00-20:00"
+   },
+   {
+    "osm": "way/492846789",
+    "name": "RAD RABBIT VEGAN PIZZERIA",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "lat": 18.7938597,
+    "lon": 98.9921341,
+    "hours": "Mon-Sun 12:00-22:00"
+   },
+   {
+    "osm": "way/623140246",
+    "name": "Goodsouls Kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 18.7932604,
+    "lon": 98.9820904,
+    "hours": "08:00-22:00"
+   },
+   {
+    "osm": "way/623146118",
+    "name": "Bird's Nest Cafe",
+    "amenity": "restaurant",
+    "cuisine": "sandwich;breakfast;thai;salad;coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7928021,
+    "lon": 98.980169,
+    "street": "Singharat Soi 3",
+    "hours": "08:30-17:30"
+   },
+   {
+    "osm": "way/623146142",
+    "name": "The Peaberry Cafe & Coworking",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;sandwich",
+    "vegetarian": "yes",
+    "lat": 18.7930217,
+    "lon": 98.9786553,
+    "hours": "07:00-15:00"
+   },
+   {
+    "osm": "way/623156415",
+    "name": "Gravity Cafe & Bistro",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 18.7858444,
+    "lon": 98.9819346,
+    "hours": "07:00-22:00"
+   },
+   {
+    "osm": "way/623162100",
+    "name": "Taste From Heaven",
+    "nameEn": "Taste From Heaven",
+    "amenity": "restaurant",
+    "cuisine": "pasta;thai",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7852742,
+    "lon": 98.9921698,
+    "street": "ถนนราชมรรคา",
+    "hours": "Mo-Su 09:00-22:00"
+   },
+   {
+    "osm": "way/761867078",
+    "name": "Fresh Time Vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "noodles;thai",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 18.7849302,
+    "lon": 98.9886006,
+    "street": "ถนนพระปกเกล้า"
+   },
+   {
+    "osm": "way/1160323326",
+    "name": "มิ่งขวัญ",
+    "nameEn": "Ming Kwan",
+    "amenity": "restaurant",
+    "cuisine": "thai;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7886147,
+    "lon": 98.9837074
+   },
+   {
+    "osm": "way/1161677813",
+    "name": "Payod Shanfood Chiangmai",
+    "amenity": "restaurant",
+    "cuisine": "thai;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 18.7957138,
+    "lon": 98.9917765,
+    "hours": "Mo-Su 09:00-21:00"
+   },
+   {
+    "osm": "way/1300133894",
+    "name": "Gord Chiangmai Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "regional;thai;coffee_shop;sandwich;juice;ice_cream;american;salad;pancake;dessert",
+    "vegetarian": "yes",
+    "lat": 18.7835886,
+    "lon": 98.9853333,
+    "street": "ซอยราชมรรคา 6",
+    "hours": "sunrise-sunset"
+   },
+   {
+    "osm": "way/1300133896",
+    "name": "Glyn Chiangmai Cuisine",
+    "amenity": "restaurant",
+    "cuisine": "thai;coffee_shop;american;salad",
+    "vegetarian": "yes",
+    "lat": 18.7892068,
+    "lon": 98.9871658,
+    "street": "ถนนพระปกเกล้า ซอย 11"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Chiang Mai",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": [
+   "Sailomjoy Restaurant",
+   "Anchan Vegetarian Restaurant",
+   "Guan Im Vegan Restaurant",
+   "Ming Kwan Vegetarian Buffet",
+   "Tien Sieng Vegetarian Foods",
+   "Vegan Heaven",
+   "Vegan Society",
+   "Pun Pun Vegetarian Slow Food",
+   "Mr. Green",
+   "Arcobaleno Italian Restaurant"
+  ]
+ }
+}

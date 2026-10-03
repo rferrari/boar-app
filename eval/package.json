@@ -1,0 +1,21 @@
+{
+  "name": "boar-eval",
+  "private": true,
+  "type": "module",
+  "description": "Offline BOAR vs frontier+search evaluation (desktop-only tooling, not part of the app bundle)",
+  "scripts": {
+    "validate": "node scripts/validate-dataset.mjs --online",
+    "refs": "node scripts/gen-references.mjs",
+    "run:mini": "bash scripts/sync-mini.sh && bash scripts/run-mini.sh",
+    "judge": "node scripts/judge.mjs",
+    "report": "node scripts/report.mjs",
+    "report:official": "node scripts/report.mjs --subset all --name official-v1-6c3d6c6 --systems qwen3-4b-instruct-2507-q4km__official-6c3d6c6,qwen2.5-1.5b-instruct-q4km__official-6c3d6c6 && node scripts/judge-agreement.mjs --subset all --system qwen3-4b-instruct-2507-q4km__official-6c3d6c6 && node scripts/report-v2.mjs --judge jev --name official-v2-6c3d6c6 --systems qwen3-4b-instruct-2507-q4km__official-6c3d6c6,qwen2.5-1.5b-instruct-q4km__official-6c3d6c6 && node scripts/report.mjs --dataset cryptopack --subset all --name official-cryptopack-6c3d6c6 --systems qwen3-4b-instruct-2507-q4km__official-6c3d6c6 && node scripts/nosource-report.mjs && node scripts/report.mjs --subset all --name official-v1 --systems qwen3-4b-instruct-2507-q4km__bundled,qwen2.5-1.5b-instruct-q4km__bundled && (node scripts/regress.mjs --name gate-candidate-a2bafb1 --runs results/gates/candidate-a2bafb1/runs || true)",
+    "test": "cd .. && npx vitest run eval/scripts",
+    "regress": "node scripts/regress.mjs"
+  },
+  "dependencies": {
+    "fzstd": "^0.1.1",
+    "node-llama-cpp": "3.21.1",
+    "tsx": "^4.23.15"
+  }
+}

@@ -1,0 +1,901 @@
+{
+ "id": "food-009",
+ "city": "Mexico City",
+ "wikidata": "Q1489",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:28:08.671Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:27:01Z",
+  "scope": "admin area Q1489",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 10,
+  "veganYes": 50,
+  "vegetarianOrVegan": 86,
+  "venues": [
+   {
+    "osm": "node/2111403163",
+    "name": "Falafelito",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 19.4101479,
+    "lon": -99.1703758
+   },
+   {
+    "osm": "node/2133330361",
+    "name": "Nevería Roxy",
+    "amenity": "cafe",
+    "cuisine": "ice_cream",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4142197,
+    "lon": -99.176869,
+    "hours": "Mo-Su 11:30-21:00"
+   },
+   {
+    "osm": "node/2385662639",
+    "name": "La casa del pan",
+    "amenity": "restaurant",
+    "cuisine": "mexican;salad;breakfast;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3523831,
+    "lon": -99.165229,
+    "street": "Avenida México"
+   },
+   {
+    "osm": "node/2560853227",
+    "name": "Los 3 poblanos",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 19.3357629,
+    "lon": -99.1773798,
+    "hours": "Mo-Su 08:00-18:00"
+   },
+   {
+    "osm": "node/2596191615",
+    "name": "al-Andalus",
+    "amenity": "restaurant",
+    "cuisine": "lebanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4277282,
+    "lon": -99.1290975,
+    "street": "Mesones"
+   },
+   {
+    "osm": "node/3481023281",
+    "name": "Flor de Lis",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "only",
+    "lat": 19.3350154,
+    "lon": -99.177716
+   },
+   {
+    "osm": "node/3481023284",
+    "name": "Monte Kailas",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "only",
+    "lat": 19.3346113,
+    "lon": -99.1780847
+   },
+   {
+    "osm": "node/4036626081",
+    "name": "Fonda Santa Margarita",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 19.378129,
+    "lon": -99.1708901,
+    "hours": "Tu-Su 05:30-00:30"
+   },
+   {
+    "osm": "node/4036640829",
+    "name": "The Coffee Company",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 19.3778888,
+    "lon": -99.1714264,
+    "hours": "Mo-Su,PH 08:00-22:30"
+   },
+   {
+    "osm": "node/4094638989",
+    "name": "La Chicha",
+    "amenity": "restaurant",
+    "cuisine": "gastropub",
+    "vegetarian": "yes",
+    "lat": 19.3609516,
+    "lon": -99.1644566,
+    "street": "San Felipe",
+    "hours": "Mo 14:00 - 22:00; Tu-Su 09:00 - 23:00"
+   },
+   {
+    "osm": "node/4158566492",
+    "name": "Restaurante Vegetariano Terra Nostre",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 19.4330489,
+    "lon": -99.137451,
+    "hours": "Mo-Su 10:00-18:00"
+   },
+   {
+    "osm": "node/4187282004",
+    "name": "Le Pain Quotidien",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 19.4176504,
+    "lon": -99.1640903,
+    "street": "Avenida Monterrey",
+    "hours": "Mo-Su 08:00-21:00"
+   },
+   {
+    "osm": "node/4322619208",
+    "name": "Sala Gastronómica",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 19.4254611,
+    "lon": -99.1862561
+   },
+   {
+    "osm": "node/4456436489",
+    "name": "Frutos Prohibidos",
+    "amenity": "restaurant",
+    "cuisine": "mexican;coffee_shop",
+    "vegetarian": "yes",
+    "lat": 19.3792574,
+    "lon": -99.1609635,
+    "street": "Matías Romero"
+   },
+   {
+    "osm": "node/4482545491",
+    "name": "Toks",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 19.4624548,
+    "lon": -99.1077592,
+    "street": "Oriente 101,3708,Colonia Bondojito.",
+    "hours": "Mo-Su,PH 07:00-24:00"
+   },
+   {
+    "osm": "node/4574271691",
+    "name": "Vegamo MX",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4317036,
+    "lon": -99.1466552,
+    "street": "Calle Revillagigedo",
+    "hours": "Mo-Su 10:00-10:00"
+   },
+   {
+    "osm": "node/4695736837",
+    "name": "Veguísimi Vegan Restaurant",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 19.4165544,
+    "lon": -99.1771124,
+    "street": "Calle Pachuca"
+   },
+   {
+    "osm": "node/4725149963",
+    "name": "Yug Vegetariano",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4256894,
+    "lon": -99.1687913,
+    "street": "Calle Varsovia",
+    "hours": "Mo-Su 09:00-18:00"
+   },
+   {
+    "osm": "node/4856648523",
+    "name": "Resturante Vegetariano",
+    "nameEn": "Restaurant vegetarian",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 19.4325839,
+    "lon": -99.1442821
+   },
+   {
+    "osm": "node/4856648621",
+    "name": "Govinda Ram Restaurante Vegetariano",
+    "nameEn": "Govinda Ram Restaurant Vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "indian;mexican",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 19.4279967,
+    "lon": -99.1437995
+   },
+   {
+    "osm": "node/4953928621",
+    "name": "Boicot café",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 19.4186273,
+    "lon": -99.1613869,
+    "street": "Calle Jalapa",
+    "hours": "Mo-Fr 07:00-22:00; Sa,Su 08:00-22:00"
+   },
+   {
+    "osm": "node/5329509224",
+    "name": "For Siempre Vegana Taqueria",
+    "amenity": "fast_food",
+    "vegan": "only",
+    "lat": 19.4115972,
+    "lon": -99.1660988,
+    "street": "Calle Manzanillo",
+    "hours": "Mo-Sa 13:00-00:00"
+   },
+   {
+    "osm": "node/5543981221",
+    "name": "India Town",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 19.4318514,
+    "lon": -99.135089,
+    "street": "Avenida 16 de Septiembre"
+   },
+   {
+    "osm": "node/5697458821",
+    "name": "Mercado Roma",
+    "amenity": "restaurant",
+    "cuisine": "barbecue;coffee_shop;ice_cream;asian;spanish;international;japanese;mexican",
+    "vegetarian": "yes",
+    "lat": 19.3455745,
+    "lon": -99.1741593
+   },
+   {
+    "osm": "node/5842139800",
+    "name": "Churrería El Moro",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 19.4313896,
+    "lon": -99.1411354,
+    "street": "Lázaro Cárdenas",
+    "hours": "24/7"
+   },
+   {
+    "osm": "node/5902868385",
+    "name": "Vege Taco",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3461668,
+    "lon": -99.1639292,
+    "street": "Calle Felipe Carillo Puerto",
+    "hours": "Mo-Su 12:00-19:00"
+   },
+   {
+    "osm": "node/5921743585",
+    "name": "La Gatorta",
+    "nameEn": "Gatorta",
+    "amenity": "fast_food",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.4221994,
+    "lon": -99.1631085
+   },
+   {
+    "osm": "node/5921743785",
+    "name": "Pan D’monium",
+    "amenity": "fast_food",
+    "cuisine": "burger;pizza",
+    "vegan": "yes",
+    "lat": 19.4199728,
+    "lon": -99.1602738
+   },
+   {
+    "osm": "node/5940928885",
+    "name": "Por Siempre Vegana Taquería",
+    "amenity": "fast_food",
+    "cuisine": "mexican;taqueria",
+    "vegan": "only",
+    "lat": 19.4111729,
+    "lon": -99.1638613,
+    "street": "Coahuila",
+    "hours": "Mo-Sa 10:00-23:00; Su 10:00-21:00"
+   },
+   {
+    "osm": "node/5994478387",
+    "name": "u.to.pia",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.4148889,
+    "lon": -99.1748341,
+    "street": "Juan Escutia",
+    "hours": "Mo-Sa 13:00-23:00; Su 13:00-19:00"
+   },
+   {
+    "osm": "node/6049284885",
+    "name": "Malportaco",
+    "amenity": "restaurant",
+    "cuisine": "vlocal",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3995248,
+    "lon": -99.1496355,
+    "street": "Diagonal San Antonio",
+    "hours": "Mo-Th 05:00-23:00; Fr,Sa 05:00-24:00"
+   },
+   {
+    "osm": "node/6284918785",
+    "name": "Café Nin",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "lat": 19.4253154,
+    "lon": -99.1607554,
+    "street": "Calle Havre",
+    "hours": "Mo-Sa 07:00-21:00; Su 07:30-18:00"
+   },
+   {
+    "osm": "node/6339314093",
+    "name": "Burger Bar Joint Forum Buenavista",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": 19.4509082,
+    "lon": -99.1512122,
+    "street": "Eje 1 Norte",
+    "hours": "Mo-Su 13:00-23:00"
+   },
+   {
+    "osm": "node/6754440294",
+    "name": "Vege Taco",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3424697,
+    "lon": -99.1461428,
+    "street": "Avenida Miguel Ángel de Quevedo",
+    "hours": "12:00-20:00"
+   },
+   {
+    "osm": "node/6901272988",
+    "name": "vegannero",
+    "nameEn": "veganeero",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 19.4406198,
+    "lon": -99.1499023
+   },
+   {
+    "osm": "node/6968097785",
+    "name": "V Ramen",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "lat": 19.4169788,
+    "lon": -99.1657786,
+    "street": "Avenida Álvaro Obregón",
+    "hours": "Mo-Sa 10:00-23:00; Su 10:00-19:00"
+   },
+   {
+    "osm": "node/7255817286",
+    "name": "Vegan ramen",
+    "amenity": "restaurant",
+    "cuisine": "japanese;asian",
+    "vegan": "only",
+    "lat": 19.4169333,
+    "lon": -99.1657294
+   },
+   {
+    "osm": "node/7715974485",
+    "name": "Los Vegetarianos",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 19.4335249,
+    "lon": -99.1356727,
+    "hours": "Mo-Su 08:00-20:00"
+   },
+   {
+    "osm": "node/7715974487",
+    "name": "Maria Bonita veganos",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 19.4216488,
+    "lon": -99.1581199,
+    "hours": "Mo-Fr 09:30-17:00"
+   },
+   {
+    "osm": "node/7715974585",
+    "name": "Forever Vegano",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 19.4172901,
+    "lon": -99.1568328,
+    "hours": "Mo-Sa 09:00-22:30; Su 09:00-17:30"
+   },
+   {
+    "osm": "node/8284372111",
+    "name": "Al Diwan",
+    "amenity": "restaurant",
+    "cuisine": "lebanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4174154,
+    "lon": -99.1568604
+   },
+   {
+    "osm": "node/8888111261",
+    "name": "Veggicano",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.3561427,
+    "lon": -99.1552897,
+    "street": "Corina"
+   },
+   {
+    "osm": "node/8927275478",
+    "name": "Mi Jacalito",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 19.4508517,
+    "lon": -99.1564209
+   },
+   {
+    "osm": "node/9332773302",
+    "name": "La Hummisiya",
+    "amenity": "restaurant",
+    "cuisine": "asian;oriental",
+    "vegetarian": "yes",
+    "lat": 19.4095857,
+    "lon": -99.1759406,
+    "hours": "Mo-Th 11:00-21:00; Fr-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/9577149444",
+    "name": "Chantico",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 19.2965427,
+    "lon": -99.0935209
+   },
+   {
+    "osm": "node/9723875860",
+    "name": "Fat Vegan",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": 19.4137772,
+    "lon": -99.1606592,
+    "street": "Calle San Luis Potosí"
+   },
+   {
+    "osm": "node/9848168517",
+    "name": "Mandragora vegan",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 19.4094641,
+    "lon": -99.1623774,
+    "street": "Calle Aguascalientes",
+    "hours": "Mo-Su 10:00-19:00"
+   },
+   {
+    "osm": "node/9848179317",
+    "name": "Veganion Antojería",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 19.4161342,
+    "lon": -99.1655845,
+    "street": "Calle Medellín",
+    "hours": "Tu-Th 13:30-20:30; Fr-Su 13:30-22:30"
+   },
+   {
+    "osm": "node/10296082209",
+    "name": "Veganismo Lonchería vegana",
+    "amenity": "restaurant",
+    "cuisine": "burger;mexican",
+    "vegan": "yes",
+    "lat": 19.4239845,
+    "lon": -99.1546299,
+    "street": "Calle Puebla",
+    "hours": "Tu-Su 13:00-20:00"
+   },
+   {
+    "osm": "node/10315216491",
+    "name": "Tencüi",
+    "amenity": "restaurant",
+    "cuisine": "fungi",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.453018,
+    "lon": -99.1594428,
+    "street": "Calle Eligio Ancona"
+   },
+   {
+    "osm": "node/10563569213",
+    "name": "Sartenazo",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4387147,
+    "lon": -99.1557159,
+    "hours": "Mo-Fr 12:00-20:00; Sa,Su 12:00-18:00"
+   },
+   {
+    "osm": "node/10590084105",
+    "name": "El Rincón Gourmet pizza a la leña",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 19.3673552,
+    "lon": -99.2888022,
+    "hours": "Mo-Fr 13:00-19:00"
+   },
+   {
+    "osm": "node/10605543021",
+    "name": "Eno",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 19.4333741,
+    "lon": -99.1855262,
+    "street": "Calle Francisco Petrarca",
+    "hours": "Mo-Su 07:00-21:00"
+   },
+   {
+    "osm": "node/10881756805",
+    "name": "Las frases de mamá",
+    "amenity": "restaurant",
+    "cuisine": "mexican;regional",
+    "vegetarian": "yes",
+    "lat": 19.3338096,
+    "lon": -99.3098085
+   },
+   {
+    "osm": "node/11270435536",
+    "name": "Dharana Cafe",
+    "amenity": "restaurant",
+    "cuisine": "brunch",
+    "vegan": "yes",
+    "lat": 19.3555566,
+    "lon": -99.1627262
+   },
+   {
+    "osm": "node/11457491351",
+    "name": "Pulpa Amor Líquido",
+    "amenity": "fast_food",
+    "cuisine": "juice",
+    "vegan": "yes",
+    "lat": 19.4272013,
+    "lon": -99.1599784,
+    "street": "Calle Londres",
+    "hours": "Mo-Fr 08:00-17:00; Sa-Su 08:00-19:00"
+   },
+   {
+    "osm": "node/11461085927",
+    "name": "Mammut Pizza",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": 19.4249085,
+    "lon": -99.1693848,
+    "street": "Calle Oxford",
+    "hours": "Mo-We 13:00-23:00, Th-Sa 13:00-24:00, Su 13:00-20:00"
+   },
+   {
+    "osm": "node/11468159881",
+    "name": "Il Tomato",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.424678,
+    "lon": -99.160364,
+    "street": "Calle Havre",
+    "hours": "Tu-Fr 14:00-22:00; Sa-Su 14:30-22:00"
+   },
+   {
+    "osm": "node/11682277269",
+    "name": "Sarumino",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 19.4029833,
+    "lon": -99.1668386,
+    "street": "Calle Bajío"
+   },
+   {
+    "osm": "node/11754127343",
+    "name": "Titanes del Taco",
+    "amenity": "fast_food",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 19.4169172,
+    "lon": -99.1955204
+   },
+   {
+    "osm": "node/11841944351",
+    "name": "Vegamo",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 19.4208451,
+    "lon": -99.1579916,
+    "hours": "Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/12113018701",
+    "name": "Vegetariano Lindavista",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 19.493938,
+    "lon": -99.1330844,
+    "street": "Avenida Instituto Politécnico Nacional",
+    "hours": "Mo-Su 09:00-18:00"
+   },
+   {
+    "osm": "node/12132866585",
+    "name": "480º Pizza Lounge",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian_pizza;pasta;salad;brunch",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3537122,
+    "lon": -99.1586713,
+    "street": "Calle Xicoténcatl",
+    "hours": "Mo-Su 12:30-21:30"
+   },
+   {
+    "osm": "node/12232810501",
+    "name": "Veganismo",
+    "amenity": "fast_food",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.3712701,
+    "lon": -99.1711981,
+    "street": "Avenida Coyoacán",
+    "hours": "Mo-Su 13:00-21:30"
+   },
+   {
+    "osm": "node/12729948300",
+    "name": "¡A darle! que es taco vegano",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3514821,
+    "lon": -99.150401,
+    "street": "Calle Héroes del 47",
+    "hours": "Mo-Fr 13:30-22:00; Sa 18:00-22:00; Su off"
+   },
+   {
+    "osm": "node/12751678201",
+    "name": "Taco Santo",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.4172585,
+    "lon": -99.1606796,
+    "street": "Calle Chihuahua",
+    "hours": "Su-Th 13:00-22:00; Fr-Sa 13:00-23:00"
+   },
+   {
+    "osm": "node/12787201144",
+    "name": "Na Tlali",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 19.3464069,
+    "lon": -99.1894829
+   },
+   {
+    "osm": "node/12849816592",
+    "name": "Paxil – Plant-Based Seafood",
+    "amenity": "fast_food",
+    "cuisine": "crepe;seafood",
+    "vegan": "only",
+    "lat": 19.4201751,
+    "lon": -99.1603028,
+    "street": "Calle Orizaba",
+    "hours": "We-Mo 13:30-19:00"
+   },
+   {
+    "osm": "node/13058870470",
+    "name": "Tagers",
+    "amenity": "restaurant",
+    "cuisine": "brunch;breakfast;diner;tea;mexican;pasta;barbecue;juice",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3469956,
+    "lon": -99.1891494,
+    "street": "Avenida de la Paz",
+    "hours": "Mo-Th 08:00-23:00 Fr-Sa 08:00-23:00 Su 08:00-21:00"
+   },
+   {
+    "osm": "node/13109079659",
+    "name": "El Farolito",
+    "amenity": "restaurant",
+    "cuisine": "mexican;tacos",
+    "vegetarian": "yes",
+    "lat": 19.4329919,
+    "lon": -99.1895848
+   },
+   {
+    "osm": "node/13113062150",
+    "name": "Califa",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 19.4316264,
+    "lon": -99.1861155,
+    "street": "Avenida Presidente Masaryk",
+    "hours": "Mo-Su 12:00-04:00"
+   },
+   {
+    "osm": "node/13113062157",
+    "name": "Katzus Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "japanese;sushi",
+    "vegetarian": "yes",
+    "lat": 19.4322965,
+    "lon": -99.1900181,
+    "street": "Calle Isaac Newton"
+   },
+   {
+    "osm": "node/13418265373",
+    "name": "El Inicio",
+    "amenity": "restaurant",
+    "cuisine": "mexican;breakfast",
+    "vegetarian": "yes",
+    "lat": 19.4189317,
+    "lon": -99.1576275,
+    "street": "Avenida Álvaro Obregón",
+    "hours": "Mo-Sa 08:30-24:00; Su 08:30-23:00"
+   },
+   {
+    "osm": "node/13471579503",
+    "name": "Gracias Madre Taquería Vegana",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 19.4197944,
+    "lon": -99.1572817,
+    "street": "Calle Tabasco",
+    "hours": "Mo-Sa 09:00-23:00; Su 09:00-22:30"
+   },
+   {
+    "osm": "node/13535388863",
+    "name": "Trinidad Ritual de Sabores",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3526097,
+    "lon": -99.1617901
+   },
+   {
+    "osm": "node/13535697575",
+    "name": "Trinidad Ritual de Sabores",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.3526097,
+    "lon": -99.16179
+   },
+   {
+    "osm": "node/13535697576",
+    "name": "Vegan Ramen Mei del Valle",
+    "amenity": "restaurant",
+    "cuisine": "japanese;ramen",
+    "vegan": "yes",
+    "lat": 19.3709809,
+    "lon": -99.1667881,
+    "street": "Félix Cuevas",
+    "hours": "14:00-21:00"
+   },
+   {
+    "osm": "node/13537127407",
+    "name": "Vegan Ramen Mei del Valle",
+    "amenity": "restaurant",
+    "cuisine": "japanese;ramen",
+    "vegan": "yes",
+    "lat": 19.3709808,
+    "lon": -99.166788,
+    "hours": "14:00-21:00"
+   },
+   {
+    "osm": "node/13675571280",
+    "name": "La Plantisquería",
+    "amenity": "restaurant",
+    "cuisine": "seafood",
+    "vegan": "only",
+    "lat": 19.4168363,
+    "lon": -99.163545
+   },
+   {
+    "osm": "node/13728525094",
+    "name": "Subway",
+    "amenity": "fast_food",
+    "cuisine": "sandwich",
+    "vegetarian": "yes",
+    "lat": 19.4322901,
+    "lon": -99.1361505,
+    "street": "Calle de la Palma",
+    "hours": "Mo-Su 12:00-19:00"
+   },
+   {
+    "osm": "node/13807337529",
+    "name": "Restaurante Cocina Vegetariana",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 19.4371423,
+    "lon": -99.1661204
+   },
+   {
+    "osm": "node/13990665676",
+    "name": "Hola Picnic",
+    "amenity": "restaurant",
+    "vegan": "limited",
+    "vegetarian": "yes",
+    "lat": 19.4506139,
+    "lon": -99.15864,
+    "street": "Manuel Carpio"
+   },
+   {
+    "osm": "node/14177269137",
+    "name": "Mictlan Antojitos Veganos",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 19.3910376,
+    "lon": -99.1562883,
+    "hours": "We-Mo 09:00-21:00"
+   },
+   {
+    "osm": "node/14217475702",
+    "name": "Plantasia",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "yes",
+    "lat": 19.422681,
+    "lon": -99.1601536,
+    "street": "Calle Puebla",
+    "hours": "Mo-Th 12:00-22:00; Fr-Sa 12:00-22:30; Su 12:00-21:00"
+   },
+   {
+    "osm": "way/418123322",
+    "name": "Cooperativa Las 400 voces",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;mexican",
+    "vegetarian": "yes",
+    "lat": 19.3326674,
+    "lon": -99.1764928,
+    "street": "Calle Alfonso Pruneda",
+    "hours": "Mo-Sa 07:00-21:00"
+   },
+   {
+    "osm": "way/790785747",
+    "name": "Tandoor",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 19.4303872,
+    "lon": -99.178968,
+    "street": "Calle Copérnico",
+    "hours": "Mo-Sa 13:00-22:30; Su 13:00-19:30"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Mexico City",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

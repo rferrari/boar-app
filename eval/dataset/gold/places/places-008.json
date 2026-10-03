@@ -1,0 +1,284 @@
+{
+ "id": "places-008",
+ "city": "Cape Town",
+ "diet": "vegan",
+ "fetchedAt": "2026-09-28T05:12:58.768Z",
+ "osm": {
+  "snapshot": "2026-09-28T05:11:44Z",
+  "scope": "25 km radius around -33.92584,18.42322",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "dietVenues": 29,
+  "venues": [
+   {
+    "osm": "node/423033574",
+    "name": "Romeo and Vero Vegan Butcherie",
+    "amenity": "restaurant",
+    "cuisine": "local",
+    "vegan": "yes",
+    "lat": -33.9161903,
+    "lon": 18.4177726
+   },
+   {
+    "osm": "node/1393983672",
+    "name": "NY Slice",
+    "amenity": "cafe",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9290721,
+    "lon": 18.4117485
+   },
+   {
+    "osm": "node/1534620760",
+    "name": "Kanéla Café",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.921299,
+    "lon": 18.3826718
+   },
+   {
+    "osm": "node/2694343599",
+    "name": "Col'Cacchio",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian;pasta",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9783611,
+    "lon": 18.4823631
+   },
+   {
+    "osm": "node/2940306333",
+    "name": "Cafe Extrablatt",
+    "amenity": "restaurant",
+    "cuisine": "german",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9084435,
+    "lon": 18.410989
+   },
+   {
+    "osm": "node/3355305293",
+    "name": "Jerry's",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9388982,
+    "lon": 18.4688732
+   },
+   {
+    "osm": "node/3733793199",
+    "name": "Truth Coffee Roasting",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;breakfast;burger;cake;chicken;hot_dog;international;local;pasta;sandwich;tea",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9282267,
+    "lon": 18.4227333
+   },
+   {
+    "osm": "node/5308129338",
+    "name": "Sushi Wave Bar",
+    "amenity": "restaurant",
+    "cuisine": "sushi",
+    "vegan": "yes",
+    "lat": -33.9379882,
+    "lon": 18.4700083
+   },
+   {
+    "osm": "node/5451378121",
+    "name": "Addis in Cape",
+    "nameEn": "Addis in Cape",
+    "amenity": "restaurant",
+    "cuisine": "ethiopian",
+    "vegan": "yes",
+    "lat": -33.924825,
+    "lon": 18.4152335
+   },
+   {
+    "osm": "node/6476678757",
+    "name": "Flourish Bistro",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9274805,
+    "lon": 18.4568387
+   },
+   {
+    "osm": "node/8315714313",
+    "name": "The Kind Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;sandwich;burger",
+    "vegan": "yes",
+    "lat": -33.9275379,
+    "lon": 18.4535744
+   },
+   {
+    "osm": "node/9413095358",
+    "name": "Plushi",
+    "amenity": "restaurant",
+    "cuisine": "sushi",
+    "vegan": "yes",
+    "lat": -33.9343413,
+    "lon": 18.4579279
+   },
+   {
+    "osm": "node/9709443274",
+    "name": "The Conscious Kitchen",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9387352,
+    "lon": 18.4690589
+   },
+   {
+    "osm": "node/9709877310",
+    "name": "Ground Zero",
+    "amenity": "restaurant",
+    "cuisine": "falafel;sandwich",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.93685,
+    "lon": 18.4683732
+   },
+   {
+    "osm": "node/9710887934",
+    "name": "Vegan Streetfood",
+    "amenity": "fast_food",
+    "cuisine": "burger;pastry;hot_dog;wraps",
+    "vegan": "yes",
+    "lat": -33.9397182,
+    "lon": 18.4690285
+   },
+   {
+    "osm": "node/10077557863",
+    "name": "The Fussy Vegan",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": -33.9322515,
+    "lon": 18.4159204
+   },
+   {
+    "osm": "node/10095101869",
+    "name": "SweetBeet",
+    "amenity": "fast_food",
+    "cuisine": "juice;smoothie;salad",
+    "vegan": "yes",
+    "lat": -33.8658966,
+    "lon": 18.5726242
+   },
+   {
+    "osm": "node/11364899880",
+    "name": "Alpine Deli & Eatery Durbanville",
+    "amenity": "restaurant",
+    "cuisine": "pasta;hummus",
+    "vegan": "yes",
+    "lat": -33.8305997,
+    "lon": 18.6510043
+   },
+   {
+    "osm": "node/11483308999",
+    "name": "The Conscious Kitchen",
+    "amenity": "cafe",
+    "vegan": "only",
+    "lat": -33.9286472,
+    "lon": 18.4118914
+   },
+   {
+    "osm": "node/11813443386",
+    "name": "The Greek Fisherman",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9212502,
+    "lon": 18.3826413
+   },
+   {
+    "osm": "node/12328657601",
+    "name": "Jean's Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "mediterranean",
+    "vegan": "yes",
+    "lat": -33.9599975,
+    "lon": 18.4594155
+   },
+   {
+    "osm": "node/12623968968",
+    "name": "Woolworths Now Now Cafe CTC",
+    "amenity": "cafe",
+    "cuisine": "burger;breakfast;lunch",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9252616,
+    "lon": 18.4228562
+   },
+   {
+    "osm": "node/13521635090",
+    "name": "The Conscious Kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": -33.9288316,
+    "lon": 18.4117073
+   },
+   {
+    "osm": "node/13950582501",
+    "name": "Prashad Cafe & Spices Constantia",
+    "amenity": "cafe",
+    "cuisine": "indian;oriental",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.0205867,
+    "lon": 18.4454736
+   },
+   {
+    "osm": "way/455435048",
+    "name": "Nando's",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": -33.8925336,
+    "lon": 18.5545124
+   },
+   {
+    "osm": "way/1032959266",
+    "name": "The Electric",
+    "amenity": "restaurant",
+    "cuisine": "burger;sandwich",
+    "vegan": "yes",
+    "lat": -33.9287005,
+    "lon": 18.4242286
+   },
+   {
+    "osm": "way/1066657998",
+    "name": "Pizza Shed",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -33.9309356,
+    "lon": 18.4656783
+   },
+   {
+    "osm": "way/1353639241",
+    "name": "Pizzasaurus",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "lat": -33.9294134,
+    "lon": 18.4230181
+   },
+   {
+    "osm": "way/1546086556",
+    "name": "Plato Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": -34.0652217,
+    "lon": 18.4515442
+   }
+  ]
+ }
+}
