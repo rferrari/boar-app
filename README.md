@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/rferrari/boar-app/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/rferrari/boar-app?color=FF7A3D" /></a>
-  <img alt="Android + iOS" src="https://img.shields.io/badge/platform-Android%20%2B%20iOS-FFB547" />
+  <img alt="Android" src="https://img.shields.io/badge/platform-Android-FFB547" />
   <img alt="Works offline" src="https://img.shields.io/badge/works-offline-17110D" />
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/github/license/rferrari/boar-app" /></a>
 </p>
@@ -55,7 +55,7 @@ a phone can get. Full reasoning: [MANIFESTO.md](MANIFESTO.md).
 </tr>
 </table>
 
-**One engine, two apps.** Search, packs, models, measurements and sharing are one shared engine. Each platform gets its own app on top: on **iPhone**, the animated app in these screenshots (`src/ui-ios`); on **Android**, a lighter app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). Each build picks its app by platform (`App.ios.tsx`, `App.android.tsx`).
+**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The screenshots above are from the iPhone app, which is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch.
 
 ## Online once, offline from then on
 
@@ -86,7 +86,7 @@ memory and what it retrieved. Details: [docs/ADAPTIVE_ROUTING.md](docs/ADAPTIVE_
 
 - **Built in:** Wikipedia articles, plus the Standard (+1,000 topics) and Full (+4,000) libraries. The Encyclopedia setup adds 50,000 Wikipedia Vital Articles.
 - **Knowledge packs:** pre-indexed files such as Wikipedia Vital Articles, Emergency & preparedness, Ethereum & cryptography ([KNOWLEDGE_PACKS](docs/KNOWLEDGE_PACKS.md)).
-- **Places packs (iPhone app for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
+- **Places packs (in the iPhone app on [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
 - **Your files:** `.txt`, `.md`, `.csv`, `.json`, `.pdf` (selectable text, no OCR), chunked and embedded on the phone. Toggle, delete, or export a collection as a JSON pack to share over Bluetooth or Nearby Share ([USING](docs/USING.md)).
 
 ## Measured on a real phone
@@ -148,7 +148,7 @@ adb install boar-v1.0.0-arm64.apk           # or open the file on the phone
 ```
 
 The v1.0.0 APK (Sep 26) downloads Qwen2.5-1.5B (about 1 GB) on first launch.
-Builds from `main` default to Qwen3-4B (about 2.5 GB) and have the new look: the animated app on iPhone, the lighter one on Android.
+Builds from `main` let you pick the model in setup: Qwen3-4B (about 2.5 GB) is recommended on 12 GB phones and Qwen2.5-1.5B (about 1 GB) on smaller ones. They also have the Campfire and Moonlight look.
 
 **Guided setup:** the wizard downloads and installs the APK over USB, builds from
 source (cloud via EAS, no Android SDK needed, or local), starts a live-reload dev
@@ -159,7 +159,7 @@ git clone https://github.com/rferrari/boar-app.git && cd boar-app
 make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
 ```
 
-**iOS:** builds from the same code. To put it on your own iPhone with a free Apple ID, see [docs/IOS_FREE_INSTALL.md](docs/IOS_FREE_INSTALL.md); build details in [docs/IOS.md](docs/IOS.md).
+**iPhone:** the iOS app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch, together with its build guide and the steps to install it on your own iPhone with a free Apple ID.
 
 ## Docs
 
@@ -168,8 +168,6 @@ make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
 | [docs/demo](docs/demo/README.md) | Videos and screenshots from a phone in airplane mode |
 | [docs/USING.md](docs/USING.md) | Import documents, find more models, recover from a bad model load, reset the app |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Build commands, dev mode, Wi‑Fi troubleshooting |
-| [docs/IOS_FREE_INSTALL.md](docs/IOS_FREE_INSTALL.md) | Install on your own iPhone with a free Apple ID |
-| [docs/IOS.md](docs/IOS.md) | iOS build, native modules, Android/iOS parity |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design, first-run setup, network permission |
 | [docs/MODELS.md](docs/MODELS.md) | Exact models, datasets and indexes |
 | [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md) | How knowledge packs are built and searched |
