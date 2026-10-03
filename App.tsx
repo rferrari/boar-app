@@ -1,3 +1,3 @@
-// The fallback Metro and TypeScript resolve when no platform file matches (App.android.tsx,
-// App.ios.tsx pick each platform's UI; docs/PLATFORM_UIS.md). Same as Android until iOS has its own.
+// The app's entry: the Android UI. The iOS UI lives on the ios_android branch, which builds
+// both platforms; main is Android only (docs/PLATFORM_UIS.md there).
 export { default } from "./src/ui-android/App";
