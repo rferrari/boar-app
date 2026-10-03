@@ -1,0 +1,78 @@
+{
+ "pairs": [
+  {
+   "question": "How do vaccines work?",
+   "builtin": {
+    "chunkId": "wiki-min-vaccine",
+    "docId": "wiki-min-vaccine",
+    "title": "Vaccine",
+    "body": "A vaccine is a biological preparation that provides active acquired immunity to a particular infectious or malignant disease. The safety and effectiveness of vaccines has been widely studied and verified. A vaccine typically contains an agent that resembles a disease-causing microorganism and is often made from weakened or killed forms of the microbe, its toxins, or one of its surface proteins. The agent stimulates the immune system to recognize the agent as a threat, destroy it, and recognize further and destroy any of the microorganisms associated with that agent that it may encounter in the future."
+   },
+   "pack": {
+    "chunkId": "pack:wiki-vital5:18018",
+    "docId": "pack:wiki-vital5:Vaccine",
+    "title": "Vaccine",
+    "body": "The agent stimulates the immune system to recognize the agent as a threat, destroy it, and recognize further and destroy any of the microorganisms associated with that agent that it may encounter in the future. Vaccines can be prophylactic (to prevent or alleviate the effects of a future infection by a natural or \"wild\" pathogen), or therapeutic (to fight a disease that has already occurred, such as cancer). Some vaccines offer full sterilizing immunity, in which infection is prevented. The administration of vaccines is called vaccination."
+   }
+  },
+  {
+   "question": "What do the Agricultural Revolution and the Industrial Revolution have in common?",
+   "builtin": {
+    "chunkId": "wiki-min-industrial-revolution",
+    "docId": "wiki-min-industrial-revolution",
+    "title": "Industrial Revolution",
+    "body": "The Industrial Revolution, sometimes called the First Industrial Revolution in contrast to the subsequent Second Industrial Revolution, was a transitional period of the global economy toward more widespread, efficient and stable manufacturing processes, succeeding the Second Agricultural Revolution. Beginning in Great Britain around 1760, the Industrial Revolution had spread to continental Europe and the United States by about 1840. Economic historians agree that the onset of the Industrial Revolution is the most important event in human history, comparable only to the adoption of agriculture with respect to material advancement."
+   },
+   "pack": {
+    "chunkId": "pack:wiki-vital5:8183",
+    "docId": "pack:wiki-vital5:Industrial Revolution",
+    "title": "Industrial Revolution",
+    "body": "Economic historians agree that the onset of the Industrial Revolution is the most important event in human history, comparable only to the adoption of agriculture with respect to material advancement. This transition included going from hand production methods to machines; new chemical manufacturing and iron production processes; the increasing use of water power and steam power; the development of machine tools; and rise of the mechanised factory system. Output greatly increased, and the result was an unprecedented rise in population and population growth."
+   }
+  },
+  {
+   "question": "How does the immune system's response to a pathogen relate to how a vaccine works?",
+   "builtin": {
+    "chunkId": "wiki-min-immune-system",
+    "docId": "wiki-min-immune-system",
+    "title": "Immune system",
+    "body": "The immune system is a network of biological systems that protects an organism from diseases. It detects and responds to a wide variety of pathogens, such as viruses, bacteria, and parasites, as well as cancer cells and foreign objects, such as wood splinters—distinguishing them from the organism's own healthy tissue. Many species have two major subsystems of the immune system. The innate immune system provides a preconfigured response to broad groups of situations and stimuli. The adaptive immune system provides a tailored response to each stimulus by learning to recognize molecules it has previously encountered. Both use specialised molecules and cells to perform their functions."
+   },
+   "pack": {
+    "chunkId": "pack:wiki-vital5:8214",
+    "docId": "pack:wiki-vital5:Immune system",
+    "title": "Immune system",
+    "body": "These mechanisms include phagocytosis, antimicrobial peptides called defensins, RNA interference, and the complement system. Jawed vertebrates, including humans, have a more sophisticated defense mechanism. For example, adaptive immunity provides the ability to adapt to recognize pathogens more efficiently (somatic hypermutation). This process creates an immunological memory, resulting in an enhanced response against subsequent encounters with that same pathogen. This mechanism of adaptive immunity is the fundamental basis of vaccination."
+   }
+  },
+  {
+   "question": "How is deforestation in the Amazon linked to biodiversity loss?",
+   "builtin": {
+    "chunkId": "wiki-min-biodiversity-loss",
+    "docId": "wiki-min-biodiversity-loss",
+    "title": "Biodiversity loss",
+    "body": "Biodiversity loss happens when species disappear completely from Earth (extinction) or when there is a decrease or disappearance of species in a specific area. Biodiversity loss means that there is a reduction in biological diversity in a given area. The decrease can be temporary or permanent. It is temporary if the damage that led to the loss is reversible in time, for example through ecological restoration.If this is not possible, then the decrease is permanent. The cause of most of the biodiversity loss is, generally speaking, human activities that push the planetary boundaries too far. These activities include habitat destruction and land use intensification. Further problem areas are air and water pollution, over-exploitation, invasive species and climate change."
+   },
+   "pack": {
+    "chunkId": "pack:wiki-vital5:114892",
+    "docId": "pack:wiki-vital5:Biodiversity loss",
+    "title": "Biodiversity loss",
+    "body": "Others disagree, saying that loss of habitat is caused mainly by \"the growth of commodities for export\" and that population has little to do with overall consumption. More important are wealth disparities between and within countries. In any case, all contemporary biodiversity loss has been attributed to human activities. Climate change is another threat to global biodiversity. For example, coral reefs—which are biodiversity hotspots—will be lost by the year 2100 if global warming continues at the current rate."
+   }
+  }
+ ],
+ "sameLibrarySections": [
+  {
+   "chunkId": "pack:wiki-vital5:86886",
+   "docId": "pack:wiki-vital5:Adaptive immune system",
+   "title": "Adaptive immune system",
+   "body": "The adaptive immune system (AIS), also known as the acquired immune system or specific immune system, is a subsystem of the immune system that is composed of specialized cells, organs, and processes that eliminate pathogens specifically. The acquired immune system is one of the two main immunity strategies found in vertebrates (the other being the innate immune system). Like the innate system, the adaptive immune system includes both humoral immunity components and cell-mediated immunity components and destroys invading pathogens."
+  },
+  {
+   "chunkId": "pack:wiki-vital5:86887",
+   "docId": "pack:wiki-vital5:Adaptive immune system",
+   "title": "Adaptive immune system",
+   "body": "Unlike the innate immune system, which is pre-programmed to react to common broad categories of pathogen, the adaptive immune system is highly specific to each particular pathogen the body has encountered. Adaptive immunity creates immunological memory after an initial response to a specific pathogen, and leads to an enhanced response to future encounters with that pathogen. Antibodies are a critical part of the adaptive immune system. Adaptive immunity can provide long-lasting protection, sometimes for the person's entire lifetime."
+  }
+ ]
+}

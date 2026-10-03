@@ -3,6 +3,7 @@ import { embeddingEngine } from "./embed";
 import {
   buildLexicalQuery,
   cosineSimilarity,
+  dropCrossLibraryCopies,
   filterByMinScore,
   filterByTermCoverage,
   fuseRetrievalResults,
@@ -150,7 +151,7 @@ export async function retrieve(
   );
   // The page of a standard the question names by number first, from either search.
   const byId = (c: RetrievedChunk) => ids.some((id) => titleHasIdentifier(c.title, id));
-  return dedupeArticleCopies([...merged.filter(byId), ...merged.filter((c) => !byId(c))]).slice(0, topK);
+  return dedupeArticleCopies(dropCrossLibraryCopies([...merged.filter(byId), ...merged.filter((c) => !byId(c))])).slice(0, topK);
 }
 
 /** A "may refer to" list or a "(disambiguation)" page: never a source. */
@@ -195,7 +196,8 @@ async function retrieveOne(
   const fused = fuseRetrievalResults(
     [...gateByRelevance([...lexical, ...packs.lexical]), ...wikiLexical],
     gateByRelevance([...semantic, ...packs.semantic]),
-    topK
+    // Past topK: a passage dropped below as a copy (of a named article, or a near-copy) leaves the next one in line.
+    2 * topK + named.length
   );
   // A what-to-do question: a pack section that says what to do (the preparedness pack's "During an earthquake") comes
   // right after the named articles, instead of competing in the fusion with keyword noise from the bundled corpus.
@@ -206,12 +208,12 @@ async function retrieveOne(
     : [];
   const first = [...named, ...steps];
   const seen = new Set(first.map((c) => c.chunkId));
-  // One copy per article passage across libraries (src/rag/dedupe.ts), before the cut, so a dropped
-  // copy makes room for the next distinct source.
-  const result = dedupeArticleCopies([
+  // One library per article (pure.ts dropCrossLibraryCopies), then one copy per passage (src/rag/dedupe.ts), both
+  // before the cut, so a dropped copy makes room for the next distinct source.
+  const result = dedupeArticleCopies(dropCrossLibraryCopies([
     ...first.filter((c, i) => first.findIndex((x) => x.chunkId === c.chunkId) === i),
     ...fused.filter((c) => !seen.has(c.chunkId)),
-  ]).slice(0, Math.max(topK, named.length));
+  ])).slice(0, Math.max(topK, named.length));
   // A what-to-do question: the lay sources the pack search added past its limit (a first-aid manual next to the
   // clinical article) must reach the answer, not be cut here with the rest of the keyword hits.
   if (action) {
@@ -220,7 +222,7 @@ async function retrieveOne(
       .flatMap((w) => w.hits.filter((h) => LAY_SOURCES.has(h.source)).map((h) => packHitToChunk(w.packId, h)))
       .filter((c) => !inResult.has(c.chunkId));
     // Through the same copy check as the rest (result is already one copy per passage, so it all stays).
-    result.push(...dedupeArticleCopies([...result, ...lay]).slice(result.length, result.length + 2));
+    result.push(...dedupeArticleCopies(dropCrossLibraryCopies([...result, ...lay])).slice(result.length, result.length + 2));
   }
   return result;
 }
