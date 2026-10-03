@@ -45,17 +45,17 @@ a phone can get. Full reasoning: [MANIFESTO.md](MANIFESTO.md).
 <table>
 <tr>
 <td width="33%"><img src="docs/readme/answers-sources.jpg" alt="An answer with its sources on the phone"></td>
-<td width="33%"><img src="docs/readme/places.jpg" alt="Vegan restaurants in Berlin from OpenStreetMap, offline"></td>
-<td width="33%"><img src="docs/readme/knowledge.jpg" alt="Knowledge packs stored on the phone"></td>
+<td width="33%"><img src="docs/readme/offline.jpg" alt="An answer in airplane mode, with the OFFLINE pill in the header"></td>
+<td width="33%"><img src="docs/readme/drawer.jpg" alt="The menu: research sessions, documents and settings, with live RAM and disk use"></td>
 </tr>
 <tr>
 <td><b>Answers with sources.</b> Tap a citation to read the exact passage.</td>
-<td><b>Places near you.</b> Distance and opening hours from OpenStreetMap, in airplane mode.</td>
-<td><b>Knowledge you choose.</b> Topic packs, Wikipedia, or your own files.</td>
+<td><b>Works in airplane mode.</b> The header says OFFLINE, and the answer still comes.</td>
+<td><b>Everything stays on the phone.</b> Your sessions and documents, with RAM and disk shown live.</td>
 </tr>
 </table>
 
-**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The screenshots above are from the iPhone app, which is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch.
+**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The iPhone app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch.
 
 ## Online once, offline from then on
 
