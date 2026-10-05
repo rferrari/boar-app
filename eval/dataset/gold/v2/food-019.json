@@ -1,0 +1,275 @@
+{
+ "id": "food-019",
+ "city": "Hong Kong",
+ "wikidata": "Q8646",
+ "diet": "vegan",
+ "located": {
+  "lat": 22.2819,
+  "lon": 114.1582
+ },
+ "fetchedAt": "2026-09-26T20:22:00.361Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:20:51Z",
+  "scope": "3 km radius around context location",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 4,
+  "veganYes": 10,
+  "vegetarianOrVegan": 24,
+  "venues": [
+   {
+    "osm": "node/1932297114",
+    "name": "一念素食 Bijas Vegetarian",
+    "nameEn": "Bijas Vegetarian",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "only",
+    "lat": 22.2838172,
+    "lon": 114.134177,
+    "hours": "Mo-Fr 08:00-21:00; PH Sa 11:30-21:00; Su off"
+   },
+   {
+    "osm": "node/2192511369",
+    "name": "Smrat Pure Veg",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "only",
+    "lat": 22.2965821,
+    "lon": 114.172744,
+    "street": "彌敦道 Nathan Road"
+   },
+   {
+    "osm": "node/2192631868",
+    "name": "Kung Tak Lam",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 22.2959936,
+    "lon": 114.169895
+   },
+   {
+    "osm": "node/2937171046",
+    "name": "The Delhi Club",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "only",
+    "lat": 22.2964764,
+    "lon": 114.1731646,
+    "street": "彌敦道 Nathan Road"
+   },
+   {
+    "osm": "node/2938377196",
+    "name": "Smrat Pure Veg (G/F)",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "only",
+    "lat": 22.2963328,
+    "lon": 114.1727159,
+    "street": "彌敦道 Nathan Road"
+   },
+   {
+    "osm": "node/4149638363",
+    "name": "天然齋 Green Veggie",
+    "nameEn": "Green Veggie",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 22.27905,
+    "lon": 114.17707,
+    "street": "謝斐道 Jaffe Road"
+   },
+   {
+    "osm": "node/4198132690",
+    "name": "Grassroots Pantry",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 22.2843622,
+    "lon": 114.1509383,
+    "street": "荷李活道 Hollywood Road"
+   },
+   {
+    "osm": "node/4265608189",
+    "name": "美味廚 Megan's Kitchen",
+    "nameEn": "Megan's Kitchen",
+    "amenity": "restaurant",
+    "cuisine": "hotpot;chinese;cantonese;seafood",
+    "vegetarian": "yes",
+    "lat": 22.2769101,
+    "lon": 114.1770143,
+    "street": "灣仔道 Wan Chai Road",
+    "hours": "Mo-Su 12:00-15:00,18:00-23:30"
+   },
+   {
+    "osm": "node/4269246092",
+    "name": "VeggieSF",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 22.28223,
+    "lon": 114.15578,
+    "street": "士丹利街 Stanley Street",
+    "hours": "Mo-Sa 12:00-14:30,18:00-21:00"
+   },
+   {
+    "osm": "node/4330876797",
+    "name": "東方小祇園 Tung Fong Siu Kee Yuen",
+    "nameEn": "Tung Fong Siu Kee Yuen",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 22.2780742,
+    "lon": 114.1760602,
+    "street": "軒尼詩道 Hennessy Road"
+   },
+   {
+    "osm": "node/4338081591",
+    "name": "Jane Beans",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.2791414,
+    "lon": 114.1851998
+   },
+   {
+    "osm": "node/4367744290",
+    "name": "Branto 印度素食餐廳 Branto Indian Vegetarian Restaurant",
+    "nameEn": "Branto Indian Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 22.2968694,
+    "lon": 114.1714694,
+    "street": "樂道 Lock Road",
+    "hours": "Mo-Su 11:00-15:00, 22:00-22:00"
+   },
+   {
+    "osm": "node/4770571827",
+    "name": "波羅密素食 Paramita",
+    "nameEn": "Paramita",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.30283,
+    "lon": 114.1719939
+   },
+   {
+    "osm": "node/4770571923",
+    "name": "三德素食館 Three Virtues Vegetarian Restaurant",
+    "nameEn": "Three Virtues Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.3049979,
+    "lon": 114.1712573,
+    "street": "佐敦道 Jordan Road"
+   },
+   {
+    "osm": "node/5459234634",
+    "name": "Green Common",
+    "nameEn": "Green Common",
+    "amenity": "cafe",
+    "cuisine": "asian",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 22.2949945,
+    "lon": 114.1680263,
+    "street": "廣東道 Canton Road",
+    "hours": "Mo-Fr 11:30-21:00; Su,PH 11:30-21:30"
+   },
+   {
+    "osm": "node/6397681196",
+    "name": "Sedap Gurih Indonesian Restaurant",
+    "nameEn": "Sedap Gurih Indonesian Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "indonesian",
+    "vegetarian": "yes",
+    "lat": 22.2797226,
+    "lon": 114.1866037
+   },
+   {
+    "osm": "node/6778469674",
+    "name": "活蘭印度素食 Woodlands Indian Vegetarian Restaurant",
+    "nameEn": "Woodlands Indian Vegetarian Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "curry;indian",
+    "vegetarian": "yes",
+    "lat": 22.2786751,
+    "lon": 114.1718915,
+    "street": "盧押道 Luard Road",
+    "hours": "11:30-15:00; 18:00-22:30"
+   },
+   {
+    "osm": "node/6778574618",
+    "name": "Woodlands",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "lat": 22.2966633,
+    "lon": 114.1762921,
+    "street": "麼地道 Mody Road",
+    "hours": "Mo-Su 11:30-15:30, 18:30-22:30"
+   },
+   {
+    "osm": "node/10185182583",
+    "name": "Vegetarian Food",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegan": "yes",
+    "lat": 22.2870316,
+    "lon": 114.141989
+   },
+   {
+    "osm": "node/11853039519",
+    "name": "Fiata",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": 22.2815743,
+    "lon": 114.1532095
+   },
+   {
+    "osm": "node/13531388301",
+    "name": "Cafe Zi",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 22.3026054,
+    "lon": 114.1725612,
+    "street": "山林道 Hillwood Road",
+    "hours": "Mo-Su 12:00-21:30"
+   },
+   {
+    "osm": "node/14087222507",
+    "name": "Treehouse",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.2821534,
+    "lon": 114.1542071,
+    "street": "砵典乍街 Pottinger Street",
+    "hours": "Mo-Sa 10:00-22:00; Su 11:00-21:00"
+   },
+   {
+    "osm": "node/14087259142",
+    "name": "Treehouse",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.2780184,
+    "lon": 114.1829738,
+    "street": "霎東街 Sharp Street East",
+    "hours": "Mo-Sa 10:00-22:00; Su 11:00-21:00"
+   },
+   {
+    "osm": "node/14087335072",
+    "name": "Treehouse",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 22.2965298,
+    "lon": 114.172509,
+    "street": "彌敦道 Nathan Road",
+    "hours": "Mo-Su 11:00-21:00"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Hong Kong",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

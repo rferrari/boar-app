@@ -1,0 +1,993 @@
+{
+ "id": "food-008",
+ "city": "Istanbul",
+ "wikidata": "Q406",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:27:29.863Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:25:56Z",
+  "scope": "10 km radius around 41.01361111,28.955 (admin area Q406 not found in OSM)",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 5,
+  "veganYes": 63,
+  "vegetarianOrVegan": 94,
+  "venues": [
+   {
+    "osm": "node/1665037883",
+    "name": "Fıccın",
+    "amenity": "restaurant",
+    "cuisine": "fish;turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0325552,
+    "lon": 28.9757155,
+    "street": "Kallavi Sokağı"
+   },
+   {
+    "osm": "node/1697171839",
+    "name": "Falafel Veggie",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 41.0511155,
+    "lon": 28.9926497
+   },
+   {
+    "osm": "node/1697174881",
+    "name": "Loving Hut",
+    "amenity": "restaurant",
+    "cuisine": "international",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 41.0439223,
+    "lon": 29.002724
+   },
+   {
+    "osm": "node/1834383973",
+    "name": "Mado",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 40.9839912,
+    "lon": 29.0239803,
+    "hours": "Mo-Fr 09:00-23:00; Sa,Su 09:00-24:00"
+   },
+   {
+    "osm": "node/2453594560",
+    "name": "Destan Halk Lokantası",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9908881,
+    "lon": 29.0266204,
+    "street": "Söğütlüçeşme Caddesi"
+   },
+   {
+    "osm": "node/2547264076",
+    "name": "Hayvore",
+    "amenity": "restaurant",
+    "cuisine": "mediterranean;regional;turkish",
+    "vegetarian": "yes",
+    "lat": 41.0338294,
+    "lon": 28.9788816
+   },
+   {
+    "osm": "node/3100037838",
+    "name": "Mivan Restaurant Cafe",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 41.0062127,
+    "lon": 28.9690802,
+    "street": "Piyer Loti Caddesi",
+    "hours": "Mo-Su 08:00-01:30"
+   },
+   {
+    "osm": "node/3261403273",
+    "name": "Tavanarası",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegetarian": "yes",
+    "lat": 41.0299932,
+    "lon": 28.9748275
+   },
+   {
+    "osm": "node/3325111908",
+    "name": "No:19 Dining",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "lat": 41.0329704,
+    "lon": 28.9813499,
+    "street": "Faik Paşa Caddesi"
+   },
+   {
+    "osm": "node/3453781937",
+    "name": "Kardesler Kebap & Cafe",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 41.031145,
+    "lon": 28.9824306
+   },
+   {
+    "osm": "node/4281755191",
+    "name": "Mahatma Vegan Cafe",
+    "amenity": "cafe",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9970599,
+    "lon": 29.0289393
+   },
+   {
+    "osm": "node/4282213490",
+    "name": "kafeNAsanat",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.0450468,
+    "lon": 29.0005724
+   },
+   {
+    "osm": "node/4417671241",
+    "name": "Çiğköftem",
+    "nameEn": "Cigköfte M",
+    "amenity": "fast_food",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 40.9851577,
+    "lon": 29.0249862
+   },
+   {
+    "osm": "node/4494601089",
+    "name": "Komşu Kafe Collective",
+    "nameEn": "Komshu Cafe Collective",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 40.9952594,
+    "lon": 29.0285536,
+    "street": "Uzun Hafız Sokağı",
+    "hours": "Mo-Su 08:00-00:00"
+   },
+   {
+    "osm": "node/4603530093",
+    "name": "Vegan Istanbul",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0309878,
+    "lon": 28.98181,
+    "street": "Türkgücü Caddesi"
+   },
+   {
+    "osm": "node/4744505421",
+    "name": "Esmer",
+    "nameEn": "Esmer",
+    "amenity": "restaurant",
+    "cuisine": "pasta;pizza",
+    "vegetarian": "yes",
+    "lat": 41.0352918,
+    "lon": 28.9814276
+   },
+   {
+    "osm": "node/4790244322",
+    "name": "Kulübe Moda",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9862299,
+    "lon": 29.0303929,
+    "hours": "Mo-Su 09:00-22:00"
+   },
+   {
+    "osm": "node/4883631821",
+    "name": "Wegain",
+    "nameEn": "Wegain",
+    "amenity": "cafe",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0294058,
+    "lon": 28.9796566
+   },
+   {
+    "osm": "node/4889905025",
+    "name": "Garda Cafe",
+    "nameEn": "Garda Cafe",
+    "amenity": "cafe",
+    "cuisine": "regional;pasta;dessert;sandwich;coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9958376,
+    "lon": 29.0292728,
+    "street": "Karakolhane Caddesi",
+    "hours": "Mo-Su 08:00-01:00"
+   },
+   {
+    "osm": "node/4977947522",
+    "name": "180 Coffee & Bakery",
+    "nameEn": "180 Coffee & Bakery;180° Coffee Bakery",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;breakfast;international",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9847745,
+    "lon": 29.0267625,
+    "street": "Dr. Esat Işık Caddesi",
+    "hours": "Mo-Su 09:00-22:00"
+   },
+   {
+    "osm": "node/5112732284",
+    "name": "Koska",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0097336,
+    "lon": 28.9578311,
+    "street": "Ordu Caddesi"
+   },
+   {
+    "osm": "node/5193319823",
+    "name": "TRIA ELEGANCE TERRACE RESTAURANT",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0056813,
+    "lon": 28.9810203,
+    "street": "Terbıyık Sokağı",
+    "hours": "Tu-Su 13:00-23:00"
+   },
+   {
+    "osm": "node/5244802012",
+    "name": "Arch Bistro",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.004636,
+    "lon": 28.9713131,
+    "street": "Kadırga Limanı Caddesi"
+   },
+   {
+    "osm": "node/5275929321",
+    "name": "Patato",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0318624,
+    "lon": 28.9763337,
+    "street": "İstiklal Caddesi"
+   },
+   {
+    "osm": "node/5315087627",
+    "name": "Midpoint",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0008096,
+    "lon": 29.0543635,
+    "hours": "Mo-Su,PH 10:00-22:00"
+   },
+   {
+    "osm": "node/5325731621",
+    "name": "fitty feed - clean eating",
+    "amenity": "restaurant",
+    "cuisine": "grill;international;breakfast;mediterranean;italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9734952,
+    "lon": 29.0567911,
+    "street": "Yeşilbahar Sokak",
+    "hours": "Mo-Su 09:00-18:00"
+   },
+   {
+    "osm": "node/5370651424",
+    "name": "Privato Cafe",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegetarian": "yes",
+    "lat": 41.0268623,
+    "lon": 28.9740831,
+    "street": "Tımarcı Sokağı",
+    "hours": "09:00-23:00"
+   },
+   {
+    "osm": "node/5397662737",
+    "name": "Papadopoulos Coffee & Cake",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 41.0261026,
+    "lon": 28.9772237,
+    "street": "Lüleci hendek Sokak",
+    "hours": "Mo-Su 09:00-18:00"
+   },
+   {
+    "osm": "node/5545370912",
+    "name": "Galata Kitchen",
+    "nameEn": "Galata Kitchen",
+    "amenity": "cafe",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0257414,
+    "lon": 28.9753681,
+    "hours": "Mo-Sa 11:30-22:00"
+   },
+   {
+    "osm": "node/5590542222",
+    "name": "Pizeria Quattro",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian",
+    "vegetarian": "yes",
+    "lat": 41.0342249,
+    "lon": 28.983521,
+    "street": "Billurcu Sokağı",
+    "hours": "Mo-Su 09:00-22:00"
+   },
+   {
+    "osm": "node/5599579423",
+    "name": "Vi Coffee & HealthyLiving",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;breakfast",
+    "vegan": "yes",
+    "lat": 41.0486445,
+    "lon": 28.9958967,
+    "street": "Ahmet Fetgari Sokağı",
+    "hours": "Mo-Sa 07:30-23:00; Su 08:30-20:30"
+   },
+   {
+    "osm": "node/5672019103",
+    "name": "Mado",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 41.0353409,
+    "lon": 28.9815811
+   },
+   {
+    "osm": "node/5735358321",
+    "name": "Falafel House",
+    "nameEn": "Falafel House",
+    "amenity": "fast_food",
+    "cuisine": "chicken;turkish;kebab",
+    "vegetarian": "yes",
+    "lat": 41.0385941,
+    "lon": 28.9844819,
+    "street": "Şehit Muhtar Bey Caddesi",
+    "hours": "Mo-Su 09:00-01:00"
+   },
+   {
+    "osm": "node/5744424621",
+    "name": "Beyoğlu Halk Döner Restaurant",
+    "amenity": "fast_food",
+    "cuisine": "tea;chicken;turkish;kebab;local",
+    "vegetarian": "yes",
+    "lat": 41.0409522,
+    "lon": 28.9862794,
+    "street": "Yedi Kuyular Caddesi"
+   },
+   {
+    "osm": "node/6296619692",
+    "name": "Café Faruk",
+    "amenity": "cafe",
+    "vegetarian": "yes",
+    "lat": 41.0438813,
+    "lon": 29.0027744
+   },
+   {
+    "osm": "node/6470872085",
+    "name": "Community kitchen",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.028397,
+    "lon": 28.976837,
+    "street": "Kumbaracı Yokuşu"
+   },
+   {
+    "osm": "node/6521591285",
+    "name": "Byzantion Bistro & Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "seafood;italian_pizza;beef_bowl;italian;coffee_shop;local;mediterranean;barbecue;fine_dining;pizza;steak_house;turkish;fish;pasta;kebab;grill",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0101766,
+    "lon": 28.9544326,
+    "street": "Yeşiltulumba Sokak",
+    "hours": "Mo-Su 11:00-01:00"
+   },
+   {
+    "osm": "node/7014934107",
+    "name": "Divella Bistro Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "seafood;italian_pizza;russian;beef_bowl;fish_and_chips;italian;coffee_shop;local;mediterranean;barbecue;tea;fine_dining;pizza;steak_house;turkish;fish;pasta;kebab;breakfast;grill",
+    "vegan": "yes",
+    "lat": 41.006432,
+    "lon": 28.9808176,
+    "street": "Adliye Sokak",
+    "hours": "Mo-Su 10:00-00:55"
+   },
+   {
+    "osm": "node/7087535985",
+    "name": "Cafe Berry",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0362791,
+    "lon": 28.9753057,
+    "hours": "Mo-Su 08:00-17:00"
+   },
+   {
+    "osm": "node/7108002185",
+    "name": "Saray Lokantası",
+    "nameEn": "Saray Lokantasi",
+    "amenity": "restaurant",
+    "cuisine": "turkish;regional",
+    "vegetarian": "yes",
+    "lat": 41.0357258,
+    "lon": 28.9755313
+   },
+   {
+    "osm": "node/7198296674",
+    "name": "Chef Coffee",
+    "amenity": "cafe",
+    "cuisine": "burger;makarna;kahvaltı;sandwich",
+    "vegan": "yes",
+    "lat": 41.0464275,
+    "lon": 29.0024954,
+    "street": "Mısırlı Sokağı",
+    "hours": "Mo-Fr 08:00-20:00; Sa,Su 08:00-02:00"
+   },
+   {
+    "osm": "node/8190295421",
+    "name": "Arka Bahce",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 40.9966215,
+    "lon": 29.0290552,
+    "street": "Karakolhane Caddesi"
+   },
+   {
+    "osm": "node/8324180075",
+    "name": "Espressolab",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 41.0218962,
+    "lon": 28.9759546,
+    "hours": "Mo-Su 07:00-23:00"
+   },
+   {
+    "osm": "node/9060984489",
+    "name": "TomTom Kebap",
+    "amenity": "fast_food",
+    "cuisine": "kebab",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 41.0309993,
+    "lon": 28.9789068
+   },
+   {
+    "osm": "node/9199628839",
+    "name": "Nevale Mutfak",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.0453014,
+    "lon": 29.00366,
+    "street": "Mecit Ali Sokağı",
+    "hours": "Mo-Su 11:00-22:00"
+   },
+   {
+    "osm": "node/9709844018",
+    "name": "Organic Me - Vegan Cafe & Shop",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0328302,
+    "lon": 28.9776012,
+    "street": "Yeni Çarşı Caddesi",
+    "hours": "Mo-Su 11:00-23:00"
+   },
+   {
+    "osm": "node/9730235699",
+    "name": "Uniş Firin & Cafe",
+    "amenity": "cafe",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 41.0522849,
+    "lon": 28.9890772
+   },
+   {
+    "osm": "node/9769630444",
+    "name": "Akoğuz Çiftliği",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9950395,
+    "lon": 29.0295314
+   },
+   {
+    "osm": "node/9777184609",
+    "name": "Çiğköftem",
+    "amenity": "fast_food",
+    "cuisine": "turkish",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.0473275,
+    "lon": 28.9868932
+   },
+   {
+    "osm": "node/9777700081",
+    "name": "Oses Cigkofte",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0319972,
+    "lon": 28.9483812
+   },
+   {
+    "osm": "node/9821259716",
+    "name": "Vatka Coffe & Vegan",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 40.9852061,
+    "lon": 29.0282813,
+    "street": "İleri Sokağı"
+   },
+   {
+    "osm": "node/9860981067",
+    "name": "Kem Küm",
+    "amenity": "fast_food",
+    "vegan": "yes",
+    "lat": 40.9861013,
+    "lon": 29.0222933,
+    "street": "Kılaptancı Sokağı"
+   },
+   {
+    "osm": "node/9887152820",
+    "name": "Turp",
+    "nameEn": "Turp Vegan & Vejetaryen Sokak Lezzetleri",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 40.9851279,
+    "lon": 29.0232837
+   },
+   {
+    "osm": "node/9911103569",
+    "name": "Asian vegan kitchen",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.032877,
+    "lon": 28.9877022
+   },
+   {
+    "osm": "node/10064829418",
+    "name": "Vegan Food Cartel",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 41.0349694,
+    "lon": 28.9832557,
+    "street": "Abdullah Sokağı"
+   },
+   {
+    "osm": "node/10711119405",
+    "name": "tostçudede",
+    "amenity": "fast_food",
+    "vegetarian": "yes",
+    "lat": 40.9802537,
+    "lon": 29.0232082
+   },
+   {
+    "osm": "node/10718402721",
+    "name": "Cantinery",
+    "amenity": "restaurant",
+    "cuisine": "turkish;italian;french",
+    "vegan": "yes",
+    "lat": 41.0662128,
+    "lon": 29.0169299,
+    "street": "Koru Sokağı",
+    "hours": "Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/10753842905",
+    "name": "Vegan Dukkan Lokanta",
+    "nameEn": "Vegan Store & Cafe",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.0326448,
+    "lon": 28.9840482,
+    "hours": "Mo-Su 10:00-21:00"
+   },
+   {
+    "osm": "node/10913617405",
+    "name": "Roka Cafe Kahvaltı",
+    "amenity": "restaurant",
+    "cuisine": "local;turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0309151,
+    "lon": 28.9789355,
+    "street": "Yeni Çarşı Caddesi"
+   },
+   {
+    "osm": "node/11011308267",
+    "name": "Vegan Masa",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 41.0449946,
+    "lon": 29.002589,
+    "street": "Mısırlıbahçe Sokağı",
+    "hours": "Mo-Su 10:30-22:30"
+   },
+   {
+    "osm": "node/11064670088",
+    "name": "Pera's Coffee",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 41.0354111,
+    "lon": 28.9764033
+   },
+   {
+    "osm": "node/11336685614",
+    "name": "Burger King",
+    "nameEn": "Burger king",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.026342,
+    "lon": 28.9835759
+   },
+   {
+    "osm": "node/11343577203",
+    "name": "Galata Sahil Cafe",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.024367,
+    "lon": 28.9691124
+   },
+   {
+    "osm": "node/11420990969",
+    "name": "Nevmekan Selimiye",
+    "amenity": "cafe",
+    "cuisine": "breakfast;coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0102565,
+    "lon": 29.016685,
+    "street": "Şerif Kuyusu Sokağı",
+    "hours": "Mo-Su 09:30-23:00"
+   },
+   {
+    "osm": "node/11521971378",
+    "name": "Semsür Çiğköfte",
+    "amenity": "restaurant",
+    "cuisine": "turkish;middle_eastern;anatolian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0242983,
+    "lon": 29.0123122
+   },
+   {
+    "osm": "node/11952518369",
+    "name": "Juicery",
+    "nameEn": "Juicery",
+    "amenity": "cafe",
+    "cuisine": "indonesian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0324819,
+    "lon": 28.9842411,
+    "street": "Sıraselviler Caddesi",
+    "hours": "Mo-Sa 09:30-19:00"
+   },
+   {
+    "osm": "node/12025463369",
+    "name": "Vegan Community Kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 41.0278755,
+    "lon": 28.9763398,
+    "street": "Serdar-ı Ekrem Caddesi"
+   },
+   {
+    "osm": "node/12311485567",
+    "name": "Ziyafet kuzu çevirme İstanbul",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegetarian": "yes",
+    "lat": 41.0136914,
+    "lon": 28.9770445,
+    "street": "Hüdavendigar Caddesi",
+    "hours": "Mo-Su 10:00-23:00"
+   },
+   {
+    "osm": "node/12673457441",
+    "name": "Vegan Masa",
+    "amenity": "restaurant",
+    "cuisine": "turkish;lahmacun;pide",
+    "vegan": "only",
+    "lat": 40.991388,
+    "lon": 29.0276821,
+    "hours": "Mo-Su 11:00-22:00"
+   },
+   {
+    "osm": "node/12723319914",
+    "name": "Port Cafe",
+    "amenity": "fast_food",
+    "cuisine": "doner",
+    "vegetarian": "yes",
+    "lat": 41.0307725,
+    "lon": 28.9885355
+   },
+   {
+    "osm": "node/12818630925",
+    "name": "Dilek",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 41.0251074,
+    "lon": 29.0131678
+   },
+   {
+    "osm": "node/12920071398",
+    "name": "Arsamiea Çiğköfte",
+    "amenity": "restaurant",
+    "cuisine": "turkish",
+    "vegetarian": "yes",
+    "lat": 41.0821005,
+    "lon": 28.9247212
+   },
+   {
+    "osm": "node/12959659469",
+    "name": "MANDI SEBAM",
+    "amenity": "restaurant",
+    "cuisine": "arab;regional;tea;steak_house;chicken;kebab;seafood;noodle;breakfast;juice;donut",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0126775,
+    "lon": 28.9410105,
+    "street": "Emin Ali Yaşin Sokağı",
+    "hours": "Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/13050297710",
+    "name": "Postane Cafe",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 41.024931,
+    "lon": 28.9743762,
+    "street": "Camekan Sokağı",
+    "hours": "Mo-Su 09:00-19:00"
+   },
+   {
+    "osm": "node/13230248501",
+    "name": "Vegan Community Kitchen Express",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0276041,
+    "lon": 28.977963,
+    "street": "Kumbaracı Yokuşu"
+   },
+   {
+    "osm": "node/13357963453",
+    "name": "Porto Napoli Pizza",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian;salad",
+    "vegetarian": "yes",
+    "lat": 40.9956595,
+    "lon": 29.0291223,
+    "street": "Duatepe Sokağı",
+    "hours": "Tu-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/13444970392",
+    "name": "Kırıntı",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0027207,
+    "lon": 29.0550949
+   },
+   {
+    "osm": "node/13481673575",
+    "name": "Pizza Pieza by Divan",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9763189,
+    "lon": 29.0404958,
+    "street": "Münir Nürettin Selçuk Caddesi",
+    "hours": "Tu-Sa 14:30-23:30"
+   },
+   {
+    "osm": "node/13695793702",
+    "name": "Brops World Cuisine",
+    "amenity": "restaurant",
+    "cuisine": "breakfast;burger;chicken;pasta;turkish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9734454,
+    "lon": 29.0414638,
+    "street": "Fener Kalamış Caddesi",
+    "hours": "Tu-Su 09:00-21:30"
+   },
+   {
+    "osm": "node/13703445001",
+    "name": "Hoş Sefa Lokantası",
+    "amenity": "restaurant",
+    "cuisine": "chicken;local;turkish",
+    "vegetarian": "yes",
+    "lat": 40.9940057,
+    "lon": 29.0301269,
+    "street": "Karakolhane Caddesi",
+    "hours": "Mo-Sa 07:30-22:00"
+   },
+   {
+    "osm": "node/13776063921",
+    "name": "Azurro Pizza Napoletana",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0515976,
+    "lon": 28.9898505
+   },
+   {
+    "osm": "node/13779063784",
+    "name": "Miso Ramen",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0520899,
+    "lon": 28.988339
+   },
+   {
+    "osm": "node/13875876923",
+    "name": "Vega Vegan Büfe",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 40.9944975,
+    "lon": 29.0274696
+   },
+   {
+    "osm": "node/13982309802",
+    "name": "Ethique Patisserie & Boulangerie",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9899126,
+    "lon": 29.0556472
+   },
+   {
+    "osm": "node/13983399602",
+    "name": "Ayrışım Kitabevi Kafe",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.993658,
+    "lon": 29.0280172,
+    "street": "Beydağı Sokağı"
+   },
+   {
+    "osm": "node/13987265665",
+    "name": "McDonald's",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "no",
+    "vegetarian": "only",
+    "lat": 41.037911,
+    "lon": 28.9844024
+   },
+   {
+    "osm": "node/14078946501",
+    "name": "Vacilando",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0269743,
+    "lon": 28.97649,
+    "street": "Hoca Ali Sokağı"
+   },
+   {
+    "osm": "node/14106428479",
+    "name": "Adile Hanım Konağı",
+    "amenity": "restaurant",
+    "cuisine": "turkish;coffee_shop;breakfast;bagel;tea",
+    "vegetarian": "yes",
+    "lat": 41.0324595,
+    "lon": 28.9827833,
+    "street": "Adile Naşit Çıkmazı Sokağı",
+    "hours": "08:00-23:00"
+   },
+   {
+    "osm": "node/14107890279",
+    "name": "Plantbased Egyptian Food - Misir Mutfagi",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 40.9905681,
+    "lon": 29.0264249
+   },
+   {
+    "osm": "node/14180362915",
+    "name": "Blue Bird",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 41.0027573,
+    "lon": 29.0550665
+   },
+   {
+    "osm": "node/14180367233",
+    "name": "Starbucks",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 41.0027311,
+    "lon": 29.0547721
+   },
+   {
+    "osm": "way/478587263",
+    "name": "MAYBE",
+    "amenity": "cafe",
+    "cuisine": "brunch;breakfast;coffee_shop;dessert",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 40.9732585,
+    "lon": 29.0436322,
+    "street": "Gazi Mehmetçik Sokağı",
+    "hours": "Mo-Su 09:00-21:00"
+   },
+   {
+    "osm": "way/520755023",
+    "name": "MANDI SEBAM",
+    "amenity": "restaurant",
+    "cuisine": "regional;chicken;arab;seafood;barbecue;juice",
+    "vegetarian": "yes",
+    "lat": 41.0126955,
+    "lon": 28.9409921,
+    "street": "Emin Ali Yaşin Sokağı",
+    "hours": "Mo-Su 10:00-22:00"
+   },
+   {
+    "osm": "way/699951119",
+    "name": "Beny Burger House & Cafeteria",
+    "amenity": "restaurant",
+    "cuisine": "burger;chicken;coffee_shop;breakfast",
+    "vegetarian": "yes",
+    "lat": 41.0440584,
+    "lon": 29.001083,
+    "street": "Şair Nedim Caddesi",
+    "hours": "Mo-Su 11:00-02:00"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Istanbul",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

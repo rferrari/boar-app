@@ -1,0 +1,452 @@
+{
+ "id": "food-015",
+ "city": "Medellín",
+ "wikidata": "Q48278",
+ "diet": "vegetarian",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:36:38.382Z",
+ "osm": {
+  "snapshot": "2026-06-01T08:52:28Z",
+  "scope": "admin area Q48278",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 1,
+  "veganYes": 23,
+  "vegetarianOrVegan": 44,
+  "venues": [
+   {
+    "osm": "node/3216522674",
+    "name": "Flor de Loto",
+    "amenity": "restaurant",
+    "cuisine": "thai",
+    "vegetarian": "yes",
+    "lat": 6.2550213,
+    "lon": -75.5824171
+   },
+   {
+    "osm": "node/3572271500",
+    "name": "Govindas veg food",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2510084,
+    "lon": -75.5691738
+   },
+   {
+    "osm": "node/3769828235",
+    "name": "Verdeo",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2108341,
+    "lon": -75.5653693
+   },
+   {
+    "osm": "node/4381380546",
+    "name": "Caseritos",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 6.2411971,
+    "lon": -75.5967335,
+    "street": "Carrera 76",
+    "hours": "Mo-Fr 09:00-17:00"
+   },
+   {
+    "osm": "node/4508716289",
+    "name": "Café Zeppelin",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2464356,
+    "lon": -75.5975997,
+    "street": "Transversal 39",
+    "hours": "Mo-Th 00:00-22:00; Fr-Sa 00:00-12:00"
+   },
+   {
+    "osm": "node/4551658991",
+    "name": "Lenteja Express",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 6.2464308,
+    "lon": -75.5948851,
+    "hours": "Mo-Th 12:00-21:30; Fr-Sa 12:00-23:00; Su 12:00-19:30"
+   },
+   {
+    "osm": "node/4551670691",
+    "name": "Vegarden",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2352813,
+    "lon": -75.6027469
+   },
+   {
+    "osm": "node/4551680291",
+    "name": "Salud Pan",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2466267,
+    "lon": -75.590056
+   },
+   {
+    "osm": "node/4551681789",
+    "name": "Pizzeria Olivia",
+    "amenity": "restaurant",
+    "cuisine": "pizza;italian_pizza",
+    "vegetarian": "yes",
+    "lat": 6.2455441,
+    "lon": -75.596192
+   },
+   {
+    "osm": "node/4726365391",
+    "name": "MATI",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2140458,
+    "lon": -75.576774,
+    "street": "Carrera 48",
+    "hours": "Mo-Sa 09:00-19:00"
+   },
+   {
+    "osm": "node/4726432289",
+    "name": "Centeno Vegetariano Restaurante",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 6.2068112,
+    "lon": -75.5662524,
+    "street": "Carrera 36",
+    "hours": "Mo-Sa 09:00-21:00; Su 10:00-16:00"
+   },
+   {
+    "osm": "node/4823249922",
+    "name": "Lenteja express",
+    "amenity": "restaurant",
+    "cuisine": "spanish;local;caribbean",
+    "vegan": "yes",
+    "lat": 6.2084961,
+    "lon": -75.5656557
+   },
+   {
+    "osm": "node/4829207021",
+    "name": "Otro Cuento",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2490256,
+    "lon": -75.562031,
+    "street": "Calle 53",
+    "hours": "Mo-Su 11:00-22:00,00:00-12:00"
+   },
+   {
+    "osm": "node/4839295723",
+    "name": "Hacienda Orígen",
+    "nameEn": "Hacienda",
+    "amenity": "restaurant",
+    "cuisine": "local",
+    "vegetarian": "yes",
+    "lat": 6.2507565,
+    "lon": -75.5657628
+   },
+   {
+    "osm": "node/4965936452",
+    "name": "Uno mas uno",
+    "amenity": "cafe",
+    "cuisine": "international",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.246322,
+    "lon": -75.590452,
+    "street": "Circular 4",
+    "hours": "Mo-Th 09:30-20:30; Fr-Sa 09:30-21:00"
+   },
+   {
+    "osm": "node/5099674521",
+    "name": "Semilla Café",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;brunch",
+    "vegetarian": "yes",
+    "lat": 6.2456066,
+    "lon": -75.5928517,
+    "hours": "Mo-Fr 08:00-20:30; Sa 08:00-20:30; PH 11:00-18:30"
+   },
+   {
+    "osm": "node/5376320421",
+    "name": "Marietta",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2084985,
+    "lon": -75.5657409,
+    "street": "Carrera 34"
+   },
+   {
+    "osm": "node/6251524988",
+    "name": "Saludable",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2454075,
+    "lon": -75.5654437,
+    "street": "Carrera 44"
+   },
+   {
+    "osm": "node/6299719093",
+    "name": "Dharma Vegan resto $",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 6.2098912,
+    "lon": -75.5715474
+   },
+   {
+    "osm": "node/6348565085",
+    "name": "Don Carlos Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegetarian": "yes",
+    "lat": 6.2499112,
+    "lon": -75.5893081,
+    "street": "Calle 44A",
+    "hours": "Mo-Su 07:00-22:00"
+   },
+   {
+    "osm": "node/6351228785",
+    "name": "Verdeo",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.210564,
+    "lon": -75.5654756,
+    "street": "Carrera 36"
+   },
+   {
+    "osm": "node/6551691785",
+    "name": "Achiote Bistro",
+    "nameEn": "INA Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "coffee_shop;local",
+    "vegan": "yes",
+    "lat": 6.2462274,
+    "lon": -75.5914288,
+    "street": "Circular 4",
+    "hours": "Mo-Sa 09:00-20:00"
+   },
+   {
+    "osm": "node/6589757187",
+    "name": "Copoazú",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2313104,
+    "lon": -75.6038562,
+    "street": "Calle 30",
+    "hours": "Mo-Sa 09:00-15:30"
+   },
+   {
+    "osm": "node/6721978286",
+    "name": "Cafe Exlibris",
+    "amenity": "restaurant",
+    "cuisine": "bakery;french;italian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2570273,
+    "lon": -75.578139
+   },
+   {
+    "osm": "node/7020859487",
+    "name": "Buena Vibra street food",
+    "nameEn": "Buena vibra street food",
+    "amenity": "restaurant",
+    "cuisine": "american",
+    "vegan": "yes",
+    "lat": 6.246009,
+    "lon": -75.5922871,
+    "street": "Carrera 73",
+    "hours": "Mo-Th 12:00-21:00; Fr 12:00-21:30"
+   },
+   {
+    "osm": "node/8364442163",
+    "name": "El Vegano Andante",
+    "amenity": "restaurant",
+    "cuisine": "regional",
+    "vegan": "yes",
+    "lat": 6.2324988,
+    "lon": -75.5916258,
+    "street": "Carrera 70"
+   },
+   {
+    "osm": "node/9355821872",
+    "name": "La Pizza de Alejo",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegetarian": "yes",
+    "lat": 6.2459094,
+    "lon": -75.5970794
+   },
+   {
+    "osm": "node/9624222217",
+    "name": "Sanducheo Colitas Paisas",
+    "amenity": "fast_food",
+    "cuisine": "sandwich",
+    "vegetarian": "yes",
+    "lat": 6.2463457,
+    "lon": -75.5633664
+   },
+   {
+    "osm": "node/10268881009",
+    "name": "Lenteja Express Centro",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2494183,
+    "lon": -75.562616
+   },
+   {
+    "osm": "node/10993264305",
+    "name": "Real vegetal",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2091329,
+    "lon": -75.5701479
+   },
+   {
+    "osm": "node/11006751706",
+    "name": "The Curry Lounge - Daawat e India",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.246715,
+    "lon": -75.5948026,
+    "street": "Avenida 74B"
+   },
+   {
+    "osm": "node/11011420205",
+    "name": "Helecho Vegan Sushi",
+    "amenity": "restaurant",
+    "cuisine": "asian;japanese;sushi",
+    "vegan": "yes",
+    "lat": 6.2113407,
+    "lon": -75.5718493,
+    "street": "Carrera 43C",
+    "hours": "Tu-Sa 16:00-21:45; Su 12:00-18:45"
+   },
+   {
+    "osm": "node/11164496170",
+    "name": "La Gatoría Cat Café",
+    "amenity": "cafe",
+    "vegetarian": "only",
+    "lat": 6.2397133,
+    "lon": -75.6022532,
+    "street": "Carrera 80C"
+   },
+   {
+    "osm": "node/11398851173",
+    "name": "Alma Natura",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2387017,
+    "lon": -75.5863478,
+    "street": "Calle 32F"
+   },
+   {
+    "osm": "node/11403592008",
+    "name": "Vegstation",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2101839,
+    "lon": -75.5669495
+   },
+   {
+    "osm": "node/12865406501",
+    "name": "El Poney Pisador",
+    "amenity": "restaurant",
+    "cuisine": "burger;coffee_shop;international;pizza;regional",
+    "vegetarian": "yes",
+    "lat": 6.2241118,
+    "lon": -75.4907192,
+    "street": "Calle 19",
+    "hours": "We-Th 16:00-23:30; Fr-Sa 11:00-23:30; Su 11:00-21:00"
+   },
+   {
+    "osm": "node/13111248925",
+    "name": "Mundo Verde",
+    "amenity": "restaurant",
+    "cuisine": "pasta;salad",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.246544,
+    "lon": -75.5963048
+   },
+   {
+    "osm": "node/13112577460",
+    "name": "123WOK",
+    "amenity": "restaurant",
+    "cuisine": "asian",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2453411,
+    "lon": -75.5973756
+   },
+   {
+    "osm": "node/13115034740",
+    "name": "Las Veganas",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2422327,
+    "lon": -75.5859407
+   },
+   {
+    "osm": "node/13116912546",
+    "name": "Mundo Verde",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 6.2407543,
+    "lon": -75.5868022,
+    "hours": "Mo-Sa 11:30-21:00; Su 11:30-20:00"
+   },
+   {
+    "osm": "node/13477951847",
+    "name": "Lafocacceria",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2684338,
+    "lon": -75.5683622
+   },
+   {
+    "osm": "node/13477956746",
+    "name": "Arbóreo",
+    "amenity": "restaurant",
+    "cuisine": "regional;sandwich;juice",
+    "vegetarian": "yes",
+    "lat": 6.2666219,
+    "lon": -75.5695157
+   },
+   {
+    "osm": "node/13686672201",
+    "name": "Tienda & Cocina Vegetariana",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 6.2494942,
+    "lon": -75.5632998,
+    "street": "Carrera 45"
+   },
+   {
+    "osm": "way/735003901",
+    "name": "El Vergel",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 6.2610581,
+    "lon": -75.5768817
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Medellín",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": [
+   "Verdeo",
+   "El Arbol de la Vida",
+   "Restaurante Vegetariano",
+   "Lenteja Espress"
+  ]
+ }
+}

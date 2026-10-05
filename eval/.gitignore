@@ -1,0 +1,5 @@
+.cache/
+node_modules/
+# Outputs: published as a release asset (README, "Results"), never committed.
+results/
+reports/

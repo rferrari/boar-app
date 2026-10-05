@@ -1,0 +1,13 @@
+{
+ "id": "places-007",
+ "city": "Qujing",
+ "diet": "vegan",
+ "fetchedAt": "2026-09-28T01:02:52.744Z",
+ "osm": {
+  "snapshot": "2026-09-28T01:01:37Z",
+  "scope": "25 km radius around 25.48333,103.78333",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "dietVenues": 0,
+  "venues": []
+ }
+}

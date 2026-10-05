@@ -1,0 +1,702 @@
+{
+ "id": "food-011",
+ "city": "Seoul",
+ "wikidata": "Q8684",
+ "diet": "vegan",
+ "located": null,
+ "fetchedAt": "2026-09-26T20:29:00.124Z",
+ "osm": {
+  "snapshot": "2026-09-26T20:27:01Z",
+  "scope": "admin area Q8684",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "veganOnly": 9,
+  "veganYes": 38,
+  "vegetarianOrVegan": 66,
+  "venues": [
+   {
+    "osm": "node/2458994571",
+    "name": "Yona's Kitchen",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 37.5333647,
+    "lon": 126.9914603
+   },
+   {
+    "osm": "node/2460152217",
+    "name": "Riche Cake Shop",
+    "amenity": "fast_food",
+    "vegetarian": "only",
+    "lat": 37.5988238,
+    "lon": 127.0973593,
+    "street": "Mangu-ro 62-gil"
+   },
+   {
+    "osm": "node/2463593972",
+    "name": "New Start",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegan": "yes",
+    "vegetarian": "only",
+    "lat": 37.5041852,
+    "lon": 127.0503831
+   },
+   {
+    "osm": "node/2471444664",
+    "name": "오세계향",
+    "nameEn": "Osegyehyang",
+    "amenity": "restaurant",
+    "cuisine": "Korean,_Vegetable_Cuisine;불구이쌈밥;두개장정식;중화볶음우동;순두부강된장비빔밥",
+    "vegan": "only",
+    "lat": 37.574661,
+    "lon": 126.9852825,
+    "street": "인사동12길",
+    "hours": "Fr-We 11:30-16:00, 17:00-21:00"
+   },
+   {
+    "osm": "node/3871627629",
+    "name": "Jack's Bean",
+    "amenity": "fast_food",
+    "vegan": "only",
+    "lat": 37.5551827,
+    "lon": 126.9293158,
+    "street": "와우산로29길",
+    "hours": "10:00-21:00"
+   },
+   {
+    "osm": "node/4317931691",
+    "name": "Brera",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "vegetarian": "yes",
+    "lat": 37.548155,
+    "lon": 127.00699
+   },
+   {
+    "osm": "node/4402406581",
+    "name": "DalYang",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 37.5963988,
+    "lon": 127.0329271,
+    "street": "Jongamro9gil",
+    "hours": "Tu-Sa 11:00-22:00"
+   },
+   {
+    "osm": "node/4407537025",
+    "name": "Maji",
+    "amenity": "restaurant",
+    "vegetarian": "only",
+    "lat": 37.4923336,
+    "lon": 126.9890082
+   },
+   {
+    "osm": "node/4420520859",
+    "name": "타지(Taj)",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 37.564327,
+    "lon": 126.9860873,
+    "street": "Myeongdong-gil"
+   },
+   {
+    "osm": "node/4422084822",
+    "name": "Taj Palace",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 37.53367,
+    "lon": 126.9955688,
+    "street": "Usadan-ro"
+   },
+   {
+    "osm": "node/4739643323",
+    "name": "까르따19",
+    "nameEn": "CARTA 19",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 37.5604102,
+    "lon": 126.923774,
+    "hours": "Tu-Fr 11:00-16:00,17:00-23:00; Sa,Su 11:00-23:00"
+   },
+   {
+    "osm": "node/4952005424",
+    "name": "Plant",
+    "nameEn": "Plant",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 37.5331798,
+    "lon": 126.9943183,
+    "street": "보광로"
+   },
+   {
+    "osm": "node/5622741722",
+    "name": "발우공양",
+    "nameEn": "Balwoo Gongyang",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 37.5737728,
+    "lon": 126.983174,
+    "street": "우정국로",
+    "hours": "Mo-Sa 11:30-15:00, 18:00-21:30"
+   },
+   {
+    "osm": "node/5768651950",
+    "name": "Han Gwa Chae",
+    "amenity": "restaurant",
+    "cuisine": "buffet;korean",
+    "vegan": "yes",
+    "lat": 37.5743056,
+    "lon": 126.9857507,
+    "hours": "Mo-Sa 11:30-15:00, Mo-Sa 17:00-20:30"
+   },
+   {
+    "osm": "node/6333787685",
+    "name": "Vegetus",
+    "amenity": "restaurant",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": 37.5437073,
+    "lon": 126.9872653,
+    "street": "신흥로",
+    "hours": "Tu-Sa 12:00-15:00, 17:00-21:30; Su 17:00-21:30"
+   },
+   {
+    "osm": "node/6341759286",
+    "name": "The Raw by Twins",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 37.5514005,
+    "lon": 126.9078257,
+    "hours": "We-Su 11:30-19:00"
+   },
+   {
+    "osm": "node/6342602985",
+    "name": "유어마나",
+    "nameEn": "Druken Vegan",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "lat": 37.5542202,
+    "lon": 126.9299049,
+    "street": "와우산로",
+    "hours": "We-Su 12:00-15:00, 17:00-23:00"
+   },
+   {
+    "osm": "node/8158806517",
+    "name": "달콤 제빵소",
+    "amenity": "restaurant",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 37.5819699,
+    "lon": 127.0445417,
+    "hours": "PH,Mo-Su 08:00-23:00"
+   },
+   {
+    "osm": "node/8327114510",
+    "name": "뿌자",
+    "nameEn": "Pooja Indian Nepali Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 37.5668041,
+    "lon": 127.006655
+   },
+   {
+    "osm": "node/8711029743",
+    "name": "마히나 비건 테이블",
+    "nameEn": "Mahina Vegan Table",
+    "amenity": "restaurant",
+    "cuisine": "italian;korean;coffee_shop",
+    "vegan": "yes",
+    "lat": 37.5237008,
+    "lon": 127.0231038,
+    "street": "논현로175길",
+    "hours": "Tu-Su 12:00-21:30"
+   },
+   {
+    "osm": "node/9787099869",
+    "name": "비에뜨반미",
+    "nameEn": "Viette Bánh Mì",
+    "amenity": "fast_food",
+    "cuisine": "sandwich;vietnamese",
+    "vegetarian": "yes",
+    "lat": 37.4976077,
+    "lon": 126.9984041,
+    "hours": "Mo-Su 10:00-20:00"
+   },
+   {
+    "osm": "node/9795847191",
+    "name": "후럼브르클린",
+    "nameEn": "From Brooklyn",
+    "amenity": "restaurant",
+    "cuisine": "pizza",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 37.5387058,
+    "lon": 126.9871448,
+    "hours": "Mo-Th 11:30-23:00; Fr 11:30-00:00; Sa, Su 12:00-00:00"
+   },
+   {
+    "osm": "node/10023392832",
+    "name": "효미역",
+    "amenity": "restaurant",
+    "cuisine": "korean;미역국",
+    "vegetarian": "yes",
+    "lat": 37.5202839,
+    "lon": 126.9674236
+   },
+   {
+    "osm": "node/10678400607",
+    "name": "조이스팔라펠",
+    "amenity": "restaurant",
+    "cuisine": "falafel;hummus;kosari",
+    "vegan": "yes",
+    "lat": 37.5444641,
+    "lon": 126.9855247
+   },
+   {
+    "osm": "node/11020783405",
+    "name": "다켄씨엘",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5556662,
+    "lon": 126.9077324,
+    "hours": "Mo-Su 12:00-20:30"
+   },
+   {
+    "osm": "node/11135970905",
+    "name": "리브팜",
+    "nameEn": "Livfarm",
+    "amenity": "restaurant",
+    "cuisine": "deli;international;sandwich",
+    "vegetarian": "yes",
+    "lat": 37.4923428,
+    "lon": 127.0140569,
+    "street": "서초중앙로",
+    "hours": "Mo-Su 09:00-21:00"
+   },
+   {
+    "osm": "node/11380804001",
+    "name": "Om Restaurant",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 37.5705318,
+    "lon": 126.9760937,
+    "street": "새문안로",
+    "hours": "11:00-22:00"
+   },
+   {
+    "osm": "node/11451202525",
+    "name": "장어천국",
+    "amenity": "restaurant",
+    "cuisine": "korean;fish",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5660822,
+    "lon": 127.0532874,
+    "hours": "Mo-Fr 11:00-15:00; PH closed"
+   },
+   {
+    "osm": "node/11652926536",
+    "name": "Cuchara",
+    "amenity": "fast_food",
+    "cuisine": "mexican",
+    "vegetarian": "yes",
+    "lat": 37.4973218,
+    "lon": 127.0267165
+   },
+   {
+    "osm": "node/11829911515",
+    "name": "Darak",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegetarian": "yes",
+    "lat": 37.5762474,
+    "lon": 127.008313,
+    "hours": "Mo-Su 14:00-23:00"
+   },
+   {
+    "osm": "node/11917140125",
+    "name": "고고인디안쿠진",
+    "amenity": "restaurant",
+    "cuisine": "indian",
+    "vegetarian": "yes",
+    "lat": 37.5837073,
+    "lon": 127.0299077
+   },
+   {
+    "osm": "node/11934155124",
+    "name": "부산집",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegetarian": "yes",
+    "lat": 37.5762154,
+    "lon": 126.973414
+   },
+   {
+    "osm": "node/12073094769",
+    "name": "샤브댁 건대본점",
+    "amenity": "restaurant",
+    "cuisine": "japanese",
+    "vegetarian": "yes",
+    "lat": 37.5462991,
+    "lon": 127.0684737,
+    "street": "일로로"
+   },
+   {
+    "osm": "node/12074424553",
+    "name": "피그인더가든 강남점",
+    "amenity": "restaurant",
+    "cuisine": "salad;랩",
+    "vegetarian": "yes",
+    "lat": 37.4949498,
+    "lon": 127.0297475,
+    "street": "강남대로"
+   },
+   {
+    "osm": "node/12074445621",
+    "name": "탕화쿵푸",
+    "amenity": "restaurant",
+    "cuisine": "chinese;라탕",
+    "vegetarian": "yes",
+    "lat": 37.501507,
+    "lon": 127.0263719,
+    "street": "강남대로",
+    "hours": "Mo-Su 11:00-21:00"
+   },
+   {
+    "osm": "node/12074445947",
+    "name": "채선당 샤브보트 강남역점",
+    "amenity": "restaurant",
+    "cuisine": "샤브샤브",
+    "vegetarian": "yes",
+    "lat": 37.4966603,
+    "lon": 127.0286331,
+    "street": "강남대로",
+    "hours": "Mo-Su 11:00-21:00"
+   },
+   {
+    "osm": "node/12074544559",
+    "name": "카페시바",
+    "nameEn": "Cafe' SIVA",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 37.542841,
+    "lon": 126.9728963,
+    "street": "한강대로",
+    "hours": "Mo-Fr 11:30-15:00,17:00-21:00; Sa,Su 11:30-21:00"
+   },
+   {
+    "osm": "node/12082098467",
+    "name": "목멱산방 본점",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5581153,
+    "lon": 126.9869015,
+    "street": "퇴계로20길",
+    "hours": "Mo-Su 11:00-20:00"
+   },
+   {
+    "osm": "node/12082257163",
+    "name": "신동양",
+    "amenity": "restaurant",
+    "cuisine": "chinese",
+    "vegetarian": "yes",
+    "lat": 37.5215236,
+    "lon": 126.9247529,
+    "street": "여의나루로"
+   },
+   {
+    "osm": "node/12172303607",
+    "name": "La Salsa Rica Mexicana",
+    "amenity": "restaurant",
+    "cuisine": "mexican",
+    "vegan": "yes",
+    "lat": 37.5521802,
+    "lon": 126.9155876,
+    "street": "양화로11길",
+    "hours": "Mo-Fr 11:30-23:00; Sa 11:00-23:00; Su 11:00-22:00"
+   },
+   {
+    "osm": "node/12177904303",
+    "name": "연남친친",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegan": "yes",
+    "lat": 37.5637145,
+    "lon": 126.918979,
+    "street": "연남로7길",
+    "hours": "Mo-Fr 17:00-22:00"
+   },
+   {
+    "osm": "node/12192162181",
+    "name": "지리산 대 화의사 비건 버",
+    "nameEn": "Mount Jiri Hwaeomsa Vegan Burger",
+    "amenity": "fast_food",
+    "cuisine": "burger",
+    "vegan": "yes",
+    "lat": 37.4741972,
+    "lon": 127.1139323,
+    "street": "밤고개로21길"
+   },
+   {
+    "osm": "node/12192199503",
+    "name": "라뽀즈(LaPause)",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5485669,
+    "lon": 126.9174181,
+    "street": "양화로6길"
+   },
+   {
+    "osm": "node/12192202505",
+    "name": "동휴",
+    "amenity": "restaurant",
+    "vegan": "no",
+    "vegetarian": "yes",
+    "lat": 37.5455642,
+    "lon": 126.9409749,
+    "street": "독막로38길"
+   },
+   {
+    "osm": "node/12192246857",
+    "name": "7.8(칠점팔)",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5760857,
+    "lon": 126.9895674,
+    "street": "율곡로6길"
+   },
+   {
+    "osm": "node/12357312076",
+    "name": "슬로우캘리 마포점",
+    "amenity": "restaurant",
+    "cuisine": "salad;hawaiian",
+    "vegetarian": "yes",
+    "lat": 37.5480233,
+    "lon": 126.9543257,
+    "street": "마포대로",
+    "hours": "Mo-Sa 08:00-21:00"
+   },
+   {
+    "osm": "node/12487917202",
+    "name": "Fikee Cafe",
+    "nameEn": "Fikee Cafe",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop",
+    "vegetarian": "yes",
+    "lat": 37.5739217,
+    "lon": 126.9923999,
+    "street": "서순라길",
+    "hours": "Mo-Th 10:00-19:00; Fr-Su 10:00-22:00"
+   },
+   {
+    "osm": "node/12669820720",
+    "name": "Plantude",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "only",
+    "lat": 37.5295619,
+    "lon": 126.9657868,
+    "hours": "11:00-22:00"
+   },
+   {
+    "osm": "node/12771313301",
+    "name": "연남그곳",
+    "nameEn": "Yeonnam There",
+    "amenity": "restaurant",
+    "cuisine": "korean;regional",
+    "vegan": "yes",
+    "lat": 37.5599697,
+    "lon": 126.9253536,
+    "hours": "Mo-Fr 11:00-15:00, 18:00-23:00; Sa 05:30-23:30"
+   },
+   {
+    "osm": "node/12966662613",
+    "name": "김씨네 심야식당",
+    "amenity": "restaurant",
+    "vegetarian": "yes",
+    "lat": 37.5459988,
+    "lon": 126.9215573,
+    "hours": "Mo-Fr 18:00-03:00, Sa 17:00-03:00; Su off"
+   },
+   {
+    "osm": "node/12968680091",
+    "name": "Ferments",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 37.5246897,
+    "lon": 126.9617989
+   },
+   {
+    "osm": "node/12969751488",
+    "name": "weirdough",
+    "amenity": "restaurant",
+    "vegan": "only",
+    "vegetarian": "yes",
+    "lat": 37.5745524,
+    "lon": 126.9273933
+   },
+   {
+    "osm": "node/12974129226",
+    "name": "널담은공간",
+    "amenity": "cafe",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5782788,
+    "lon": 126.9798532,
+    "hours": "Mo-Su 10:00-21:30"
+   },
+   {
+    "osm": "node/13195672165",
+    "name": "이사동청춘서제비",
+    "nameEn": "Insa-dong fresh sujebi",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegan": "yes",
+    "lat": 37.5746042,
+    "lon": 126.9853213
+   },
+   {
+    "osm": "node/13245597901",
+    "name": "Aunt Sachkhon house",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegan": "yes",
+    "lat": 37.5747768,
+    "lon": 126.984293
+   },
+   {
+    "osm": "node/13617795533",
+    "name": "Poke All day",
+    "amenity": "restaurant",
+    "cuisine": "salad",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.4553462,
+    "lon": 126.9519824
+   },
+   {
+    "osm": "node/13687950401",
+    "name": "정미소",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 37.5744786,
+    "lon": 126.990001
+   },
+   {
+    "osm": "node/13715676801",
+    "name": "O.verte",
+    "amenity": "cafe",
+    "cuisine": "coffee_shop;donut;tea",
+    "vegan": "yes",
+    "lat": 37.5581202,
+    "lon": 126.9811532,
+    "street": "Toegye-ro 10-gil"
+   },
+   {
+    "osm": "node/13722546901",
+    "name": "Looop",
+    "amenity": "cafe",
+    "cuisine": "cake",
+    "vegan": "yes",
+    "lat": 37.5442301,
+    "lon": 127.052382
+   },
+   {
+    "osm": "node/13852786555",
+    "name": "진청유점",
+    "nameEn": "Jincheongyujeom",
+    "amenity": "restaurant",
+    "cuisine": "korean",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5622676,
+    "lon": 126.9262906,
+    "street": "동교로46길",
+    "hours": "Mo-Fr 11:30-15:30,17:00-22:00; Sa-Su 11:30-22:00; PH 11:30-22:00"
+   },
+   {
+    "osm": "node/13864130748",
+    "name": "아미르케밥",
+    "nameEn": "Amir Kebab",
+    "amenity": "fast_food",
+    "cuisine": "kebab",
+    "vegetarian": "yes",
+    "lat": 37.481625,
+    "lon": 126.9301385,
+    "street": "신림로",
+    "hours": "10:00-03:00"
+   },
+   {
+    "osm": "node/14072484983",
+    "name": "두부사랑 선유도점",
+    "amenity": "restaurant",
+    "cuisine": "두부;두부전골;콩국수;korean",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5357424,
+    "lon": 126.8944214,
+    "street": "선유로47길",
+    "hours": "Mo-Su 10:00-21:30"
+   },
+   {
+    "osm": "node/14200433610",
+    "name": "콩두주백",
+    "nameEn": "Kongdu Jubaek",
+    "amenity": "restaurant",
+    "vegan": "yes",
+    "lat": 37.573543,
+    "lon": 127.015907,
+    "street": "종로"
+   },
+   {
+    "osm": "way/313919898",
+    "name": "황생가칼국수",
+    "nameEn": "Hwang Saeng Ga Noodles Soup",
+    "amenity": "restaurant",
+    "cuisine": "noodle;사골칼국수;버섯전골;왕만두국;왕만두",
+    "vegan": "yes",
+    "vegetarian": "yes",
+    "lat": 37.5801388,
+    "lon": 126.980683,
+    "street": "북촌로5길",
+    "hours": "Mo-Su 11:00-21:30"
+   },
+   {
+    "osm": "way/472048264",
+    "name": "채선당 도시락&샐러드 밀키트",
+    "amenity": "restaurant",
+    "cuisine": "salad",
+    "vegan": "yes",
+    "lat": 37.6714633,
+    "lon": 127.05645
+   },
+   {
+    "osm": "way/981451732",
+    "name": "강산옥",
+    "amenity": "restaurant",
+    "cuisine": "콩국수;콩비지",
+    "vegetarian": "yes",
+    "lat": 37.5688694,
+    "lon": 126.9993459,
+    "hours": "11:00-15:00"
+   }
+  ]
+ },
+ "wikivoyage": {
+  "title": "Seoul",
+  "license": "CC BY-SA 4.0",
+  "hasEatSection": true,
+  "districtsOnly": false,
+  "vegListings": []
+ }
+}

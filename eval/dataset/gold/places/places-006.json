@@ -1,0 +1,68 @@
+{
+ "id": "places-006",
+ "city": "Rome",
+ "diet": "kosher",
+ "fetchedAt": "2026-09-28T01:02:44.635Z",
+ "osm": {
+  "snapshot": "2026-09-28T01:01:37Z",
+  "scope": "admin area Q220",
+  "license": "ODbL 1.0, © OpenStreetMap contributors",
+  "dietVenues": 6,
+  "venues": [
+   {
+    "osm": "node/1752845232",
+    "name": "La taverna del ghetto",
+    "amenity": "restaurant",
+    "cuisine": "italian",
+    "kosher": "yes",
+    "lat": 41.8929437,
+    "lon": 12.4776879
+   },
+   {
+    "osm": "node/1752845234",
+    "name": "Nonna Betta",
+    "amenity": "restaurant",
+    "cuisine": "jewish;italian",
+    "kosher": "yes",
+    "lat": 41.892754,
+    "lon": 12.4781178
+   },
+   {
+    "osm": "node/1832969900",
+    "name": "Ba' Ghetto Milky",
+    "amenity": "restaurant",
+    "cuisine": "jewish;italian",
+    "kosher": "yes",
+    "lat": 41.8931472,
+    "lon": 12.4770712
+   },
+   {
+    "osm": "node/1832969901",
+    "name": "Ba'Ghetto",
+    "amenity": "restaurant",
+    "cuisine": "jewish-italian",
+    "kosher": "yes",
+    "lat": 41.892669,
+    "lon": 12.4777816
+   },
+   {
+    "osm": "node/9430747639",
+    "name": "Pizzeria Blaserna",
+    "amenity": "fast_food",
+    "cuisine": "pizza",
+    "kosher": "yes",
+    "lat": 41.8654929,
+    "lon": 12.4697713
+   },
+   {
+    "osm": "node/12078197416",
+    "name": "Renato al ghetto",
+    "amenity": "restaurant",
+    "cuisine": "regional;italian",
+    "kosher": "yes",
+    "lat": 41.8930076,
+    "lon": 12.4774473
+   }
+  ]
+ }
+}
