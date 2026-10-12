@@ -11,8 +11,10 @@ import {
   parseGgufShape,
   toGb,
   contextSizeForRam,
+  isDecodeStall,
+  shouldRepack,
 } from "./memoryFit";
-import { BackendInfo, cpuDeviceNames, initWithCpuFallback } from "./initFallback";
+import { BackendInfo, cpuDeviceNames, initWithCpuFallback, kvCacheParams } from "./initFallback";
 import { describeModelFile, type LoadGuard, type LoadMeta } from "./loadMarker";
 import { MODEL_CATALOG } from "../models/manifest";
 import { listDiscoveredModels } from "../models/discoveredModels";
@@ -80,6 +82,17 @@ export interface PromptPrefix {
  */
 export const PREFIX_WARM_IDLE_MS = 750;
 
+/**
+ * Tokens the prefix warm-up generates (and discards). Not 0: with n_predict 0, llama.rn 0.13 rc.6 returns
+ * before the prompt is decoded, so the KV cache never held the prefix and every answer re-read it (Pixel 6a,
+ * 2026-10-04: warm "1 token in 0 ms" even after a title prompt replaced the cache; answers evaluated their
+ * whole prompt although 229 of its first tokens matched the prefix). One token makes the decode loop run.
+ */
+export const WARM_N_PREDICT = 1;
+
+/** Fewer evaluated tokens than this say little about prompt reading speed. */
+const MIN_PREFILL_SAMPLE_TOKENS = 32;
+
 export interface GenerationTimings {
   promptTokens: number;
   promptMs: number;
@@ -108,6 +121,8 @@ export interface LoadedModelInfo {
   nThreads: number;
   /** "cpu-fallback" with the native reason when the GPU backend failed to start (initFallback.ts). */
   backend?: BackendInfo;
+  /** Whether the weights were repacked for the ARM kernels (in app memory) or kept as the mapped file. */
+  repacked?: boolean;
 }
 
 export function defaultContextSize(): number {
@@ -189,6 +204,10 @@ export class LlamaEngine {
   private prefix: PromptPrefix | null = null;
   /** Whether the KV cache holds `prefix` (a load or another prompt drops it). */
   private prefixCached = false;
+  /** Tokens the warm prefix fills (the warm-up's whole prompt), once it has run. */
+  private prefixTokens = 0;
+  /** The last answer's prompt reading: tokens llama.cpp evaluated and the time to its first token. */
+  private lastPrefill: { tokens: number; ms: number } | null = null;
   private warmTimer: ReturnType<typeof setTimeout> | null = null;
   /** generate() calls not settled yet: a prefix refill never waits in front of one of them. */
   private pending = 0;
@@ -200,6 +219,10 @@ export class LlamaEngine {
   }
 
   private lastLoad: LoadResult = { fit: null, warning: null };
+  /** How the loaded model was loaded (not its progress callback), to reload it as the mapped file after a stall. */
+  private lastLoadOpts: Omit<LoadOptions, "onProgress"> | undefined;
+  /** Models that stalled repacked in this process: they keep the mapped file until the app restarts. */
+  private keepMapped = new Set<string>();
   // general.architecture of the loaded model (from the GGUF header), for its thinking tags.
   private arch: string | null = null;
   private lastHeaderArch: string | null = null;
@@ -223,7 +246,8 @@ export class LlamaEngine {
       this.context &&
       this.modelInfo?.filename === modelFilename &&
       this.modelInfo.nCtx === nCtx &&
-      this.modelInfo.nThreads === nThreads
+      this.modelInfo.nThreads === nThreads &&
+      !(this.modelInfo.repacked && this.keepMapped.has(modelFilename))
     ) {
       return this.lastLoad;
     }
@@ -260,8 +284,16 @@ export class LlamaEngine {
         : describeModelFile(modelFilename, [...MODEL_CATALOG, ...(await listDiscoveredModels().catch(() => []))]);
     const given = Object.fromEntries(Object.entries(opts?.meta ?? {}).filter(([, v]) => v !== undefined));
     const meta: LoadMeta = { filename: modelFilename, ...known, ...given };
+    // The mapped file after a repacked load killed the app (once) or stalled (this process); otherwise from
+    // memory (memoryFit.ts shouldRepack). No RAM readouts: repack, as before this check existed.
+    const afterCrash = (await this.guard?.takeKeepMapped?.(meta).catch(() => false)) === true;
+    const repack = !afterCrash && !this.keepMapped.has(modelFilename) && (fit ? shouldRepack(fit) : true);
+    if (fit) {
+      const why = afterCrash ? "the last repacked load closed the app" : this.keepMapped.has(modelFilename) ? "it stalled repacked" : `${toGb(fit.availableBytes)}GB budget`;
+      console.log(`[engine] ${repack ? "repacking" : "keeping the mapped file for"} ${modelFilename} (${toGb(fit.fileBytes)}GB; ${why})`);
+    }
     // Marker on disk while initLlama runs: if the OS kills the app here, the next start knows (CR-2).
-    await this.guard?.begin(meta, previous).catch((e: any) => console.warn("[engine] load marker:", e?.message ?? e));
+    await this.guard?.begin(meta, previous, { repacked: repack }).catch((e: any) => console.warn("[engine] load marker:", e?.message ?? e));
     let loadedOk = false;
     try {
       const onProgress = opts?.onProgress;
@@ -274,12 +306,18 @@ export class LlamaEngine {
           n_ctx: nCtx,
           n_threads: nThreads,
           n_gpu_layers: 0, // CPU-only for broad device compatibility; adjust per-device
+          // A model too big for memory streams from its mapped file (memoryFit.ts shouldRepack), and there the
+          // 8-bit KV cache's ~half-size cache matters. Elsewhere it isn't worth it: on a Pixel 6a the 4B read its
+          // prompts ~19% slower with it (first word 11.6 s vs 9.5 s median, eval:device standard set, 2026-10-05).
+          ...(repack ? {} : kvCacheParams(Platform.OS)),
+          no_extra_bufts: !repack,
         },
         { platform: Platform.OS, cpuDevices: () => cpuDeviceNames(getBackendDevicesInfo), log: (m) => console.warn(m) }
       );
       this.context = loaded.context;
       backend = loaded.backend;
-      this.modelInfo = { filename: modelFilename, nCtx, nThreads, backend };
+      this.modelInfo = { filename: modelFilename, nCtx, nThreads, backend, repacked: repack };
+      this.lastLoadOpts = { nCtx, nThreads, meta: opts?.meta };
       this.loadedMeta = meta;
       loadedOk = true;
       this.arch = fit ? this.lastHeaderArch : await this.readArch(modelPath);
@@ -373,6 +411,9 @@ export class LlamaEngine {
     const context = this.context;
     this.context = null;
     this.prefixCached = false;
+    // Another model reads prompts at another speed (estimateFirstTokenMs).
+    this.prefixTokens = 0;
+    this.lastPrefill = null;
     this.modelInfo = null;
     this.loadedMeta = null;
     this.lastLoad = { fit: null, warning: null };
@@ -449,19 +490,43 @@ export class LlamaEngine {
     }, delayMs);
   }
 
-  /** Prefills the prefix with no token generated (n_predict 0), in the same format an answer uses. */
+  /**
+   * Expected time to the first token for this prompt, from the last answer's prompt reading speed: the
+   * prompt's tokens (in the format generate() will send) minus the warm prefix when it is cached. Null when
+   * there is no measurement yet or the prompt can't be tokenized.
+   */
+  async estimateFirstTokenMs(opts: Pick<GenerateOptions, "prompt" | "messages">): Promise<number | null> {
+    const ctx = this.context;
+    const rate = this.lastPrefill;
+    if (!ctx || !rate || rate.ms <= 0) return null;
+    try {
+      let text = opts.prompt ?? "";
+      if (opts.messages) {
+        const r: any = await ctx.getFormattedChat(opts.messages as any, null, { jinja: true });
+        text = typeof r === "string" ? r : (r?.prompt ?? "");
+      }
+      const tokens = ((await ctx.tokenize(text)) as any).tokens?.length ?? 0;
+      const cached = this.prefixCached && this.sharesPrefix(opts) ? Math.min(this.prefixTokens, tokens) : 0;
+      return (Math.max(tokens - cached, 1) / rate.tokens) * rate.ms;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Prefills the prefix (one discarded token, WARM_N_PREDICT), in the same format an answer uses. */
   private async warmNow(): Promise<void> {
     const prefix = this.prefix;
     const context = this.context;
     if (!prefix || !context || this.prefixCached || this.pending > 0) return;
     const params = context.isJinjaSupported()
       ? // The empty user turn keeps templates that require one (Qwen3) rendering; the prefix ends before it.
-        { messages: [{ role: "system", content: prefix.system }, { role: "user", content: "" }], jinja: true, n_predict: 0 }
-      : { prompt: prefix.prompt, n_predict: 0 };
+        { messages: [{ role: "system", content: prefix.system }, { role: "user", content: "" }], jinja: true, n_predict: WARM_N_PREDICT }
+      : { prompt: prefix.prompt, n_predict: WARM_N_PREDICT };
     const completion = context.completion(params);
     this.inFlight = completion;
     try {
-      const result = (await completion) as { timings?: { prompt_n?: number; prompt_ms?: number } };
+      const result = (await completion) as { timings?: { prompt_n?: number; prompt_ms?: number }; tokens_evaluated?: number };
+      if (result?.tokens_evaluated) this.prefixTokens = result.tokens_evaluated;
       if (this.prefix === prefix && this.context === context) this.prefixCached = true;
       const t = result?.timings;
       if (t) console.log(`[engine] answer prefix prefilled: ${t.prompt_n} tokens in ${Math.round(t.prompt_ms ?? 0)} ms`);
@@ -528,7 +593,10 @@ export class LlamaEngine {
       : { prompt: prompt!, n_predict: nPredict, temperature, stop: stop ?? DEFAULT_STOP_SEQUENCES };
 
     let full = "";
+    const startedAt = Date.now();
+    let firstTokenAt: number | null = null;
     const completion = this.context.completion(completionParams, (data) => {
+      if (firstTokenAt === null) firstTokenAt = Date.now();
       full += data.token;
       onToken?.(data.token);
     });
@@ -536,6 +604,11 @@ export class LlamaEngine {
     try {
       const result = await completion;
       const t = (result as { timings?: any; tokens_cached?: number }).timings;
+      // Prompt reading speed for the next answer's length (prompt_n: tokens evaluated, the cached prefix excluded).
+      if (t?.prompt_n >= MIN_PREFILL_SAMPLE_TOKENS && firstTokenAt !== null) this.lastPrefill = { tokens: t.prompt_n, ms: firstTokenAt - startedAt };
+      if (t && Platform.OS === "android" && this.modelInfo?.repacked && isDecodeStall({ predictedTokens: t.predicted_n ?? 0, predictedMs: t.predicted_ms ?? 0 })) {
+        this.reloadMapped(this.modelInfo.filename, t);
+      }
       if (t && onTimings) {
         onTimings({
           promptTokens: t.prompt_n ?? 0,
@@ -550,6 +623,22 @@ export class LlamaEngine {
       if (this.inFlight === completion) this.inFlight = null;
       if (timer) clearTimeout(timer);
     }
+  }
+
+  /**
+   * The answer stalled with repacked weights (swapped out: Android can only compress them, not drop and re-read
+   * them). Reload the model as the mapped file before the next generation: prompt reading ~2x slower, but its
+   * weights are page cache, which the kernel re-reads from storage instead of stalling. Android only: iOS has no
+   * swap (jetsam ends the app instead), so a slow answer there is a slow model, not a stall.
+   */
+  private reloadMapped(filename: string, t: { predicted_n?: number; predicted_ms?: number }): void {
+    if (this.keepMapped.has(filename)) return;
+    this.keepMapped.add(filename);
+    console.warn(`[engine] ${filename} stalled repacked (${t.predicted_n ?? 0} tokens in ${Math.round(t.predicted_ms ?? 0)} ms); reloading it as the mapped file`);
+    const opts = this.lastLoadOpts;
+    // On the generation queue: questions sent meanwhile wait for the reload instead of finding no model.
+    const run = this.genQueue.then(() => this.load(filename, opts));
+    this.genQueue = run.catch((e: any) => console.warn("[engine] reload as mapped file failed:", e?.message ?? e));
   }
 
   /**

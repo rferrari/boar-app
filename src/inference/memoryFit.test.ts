@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   availableRamFrom,
+  shouldRepack,
+  isDecodeStall,
   describeFit,
   estimateMemoryFit,
   expertFractionOf,
@@ -160,5 +162,43 @@ describe("availableRamFrom", () => {
   });
   it("uses what the OS reports when that is more", () => {
     expect(availableRamFrom({ totalBytes: 12 * GiB, rssBytes: GiB, availBytes: 10 * GiB })).toBe(10 * GiB);
+  });
+});
+
+describe("shouldRepack", () => {
+  const GiB = 1024 ** 3;
+  // Pixel 6a: 5.46 GiB total -> availableRamFrom budget ~2.96 GiB.
+  const budget = availableRamFrom({ totalBytes: 5.46 * GiB, rssBytes: 0, availBytes: 2.8 * GiB });
+
+  it("repacks the 4B on a 6 GB phone: single questions keep the fast prompt reading", () => {
+    expect(shouldRepack({ fileBytes: 2.33 * GiB, availableBytes: budget })).toBe(true);
+  });
+
+  it("repacks the 1.5B on the same phone", () => {
+    expect(shouldRepack({ fileBytes: 0.92 * GiB, availableBytes: budget })).toBe(true);
+  });
+
+  it("repacks the 4B on a 12 GB phone", () => {
+    const big = availableRamFrom({ totalBytes: 11.6 * GiB, rssBytes: 0, availBytes: 6 * GiB });
+    expect(shouldRepack({ fileBytes: 2.33 * GiB, availableBytes: big })).toBe(true);
+  });
+
+  it("never repacks a mixture of experts that has to stream from storage (35B deep tier on 12 GB)", () => {
+    const big = availableRamFrom({ totalBytes: 11.6 * GiB, rssBytes: 0, availBytes: 6 * GiB });
+    expect(shouldRepack({ fileBytes: 11 * GiB, availableBytes: big })).toBe(false);
+  });
+
+  it("keeps a dense model bigger than the budget mapped (7B on a 6 GB phone)", () => {
+    expect(shouldRepack({ fileBytes: 4.36 * GiB, availableBytes: budget })).toBe(false);
+  });
+});
+
+describe("isDecodeStall", () => {
+  it("under 1 tok/s for 10 s or more", () => {
+    expect(isDecodeStall({ predictedTokens: 9, predictedMs: 120_000 })).toBe(true);
+    expect(isDecodeStall({ predictedTokens: 400, predictedMs: 90_000 })).toBe(false);
+  });
+  it("not a short slow start (prompt still reading, one token)", () => {
+    expect(isDecodeStall({ predictedTokens: 1, predictedMs: 3_000 })).toBe(false);
   });
 });

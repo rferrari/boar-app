@@ -20,6 +20,8 @@ let maxConcurrentInits = 0;
 /** Native messages the next initLlama calls reject with, in order. */
 const initFailures: string[] = [];
 const platform = { OS: "android" };
+/** When set, every context's completion resolves at once with this (one setting reaches contexts created later). */
+let reply: unknown = null;
 
 vi.mock("react-native", () => ({ Platform: { get OS() { return platform.OS; } } }));
 vi.mock("llama.rn", () => ({
@@ -55,7 +57,7 @@ vi.mock("llama.rn", () => ({
       },
       // Like llama.cpp: runs until stopped, and settles a moment after the stop (prompt still processing).
       completion: (_params, onToken) =>
-        new Promise((resolve) => {
+        reply ? Promise.resolve(reply as { text: string }) : new Promise((resolve) => {
           generating = true;
           onToken({ token: "Hi" });
           finish = () =>
@@ -83,7 +85,7 @@ vi.mock("ram-monitor", () => ({
   getAvailableRamBytes: () => ram.avail,
 }));
 
-import { LlamaEngine, PREFIX_WARM_IDLE_MS, defaultContextSize } from "./LlamaEngine";
+import { LlamaEngine, PREFIX_WARM_IDLE_MS, WARM_N_PREDICT, defaultContextSize } from "./LlamaEngine";
 
 const live = () => created.filter((c) => !c.released);
 
@@ -98,6 +100,7 @@ beforeEach(() => {
   initFailures.length = 0;
   platform.OS = "android";
   stopReturnsNothing = false;
+  reply = null;
 });
 
 describe("LlamaEngine Metal fallback (iPhone 13)", () => {
@@ -298,6 +301,63 @@ describe("LlamaEngine pre-flight memory check (mmap-aware)", () => {
   });
 });
 
+describe("repacked weights or the mapped file (memoryFit.ts shouldRepack)", () => {
+  const MiB = 1024 ** 2;
+  const stalled = { text: "x", timings: { prompt_n: 40, prompt_ms: 2000, predicted_n: 9, predicted_ms: 90_000 } };
+  const normal = { text: "x", timings: { prompt_n: 40, prompt_ms: 2000, predicted_n: 400, predicted_ms: 90_000 } };
+  const answerWith = (r: unknown) => void (reply = r);
+
+  it("marks the load as repacked, and keeps the mapped file once when the guard says the last repacked load closed the app", async () => {
+    const begins: any[] = [];
+    let keep = true;
+    const guard = {
+      begin: async (_m: any, _p: any, o: any) => void begins.push(o),
+      end: async () => {},
+      takeKeepMapped: async () => {
+        const k = keep;
+        keep = false;
+        return k;
+      },
+    };
+    const engine = new LlamaEngine(guard as any);
+    await engine.load("models/q4.gguf");
+    expect(initParams[0]).toMatchObject({ no_extra_bufts: true });
+    await engine.load("models/q15.gguf");
+    expect(initParams[1]).toMatchObject({ no_extra_bufts: false });
+    expect(begins).toEqual([{ repacked: false }, { repacked: true }]);
+  });
+
+  it("after a stalled answer, reloads the model as the mapped file before the next question (Android)", async () => {
+    const engine = new LlamaEngine(null);
+    await engine.load("models/q4.gguf", { nCtx: 3072 });
+    answerWith(normal);
+    await engine.generate({ prompt: "a" });
+    expect(created).toHaveLength(1);
+    answerWith(stalled);
+    await engine.generate({ prompt: "b" });
+    answerWith(normal);
+    // Sent while the reload runs: it waits for the reloaded model instead of finding none.
+    await expect(engine.generate({ prompt: "c" })).resolves.toBe("x");
+    expect(created).toHaveLength(2);
+    expect(created[0].released).toBe(true);
+    expect(initParams[1]).toMatchObject({ no_extra_bufts: true, n_ctx: 3072 });
+    expect(engine.getModelInfo()?.repacked).toBe(false);
+    // Same model asked again (the chat re-mounting): stays mapped, no third load.
+    await engine.load("models/q4.gguf", { nCtx: 3072 });
+    expect(created).toHaveLength(2);
+  });
+
+  it("does not reload on iOS (no swap: a slow answer is a slow model) or when already mapped", async () => {
+    platform.OS = "ios";
+    const engine = new LlamaEngine(null);
+    await engine.load("models/q4.gguf");
+    answerWith(stalled);
+    await engine.generate({ prompt: "b" });
+    await engine.generate({ prompt: "c" }).catch(() => {});
+    expect(created).toHaveLength(1);
+  });
+});
+
 describe("LlamaEngine generate queue (double-send race)", () => {
   it("never runs two completions on one context at once", async () => {
     const engine = new LlamaEngine();
@@ -410,15 +470,15 @@ describe("answer prefix kept in the KV cache (iPhone 13: 4-5 s to the first toke
       isJinjaSupported: () => true,
       completion: (p: any) => {
         seen.push(p);
-        return Promise.resolve({ text: p.n_predict === 0 ? "" : "ok", timings: { prompt_n: 60, prompt_ms: 600 } });
+        return Promise.resolve({ text: p.n_predict === WARM_N_PREDICT ? "" : "ok", timings: { prompt_n: 60, prompt_ms: 600 } });
       },
     });
     vi.useFakeTimers();
     return { engine, seen };
   }
-  const warms = (seen: any[]) => seen.filter((p) => p.n_predict === 0);
+  const warms = (seen: any[]) => seen.filter((p) => p.n_predict === WARM_N_PREDICT);
 
-  it("prefills the tone's prefix after the load, with no token generated, in the answer's chat format", async () => {
+  it("prefills the tone's prefix after the load, generating one discarded token (n_predict 0 skipped the decode), in the answer's chat format", async () => {
     try {
       const { engine, seen } = await loadedEngine();
       engine.setAnswerPrefix(PREFIX);
@@ -449,7 +509,7 @@ describe("answer prefix kept in the KV cache (iPhone 13: 4-5 s to the first toke
       (created[0] as any).isJinjaSupported = () => false;
       await engine.generate({ prompt: "Title: q" });
       await vi.advanceTimersByTimeAsync(PREFIX_WARM_IDLE_MS + 20);
-      expect(warms(seen)[2]).toEqual({ prompt: PREFIX.prompt, n_predict: 0 });
+      expect(warms(seen)[2]).toEqual({ prompt: PREFIX.prompt, n_predict: WARM_N_PREDICT });
     } finally {
       vi.useRealTimers();
     }
