@@ -25,6 +25,10 @@ import { llamaEngine } from "../inference/LlamaEngine";
 import { embeddingEngine } from "../rag/embed";
 import { retrieve, assemblePrompt, RetrievedChunk, ConversationTurn } from "../rag/retrieve";
 import { assembleChatMessages, ANSWER_CONTEXT_CHUNKS } from "../rag/pure";
+import { budgetHistory } from "../routing/historyBudget";
+import { searchWithFollowUp } from "../routing/followUp";
+import { answerLength, currentSpeed, lengthInstruction } from "../routing/answerLength";
+import { measuredSpeeds } from "../routing/depth";
 import { compressForAnswer } from "../rag/compress";
 import { classifyTask, isRetrievalIrrelevant } from "../routing/classify";
 import type { TaskType } from "../routing/types";
@@ -82,7 +86,7 @@ import { splitThinking, stripThinking } from "../services/thinking";
 import { cleanCitations } from "../services/citations";
 import { SourceFootnotes } from "./components/SourceFootnotes";
 import { recordQueryStats, trackPeakRss, startAppMemoryTracking, QueryStats } from "../services/telemetry";
-import { recordExecution } from "../services/executionTelemetry";
+import { listRecentExecutions, recordExecution } from "../services/executionTelemetry";
 import { getMemoryInfo } from "ram-monitor";
 import { useTheme, colors, typography } from "./theme";
 import { spacing, radii } from "./theme/spacing";
@@ -135,6 +139,8 @@ export function ChatScreen({
   const [loadStatus, setLoadStatus] = useState(t("chatScreen.initializingCore"));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  /** Set synchronously when a send starts, so a second tap can't slip in before `generating` updates. */
+  const sendingRef = useRef(false);
   const [showPromptIdeas, setShowPromptIdeas] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -509,28 +515,40 @@ export function ChatScreen({
   /** `text`: send this instead of the input box (a prompt idea). */
   const send = useCallback(async (text?: string) => {
     const query = (text ?? input).trim();
-    if (!query || generating) return;
-
-    await cancelBackgroundTask();
-
+    // sendingRef, not only `generating`: the state flips after the awaits below, and taps during
+    // cancelBackgroundTask (a summary still reading its prompt, tens of seconds) each sent the
+    // question again, all with the same millisecond ids (UNIQUE constraint failed: chat_messages.id).
+    if (!query || generating || sendingRef.current) return;
+    sendingRef.current = true;
     setInput("");
     setGenerating(true);
-    stopRequestedRef.current = false;
 
     let sessionId = activeSessionId;
     const isNewSession = !sessionId;
-    if (!sessionId) {
-      const session = await createSession();
-      sessionId = session.id;
-      setActiveSessionId(sessionId);
+    // Unique even for two sends in the same millisecond.
+    const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const userMsg: Message = { id: `${stamp}-u`, role: "user", text: query };
+    const assistantId = `${stamp}-a`;
+    try {
+      await cancelBackgroundTask();
+      stopRequestedRef.current = false;
+      if (!sessionId) {
+        const session = await createSession();
+        sessionId = session.id;
+        setActiveSessionId(sessionId);
+      }
+      // Explicit id, matching the in-memory message id used for the FlatList
+      // key/React state — so a thumbs-up/down tap on this exact message can
+      // reference `item.id` directly as answer_feedback's foreign key later,
+      // rather than needing a separate id-mapping step.
+      await persistMessage(sessionId, "user", query, userMsg.id);
+    } catch (e: any) {
+      console.warn("[ChatScreen] send failed before generation:", e?.message ?? e);
+      sendingRef.current = false;
+      setGenerating(false);
+      setInput(query);
+      return;
     }
-    const userMsg: Message = { id: `${Date.now()}-u`, role: "user", text: query };
-    const assistantId = `${Date.now()}-a`;
-    // Explicit id, matching the in-memory message id used for the FlatList
-    // key/React state — so a thumbs-up/down tap on this exact message can
-    // reference `item.id` directly as answer_feedback's foreign key later,
-    // rather than needing a separate id-mapping step.
-    await persistMessage(sessionId, "user", query, userMsg.id);
 
     setMessages((prev) => [...prev, userMsg, { id: assistantId, role: "assistant", text: "" }]);
     setProcessing({ messageId: assistantId, status: "retrieving" });
@@ -551,19 +569,35 @@ export function ChatScreen({
     let assistantText = "";
 
     try {
-      const [maxTokens, activePersonalityId, customPrompt] = await Promise.all([
+      const [maxTokens, activePersonalityId, customPrompt, recent] = await Promise.all([
         getMaxTokens(),
         getPersonalityId(),
         getCustomSystemPrompt(),
+        listRecentExecutions(100).catch(() => []),
       ]);
       const personality = getPersonality(activePersonalityId);
       const systemPrompt = activePersonalityId === "custom" ? customPrompt : personality.systemPrompt;
-      const styleReminder = activePersonalityId === "custom" ? undefined : personality.styleReminder;
+      // A length this phone can write in time, so the answer ends instead of being cut (answerLength.ts).
+      const typical = measuredSpeeds(recent);
+      // Per model: the router can answer with another model than the base one.
+      const speedFor = (id: string) => currentSpeed(recent, id, Date.now(), typical.get(id));
+      const speed = baseModelId ? speedFor(baseModelId) : {};
+      const length = answerLength({ maxTokens, ...speed });
+      const baseStyleReminder = activePersonalityId === "custom" ? undefined : personality.styleReminder;
+      // The router sizes the answer itself once the sources are known (executor.ts, `length`); the fixed-model
+      // fallback below still gets this up-front target.
+      const styleReminder = [baseStyleReminder, lengthInstruction(length.words)].filter(Boolean).join("\n");
 
-      const priorMessages = messagesRef.current.filter((m) => m.text.length > 0);
-      const verbatimTurns: ConversationTurn[] = priorMessages
-        .slice(-VERBATIM_MESSAGE_COUNT)
-        .map((m) => ({ role: m.role, text: m.role === "assistant" ? stripThinking(m.text) : m.text }));
+      // Not this send's own messages: setMessages above can reach messagesRef before this line, and the
+      // question then went into the history too (asked twice in the prompt, and a follow-up searched for
+      // itself: "What did he publish? What did he publish?", Pixel 6a).
+      const priorMessages = messagesRef.current.filter((m) => m.text.length > 0 && m.id !== userMsg.id && m.id !== assistantId);
+      // Within a token budget: earlier answers cut to their opening sentences (historyBudget.ts).
+      const verbatimTurns: ConversationTurn[] = budgetHistory(
+        priorMessages
+          .slice(-VERBATIM_MESSAGE_COUNT)
+          .map((m) => ({ role: m.role, text: m.role === "assistant" ? stripThinking(m.text) : m.text }))
+      );
       const history = { summary: sessionSummaryRef.current, turns: verbatimTurns };
 
       let firstToken = true;
@@ -627,8 +661,10 @@ export function ChatScreen({
             c = [];
           } else {
             setProcessing({ messageId: assistantId, status: "retrieving" });
-            // Only the sentences that answer: a shorter prompt brings the first word sooner.
-            c = compressForAnswer(query, await retrieve(query, ANSWER_CONTEXT_CHUNKS), fixedTaskType).chunks;
+            // Only the sentences that answer: a shorter prompt brings the first word sooner. A follow-up
+            // ("What did he publish?") is searched with the previous question (followUp.ts).
+            const found = await searchWithFollowUp(query, history, (text) => retrieve(text, ANSWER_CONTEXT_CHUNKS));
+            c = compressForAnswer(found.searchedFor, found.chunks, fixedTaskType).chunks;
           }
           setProcessing({ messageId: assistantId, status: "thinking" });
           // Use the model's own chat template when its file ships one; the
@@ -647,7 +683,7 @@ export function ChatScreen({
         if (adaptiveRoutingEnabled) {
           try {
             const result = await runAdaptiveChat(
-              { query, systemPrompt, styleReminder, history },
+              { query, systemPrompt, styleReminder: baseStyleReminder, history, length: { maxTokens, ...speed, speedFor } },
               maxTokens,
               {
                 onToken,
@@ -799,10 +835,14 @@ export function ChatScreen({
           const olderMessages = allMessages.slice(0, -VERBATIM_MESSAGE_COUNT);
           if (olderMessages.length > 0) {
             const sid = sessionId;
-            const turnsToSummarize: ConversationTurn[] = olderMessages.map((m) => ({
-              role: m.role,
-              text: m.role === "assistant" ? stripThinking(m.text) : m.text,
-            }));
+            // Bounded like the answer's history: the whole detailed chat (thousands of tokens) took tens
+            // of seconds to read, and the next question waited for it (cancelBackgroundTask).
+            const turnsToSummarize: ConversationTurn[] = budgetHistory(
+              olderMessages.map((m) => ({
+                role: m.role,
+                text: m.role === "assistant" ? stripThinking(m.text) : m.text,
+              }))
+            );
             const previousSummary = sessionSummaryRef.current;
             backgroundTaskRef.current = summarizeConversation(turnsToSummarize, previousSummary)
               .then(async (summary) => {
@@ -838,6 +878,7 @@ export function ChatScreen({
         errorMessage: e?.message ?? String(e),
       }).catch(() => {});
     } finally {
+      sendingRef.current = false;
       setGenerating(false);
       setStopping(false);
       setProcessing(null);

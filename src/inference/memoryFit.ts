@@ -222,6 +222,24 @@ export function estimateMemoryFit(i: FitInputs): MemoryFit {
   };
 }
 
+/**
+ * Whether llama.cpp may repack the weights for its fast ARM CPU kernels (llama.rn `no_extra_bufts: false`).
+ *
+ * Repacked weights are copies in the app's own (anonymous) memory, not the mmap'd file: Android can't drop
+ * and re-read them, only compress them into swap. A model whose file doesn't fit the memory budget can't
+ * work repacked at all (an 11 GB mixture of experts on a 12 GB phone would need its whole file in RAM instead
+ * of streaming its experts), so it stays the mapped file.
+ *
+ * Only that case. A stricter rule (file + buffers + 0.75 GB) kept Qwen3-4B mapped on a Pixel 6a (6 GB): no
+ * stalls or load-time kills in long conversations, but prompt reading ~2x slower, so single questions took
+ * 23 s to the first word instead of 9 s (eval:device standard set, 2026-10-05). Repacked, that phone can run
+ * short of memory in long sessions (~1 answer in 6 stalled at 0.1 tok/s); switching to the mapped file under
+ * memory pressure would be the follow-up.
+ */
+export function shouldRepack(f: Pick<MemoryFit, "fileBytes" | "availableBytes">): boolean {
+  return f.fileBytes <= f.availableBytes;
+}
+
 /** Kept for the system and the app you came from: a quarter of the phone's RAM, at least 2.5 GB. */
 export const SYSTEM_RESERVE_FRACTION = 0.25;
 export const MIN_SYSTEM_RESERVE_BYTES = 2.5 * GiB;

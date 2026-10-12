@@ -15,6 +15,7 @@ const getModelInfoMock = vi.fn(() =>
 );
 let mockEmbeddedTemplate = false;
 const hasEmbeddedChatTemplateMock = vi.fn(() => mockEmbeddedTemplate);
+let mockFirstTokenMs: number | null = null;
 
 vi.mock("../inference/LlamaEngine", () => ({
   llamaEngine: {
@@ -22,6 +23,7 @@ vi.mock("../inference/LlamaEngine", () => ({
     generate: (opts: any) => generateMock(opts),
     getModelInfo: () => getModelInfoMock(),
     hasEmbeddedChatTemplate: () => hasEmbeddedChatTemplateMock(),
+    estimateFirstTokenMs: async () => mockFirstTokenMs,
   },
 }));
 
@@ -104,6 +106,48 @@ describe("executeRoutingPlan", () => {
     expect(typeof call.prompt).toBe("string");
     expect(call.prompt).toContain("Question: hey!");
     expect(call.messages).toBeUndefined();
+  });
+
+  it("sizes the answer from this prompt's estimated first word, after retrieval", async () => {
+    const p = plan({
+      steps: [{ id: "generate-0", type: "generate", modelId: "qwen-1.5b", required: true }],
+      selectedModelIds: ["qwen-1.5b"],
+    });
+    // 4 tok/s; a 56 s first word leaves 120 - 56 - 15 = 49 s of writing -> 196 tokens -> ~120 words.
+    mockFirstTokenMs = 56_000;
+    await executeRoutingPlan(p, { query: "Compare them.", styleReminder: "Be thorough.", length: { maxTokens: 512, tokPerSec: 4, ttftMs: 11_500 } }, resolveModel);
+    const user = generateMock.mock.calls[0][0].messages.at(-1).content;
+    expect(user).toContain("Be thorough.");
+    expect(user).toContain("about 120 words");
+    // No reading speed yet: the last answer's first word is the estimate (11.5 s -> 90 s of writing -> 360 tokens).
+    generateMock.mockClear();
+    mockFirstTokenMs = null;
+    await executeRoutingPlan(p, { query: "Compare them.", length: { maxTokens: 512, tokPerSec: 4, ttftMs: 11_500 } }, resolveModel);
+    expect(generateMock.mock.calls[0][0].messages.at(-1).content).toContain("about 220 words");
+  });
+
+  it("sizes the answer to the step's token cap when it is below the setting", async () => {
+    const p = plan({
+      steps: [{ id: "generate-0", type: "generate", modelId: "qwen-1.5b", required: true, maxTokens: 200 }],
+      selectedModelIds: ["qwen-1.5b"],
+    });
+    mockFirstTokenMs = null;
+    // 4 tok/s for 90 s would be 360 tokens (~220 words); the step stops at 200 tokens -> ~120 words.
+    await executeRoutingPlan(p, { query: "Compare them.", length: { maxTokens: 512, tokPerSec: 4, ttftMs: 11_500 } }, resolveModel);
+    expect(generateMock.mock.calls[0][0].messages.at(-1).content).toContain("about 120 words");
+    expect(generateMock.mock.calls[0][0].nPredict).toBe(200);
+  });
+
+  it("sizes the answer with the speed of the model the router picked, not the base model's", async () => {
+    const p = plan({
+      steps: [{ id: "generate-0", type: "generate", modelId: "qwen-1.5b", required: true }],
+      selectedModelIds: ["qwen-1.5b"],
+    });
+    mockFirstTokenMs = null;
+    // Base model: 4 tok/s (-> ~220 words, above). The picked 1.5B: 2 tok/s, 11.5 s first word -> 180 tokens -> ~110 words.
+    const speedFor = (id: string) => (id === "qwen-1.5b" ? { tokPerSec: 2, ttftMs: 11_500 } : {});
+    await executeRoutingPlan(p, { query: "Compare them.", length: { maxTokens: 512, tokPerSec: 4, ttftMs: 11_500, speedFor } }, resolveModel);
+    expect(generateMock.mock.calls[0][0].messages.at(-1).content).toContain("about 110 words");
   });
 
   it("Qwen (usesChatTemplate: true) receives a role-separated messages array instead of a prompt string", async () => {

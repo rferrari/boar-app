@@ -23,6 +23,8 @@ import { retrieve } from "../rag/retrieve";
 import { assemblePrompt, assembleChatMessages, ConversationHistory, ANSWER_CONTEXT_CHUNKS } from "../rag/pure";
 import { compressForAnswer } from "../rag/compress";
 import { classifyTask } from "./classify";
+import { searchWithFollowUp } from "./followUp";
+import { answerLength, lengthInstruction } from "./answerLength";
 import type { RetrievedChunk } from "../rag/retrieve.types";
 import { RoutingPlan, RoutingStep } from "./router";
 import { buildVerificationInput, parseVerificationVerdict, VERIFICATION_INSTRUCTION } from "./verify";
@@ -62,6 +64,13 @@ export interface PipelineInput {
   /** Personality.styleReminder of the selected tone. */
   styleReminder?: string;
   history?: ConversationHistory;
+  /**
+   * Size the answer to the phone (answerLength.ts) once the sources are known: the time to the first word is
+   * estimated from this prompt's own size. `ttftMs` is the fallback when there is no reading speed yet.
+   * `speedFor` gives the speed of the model the router picked (it can differ from the one `tokPerSec` was
+   * measured on); without it, `tokPerSec` and `ttftMs` are used.
+   */
+  length?: { maxTokens: number; tokPerSec?: number; ttftMs?: number; speedFor?: (modelId: string) => { tokPerSec?: number; ttftMs?: number } };
 }
 
 export interface PipelineCallbacks {
@@ -225,7 +234,9 @@ export async function executeRoutingPlan(
     switch (step.type) {
       case "retrieve": {
         const retrieveStart = performance.now();
-        const compressed = compressForAnswer(input.query, await retrieve(input.query, ANSWER_CONTEXT_CHUNKS), classifyTask(input.query));
+        // A follow-up ("What did he publish?") is searched with the previous question (followUp.ts).
+        const found = await searchWithFollowUp(input.query, input.history, (text) => retrieve(text, ANSWER_CONTEXT_CHUNKS));
+        const compressed = compressForAnswer(found.searchedFor, found.chunks, classifyTask(input.query));
         retrievalMs = performance.now() - retrieveStart;
         citations = compressed.chunks;
         contextTokensBefore = compressed.tokensBefore;
@@ -268,16 +279,31 @@ export async function executeRoutingPlan(
             : !!generateModel?.usesChatTemplate;
         promptFormat = useTemplate ? "chat-template" : "plain";
 
+        // The answer's length, from this prompt's size: a question with more sources or history reads longer
+        // before its first word, and leaves less of the step timeout for writing.
+        let styleReminder = input.styleReminder;
+        if (input.length) {
+          const draft = useTemplate
+            ? { messages: assembleChatMessages(input.query, citations, input.systemPrompt, input.history, input.styleReminder) }
+            : { prompt: assemblePrompt(input.query, citations, input.systemPrompt, input.history, input.styleReminder) };
+          const estimated = await llamaEngine.estimateFirstTokenMs(draft);
+          const speed = input.length.speedFor && step.modelId ? input.length.speedFor(step.modelId) : input.length;
+          // The step's own cap is what generation stops at (nPredict below), when it is lower than the setting.
+          const maxTokens = Math.min(input.length.maxTokens, step.maxTokens ?? 512);
+          const len = answerLength({ maxTokens, tokPerSec: speed.tokPerSec, ttftMs: estimated ?? speed.ttftMs });
+          styleReminder = [input.styleReminder, lengthInstruction(len.words)].filter(Boolean).join("\n");
+        }
+
         answer = useTemplate
           ? await llamaEngine.generate({
-              messages: assembleChatMessages(input.query, citations, input.systemPrompt, input.history, input.styleReminder),
+              messages: assembleChatMessages(input.query, citations, input.systemPrompt, input.history, styleReminder),
               nPredict: step.maxTokens ?? 512,
               onToken: timedOnToken,
               timeoutMs: step.timeoutMs ?? STEP_TIMEOUT_MS,
               onTimeout: markTimedOut,
             })
           : await llamaEngine.generate({
-              prompt: assemblePrompt(input.query, citations, input.systemPrompt, input.history, input.styleReminder),
+              prompt: assemblePrompt(input.query, citations, input.systemPrompt, input.history, styleReminder),
               nPredict: step.maxTokens ?? 512,
               onToken: timedOnToken,
               timeoutMs: step.timeoutMs ?? STEP_TIMEOUT_MS,
