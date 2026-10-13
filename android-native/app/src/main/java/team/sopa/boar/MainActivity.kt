@@ -197,6 +197,18 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         team.sopa.boar.ui.appearance.VaultScreen(services.vault) { screen = "settings" }
         return
     }
+    if (screen == "labs") {
+        BackHandler { screen = "chat" }
+        team.sopa.boar.labs.LabsScreen(onOpen = { screen = it }) { screen = "chat" }
+        return
+    }
+    if (screen.startsWith("lab:")) {
+        val lab = team.sopa.boar.labs.LabRegistry.byId(screen.removePrefix("lab:"))
+        if (lab == null) { screen = "labs"; return }
+        BackHandler { screen = "labs" }
+        team.sopa.boar.labs.LabScaffold(lab) { screen = "labs" }
+        return
+    }
     if (screen == "about") {
         BackHandler { screen = "chat" }
         AboutScreen { screen = "chat" }
@@ -227,7 +239,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
                         DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } },
                         DrawerItem("about", t("chatScreen.drawerItems.about")) { go { screen = "about" } },
-                    ),
+                    ) + if (BuildConfig.LABS) listOf(DrawerItem("labs", t("native.labs.drawer")) { go { screen = "labs" } }) else emptyList(),
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     ramBudgetBytes = services.catalog.ramBudgetBytes,

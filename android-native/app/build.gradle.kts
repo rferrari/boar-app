@@ -20,8 +20,15 @@ android {
     // BOAR_TRUFFLE_LAUNCHER_ICONS=true (the repo's .env or the environment).
     val truffleLauncherIcons = (providers.gradleProperty("boar.truffleLauncherIcons").orNull
         ?: env["BOAR_TRUFFLE_LAUNCHER_ICONS"] ?: System.getenv("BOAR_TRUFFLE_LAUNCHER_ICONS"))?.trim()?.toBoolean() ?: false
+    // FLAG: Labs (experiments in the drawer). Off by default. On with boar.labs=true (gradle.properties or -P) or
+    // BOAR_LABS=true (.env or the environment); the image lab also needs labs/jniLibs from scripts/build-sd-cli.sh.
+    val labs = (providers.gradleProperty("boar.labs").orNull ?: env["BOAR_LABS"] ?: System.getenv("BOAR_LABS"))?.trim()?.toBoolean() ?: false
     defaultConfig {
         buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
+        buildConfigField("boolean", "LABS", "$labs")
+        // Lab ids to leave out of the grid (labs/LabPlugin.kt), e.g. boar.labs.hide=bigBrain,signboard.
+        val labsHide = providers.gradleProperty("boar.labs.hide").orNull ?: env["BOAR_LABS_HIDE"] ?: System.getenv("BOAR_LABS_HIDE") ?: ""
+        buildConfigField("String", "LABS_HIDE", "\"${labsHide.replace("\"", "")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${env["EXPO_PUBLIC_SUPABASE_URL"] ?: ""}\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: ""}\"")
         // The release keeps the Expo app's id and key, so it installs over v1.1.x with its models.
@@ -76,6 +83,8 @@ android {
         for (type in listOf("debug", "release", "devtest")) sourceSets[type].manifest.srcFile("src/launcherIcons/AndroidManifest.xml")
         sourceSets["main"].res.srcDir("src/launcherIcons/res")
     }
+    // sd-cli for the image lab, as libsdcli*.so so it's installed executable in nativeLibraryDir (gitignored).
+    if (labs) sourceSets["main"].jniLibs.srcDir("../labs/jniLibs")
 }
 
 kotlin { jvmToolchain(17) }
