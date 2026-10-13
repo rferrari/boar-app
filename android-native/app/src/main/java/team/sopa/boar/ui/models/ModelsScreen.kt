@@ -64,12 +64,13 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // More models first: today Hugging Face, later other providers.
+            item { HfCta(onBrowse) }
             // Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks below).
             items(state.items.filter { it.kind != AssetKind.CORPUS }, key = { it.id }) { a ->
                 val active = if (a.kind == AssetKind.LLM) a.id == state.activeLlm else state.rows[a.id]?.present == true
                 CatalogCard(a, state.rows[a.id], active, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
             }
-            item { HfCta(onBrowse) }
         }
     }
 }
@@ -198,13 +199,13 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     )
 }
 
-/** Where more models come from: Hugging Face, searched on its own page (BrowseScreen). */
+/** Where more models come from, at the top: Hugging Face for now, searched on its own page (BrowseScreen). */
 @Composable
 private fun HfCta(onBrowse: () -> Unit) {
     val c = Boar.colors
-    Column(Modifier.fillMaxWidth().padding(top = 8.dp).background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
+    Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(t("modelSetupScreen.discoverHfModels"), style = Boar.type.titleSm, color = c.textHeading)
+        Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("native.browse.ctaNote"), style = Boar.type.subtext, color = c.textSecondary)
         SmallButton("🔍 " + t("native.browse.cta"), onClick = onBrowse)
     }

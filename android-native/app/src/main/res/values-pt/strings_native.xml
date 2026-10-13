@@ -216,4 +216,5 @@
     <string name="native_vault_experimental" formatted="false">Avatares Boar (experimental)</string>
     <string name="native_vault_experimentalNote" formatted="false">Desenterre javalis enquanto usa o BOAR e use-os como avatar; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
+    <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
 </resources>

@@ -24,7 +24,7 @@ object HfBrowser {
     private const val API = HfQuery.API
 
     /** A repo as listed, with the facts from its GGUF header: parameter count, architecture, context length. */
-    data class Repo(val id: String, val downloads: Long?, val likes: Long?, val params: Long? = null, val architecture: String? = null, val contextLength: Long? = null)
+    data class Repo(val id: String, val downloads: Long?, val likes: Long?, val params: Long? = null, val architecture: String? = null, val contextLength: Long? = null, val tags: List<String> = emptyList())
     data class GgufFile(val filename: String, val sizeBytes: Long, val sha256: String?, val revision: String?)
     data class Page(val repos: List<Repo>, val next: String?)
 
@@ -40,15 +40,18 @@ object HfBrowser {
 
     /**
      * One page of the search ([HfQuery.searchUrl], or the `next` of the previous page): text-generation GGUF repos
-     * whose architecture BOAR can chat with. A page can come back shorter than asked, or empty with a next page.
+     * whose architecture BOAR can chat with, without uncensored ones unless the build allows them. A page can come back shorter than asked, or empty with a next page.
      */
     fun browse(url: String): Page {
         require(url.startsWith("$API/models?")) { "Not a Hugging Face model listing: $url" }
         val (body, link) = get(url)
         val repos = Json.parseToJsonElement(body).jsonArray.map { it.jsonObject }.map { o ->
             val g = o["gguf"] as? JsonObject
-            Repo(o.str("id") ?: "", o.num("downloads"), o.num("likes"), g?.num("total"), g?.str("architecture"), g?.num("context_length"))
+            val tags = (o["tags"] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+            Repo(o.str("id") ?: "", o.num("downloads"), o.num("likes"), g?.num("total"), g?.str("architecture"), g?.num("context_length"), tags)
         }.filter { it.id.isNotEmpty() && HfQuery.chatArchitecture(it.architecture) }
+            // Uncensored and adult models only in builds with ALLOW_UNCENSORED_MODELS=true (app/build.gradle.kts).
+            .filter { team.sopa.boar.BuildConfig.ALLOW_UNCENSORED_MODELS || !HfQuery.uncensored(it.id, it.tags) }
         return Page(repos, HfQuery.nextUrl(link))
     }
 

@@ -47,4 +47,15 @@ class HfQueryTest {
         assertEquals("4B", HfQuery.formatParams(4_000_000_000))
         assertEquals("500M", HfQuery.formatParams(500_000_000))
     }
+
+    @Test
+    fun uncensoredModelsAreRecognized() {
+        assertTrue(HfQuery.uncensored("Orenguteng/Llama-3-8B-Lexi-Uncensored-GGUF"))
+        assertTrue(HfQuery.uncensored("mlabonne/gemma-3-4b-it-abliterated-GGUF"))
+        assertTrue(HfQuery.uncensored("someone/plain-name-GGUF", listOf("text-generation", "not-for-all-audiences")))
+        assertTrue(HfQuery.uncensored("someone/model-GGUF", listOf("nsfw")))
+        assertFalse(HfQuery.uncensored("Qwen/Qwen3-4B-Instruct-2507-GGUF", listOf("text-generation", "gguf")))
+        // Whole words only: "therapy" isn't "erp", "superpower" isn't "erp" either.
+        assertFalse(HfQuery.uncensored("someone/therapy-superpower-GGUF"))
+    }
 }

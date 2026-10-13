@@ -216,4 +216,5 @@
     <string name="native_vault_experimental" formatted="false">Boar Avatars (experimental)</string>
     <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
+    <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
 </resources>

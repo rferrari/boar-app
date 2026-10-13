@@ -46,7 +46,7 @@ object HfQuery {
     fun searchUrl(query: String, size: Size, sort: Sort, limit: Int = 30): String {
         val q = query.trim().takeIf { it.isNotEmpty() }?.let { "search=${URLEncoder.encode(it, "UTF-8")}&" } ?: ""
         return "$API/models?${q}filter=gguf&pipeline_tag=text-generation&num_parameters=min:${size.min},max:${size.max}" +
-            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes"
+            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags"
     }
 
     /** The next page from the response's Link header, only when it stays on the models listing. */
@@ -56,6 +56,18 @@ object HfQuery {
     }
 
     fun chatArchitecture(arch: String?): Boolean = arch != null && arch in CHAT_ARCHITECTURES
+
+    private val UNCENSORED_WORDS = setOf("uncensored", "abliterated", "abliteration", "nsfw", "erotic", "erp", "lewd", "porn", "hentai", "unaligned")
+
+    /**
+     * An uncensored or adult model, hidden from Discover unless the build allows them (ALLOW_UNCENSORED_MODELS): Hugging
+     * Face's own adult tag, or a telling word in the repo name or tags. A name check, so it misses quiet ones.
+     */
+    fun uncensored(repoId: String, tags: List<String> = emptyList()): Boolean {
+        if ("not-for-all-audiences" in tags) return true
+        val words = (listOf(repoId) + tags).flatMap { it.lowercase().split(Regex("[^a-z0-9]+")) }
+        return words.any { it in UNCENSORED_WORDS }
+    }
 
     private val SPLIT_PART = Regex("-\\d{5}-of-\\d{5}\\.gguf$", RegexOption.IGNORE_CASE)
 

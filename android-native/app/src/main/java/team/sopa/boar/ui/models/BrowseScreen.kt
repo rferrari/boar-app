@@ -67,7 +67,7 @@ fun BrowseScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
-            Text(t("native.browse.title"), style = Boar.type.titleLg, color = c.textHeading)
+            Text(t("native.browse.discoverTitle"), style = Boar.type.titleLg, color = c.textHeading)
         }
         Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp).padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -26,7 +26,11 @@ android {
     // scripts/build-sd-cli.sh, about 31 MB) ships only with it, unless boar.labs.imageEngine=false.
     val experimental = (providers.gradleProperty("boar.experimentalFeatures").orNull ?: env["EXPERIMENTAL_FEATURES"] ?: System.getenv("EXPERIMENTAL_FEATURES"))?.trim()?.toBoolean() ?: false
     val labsImageEngine = experimental && (providers.gradleProperty("boar.labs.imageEngine").orNull?.trim()?.toBoolean() ?: true)
+    // Uncensored and adult models (HfQuery.uncensored) are hidden from Discover GGUF models unless ALLOW_UNCENSORED_MODELS=true
+    // (.env, the environment, or -Pboar.allowUncensoredModels=true).
+    val allowUncensored = (providers.gradleProperty("boar.allowUncensoredModels").orNull ?: env["ALLOW_UNCENSORED_MODELS"] ?: System.getenv("ALLOW_UNCENSORED_MODELS"))?.trim()?.toBoolean() ?: false
     defaultConfig {
+        buildConfigField("boolean", "ALLOW_UNCENSORED_MODELS", "$allowUncensored")
         buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
         buildConfigField("boolean", "EXPERIMENTAL_FEATURES", "$experimental")
         // Lab ids to leave out of the grid (labs/LabPlugin.kt), e.g. boar.labs.hide=bigBrain,signboard.
