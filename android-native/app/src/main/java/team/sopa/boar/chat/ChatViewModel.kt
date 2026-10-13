@@ -178,7 +178,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val installed = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.map { it.id }
         // shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507").
         val label = m?.label?.replace(Regex("\\s*\\([^)]*\\)"), "")?.replace(Regex("\\s{2,}"), " ")?.trim()?.ifEmpty { m.label.trim() }
-        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = suggestionData.forModel(m?.id, lang, installed)) }
+        // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has 1 in Portuguese): fill from
+        // the ideas tested on the other models, same language, only for packs on the phone.
+        val own = suggestionData.forModel(m?.id, lang, installed)
+        val ideas = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct().take(6)
+        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = ideas) }
     }
 
     fun dismissLoadCrash() = _state.update { it.copy(loadCrash = null) }
