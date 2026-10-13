@@ -73,6 +73,37 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         if (state.phase != null) androidx.activity.compose.BackHandler { vm.cancel() }
         ImageLabScreen(state, vm)
     }
+
+    /** 🎨 in the answer's 🧩 sheet: Illustrator picks what to draw and draws it below the answer. */
+    @Composable
+    override fun answerActions(a: team.sopa.boar.plugins.AnswerRef): List<team.sopa.boar.labs.LabAction> {
+        val ctx = LocalContext.current
+        val st = Illustrator.status(ctx, a.id)
+        val running = st is Illustrator.Status.Choosing || st is Illustrator.Status.Drawing
+        val notReady = t("native.labs.image.illustrateNotReady")
+        val label = t(when { running -> "native.labs.image.illustrateRunning"; st is Illustrator.Status.Done -> "native.labs.image.illustrateAgain"; else -> "native.labs.image.illustrate" })
+        return listOf(team.sopa.boar.labs.LabAction("🎨", label, done = st is Illustrator.Status.Done, enabled = !running) { Illustrator.start(ctx, a, notReady) })
+    }
+
+    /** The drawing (or its progress) under the answer, with what was drawn and how long it took. */
+    @Composable
+    override fun AnswerExtra(a: team.sopa.boar.plugins.AnswerRef) {
+        val c = Boar.colors
+        val ctx = LocalContext.current
+        when (val st = Illustrator.status(ctx, a.id)) {
+            null -> {}
+            Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))
+            is Illustrator.Status.Drawing -> Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
+            is Illustrator.Status.Failed -> Text(st.message, style = Boar.type.caption, color = c.crimson400)
+            is Illustrator.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("🎨 " + st.subject + (st.seconds?.let { String.format(Locale.US, " · %.1f s", it) } ?: ""), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Illustrator.forget(a.id) }.padding(4.dp))
+                }
+            }
+        }
+    }
 }
 
 /** Pick a style, type the subject, draw. The last images stay on the phone below. */
@@ -94,8 +125,11 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel) {
                 else -> {
                     Label(t("native.labs.image.style"))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        ImageLab.Style.entries.forEach { s -> Chip(t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(s) } }
+                        ImageLab.Style.entries.forEach { s -> Chip((if (s == state.defaultStyle) "★ " else "") + t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(s) } }
                     }
+                    if (state.style != state.defaultStyle) Text(t("native.labs.image.setDefault", "style" to t("native.labs.image.style.${state.style.key}")), style = Boar.type.caption,
+                        color = c.textAccentCyan, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { vm.setDefaultStyle(state.style) }.padding(vertical = 2.dp))
+                    else Text(t("native.labs.image.isDefault"), style = Boar.type["mono.xs"], color = c.textDim)
                     Label(t("native.labs.image.size"))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ImageLab.SIZES.forEach { px -> Chip(t("native.labs.image.size.$px"), px == state.size, Modifier.weight(1f)) { vm.setSize(px) } }

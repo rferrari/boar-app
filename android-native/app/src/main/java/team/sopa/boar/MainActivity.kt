@@ -94,11 +94,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val services = BoarServices.get(this)
+        team.sopa.boar.labs.LabHooks.init(this)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }
         setContent {
-            val truffle by services.vault.icon.collectAsState()
+            val equipped by services.vault.icon.collectAsState()
+            val avatarsOn by services.vault.enabled.collectAsState()
+            val truffle = equipped.takeIf { avatarsOn }
             var theme by remember { mutableStateOf(services.settings.themeId) }
             var fontScale by remember { mutableStateOf(services.settings.fontScale) }
             val prefs = object : DisplayPrefs {
@@ -107,7 +110,8 @@ class MainActivity : ComponentActivity() {
                 override fun setLanguage(id: String?) { recreate() }
             }
             androidx.compose.runtime.CompositionLocalProvider(team.sopa.boar.appearance.LocalTruffle provides truffle) {
-                BoarTheme(theme, fontScale) {
+                // A theme unlocked by Boar Avatars applies only while that experiment is on.
+                BoarTheme(theme.takeIf { avatarsOn || it == null || it in team.sopa.boar.ui.theme.Themes.open }, fontScale) {
                     if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
                     else androidx.compose.foundation.layout.Box {
                         App(services, prefs)
@@ -197,16 +201,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         team.sopa.boar.ui.appearance.VaultScreen(services.vault) { screen = "settings" }
         return
     }
-    if (screen == "labs") {
-        BackHandler { screen = "chat" }
-        team.sopa.boar.labs.LabsScreen(onOpen = { screen = it }) { screen = "chat" }
-        return
-    }
-    if (screen.startsWith("lab:")) {
-        val lab = team.sopa.boar.labs.LabRegistry.byId(screen.removePrefix("lab:"))
-        if (lab == null) { screen = "labs"; return }
-        BackHandler { screen = "labs" }
-        team.sopa.boar.labs.LabScaffold(lab) { screen = "labs" }
+    if (team.sopa.boar.labs.LabHooks.handles(screen)) {
+        BackHandler { screen = if (screen == "labs") "chat" else "labs" }
+        team.sopa.boar.labs.LabHooks.Screen(screen) { screen = it }
         return
     }
     if (screen == "about") {
@@ -239,7 +236,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
                         DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } },
                         DrawerItem("about", t("chatScreen.drawerItems.about")) { go { screen = "about" } },
-                    ) + if (BuildConfig.LABS) listOf(DrawerItem("labs", t("native.labs.drawer")) { go { screen = "labs" } }) else emptyList(),
+                    ) + team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     ramBudgetBytes = services.catalog.ramBudgetBytes,
@@ -263,6 +260,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
             voiceEnabled = services.settings.voiceInputEnabled,
+            onOpenRoute = { screen = it },
         )
     }
 }

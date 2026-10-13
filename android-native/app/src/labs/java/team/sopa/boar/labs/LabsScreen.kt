@@ -79,8 +79,16 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             }
             StatusChip(lab.status)
         }
+        Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(t("native.labs.enabled"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading)
+                Text(t("native.labs.enabledNote"), style = Boar.type["mono.xs"], color = c.textDim)
+            }
+            androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
+                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500))
+        }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
-        lab.Content()
+        if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
     }
 }
 
@@ -132,6 +140,8 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
             Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
             if (locked) Text("🔒", fontSize = 22.sp)
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status) }
+            if (!locked && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp).background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
         }
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))

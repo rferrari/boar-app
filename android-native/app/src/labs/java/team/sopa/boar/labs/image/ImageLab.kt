@@ -13,12 +13,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import team.sopa.boar.app.BoarServices
-import team.sopa.boar.engine.CpuVariants
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.AssetStore
 import team.sopa.boar.engine.models.CatalogAsset
 import java.io.File
-import kotlin.random.Random
 
 /**
  * Labs → Image: one illustration from a subject and a style, with stable-diffusion.cpp's sd-cli and SDXS-512
@@ -40,6 +38,11 @@ object ImageLab {
         fun prompt(subject: String) = template.replace("{s}", subject.trim())
     }
 
+    /** The user's pick ("Set as default"), else engraving. */
+    fun defaultStyle(): Style = team.sopa.boar.labs.LabPrefs.string("image.style")?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
+
+    fun setDefaultStyle(s: Style) = team.sopa.boar.labs.LabPrefs.putString("image.style", s.key)
+
     val MODEL = CatalogAsset(
         id = "lab-sdxs-512-q8",
         kind = AssetKind.LLM,
@@ -59,6 +62,7 @@ data class ImageLabState(
     val modelPresent: Boolean = false,
     val downloadPct: Int? = null,
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
+    val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val size: Int = ImageLab.SIZES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -73,13 +77,13 @@ data class ImageLabState(
 class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
     private val store = AssetStore(app.filesDir, services.catalog)
-    private val outDir = File(app.filesDir, "labs/images")
     private val _state = MutableStateFlow(ImageLabState())
     val state: StateFlow<ImageLabState> = _state
     private var job: Job? = null
-    @Volatile private var process: Process? = null
 
     init {
+        team.sopa.boar.labs.LabPrefs.init(app)
+        ImageLab.defaultStyle().let { d -> _state.update { it.copy(style = d, defaultStyle = d) } }
         refresh()
         viewModelScope.launch {
             val title = withContext(Dispatchers.IO) { runCatching { services.chats.listSessions().firstOrNull { it.title.isNotBlank() }?.title }.getOrNull() }
@@ -87,18 +91,10 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** sd-cli built for i8mm when the CPU has it (the X6), else the armv8.2 + dotprod build (the F3). */
-    private fun engine(): File? {
-        val dir = File(getApplication<Application>().applicationInfo.nativeLibraryDir)
-        val i8mm = File(dir, "libsdcli_i8mm.so")
-        val base = File(dir, "libsdcli.so")
-        return if (i8mm.exists() && "i8mm" in CpuVariants.readFeatures()) i8mm else base.takeIf { it.exists() }
-    }
-
     private fun refresh() {
-        val present = store.status(ImageLab.MODEL).let { it.present && it.sizeOnDiskBytes == ImageLab.MODEL.sizeBytes }
-        val gallery = outDir.listFiles { f -> f.extension == "png" }.orEmpty().sortedByDescending { it.lastModified() }
-        _state.update { it.copy(engineFound = engine() != null, modelPresent = present, gallery = gallery) }
+        val ctx = getApplication<Application>()
+        val gallery = SdRunner.outDir(ctx).listFiles { f -> f.extension == "png" }.orEmpty().sortedByDescending { it.lastModified() }
+        _state.update { it.copy(engineFound = SdRunner.engine(ctx) != null, modelPresent = SdRunner.modelFile(ctx).length() == ImageLab.MODEL.sizeBytes, gallery = gallery) }
     }
 
     fun download() {
@@ -117,43 +113,24 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     fun show(f: File) = _state.update { it.copy(image = f, seconds = null, error = null) }
 
     fun generate(subject: String) {
-        val bin = engine() ?: return
-        if (subject.isBlank() || _state.value.phase != null) return
+        if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
         val s = _state.value
-        val seed = Random.nextInt(1, Int.MAX_VALUE)
-        outDir.mkdirs()
-        val out = File(outDir, "${System.currentTimeMillis()}-${s.style.key}-${s.size}.png")
         _state.update { it.copy(phase = "loading", error = null, seconds = null) }
         job = viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                // The 4 fast cores on an 8-core phone, as measured; elsewhere the scheduler picks.
-                val pin = if (Runtime.getRuntime().availableProcessors() == 8 && File("/system/bin/taskset").exists()) listOf("/system/bin/taskset", "f0") else emptyList()
-                val cmd = pin + listOf(bin.path, "-m", store.fileOf(ImageLab.MODEL).path, "-p", s.style.prompt(subject),
-                    "--cfg-scale", "1", "--steps", "1", "-W", "${s.size}", "-H", "${s.size}", "-t", "4", "--seed", "$seed", "-o", out.path)
-                runCatching {
-                    val p = ProcessBuilder(cmd).redirectErrorStream(true).start().also { process = it }
-                    val tail = ArrayDeque<String>()
-                    var seconds: Double? = null
-                    p.inputStream.bufferedReader().forEachLine { line ->
-                        when {
-                            "sampling" in line && "completed" !in line -> _state.update { it.copy(phase = "drawing") }
-                            "sampling completed" in line -> _state.update { it.copy(phase = "decoding") }
-                            "generate_image completed in" in line -> seconds = Regex("in ([0-9.]+)s").find(line)?.groupValues?.get(1)?.toDoubleOrNull()
-                        }
-                        tail.addLast(line); if (tail.size > 6) tail.removeFirst()
-                    }
-                    val code = p.waitFor()
-                    if (code != 0 || !out.exists()) error("sd-cli exit $code: ${tail.joinToString(" | ").take(400)}")
-                    seconds
-                }.also { process = null }
-            }
-            result.onSuccess { sec -> _state.update { it.copy(phase = null, image = out, seconds = sec) } }
-                .onFailure { e -> out.delete(); _state.update { it.copy(phase = null, error = if (job?.isCancelled == true) null else e.message) } }
+            runCatching { SdRunner.draw(getApplication(), subject, s.style, s.size) { ph -> _state.update { it.copy(phase = ph) } } }
+                .onSuccess { d -> _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds) } }
+                .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = e.message) } }
             refresh()
         }
     }
 
-    fun cancel() { process?.destroy(); job?.cancel(); _state.update { it.copy(phase = null) } }
+    /** The style Illustrate and a new Image Gen session start with. */
+    fun setDefaultStyle(s: ImageLab.Style) {
+        ImageLab.setDefaultStyle(s)
+        _state.update { it.copy(defaultStyle = s) }
+    }
+
+    fun cancel() { SdRunner.cancel(); job?.cancel(); _state.update { it.copy(phase = null) } }
 
     fun delete(f: File) {
         f.delete()
@@ -174,5 +151,5 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }, null)
     }
 
-    override fun onCleared() { process?.destroy() }
+
 }

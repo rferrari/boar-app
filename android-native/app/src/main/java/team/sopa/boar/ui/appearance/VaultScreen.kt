@@ -57,20 +57,30 @@ private val SILHOUETTE = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
 
 /** Settings → Appearance: the theme, the boar (app icon and chat avatar) and the way into the vault. */
 @Composable
-fun AppearancePickers(vault: TruffleVault, themeId: String?, onTheme: (String) -> Unit, onOpenVault: () -> Unit) {
+fun ThemePicker(vault: TruffleVault, themeId: String?, onTheme: (String) -> Unit) {
     val c = Boar.colors
     val state by vault.state.collectAsState()
-    val icon by vault.icon.collectAsState()
+    val avatarsOn by vault.enabled.collectAsState()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.vault.themes"), style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
-        val openThemes = Themes.all.filter { it.id in Themes.open || it.id in state.themes }
-        val selected = Themes.byId(themeId).id
+        // Unlocked themes show (and apply) only while Boar Avatars is on.
+        val openThemes = Themes.all.filter { it.id in Themes.open || (avatarsOn && (it.id in Themes.starter || it.id in state.themes)) }
+        val selected = Themes.byId(themeId?.takeIf { avatarsOn || it in Themes.open }).id
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             for (th in openThemes) Chip("${th.icon} ${th.name}", th.id == selected) { onTheme(th.id) }
         }
         val locked = Themes.all.size - openThemes.size
-        if (locked > 0) Text(t("native.vault.themesLocked", "n" to locked), style = Boar.type.subtext, color = c.textMuted)
+        if (avatarsOn && locked > 0) Text(t("native.vault.themesLocked", "n" to locked), style = Boar.type.subtext, color = c.textMuted)
+    }
+}
 
+/** Settings → Boar Avatars (while the experiment is on): the equipped boar and the way into the Truffle Vault. */
+@Composable
+fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
+    val c = Boar.colors
+    val state by vault.state.collectAsState()
+    val icon by vault.icon.collectAsState()
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.vault.boar"), style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             Avatar(R.drawable.boar, icon == null) { vault.equip(null) }

@@ -27,6 +27,21 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     /** Truffles unearthed since the app opened, for the "Truffle unearthed" message. */
     val fresh: SharedFlow<String> = _fresh
 
+    private val prefs = context.getSharedPreferences("vault", Context.MODE_PRIVATE)
+    // Only builds with EXPERIMENTAL_FEATURES=true (app/build.gradle.kts) show the switch; others keep it off.
+    private val _enabled = MutableStateFlow(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && prefs.getBoolean("experimental.on", false))
+    /**
+     * Settings → Advanced tweaks → Boar Avatars (experimental), off by default. Off: BOAR's own avatar and launcher
+     * icon, only the open themes, no "Truffle unearthed" messages. Truffles are still counted, so turning it on later
+     * finds them waiting.
+     */
+    val enabled: StateFlow<Boolean> = _enabled
+
+    fun setEnabled(on: Boolean) {
+        _enabled.value = on && team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES
+        prefs.edit().putBoolean("experimental.on", on).apply()
+    }
+
     private val _icon = MutableStateFlow(settings.iconId?.takeIf { it in TruffleArt.byId })
     /** The equipped boar, or null for BOAR's own. */
     val icon: StateFlow<String?> = _icon
@@ -39,7 +54,7 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
         _state.value = after
         settings.truffleVault = Vault.toJson(after)
         // The default truffle isn't news.
-        fresh.filter { Vault.RULES[it] != Vault.Rule.ALWAYS }.forEach { _fresh.tryEmit(it) }
+        if (_enabled.value) fresh.filter { Vault.RULES[it] != Vault.Rule.ALWAYS }.forEach { _fresh.tryEmit(it) }
     }
 
     /** On app start: the day, airplane mode, and what can be read from the phone and the app's own data. */
@@ -103,7 +118,8 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
         // FLAG boar.truffleLauncherIcons (build.gradle.kts): off, the boars stay inside the app and the aliases don't exist.
         if (!LAUNCHER_ICONS) return
         // A launcher that refuses the switch mustn't take the app down: the avatar has already changed.
-        runCatching { if (IconSwitcher.drifted(context, _icon.value)) IconSwitcher.apply(context, _icon.value) }
+        val target = _icon.value.takeIf { _enabled.value }
+        runCatching { if (IconSwitcher.drifted(context, target)) IconSwitcher.apply(context, target) }
             .onFailure { android.util.Log.w("TruffleVault", "icon switch failed", it) }
     }
 

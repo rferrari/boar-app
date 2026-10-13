@@ -29,7 +29,7 @@ object Themes {
         )
     }
 
-    /** Tactical Red is open to everyone; the rest are granted by plugins (TruffleVault.grantTheme). */
+    /** Tactical Red comes with Boar Avatars (experimental); the rest are granted by plugins (TruffleVault.grantTheme). */
     val tacticalRed = derive("tactical_red", "Tactical Red", "🔴", Color(0xFFFF3B30), Color(0xFF000000))
     val extras: List<BoarColors> = listOf(
         tacticalRed,
@@ -40,8 +40,11 @@ object Themes {
         derive("solarpunk_gold", "Solarpunk Gold", "☀️", Color(0xFFFFB800), Color(0xFF121212)),
     )
 
-    /** Themes open without a grant. */
-    val open: Set<String> = ThemeTokens.all.map { it.id }.toSet() + tacticalRed.id
+    /** Themes open to everyone. */
+    val open: Set<String> = ThemeTokens.all.map { it.id }.toSet()
+
+    /** Open without a grant while Boar Avatars is on. */
+    val starter: Set<String> = setOf(tacticalRed.id)
 
     val all: List<BoarColors> = ThemeTokens.all + extras
 

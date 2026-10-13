@@ -20,14 +20,17 @@ android {
     // BOAR_TRUFFLE_LAUNCHER_ICONS=true (the repo's .env or the environment).
     val truffleLauncherIcons = (providers.gradleProperty("boar.truffleLauncherIcons").orNull
         ?: env["BOAR_TRUFFLE_LAUNCHER_ICONS"] ?: System.getenv("BOAR_TRUFFLE_LAUNCHER_ICONS"))?.trim()?.toBoolean() ?: false
-    // FLAG: Labs (experiments in the drawer). Off by default. On with boar.labs=true (gradle.properties or -P) or
-    // BOAR_LABS=true (.env or the environment); the image lab also needs labs/jniLibs from scripts/build-sd-cli.sh.
-    val labs = (providers.gradleProperty("boar.labs").orNull ?: env["BOAR_LABS"] ?: System.getenv("BOAR_LABS"))?.trim()?.toBoolean() ?: false
+    // You read the build file: there's an EXPERIMENTAL block at the bottom of Advanced tweaks (Boar Labs, Boar Avatars),
+    // shown only in builds with EXPERIMENTAL_FEATURES=true in the repo's .env (or the environment, or -Pboar.experimentalFeatures=true).
+    // Without it the switches never show and both stay off. The image lab's sd-cli (labs/jniLibs, from
+    // scripts/build-sd-cli.sh, about 31 MB) ships only with it, unless boar.labs.imageEngine=false.
+    val experimental = (providers.gradleProperty("boar.experimentalFeatures").orNull ?: env["EXPERIMENTAL_FEATURES"] ?: System.getenv("EXPERIMENTAL_FEATURES"))?.trim()?.toBoolean() ?: false
+    val labsImageEngine = experimental && (providers.gradleProperty("boar.labs.imageEngine").orNull?.trim()?.toBoolean() ?: true)
     defaultConfig {
         buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
-        buildConfigField("boolean", "LABS", "$labs")
+        buildConfigField("boolean", "EXPERIMENTAL_FEATURES", "$experimental")
         // Lab ids to leave out of the grid (labs/LabPlugin.kt), e.g. boar.labs.hide=bigBrain,signboard.
-        val labsHide = providers.gradleProperty("boar.labs.hide").orNull ?: env["BOAR_LABS_HIDE"] ?: System.getenv("BOAR_LABS_HIDE") ?: ""
+        val labsHide = providers.gradleProperty("boar.labs.hide").orNull ?: ""
         buildConfigField("String", "LABS_HIDE", "\"${labsHide.replace("\"", "")}\"")
         buildConfigField("String", "SUPABASE_URL", "\"${env["EXPO_PUBLIC_SUPABASE_URL"] ?: ""}\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: ""}\"")
@@ -83,8 +86,10 @@ android {
         for (type in listOf("debug", "release", "devtest")) sourceSets[type].manifest.srcFile("src/launcherIcons/AndroidManifest.xml")
         sourceSets["main"].res.srcDir("src/launcherIcons/res")
     }
+    sourceSets["main"].java.srcDir("src/labs/java")
+    sourceSets["main"].res.srcDir("src/labs/res")
     // sd-cli for the image lab, as libsdcli*.so so it's installed executable in nativeLibraryDir (gitignored).
-    if (labs) sourceSets["main"].jniLibs.srcDir("../labs/jniLibs")
+    if (labsImageEngine) sourceSets["main"].jniLibs.srcDir("../labs/jniLibs")
 }
 
 kotlin { jvmToolchain(17) }

@@ -1,0 +1,104 @@
+package team.sopa.boar.labs
+
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import team.sopa.boar.BuildConfig
+import team.sopa.boar.labs.image.ImageGenLab
+import team.sopa.boar.labs.printer.PrinterLab
+import team.sopa.boar.labs.pulse.DevicePulseLab
+import team.sopa.boar.plugins.AnswerRef
+
+/**
+ * Boar Labs plugins (src/labs). Hidden until the user turns on Settings → Advanced tweaks → Boar Labs, at the very
+ * bottom, which only builds with EXPERIMENTAL_FEATURES=true show (app/build.gradle.kts); off, no lab shows anywhere.
+ *
+ * Each lab is one object in its own package (labs/<id>/) and one line in [LabRegistry.ALL]:
+ * - add: write a [LabPlugin], add it to ALL, add native.labs.<id>.title / .body to src/labs/res (en and pt);
+ * - remove: delete its package and its line;
+ * - hide from a build: boar.labs.hide=<id>,<id> (gradle.properties or -P);
+ * - on the phone: every lab has an Enabled switch on its page; a disabled lab fills no slot.
+ *
+ * Slots are where a plugin reaches into the app ([LabHooks]): an answer's 🧩 sheet and what shows under it, the chat header.
+ * A CLASSIFIED lab shows its tile locked and never opens or fills a slot: a teaser for what's in testing.
+ */
+enum class LabStatus { LIVE, BETA, CLASSIFIED }
+
+interface LabPlugin {
+    /** Stable id: the route (lab:<id>), the string keys (native.labs.<id>.*), the hide flag and the switch. */
+    val id: String
+    /** Stands in for the tile's art until there is a picture. */
+    val emoji: String
+    val status: LabStatus
+
+    /** The experiment's page, below the shared header (LabScaffold). */
+    @Composable fun Content() {}
+
+    /** Rows in the 🧩 sheet a finished answer's footer opens: one button there however many labs add actions. */
+    @Composable fun answerActions(a: AnswerRef): List<LabAction> = emptyList()
+
+    /** Content under a finished answer, above its footer. */
+    @Composable fun AnswerExtra(a: AnswerRef) {}
+
+    /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
+    @Composable fun HeaderBadge(go: (String) -> Unit) {}
+}
+
+/** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
+class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val onClick: () -> Unit)
+
+/** A tile for something in testing: no screen, no slots. */
+class ClassifiedLab(override val id: String, override val emoji: String) : LabPlugin {
+    override val status = LabStatus.CLASSIFIED
+}
+
+object LabRegistry {
+    /** Grid order, two per row. */
+    val ALL: List<LabPlugin> = listOf(
+        ImageGenLab,
+        DevicePulseLab,
+        PrinterLab,
+        ClassifiedLab("truffleHunt", "🍄"),
+        ClassifiedLab("bigBrain", "🧠"),
+        ClassifiedLab("signboard", "📷"),
+    )
+
+    private val hidden: Set<String> = BuildConfig.LABS_HIDE.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }
+
+    fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id && it.status != LabStatus.CLASSIFIED }
+
+    /** The labs that fill slots: built, not classified, and switched on. */
+    val active: List<LabPlugin> get() = if (!LabPrefs.labsOn) emptyList() else visible.filter { it.status != LabStatus.CLASSIFIED && LabPrefs.enabled(it.id) }
+}
+
+/** Per-lab switches and small settings, in SharedPreferences "labs". The switches are Compose state. */
+object LabPrefs {
+    private var prefs: android.content.SharedPreferences? = null
+    private val switches = mutableStateMapOf<String, Boolean>()
+    private val on = androidx.compose.runtime.mutableStateOf(false)
+
+    fun init(context: Context) {
+        if (prefs != null) return
+        val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
+        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", true) }
+        on.value = p.getBoolean("labs.on", false)
+    }
+
+    /** The master switch at the bottom of Advanced tweaks: off by default, and then no lab shows anywhere. */
+    var labsOn: Boolean
+        get() = BuildConfig.EXPERIMENTAL_FEATURES && on.value
+        set(v) { on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
+
+    fun enabled(id: String) = switches[id] ?: true
+
+    fun setEnabled(id: String, on: Boolean) {
+        switches[id] = on
+        prefs?.edit()?.putBoolean("enabled.$id", on)?.apply()
+    }
+
+    fun string(key: String): String? = prefs?.getString(key, null)
+
+    fun putString(key: String, value: String) { prefs?.edit()?.putString(key, value)?.apply() }
+}

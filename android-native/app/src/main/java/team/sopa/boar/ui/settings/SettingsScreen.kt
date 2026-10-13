@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.settings
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -83,13 +84,16 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             }
             Section(t("modelSetupScreen.sections.displayTheme")) {
                 var theme by remember { mutableStateOf(s.themeId) }
-                team.sopa.boar.ui.appearance.AppearancePickers(services.vault, theme,
-                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } },
-                    onOpenVault = { onOpen("vault") })
+                team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
+                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
                 var scale by remember { mutableStateOf(s.fontScale) }
                 Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                 var haptics by remember { mutableStateOf(s.hapticsEnabled) }
                 SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
+            }
+            val avatarsOn by services.vault.enabled.collectAsState()
+            if (avatarsOn) Section(t("native.vault.section")) {
+                team.sopa.boar.ui.appearance.AvatarPicker(services.vault) { onOpen("vault") }
             }
             Section(t("modelSetupScreen.sections.language")) {
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }
@@ -339,6 +343,13 @@ private fun TweaksSection(services: BoarServices) {
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
+        // The experiments, last on purpose and only in EXPERIMENTAL_FEATURES builds (app/build.gradle.kts): off by default.
+        if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) {
+            Text(t("native.settings.experimental"), style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp))
+            val avatarsOn by services.vault.enabled.collectAsState()
+            SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
+            team.sopa.boar.labs.LabHooks.SettingsRow()
+        }
     }
 }
 

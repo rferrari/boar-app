@@ -1,5 +1,7 @@
 package team.sopa.boar.ui.chat
 
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,6 +92,8 @@ fun ChatScreen(
     onDismissCrash: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
+    /** Opens an app route from a plugin's header badge ("lab:printer"). */
+    onOpenRoute: (String) -> Unit = {},
     voiceEnabled: Boolean = false,
 ) {
     val c = Boar.colors
@@ -111,7 +115,7 @@ fun ChatScreen(
     Box(Modifier.fillMaxSize().background(c.bgTerminal)) {
         Ambient()
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-            Header(state, onMenu, onCycleTone, onNewChat)
+            Header(state, onMenu, onCycleTone, onNewChat, onOpenRoute)
             if (state.deepResearch) DeepResearchBanner()
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadCrash?.let { CrashBanner(it, onDismissCrash) }
@@ -165,7 +169,7 @@ private fun Ambient() {
 
 /** ChatHeader.tsx */
 @Composable
-private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit, onNewChat: () -> Unit) {
+private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -185,6 +189,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
                 RoundButton(Color.White.copy(alpha = 0.07f), c.borderSubtle, onCycleTone) { Text(state.toneIcon, fontSize = 14.sp) }
                 RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
             }
@@ -407,6 +412,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             var receiptOpen by remember { mutableStateOf(false) }
+            // Plugin slots (Boar Labs): what this answer hands them, and their content under it.
+            val ref = team.sopa.boar.plugins.AnswerRef(m.id, state.sessionId,
+                state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty(),
+                shown, m.sources.map { it.title to it.source }, state.answeringId != null)
+            if (m.text.isNotEmpty() && !streaming) team.sopa.boar.labs.LabHooks.AnswerExtras(ref)
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -417,6 +427,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         m.receipt?.let { r -> ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } }
                     }
                     if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
+                    team.sopa.boar.labs.LabHooks.AnswerActions(ref)
                     var copied by remember { mutableStateOf(false) }
                     FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { clipboard.setText(AnnotatedString(shown)); copied = true }
                 }
@@ -469,7 +480,7 @@ private fun ProcessingIndicator(label: String) {
 }
 
 @Composable
-private fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
+internal fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
     val c = Boar.colors
     Row(
         Modifier.clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))

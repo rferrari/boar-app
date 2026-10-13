@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Boar Labs texts (src/labs). -->
+<resources>
+    <string name="native_labs_drawer" formatted="false">Boar Labs</string>
+    <string name="native_labs_image_title" formatted="false">Image Gen</string>
+    <string name="native_labs_image_intro" formatted="false">Experimental. Draws one illustration on this phone, offline, in under 20 seconds. Pick a style and type what to draw.</string>
+    <string name="native_labs_image_noEngine" formatted="false">This build has no image engine. Build with -Pboar.labs=true after scripts/build-sd-cli.sh.</string>
+    <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet.</string>
+    <string name="native_labs_image_download" formatted="false">Download (683 MB)</string>
+    <string name="native_labs_image_downloading" formatted="false">Downloading… {{pct}}%</string>
+    <string name="native_labs_image_style" formatted="false">STYLE</string>
+    <string name="native_labs_image_style_engraving" formatted="false">Engraving</string>
+    <string name="native_labs_image_style_textbook" formatted="false">Textbook</string>
+    <string name="native_labs_image_style_vector" formatted="false">Vector</string>
+    <string name="native_labs_image_style_scientific" formatted="false">Scientific</string>
+    <string name="native_labs_image_size" formatted="false">SIZE</string>
+    <string name="native_labs_image_size_512" formatted="false">512 px · ~20 s</string>
+    <string name="native_labs_image_size_384" formatted="false">384 px · ~15 s</string>
+    <string name="native_labs_image_subject" formatted="false">WHAT TO DRAW</string>
+    <string name="native_labs_image_placeholder" formatted="false">a wild boar</string>
+    <string name="native_labs_image_generate" formatted="false">Draw</string>
+    <string name="native_labs_image_phase_loading" formatted="false">Loading the model…</string>
+    <string name="native_labs_image_phase_drawing" formatted="false">Drawing…</string>
+    <string name="native_labs_image_phase_decoding" formatted="false">Finishing the picture…</string>
+    <string name="native_labs_image_share" formatted="false">Share</string>
+    <string name="native_labs_image_delete" formatted="false">Delete</string>
+    <string name="native_labs_image_gallery" formatted="false">ON THIS PHONE</string>
+    <string name="native_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_labs_classifiedNote" formatted="false">{{name}} is classified: still in testing. Check back soon.</string>
+    <string name="native_labs_printer_title" formatted="false">Field Printer</string>
+    <string name="native_labs_printer_body" formatted="false">Collect answers from any chat into a basket, then compile them with drawings into a PDF.</string>
+    <string name="native_labs_bigBrain_title" formatted="false">Big Brain</string>
+    <string name="native_labs_bigBrain_body" formatted="false">A model ten times larger that loads only the parts each answer needs.</string>
+    <string name="native_labs_image_body" formatted="false">Draw an illustration from a few words, offline, in under 20 seconds.</string>
+    <string name="native_labs_hero_count" formatted="false">{{open}} open · {{locked}} classified</string>
+    <string name="native_labs_hero_offline" formatted="false">everything here runs on this phone, offline</string>
+    <string name="native_labs_hero_warning" formatted="false">experimental: may be slow, rough, or gone tomorrow</string>
+    <string name="native_labs_status_live" formatted="false">LIVE</string>
+    <string name="native_labs_status_beta" formatted="false">BETA</string>
+    <string name="native_labs_status_classified" formatted="false">CLASSIFIED</string>
+    <string name="native_labs_pulse_title" formatted="false">Device Pulse</string>
+    <string name="native_labs_pulse_body" formatted="false">Watch your phone work: heat, every core\'s clock, memory and the chip BOAR runs on.</string>
+    <string name="native_labs_pulse_heat" formatted="false">HEAT</string>
+    <string name="native_labs_pulse_heatNote" formatted="false">last {{seconds}} s · min {{min}} °C · max {{max}} °C</string>
+    <string name="native_labs_pulse_cores" formatted="false">CORES</string>
+    <string name="native_labs_pulse_memory" formatted="false">MEMORY</string>
+    <string name="native_labs_pulse_ramPhone" formatted="false">phone</string>
+    <string name="native_labs_pulse_ramBoar" formatted="false">BOAR</string>
+    <string name="native_labs_pulse_chip" formatted="false">CHIP</string>
+    <string name="native_labs_pulse_engine" formatted="false">engine</string>
+    <string name="native_labs_pulse_features" formatted="false">features</string>
+    <string name="native_labs_pulse_battery" formatted="false">battery</string>
+    <string name="native_labs_pulse_device" formatted="false">device</string>
+    <string name="native_labs_pulse_thermal_none" formatted="false">cool</string>
+    <string name="native_labs_pulse_thermal_light" formatted="false">warm</string>
+    <string name="native_labs_pulse_thermal_moderate" formatted="false">hot: Android may slow it down</string>
+    <string name="native_labs_pulse_thermal_severe" formatted="false">too hot: Android is slowing it down</string>
+    <string name="native_labs_pulse_tip" formatted="false">Leave this open, ask BOAR something or draw an image, then come back to see what it cost.</string>
+    <string name="native_labs_truffleHunt_title" formatted="false">Truffle Hunt</string>
+    <string name="native_labs_truffleHunt_body" formatted="false">A daily quiz from your knowledge packs. Right answers dig up truffles for the Vault.</string>
+    <string name="native_labs_signboard_title" formatted="false">Signboard</string>
+    <string name="native_labs_signboard_body" formatted="false">Point the camera at a sign or a menu: read and translated, offline.</string>
+    <string name="native_labs_image_fromChat" formatted="false">↳ From your last chat: “{{title}}”</string>
+    <string name="native_labs_printer_empty" formatted="false">The basket is empty.</string>
+    <string name="native_labs_printer_howTo" formatted="false">Under any answer in a chat, tap 📎 to add it here. Collect from as many chats as you like, then come back to arrange and compile.</string>
+    <string name="native_labs_printer_docTitle" formatted="false">DOCUMENT TITLE</string>
+    <string name="native_labs_printer_untitled" formatted="false">Field notes</string>
+    <string name="native_labs_printer_items_one" formatted="false">{{count}} ITEM</string>
+    <string name="native_labs_printer_items_other" formatted="false">{{count}} ITEMS</string>
+    <string name="native_labs_printer_clear" formatted="false">CLEAR</string>
+    <string name="native_labs_printer_sources_one" formatted="false">{{count}} source</string>
+    <string name="native_labs_printer_sources_other" formatted="false">{{count}} sources</string>
+    <string name="native_labs_printer_images" formatted="false">ILLUSTRATIONS (UP TO {{max}})</string>
+    <string name="native_labs_printer_noImages" formatted="false">No drawings yet. Make some in Image Gen, then pick them here.</string>
+    <string name="native_labs_printer_compile" formatted="false">Compile PDF</string>
+    <string name="native_labs_printer_compiling" formatted="false">Compiling…</string>
+    <string name="native_labs_printer_footer" formatted="false">compiled offline with BOAR</string>
+    <string name="native_labs_printer_inBasket" formatted="false">In the Printer basket (tap to remove)</string>
+    <string name="native_labs_settingsTitle" formatted="false">Boar Labs (experimental)</string>
+    <string name="native_labs_settingsNote" formatted="false">Unfinished experiments in the menu and under answers. They may be slow, rough or change without notice.</string>
+    <string name="native_labs_enabled" formatted="false">Enabled</string>
+    <string name="native_labs_enabledNote" formatted="false">Off: this lab disappears from the chat too.</string>
+    <string name="native_labs_disabled" formatted="false">This lab is off. Turn it on above.</string>
+    <string name="native_labs_off" formatted="false">OFF</string>
+    <string name="native_labs_image_setDefault" formatted="false">★ Set {{style}} as my default style</string>
+    <string name="native_labs_image_isDefault" formatted="false">★ your default style, also used by 🎨 under answers</string>
+    <string name="native_labs_image_illustrateNotReady" formatted="false">To illustrate answers, download the image model in Boar Labs → Image Gen.</string>
+    <string name="native_labs_image_illustrateChoosing" formatted="false">Choosing what to draw…</string>
+    <string name="native_labs_image_illustrateDrawing" formatted="false">Drawing: {{subject}}…</string>
+    <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_printer_addToBasket" formatted="false">Add to the Printer basket</string>
+    <string name="native_labs_image_illustrate" formatted="false">Illustrate this answer</string>
+    <string name="native_labs_image_illustrateAgain" formatted="false">Draw it again</string>
+    <string name="native_labs_image_illustrateRunning" formatted="false">Drawing…</string>
+</resources>
