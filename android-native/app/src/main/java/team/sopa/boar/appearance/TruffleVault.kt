@@ -56,7 +56,6 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
                 sourceBuild = f.sourceBuild || source, degoogled = f.degoogled || degoogled,
             )
         }
-        if (IconSwitcher.drifted(context, _icon.value)) runCatching { IconSwitcher.apply(context, _icon.value) }
     }
 
     /** After an answer that wrote something. */
@@ -89,12 +88,21 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
 
     fun unlocked(id: String) = id in _state.value.unlocked
 
-    /** Equips a boar (null = BOAR's own): the in-app avatar now, the launcher icon as soon as the launcher refreshes. */
+    /**
+     * Equips a boar (null = BOAR's own). The in-app avatar changes now; the launcher icon when the app leaves the screen
+     * ([applyIcon] from MainActivity.onStop): switching off the launcher entry the app was opened from closes it.
+     */
     fun equip(id: String?) {
         val target = id?.takeIf { it in TruffleArt.byId && unlocked(it) }
         settings.iconId = target
         _icon.value = target
-        IconSwitcher.apply(context, target)
+    }
+
+    /** Puts the equipped boar on the launcher if it isn't there yet. Called when the app is no longer visible. */
+    fun applyIcon() {
+        // A launcher that refuses the switch mustn't take the app down: the avatar has already changed.
+        runCatching { if (IconSwitcher.drifted(context, _icon.value)) IconSwitcher.apply(context, _icon.value) }
+            .onFailure { android.util.Log.w("TruffleVault", "icon switch failed", it) }
     }
 
 

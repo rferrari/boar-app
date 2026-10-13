@@ -11,13 +11,18 @@ import android.content.pm.PackageManager
  */
 object IconSwitcher {
     private const val DEFAULT = ".Launcher"
+    /**
+     * The aliases' class names are relative to the code's namespace (team.sopa.boar), not the package name: the
+     * release package is team.sopa.aoair, so packageName + alias names a class that doesn't exist.
+     */
+    private val NAMESPACE = team.sopa.boar.MainActivity::class.java.`package`!!.name
 
     private fun aliasOf(id: String?) = id?.let { TruffleArt.byId[it]?.alias } ?: DEFAULT
 
     fun apply(context: Context, id: String?) {
         val pm = context.packageManager
         val target = aliasOf(id)
-        fun component(alias: String) = ComponentName(context.packageName, context.packageName + alias)
+        fun component(alias: String) = ComponentName(context.packageName, NAMESPACE + alias)
         pm.setComponentEnabledSetting(component(target), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
         for (alias in listOf(DEFAULT) + TruffleArt.byId.values.map { it.alias }) {
             if (alias == target) continue
@@ -30,7 +35,7 @@ object IconSwitcher {
     /** True when the enabled launcher entry isn't the one [id] wants (a backup restore, a reinstall). */
     fun drifted(context: Context, id: String?): Boolean {
         val pm = context.packageManager
-        val c = ComponentName(context.packageName, context.packageName + aliasOf(id))
+        val c = ComponentName(context.packageName, NAMESPACE + aliasOf(id))
         val s = pm.getComponentEnabledSetting(c)
         // The default alias is enabled in the manifest; the truffle aliases aren't.
         return if (id == null) s == PackageManager.COMPONENT_ENABLED_STATE_DISABLED else s != PackageManager.COMPONENT_ENABLED_STATE_ENABLED

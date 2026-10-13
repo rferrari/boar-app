@@ -81,6 +81,8 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         stoppedAt = android.os.SystemClock.elapsedRealtime() // not the wall clock: changing the time can't skip the lock
+        // The equipped boar goes on the launcher now that BOAR is off screen (switching it while open closes the app).
+        if (!isChangingConfigurations) BoarServices.get(this).vault.applyIcon()
     }
 
     override fun onStart() {

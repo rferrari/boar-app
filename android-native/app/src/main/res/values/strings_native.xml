@@ -162,7 +162,7 @@
     <string name="native_vault_open" formatted="false">Open vault →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
-    <string name="native_vault_iconNote" formatted="false">Changes the app icon and the boar in the chat. Your home screen may take a few seconds to update.</string>
+    <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Equipped</string>
     <string name="native_vault_equip" formatted="false">Equip</string>
     <string name="native_vault_unlockedOn" formatted="false">Unearthed {{date}}</string>
