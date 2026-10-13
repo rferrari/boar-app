@@ -57,7 +57,7 @@ object HfQuery {
 
     fun chatArchitecture(arch: String?): Boolean = arch != null && arch in CHAT_ARCHITECTURES
 
-    private val UNCENSORED_WORDS = setOf("uncensored", "abliterated", "abliteration", "nsfw", "erotic", "erp", "lewd", "porn", "hentai", "unaligned")
+    private val UNCENSORED_WORDS = setOf("uncensored", "abliterated", "abliteration", "nsfw", "erotic", "erp", "lewd", "porn", "hentai", "unaligned", "adult")
 
     /**
      * An uncensored or adult model, hidden from Discover unless the build allows them (ALLOW_UNCENSORED_MODELS): Hugging
