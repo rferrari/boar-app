@@ -172,7 +172,10 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit
         Row(verticalAlignment = Alignment.CenterVertically) {
             RoundButton(Color.White.copy(alpha = 0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Fit)
+                // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
+                val truffle = team.sopa.boar.appearance.LocalTruffle.current
+                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(truffle, R.drawable.mascot)), null,
+                    Modifier.size(42.dp).clip(if (truffle != null) RoundedCornerShape(10.dp) else CircleShape), contentScale = ContentScale.Fit)
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)

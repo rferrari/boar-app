@@ -9,7 +9,7 @@ For each icon id it writes, under android-native/app/src/main:
   java/.../appearance/TruffleArt.kt        id -> resources, so nothing is looked up by name at run time
   AndroidManifest.xml                      one disabled <activity-alias> per icon, between the truffle markers
 
-A 1024 px file at art/icons/hires/<id>.png (no frame) replaces that icon's grid crop: drop it in and run again.
+A 1024 px file at art/icons/hires/<id>.png or .webp (no frame) replaces that icon's grid crop: drop it in and run again.
 
   python3 -I scripts/build-truffle-icons.py                 # write
   python3 -I scripts/build-truffle-icons.py --sheet out.png # also a contact sheet of every avatar
@@ -37,9 +37,10 @@ FRAME_INSET = 0.085  # share of the tile on each side taken by the baked-in roun
 
 
 def art_for(icon, grids):
-    hires = ART / "hires" / f"{icon['id']}.png"
-    if hires.exists():
-        return Image.open(hires).convert("RGB")
+    for ext in ("png", "webp"):
+        hires = ART / "hires" / f"{icon['id']}.{ext}"
+        if hires.exists():
+            return Image.open(hires).convert("RGB")
     g = grids[icon["grid"]]
     (x0, x1), (y0, y1) = g["cols"][icon["col"]], g["rows"][icon["row"]]
     side = min(x1 - x0, y1 - y0)
