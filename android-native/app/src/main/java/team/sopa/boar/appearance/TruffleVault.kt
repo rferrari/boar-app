@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.provider.Settings
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.StateFlow
 import team.sopa.boar.engine.settings.AppSettings
 import team.sopa.boar.engine.vault.Vault
@@ -23,9 +22,10 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     private val _state = MutableStateFlow(Vault.fromJson(settings.truffleVault))
     val state: StateFlow<Vault.State> = _state
 
-    private val _fresh = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    // A channel, not a SharedFlow: a truffle unearthed at start (checkVault runs before the UI collects) waits for it.
+    private val _fresh = kotlinx.coroutines.channels.Channel<String>(kotlinx.coroutines.channels.Channel.UNLIMITED)
     /** Truffles unearthed since the app opened, for the "Truffle unearthed" message. */
-    val fresh: SharedFlow<String> = _fresh
+    val fresh: kotlinx.coroutines.flow.Flow<String> = _fresh.receiveAsFlow()
 
     private val _icon = MutableStateFlow(settings.iconId?.takeIf { it in TruffleArt.byId })
     /** The equipped boar, or null for BOAR's own. */
@@ -39,7 +39,7 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
         _state.value = after
         settings.truffleVault = Vault.toJson(after)
         // The default truffle isn't news.
-        fresh.filter { Vault.RULES[it] != Vault.Rule.ALWAYS }.forEach { _fresh.tryEmit(it) }
+        fresh.filter { Vault.RULES[it] != Vault.Rule.ALWAYS }.forEach { _fresh.trySend(it) }
     }
 
     /** On app start: the day, airplane mode, and what can be read from the phone and the app's own data. */
@@ -60,7 +60,12 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
 
     /** After an answer that wrote something. */
     fun answered(sourced: Boolean, deep: Boolean, portuguese: Boolean, tokPerSec: Double?, newChat: Boolean) {
-        val offline = (context.getSystemService(ConnectivityManager::class.java))?.activeNetwork == null
+        // Offline as the chat's ONLINE pill sees it: no network with validated internet access.
+        val offline = context.getSystemService(ConnectivityManager::class.java)?.let { cm ->
+            val caps = cm.getNetworkCapabilities(cm.activeNetwork)
+            caps == null || !caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+                !caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } ?: true
         val night = Vault.isNight(LocalTime.now().hour)
         record { f ->
             f.copy(
