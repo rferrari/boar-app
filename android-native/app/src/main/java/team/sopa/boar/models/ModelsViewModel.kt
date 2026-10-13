@@ -119,6 +119,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch(Dispatchers.IO) {
             val asset = runCatching { HfBrowser.toAsset(repo, f) }.getOrElse { e -> _state.update { it.copy(hfError = e.message) }; return@launch }
             services.addDiscovered(asset)
+            services.vault.record { f -> f.copy(hfModels = maxOf(f.hfModels, services.discovered().size)) }
             store = AssetStore(getApplication<Application>().filesDir, services.catalog)
             _state.update { it.copy(items = sortedItems(), hfAdded = asset.label) }
             refresh()

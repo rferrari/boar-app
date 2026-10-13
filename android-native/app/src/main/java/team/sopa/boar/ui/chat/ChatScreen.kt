@@ -172,7 +172,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit
         Row(verticalAlignment = Alignment.CenterVertically) {
             RoundButton(Color.White.copy(alpha = 0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Image(painterResource(R.drawable.mascot), null, Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Fit)
+                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Fit)
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
@@ -324,7 +324,7 @@ private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFil
     val type = Boar.type
     Column(Modifier.fillMaxSize().padding(horizontal = 12.dp).padding(top = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Image(painterResource(R.drawable.mascot), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
+            Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
             Text("BOAR", style = type.headline, color = c.textHeading)
             Text(t("chat.empty.tagline"), style = type.subtext.copy(fontFamily = BrandType.familyFor(null, 500).first), color = c.textAccentEmerald, textAlign = TextAlign.Center)
         }
@@ -377,7 +377,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
         if (user) mod = mod.combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!user) Image(painterResource(R.drawable.mascot), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
+                if (!user) Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
                 Text(if (user) t("chatScreen.roleYou") else t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
                     color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
             }

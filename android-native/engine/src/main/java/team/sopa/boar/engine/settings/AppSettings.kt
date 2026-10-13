@@ -116,5 +116,12 @@ class AppSettings(private val file: File) {
     var pinFailures: Int get() = int("pinFailures") ?: 0; set(v) = set("pinFailures", JsonPrimitive(v))
     var pinLockedUntil: Long get() = (data["pinLockedUntil"] as? JsonPrimitive)?.content?.toLongOrNull() ?: 0L; set(v) = set("pinLockedUntil", JsonPrimitive(v))
 
+    /** The Truffle Vault (engine/vault/Vault.State) as JSON; null before anything was counted. Native only. */
+    var truffleVault: String?
+        get() = data["truffleVault"]?.takeIf { it is JsonObject }?.toString()
+        set(v) = set("truffleVault", v?.let { json.parseToJsonElement(it) })
+    /** The equipped boar (launcher icon and in-app avatar); null is BOAR's own. Native only. */
+    var iconId: String? get() = str("iconId"); set(v) = set("iconId", v?.let(::JsonPrimitive))
+
     fun raw(): JsonObject = data
 }

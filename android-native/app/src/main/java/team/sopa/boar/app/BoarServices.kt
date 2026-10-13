@@ -91,6 +91,15 @@ class BoarServices private constructor(private val context: Context) {
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
     val pinLock = team.sopa.boar.security.PinLock(settings, chats)
+    /** The Truffle Vault: boar icons unearthed by using the app, counted on the phone. */
+    val vault = team.sopa.boar.appearance.TruffleVault(context, settings)
+
+    /** The vault's facts that come from the phone and the app's files: on start and after leaving a screen that changes them. */
+    fun checkVault() = runCatching {
+        val packs = catalog.corpusCatalog.count { it.format == "sqlite-pack" && File(files, it.filename).isFile } +
+            File(files, "corpus").listFiles { f -> f.name.endsWith(".sqlite") }.orEmpty().count { f -> catalog.corpusCatalog.none { File(files, it.filename) == f } }
+        vault.onOpen(pinOn = pinLock.isSet, packs = packs, hfModels = discovered().size)
+    }
 
     private fun asset(path: String) = context.assets.open(path).bufferedReader().use { it.readText() }
 

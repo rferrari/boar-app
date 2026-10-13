@@ -74,6 +74,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
                     override fun onRow(row: JsonObject) = _state.update { it.copy(rows = it.rows + row) }
                 })
                 _state.update { it.copy(runId = result.runId, savedPath = result.file.path, stopped = result.stopped) }
+                if (!result.stopped) services.vault.record { f -> f.copy(evalRuns = f.evalRuns + 1) }
             } catch (e: Throwable) {
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
@@ -103,6 +104,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
             }
             kotlinx.coroutines.delay((SHARE_MIN_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
             _state.update { it.copy(shareSending = false, shareOutcome = outcome, sharedRunId = if (outcome.result.succeeded) s.runId else it.sharedRunId) }
+            if (outcome.result.succeeded) services.vault.record { f -> f.copy(evalShares = f.evalShares + 1) }
         }
     }
 

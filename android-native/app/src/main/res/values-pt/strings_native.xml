@@ -115,4 +115,99 @@
     <string name="native_browse_unvetted" formatted="false">Não verificado pelo BOAR</string>
     <string name="native_browse_more" formatted="false">Carregando mais…</string>
     <string name="native_browse_files" formatted="false">Arquivos</string>
+    <!-- Truffle Vault -->
+    <string name="native_truffle_cosmo" formatted="false">Javali Cósmico</string>
+    <string name="native_truffle_quantum" formatted="false">Javali Quântico</string>
+    <string name="native_truffle_tactical" formatted="false">Javali Tático</string>
+    <string name="native_truffle_hacker" formatted="false">Javali Código</string>
+    <string name="native_truffle_solarpunk" formatted="false">Javali Solarpunk</string>
+    <string name="native_truffle_nomad" formatted="false">Javali Nômade</string>
+    <string name="native_truffle_synthetic" formatted="false">Javali Ciber</string>
+    <string name="native_truffle_senior" formatted="false">Javali Sênior</string>
+    <string name="native_truffle_mecha" formatted="false">Javali Mecha</string>
+    <string name="native_truffle_plasma" formatted="false">Javali Plasma</string>
+    <string name="native_truffle_steampunk" formatted="false">Javali Steampunk</string>
+    <string name="native_truffle_retrowave" formatted="false">Javali Retrowave</string>
+    <string name="native_truffle_ice" formatted="false">Javali Gélido</string>
+    <string name="native_truffle_volcanic" formatted="false">Javali Magma</string>
+    <string name="native_truffle_astronaut" formatted="false">Javali Astro</string>
+    <string name="native_truffle_stealth" formatted="false">Javali Furtivo</string>
+    <string name="native_truffle_biolum" formatted="false">Javali Neon</string>
+    <string name="native_truffle_knight" formatted="false">Javali Cavaleiro</string>
+    <string name="native_truffle_void" formatted="false">Javali Vazio</string>
+    <string name="native_truffle_atomic" formatted="false">Javali Atômico</string>
+    <string name="native_truffle_lunar" formatted="false">Javali Lunar</string>
+    <string name="native_truffle_digital_nomad" formatted="false">Nômade Digital</string>
+    <string name="native_truffle_chrono" formatted="false">Javali Crono</string>
+    <string name="native_truffle_ethereal" formatted="false">Javali Etéreo</string>
+    <string name="native_truffle_sovereign" formatted="false">Javali Soberano</string>
+    <string name="native_truffle_guardian" formatted="false">Guardião Solar</string>
+    <string name="native_truffle_tactical_city" formatted="false">Javali Urbano</string>
+    <string name="native_truffle_pixel_hacker" formatted="false">Javali Pixel</string>
+    <string name="native_truffle_moe" formatted="false">Javali Tensor</string>
+    <string name="native_truffle_explorer" formatted="false">Javali Explorador</string>
+    <string name="native_truffle_spirit" formatted="false">Javali Espírito</string>
+    <string name="native_truffle_planter" formatted="false">Javali Floresta</string>
+    <string name="native_truffle_cloud" formatted="false">Javali Airgap</string>
+    <string name="native_truffle_elder" formatted="false">Javali Ancião</string>
+    <string name="native_truffle_fomo_unicorn" formatted="false">Javali Unicórnio</string>
+    <string name="native_truffle_tactical_ii" formatted="false">Javali SpecOps</string>
+    <string name="native_truffle_totem" formatted="false">Javali Totem</string>
+    <string name="native_truffle_hammock" formatted="false">Javali Descanso</string>
+    <string name="native_truffle_snow" formatted="false">Javali Neve</string>
+    <string name="native_truffle_hacker_ii" formatted="false">Javali Kernel</string>
+    <string name="native_vault_title" formatted="false">Cofre de Trufas</string>
+    <string name="native_vault_intro" formatted="false">Trufas são desenterradas usando o BOAR. Tudo é contado neste celular e nunca sai dele.</string>
+    <string name="native_vault_card" formatted="false">🍄 Desenterradas {{n}} / {{total}}</string>
+    <string name="native_vault_open" formatted="false">Abrir cofre →</string>
+    <string name="native_vault_boar" formatted="false">Javali</string>
+    <string name="native_vault_default" formatted="false">BOAR</string>
+    <string name="native_vault_iconNote" formatted="false">Muda o ícone do app e o javali da conversa. A tela inicial pode levar alguns segundos para atualizar.</string>
+    <string name="native_vault_equipped" formatted="false">Em uso</string>
+    <string name="native_vault_equip" formatted="false">Usar</string>
+    <string name="native_vault_unlockedOn" formatted="false">Desenterrada em {{date}}</string>
+    <string name="native_vault_fresh" formatted="false">🍄 Trufa desenterrada: {{name}}</string>
+    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos Labs.</string>
+    <string name="native_vault_themes" formatted="false">Temas</string>
+    <string name="native_vault_labClue" formatted="false">Liberado por um Lab</string>
+    <string name="native_rule_ALWAYS" formatted="false">Óculos de visão noturna, para todos.</string>
+    <string name="native_rule_FIRST_ANSWER" formatted="false">Faça sua primeira pergunta ao BOAR.</string>
+    <string name="native_rule_FIRST_SOURCED" formatted="false">Receba uma resposta com uma fonte.</string>
+    <string name="native_rule_ANSWERS_10" formatted="false">10 respostas.</string>
+    <string name="native_rule_ANSWERS_50" formatted="false">50 respostas.</string>
+    <string name="native_rule_ANSWERS_100" formatted="false">100 respostas.</string>
+    <string name="native_rule_ANSWERS_500" formatted="false">500 respostas.</string>
+    <string name="native_rule_ANSWERS_1000" formatted="false">1.000 respostas. Só os soberanos chegam aqui.</string>
+    <string name="native_rule_FIRST_OFFLINE" formatted="false">Receba uma resposta sem nenhuma rede.</string>
+    <string name="native_rule_OFFLINE_10" formatted="false">10 respostas sem rede.</string>
+    <string name="native_rule_NIGHT" formatted="false">A floresta fica mais quieta entre 2h e 4h.</string>
+    <string name="native_rule_NIGHT_5" formatted="false">Cinco perguntas nas horas quietas.</string>
+    <string name="native_rule_DEEP_RESEARCH" formatted="false">Faça uma Pesquisa Profunda.</string>
+    <string name="native_rule_DEEP_RESEARCH_10" formatted="false">10 Pesquisas Profundas.</string>
+    <string name="native_rule_EVAL_RUN" formatted="false">Meça, não adivinhe: rode uma avaliação.</string>
+    <string name="native_rule_EVAL_RUNS_5" formatted="false">Rode 5 avaliações.</string>
+    <string name="native_rule_EVAL_SHARED" formatted="false">Compartilhe os resultados de uma avaliação.</string>
+    <string name="native_rule_CHATS_10" formatted="false">Comece 10 conversas.</string>
+    <string name="native_rule_CHATS_100" formatted="false">Comece 100 conversas.</string>
+    <string name="native_rule_DOCUMENT" formatted="false">Dê ao BOAR um documento seu.</string>
+    <string name="native_rule_EXPORT" formatted="false">Exporte uma coleção.</string>
+    <string name="native_rule_PACK" formatted="false">Baixe um pacote de conhecimento.</string>
+    <string name="native_rule_PACKS_2" formatted="false">Tenha dois pacotes de conhecimento.</string>
+    <string name="native_rule_HF_MODEL" formatted="false">Adicione um modelo do Hugging Face.</string>
+    <string name="native_rule_FAST_8" formatted="false">Passe de 8 tokens por segundo no seu chip.</string>
+    <string name="native_rule_FAST_15" formatted="false">Passe de 15 tokens por segundo no seu chip.</string>
+    <string name="native_rule_VOICE" formatted="false">Fale com o BOAR.</string>
+    <string name="native_rule_PORTUGUESE" formatted="false">Pergunte em português.</string>
+    <string name="native_rule_PIN" formatted="false">Tranque o BOAR com um PIN.</string>
+    <string name="native_rule_PIN_DARK" formatted="false">Com PIN, aberto em modo avião.</string>
+    <string name="native_rule_THEME" formatted="false">Troque as cores.</string>
+    <string name="native_rule_TWEAKS" formatted="false">Mexa no motor nos Ajustes avançados.</string>
+    <string name="native_rule_SOURCE_BUILD" formatted="false">Não confie no APK. Compile o javali com as próprias mãos.</string>
+    <string name="native_rule_DEGOOGLED" formatted="false">Rodando no GrapheneOS ou num AOSP sem Google (sem Play Services).</string>
+    <string name="native_rule_DAYS_3" formatted="false">Use o BOAR em 3 dias diferentes.</string>
+    <string name="native_rule_DAYS_7" formatted="false">Use o BOAR em 7 dias diferentes.</string>
+    <string name="native_rule_DAYS_30" formatted="false">Use o BOAR em 30 dias diferentes.</string>
+    <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Abra o BOAR em modo avião 3 dias seguidos.</string>
+    <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Vá fundo na mata: modo avião, 7 dias seguidos.</string>
+    <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 dias fora da rede, em qualquer ordem.</string>
 </resources>

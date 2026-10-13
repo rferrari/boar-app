@@ -53,6 +53,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                 DocumentImport.import(services.knowledgeBase, services::embed, files, name, onProgress = { d, t ->
                     _state.update { it.copy(stage = "embedding", done = d, total = t) }
                 })
+                services.vault.record { f -> f.copy(documents = f.documents + files.size) }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
@@ -87,6 +88,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
         val dir = java.io.File(app.cacheDir, "exports/${System.currentTimeMillis()}").apply { mkdirs() }
         val file = java.io.File(dir, DocumentImport.slug(col.name).ifEmpty { "collection" } + ".json")
         file.writeText(DocumentImport.exportJson(services.knowledgeBase.collectionDocs(col.id)))
+        services.vault.record { f -> f.copy(exports = f.exports + 1) }
         val uri = androidx.core.content.FileProvider.getUriForFile(app, "${app.packageName}.files", file)
         android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
             type = "application/json"

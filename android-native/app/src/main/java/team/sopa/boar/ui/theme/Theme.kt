@@ -99,7 +99,7 @@ object Boar {
 /** The app theme: Campfire or Moonlight colors and the brand type at the user's text size. */
 @Composable
 fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: @Composable () -> Unit) {
-    val c = ThemeTokens.byId(themeId)
+    val c = Themes.byId(themeId)
     val scheme = darkColorScheme(
         primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
         onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,

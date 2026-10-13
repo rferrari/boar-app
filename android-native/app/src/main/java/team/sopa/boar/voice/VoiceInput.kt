@@ -31,7 +31,10 @@ class VoiceInput(private val context: Context) {
             // Stopped first, and destroyed after this callback returns, so a session onEnd starts isn't the one stopped.
             override fun onError(error: Int) { finish(r); onEnd(error) }
             override fun onResults(results: Bundle?) {
-                results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let(onResult)
+                results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let {
+                    team.sopa.boar.app.BoarServices.get(context).vault.record { f -> f.copy(voice = true) }
+                    onResult(it)
+                }
                 finish(r); onEnd(null)
             }
             override fun onPartialResults(partial: Bundle?) {

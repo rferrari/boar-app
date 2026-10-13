@@ -115,4 +115,99 @@
     <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
     <string name="native_browse_more" formatted="false">Loading more…</string>
     <string name="native_browse_files" formatted="false">Files</string>
+    <!-- Truffle Vault -->
+    <string name="native_truffle_cosmo" formatted="false">Cosmo Boar</string>
+    <string name="native_truffle_quantum" formatted="false">Quantum Boar</string>
+    <string name="native_truffle_tactical" formatted="false">Tactical Boar</string>
+    <string name="native_truffle_hacker" formatted="false">Code Boar</string>
+    <string name="native_truffle_solarpunk" formatted="false">Solarpunk Boar</string>
+    <string name="native_truffle_nomad" formatted="false">Nomad Boar</string>
+    <string name="native_truffle_synthetic" formatted="false">Cyber Boar</string>
+    <string name="native_truffle_senior" formatted="false">Senior Boar</string>
+    <string name="native_truffle_mecha" formatted="false">Mecha Boar</string>
+    <string name="native_truffle_plasma" formatted="false">Plasma Boar</string>
+    <string name="native_truffle_steampunk" formatted="false">Steampunk Boar</string>
+    <string name="native_truffle_retrowave" formatted="false">Retrowave Boar</string>
+    <string name="native_truffle_ice" formatted="false">Frost Boar</string>
+    <string name="native_truffle_volcanic" formatted="false">Magma Boar</string>
+    <string name="native_truffle_astronaut" formatted="false">Astro Boar</string>
+    <string name="native_truffle_stealth" formatted="false">Stealth Boar</string>
+    <string name="native_truffle_biolum" formatted="false">Neon Boar</string>
+    <string name="native_truffle_knight" formatted="false">Knight Boar</string>
+    <string name="native_truffle_void" formatted="false">Void Boar</string>
+    <string name="native_truffle_atomic" formatted="false">Atomic Boar</string>
+    <string name="native_truffle_lunar" formatted="false">Lunar Boar</string>
+    <string name="native_truffle_digital_nomad" formatted="false">Data Nomad</string>
+    <string name="native_truffle_chrono" formatted="false">Chrono Boar</string>
+    <string name="native_truffle_ethereal" formatted="false">Ethereal Boar</string>
+    <string name="native_truffle_sovereign" formatted="false">Sovereign Boar</string>
+    <string name="native_truffle_guardian" formatted="false">Solar Guardian</string>
+    <string name="native_truffle_tactical_city" formatted="false">Urban Boar</string>
+    <string name="native_truffle_pixel_hacker" formatted="false">Pixel Boar</string>
+    <string name="native_truffle_moe" formatted="false">Tensor Boar</string>
+    <string name="native_truffle_explorer" formatted="false">Field Boar</string>
+    <string name="native_truffle_spirit" formatted="false">Spirit Boar</string>
+    <string name="native_truffle_planter" formatted="false">Forest Boar</string>
+    <string name="native_truffle_cloud" formatted="false">Airgap Boar</string>
+    <string name="native_truffle_elder" formatted="false">Elder Boar</string>
+    <string name="native_truffle_fomo_unicorn" formatted="false">Unicorn Boar</string>
+    <string name="native_truffle_tactical_ii" formatted="false">SpecOps Boar</string>
+    <string name="native_truffle_totem" formatted="false">Totem Boar</string>
+    <string name="native_truffle_hammock" formatted="false">Hammock Boar</string>
+    <string name="native_truffle_snow" formatted="false">Snow Boar</string>
+    <string name="native_truffle_hacker_ii" formatted="false">Kernel Boar</string>
+    <string name="native_vault_title" formatted="false">Truffle Vault</string>
+    <string name="native_vault_intro" formatted="false">Truffles are unearthed by using BOAR. Everything is counted on this phone and never leaves it.</string>
+    <string name="native_vault_card" formatted="false">🍄 Unearthed {{n}} / {{total}}</string>
+    <string name="native_vault_open" formatted="false">Open vault →</string>
+    <string name="native_vault_boar" formatted="false">Boar</string>
+    <string name="native_vault_default" formatted="false">BOAR</string>
+    <string name="native_vault_iconNote" formatted="false">Changes the app icon and the boar in the chat. Your home screen may take a few seconds to update.</string>
+    <string name="native_vault_equipped" formatted="false">Equipped</string>
+    <string name="native_vault_equip" formatted="false">Equip</string>
+    <string name="native_vault_unlockedOn" formatted="false">Unearthed {{date}}</string>
+    <string name="native_vault_fresh" formatted="false">🍄 Truffle unearthed: {{name}}</string>
+    <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs.</string>
+    <string name="native_vault_themes" formatted="false">Themes</string>
+    <string name="native_vault_labClue" formatted="false">Unlocked by a Lab</string>
+    <string name="native_rule_ALWAYS" formatted="false">Night-vision gear, issued to everyone.</string>
+    <string name="native_rule_FIRST_ANSWER" formatted="false">Ask BOAR your first question.</string>
+    <string name="native_rule_FIRST_SOURCED" formatted="false">Get an answer that cites a source.</string>
+    <string name="native_rule_ANSWERS_10" formatted="false">10 answers.</string>
+    <string name="native_rule_ANSWERS_50" formatted="false">50 answers.</string>
+    <string name="native_rule_ANSWERS_100" formatted="false">100 answers.</string>
+    <string name="native_rule_ANSWERS_500" formatted="false">500 answers.</string>
+    <string name="native_rule_ANSWERS_1000" formatted="false">1,000 answers. Only the sovereign get here.</string>
+    <string name="native_rule_FIRST_OFFLINE" formatted="false">Get an answer with no network at all.</string>
+    <string name="native_rule_OFFLINE_10" formatted="false">10 answers with no network.</string>
+    <string name="native_rule_NIGHT" formatted="false">The forest is quietest between 2 AM and 4 AM.</string>
+    <string name="native_rule_NIGHT_5" formatted="false">Five questions in the quiet hours.</string>
+    <string name="native_rule_DEEP_RESEARCH" formatted="false">Run a Deep Research.</string>
+    <string name="native_rule_DEEP_RESEARCH_10" formatted="false">10 Deep Researches.</string>
+    <string name="native_rule_EVAL_RUN" formatted="false">Measure, don\'t guess: run an evaluation.</string>
+    <string name="native_rule_EVAL_RUNS_5" formatted="false">Run 5 evaluations.</string>
+    <string name="native_rule_EVAL_SHARED" formatted="false">Share an evaluation\'s results.</string>
+    <string name="native_rule_CHATS_10" formatted="false">Start 10 chats.</string>
+    <string name="native_rule_CHATS_100" formatted="false">Start 100 chats.</string>
+    <string name="native_rule_DOCUMENT" formatted="false">Feed BOAR a document of your own.</string>
+    <string name="native_rule_EXPORT" formatted="false">Export a collection.</string>
+    <string name="native_rule_PACK" formatted="false">Download a knowledge pack.</string>
+    <string name="native_rule_PACKS_2" formatted="false">Carry two knowledge packs.</string>
+    <string name="native_rule_HF_MODEL" formatted="false">Add a model from Hugging Face.</string>
+    <string name="native_rule_FAST_8" formatted="false">Push local silicon past 8 tokens per second.</string>
+    <string name="native_rule_FAST_15" formatted="false">Push local silicon past 15 tokens per second.</string>
+    <string name="native_rule_VOICE" formatted="false">Speak to BOAR.</string>
+    <string name="native_rule_PORTUGUESE" formatted="false">Ask in Portuguese.</string>
+    <string name="native_rule_PIN" formatted="false">Lock BOAR with a PIN.</string>
+    <string name="native_rule_PIN_DARK" formatted="false">Locked with a PIN, and opened in airplane mode.</string>
+    <string name="native_rule_THEME" formatted="false">Change the colors.</string>
+    <string name="native_rule_TWEAKS" formatted="false">Tinker with the engine in Advanced tweaks.</string>
+    <string name="native_rule_SOURCE_BUILD" formatted="false">Don\'t trust the APK. Build the boar with your own hands.</string>
+    <string name="native_rule_DEGOOGLED" formatted="false">Detected running on GrapheneOS or deGoogled AOSP (no Play Services).</string>
+    <string name="native_rule_DAYS_3" formatted="false">Use BOAR on 3 different days.</string>
+    <string name="native_rule_DAYS_7" formatted="false">Use BOAR on 7 different days.</string>
+    <string name="native_rule_DAYS_30" formatted="false">Use BOAR on 30 different days.</string>
+    <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Open BOAR in airplane mode 3 days in a row.</string>
+    <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Forage deep in the woods: airplane mode, 7 days in a row.</string>
+    <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 days off the grid, in any order.</string>
 </resources>

@@ -70,7 +70,7 @@ fun BoarDrawer(
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 16.dp)) {
-                Image(painterResource(R.drawable.boar), null, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
+                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.boar)), null, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
                 Column {
                     Text("BOAR", style = Boar.type.title, color = c.textHeading)
                     Text(t("drawer.subtitle"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textAccentEmerald, modifier = Modifier.padding(top = 1.dp))

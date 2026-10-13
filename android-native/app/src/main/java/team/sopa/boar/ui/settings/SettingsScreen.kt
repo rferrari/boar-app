@@ -44,7 +44,6 @@ import team.sopa.boar.engine.LoadMode
 import team.sopa.boar.engine.settings.AppSettings
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
-import team.sopa.boar.ui.theme.ThemeTokens
 
 /** Display settings the app applies live (theme, text size) or by recreating (language). */
 interface DisplayPrefs {
@@ -83,8 +82,10 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 ClearChats(services)
             }
             Section(t("modelSetupScreen.sections.displayTheme")) {
-                var theme by remember { mutableStateOf(ThemeTokens.byId(s.themeId).id) }
-                Choices(null, ThemeTokens.all.map { it.id to "${it.icon} ${it.name}" }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }
+                var theme by remember { mutableStateOf(s.themeId) }
+                team.sopa.boar.ui.appearance.AppearancePickers(services.vault, theme,
+                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } },
+                    onOpenVault = { onOpen("vault") })
                 var scale by remember { mutableStateOf(s.fontScale) }
                 Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                 var haptics by remember { mutableStateOf(s.hapticsEnabled) }
@@ -288,6 +289,7 @@ private fun TweaksSection(services: BoarServices) {
     fun save(next: EngineTweaks) {
         tw = next
         s.engineTweaks = next
+        if (!next.isAuto) services.vault.record { f -> f.copy(tweaksChanged = true) }
         // The model reloads with the new settings on the next answer.
         scope.launch { services.host.unload() }
     }

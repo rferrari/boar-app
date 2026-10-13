@@ -304,6 +304,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (shown.isNotEmpty() || receipt != null) chats.setMessageMeta(answerId, metaOf(shown, receipt))
             afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
             chats.prune(settings.maxSavedSessions)
+            if (text.isNotBlank()) services.vault.answered(
+                sourced = shown.isNotEmpty(), deep = _state.value.deepResearch, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
+                tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
+            )
             _state.update { s ->
                 s.copy(answeringId = null, activity = null,
                     messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt) else it })

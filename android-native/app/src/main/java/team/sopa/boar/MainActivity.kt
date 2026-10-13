@@ -94,7 +94,9 @@ class MainActivity : ComponentActivity() {
         val services = BoarServices.get(this)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
+        kotlin.concurrent.thread(name = "vault") { services.checkVault() }
         setContent {
+            val truffle by services.vault.icon.collectAsState()
             var theme by remember { mutableStateOf(services.settings.themeId) }
             var fontScale by remember { mutableStateOf(services.settings.fontScale) }
             val prefs = object : DisplayPrefs {
@@ -102,9 +104,14 @@ class MainActivity : ComponentActivity() {
                 override fun setFontScale(scale: String) { fontScale = scale }
                 override fun setLanguage(id: String?) { recreate() }
             }
-            BoarTheme(theme, fontScale) {
-                if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
-                else App(services, prefs)
+            androidx.compose.runtime.CompositionLocalProvider(team.sopa.boar.appearance.LocalTruffle provides truffle) {
+                BoarTheme(theme, fontScale) {
+                    if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
+                    else androidx.compose.foundation.layout.Box {
+                        App(services, prefs)
+                        team.sopa.boar.ui.appearance.FreshTruffle(services.vault, Modifier.align(androidx.compose.ui.Alignment.BottomCenter))
+                    }
+                }
             }
         }
     }
@@ -147,14 +154,14 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val (_, flow, back) = screen.split(":")
         BackHandler { screen = back }
         team.sopa.boar.ui.security.PinSetup(services.pinLock, team.sopa.boar.ui.security.PinFlow.valueOf(flow),
-            onDone = { vm.refreshSettings(); screen = back }, onCancel = { screen = back })
+            onDone = { vm.refreshSettings(); services.checkVault(); screen = back }, onCancel = { screen = back })
         return
     }
     if (screen == "models") {
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
-        BackHandler { vm.refreshModel(); screen = "chat" }
-        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }) { vm.refreshModel(); screen = "chat" }
+        BackHandler { vm.refreshModel(); services.checkVault(); screen = "chat" }
+        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }) { vm.refreshModel(); services.checkVault(); screen = "chat" }
         return
     }
     if (screen == "browse") {
@@ -181,6 +188,11 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         DisposableEffect(evalState.running) { view.keepScreenOn = evalState.running; onDispose { view.keepScreenOn = false } }
         BackHandler { if (!evalState.running) { vm.refreshModel(); screen = "chat" } }
         EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null) { vm.refreshModel(); screen = "chat" }
+        return
+    }
+    if (screen == "vault") {
+        BackHandler { screen = "settings" }
+        team.sopa.boar.ui.appearance.VaultScreen(services.vault) { screen = "settings" }
         return
     }
     if (screen == "about") {
