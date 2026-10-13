@@ -260,6 +260,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var timedOut = false
             var firstAt = 0L
             var tokens = 0
+            // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers.
+            val deep = _state.value.deepResearch
             fun onPiece(piece: String) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
@@ -274,7 +276,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 val session = services.activeSession()
                 if (session == null) {
                     _state.update { it.copy(noModel = true, error = "no-model") }
-                } else if (_state.value.deepResearch) {
+                } else if (deep) {
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services.retriever::retrieve, settings.engineTweaks::stageTimeoutMs).run(
                         q, systemPrompt, history, settings.maxTokens,
                         onProgress = { p -> _state.update { it.copy(activity = Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount)) } },
@@ -309,7 +311,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
             chats.prune(settings.maxSavedSessions)
             if (text.isNotBlank()) services.vault.answered(
-                sourced = shown.isNotEmpty(), deep = _state.value.deepResearch, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
+                sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
                 tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
             )
             _state.update { s ->

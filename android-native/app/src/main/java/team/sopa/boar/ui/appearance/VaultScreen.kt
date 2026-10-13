@@ -83,8 +83,8 @@ fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.vault.boar"), style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Avatar(R.drawable.boar, icon == null) { vault.equip(null) }
-            for (id in TruffleArt.byId.keys.filter { it in state.unlocked }) Avatar(TruffleArt.byId.getValue(id).avatar, icon == id) { vault.equip(id) }
+            Avatar(R.drawable.boar, "BOAR", icon == null) { vault.equip(null) }
+            for (id in TruffleArt.byId.keys.filter { it in state.unlocked }) Avatar(TruffleArt.byId.getValue(id).avatar, t("native.truffle.$id"), icon == id) { vault.equip(id) }
         }
         Text(t(if (TruffleVault.LAUNCHER_ICONS) "native.vault.iconNoteLauncher" else "native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).clickable(onClick = onOpenVault).padding(12.dp),
@@ -105,9 +105,9 @@ private fun Chip(text: String, on: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Avatar(res: Int, on: Boolean, onClick: () -> Unit) {
+private fun Avatar(res: Int, name: String, on: Boolean, onClick: () -> Unit) {
     val c = Boar.colors
-    Image(painterResource(res), null, Modifier.size(52.dp).clip(RoundedCornerShape(12.dp))
+    Image(painterResource(res), name, Modifier.size(52.dp).clip(RoundedCornerShape(12.dp))
         .border(if (on) 3.dp else 1.dp, if (on) c.emerald500 else c.borderDefault, RoundedCornerShape(12.dp)).clickable(onClick = onClick))
 }
 
