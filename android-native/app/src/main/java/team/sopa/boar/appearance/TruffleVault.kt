@@ -100,6 +100,8 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
 
     /** Puts the equipped boar on the launcher if it isn't there yet. Called when the app is no longer visible. */
     fun applyIcon() {
+        // FLAG boar.truffleLauncherIcons (build.gradle.kts): off, the boars stay inside the app and the aliases don't exist.
+        if (!LAUNCHER_ICONS) return
         // A launcher that refuses the switch mustn't take the app down: the avatar has already changed.
         runCatching { if (IconSwitcher.drifted(context, _icon.value)) IconSwitcher.apply(context, _icon.value) }
             .onFailure { android.util.Log.w("TruffleVault", "icon switch failed", it) }
@@ -122,6 +124,9 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     companion object {
+        /** FLAG: the equipped boar also becomes the launcher icon (boar.truffleLauncherIcons). */
+        val LAUNCHER_ICONS: Boolean = team.sopa.boar.BuildConfig.TRUFFLE_LAUNCHER_ICONS
+
         /** The equipped boar's in-app picture, or [original] (what that spot showed before the vault) for BOAR's own. */
         fun avatar(id: String?, original: Int): Int = id?.let { TruffleArt.byId[it]?.avatar } ?: original
 

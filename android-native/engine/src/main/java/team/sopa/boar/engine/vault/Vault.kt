@@ -86,6 +86,8 @@ object Vault {
         AIRPLANE_STREAK_3({ f, d -> Days.streak(f.airplaneDays, d) >= 3 }),
         AIRPLANE_STREAK_7({ f, d -> Days.streak(f.airplaneDays, d) >= 7 }),
         AIRPLANE_DAYS_14({ f, _ -> f.airplaneDays.size >= 14 }),
+        /** The legendary truffle: every other one unearthed. Decided in [apply], which sees what's unlocked. */
+        ALL_OTHERS({ _, _ -> false }),
     }
 
     /** Each truffle's rule, in the vault's order (art/icons/truffles.json has the same ids). */
@@ -124,7 +126,7 @@ object Vault {
         "planter" to Rule.ANSWERS_50,
         "cloud" to Rule.OFFLINE_10,
         "elder" to Rule.EXPORT,
-        "fomo_unicorn" to Rule.CHATS_100,
+        "fomo_unicorn" to Rule.ALL_OTHERS,
         "tactical_ii" to Rule.PIN_DARK,
         "totem" to Rule.PACK,
         "hammock" to Rule.ANSWERS_100,
@@ -142,7 +144,10 @@ object Vault {
 
     /** [state] with [facts] and every truffle they newly unlock, stamped [now]; also the ids that are new. */
     fun apply(state: State, facts: Facts, today: LocalDate, now: Long): Pair<State, List<String>> {
-        val fresh = RULES.filter { (id, rule) -> id !in state.unlocked && rule.test(facts, today) }.keys.toList()
+        val found = RULES.filter { (id, rule) -> id !in state.unlocked && rule.test(facts, today) }.keys
+        val have = state.unlocked.keys + found
+        val legends = RULES.filter { (id, rule) -> rule == Rule.ALL_OTHERS && id !in have && RULES.keys.all { it == id || it in have } }.keys
+        val fresh = (found + legends).toList()
         return state.copy(facts = facts, unlocked = state.unlocked + fresh.associateWith { now }) to fresh
     }
 

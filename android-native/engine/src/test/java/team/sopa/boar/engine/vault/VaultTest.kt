@@ -37,6 +37,17 @@ class VaultTest {
         assertFalse("planter" in again.first.unlocked)
     }
 
+    @Test fun `the unicorn is legendary, the last one, once every other truffle is out`() {
+        val allButUnicorn = Vault.RULES.keys.filter { it != "fomo_unicorn" }.associateWith { 1L }
+        val almost = Vault.State(unlocked = allButUnicorn - "cosmo")
+        val (s1, f1) = Vault.apply(almost, Vault.Facts(), today, 2L)
+        assertTrue(f1.isEmpty())
+        assertFalse("fomo_unicorn" in s1.unlocked)
+        val (s2, f2) = Vault.apply(almost, Vault.Facts(answers = 1), today, 3L)
+        assertEquals(listOf("cosmo", "fomo_unicorn"), f2)
+        assertEquals(3L, s2.unlocked["fomo_unicorn"])
+    }
+
     @Test fun `quantum needs more than 15 tok per s, volcanic 8`() {
         assertFalse(Vault.Rule.FAST_15.test(Vault.Facts(bestTokPerSec = 15.0), today))
         assertTrue(Vault.Rule.FAST_15.test(Vault.Facts(bestTokPerSec = 15.1), today))

@@ -14,7 +14,14 @@ android {
     // Without them the build has no Share button, as the Expo app.
     val env = rootProject.file("../.env").takeIf { it.isFile }?.readLines().orEmpty()
         .mapNotNull { l -> l.split("=", limit = 2).takeIf { it.size == 2 }?.let { it[0].trim() to it[1].trim().trim('"') } }.toMap()
+
+    // FLAG: the Truffle Vault's boars as the launcher icon (src/launcherIcons: activity aliases and icons). Off by default:
+    // the boars stay inside the app. On with boar.truffleLauncherIcons=true (gradle.properties or -P) or
+    // BOAR_TRUFFLE_LAUNCHER_ICONS=true (the repo's .env or the environment).
+    val truffleLauncherIcons = (providers.gradleProperty("boar.truffleLauncherIcons").orNull
+        ?: env["BOAR_TRUFFLE_LAUNCHER_ICONS"] ?: System.getenv("BOAR_TRUFFLE_LAUNCHER_ICONS"))?.trim()?.toBoolean() ?: false
     defaultConfig {
+        buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
         buildConfigField("String", "SUPABASE_URL", "\"${env["EXPO_PUBLIC_SUPABASE_URL"] ?: ""}\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: ""}\"")
         // The release keeps the Expo app's id and key, so it installs over v1.1.x with its models.
@@ -64,6 +71,11 @@ android {
     // Instrumented tests run against the throwaway devtest install (./gradlew :app:assembleDevtestAndroidTest).
     testBuildType = "devtest"
     packaging { jniLibs { useLegacyPackaging = true } }
+    if (truffleLauncherIcons) {
+        // Merged over main for every build type: the launcher entry moves to the aliases.
+        for (type in listOf("debug", "release", "devtest")) sourceSets[type].manifest.srcFile("src/launcherIcons/AndroidManifest.xml")
+        sourceSets["main"].res.srcDir("src/launcherIcons/res")
+    }
 }
 
 kotlin { jvmToolchain(17) }

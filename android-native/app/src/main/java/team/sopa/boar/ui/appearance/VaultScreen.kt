@@ -76,7 +76,7 @@ fun AppearancePickers(vault: TruffleVault, themeId: String?, onTheme: (String) -
             Avatar(R.drawable.boar, icon == null) { vault.equip(null) }
             for (id in TruffleArt.byId.keys.filter { it in state.unlocked }) Avatar(TruffleArt.byId.getValue(id).avatar, icon == id) { vault.equip(id) }
         }
-        Text(t("native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)
+        Text(t(if (TruffleVault.LAUNCHER_ICONS) "native.vault.iconNoteLauncher" else "native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).clickable(onClick = onOpenVault).padding(12.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(t("native.vault.card", "n" to state.unlocked.size, "total" to Vault.RULES.size), style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)

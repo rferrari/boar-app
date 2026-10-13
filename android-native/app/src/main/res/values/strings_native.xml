@@ -162,7 +162,8 @@
     <string name="native_vault_open" formatted="false">Open vault →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
-    <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
+    <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat and the menu.</string>
+    <string name="native_vault_iconNoteLauncher" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Equipped</string>
     <string name="native_vault_equip" formatted="false">Equip</string>
     <string name="native_vault_unlockedOn" formatted="false">Unearthed {{date}}</string>
@@ -209,5 +210,6 @@
     <string name="native_rule_DAYS_30" formatted="false">Use BOAR on 30 different days.</string>
     <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Open BOAR in airplane mode 3 days in a row.</string>
     <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Forage deep in the woods: airplane mode, 7 days in a row.</string>
+    <string name="native_rule_ALL_OTHERS" formatted="false">The legendary truffle: unearth every other boar in the vault.</string>
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 days off the grid, in any order.</string>
 </resources>

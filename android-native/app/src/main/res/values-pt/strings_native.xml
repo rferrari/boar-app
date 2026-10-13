@@ -162,7 +162,8 @@
     <string name="native_vault_open" formatted="false">Abrir cofre →</string>
     <string name="native_vault_boar" formatted="false">Javali</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
-    <string name="native_vault_iconNote" formatted="false">Muda o javali da conversa agora, e o ícone do app quando você sai do BOAR.</string>
+    <string name="native_vault_iconNote" formatted="false">Muda o javali da conversa e do menu.</string>
+    <string name="native_vault_iconNoteLauncher" formatted="false">Muda o javali da conversa agora, e o ícone do app quando você sai do BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Em uso</string>
     <string name="native_vault_equip" formatted="false">Usar</string>
     <string name="native_vault_unlockedOn" formatted="false">Desenterrada em {{date}}</string>
@@ -209,5 +210,6 @@
     <string name="native_rule_DAYS_30" formatted="false">Use o BOAR em 30 dias diferentes.</string>
     <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Abra o BOAR em modo avião 3 dias seguidos.</string>
     <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Vá fundo na mata: modo avião, 7 dias seguidos.</string>
+    <string name="native_rule_ALL_OTHERS" formatted="false">A trufa lendária: desenterre todos os outros javalis do cofre.</string>
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 dias fora da rede, em qualquer ordem.</string>
 </resources>
