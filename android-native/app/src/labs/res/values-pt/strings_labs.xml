@@ -9,6 +9,7 @@
     <string name="native_labs_hero_warning" formatted="false">experimental: pode ser lento, imperfeito ou sumir amanhã</string>
     <string name="native_labs_status_live" formatted="false">ATIVO</string>
     <string name="native_labs_status_beta" formatted="false">BETA</string>
+    <string name="native_labs_status_review" formatted="false">EM REVISÃO</string>
     <string name="native_labs_status_classified" formatted="false">CONFIDENCIAL</string>
     <string name="native_labs_settingsTitle" formatted="false">Boar Labs (experimental)</string>
     <string name="native_labs_settingsNote" formatted="false">Experimentos inacabados no menu e embaixo das respostas. Podem ser lentos, imperfeitos ou mudar sem aviso.</string>

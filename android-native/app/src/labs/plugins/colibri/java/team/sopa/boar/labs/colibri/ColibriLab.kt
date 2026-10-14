@@ -42,7 +42,8 @@ import java.io.File
 object ColibriLab : LabPlugin, EngineProvider {
     override val id = "colibri"
     override val emoji = "🐦"
-    override val status = LabStatus.BETA
+    /** Measured too slow to use (0.8 tok/s on the X6, Oct 14): kept open to try, marked under review. */
+    override val status = LabStatus.REVIEW
 
     private const val MODEL_PATH = "/data/local/tmp/colibri/olmoe-colibri"
 
@@ -56,6 +57,8 @@ object ColibriLab : LabPlugin, EngineProvider {
     )
 
     override val engine: EngineProvider get() = this
+    override val engineLabel = "Hummingbird"
+    override val engineEmoji get() = emoji
     override fun models() = listOf(MODEL)
 
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {

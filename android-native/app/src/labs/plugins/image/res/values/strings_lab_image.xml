@@ -8,8 +8,6 @@
     <string name="native_labs_image_downloading" formatted="false">Downloading… {{pct}}%</string>
     <string name="native_labs_image_style" formatted="false">STYLE</string>
     <string name="native_labs_image_style_engraving" formatted="false">Engraving</string>
-    <string name="native_labs_image_style_textbook" formatted="false">Textbook</string>
-    <string name="native_labs_image_style_vector" formatted="false">Vector</string>
     <string name="native_labs_image_style_scientific" formatted="false">Scientific</string>
     <string name="native_labs_image_size" formatted="false">SIZE</string>
     <string name="native_labs_image_size_512" formatted="false">512 px · ~20 s</string>
@@ -42,8 +40,11 @@
     <string name="native_labs_image_deleteSelected" formatted="false">Delete {{count}}</string>
     <string name="native_labs_image_deleteConfirm" formatted="false">Delete {{count}} images for good?</string>
     <string name="native_labs_image_style_photo" formatted="false">Photo</string>
-    <string name="native_labs_image_style_pencil" formatted="false">Pencil</string>
-    <string name="native_labs_image_style_watercolor" formatted="false">Watercolor</string>
-    <string name="native_labs_image_style_cyber" formatted="false">Cyber HUD</string>
+    <string name="native_labs_image_style_cyber" formatted="false">Cyberpunk</string>
     <string name="native_labs_image_sizeMeasured" formatted="false">{{px}} px · ~{{s}} s</string>
+    <string name="native_labs_image_regenerate" formatted="false">Regenerate</string>
+    <string name="native_labs_image_style_none" formatted="false">None</string>
+    <string name="native_labs_image_style_solarpunk" formatted="false">Solarpunk</string>
+    <string name="native_labs_image_style_y2k" formatted="false">Y2K</string>
+    <string name="native_labs_image_style_lofi" formatted="false">Lo-fi</string>
 </resources>

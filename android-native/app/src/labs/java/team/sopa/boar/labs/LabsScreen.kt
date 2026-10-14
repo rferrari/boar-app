@@ -79,6 +79,9 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             }
             StatusChip(lab.status)
         }
+        // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
+        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
+            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
         Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(t("native.labs.enabled"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading)
@@ -121,12 +124,21 @@ private fun Hero(labs: List<LabPlugin>) {
     var shown by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) { while (shown < full.length) { delay(14); shown++ } }
     val blink by rememberInfiniteTransition(label = "cursor").animateFloat(1f, 0f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "cursor")
-    Column(Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(12.dp)).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp)).padding(14.dp)) {
-        val text = full.take(shown)
-        val title = text.substringBefore('\n')
-        Text(title, style = Boar.type.headline.copy(letterSpacing = 3.sp), color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
+    // The whole console is laid out invisibly underneath from the first frame, so the box has its final height (all
+    // four lines, however they wrap) before a letter is typed and nothing below it jumps.
+    Box(Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(12.dp)).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp)).padding(14.dp)) {
+        Console(full, cursorAlpha = 0f, Modifier.alpha(0f))
+        Console(full.take(shown), cursorAlpha = blink)
+    }
+}
+
+@Composable
+private fun Console(text: String, cursorAlpha: Float, modifier: Modifier = Modifier) {
+    val c = Boar.colors
+    Column(modifier.fillMaxWidth()) {
+        Text(text.substringBefore('\n'), style = Boar.type.headline.copy(letterSpacing = 3.sp), color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
         if ('\n' in text) Text(text.substringAfter('\n'), style = Boar.type["mono.xs"].copy(lineHeight = 18.sp), color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
-        Text("█", style = Boar.type["mono.xs"], color = c.textAccentEmerald, modifier = Modifier.alpha(blink))
+        Text("█", style = Boar.type["mono.xs"], color = c.textAccentEmerald, modifier = Modifier.alpha(cursorAlpha))
     }
 }
 
@@ -145,7 +157,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
         }
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))
-        Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
+        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        // Classified: the description is struck through, like a redacted file.
+        Text(t("native.labs.${lab.id}.body"), style = if (locked) Boar.type.caption.copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough) else Boar.type.caption,
+            color = if (locked) c.textDim else c.textMuted)
     }
 }
 
@@ -161,6 +176,7 @@ fun StatusChip(status: LabStatus) {
     val (fg, bg) = when (status) {
         LabStatus.LIVE -> c.textAccentEmerald to c.emeraldBgSubtle
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
+        LabStatus.REVIEW -> c.amber400 to c.amberBgSubtle
         LabStatus.CLASSIFIED -> c.textDim to Color.White.copy(alpha = 0.06f)
     }
     Text(t("native.labs.status.${status.name.lowercase()}"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = fg, fontWeight = FontWeight.ExtraBold,

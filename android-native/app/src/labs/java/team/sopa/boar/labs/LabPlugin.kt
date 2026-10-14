@@ -20,7 +20,11 @@ import team.sopa.boar.plugins.AnswerRef
  * Slots are where a plugin reaches into the app ([LabHooks]): an answer's 🧩 sheet and what shows under it, the chat header.
  * A CLASSIFIED lab shows its tile locked and never opens or fills a slot: a teaser for what's in testing.
  */
-enum class LabStatus { LIVE, BETA, CLASSIFIED }
+/**
+ * REVIEW: works and stays open to try, but measured short of usable (too slow, unreliable). The tile shows
+ * native.labs.<id>.reviewShort ("under 1 tok/s") and the lab's page opens with native.labs.<id>.review, the full reason.
+ */
+enum class LabStatus { LIVE, BETA, REVIEW, CLASSIFIED }
 
 interface LabPlugin {
     /** Stable id: the route (lab:<id>), the string keys (native.labs.<id>.*), the hide flag and the switch. */
@@ -41,6 +45,12 @@ interface LabPlugin {
     /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
     @Composable fun HeaderBadge(go: (String) -> Unit) {}
 
+    /**
+     * Erases what this lab made for the user (team.sopa.boar.plugins.UserData): from chats only ([UserData.Scope.CHATS]),
+     * or everything. Runs even when the lab is switched off.
+     */
+    fun eraseUserData(context: Context, scope: team.sopa.boar.plugins.UserData.Scope) {}
+
     /** The engine slot: models this lab runs on its own engine, listed with the app's (team.sopa.boar.plugins.EnginePlugins). */
     val engine: team.sopa.boar.plugins.EngineProvider? get() = null
 }
@@ -59,7 +69,8 @@ object LabRegistry {
 
     private val hidden: Set<String> = BuildConfig.LABS_HIDE.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
-    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }
+    /** In the grid's order: released labs first (plugin.properties order), the classified ones after. */
+    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }.sortedBy { it.status == LabStatus.CLASSIFIED }
 
     fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id && it.status != LabStatus.CLASSIFIED }
 

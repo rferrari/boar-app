@@ -242,12 +242,16 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("knowledge", t("nav.knowledge")) { go { screen = "documents" } },
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
-                        DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } },
                         DrawerItem("about", t("chatScreen.drawerItems.about")) { go { screen = "about" } },
-                    ) + team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } },
+                    ).let { items ->
+                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
+                        if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
+                        else items.take(3) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(3)
+                    } + team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     ramBudgetBytes = services.catalog.ramBudgetBytes,
+                    showStats = team.sopa.boar.BuildConfig.ALLOW_DRAWER_STATS && services.settings.showDrawerStats,
                     storageBudgetBytes = services.catalog.storageBudgetBytes,
                     onNewChat = { go { vm.newChat() } },
                     onSelect = { id -> go { vm.openSession(id) } },

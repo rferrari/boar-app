@@ -65,8 +65,17 @@ android {
     // Settings → Advanced tweaks → Debug log only exists in builds with ALLOW_DEBUG_LOG=true in the repo's .env (or the
     // environment, or -Pboar.allowDebugLog=true). Without it there is no switch and nothing is ever logged.
     val allowDebugLog = (providers.gradleProperty("boar.allowDebugLog").orNull ?: env["ALLOW_DEBUG_LOG"] ?: System.getenv("ALLOW_DEBUG_LOG"))?.trim()?.toBoolean() ?: false
+    // The menu's memory and storage bars (Settings → Advanced tweaks, off by default) exist unless ALLOW_DRAWER_STATS=false
+    // in the repo's .env (or the environment, or -Pboar.allowDrawerStats=false); then they never show.
+    val allowDrawerStats = (providers.gradleProperty("boar.allowDrawerStats").orNull ?: env["ALLOW_DRAWER_STATS"] ?: System.getenv("ALLOW_DRAWER_STATS"))?.trim()?.toBoolean() ?: true
+    // Evaluation in the menu: for builders who run and submit evaluations. SHOW_EVAL_IN_MENU in the repo's .env (or the
+    // environment, or -Pboar.showEvalInMenu); by default on only in EXPERIMENTAL_FEATURES builds. Either way the screen
+    // stays reachable from Settings → Advanced tweaks, and the USB runner (eval:device) never needs it.
+    val showEvalInMenu = (providers.gradleProperty("boar.showEvalInMenu").orNull ?: env["SHOW_EVAL_IN_MENU"] ?: System.getenv("SHOW_EVAL_IN_MENU"))?.trim()?.toBoolean() ?: experimental
     defaultConfig {
+        buildConfigField("boolean", "SHOW_EVAL_IN_MENU", "$showEvalInMenu")
         buildConfigField("boolean", "ALLOW_DEBUG_LOG", "$allowDebugLog")
+        buildConfigField("boolean", "ALLOW_DRAWER_STATS", "$allowDrawerStats")
         buildConfigField("boolean", "ALLOW_UNCENSORED_MODELS", "$allowUncensored")
         buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
         buildConfigField("boolean", "EXPERIMENTAL_FEATURES", "$experimental")

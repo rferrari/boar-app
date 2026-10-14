@@ -26,17 +26,27 @@ object ImageLab {
     /** Measured on the X6 Pro, Oct 13 2026 (CPU, 4 fast cores): 384 px ~5.5 s, 512 px ~9.5 s; the labels promise ~15 s and ~20 s, untested on other phones. 256 px breaks the shapes. The first is the default. */
     val SIZES = listOf(384, 512)
 
-    /** The styles from the Oct 13 tests (8 at most, two rows of chips); the subject goes where {s} is. */
+    /**
+     * The styles chosen on Oct 14 from 22 drawn on the X6 (same subject and seed, 384 px; docs/…image-gen-styles):
+     * 7 chips in two rows. The subject goes where {s} is. Dropped: textbook, vector, watercolor, pencil (look-alikes of
+     * the ink styles with this one-step model), mecha, glitch, tactical, vaporwave, synthwave, dreamcore, cottagecore.
+     */
     enum class Style(val key: String, val template: String) {
+        /**
+         * No style: no chip of its own, it's what's left when the user taps the selected style off. The subject is the
+         * whole prompt, for people who write their own ("a boar, ukiyo-e woodblock").
+         */
+        NONE("none", "{s}"),
         ENGRAVING("engraving", "{s}, vintage natural history engraving, black ink, white background"),
-        TEXTBOOK("textbook", "{s}, textbook illustration, clean line art with flat watercolor, white background"),
-        VECTOR("vector", "{s}, flat vector illustration, simple shapes, bold colors"),
-        SCIENTIFIC("scientific", "scientific illustration of {s}, encyclopedia plate, detailed ink drawing, white background"),
-        // Added after the second test (X6 Pro, 384 px, 5.9-6.9 s). Blueprint, pixel art, line art and solarpunk comic didn't hold up; oil gave way to the HUD.
+        // Not "encyclopedia plate": with one step the model drew a dinner plate under the subject.
+        SCIENTIFIC("scientific", "scientific illustration of {s}, encyclopedia illustration, detailed ink drawing, white background"),
         PHOTO("photo", "{s}, photorealistic, natural light, sharp focus, 35mm photo"),
-        PENCIL("pencil", "{s}, detailed graphite pencil sketch, cross-hatching, white paper"),
-        WATERCOLOR("watercolor", "{s}, loose watercolor painting, soft washes, paper texture"),
-        CYBER("cyber", "{s}, cyberpunk HUD schematic, dark background, glowing neon cyan telemetry lines, wireframe");
+        // Cyan telemetry wireframe, not the neon city. Key "cyber" kept: a saved default carries over.
+        CYBER("cyber", "{s}, cyberpunk, dark background, glowing neon cyan telemetry lines, wireframe"),
+        SOLARPUNK("solarpunk", "{s}, solarpunk, green technology, golden sunlight, vines on chrome"),
+        Y2K("y2k", "{s}, y2k aesthetic, chrome and glossy bubbles, iridescent, early 2000s digital art"),
+        // Shown as "Lo-fi"; the anime words are what give the look.
+        LOFI("lofi", "{s}, lo-fi anime illustration, soft pastel colors, cozy evening light, cel shading");
 
         fun prompt(subject: String) = template.replace("{s}", subject.trim())
     }
@@ -96,6 +106,8 @@ data class ImageLabState(
     val gallery: List<File> = emptyList(),
     /** The latest chat's title, offered as a subject. */
     val lastChat: String? = null,
+    /** What the shown picture was drawn from, for Regenerate. */
+    val subject: String? = null,
 )
 
 class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
@@ -111,10 +123,20 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         val dz = ImageLab.defaultSize()
         _state.update { it.copy(style = ds, defaultStyle = ds, size = dz, defaultSize = dz) }
         refresh()
+    }
+
+    /** "From your last chat": read each time the screen opens (the view model outlives it), so it's the latest chat. */
+    fun refreshLastChat() {
         viewModelScope.launch {
             val title = withContext(Dispatchers.IO) { runCatching { services.chats.listSessions().firstOrNull { it.title.isNotBlank() }?.title }.getOrNull() }
             _state.update { it.copy(lastChat = title?.trim()?.trimEnd('?', '.', '!')?.take(80)) }
         }
+    }
+
+    /** The gallery as it is on disk now (pictures may have been erased while the screen was closed). */
+    fun reload() {
+        refresh()
+        _state.value.image?.takeIf { !it.isFile }?.let { _state.update { s -> s.copy(image = null, seconds = null, subject = null) } }
     }
 
     private fun refresh() {
@@ -141,10 +163,17 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     fun generate(subject: String) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
         val s = _state.value
-        _state.update { it.copy(phase = "loading", error = null, seconds = null) }
+        val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating }
+        regenerating = false
+        // The old picture goes: its square shows the drawing in progress until the new one arrives.
+        _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null) }
         job = viewModelScope.launch {
             runCatching { SdRunner.draw(getApplication(), subject, s.style, s.size) { ph -> _state.update { it.copy(phase = ph) } } }
-                .onSuccess { d -> _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds) } }
+                .onSuccess { d ->
+                    // Regenerate: the new picture takes the old one's place, which is deleted, not kept in the gallery.
+                    replacing?.takeIf { it != d.file }?.delete()
+                    _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim()) }
+                }
                 .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = e.message) } }
             refresh()
         }
@@ -164,6 +193,15 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         files.forEach { it.delete() }
         if (_state.value.image in files) _state.update { it.copy(image = null, seconds = null) }
         refresh()
+    }
+
+    private var regenerating = false
+
+    /** Draws the shown picture's subject again (same style and size) and replaces it. */
+    fun regenerate() {
+        val subject = _state.value.subject ?: return
+        regenerating = true
+        generate(subject)
     }
 
     fun delete(f: File) {

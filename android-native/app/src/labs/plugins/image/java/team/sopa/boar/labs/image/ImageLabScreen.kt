@@ -59,12 +59,19 @@ import java.util.Locale
 /** Image Gen as a Boar Labs plugin: the screen stays on while it draws or downloads, and back waits for the drawing. */
 object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val id = "image"
+
+    /** Chats erased: their illustrations go. Everything: every picture made here too (the model stays). */
+    override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
+        Illustrator.eraseAll(context)
+        if (scope == team.sopa.boar.plugins.UserData.Scope.EVERYTHING) SdRunner.outDir(context).listFiles().orEmpty().forEach { it.delete() }
+    }
     override val emoji = "🎨"
     override val status = team.sopa.boar.labs.LabStatus.BETA
 
     @Composable
     override fun Content() {
         val vm: ImageLabViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        androidx.compose.runtime.LaunchedEffect(Unit) { vm.refreshLastChat(); vm.reload() }
         val state by vm.state.collectAsState()
         val view = androidx.compose.ui.platform.LocalView.current
         androidx.compose.runtime.DisposableEffect(state.phase, state.downloadPct) {
@@ -129,9 +136,11 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                 }
                 else -> {
                     Label(t("native.labs.image.style"))
-                    ImageLab.Style.entries.chunked(4).forEach { row ->
+                    // Tapping the selected style turns it off (NONE): the subject is then the whole prompt.
+                    ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.chunked(4).forEach { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEach { s -> Chip(t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(s) } }
+                            row.forEach { s -> Chip(t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(if (s == state.style) ImageLab.Style.NONE else s) } }
+                            repeat(4 - row.size) { Box(Modifier.weight(1f)) } // a short last row keeps the chips' width
                         }
                     }
                     Label(t("native.labs.image.size"))
@@ -166,11 +175,16 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                 }
             }
             state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
-            state.image?.let { f ->
+            // The picture's square is always there: raining code while empty or drawing, so nothing moves when a picture lands.
+            val image = state.image.takeIf { !busy }
+            if (image == null) team.sopa.boar.labs.MatrixRain(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)),
+                label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
+            image?.let { f ->
                 Picture(f, Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.seconds?.let { Text(String.format(Locale.US, "%.1f s", it), style = Boar.type["mono.xs"], color = c.textAccentCyan, modifier = Modifier.weight(1f)) }
                         ?: Box(Modifier.weight(1f))
+                    if (state.subject != null) Button(t("native.labs.image.regenerate")) { vm.regenerate() }
                     Button(t("native.labs.image.delete")) { vm.delete(f) }
                 }
             }

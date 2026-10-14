@@ -101,7 +101,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             }
             TelemetrySection(services)
             VoiceSection(services)
-            TweaksSection(services)
+            TweaksSection(services, onOpen)
             RecoverySection(onSetup)
         }
     }
@@ -215,7 +215,7 @@ private fun ClearChats(services: BoarServices) {
     LinkButton(if (done) t("native.settings.clearChatsDone") else t("memorySettings.clearAllChatHistory"), danger = !done) { if (!done) asking = true }
     if (asking) androidx.compose.material3.AlertDialog({ asking = false },
         title = { Text(t("memorySettings.clearAllConfirmTitle")) },
-        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
+        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.CHATS) }; asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 
@@ -282,7 +282,7 @@ private fun ToneSection(services: BoarServices) {
 }
 
 @Composable
-private fun TweaksSection(services: BoarServices) {
+private fun TweaksSection(services: BoarServices, onOpen: (String) -> Unit) {
     val s = services.settings
     val scope = rememberCoroutineScope()
     var tw by remember { mutableStateOf(s.engineTweaks) }
@@ -351,6 +351,13 @@ private fun TweaksSection(services: BoarServices) {
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
+        // Always here for builders, menu or not: run the evaluation set and submit a report.
+        LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
+        Note(t("native.tweaks.evaluationNote"))
+        if (team.sopa.boar.BuildConfig.ALLOW_DRAWER_STATS) {
+            var stats by remember { mutableStateOf(s.showDrawerStats) }
+            SwitchRow(t("native.tweaks.drawerStats"), t("native.tweaks.drawerStatsNote"), stats) { s.showDrawerStats = it; stats = it }
+        }
         if (team.sopa.boar.app.DebugLog.available) DebugLogRows()
         // The experiments, last on purpose and only in EXPERIMENTAL_FEATURES builds (app/build.gradle.kts): off by default.
         if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) {

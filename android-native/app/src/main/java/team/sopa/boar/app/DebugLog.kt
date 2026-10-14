@@ -215,7 +215,7 @@ object DebugLog {
         return listOf(
             "fg" to foreground,
             "ramAvailMb" to mem.availMem / MB, "ramTotalMb" to mem.totalMem / MB, "lowMem" to mem.lowMemory,
-            "rssMb" to AppMemory.residentBytes() / MB, "nativeHeapMb" to android.os.Debug.getNativeHeapAllocatedSize() / MB, "javaHeapMb" to javaHeapMb(),
+            "rssMb" to AppMemory.residentBytes() / MB, "engineMb" to AppMemory.breakdown().engines.sumOf { it.bytes }.takeIf { it > 0 }?.let { it / MB }, "nativeHeapMb" to android.os.Debug.getNativeHeapAllocatedSize() / MB, "javaHeapMb" to javaHeapMb(),
             "gc" to gc, "gcMs" to gcTime, "blockingGc" to android.os.Debug.getRuntimeStat("art.gc.blocking-gc-count"),
             "battery" to bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
             "charging" to (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL),

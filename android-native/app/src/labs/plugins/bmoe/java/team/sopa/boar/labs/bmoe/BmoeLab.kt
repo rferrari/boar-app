@@ -61,6 +61,8 @@ object BmoeLab : LabPlugin, EngineProvider {
     )
 
     override val engine: EngineProvider get() = this
+    override val engineLabel = "Big Boar"
+    override val engineEmoji get() = emoji
     override fun models() = listOf(MODEL)
 
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -168,6 +169,22 @@ private fun Ambient() {
 }
 
 /** ChatHeader.tsx */
+/** The header's boar, full screen: the art, its name, a tap anywhere closes it. */
+@Composable
+private fun AvatarFull(truffle: String?, onClose: () -> Unit) {
+    val c = Boar.colors
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(
+            Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)).clickable(onClick = onClose).padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        ) {
+            Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(truffle, R.drawable.mascot)), null,
+                Modifier.fillMaxWidth().then(Modifier.aspectRatio(1f)).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
+            Text(if (truffle != null) t("native.truffle.$truffle") else "BOAR", style = Boar.type.titleLg, color = c.textHeading, modifier = Modifier.padding(top = 16.dp))
+        }
+    }
+}
+
 @Composable
 private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit) {
     val c = Boar.colors
@@ -178,8 +195,10 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
                 val truffle = team.sopa.boar.appearance.LocalTruffle.current
+                var big by remember { mutableStateOf(false) }
                 Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(truffle, R.drawable.mascot)), null,
-                    Modifier.size(42.dp).clip(if (truffle != null) RoundedCornerShape(10.dp) else CircleShape), contentScale = ContentScale.Fit)
+                    Modifier.size(42.dp).clip(if (truffle != null) RoundedCornerShape(10.dp) else CircleShape).clickable { big = true }, contentScale = ContentScale.Fit)
+                if (big) AvatarFull(truffle) { big = false }
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)

@@ -234,4 +234,11 @@
     <string name="native_tweaks_preset_cool" formatted="false">Cool Down</string>
     <string name="native_tweaks_preset_coolNote" formatted="false">For a hot phone: 1 thread, small prompt batches, a smaller context, no reasoning, 5 minutes at most per step. The slowest.</string>
     <string name="native_tweaks_presetCustom" formatted="false">Custom: your own settings below. Pick a preset to start over from it.</string>
+    <string name="native_tweaks_drawerStats" formatted="false">Memory and storage in the menu</string>
+    <string name="native_tweaks_drawerStatsNote" formatted="false">Bars at the bottom of the menu: everything BOAR holds in memory (the app and any Labs engine, like Big Boar) and the space its models use.</string>
+    <string name="native_models_engineTag" formatted="false">{{engine}} engine · streams from storage</string>
+    <string name="native_models_placeOverUsb" formatted="false">Copy it over USB (Boar Labs → {{engine}})</string>
+    <string name="native_models_selectUseEngine" formatted="false">🔘 Select &amp; Use · {{engine}} engine</string>
+    <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
+    <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
 </resources>

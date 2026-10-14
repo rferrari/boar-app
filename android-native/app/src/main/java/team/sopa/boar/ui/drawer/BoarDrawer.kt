@@ -60,6 +60,8 @@ fun BoarDrawer(
     storageUsed: () -> Long,
     ramBudgetBytes: Long,
     storageBudgetBytes: Long,
+    /** The memory and storage bars at the bottom (Advanced tweaks; off by default). */
+    showStats: Boolean,
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
@@ -106,7 +108,7 @@ fun BoarDrawer(
                 }
             }
         }
-        FooterStats(lastTokPerSec, storageUsed, ramBudgetBytes, storageBudgetBytes)
+        if (showStats) FooterStats(lastTokPerSec, storageUsed, ramBudgetBytes, storageBudgetBytes)
     }
 }
 

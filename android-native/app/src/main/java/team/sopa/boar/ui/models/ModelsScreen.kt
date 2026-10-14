@@ -132,7 +132,15 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             }
             StatusBadge(present, active, row?.downloading == true)
         }
-        if (item.kind == AssetKind.LLM && ramBytes > 0) {
+        // A Labs engine model: it never loads whole into RAM (the engine streams it), so the RAM check doesn't apply.
+        val engine = item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) }
+        if (engine != null) Row(
+            Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Text(engine.engineEmoji, fontSize = 10.sp)
+            Text(t("native.models.engineTag", "engine" to engine.engineLabel), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
+        } else if (item.kind == AssetKind.LLM && ramBytes > 0) {
             val comp = Compatibility.compute(item.sizeBytes, ramBytes)
             val (icon, fg, bg, border) = when (comp.value) {
                 "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
@@ -178,15 +186,18 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             }
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             when {
+                // Copied over USB, never downloaded: say where it goes instead of offering a download.
+                !present && item.externalPath != null -> Text(t("native.models.placeOverUsb", "engine" to (engine?.engineLabel ?: "")), style = mono, color = c.textMuted)
                 !present -> SmallButton(if (row?.error != null) t("catalogItemCard.retryDownload") else t("catalogItemCard.downloadAsset")) { vm.download(item) }
                 row?.indexing == true -> Busy(t("setupWizard.step3.buildingIndex"))
                 corpus -> Check(t("catalogItemCard.indexedNote"))
                 active -> Check(t("catalogItemCard.activeNote"))
                 activating -> Busy(t("catalogItemCard.loadingModel"))
+                engine != null -> SmallButton(t("native.models.selectUseEngine", "engine" to engine.engineLabel), enabled = !busy) { vm.use(item) }
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             }
             Spacer(Modifier.weight(1f))
-            if (present && !item.required) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
+            if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
         }
     }
     if (confirm) AlertDialog(

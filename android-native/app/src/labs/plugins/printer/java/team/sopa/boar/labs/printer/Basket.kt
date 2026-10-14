@@ -61,6 +61,14 @@ object Basket {
 
     fun clear() = change { emptyList() }
 
+    /** Erased with the chats: the file goes even if it couldn't be read, and the basket starts empty. */
+    fun eraseAll(context: Context) = synchronized(lock) {
+        val f = android.util.AtomicFile(File(context.filesDir, "labs/basket.json")).also { file = it }
+        f.delete()
+        _items.value = emptyList()
+        loaded = true
+    }
+
     /** One change at a time, state and file together; written whole and swapped in (AtomicFile), so a crash can't leave half a basket. */
     private fun change(f: (List<Item>) -> List<Item>) = synchronized(lock) {
         val out = file ?: return@synchronized

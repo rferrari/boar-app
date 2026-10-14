@@ -59,6 +59,11 @@ import java.io.File
  */
 object PrinterLab : LabPlugin {
     override val id = "printer"
+
+    /** The basket holds answers' text: it goes with the chats. */
+    override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
+        Basket.eraseAll(context)
+    }
     override val emoji = "🖨️"
     override val status = LabStatus.BETA
 
@@ -197,7 +202,15 @@ object PrinterLab : LabPlugin {
 
             error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
             saved?.let { Text(t("native.labs.printer.saved", "name" to it), style = Boar.type.caption, color = c.textAccentEmerald) }
-            if (compiling) PrintingAnimation()
+            // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
+            if (compiling) androidx.compose.ui.window.Dialog(
+                onDismissRequest = {},
+                properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+            ) {
+                Box(Modifier.background(Boar.colors.bgCard, RoundedCornerShape(16.dp)).border(1.dp, Boar.colors.borderDefault, RoundedCornerShape(16.dp)).padding(24.dp)) {
+                    PrintingAnimation()
+                }
+            }
             else Text(t("native.labs.printer.compile"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textAccentEmerald,
                 modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
                     .clickable {

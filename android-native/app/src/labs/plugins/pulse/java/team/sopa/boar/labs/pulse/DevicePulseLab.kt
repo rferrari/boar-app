@@ -70,7 +70,7 @@ object DevicePulseLab : LabPlugin {
         val coresMaxMhz: List<Int?>,
         val ramFree: Long,
         val ramTotal: Long,
-        val boarRss: Long,
+        val boar: AppMemory.Breakdown,
         val batteryPct: Int?,
         val charging: Boolean,
     )
@@ -94,7 +94,7 @@ object DevicePulseLab : LabPlugin {
             coresMaxMhz = cores.map { khz(it, "cpuinfo_max_freq") },
             ramFree = mem.availMem,
             ramTotal = mem.totalMem,
-            boarRss = AppMemory.residentBytes(),
+            boar = AppMemory.breakdown(),
             batteryPct = if (level >= 0 && scale > 0) level * 100 / scale else null,
             charging = plugged,
         )
@@ -134,7 +134,11 @@ object DevicePulseLab : LabPlugin {
             Card(t("native.labs.pulse.memory")) {
                 val used = s.ramTotal - s.ramFree
                 Meter(t("native.labs.pulse.ramPhone"), "${gb(used)} / ${gb(s.ramTotal)} GB", used.toFloat() / s.ramTotal, c.emerald400)
-                Meter(t("native.labs.pulse.ramBoar"), "${gb(s.boarRss)} GB", s.boarRss.toFloat() / s.ramTotal, c.textAccentEmerald)
+                // BOAR is the app and every engine it started (Big Boar, Image Gen): one total, then each part.
+                val b = s.boar
+                Meter(t("native.labs.pulse.ramBoar"), "${gb(b.totalBytes)} GB", b.totalBytes.toFloat() / s.ramTotal, c.textAccentEmerald)
+                Line(t("native.labs.pulse.ramApp"), "${gb(b.appBytes)} GB" + if (b.mappedFileBytes > 300L * 1024 * 1024) " · " + t("native.labs.pulse.ramMapped", "size" to gb(b.mappedFileBytes)) else "")
+                for (e in b.engines) Line(t("native.labs.pulse.ramEngine", "name" to e.name), "${gb(e.bytes)} GB")
             }
             Card(t("native.labs.pulse.chip")) {
                 Line(t("native.labs.pulse.engine"), BoarEngine.loadedVariant ?: "—")

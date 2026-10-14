@@ -13,6 +13,9 @@ import team.sopa.boar.engine.models.CatalogAsset
 interface EngineProvider {
     /** Matches [CatalogAsset.engine]. */
     val id: String
+    /** How the Models screen names it ("Big Boar"), with [emoji]. */
+    val engineLabel: String
+    val engineEmoji: String
     /** The models this engine runs, for the catalog. */
     fun models(): List<CatalogAsset>
     /** Starts the engine with [asset]; null when it can't (its error is logged). [params]: the user's Advanced tweaks. */

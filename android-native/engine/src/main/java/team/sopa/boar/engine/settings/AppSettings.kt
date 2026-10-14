@@ -93,6 +93,9 @@ class AppSettings(private val file: File) {
     var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
 
+    /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
+    var showDrawerStats: Boolean get() = bool("showDrawerStats") ?: false; set(v) = set("showDrawerStats", JsonPrimitive(v))
+
     /** Advanced tweaks → Debug log (native only, builds with ALLOW_DEBUG_LOG): off until the user turns it on. */
     var debugLogEnabled: Boolean get() = bool("debugLogEnabled") ?: false; set(v) = set("debugLogEnabled", JsonPrimitive(v))
 

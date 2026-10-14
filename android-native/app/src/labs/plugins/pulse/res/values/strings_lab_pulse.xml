@@ -18,4 +18,7 @@
     <string name="native_labs_pulse_thermal_moderate" formatted="false">hot: Android may slow it down</string>
     <string name="native_labs_pulse_thermal_severe" formatted="false">too hot: Android is slowing it down</string>
     <string name="native_labs_pulse_tip" formatted="false">Leave this open, ask BOAR something or draw an image, then come back to see what it cost.</string>
+    <string name="native_labs_pulse_ramApp" formatted="false">app</string>
+    <string name="native_labs_pulse_ramMapped" formatted="false">model file {{size}} GB</string>
+    <string name="native_labs_pulse_ramEngine" formatted="false">{{name}} engine</string>
 </resources>

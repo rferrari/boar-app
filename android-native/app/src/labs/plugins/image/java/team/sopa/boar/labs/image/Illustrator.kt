@@ -102,6 +102,16 @@ object Illustrator {
     internal fun fallback(a: AnswerRef): String =
         (a.question.ifBlank { a.text }).replace(Regex("[\\n\\r]+"), " ").trimEnd('?', '.', '!').split(' ').filter { it.isNotBlank() }.take(10).joinToString(" ")
 
+    /** Every illustration: stops one in progress, deletes the pictures and the record (chats erased). */
+    @Synchronized
+    fun eraseAll(ctx: Context) {
+        jobs.values.forEach { it.cancel() }
+        jobs.clear()
+        status.values.forEach { (it as? Status.Done)?.file?.delete() }
+        status.clear()
+        File(ctx.filesDir, "labs/illustrations.json").delete()
+    }
+
     @Synchronized
     private fun load(ctx: Context) {
         if (store != null) return

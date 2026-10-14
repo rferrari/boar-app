@@ -18,4 +18,7 @@
     <string name="native_labs_pulse_thermal_moderate" formatted="false">quente: o Android pode reduzir a velocidade</string>
     <string name="native_labs_pulse_thermal_severe" formatted="false">quente demais: o Android está reduzindo a velocidade</string>
     <string name="native_labs_pulse_tip" formatted="false">Deixe aberto, pergunte algo ao BOAR ou desenhe uma imagem, e volte para ver quanto custou.</string>
+    <string name="native_labs_pulse_ramApp" formatted="false">app</string>
+    <string name="native_labs_pulse_ramMapped" formatted="false">arquivo do modelo {{size}} GB</string>
+    <string name="native_labs_pulse_ramEngine" formatted="false">motor {{name}}</string>
 </resources>

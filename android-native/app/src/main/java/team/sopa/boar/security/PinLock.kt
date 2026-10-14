@@ -89,6 +89,8 @@ class PinLock(
     /** Forgot the PIN: the chats can't be opened any more, so they're erased with the key. */
     fun forget() {
         chats.clearAll()
+        // What the labs made goes too: pictures and illustrations can show what the chats were about.
+        runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
         chats.cipher = PlainCipher
         clear()
     }
