@@ -61,7 +61,11 @@ android {
     // Uncensored and adult models (HfQuery.uncensored) are hidden from Discover GGUF models unless ALLOW_UNCENSORED_MODELS=true
     // (.env, the environment, or -Pboar.allowUncensoredModels=true).
     val allowUncensored = (providers.gradleProperty("boar.allowUncensoredModels").orNull ?: env["ALLOW_UNCENSORED_MODELS"] ?: System.getenv("ALLOW_UNCENSORED_MODELS"))?.trim()?.toBoolean() ?: false
+    // Settings → Advanced tweaks → Debug log only exists in builds with ALLOW_DEBUG_LOG=true in the repo's .env (or the
+    // environment, or -Pboar.allowDebugLog=true). Without it there is no switch and nothing is ever logged.
+    val allowDebugLog = (providers.gradleProperty("boar.allowDebugLog").orNull ?: env["ALLOW_DEBUG_LOG"] ?: System.getenv("ALLOW_DEBUG_LOG"))?.trim()?.toBoolean() ?: false
     defaultConfig {
+        buildConfigField("boolean", "ALLOW_DEBUG_LOG", "$allowDebugLog")
         buildConfigField("boolean", "ALLOW_UNCENSORED_MODELS", "$allowUncensored")
         buildConfigField("boolean", "TRUFFLE_LAUNCHER_ICONS", "$truffleLauncherIcons")
         buildConfigField("boolean", "EXPERIMENTAL_FEATURES", "$experimental")

@@ -217,4 +217,21 @@
     <string name="native_vault_experimentalNote" formatted="false">Desenterre javalis enquanto usa o BOAR e use-os como avatar; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
+    <string name="native_debugLog_title" formatted="false">Log de depuração</string>
+    <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>
+    <string name="native_debugLog_size" formatted="false">Log: {{size}} (até 4 MB, a parte mais antiga é descartada)</string>
+    <string name="native_debugLog_save" formatted="false">Salvar log…</string>
+    <string name="native_debugLog_clear" formatted="false">Apagar log</string>
+    <string name="native_debugLog_saved" formatted="false">Log salvo</string>
+    <string name="native_debugLog_saveFailed" formatted="false">Não foi possível salvar o log</string>
+    <string name="native_tweaks_presets" formatted="false">Predefinições</string>
+    <string name="native_tweaks_preset_run" formatted="false">Corre, Javali</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores, o modelo travado na memória, sem limite de tempo. Mais calor e bateria.</string>
+    <string name="native_tweaks_preset_path" formatted="false">Trilha do Javali</string>
+    <string name="native_tweaks_preset_pathNote" formatted="false">Auto: o que medimos como melhor em celulares reais. Equilibrado.</string>
+    <string name="native_tweaks_preset_forage" formatted="false">Forrageio Tranquilo</string>
+    <string name="native_tweaks_preset_forageNote" formatted="false">Mais frio e mais bateria: 2 threads, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. Respostas mais lentas.</string>
+    <string name="native_tweaks_preset_cool" formatted="false">Esfriar</string>
+    <string name="native_tweaks_preset_coolNote" formatted="false">Para um celular quente: 1 thread, lotes pequenos, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. O mais lento.</string>
+    <string name="native_tweaks_presetCustom" formatted="false">Personalizado: seus próprios ajustes abaixo. Escolha uma predefinição para recomeçar a partir dela.</string>
 </resources>

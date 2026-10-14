@@ -24,13 +24,21 @@ class AppSettings(private val file: File) {
 
     private fun load(): JsonObject = runCatching { json.parseToJsonElement(file.readText()).jsonObject }.getOrDefault(JsonObject(emptyMap()))
 
+    /** Told after each saved change: the key, its old and new value (null when unset). The app's debug log listens. */
+    @Volatile var onChange: ((key: String, old: JsonElement?, new: JsonElement?) -> Unit)? = null
+
+    /** Every key as stored, for the debug log's header. */
+    fun snapshot(): Map<String, JsonElement> = data
+
     @Synchronized private fun update(change: MutableMap<String, JsonElement>.() -> Unit) {
+        val before = data
         val m = data.toMutableMap()
         m.change()
         data = JsonObject(m)
         val tmp = File(file.parentFile, file.name + ".tmp")
         tmp.writeText(json.encodeToString(JsonObject.serializer(), data))
         java.nio.file.Files.move(tmp.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+        onChange?.let { tell -> (before.keys + m.keys).filter { before[it] != m[it] }.forEach { k -> runCatching { tell(k, before[k], m[k]) } } }
     }
 
     private fun str(key: String) = (data[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
@@ -84,6 +92,9 @@ class AppSettings(private val file: File) {
     var historyTurnThreshold: Int get() = int("historyTurnThreshold") ?: 6; set(v) = set("historyTurnThreshold", JsonPrimitive(v))
     var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
+
+    /** Advanced tweaks → Debug log (native only, builds with ALLOW_DEBUG_LOG): off until the user turns it on. */
+    var debugLogEnabled: Boolean get() = bool("debugLogEnabled") ?: false; set(v) = set("debugLogEnabled", JsonPrimitive(v))
 
     /** Advanced tweaks (native only); all Auto when unset or unreadable. */
     var engineTweaks: EngineTweaks

@@ -236,7 +236,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         while (true) {
             try {
                 var shownAt = 0L
-                store.download(a) { p ->
+                team.sopa.boar.app.DebugLog.download(a.id, a.sizeBytes) { store.download(a) { p ->
                     // At most 4 screen updates a second: one per downloaded chunk swamped the UI thread.
                     val now = System.currentTimeMillis()
                     val verifying = p.phase == AssetStore.Progress.Phase.VERIFYING
@@ -245,7 +245,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
                         update(a) { it.copy(bytesDone = p.bytesDone, verifying = verifying) }
                         moved()
                     }
-                }
+                } }
                 update(a) { it.copy(done = true, bytesDone = a.sizeBytes, verifying = false) }
                 moved()
                 refreshPlans()

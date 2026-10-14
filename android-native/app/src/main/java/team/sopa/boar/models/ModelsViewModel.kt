@@ -147,7 +147,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
             var lastB = 0L
             var speed: Double? = null
             try {
-                store.download(a) { p ->
+                team.sopa.boar.app.DebugLog.download(a.id, a.sizeBytes) { store.download(a) { p ->
                     val now = System.nanoTime()
                     val dt = (now - lastT) / 1e9
                     if (dt >= 1.0) {
@@ -158,7 +158,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
                     }
                     val eta = speed?.takeIf { it > 0 }?.let { (p.bytesTotal - p.bytesDone) / it }
                     row(a.id) { it.copy(progress = if (p.bytesTotal > 0) p.bytesDone.toDouble() / p.bytesTotal else 0.0, bytesWritten = p.bytesDone, speedBytesPerSec = speed, etaSeconds = eta) }
-                }
+                } }
                 row(a.id) { Row(present = true) }
                 if (a.kind == AssetKind.CORPUS && a.format != "sqlite-pack") index(a)
                 if (a.kind == AssetKind.CORPUS) services.reloadPacks()

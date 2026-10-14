@@ -88,6 +88,8 @@ class BoarServices private constructor(private val context: Context) {
 
     private val kbDb = NativeSqlite.open(File(files, "SQLite").apply { mkdirs() }.resolve("aoair_knowledge.db").path)
     val knowledgeBase = KnowledgeBase(kbDb)
+    /** A consistent copy of the knowledge base at [to] (VACUUM INTO), for the retrieval parity check. */
+    fun exportKnowledgeBase(to: File) = kbDb.exec("VACUUM INTO '${to.path.replace("'", "''")}'")
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
     val pinLock = team.sopa.boar.security.PinLock(settings, chats)
@@ -210,22 +212,26 @@ class BoarServices private constructor(private val context: Context) {
             val reloadMapped = filename == asset.filename && residentRepacked && asset.id in keepMapped && tweaks.weightRepack != true
             if (filename != asset.filename || session == null || reloadMapped) {
                 val previous = (residentId ?: settings.lastLoadedModelId)?.let(catalog::byId)?.let { LoadGuard.Meta(it.filename, it.id, it.label) }
-                session?.close()
+                if (session != null) { session?.close(); DebugLog.modelUnload(residentId) }
                 session = null
                 filename = null
                 residentId = null
                 val meta = LoadGuard.Meta(asset.filename, asset.id, asset.label)
                 val repack = tweaks.weightRepack ?: !(loadGuard.mappedNext(asset.id) || asset.id in keepMapped)
                 loadGuard.begin(meta, previous, repack)
-                val s = LlamaSession.load(fileOf(asset).path, tweaks.resolve(topology, totalRamBytes).params.copy(repack = repack))
+                val params = tweaks.resolve(topology, totalRamBytes).params.copy(repack = repack)
+                val t0 = android.os.SystemClock.elapsedRealtime()
+                val s = LlamaSession.load(fileOf(asset).path, params)
                 loadGuard.end(meta, s != null)
+                DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, s != null, params.threads, params.nCtx, repack)
                 if (s == null) return null
                 session = s
                 filename = asset.filename
                 residentId = asset.id
                 residentRepacked = repack
-                if (repack) s.onGenerated = { m ->
-                    if (LoadGuard.isDecodeStall(m.generatedTokens, m.decodeMs) && keepMapped.add(asset.id))
+                s.onGenerated = { m ->
+                    DebugLog.generation(asset.id, m, params.nCtx)
+                    if (repack && LoadGuard.isDecodeStall(m.generatedTokens, m.decodeMs) && keepMapped.add(asset.id))
                         android.util.Log.w("BOAR", "${asset.id} stalled with repacked weights (${m.generatedTokens} tokens in ${m.decodeMs.toInt()} ms): mapped from the next answer")
                 }
                 settings.lastLoadedModelId = asset.id
@@ -238,10 +244,12 @@ class BoarServices private constructor(private val context: Context) {
 
         /** Frees the model; the next answer loads it again (with changed Advanced tweaks, or another model). */
         suspend fun unload() = lock.withLock {
+            val id = residentId
             session?.close()
             session = null
             filename = null
             residentId = null
+            if (id != null) DebugLog.modelUnload(id)
         }
     }
 
@@ -262,7 +270,7 @@ class BoarServices private constructor(private val context: Context) {
                 // The CPU build is chosen once per process, from the user's tweak (Auto by default).
                 val app = context.applicationContext
                 BoarEngine.init(app.applicationInfo.nativeLibraryDir, AppSettings(File(app.filesDir, "settings.json")).engineTweaks.cpuBuild)
-                BoarServices(app).also { instance = it }
+                BoarServices(app).also { instance = it; DebugLog.init(app, it.settings) }
             }
         }
     }

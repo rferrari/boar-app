@@ -217,4 +217,21 @@
     <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
+    <string name="native_debugLog_title" formatted="false">Debug log</string>
+    <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
+    <string name="native_debugLog_size" formatted="false">Log: {{size}} (up to 4 MB, the oldest part is dropped)</string>
+    <string name="native_debugLog_save" formatted="false">Save log…</string>
+    <string name="native_debugLog_clear" formatted="false">Clear log</string>
+    <string name="native_debugLog_saved" formatted="false">Log saved</string>
+    <string name="native_debugLog_saveFailed" formatted="false">Couldn\'t save the log</string>
+    <string name="native_tweaks_presets" formatted="false">Presets</string>
+    <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches, the model locked in memory, no time limit. More heat and battery.</string>
+    <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
+    <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
+    <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
+    <string name="native_tweaks_preset_forageNote" formatted="false">Cooler and longer battery: 2 threads, a smaller context, no reasoning, 5 minutes at most per step. Slower answers.</string>
+    <string name="native_tweaks_preset_cool" formatted="false">Cool Down</string>
+    <string name="native_tweaks_preset_coolNote" formatted="false">For a hot phone: 1 thread, small prompt batches, a smaller context, no reasoning, 5 minutes at most per step. The slowest.</string>
+    <string name="native_tweaks_presetCustom" formatted="false">Custom: your own settings below. Pick a preset to start over from it.</string>
 </resources>

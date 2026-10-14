@@ -38,6 +38,7 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     val enabled: StateFlow<Boolean> = _enabled
 
     fun setEnabled(on: Boolean) {
+        team.sopa.boar.app.DebugLog.settingChanged("vault.experimental", _enabled.value, on)
         _enabled.value = on && team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES
         prefs.edit().putBoolean("experimental.on", on).apply()
     }

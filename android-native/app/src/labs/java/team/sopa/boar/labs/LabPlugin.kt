@@ -80,16 +80,21 @@ object LabPrefs {
     /** The master switch at the bottom of Advanced tweaks: off by default, and then no lab shows anywhere. */
     var labsOn: Boolean
         get() = BuildConfig.EXPERIMENTAL_FEATURES && on.value
-        set(v) { on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
+        set(v) { team.sopa.boar.app.DebugLog.settingChanged("labs.on", on.value, v); on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
 
     fun enabled(id: String) = switches[id] ?: true
 
     fun setEnabled(id: String, on: Boolean) {
+        team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
         switches[id] = on
         prefs?.edit()?.putBoolean("enabled.$id", on)?.apply()
     }
 
     fun string(key: String): String? = prefs?.getString(key, null)
 
-    fun putString(key: String, value: String) { prefs?.edit()?.putString(key, value)?.apply() }
+    fun putString(key: String, value: String) {
+        // Measurements the labs keep (image.times.*) are not settings.
+        if (!key.startsWith("image.times.")) team.sopa.boar.app.DebugLog.settingChanged("labs.$key", string(key)?.take(80), value.take(80))
+        prefs?.edit()?.putString(key, value)?.apply()
+    }
 }

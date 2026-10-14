@@ -301,6 +301,14 @@ private fun TweaksSection(services: BoarServices) {
     @Composable fun autoOf(value: Any) = t("native.tweaks.autoValue", "value" to value)
     Section(t("native.tweaks.title"), collapsible = true) {
         Note(t("native.tweaks.intro"))
+        // Presets first: one tap sets the knobs below; any knob changed by hand afterwards makes it Custom.
+        val preset = team.sopa.boar.engine.TweakPreset.of(tw)
+        Choices(
+            t("native.tweaks.presets"),
+            team.sopa.boar.engine.TweakPreset.entries.map<team.sopa.boar.engine.TweakPreset, Pair<team.sopa.boar.engine.TweakPreset?, String>> { it to "${it.emoji} ${t("native.tweaks.preset.${it.key}")}" },
+            preset,
+        ) { p -> p?.let { save(it.applyTo(tw)) } }
+        Note(preset?.let { t("native.tweaks.preset.${it.key}Note") } ?: t("native.tweaks.presetCustom"))
         val cpuAuto = CpuVariants.auto(features)?.let { n -> CpuVariants.ALL.first { it.name == n }.label } ?: t("native.tweaks.cpuBest")
         Choices(
             t("native.tweaks.cpuBuild"),
@@ -343,6 +351,7 @@ private fun TweaksSection(services: BoarServices) {
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
+        if (team.sopa.boar.app.DebugLog.available) DebugLogRows()
         // The experiments, last on purpose and only in EXPERIMENTAL_FEATURES builds (app/build.gradle.kts): off by default.
         if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) {
             Text(t("native.settings.experimental"), style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp))
@@ -350,6 +359,37 @@ private fun TweaksSection(services: BoarServices) {
             SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
             team.sopa.boar.labs.LabHooks.SettingsRow()
         }
+    }
+}
+
+/** The Debug log switch (builds with ALLOW_DEBUG_LOG only); while it's on, the log's size, Save-as and Clear. */
+@Composable
+private fun DebugLogRows() {
+    val log = team.sopa.boar.app.DebugLog
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var on by remember { mutableStateOf(log.enabled) }
+    var size by remember { mutableStateOf(log.sizeBytes()) }
+    var status by remember { mutableStateOf<String?>(null) }
+    val saveAs = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val ok = runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { log.copyTo(it) } }.isSuccess
+            status = team.sopa.boar.ui.I18n.t(ctx, if (ok) "native.debugLog.saved" else "native.debugLog.saveFailed")
+        }
+    }
+    SwitchRow(t("native.debugLog.title"), t("native.debugLog.note"), on) { log.setEnabled(it); on = it; status = null }
+    if (on || size > 0) {
+        androidx.compose.runtime.LaunchedEffect(on) { while (true) { size = log.sizeBytes(); kotlinx.coroutines.delay(5_000) } }
+        Note(t("native.debugLog.size", "size" to String.format(java.util.Locale.US, "%.1f MB", size / 1048576.0)))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            LinkButton(t("native.debugLog.save")) {
+                saveAs.launch("boar-debug-" + java.text.SimpleDateFormat("yyyy-MM-dd-HHmm", java.util.Locale.US).format(java.util.Date()) + ".log")
+            }
+            LinkButton(t("native.debugLog.clear"), danger = true) {
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) { log.clear(); size = log.sizeBytes(); status = null }
+            }
+        }
+        status?.let { Note(it) }
     }
 }
 

@@ -69,7 +69,16 @@ class BenchActivity : ComponentActivity() {
         val models = modelFiles()
 
         // Only on a fresh start: a recreated activity must not load a second copy of the model.
-        if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
+        if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
+            // scripts/retrieval-parity.mjs: the app's own retrieval on the questions it sent, results for the desktop.
+            val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_PARITY", line) }
+            lifecycleScope.launch {
+                runCatching { team.sopa.boar.eval.RetrievalParityRunner.run(
+                    this@BenchActivity, String(android.util.Base64.decode(intent.getStringExtra("q64") ?: "", android.util.Base64.DEFAULT), Charsets.UTF_8),
+                    intent.getBooleanExtra("copyPacks", false), say,
+                ) }.onFailure { say("retrieval parity failed: $it") }
+            }
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
             // scripts/eval-device.mjs --package team.sopa.aoair.native --no-reload: wait for its request, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,
