@@ -59,5 +59,5 @@ build/knowledge-pack/
 # Raw demo recording (31 MB); the compressed copy is docs/demo/boar_demo_small.mp4
 docs/demo/boar_demo.mp4
 
-# sd-cli builds for the image lab (scripts/build-sd-cli.sh)
-android-native/labs/jniLibs/
+# Native binaries a lab plugin builds (scripts/build-sd-cli.sh for the image lab)
+android-native/app/src/labs/plugins/*/jniLibs/

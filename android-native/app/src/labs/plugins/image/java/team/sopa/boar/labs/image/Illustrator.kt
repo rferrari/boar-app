@@ -15,7 +15,7 @@ import java.io.File
 
 /**
  * Illustrate this answer: the chat model picks one concrete thing to draw (a few English words, never the whole
- * answer), then sd-cli draws it in the default style at 384 px. Without a free model (it's answering, or none is
+ * answer), then sd-cli draws it in the user's default style and size (Image Gen → Set as default). Without a free model (it's answering, or none is
  * loaded) the question stands in for the subject. Results stay per message in files/labs/illustrations.json.
  */
 object Illustrator {
@@ -26,12 +26,17 @@ object Illustrator {
         data class Failed(val message: String) : Status
     }
 
-    const val SIZE = 384
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val status = mutableStateMapOf<String, Status>()
+    private val jobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
     private var store: File? = null
 
-    fun status(ctx: Context, id: String): Status? { load(ctx); return status[id] }
+    /** A drawing deleted in the media manager is gone from its answer too. */
+    fun status(ctx: Context, id: String): Status? {
+        load(ctx)
+        val s = status[id]
+        return if (s is Status.Done && !s.file.isFile) null else s
+    }
 
     fun busy() = status.values.any { it is Status.Choosing || it is Status.Drawing }
 
@@ -40,20 +45,31 @@ object Illustrator {
         if (busy()) return
         if (!SdRunner.ready(ctx)) { status[a.id] = Status.Failed(notReady); return }
         status[a.id] = Status.Choosing
-        scope.launch {
+        jobs[a.id]?.cancel()
+        jobs[a.id] = scope.launch {
             val fromModel = runCatching { if (a.chatBusy) null else subjectFromModel(ctx, a) }.getOrNull()
             // The same subject as another answer's drawing is a stale pick: draw the question instead.
             val repeated = fromModel != null && status.any { (id, s) -> id != a.id && s is Status.Done && s.subject.equals(fromModel, ignoreCase = true) }
             val subject = fromModel?.takeIf { !repeated } ?: fallback(a)
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: question=\"${a.question.take(80)}\" model=\"$fromModel\" repeated=$repeated -> \"$subject\"")
             status[a.id] = Status.Drawing(subject)
-            runCatching { SdRunner.draw(ctx, subject, ImageLab.defaultStyle(), SIZE) }
-                .onSuccess { d -> status[a.id] = Status.Done(d.file, subject, d.seconds); save() }
-                .onFailure { e -> status[a.id] = Status.Failed(e.message ?: "failed") }
+            runCatching { SdRunner.draw(ctx, subject, ImageLab.defaultStyle(), ImageLab.defaultSize()) }
+                .onSuccess { d ->
+                    // Forgotten (✕) while it drew: the result has no answer to go to.
+                    if (status[a.id] !is Status.Drawing) { d.file.delete(); return@onSuccess }
+                    status[a.id] = Status.Done(d.file, subject, d.seconds); save()
+                }
+                .onFailure { e -> if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(e.message ?: "failed") }
+            jobs.remove(a.id)
         }
     }
 
-    fun forget(id: String) { (status.remove(id) as? Status.Done)?.file?.delete(); save() }
+    /** ✕ under the answer: the drawing goes, and one still being made is stopped (SdRunner stops sd-cli on cancel). */
+    fun forget(id: String) {
+        jobs.remove(id)?.cancel()
+        (status.remove(id) as? Status.Done)?.file?.delete()
+        scope.launch(Dispatchers.IO) { save() }
+    }
 
     private const val SYSTEM = "You pick the picture for an illustrated encyclopedia. Given a QUESTION and a short excerpt of its answer, " +
         "name ONE concrete thing to draw that shows the QUESTION's own topic: an object, animal, plant, place or scene. " +
@@ -100,10 +116,12 @@ object Illustrator {
         }
     }
 
+    /** Writes what's done now, one writer at a time: each write is the latest state, so an older one can't win. Off the main thread. */
+    @Synchronized
     private fun save() {
         val f = store ?: return
         val o = JSONObject()
-        status.forEach { (id, s) -> if (s is Status.Done) o.put(id, JSONObject().put("file", s.file.path).put("subject", s.subject).put("seconds", s.seconds ?: JSONObject.NULL)) }
-        scope.launch { withContext(Dispatchers.IO) { f.parentFile?.mkdirs(); f.writeText(o.toString()) } }
+        status.toMap().forEach { (id, s) -> if (s is Status.Done) o.put(id, JSONObject().put("file", s.file.path).put("subject", s.subject).put("seconds", s.seconds ?: JSONObject.NULL)) }
+        runCatching { f.parentFile?.mkdirs(); f.writeText(o.toString()) }
     }
 }

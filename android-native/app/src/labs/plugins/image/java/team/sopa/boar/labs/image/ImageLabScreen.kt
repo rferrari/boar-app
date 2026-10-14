@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.image
 
+import androidx.compose.runtime.remember
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -70,8 +71,12 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             view.keepScreenOn = state.phase != null || state.downloadPct != null
             onDispose { view.keepScreenOn = false }
         }
+        var managing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
         if (state.phase != null) androidx.activity.compose.BackHandler { vm.cancel() }
-        ImageLabScreen(state, vm)
+        if (managing) {
+            androidx.activity.compose.BackHandler { managing = false }
+            MediaManager(state.gallery, vm) { managing = false }
+        } else ImageLabScreen(state, vm) { managing = true }
     }
 
     /** 🎨 in the answer's 🧩 sheet: Illustrator picks what to draw and draws it below the answer. */
@@ -108,7 +113,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
 
 /** Pick a style, type the subject, draw. The last images stay on the phone below. */
 @Composable
-fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel) {
+fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
@@ -124,16 +129,25 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel) {
                 }
                 else -> {
                     Label(t("native.labs.image.style"))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        ImageLab.Style.entries.forEach { s -> Chip((if (s == state.defaultStyle) "★ " else "") + t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(s) } }
+                    ImageLab.Style.entries.chunked(4).forEach { row ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            row.forEach { s -> Chip(t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(s) } }
+                        }
                     }
-                    if (state.style != state.defaultStyle) Text(t("native.labs.image.setDefault", "style" to t("native.labs.image.style.${state.style.key}")), style = Boar.type.caption,
-                        color = c.textAccentCyan, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { vm.setDefaultStyle(state.style) }.padding(vertical = 2.dp))
-                    else Text(t("native.labs.image.isDefault"), style = Boar.type["mono.xs"], color = c.textDim)
                     Label(t("native.labs.image.size"))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        ImageLab.SIZES.forEach { px -> Chip(t("native.labs.image.size.$px"), px == state.size, Modifier.weight(1f)) { vm.setSize(px) } }
+                        // The phone's own average once it has drawn at that size; until then the conservative estimate.
+                        ImageLab.SIZES.forEach { px ->
+                            val label = ImageLab.expectedSeconds(px)?.let { t("native.labs.image.sizeMeasured", "px" to px, "s" to it) } ?: t("native.labs.image.size.$px")
+                            Chip(label, px == state.size, Modifier.weight(1f)) { vm.setSize(px) }
+                        }
                     }
+                    // One line in one style either way, so picking a style or size never moves the screen.
+                    val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
+                    val combo = t("native.labs.image.style.${state.style.key}") + " · ${state.size} px"
+                    Text(if (isDefault) t("native.labs.image.isDefault", "combo" to combo) else t("native.labs.image.setDefault", "combo" to combo),
+                        style = Boar.type.caption, color = if (isDefault) c.textDim else c.textAccentCyan, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable(enabled = !isDefault) { vm.setDefaults() }.padding(vertical = 4.dp))
                     Label(t("native.labs.image.subject"))
                     BasicTextField(subject, { subject = it }, singleLine = true, enabled = !busy,
                         textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
@@ -157,21 +171,72 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.seconds?.let { Text(String.format(Locale.US, "%.1f s", it), style = Boar.type["mono.xs"], color = c.textAccentCyan, modifier = Modifier.weight(1f)) }
                         ?: Box(Modifier.weight(1f))
-                    Button(t("native.labs.image.share")) { ctx.startActivity(vm.shareIntent(f)) }
                     Button(t("native.labs.image.delete")) { vm.delete(f) }
                 }
             }
             if (state.gallery.isNotEmpty()) {
                 Label(t("native.labs.image.gallery"))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(state.gallery, key = { it.path }) { f ->
-                        Picture(f, Modifier.size(72.dp).clip(RoundedCornerShape(6.dp))
-                            .then(if (f == state.image) Modifier.border(2.dp, c.emerald400, RoundedCornerShape(6.dp)) else Modifier)
-                            .clickable { vm.show(f) })
-                    }
-                }
+                // The latest 25 as a 5×5 grid; the rest, and deleting, in the media manager.
+                Thumbs(state.gallery.take(GRID), columns = 5, selected = setOfNotNull(state.image)) { vm.show(it) }
+                Text(t(if (state.gallery.size > GRID) "native.labs.image.showMore" else "native.labs.image.manage", "count" to state.gallery.size),
+                    style = Boar.type.caption, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onManage).padding(vertical = 6.dp))
             }
         }
+}
+
+private const val GRID = 25
+
+/** Square thumbnails, [columns] per row; [selected] get a green border. */
+@Composable
+private fun Thumbs(files: List<File>, columns: Int, selected: Set<File>, onTap: (File) -> Unit) {
+    val c = Boar.colors
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        files.chunked(columns).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                row.forEach { f ->
+                    Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(6.dp))
+                        .then(if (f in selected) Modifier.border(2.dp, c.emerald400, RoundedCornerShape(6.dp)) else Modifier)
+                        .clickable { onTap(f) }) {
+                        Picture(f, Modifier.fillMaxSize())
+                        if (f in selected && columns < 5) Text("✓", color = c.textHeading, fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(c.emerald600, RoundedCornerShape(10.dp)).padding(horizontal = 6.dp))
+                    }
+                }
+                repeat(columns - row.size) { Box(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+/** Every image on this phone: select and delete. Nothing leaves the lab, so no share or export. */
+@Composable
+private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () -> Unit) {
+    val c = Boar.colors
+    var picked by remember { mutableStateOf(setOf<File>()) }
+    var confirm by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
+            Text(t("native.labs.image.managerCount", "count" to files.size, "mb" to String.format(Locale.US, "%.1f", files.sumOf { it.length() } / 1048576.0)),
+                style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f))
+            Text(t(if (picked.size == files.size && files.isNotEmpty()) "native.labs.image.selectNone" else "native.labs.image.selectAll"), style = Boar.type.caption, color = c.textAccentCyan,
+                modifier = Modifier.clickable { picked = if (picked.size == files.size) emptySet() else files.toSet() }.padding(4.dp))
+        }
+        Text(t("native.labs.image.managerNote"), style = Boar.type.caption, color = c.textMuted)
+        if (files.isEmpty()) Text(t("native.labs.image.managerEmpty"), style = Boar.type.body, color = c.textSecondary)
+        Thumbs(files, columns = 4, selected = picked) { f -> picked = if (f in picked) picked - f else picked + f }
+        if (picked.isNotEmpty()) {
+            if (confirm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(t("native.labs.image.deleteConfirm", "count" to picked.size), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
+                Button(t("common.cancel")) { confirm = false }
+                Text(t("native.labs.image.delete"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.crimson400,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, c.crimson400, RoundedCornerShape(8.dp))
+                        .clickable { vm.deleteAll(picked); picked = emptySet(); confirm = false }.padding(horizontal = 16.dp, vertical = 10.dp))
+            } else Text(t("native.labs.image.deleteSelected", "count" to picked.size), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.crimson400,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, c.crimson400, RoundedCornerShape(8.dp)).clickable { confirm = true }.padding(horizontal = 16.dp, vertical = 10.dp))
+        }
+    }
 }
 
 @Composable

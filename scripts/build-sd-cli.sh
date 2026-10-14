@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Builds stable-diffusion.cpp's sd-cli for the image lab into android-native/labs/jniLibs/arm64-v8a (gitignored):
+# Builds stable-diffusion.cpp's sd-cli for the image lab into the image plugin, android-native/app/src/labs/plugins/image/jniLibs/arm64-v8a (gitignored):
 #   libsdcli.so       armv8.2 + dotprod + fp16 (any recent phone, e.g. the POCO F3)
 #   libsdcli_i8mm.so  armv8.6 + i8mm (e.g. the X6 Pro); the app picks it when the CPU has i8mm
-# Static, no libc++_shared. Then build the app with -Pboar.labs=true.
+# Static, no libc++_shared. Then build the app with -Pboar.experimentalFeatures=true.
 #
 # Usage: scripts/build-sd-cli.sh <path to a stable-diffusion.cpp checkout>   (tested at d637cfb, MIT)
 set -euo pipefail
@@ -11,7 +11,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SDK=${ANDROID_HOME:-$HOME/Android/Sdk}
 NDK=$SDK/ndk/27.1.12297006
 CMAKE_BIN=$(ls -d "$SDK"/cmake/*/bin | tail -1)
-OUT=$ROOT/android-native/labs/jniLibs/arm64-v8a
+OUT=$ROOT/android-native/app/src/labs/plugins/image/jniLibs/arm64-v8a
 mkdir -p "$OUT"
 
 build() { # <build dir> <arch flags> <output name>

@@ -25,28 +25,38 @@ object PdfCompiler {
     private const val M = 56f // margins
     private val inner = (W - 2 * M).toInt()
 
-    fun compile(out: File, title: String, items: List<Basket.Item>, images: List<File>, footer: String) {
+    /** What prints besides the text: the date under the title, each answer's model and speed, each answer's sources. */
+    data class Meta(val date: Boolean = true, val model: Boolean = false, val sources: Boolean = true)
+
+    /** "Qwen3-4B · 12.3 tok/s", or null when the answer has neither. */
+    fun modelLine(i: Basket.Item): String? = listOfNotNull(i.model, i.tokPerSec?.let { String.format(java.util.Locale.US, "%.1f tok/s", it) }).joinToString(" · ").ifEmpty { null }
+
+    fun sourceLines(i: Basket.Item): String = i.sources.mapIndexed { n, s -> "[${n + 1}] ${s.title}" + (s.source?.let { " — $it" } ?: "") }.joinToString("\n")
+
+    fun compile(out: File, title: String, items: List<Basket.Item>, images: List<File>, footer: String, meta: Meta = Meta()) {
         val doc = PdfDocument()
-        val p = Pager(doc)
-        p.text(title, paint(24f, bold = true, color = 0xFF111111.toInt()), after = 4f)
-        p.text(DateFormat.getDateInstance(DateFormat.LONG).format(Date()) + " · " + footer, paint(9f, color = 0xFF777777.toInt()), after = 18f)
-        p.rule()
-        images.getOrNull(0)?.let { p.image(it) }
-        val half = (items.size + 1) / 2
-        items.forEachIndexed { i, item ->
-            if (i == half && i > 0) images.getOrNull(1)?.let { p.image(it) }
-            p.text(item.question.ifBlank { item.chatTitle }, paint(14f, bold = true, color = 0xFF1B4D3E.toInt()), after = 6f)
-            p.text(plain(item.text), paint(11f, color = 0xFF222222.toInt()), after = 8f, spacing = 1.35f)
-            if (item.sources.isNotEmpty()) {
-                val list = item.sources.mapIndexed { n, s -> "[${n + 1}] ${s.title}" + (s.source?.let { " — $it" } ?: "") }.joinToString("\n")
-                p.text(list, paint(8.5f, color = 0xFF666666.toInt()), after = 18f)
-            } else p.gap(12f)
+        try {
+            val p = Pager(doc)
+            p.text(title, paint(24f, bold = true, color = 0xFF111111.toInt()), after = 4f)
+            p.text((if (meta.date) DateFormat.getDateInstance(DateFormat.LONG).format(Date()) + " · " else "") + footer, paint(9f, color = 0xFF777777.toInt()), after = 18f)
+            p.rule()
+            images.getOrNull(0)?.let { p.image(it) }
+            val half = (items.size + 1) / 2
+            items.forEachIndexed { i, item ->
+                if (i == half && i > 0) images.getOrNull(1)?.let { p.image(it) }
+                p.text(item.question.ifBlank { item.chatTitle }, paint(14f, bold = true, color = 0xFF1B4D3E.toInt()), after = 6f)
+                p.text(plain(item.text), paint(11f, color = 0xFF222222.toInt()), after = 8f, spacing = 1.35f)
+                if (meta.model) modelLine(item)?.let { p.text(it, paint(8.5f, color = 0xFF1B4D3E.toInt()), after = 4f) }
+                if (meta.sources && item.sources.isNotEmpty()) p.text(sourceLines(item), paint(8.5f, color = 0xFF666666.toInt()), after = 18f)
+                else p.gap(12f)
+            }
+            if (items.size == 1) images.getOrNull(1)?.let { p.image(it) }
+            p.finish()
+            out.parentFile?.mkdirs()
+            out.outputStream().use { doc.writeTo(it) }
+        } finally {
+            doc.close()
         }
-        if (items.size == 1) images.getOrNull(1)?.let { p.image(it) }
-        p.finish()
-        out.parentFile?.mkdirs()
-        out.outputStream().use { doc.writeTo(it) }
-        doc.close()
     }
 
     /** The answer's markdown as plain text: no ** or #, bullets as •. */

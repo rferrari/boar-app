@@ -83,13 +83,15 @@ object DevicePulseLab : LabPlugin {
         val plugged = (battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
         val thermal = if (Build.VERSION.SDK_INT >= 29) (ctx.getSystemService(Context.POWER_SERVICE) as PowerManager).currentThermalStatus else null
         val mem = ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(it) }
-        val n = Runtime.getRuntime().availableProcessors()
+        // The phone's own core ids (cpu0…cpuN, not always without gaps), not the count of online cores.
+        val cores = File("/sys/devices/system/cpu").listFiles { f -> f.name.matches(Regex("cpu\\d+")) }.orEmpty()
+            .map { it.name.removePrefix("cpu").toInt() }.sorted()
         fun khz(core: Int, file: String) = runCatching { File("/sys/devices/system/cpu/cpu$core/cpufreq/$file").readText().trim().toInt() / 1000 }.getOrNull()
         return Sample(
             tempC = temp,
             thermal = thermal,
-            coresMhz = (0 until n).map { khz(it, "scaling_cur_freq") },
-            coresMaxMhz = (0 until n).map { khz(it, "cpuinfo_max_freq") },
+            coresMhz = cores.map { khz(it, "scaling_cur_freq") },
+            coresMaxMhz = cores.map { khz(it, "cpuinfo_max_freq") },
             ramFree = mem.availMem,
             ramTotal = mem.totalMem,
             boarRss = AppMemory.residentBytes(),

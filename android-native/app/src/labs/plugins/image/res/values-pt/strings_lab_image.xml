@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_image_title" formatted="false">Gerador de imagem</string>
+    <string name="native_labs_image_intro" formatted="false">Experimental. Desenha uma ilustração neste celular, offline, em menos de 20 segundos. Escolha um estilo e digite o que desenhar.</string>
+    <string name="native_labs_image_noEngine" formatted="false">Este build não tem o motor de imagem. Gere com -Pboar.labs=true depois de scripts/build-sd-cli.sh.</string>
+    <string name="native_labs_image_needModel" formatted="false">O modelo de imagem (SDXS-512, 683 MB) ainda não está no celular.</string>
+    <string name="native_labs_image_download" formatted="false">Baixar (683 MB)</string>
+    <string name="native_labs_image_downloading" formatted="false">Baixando… {{pct}}%</string>
+    <string name="native_labs_image_style" formatted="false">ESTILO</string>
+    <string name="native_labs_image_style_engraving" formatted="false">Gravura</string>
+    <string name="native_labs_image_style_textbook" formatted="false">Didático</string>
+    <string name="native_labs_image_style_vector" formatted="false">Vetor</string>
+    <string name="native_labs_image_style_scientific" formatted="false">Científico</string>
+    <string name="native_labs_image_size" formatted="false">TAMANHO</string>
+    <string name="native_labs_image_size_512" formatted="false">512 px · ~20 s</string>
+    <string name="native_labs_image_size_384" formatted="false">384 px · ~15 s</string>
+    <string name="native_labs_image_subject" formatted="false">O QUE DESENHAR</string>
+    <string name="native_labs_image_placeholder" formatted="false">um javali</string>
+    <string name="native_labs_image_generate" formatted="false">Desenhar</string>
+    <string name="native_labs_image_phase_loading" formatted="false">Carregando o modelo…</string>
+    <string name="native_labs_image_phase_drawing" formatted="false">Desenhando…</string>
+    <string name="native_labs_image_phase_decoding" formatted="false">Finalizando a imagem…</string>
+    <string name="native_labs_image_delete" formatted="false">Apagar</string>
+    <string name="native_labs_image_gallery" formatted="false">NESTE CELULAR</string>
+    <string name="native_labs_image_body" formatted="false">Desenhe uma ilustração a partir de poucas palavras, offline, em menos de 20 segundos.</string>
+    <string name="native_labs_image_fromChat" formatted="false">↳ Da sua última conversa: “{{title}}”</string>
+    <string name="native_labs_image_setDefault" formatted="false">★ Usar {{combo}} como padrão, também na conversa</string>
+    <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} é seu padrão, também no 🎨 da conversa</string>
+    <string name="native_labs_image_illustrateNotReady" formatted="false">Para ilustrar respostas, baixe o modelo de imagem em Boar Labs → Gerador de imagem.</string>
+    <string name="native_labs_image_illustrateChoosing" formatted="false">Escolhendo o que desenhar…</string>
+    <string name="native_labs_image_illustrateDrawing" formatted="false">Desenhando: {{subject}}…</string>
+    <string name="native_labs_image_illustrate" formatted="false">Ilustrar esta resposta</string>
+    <string name="native_labs_image_illustrateAgain" formatted="false">Desenhar de novo</string>
+    <string name="native_labs_image_illustrateRunning" formatted="false">Desenhando…</string>
+    <string name="native_labs_image_showMore" formatted="false">Ver mais ({{count}}) →</string>
+    <string name="native_labs_image_manage" formatted="false">Gerenciar imagens ({{count}}) →</string>
+    <string name="native_labs_image_managerCount" formatted="false">{{count}} imagens · {{mb}} MB</string>
+    <string name="native_labs_image_selectAll" formatted="false">Selecionar tudo</string>
+    <string name="native_labs_image_selectNone" formatted="false">Limpar</string>
+    <string name="native_labs_image_managerNote" formatted="false">Imagens feitas no Boar Labs ficam no Boar Labs. Toque para selecionar e apague.</string>
+    <string name="native_labs_image_managerEmpty" formatted="false">Nenhuma imagem ainda.</string>
+    <string name="native_labs_image_deleteSelected" formatted="false">Apagar {{count}}</string>
+    <string name="native_labs_image_deleteConfirm" formatted="false">Apagar {{count}} imagens de vez?</string>
+    <string name="native_labs_image_style_photo" formatted="false">Foto</string>
+    <string name="native_labs_image_style_pencil" formatted="false">Lápis</string>
+    <string name="native_labs_image_style_watercolor" formatted="false">Aquarela</string>
+    <string name="native_labs_image_style_cyber" formatted="false">HUD cyber</string>
+    <string name="native_labs_image_sizeMeasured" formatted="false">{{px}} px · ~{{s}} s</string>
+</resources>

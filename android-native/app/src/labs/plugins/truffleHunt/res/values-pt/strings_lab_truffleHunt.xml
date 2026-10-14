@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_truffleHunt_title" formatted="false">Caça às Trufas</string>
+    <string name="native_labs_truffleHunt_body" formatted="false">Um quiz diário dos seus pacotes de conhecimento. Acertos desenterram trufas para o Cofre.</string>
+</resources>

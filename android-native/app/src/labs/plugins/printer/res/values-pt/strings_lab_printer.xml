@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_printer_title" formatted="false">Impressora de campo</string>
+    <string name="native_labs_printer_body" formatted="false">Junte respostas de qualquer conversa numa cesta e compile tudo, com desenhos, em um PDF.</string>
+    <string name="native_labs_printer_empty" formatted="false">A cesta está vazia.</string>
+    <string name="native_labs_printer_howTo" formatted="false">Embaixo de qualquer resposta numa conversa, toque em 📎 para adicioná-la aqui. Junte de quantas conversas quiser e volte para organizar e compilar.</string>
+    <string name="native_labs_printer_docTitle" formatted="false">TÍTULO DO DOCUMENTO</string>
+    <string name="native_labs_printer_untitled" formatted="false">Notas de campo</string>
+    <string name="native_labs_printer_items_one" formatted="false">{{count}} ITEM</string>
+    <string name="native_labs_printer_items_other" formatted="false">{{count}} ITENS</string>
+    <string name="native_labs_printer_clear" formatted="false">LIMPAR</string>
+    <string name="native_labs_printer_sources_one" formatted="false">{{count}} fonte</string>
+    <string name="native_labs_printer_sources_other" formatted="false">{{count}} fontes</string>
+    <string name="native_labs_printer_images" formatted="false">ILUSTRAÇÕES (ATÉ {{max}})</string>
+    <string name="native_labs_printer_noImages" formatted="false">Nenhum desenho ainda. Crie alguns no Gerador de imagem e escolha aqui.</string>
+    <string name="native_labs_printer_compile" formatted="false">🖨️ Imprimir em PDF</string>
+    <string name="native_labs_printer_compiling" formatted="false">Imprimindo…</string>
+    <string name="native_labs_printer_footer" formatted="false">compilado offline com o BOAR</string>
+    <string name="native_labs_printer_inBasket" formatted="false">Na cesta da Impressora (toque para tirar)</string>
+    <string name="native_labs_printer_addToBasket" formatted="false">Adicionar à cesta da Impressora</string>
+    <string name="native_labs_printer_saved" formatted="false">Salvo: {{name}}</string>
+    <string name="native_labs_printer_include" formatted="false">IMPRIMIR</string>
+    <string name="native_labs_printer_metaDate" formatted="false">Data</string>
+    <string name="native_labs_printer_metaModel" formatted="false">Modelo e velocidade</string>
+    <string name="native_labs_printer_metaSources" formatted="false">Fontes</string>
+    <string name="native_labs_printer_arrange" formatted="false">✎ Organizar</string>
+    <string name="native_labs_printer_preview" formatted="false">👁 Prévia</string>
+</resources>

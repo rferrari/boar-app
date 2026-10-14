@@ -1,8 +1,6 @@
 package team.sopa.boar.labs.image
 
 import android.app.Application
-import android.content.Intent
-import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -28,12 +26,17 @@ object ImageLab {
     /** Measured on the X6 Pro, Oct 13 2026 (CPU, 4 fast cores): 384 px ~5.5 s, 512 px ~9.5 s; the labels promise ~15 s and ~20 s, untested on other phones. 256 px breaks the shapes. The first is the default. */
     val SIZES = listOf(384, 512)
 
-    /** The styles from the Oct 13 test; the subject goes where {s} is. */
+    /** The styles from the Oct 13 tests (8 at most, two rows of chips); the subject goes where {s} is. */
     enum class Style(val key: String, val template: String) {
         ENGRAVING("engraving", "{s}, vintage natural history engraving, black ink, white background"),
         TEXTBOOK("textbook", "{s}, textbook illustration, clean line art with flat watercolor, white background"),
         VECTOR("vector", "{s}, flat vector illustration, simple shapes, bold colors"),
-        SCIENTIFIC("scientific", "scientific illustration of {s}, encyclopedia plate, detailed ink drawing, white background");
+        SCIENTIFIC("scientific", "scientific illustration of {s}, encyclopedia plate, detailed ink drawing, white background"),
+        // Added after the second test (X6 Pro, 384 px, 5.9-6.9 s). Blueprint, pixel art, line art and solarpunk comic didn't hold up; oil gave way to the HUD.
+        PHOTO("photo", "{s}, photorealistic, natural light, sharp focus, 35mm photo"),
+        PENCIL("pencil", "{s}, detailed graphite pencil sketch, cross-hatching, white paper"),
+        WATERCOLOR("watercolor", "{s}, loose watercolor painting, soft washes, paper texture"),
+        CYBER("cyber", "{s}, cyberpunk HUD schematic, dark background, glowing neon cyan telemetry lines, wireframe");
 
         fun prompt(subject: String) = template.replace("{s}", subject.trim())
     }
@@ -42,6 +45,26 @@ object ImageLab {
     fun defaultStyle(): Style = team.sopa.boar.labs.LabPrefs.string("image.style")?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
 
     fun setDefaultStyle(s: Style) = team.sopa.boar.labs.LabPrefs.putString("image.style", s.key)
+
+    /** The user's size ("Set as default" saves style and size together), else the first of [SIZES]. */
+    fun defaultSize(): Int = team.sopa.boar.labs.LabPrefs.string("image.size")?.toIntOrNull()?.takeIf { it in SIZES } ?: SIZES.first()
+
+    fun setDefaultSize(px: Int) = team.sopa.boar.labs.LabPrefs.putString("image.size", "$px")
+
+    private const val TIMES_KEPT = 10
+
+    /** A finished drawing's time, tap to picture (model load included), kept per size: the last [TIMES_KEPT]. */
+    fun recordTime(size: Int, seconds: Double) {
+        val key = "image.times.$size"
+        val kept = (times(size) + seconds).takeLast(TIMES_KEPT)
+        team.sopa.boar.labs.LabPrefs.putString(key, kept.joinToString(",") { String.format(java.util.Locale.US, "%.2f", it) })
+    }
+
+    private fun times(size: Int): List<Double> =
+        team.sopa.boar.labs.LabPrefs.string("image.times.$size")?.split(',')?.mapNotNull { it.toDoubleOrNull() }.orEmpty()
+
+    /** What this phone takes at [size]: the average of its last drawings, rounded up; null before the first one. */
+    fun expectedSeconds(size: Int): Int? = times(size).takeIf { it.isNotEmpty() }?.average()?.let { kotlin.math.ceil(it).toInt() }
 
     val MODEL = CatalogAsset(
         id = "lab-sdxs-512-q8",
@@ -63,6 +86,7 @@ data class ImageLabState(
     val downloadPct: Int? = null,
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
+    val defaultSize: Int = ImageLab.SIZES.first(),
     val size: Int = ImageLab.SIZES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -83,7 +107,9 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         team.sopa.boar.labs.LabPrefs.init(app)
-        ImageLab.defaultStyle().let { d -> _state.update { it.copy(style = d, defaultStyle = d) } }
+        val ds = ImageLab.defaultStyle()
+        val dz = ImageLab.defaultSize()
+        _state.update { it.copy(style = ds, defaultStyle = ds, size = dz, defaultSize = dz) }
         refresh()
         viewModelScope.launch {
             val title = withContext(Dispatchers.IO) { runCatching { services.chats.listSessions().firstOrNull { it.title.isNotBlank() }?.title }.getOrNull() }
@@ -124,13 +150,21 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** The style Illustrate and a new Image Gen session start with. */
-    fun setDefaultStyle(s: ImageLab.Style) {
-        ImageLab.setDefaultStyle(s)
-        _state.update { it.copy(defaultStyle = s) }
+    /** The style and size Illustrate (in the chat) and a new Image Gen session use. */
+    fun setDefaults() {
+        val s = _state.value
+        ImageLab.setDefaultStyle(s.style)
+        ImageLab.setDefaultSize(s.size)
+        _state.update { it.copy(defaultStyle = s.style, defaultSize = s.size) }
     }
 
     fun cancel() { SdRunner.cancel(); job?.cancel(); _state.update { it.copy(phase = null) } }
+
+    fun deleteAll(files: Collection<File>) {
+        files.forEach { it.delete() }
+        if (_state.value.image in files) _state.update { it.copy(image = null, seconds = null) }
+        refresh()
+    }
 
     fun delete(f: File) {
         f.delete()
@@ -138,18 +172,6 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         refresh()
     }
 
-    /** The share sheet for one image, through a copy in cache/exports (the FileProvider's only path). */
-    fun shareIntent(f: File): Intent {
-        val app = getApplication<Application>()
-        val copy = File(File(app.cacheDir, "exports").apply { mkdirs() }, "boar-${f.name}")
-        f.copyTo(copy, overwrite = true)
-        val uri = FileProvider.getUriForFile(app, "${app.packageName}.files", copy)
-        return Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-            type = "image/png"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }, null)
-    }
 
 
 }

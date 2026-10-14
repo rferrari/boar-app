@@ -15,4 +15,7 @@ data class AnswerRef(
     val sources: List<Pair<String, String?>>,
     /** The model is answering something: a plugin shouldn't start its own generation now. */
     val chatBusy: Boolean,
+    /** The model that wrote it and its speed, from the answer's receipt (null for older answers). */
+    val model: String? = null,
+    val tokPerSec: Double? = null,
 )

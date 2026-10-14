@@ -415,7 +415,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Plugin slots (Boar Labs): what this answer hands them, and their content under it.
             val ref = team.sopa.boar.plugins.AnswerRef(m.id, state.sessionId,
                 state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty(),
-                shown, m.sources.map { it.title to it.source }, state.answeringId != null)
+                shown, m.sources.map { it.title to it.source }, state.answeringId != null, m.receipt?.model, m.receipt?.tokPerSec)
             if (m.text.isNotEmpty() && !streaming) team.sopa.boar.labs.LabHooks.AnswerExtras(ref)
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
