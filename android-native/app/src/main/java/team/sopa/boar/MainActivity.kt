@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         team.sopa.boar.app.DebugLog.foreground(false)
+        BoarServices.get(this).onBackground()
         stoppedAt = android.os.SystemClock.elapsedRealtime() // not the wall clock: changing the time can't skip the lock
         // The equipped boar goes on the launcher now that BOAR is off screen (switching it while open closes the app).
         if (!isChangingConfigurations) BoarServices.get(this).vault.applyIcon()
@@ -89,12 +90,14 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         team.sopa.boar.app.DebugLog.foreground(true)
+        BoarServices.get(this).onForeground()
         if (stoppedAt > 0 && BoarServices.get(this).pinLock.isSet && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
     }
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         team.sopa.boar.app.DebugLog.trimMemory(level)
+        BoarServices.get(this).onTrimMemory(level)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

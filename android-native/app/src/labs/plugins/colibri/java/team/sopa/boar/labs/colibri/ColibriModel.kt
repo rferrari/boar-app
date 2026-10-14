@@ -32,6 +32,7 @@ class ColibriModel private constructor(private val engine: EngineProcess) : Text
     @Volatile private var current: String? = null
 
     override val hasChatTemplate = true
+    override val isGenerating: Boolean get() = current != null
     @Volatile override var onGenerated: ((GenerationMetrics) -> Unit)? = null
 
     override suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean) =

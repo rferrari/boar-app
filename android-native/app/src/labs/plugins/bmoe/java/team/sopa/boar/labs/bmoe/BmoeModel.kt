@@ -38,6 +38,7 @@ class BmoeModel private constructor(private val engine: EngineProcess) : TextMod
     private var unfinished: Int? = null
 
     override val hasChatTemplate = true
+    override val isGenerating: Boolean get() = busy
     @Volatile override var onGenerated: ((GenerationMetrics) -> Unit)? = null
 
     override suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean): FormattedPrompt {

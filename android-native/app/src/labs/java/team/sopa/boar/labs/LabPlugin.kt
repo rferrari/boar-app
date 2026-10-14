@@ -51,6 +51,9 @@ interface LabPlugin {
      */
     fun eraseUserData(context: Context, scope: team.sopa.boar.plugins.UserData.Scope) {}
 
+    /** The search slot: a step after search for every answer (a reranker); see team.sopa.boar.plugins.SearchStage. */
+    val searchStage: team.sopa.boar.plugins.SearchStage? get() = null
+
     /** The engine slot: models this lab runs on its own engine, listed with the app's (team.sopa.boar.plugins.EnginePlugins). */
     val engine: team.sopa.boar.plugins.EngineProvider? get() = null
 }

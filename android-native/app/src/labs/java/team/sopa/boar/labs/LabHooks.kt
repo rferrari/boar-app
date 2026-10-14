@@ -27,6 +27,7 @@ object LabHooks {
         LabContext.app = context.applicationContext
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
+        team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }

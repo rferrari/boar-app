@@ -1,6 +1,7 @@
 package team.sopa.boar.app
 
 import android.content.Context
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -11,6 +12,7 @@ import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.engine.CpuTopology
 import team.sopa.boar.engine.EngineParams
 import team.sopa.boar.engine.LlamaSession
+import team.sopa.boar.engine.TextModel
 import team.sopa.boar.engine.models.LoadGuard
 import team.sopa.boar.engine.answer.ModelHost
 import team.sopa.boar.engine.answer.Personalities
@@ -193,6 +195,46 @@ class BoarServices private constructor(private val context: Context) {
         e.embed(text)
     }
 
+    /**
+     * Search for an answer: the built-in retrieval, then the Labs search stages (team.sopa.boar.plugins.PipelineStages),
+     * which get twice [topK] passages to choose from. Every answer path calls this, not the retriever directly.
+     */
+    fun search(query: String, topK: Int): List<team.sopa.boar.engine.rag.Chunk> {
+        val stages = runCatching { team.sopa.boar.plugins.PipelineStages.search() }.getOrDefault(emptyList())
+        if (stages.isEmpty()) return retriever.retrieve(query, topK)
+        var chunks = retriever.retrieve(query, topK * 2)
+        // A stage that fails is skipped, never fatal: the answer keeps what search found.
+        for (st in stages) chunks = runCatching { st.process(query, chunks, topK) }.getOrDefault(chunks)
+        return chunks.take(topK)
+    }
+
+    // --- Memory pressure -----------------------------------------------------------------------------------------
+
+    private val lifeScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+    private var backgroundRelease: kotlinx.coroutines.Job? = null
+
+    /**
+     * Android asks for memory back. A Labs engine (its own process, e.g. Big Boar's 5 GB) goes on critical pressure;
+     * BOAR's own model and its prompt cache stay unless the process is about to be killed (TRIM_MEMORY_COMPLETE).
+     * A plain app switch (UI_HIDDEN, BACKGROUND) releases nothing: reloading a 35B takes a minute or more.
+     */
+    fun onTrimMemory(level: Int) {
+        val critical = level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE
+        val severe = level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE
+        if (critical && host.residentIsExternal() || severe) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
+    }
+
+    /** BOAR left the screen: a Labs engine still idle after [BACKGROUND_RELEASE_MS] gives its memory back. */
+    fun onBackground() {
+        backgroundRelease?.cancel()
+        backgroundRelease = lifeScope.launch {
+            kotlinx.coroutines.delay(BACKGROUND_RELEASE_MS)
+            if (host.residentIsExternal()) host.unloadIfIdle("background ${BACKGROUND_RELEASE_MS / 60_000} min")
+        }
+    }
+
+    fun onForeground() { backgroundRelease?.cancel(); backgroundRelease = null }
+
     val retriever: Retriever by lazy {
         Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon })
     }
@@ -202,74 +244,102 @@ class BoarServices private constructor(private val context: Context) {
     /** One generation model at a time, loaded with the user's Advanced tweaks. */
     val host = SessionHost()
 
+    /**
+     * BOAR's own engine (llama.cpp through JNI, in this process) as an engine provider like the Labs ones: every model
+     * resolves to a provider ([providerFor]) and the host loads it the same way. Its own extras stay here: the load
+     * guard around each load (a load that kills the app is detected on the next start) and the repacked → mapped
+     * fallback after a stall (#73).
+     */
+    inner class BuiltInEngine : team.sopa.boar.plugins.EngineProvider {
+        override val id = BUILT_IN_ENGINE
+        override val engineLabel = "BOAR"
+        override val engineEmoji = "🐗"
+        override fun models() = ownCatalog.models.filter { it.kind == AssetKind.LLM }
+
+        /** Models that stalled with repacked weights in this process: mapped from storage until the app restarts (#73). */
+        val keepMapped: MutableSet<String> = java.util.Collections.synchronizedSet(HashSet<String>())
+        @Volatile var residentRepacked = false
+            private set
+
+        /** A stall while repacked: reload as the mapped file before the next generation. */
+        fun needsReload(asset: CatalogAsset) = residentRepacked && asset.id in keepMapped && settings.engineTweaks.weightRepack != true
+
+        override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {
+            val tweaks = settings.engineTweaks
+            val previous = (host.residentId() ?: settings.lastLoadedModelId)?.let(catalog::byId)?.let { LoadGuard.Meta(it.filename, it.id, it.label) }
+            val meta = LoadGuard.Meta(asset.filename, asset.id, asset.label)
+            val repack = tweaks.weightRepack ?: !(loadGuard.mappedNext(asset.id) || asset.id in keepMapped)
+            loadGuard.begin(meta, previous, repack)
+            val s = LlamaSession.load(fileOf(asset).path, params.copy(repack = repack))
+            loadGuard.end(meta, s != null)
+            if (s == null) return null
+            residentRepacked = repack
+            if (repack) s.onGenerated = { m ->
+                if (LoadGuard.isDecodeStall(m.generatedTokens, m.decodeMs) && keepMapped.add(asset.id))
+                    android.util.Log.w("BOAR", "${asset.id} stalled with repacked weights (${m.generatedTokens} tokens in ${m.decodeMs.toInt()} ms): mapped from the next answer")
+            }
+            return s
+        }
+    }
+
+    val builtInEngine = BuiltInEngine()
+
+    /** The engine that runs [asset]: BOAR's own unless a Labs engine claims it (CatalogAsset.engine). */
+    fun providerFor(asset: CatalogAsset): team.sopa.boar.plugins.EngineProvider? =
+        asset.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: builtInEngine.takeIf { asset.engine == null }
+
     inner class SessionHost : ModelHost {
         private val lock = Mutex()
-        private var session: team.sopa.boar.engine.TextModel? = null
+        private var session: TextModel? = null
         private var filename: String? = null
         private var residentId: String? = null
-        private var residentRepacked = false
-        /** Models that stalled with repacked weights in this process: mapped from storage until the app restarts (#73). */
-        private val keepMapped = java.util.Collections.synchronizedSet(HashSet<String>())
 
         override fun residentFilename(): String? = filename
+        fun residentId(): String? = residentId
         override fun filenameOf(modelId: String): String? = catalog.byId(modelId)?.takeIf(::isInstalled)?.filename
 
+        /** One path for every engine: the model's provider loads it; the host keeps one model resident at a time. */
         override suspend fun load(modelId: String): StepEngine? = lock.withLock {
             val asset = catalog.byId(modelId)?.takeIf(::isInstalled) ?: return null
+            val provider = providerFor(asset) ?: return null
             val tweaks = settings.engineTweaks
-            // A Boar Labs engine plugin's model: its own process, no load guard (it can't take the app down with it).
-            if (asset.engine != null) return loadExternal(asset, tweaks)
-            // A stall while repacked: reload as the mapped file before the next generation (the caller waits on the lock).
-            val reloadMapped = filename == asset.filename && residentRepacked && asset.id in keepMapped && tweaks.weightRepack != true
-            if (filename != asset.filename || session == null || reloadMapped) {
-                val previous = (residentId ?: settings.lastLoadedModelId)?.let(catalog::byId)?.let { LoadGuard.Meta(it.filename, it.id, it.label) }
+            val reload = provider === builtInEngine && filename == asset.filename && builtInEngine.needsReload(asset)
+            if (filename != asset.filename || session == null || reload) {
                 if (session != null) { session?.close(); DebugLog.modelUnload(residentId) }
                 session = null
                 filename = null
                 residentId = null
-                val meta = LoadGuard.Meta(asset.filename, asset.id, asset.label)
-                val repack = tweaks.weightRepack ?: !(loadGuard.mappedNext(asset.id) || asset.id in keepMapped)
-                loadGuard.begin(meta, previous, repack)
-                val params = tweaks.resolve(topology, totalRamBytes).params.copy(repack = repack)
-                val t0 = android.os.SystemClock.elapsedRealtime()
-                val s = LlamaSession.load(fileOf(asset).path, params)
-                loadGuard.end(meta, s != null)
-                DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, s != null, params.threads, params.nCtx, repack)
-                if (s == null) return null
-                session = s
-                filename = asset.filename
-                residentId = asset.id
-                residentRepacked = repack
-                s.onGenerated = { m ->
-                    DebugLog.generation(asset.id, m, params.nCtx)
-                    if (repack && LoadGuard.isDecodeStall(m.generatedTokens, m.decodeMs) && keepMapped.add(asset.id))
-                        android.util.Log.w("BOAR", "${asset.id} stalled with repacked weights (${m.generatedTokens} tokens in ${m.decodeMs.toInt()} ms): mapped from the next answer")
-                }
-                settings.lastLoadedModelId = asset.id
-            }
-            SessionEngine(session!!, tweaks.thinkingEnabled)
-        }
-
-        private suspend fun loadExternal(asset: CatalogAsset, tweaks: team.sopa.boar.engine.EngineTweaks): StepEngine? {
-            if (filename != asset.filename || session == null) {
-                if (session != null) { session?.close(); DebugLog.modelUnload(residentId) }
-                session = null
-                filename = null
-                residentId = null
-                val provider = team.sopa.boar.plugins.EnginePlugins.forEngine(asset.engine!!) ?: return null
                 val params = tweaks.resolve(topology, totalRamBytes).params
                 val t0 = android.os.SystemClock.elapsedRealtime()
-                val m = runCatching { provider.load(asset, params) }.onFailure { android.util.Log.w("BOAR", "${asset.engine} load failed", it) }.getOrNull()
-                DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, m != null, params.threads, params.nCtx, false)
+                val m = runCatching { provider.load(asset, params) }.onFailure { android.util.Log.w("BOAR", "${provider.id} load failed", it) }.getOrNull()
+                DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, m != null, params.threads, params.nCtx,
+                    provider === builtInEngine && builtInEngine.residentRepacked)
                 if (m == null) return null
-                m.onGenerated = { g -> DebugLog.generation(asset.id, g, params.nCtx) }
+                val engineOwn = m.onGenerated
+                m.onGenerated = { g -> DebugLog.generation(asset.id, g, params.nCtx); engineOwn?.invoke(g) }
                 session = m
                 filename = asset.filename
                 residentId = asset.id
                 settings.lastLoadedModelId = asset.id
             }
-            return SessionEngine(session!!, tweaks.thinkingEnabled)
+            SessionEngine(session!!, tweaks.thinkingEnabled)
         }
+
+        /** Frees the model unless it's answering (an answer in the background must finish); the next answer reloads it. */
+        suspend fun unloadIfIdle(why: String) = lock.withLock {
+            val s = session ?: return@withLock
+            if (s.isGenerating) return@withLock
+            val id = residentId
+            s.close()
+            session = null
+            filename = null
+            residentId = null
+            DebugLog.event("model.release", "id" to id, "why" to why)
+            if (id != null) DebugLog.modelUnload(id)
+        }
+
+        /** The resident model is a Labs engine's (its own process), for releasing it under memory pressure. */
+        fun residentIsExternal(): Boolean = residentId?.let(catalog::byId)?.engine != null
 
         /** The loaded model, for the default path (AnswerPipeline). */
         fun current(): team.sopa.boar.engine.TextModel? = session
@@ -294,6 +364,10 @@ class BoarServices private constructor(private val context: Context) {
 
     companion object {
         const val DEFAULT_PERSONALITY_ID = "detailed"
+        /** BOAR's own engine's provider id (models with no CatalogAsset.engine). */
+        const val BUILT_IN_ENGINE = "llama"
+        /** How long a Labs engine may sit idle with BOAR in the background before its memory goes back. */
+        const val BACKGROUND_RELEASE_MS = 5 * 60_000L
 
         @Volatile private var instance: BoarServices? = null
 

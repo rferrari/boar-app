@@ -133,6 +133,8 @@ interface TextModel : Closeable {
     fun cancel()
     /** Called after every generation with its metrics. */
     var onGenerated: ((GenerationMetrics) -> Unit)?
+    /** An answer is being generated now (memory release waits for it). */
+    val isGenerating: Boolean get() = false
 }
 
 /**
