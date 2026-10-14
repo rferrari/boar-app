@@ -214,14 +214,13 @@ class BoarServices private constructor(private val context: Context) {
     private var backgroundRelease: kotlinx.coroutines.Job? = null
 
     /**
-     * Android asks for memory back. A Labs engine (its own process, e.g. Big Boar's 5 GB) goes on critical pressure;
-     * BOAR's own model and its prompt cache stay unless the process is about to be killed (TRIM_MEMORY_COMPLETE).
-     * A plain app switch (UI_HIDDEN, BACKGROUND) releases nothing: reloading a 35B takes a minute or more.
+     * Android asks for memory back: a Labs engine (its own process, e.g. Big Boar's 5 GB) goes on critical pressure.
+     * BOAR's own model and its prompt cache are never released here; a plain app switch (UI_HIDDEN, BACKGROUND)
+     * releases nothing either: reloading a 35B takes a minute or more.
      */
     fun onTrimMemory(level: Int) {
         val critical = level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE
-        val severe = level >= android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE
-        if (critical && host.residentIsExternal() || severe) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
+        if (critical && host.residentIsExternal()) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
     }
 
     /** BOAR left the screen: a Labs engine still idle after [BACKGROUND_RELEASE_MS] gives its memory back. */
