@@ -73,6 +73,13 @@ data class CatalogAsset(
     val requires: List<String> = emptyList(),
     /** Curated capabilities (manifest.ts); null = not yet assessed, never an assumed capability set. */
     val capabilities: ModelCapabilities? = null,
+    /** The engine that runs it: null for BOAR's own; otherwise a Boar Labs engine plugin's id ("bmoe", "colibri"). */
+    val engine: String? = null,
+    /**
+     * An absolute path outside the app's files, for a model copied to the phone over USB instead of downloaded (a file,
+     * or an engine's model folder). Never downloaded, size-checked or deleted by the app.
+     */
+    val externalPath: String? = null,
 ) {
     /** Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf). */
     val shortName: String get() = displayName ?: label

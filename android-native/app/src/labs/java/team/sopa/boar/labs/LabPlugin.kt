@@ -40,6 +40,9 @@ interface LabPlugin {
 
     /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
     @Composable fun HeaderBadge(go: (String) -> Unit) {}
+
+    /** The engine slot: models this lab runs on its own engine, listed with the app's (team.sopa.boar.plugins.EnginePlugins). */
+    val engine: team.sopa.boar.plugins.EngineProvider? get() = null
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
@@ -97,4 +100,9 @@ object LabPrefs {
         if (!key.startsWith("image.times.")) team.sopa.boar.app.DebugLog.settingChanged("labs.$key", string(key)?.take(80), value.take(80))
         prefs?.edit()?.putString(key, value)?.apply()
     }
+}
+
+/** The application context, for plugins that start processes or read files outside a screen (engines). */
+object LabContext {
+    @Volatile var app: Context? = null
 }

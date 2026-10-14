@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_bmoe_title" formatted="false">Javali Gigante</string>
+    <string name="native_labs_bmoe_body" formatted="false">Um modelo de 35B no seu celular: o BigMoeOnEdge mantém na memória os pesos usados sempre e lê do armazenamento os especialistas de cada palavra. Lento, mas um 35B de verdade.</string>
+    <string name="native_labs_bmoe_engine" formatted="false">MOTOR</string>
+    <string name="native_labs_bmoe_engineOk" formatted="false">O BigMoeOnEdge está nesta versão</string>
+    <string name="native_labs_bmoe_engineMissing" formatted="false">Não está nesta versão: rode scripts/build-lab-engines.sh e compile de novo</string>
+    <string name="native_labs_bmoe_model" formatted="false">MODELO</string>
+    <string name="native_labs_bmoe_modelOk" formatted="false">Encontrado: {{size}}</string>
+    <string name="native_labs_bmoe_modelMissing" formatted="false">Não está no celular. Copie pelo USB: adb push {{file}} {{path}}</string>
+    <string name="native_labs_bmoe_use" formatted="false">Responder com este modelo</string>
+    <string name="native_labs_bmoe_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
+    <string name="native_labs_bmoe_note" formatted="false">A primeira resposta carrega o modelo (um minuto ou mais). Depois cada resposta leva minutos e o celular esquenta: ligue o Log de depuração para ver velocidade e calor. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
+</resources>

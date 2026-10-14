@@ -132,7 +132,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { s ->
             s.copy(items = items, activeLlm = services.activeModel()?.id, rows = items.associate { a ->
                 val prev = s.rows[a.id] ?: Row()
-                a.id to prev.copy(present = store.status(a).present)
+                // A Labs engine model placed over USB: present when its file or folder is there; the store never touches it.
+                a.id to prev.copy(present = if (a.externalPath != null) services.isInstalled(a) else store.status(a).present)
             })
         }
     }
@@ -140,6 +141,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     private fun row(id: String, change: (Row) -> Row) = _state.update { s -> s.copy(rows = s.rows + (id to change(s.rows[id] ?: Row()))) }
 
     fun download(a: CatalogAsset) {
+        if (a.externalPath != null) return // copied over USB, never downloaded
         if (_state.value.rows[a.id]?.downloading == true) return
         row(a.id) { Row(downloading = true) }
         viewModelScope.launch(Dispatchers.IO) {
@@ -203,6 +205,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     fun remove(a: CatalogAsset) {
         viewModelScope.launch(Dispatchers.IO) {
             if (a.id == _state.value.activeLlm) services.host.unload()
+            // Placed over USB by hand: the app never deletes it.
+            if (a.externalPath != null) { refresh(); return@launch }
             if (a.kind == AssetKind.CORPUS && a.format != "sqlite-pack") services.knowledgeBase.deleteSeedChunksWithPrefix(SeedCorpus.chunkIdPrefix(a.id))
             if (a.kind == AssetKind.CORPUS) services.reloadPacks()
             store.delete(a)

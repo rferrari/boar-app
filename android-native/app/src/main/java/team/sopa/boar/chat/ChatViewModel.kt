@@ -285,7 +285,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     )
                     sources = r.citations
                     timedOut = r.timedOut
-                } else if (settings.adaptiveRoutingEnabled) {
+                } else if (settings.adaptiveRoutingEnabled && services.answerModel()?.engine == null) {
+                    // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
                     val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
                     sources = r.first
                     timedOut = r.second
@@ -368,7 +369,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * A title or summary left its own prompt in the KV cache, so the next question would read the whole system prompt
      * again (about 230 tokens, 8 s on a 4B). Prefill it back: the next answer reuses it (#72's warm-up).
      */
-    private suspend fun warmPrefix(session: team.sopa.boar.engine.LlamaSession, systemPrompt: String?, withSources: Boolean) {
+    private suspend fun warmPrefix(model: team.sopa.boar.engine.TextModel, systemPrompt: String?, withSources: Boolean) {
+        // Only BOAR's own engine keeps a prompt cache to refill; a Labs engine process manages its own.
+        val session = model as? team.sopa.boar.engine.LlamaSession ?: return
         // The variant the last answer used (with or without sources): a follow-up in the same chat most often matches it.
         val (head, plain) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(systemPrompt, withSources)
         val prompt = if (session.info.optBoolean("hasChatTemplate", false))
@@ -380,7 +383,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Pair<List<Chunk>, Boolean> {
         val s = services.settings
-        val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, services.fileOf(it).isFile) }
+        val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, it.engine == null && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
         val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.maxTokens)

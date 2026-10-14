@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flow
 import team.sopa.boar.engine.ChatMessage
 import team.sopa.boar.engine.GenerationEvent
 import team.sopa.boar.engine.GenerationMetrics
-import team.sopa.boar.engine.LlamaSession
+import team.sopa.boar.engine.TextModel
 import team.sopa.boar.engine.Sampling
 import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.Compress
@@ -51,7 +51,7 @@ sealed interface AnswerEvent {
  * template (a hand-built prompt with stop words only for a model without one). Same prompts as the TS (golden tests).
  */
 class AnswerPipeline(
-    private val session: LlamaSession,
+    private val session: TextModel,
     /** retrieve(query, topK): Retriever.retrieve on the phone. */
     private val retrieve: (String, Int) -> List<Chunk>,
     /** classifyTask: the task type's name ("lookup", "greeting", …). */
@@ -81,7 +81,7 @@ class AnswerPipeline(
             emit(AnswerEvent.Sources(sources, retrievalMs, c.tokensBefore, c.tokensAfter))
         }
         emit(AnswerEvent.Stage(AnswerStage.THINKING))
-        val useTemplate = session.info.optBoolean("hasChatTemplate", false)
+        val useTemplate = session.hasChatTemplate
         val (prompt, stops) = if (useTemplate) {
             val messages = RagPure.assembleChatMessages(req.query, sources, req.systemPrompt, req.history, req.styleReminder).map { ChatMessage(it.role, it.content) }
             // llama.rn left enable_thinking at the template's default (on); here it's the user's tweak, off by default,

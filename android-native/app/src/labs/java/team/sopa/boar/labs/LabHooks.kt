@@ -22,7 +22,12 @@ import team.sopa.boar.plugins.AnswerRef
  * active lab's answer actions, answer extras and header badges. With the switch off every slot is empty.
  */
 object LabHooks {
-    fun init(context: android.content.Context) = LabPrefs.init(context)
+    fun init(context: android.content.Context) {
+        LabPrefs.init(context)
+        LabContext.app = context.applicationContext
+        // The engine slot: the engines of the labs switched on now, read each time the app lists models.
+        team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
+    }
 
     /** route to label key; empty while Labs is off. */
     fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn) listOf("labs" to "native.labs.drawer") else emptyList()

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_bmoe_title" formatted="false">Big Boar</string>
+    <string name="native_labs_bmoe_body" formatted="false">A 35B model on your phone: BigMoeOnEdge keeps the always-used weights in memory and reads each word\'s experts from storage. Slow, but a real 35B.</string>
+    <string name="native_labs_bmoe_engine" formatted="false">ENGINE</string>
+    <string name="native_labs_bmoe_engineOk" formatted="false">BigMoeOnEdge is in this build</string>
+    <string name="native_labs_bmoe_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
+    <string name="native_labs_bmoe_model" formatted="false">MODEL</string>
+    <string name="native_labs_bmoe_modelOk" formatted="false">Found: {{size}}</string>
+    <string name="native_labs_bmoe_modelMissing" formatted="false">Not on the phone. Copy it over USB: adb push {{file}} {{path}}</string>
+    <string name="native_labs_bmoe_use" formatted="false">Answer with this model</string>
+    <string name="native_labs_bmoe_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
+    <string name="native_labs_bmoe_note" formatted="false">The first answer loads the model (a minute or more). Each answer then takes minutes, and the phone gets warm: turn on the Debug log to see speed and heat. Adaptive routing is skipped while it\'s selected.</string>
+</resources>

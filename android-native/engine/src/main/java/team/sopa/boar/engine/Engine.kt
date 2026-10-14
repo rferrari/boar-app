@@ -120,15 +120,33 @@ data class BenchStats(val mean: Double, val sd: Double, val runs: Int)
 data class BenchResult(val pp: BenchStats?, val tg: BenchStats?, val nPp: Int, val nTg: Int, val threads: Int)
 
 /**
+ * A loaded text model the answer paths generate with: BOAR's own engine ([LlamaSession]) or an engine a Boar Labs
+ * plugin runs in its own process (team.sopa.boar.plugins.EnginePlugins).
+ */
+interface TextModel : Closeable {
+    /** The model renders chat messages itself ([formatChat]); otherwise callers build a plain prompt. */
+    val hasChatTemplate: Boolean
+    suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean = false): FormattedPrompt
+    /** Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. */
+    fun generate(prompt: String, sampling: Sampling = Sampling()): Flow<GenerationEvent>
+    /** Stops a generation in flight; callable from any thread. */
+    fun cancel()
+    /** Called after every generation with its metrics. */
+    var onGenerated: ((GenerationMetrics) -> Unit)?
+}
+
+/**
  * One loaded model. Calls are serialized: llama.cpp contexts are not thread-safe.
  * [cancel] may be called from any thread and stops a running [generate] or [bench].
  */
-class LlamaSession private constructor(@Volatile private var handle: Long, val params: EngineParams) : Closeable {
+class LlamaSession private constructor(@Volatile private var handle: Long, val params: EngineParams) : TextModel {
     private val lock = Mutex()
 
     val info: JSONObject get() = JSONObject(BoarNative.modelInfo(handle))
 
-    suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean = false): FormattedPrompt = lock.withLock {
+    override val hasChatTemplate: Boolean get() = info.optBoolean("hasChatTemplate", false)
+
+    override suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean): FormattedPrompt = lock.withLock {
         withContext(Dispatchers.Default) {
             val arr = JSONArray().apply { messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) } }
             val o = JSONObject(String(BoarNative.formatChat(handle, arr.toString(), enableThinking), Charsets.UTF_8))
@@ -144,7 +162,7 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     /** Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. */
-    fun generate(prompt: String, sampling: Sampling = Sampling()): Flow<GenerationEvent> = callbackFlow {
+    override fun generate(prompt: String, sampling: Sampling): Flow<GenerationEvent> = callbackFlow {
         lock.withLock {
             val metrics = BoarNative.generate(handle, prompt.toByteArray(Charsets.UTF_8), sampling.toJson()) { bytes ->
                 trySend(GenerationEvent.Piece(String(bytes, Charsets.UTF_8))).isSuccess
@@ -170,9 +188,9 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     /** Called after every generation with its metrics (the model host watches for stalls). */
-    @Volatile var onGenerated: ((GenerationMetrics) -> Unit)? = null
+    @Volatile override var onGenerated: ((GenerationMetrics) -> Unit)? = null
 
-    fun cancel() = BoarNative.cancel(handle)
+    override fun cancel() = BoarNative.cancel(handle)
 
     /** Stops a generation in flight, waits for it to return, then frees the context (never under a running call). */
     override fun close() {

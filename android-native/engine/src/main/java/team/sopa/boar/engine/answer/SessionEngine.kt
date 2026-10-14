@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import team.sopa.boar.engine.ChatMessage
 import team.sopa.boar.engine.GenerationEvent
 import team.sopa.boar.engine.GenerationMetrics
-import team.sopa.boar.engine.LlamaSession
+import team.sopa.boar.engine.TextModel
 import team.sopa.boar.engine.Sampling
 import team.sopa.boar.engine.rag.PromptMessage
 
@@ -14,8 +14,8 @@ import team.sopa.boar.engine.rag.PromptMessage
  * A loaded model as the executor and Deep Research use it: role messages through the model's own chat template (or a
  * plain prompt with stop words), and a time limit that stops the native generation and keeps what it wrote.
  */
-class SessionEngine(private val session: LlamaSession, private val enableThinking: Boolean = false) : StepEngine, StageGenerator {
-    override val hasChatTemplate: Boolean = session.info.optBoolean("hasChatTemplate", false)
+class SessionEngine(private val session: TextModel, private val enableThinking: Boolean = false) : StepEngine, StageGenerator {
+    override val hasChatTemplate: Boolean = session.hasChatTemplate
 
     override suspend fun generate(req: GenRequest, onToken: ((String) -> Unit)?): GenResult = coroutineScope {
         val (prompt, stops) = if (req.messages != null) {

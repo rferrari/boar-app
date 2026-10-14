@@ -57,8 +57,13 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     /** The built-in catalog plus the discovered models (a search result already in the catalog isn't listed twice). */
-    @Volatile var catalog: Catalog = withDiscovered()
-        private set
+    @Volatile private var ownCatalog: Catalog = withDiscovered()
+
+    /** [ownCatalog] plus the models of the Boar Labs engine plugins switched on now (team.sopa.boar.plugins.EnginePlugins). */
+    val catalog: Catalog get() {
+        val extra = team.sopa.boar.plugins.EnginePlugins.models()
+        return if (extra.isEmpty()) ownCatalog else ownCatalog.copy(models = ownCatalog.models + extra.filter { e -> ownCatalog.models.none { it.id == e.id } })
+    }
 
     private fun withDiscovered(): Catalog {
         val extra = discovered().filter { d -> baseCatalog.models.none { it.filename == d.filename } }
@@ -68,12 +73,12 @@ class BoarServices private constructor(private val context: Context) {
     fun addDiscovered(asset: CatalogAsset) = synchronized(this) {
         val all = discovered()
         if (all.none { it.id == asset.id }) writeDiscovered(all + asset)
-        catalog = withDiscovered()
+        ownCatalog = withDiscovered()
     }
 
     fun removeDiscovered(id: String) = synchronized(this) {
         writeDiscovered(discovered().filter { it.id != id })
-        catalog = withDiscovered()
+        ownCatalog = withDiscovered()
     }
     /**
      * The answer styles. The native app starts on Detailed (the Expo app on Succinct); a style the user picked is kept.
@@ -110,15 +115,19 @@ class BoarServices private constructor(private val context: Context) {
         runCatching { Json.parseToJsonElement(asset("lexicon/pt-en.json")).jsonObject.mapValues { it.value.jsonPrimitive.content } }.getOrDefault(emptyMap())
     }
 
-    fun fileOf(asset: CatalogAsset) = File(files, asset.filename)
+    /** Where [asset] is on the phone: under the app's files, or its [CatalogAsset.externalPath] (placed over USB). */
+    fun fileOf(asset: CatalogAsset) = asset.externalPath?.let(::File) ?: File(files, asset.filename)
+
+    /** Installed: a file, or an engine plugin's model folder. */
+    fun isInstalled(asset: CatalogAsset) = fileOf(asset).let { it.isFile || (asset.externalPath != null && it.isDirectory) }
     /** Everything BOAR keeps on the phone: models, packs, the knowledge base with imported documents, chats, settings. */
     fun storageUsedBytes(): Long = files.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 
-    fun installed(kind: AssetKind) = catalog.models.filter { it.kind == kind && fileOf(it).isFile }
+    fun installed(kind: AssetKind) = catalog.models.filter { it.kind == kind && isInstalled(it) }
 
     /** The user's model, else the first installed one (the catalog's order puts the default first). */
     fun activeModel(): CatalogAsset? =
-        settings.activeModelId("llm")?.let(catalog::byId)?.takeIf { fileOf(it).isFile } ?: installed(AssetKind.LLM).firstOrNull()
+        settings.activeModelId("llm")?.let(catalog::byId)?.takeIf(::isInstalled) ?: installed(AssetKind.LLM).firstOrNull()
 
     /** CR-2: the marker next to the models and the bookkeeping in settings.json. */
     val loadGuard = LoadGuard(object : LoadGuard.MarkerStore {
@@ -195,7 +204,7 @@ class BoarServices private constructor(private val context: Context) {
 
     inner class SessionHost : ModelHost {
         private val lock = Mutex()
-        private var session: LlamaSession? = null
+        private var session: team.sopa.boar.engine.TextModel? = null
         private var filename: String? = null
         private var residentId: String? = null
         private var residentRepacked = false
@@ -203,11 +212,13 @@ class BoarServices private constructor(private val context: Context) {
         private val keepMapped = java.util.Collections.synchronizedSet(HashSet<String>())
 
         override fun residentFilename(): String? = filename
-        override fun filenameOf(modelId: String): String? = catalog.byId(modelId)?.takeIf { fileOf(it).isFile }?.filename
+        override fun filenameOf(modelId: String): String? = catalog.byId(modelId)?.takeIf(::isInstalled)?.filename
 
         override suspend fun load(modelId: String): StepEngine? = lock.withLock {
-            val asset = catalog.byId(modelId)?.takeIf { fileOf(it).isFile } ?: return null
+            val asset = catalog.byId(modelId)?.takeIf(::isInstalled) ?: return null
             val tweaks = settings.engineTweaks
+            // A Boar Labs engine plugin's model: its own process, no load guard (it can't take the app down with it).
+            if (asset.engine != null) return loadExternal(asset, tweaks)
             // A stall while repacked: reload as the mapped file before the next generation (the caller waits on the lock).
             val reloadMapped = filename == asset.filename && residentRepacked && asset.id in keepMapped && tweaks.weightRepack != true
             if (filename != asset.filename || session == null || reloadMapped) {
@@ -239,8 +250,29 @@ class BoarServices private constructor(private val context: Context) {
             SessionEngine(session!!, tweaks.thinkingEnabled)
         }
 
-        /** The loaded session, for the default path (AnswerPipeline). */
-        fun current(): LlamaSession? = session
+        private suspend fun loadExternal(asset: CatalogAsset, tweaks: team.sopa.boar.engine.EngineTweaks): StepEngine? {
+            if (filename != asset.filename || session == null) {
+                if (session != null) { session?.close(); DebugLog.modelUnload(residentId) }
+                session = null
+                filename = null
+                residentId = null
+                val provider = team.sopa.boar.plugins.EnginePlugins.forEngine(asset.engine!!) ?: return null
+                val params = tweaks.resolve(topology, totalRamBytes).params
+                val t0 = android.os.SystemClock.elapsedRealtime()
+                val m = runCatching { provider.load(asset, params) }.onFailure { android.util.Log.w("BOAR", "${asset.engine} load failed", it) }.getOrNull()
+                DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, m != null, params.threads, params.nCtx, false)
+                if (m == null) return null
+                m.onGenerated = { g -> DebugLog.generation(asset.id, g, params.nCtx) }
+                session = m
+                filename = asset.filename
+                residentId = asset.id
+                settings.lastLoadedModelId = asset.id
+            }
+            return SessionEngine(session!!, tweaks.thinkingEnabled)
+        }
+
+        /** The loaded model, for the default path (AnswerPipeline). */
+        fun current(): team.sopa.boar.engine.TextModel? = session
 
         /** Frees the model; the next answer loads it again (with changed Advanced tweaks, or another model). */
         suspend fun unload() = lock.withLock {
@@ -254,7 +286,7 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     /** Loads the active model if it isn't resident; null when no model is installed or it fails to load. */
-    suspend fun activeSession(): LlamaSession? {
+    suspend fun activeSession(): team.sopa.boar.engine.TextModel? {
         val m = answerModel() ?: return null
         host.load(m.id) ?: return null
         return host.current()

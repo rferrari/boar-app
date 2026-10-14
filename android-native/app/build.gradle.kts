@@ -54,10 +54,11 @@ android {
         ?: env["BOAR_TRUFFLE_LAUNCHER_ICONS"] ?: System.getenv("BOAR_TRUFFLE_LAUNCHER_ICONS"))?.trim()?.toBoolean() ?: false
     // You read the build file: there's an EXPERIMENTAL block at the bottom of Advanced tweaks (Boar Labs, Boar Avatars),
     // shown only in builds with EXPERIMENTAL_FEATURES=true in the repo's .env (or the environment, or -Pboar.experimentalFeatures=true).
-    // Without it the switches never show and both stay off. The image lab's sd-cli (labs/jniLibs, from
-    // scripts/build-sd-cli.sh, about 31 MB) ships only with it, unless boar.labs.imageEngine=false.
+    // Without it the switches never show and both stay off. The labs' executables (each plugin's jniLibs: the image lab's
+    // sd-cli from scripts/build-sd-cli.sh, about 31 MB; the bmoe and colibri engines from scripts/build-lab-engines.sh,
+    // about 8 MB) ship only with it, unless boar.labs.executables=false (boar.labs.imageEngine=false, its old name).
     val experimental = (providers.gradleProperty("boar.experimentalFeatures").orNull ?: env["EXPERIMENTAL_FEATURES"] ?: System.getenv("EXPERIMENTAL_FEATURES"))?.trim()?.toBoolean() ?: false
-    val labsImageEngine = experimental && (providers.gradleProperty("boar.labs.imageEngine").orNull?.trim()?.toBoolean() ?: true)
+    val labsExecutables = experimental && ((providers.gradleProperty("boar.labs.executables").orNull ?: providers.gradleProperty("boar.labs.imageEngine").orNull)?.trim()?.toBoolean() ?: true)
     // Uncensored and adult models (HfQuery.uncensored) are hidden from Discover GGUF models unless ALLOW_UNCENSORED_MODELS=true
     // (.env, the environment, or -Pboar.allowUncensoredModels=true).
     val allowUncensored = (providers.gradleProperty("boar.allowUncensoredModels").orNull ?: env["ALLOW_UNCENSORED_MODELS"] ?: System.getenv("ALLOW_UNCENSORED_MODELS"))?.trim()?.toBoolean() ?: false
@@ -127,15 +128,15 @@ android {
         sourceSets["main"].res.srcDir("src/launcherIcons/res")
     }
     // Boar Labs: the framework (src/labs/java, res) and every plugin folder under src/labs/plugins, found here, so a
-    // plugin is one folder and nothing else (docs/PLUGINS.md). A plugin's jniLibs (gitignored, e.g. the image lab's
-    // sd-cli as libsdcli*.so, installed executable in nativeLibraryDir) ship only in experimental builds.
+    // plugin is one folder and nothing else (docs/PLUGINS.md). A plugin's jniLibs (gitignored executables named lib*.so,
+    // e.g. sd-cli or bmoe-cli, installed runnable in nativeLibraryDir) ship only in experimental builds.
     sourceSets["main"].java.srcDir("src/labs/java")
     sourceSets["main"].res.srcDir("src/labs/res")
     sourceSets["main"].java.srcDir(labsRegistryDir)
     for (dir in labPlugins.map { it.dir }) {
         sourceSets["main"].java.srcDir(dir.resolve("java"))
         sourceSets["main"].res.srcDir(dir.resolve("res"))
-        if (labsImageEngine) sourceSets["main"].jniLibs.srcDir(dir.resolve("jniLibs"))
+        if (labsExecutables) sourceSets["main"].jniLibs.srcDir(dir.resolve("jniLibs"))
     }
 }
 
