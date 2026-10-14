@@ -87,7 +87,21 @@ class BenchActivity : ComponentActivity() {
                 log = { line -> log.value += line + "\n"; Log.i(team.sopa.boar.eval.DeviceEvalRunner.TAG, line) },
             )
             val waitMs = intent.getIntExtra("waitmin", 10) * 60_000L
-            lifecycleScope.launch { if (!runner.pollOnce(waitMs)) log.value += "no evaluation request within the wait\n" }
+            // A release build can't be reached with run-as: the request can come base64 in the intent (request64), and
+            // the results are then copied to Android/data/<pkg>/files/eval-out, where adb can pull them.
+            val request64 = intent.getStringExtra("request64")
+            lifecycleScope.launch {
+                if (request64 != null) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    File(filesDir, "eval/requests").apply { mkdirs() }.resolve("pending.json")
+                        .writeBytes(android.util.Base64.decode(request64, android.util.Base64.DEFAULT))
+                }
+                if (!runner.pollOnce(waitMs)) log.value += "no evaluation request within the wait\n"
+                if (request64 != null) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val out = File(getExternalFilesDir(null), "eval-out").apply { mkdirs() }
+                    File(filesDir, "eval").walkTopDown().filter { it.isFile }.forEach { f -> f.copyTo(File(out, f.relativeTo(File(filesDir, "eval")).path), overwrite = true) }
+                    Log.i(team.sopa.boar.eval.DeviceEvalRunner.TAG, "eval-out copied: ${out.path}")
+                }
+            }
         } else if (savedInstanceState == null) intent.getStringExtra("run")?.let { run ->
             val params = paramsFromIntent(topology)
             val model = intent.getStringExtra("model")?.let { name -> models.firstOrNull { it.name == name } } ?: models.firstOrNull()

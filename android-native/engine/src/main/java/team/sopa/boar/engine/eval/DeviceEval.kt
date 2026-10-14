@@ -37,6 +37,11 @@ data class EvalRequest(
     val pipeline: String? = null,
     /** Pipeline "answer" fields, kept as sent: this build runs the legacy pipeline only. */
     val answerOnly: Map<String, JsonElement> = emptyMap(),
+    /**
+     * An outside question set (a BOAR Bench request's "questions": id, query, category), run on the legacy pipeline in
+     * place of the built-in set, so the app users run answers the same questions as another engine. Native only.
+     */
+    val questions: List<EvalQuery>? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -83,7 +88,9 @@ object DeviceEval {
         val pipeline = raw["pipeline"]
         val pipe = (pipeline as? JsonPrimitive)?.takeIf { it.isString }?.content
         if (pipeline != null && pipe != "legacy" && pipe != "answer") throw EvalRequestException("\"pipeline\" must be \"legacy\" or \"answer\"")
-        val answerOnly = ANSWER_ONLY.filter { raw[it] != null }
+        // A question set of its own is fine on the legacy pipeline too (native); the other answer-pipeline fields aren't.
+        val ownSet = raw["questions"] != null && pipe == "legacy" // only when asked for: a request without a pipeline keeps the TS errors
+        val answerOnly = ANSWER_ONLY.filter { raw[it] != null && !(ownSet && (it == "questions" || it == "evalSetVersion")) }
         if (raw["confirmLargeModels"] != null && !raw["confirmLargeModels"].isBool()) throw EvalRequestException("\"confirmLargeModels\" must be a boolean")
         if (pipe != "answer" && answerOnly.isNotEmpty()) throw EvalRequestException("${answerOnly.joinToString(", ")} need \"pipeline\": \"answer\"")
         if (raw["answerAnyway"] != null && !raw["answerAnyway"].isBool()) throw EvalRequestException("\"answerAnyway\" must be a boolean")
@@ -99,7 +106,22 @@ object DeviceEval {
             queries = stringList(raw["queries"], "queries"),
             pipeline = pipe,
             answerOnly = answerOnly.associateWith { raw[it]!! },
+            questions = if (ownSet) parseQuestions(raw["questions"]!!, (raw["evalSetVersion"] as? JsonPrimitive)?.content ?: "custom") else null,
         )
+    }
+
+    private fun parseQuestions(value: JsonElement, setVersion: String): List<EvalQuery> {
+        val items = (value as? JsonArray)?.takeIf { it.isNotEmpty() } ?: throw EvalRequestException("\"questions\" must be a non-empty list")
+        return items.map { e ->
+            val o = e as? JsonObject ?: throw EvalRequestException("each question must be an object with id and query")
+            fun str(k: String) = (o[k] as? JsonPrimitive)?.takeIf { it.isString }?.content
+            EvalQuery(
+                id = str("id")?.takeIf { it.isNotBlank() } ?: throw EvalRequestException("a question has no id"),
+                category = str("category") ?: "custom",
+                query = str("query")?.takeIf { it.isNotBlank() } ?: throw EvalRequestException("question ${str("id")} has no query"),
+                setVersion = setVersion,
+            )
+        }
     }
 
     /** The request id even from a request that failed to parse, for its "failed" status. */
@@ -131,6 +153,8 @@ object DeviceEval {
         }
         val configs = models.map<ModelRef, EvalConfig> { EvalConfig.Model(it.id, it.label) }.toMutableList()
         if (everything || request.adaptive == true) configs += EvalConfig.Adaptive(adaptiveLabel)
+        // An outside question set replaces the built-in one, every question as sent.
+        request.questions?.let { return Resolved.Ok(configs, it) }
         var queries = evalSet
         val wanted = request.queries
         if (!wanted.isNullOrEmpty()) {
