@@ -111,7 +111,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         val ram = runCatching { ActivityManager.MemoryInfo().also { app.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }.totalMem }.getOrDefault(0L)
-        val answer = services.catalog.setupModels
+        // Not a Labs engine model (Big Boar, Hummingbird): those are copied over USB, never set up here.
+        val answer = services.catalog.setupModels.filter { it.engine == null }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
         _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id) }
         restore()
