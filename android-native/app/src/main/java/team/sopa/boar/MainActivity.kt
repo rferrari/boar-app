@@ -209,8 +209,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         return
     }
     if (team.sopa.boar.labs.LabHooks.handles(screen)) {
-        BackHandler { screen = if (screen == "labs") "chat" else "labs" }
-        team.sopa.boar.labs.LabHooks.Screen(screen) { screen = it }
+        // Back in the chat from Labs: a lab may have changed the answer model (Big Boar's "Answer with this model").
+        BackHandler { if (screen == "labs") { vm.refreshSettings(); screen = "chat" } else screen = "labs" }
+        team.sopa.boar.labs.LabHooks.Screen(screen) { if (it == "chat") vm.refreshSettings(); screen = it }
         return
     }
     if (screen == "about") {

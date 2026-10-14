@@ -29,3 +29,19 @@ class SummarizeTest {
         assertEquals(listOf(150, 0.3f), calls[1].subList(2, 4))
     }
 }
+
+class SummarizeThinkingTest {
+    private fun gen(text: String) = StageGenerator { _, _, _, _, _, _ -> GenResult(text) }
+
+    @org.junit.Test fun `a title never shows the reasoning`() = kotlinx.coroutines.runBlocking {
+        org.junit.Assert.assertEquals("Methane basics", Summarize.title(gen("<think>The user asks about methane.</think>Methane basics"), "What is methane?"))
+    }
+
+    @org.junit.Test fun `reasoning cut off by the token cap falls back to the question`() = kotlinx.coroutines.runBlocking {
+        org.junit.Assert.assertEquals("What causes the greenhouse effect", Summarize.title(gen("<think>The user wants a short title about"), "What causes the greenhouse effect?"))
+    }
+
+    @org.junit.Test fun `a summary never shows the reasoning`() = kotlinx.coroutines.runBlocking {
+        org.junit.Assert.assertEquals("- Asked about methane.", Summarize.summary(gen("<think>Let me list the facts.</think>- Asked about methane."), emptyList(), null))
+    }
+}
