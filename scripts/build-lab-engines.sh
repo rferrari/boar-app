@@ -29,6 +29,20 @@ CMAKE_BIN=$(ls -d "$ANDROID_HOME"/cmake/* | sort -V | tail -1)/bin
 TC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin
 echo "NDK $NDK | arch $ARM_ARCH | jobs $JOBS"
 
+# Build only the tested commits (scripts/engine-pins.env); ALLOW_UNPINNED=1 to try another one.
+. "$ROOT/scripts/engine-pins.env"
+check_pin() {  # <name> <checkout> <commit> [<patch marker>]
+  local at; at=$(git -C "$2" rev-parse HEAD)
+  if [ "$at" != "$3" ] && [ "${ALLOW_UNPINNED:-0}" != 1 ]; then
+    echo "$1 is at ${at:0:8}, pinned ${3:0:8} (scripts/engine-pins.env): git -C $2 checkout $3, or ALLOW_UNPINNED=1" >&2; exit 1
+  fi
+  if [ -n "${4:-}" ] && [ "$(cat "$2/.boar-patches" 2>/dev/null)" != "$4" ]; then
+    echo "warning: $1 doesn't carry BOAR's patch series $4 (scripts/build-native-engines.sh on engine-optimizations)" >&2
+  fi
+}
+check_pin colibri "$COLIBRI" "$COLIBRI_PIN"
+check_pin BigMoeOnEdge "$BMOE" "$BMOE_PIN" "$BMOE_PATCHES"
+
 echo "== colibri ($(git -C "$COLIBRI" rev-parse --short HEAD))"
 OUT=$PLUGINS/colibri/jniLibs/arm64-v8a
 mkdir -p "$OUT"

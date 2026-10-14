@@ -4,10 +4,16 @@
 #   libsdcli_i8mm.so  armv8.6 + i8mm (e.g. the X6 Pro); the app picks it when the CPU has i8mm
 # Static, no libc++_shared. Then build the app with -Pboar.experimentalFeatures=true.
 #
-# Usage: scripts/build-sd-cli.sh <path to a stable-diffusion.cpp checkout>   (tested at d637cfb, MIT)
+# Usage: scripts/build-sd-cli.sh <path to a stable-diffusion.cpp checkout>   (MIT; the tested commit is SD_PIN in
+# scripts/engine-pins.env, ALLOW_UNPINNED=1 to build another)
 set -euo pipefail
 SD=${1:?usage: $0 <stable-diffusion.cpp checkout>}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+. "$ROOT/scripts/engine-pins.env"
+AT=$(git -C "$SD" rev-parse HEAD)
+if [ "$AT" != "$SD_PIN" ] && [ "${ALLOW_UNPINNED:-0}" != 1 ]; then
+  echo "stable-diffusion.cpp is at ${AT:0:8}, pinned ${SD_PIN:0:8} (scripts/engine-pins.env); ALLOW_UNPINNED=1 to build it" >&2; exit 1
+fi
 SDK=${ANDROID_HOME:-$HOME/Android/Sdk}
 NDK=$SDK/ndk/27.1.12297006
 CMAKE_BIN=$(ls -d "$SDK"/cmake/*/bin | tail -1)
