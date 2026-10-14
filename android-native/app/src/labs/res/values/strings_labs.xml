@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Boar Labs texts (src/labs). -->
 <resources>
-    <string name="native_labs_drawer" formatted="false">Boar Labs</string>
+    <string name="native_labs_drawer" formatted="false">Boar Labs ⚛️</string>
     <string name="native_labs_title" formatted="false">Boar Labs</string>
     <string name="native_labs_classifiedNote" formatted="false">{{name}} is classified: still in testing. Check back soon.</string>
     <string name="native_labs_hero_count" formatted="false">{{open}} open · {{locked}} classified</string>
