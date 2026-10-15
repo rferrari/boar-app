@@ -6,10 +6,14 @@ package team.sopa.boar.engine
  *
  * Boar's Path is Auto. The others lean one way from it, within what the measurements allow: more threads is not more
  * power on big.LITTLE phones (8 threads ran at half the speed of 4 on the X6), so Run Boar Run keeps Auto's threads on
- * the fast cores and spends the rest (bigger prompt batches, weights locked in RAM, no time limit) instead.
+ * the fast cores and spends the rest (bigger prompt batches, no time limit) instead.
  */
 enum class TweakPreset(val emoji: String, private val values: EngineTweaks) {
-    /** Fastest answers: pinned to the fast cores, prompts read in bigger batches, weights locked in RAM, no time limit. */
+    /**
+     * Fastest answers: pinned to the fast cores, prompts read in bigger batches, no time limit. It also asks for the weights
+     * locked in RAM, which Android refuses an app (0 MB locked, X6, Oct 15): harmless, so the prompt speed is the gain
+     * (first word 10.9 s against 21.7 s on Boar's Path, X6).
+     */
     RUN("🐗", EngineTweaks(strictCpu = true, batch = 1024, microBatch = 512, loadMode = LoadMode.MMAP_MLOCK, stageTimeoutSeconds = 0)),
     /** Auto: what we measured best on real phones. */
     PATH("🌲", EngineTweaks()),

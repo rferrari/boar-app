@@ -319,6 +319,7 @@ class BoarServices private constructor(private val context: Context) {
                 session = m
                 filename = asset.filename
                 residentId = asset.id
+                openedContext = params.nCtx
                 settings.lastLoadedModelId = asset.id
             }
             SessionEngine(session!!, tweaks.thinkingEnabled)
@@ -339,6 +340,10 @@ class BoarServices private constructor(private val context: Context) {
 
         /** The resident model is a Labs engine's (its own process), for releasing it under memory pressure. */
         fun residentIsExternal(): Boolean = residentId?.let(catalog::byId)?.engine != null
+
+        /** The context window the resident model was opened with (sizes Auto answer length); null before a load. */
+        @Volatile var openedContext: Int? = null
+            private set
 
         /** The loaded model, for the default path (AnswerPipeline). */
         fun current(): team.sopa.boar.engine.TextModel? = session

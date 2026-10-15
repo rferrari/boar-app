@@ -197,8 +197,8 @@ object ThemeTokens {
     )
 
     val all = listOf(campfire, moonlight)
-    const val DEFAULT_ID = "campfire"
-    fun byId(id: String?) = all.firstOrNull { it.id == id } ?: campfire
+    const val DEFAULT_ID = "moonlight"
+    fun byId(id: String?) = all.firstOrNull { it.id == id } ?: moonlight
 }
 
 /** spacing.ts */

@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.models
 
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -66,8 +67,12 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
-            // Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks below).
-            items(state.items.filter { it.kind != AssetKind.CORPUS }, key = { it.id }) { a ->
+            // Ready to use first (the active one on top), then what can be downloaded, each in catalog order. Knowledge
+            // packs are on the Knowledge screen, as in the Expo app (KnowledgePacks below); the embedding model is BOAR's
+            // own search engine, not a choice, so it's in Settings → Models.
+            val models = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
+                .sortedWith(compareByDescending<CatalogAsset> { it.id == state.activeLlm }.thenByDescending { state.rows[it.id]?.present == true })
+            items(models, key = { it.id }) { a ->
                 val active = if (a.kind == AssetKind.LLM) a.id == state.activeLlm else state.rows[a.id]?.present == true
                 CatalogCard(a, state.rows[a.id], active, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
             }
@@ -113,6 +118,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     val present = row?.present == true
     val corpus = item.kind == AssetKind.CORPUS
     var confirm by remember { mutableStateOf(false) }
+    var confirmUnlist by remember { mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (active) Color(0x0F10B981).compositeOver(c.bgCardElevated) else c.bgCardElevated)
             .border(1.dp, if (active) c.emeraldBorder else c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
@@ -184,6 +190,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(" • ", style = mono, color = c.textDim)
                 Text(t("catalogItemCard.eta", "eta" to formatEta(row.etaSeconds, calculating)), style = mono, color = c.textAccentAmber, fontWeight = FontWeight.SemiBold)
             }
+            Text("✕ " + t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp))
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             when {
                 // Copied over USB, never downloaded: say where it goes instead of offering a download.
@@ -197,7 +205,9 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             }
             Spacer(Modifier.weight(1f))
+            // A Labs engine's model was copied over USB: BOAR never deletes it.
             if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
+            else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))
         }
     }
     if (confirm) AlertDialog(
@@ -208,17 +218,43 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         dismissButton = { TextButton({ confirm = false }) { Text(t("common.cancel")) } },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
     )
+    if (confirmUnlist) AlertDialog(
+        onDismissRequest = { confirmUnlist = false },
+        title = { Text(t("catalogItemCard.removeFromListTitle")) },
+        text = { Text(t("catalogItemCard.removeFromListMessage")) },
+        confirmButton = { TextButton({ confirmUnlist = false; vm.removeFromList(item) }) { Text(t("catalogItemCard.removeAssetButton"), color = c.crimson400) } },
+        dismissButton = { TextButton({ confirmUnlist = false }) { Text(t("common.cancel")) } },
+        containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
+    )
 }
 
-/** Where more models come from, at the top: Hugging Face for now, searched on its own page (BrowseScreen). */
+/**
+ * Where more models come from, at the top: Hugging Face for now, searched on its own page (BrowseScreen). Not a model,
+ * so it doesn't look like one: a dashed cyan outline and a tint, like an open slot.
+ */
 @Composable
-private fun HfCta(onBrowse: () -> Unit) {
+private fun HfCta(onBrowse: () -> Unit) = DiscoverGgufCard(onBrowse)
+
+/** "Discover GGUF models · Browse Hugging Face models": the same card in Models and in setup's model step. */
+@Composable
+fun DiscoverGgufCard(onBrowse: () -> Unit) {
     val c = Boar.colors
-    Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textHeading)
-        Text(t("native.browse.ctaNote"), style = Boar.type.subtext, color = c.textSecondary)
-        SmallButton("🔍 " + t("native.browse.cta"), onClick = onBrowse)
+    val outline = c.cyan400
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.cyanBgSubtle)
+            .drawBehind {
+                drawRoundRect(outline, cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))))
+            }
+            .clickable(onClick = onBrowse).padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textAccentCyan)
+            Text(t("native.browse.discoverSubtitle"), style = Boar.type.subtext, color = c.textSecondary)
+        }
+        Text("›", fontSize = 26.sp, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
     }
 }
 

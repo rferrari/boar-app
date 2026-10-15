@@ -2,6 +2,11 @@ package team.sopa.boar.ui.chat
 
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -88,7 +93,9 @@ fun ChatScreen(
     onStop: () -> Unit,
     onNewChat: () -> Unit,
     onMenu: () -> Unit,
-    onCycleTone: () -> Unit,
+    onSetTone: (String) -> Unit,
+    onSetDeepResearch: (Boolean) -> Unit,
+    onHideResearchBanner: () -> Unit = {},
     onRate: (String, String) -> Unit,
     onDismissCrash: () -> Unit = {},
     onReused: () -> Unit = {},
@@ -100,6 +107,10 @@ fun ChatScreen(
     val c = Boar.colors
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
+    var toneSheet by remember { mutableStateOf(false) }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
+    if (toneSheet) ToneSheet(state, onSetTone, onSetDeepResearch) { toneSheet = false }
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
@@ -116,8 +127,8 @@ fun ChatScreen(
     Box(Modifier.fillMaxSize().background(c.bgTerminal)) {
         Ambient()
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-            Header(state, onMenu, onCycleTone, onNewChat, onOpenRoute)
-            if (state.deepResearch) DeepResearchBanner()
+            Header(state, onMenu, { toneSheet = true }, onNewChat, onOpenRoute)
+            if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadCrash?.let { CrashBanner(it, onDismissCrash) }
             if (state.messages.isEmpty()) {
@@ -133,7 +144,10 @@ fun ChatScreen(
                     items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }) }
                 }
             }
-            InputBar(input, { input = it }, state.answeringId != null, onSend = { onSend(input); input = "" }, onStop, voiceEnabled)
+            InputBar(input, { input = it }, state.answeringId != null, onSend = {
+                // The answer gets the whole screen: the keyboard closes on send.
+                onSend(input); input = ""; keyboard?.hide(); focus.clearFocus()
+            }, onStop, voiceEnabled, state.toneIcon, state.stopping) { toneSheet = true }
         }
     }
     state.toast?.let { Toast(it, onToastHidden) }
@@ -186,7 +200,7 @@ private fun AvatarFull(truffle: String?, onClose: () -> Unit) {
 }
 
 @Composable
-private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit) {
+private fun Header(state: ChatState, onMenu: () -> Unit, onOpenStyles: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -209,14 +223,15 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onCycleTone: () -> Unit
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
-                RoundButton(Color.White.copy(alpha = 0.07f), c.borderSubtle, onCycleTone) { Text(state.toneIcon, fontSize = 14.sp) }
                 RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
             }
         }
-        val tps = if (state.activity == Activity.Generating) state.liveTokPerSec else null
+        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
+        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
         if (state.deepResearch || tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
             if (state.deepResearch) Row(
-                Modifier.background(c.frontierBadgeBg, RoundedCornerShape(6.dp)).border(1.dp, c.frontierBadgeBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 4.dp),
+                Modifier.clip(RoundedCornerShape(6.dp)).background(c.frontierBadgeBg).border(1.dp, c.frontierBadgeBorder, RoundedCornerShape(6.dp))
+                    .clickable(onClick = onOpenStyles).padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 Text("🔬", fontSize = 11.sp)
@@ -260,11 +275,16 @@ private fun StatusPill(online: Boolean) {
 }
 
 @Composable
-private fun DeepResearchBanner() {
+private fun DeepResearchBanner(onClose: () -> Unit) {
     val c = Boar.colors
-    Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(horizontal = 12.dp, vertical = 5.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(start = 12.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         Text("🔬", fontSize = 10.sp)
-        Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText, fontWeight = FontWeight.Bold)
+        Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
+            fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
+        // Closed for good: the header chip still shows Deep Research is on.
+        Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
+            Text("✕", style = Boar.type["mono.sm"], color = c.frontierText)
+        }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
 }
@@ -284,7 +304,7 @@ private fun CrashBanner(crash: team.sopa.boar.engine.models.LoadGuard.Crash, onD
 
 /** Dictation: tap to listen (asks for the microphone the first time), tap again to stop; the words go into the input. */
 @Composable
-private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean) {
+private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, size: androidx.compose.ui.unit.Dp = 48.dp) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
     if (!team.sopa.boar.voice.VoiceInput.available(ctx)) return
@@ -302,7 +322,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean) 
         voice.start(onPartial = { onText(join(it)) }, onResult = { onText(join(it)) }, onEnd = { listening = false })
     }
     val permission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted -> if (granted && !disposed[0] && enabledNow.value) listen() }
-    Box(Modifier.size(48.dp).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(if (listening) c.crimson600 else c.bgInput)
+    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(if (listening) c.crimson600 else c.bgInput)
         .border(1.dp, if (listening) c.crimsonBorder else c.borderDefault, CircleShape)
         .clickable(enabled = enabled) {
             when {
@@ -311,7 +331,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean) 
                 else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
             }
         }, contentAlignment = Alignment.Center) {
-        Text(if (listening) "■" else "🎤", fontSize = if (listening) 14.sp else 18.sp, color = Color.White)
+        Text(if (listening) "■" else "🎤", fontSize = if (listening) 12.sp else 16.sp, color = Color.White)
     }
 }
 
@@ -417,11 +437,13 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
-                m.text.isEmpty() && streaming -> ProcessingIndicator(activityLabel(state.activity))
+                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
                 split.thinkingInProgress && split.answer.isEmpty() && streaming ->
                     Text("💭 " + (split.thinking?.takeLast(160) ?: ""), fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
+                // The reasoning used the whole answer budget: the note says "tap 💭", so 💭 shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
-                    Text("💭 " + t("chatScreen.reasoningUnfinished"), fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
+                    Text(if (reasoningShown && split.thinking != null) split.thinking!! else "💭 " + t("chatScreen.reasoningUnfinished"),
+                        fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                     MarkdownMessage(shown, streaming)
@@ -443,23 +465,32 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     FooterButton("▼", if (m.feedback == "down") t("chatScreen.rateUnhelpful") else null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
                     // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        m.receipt?.let { r -> ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } }
+                        // Everyone sees time and speed; the measured details open only with technical details on.
+                        m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
                     if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
                     team.sopa.boar.labs.LabHooks.AnswerActions(ref)
                     var copied by remember { mutableStateOf(false) }
                     FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { clipboard.setText(AnnotatedString(shown)); copied = true }
                 }
-                if (receiptOpen) m.receipt?.let { r -> ReceiptDetails(r) }
+                if (receiptOpen && state.technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
             }
         }
     }
 }
 
+private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
+
+/** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
+@Composable
+private fun ReceiptShort(r: Receipt) =
+    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
+        maxLines = 1, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
-    val short = listOf(ReceiptFormat.seconds(r.totalMs), t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))).joinToString(" · ")
+    val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
     Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 1,
         modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
 }
@@ -518,22 +549,40 @@ private fun Badge(text: String) {
         modifier = Modifier.padding(top = 4.dp).background(c.amberBgSubtle, RoundedCornerShape(4.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
 }
 
-/** The input bar (styles.inputContainer / input / sendBtn / stopBtn), with the mic on the left (VoiceInputButton.tsx). */
+/**
+ * The input bar (styles.inputContainer / input / sendBtn / stopBtn): the answer style on the left (opens the style
+ * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
+ */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (voiceEnabled) MicButton(text, onText, enabled = !answering)
-        Box(Modifier.weight(1f).clip(RoundedCornerShape(50)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(50)).padding(horizontal = 18.dp, vertical = 12.dp)) {
-            val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-            if (text.isEmpty()) Text(t("chatScreen.inputPlaceholder"), style = style, color = c.textDim)
-            BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5)
+    // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
+    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
+            Text(toneIcon, fontSize = 18.sp)
+        }
+        // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
+        var lines by remember { mutableStateOf(1) }
+        val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
+        Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(1.dp, c.borderDefault, fieldShape)
+            .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
+                val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
+                if (text.isEmpty()) Text(t("chatScreen.inputPlaceholder"), style = style, color = c.textDim)
+                BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
+                    onTextLayout = { lines = it.lineCount })
+            }
+            if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
         val canSend = text.isNotBlank() && !answering
         val bg = if (answering) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
+        // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
+        val transition = rememberInfiniteTransition(label = "stopping")
+        val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
+        val pulse = if (stopping) blink else 1f
         Box(
-            Modifier.size(48.dp).alpha(if (answering || canSend) 1f else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
+            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
         ) { Text(if (answering) "■" else "➤", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
     }

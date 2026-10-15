@@ -67,7 +67,7 @@ private val STAGES = listOf("start", "model", "knowledge", "download", "index")
  * then a summary. [onSkip] is set when setup was reopened from Settings and the app already works.
  */
 @Composable
-fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onDone: () -> Unit) {
+fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
     var backOpen by remember { mutableStateOf(false) }
     BackHandler(state.step > 1 || onSkip != null) {
         when {
@@ -81,7 +81,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
     }
     when {
         state.step == 1 -> Welcome(state, language, onLanguage, onSkip) { vm.next() }
-        state.step == 2 -> ModelStep(state, vm)
+        state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
         state.finished -> Done(state, onDone)
         else -> InstallStep(state, vm) { backOpen = true }
@@ -253,7 +253,7 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
 // --- Step 2: answer model ------------------------------------------------------------------------------------------
 
 @Composable
-private fun ModelStep(state: SetupState, vm: SetupViewModel) {
+private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
         PrimaryButton(t("flows.onboarding.continue") + "  →", enabled = state.chosenId != null) { vm.next() }
@@ -273,6 +273,8 @@ private fun ModelStep(state: SetupState, vm: SetupViewModel) {
         }
         val rec = state.models.firstOrNull { it.id == state.recommendedId }
         if (rec != null && vm.tierOf(rec) == "compact") Meta(t("flows.onboarding.compactWhy"), c.textSecondary)
+        // The same card as Models: a model added there comes back here, listed and chosen.
+        team.sopa.boar.ui.models.DiscoverGgufCard(onBrowse)
     }
 }
 

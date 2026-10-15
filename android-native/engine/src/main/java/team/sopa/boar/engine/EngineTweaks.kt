@@ -51,6 +51,12 @@ data class EngineTweaks(
     val thinkingEnabled: Boolean get() = thinking ?: false
 
     /** The limit for a generation of up to [nPredict] tokens, or null for none. */
+    /**
+     * The time limit for a Deep Research write-up. Auto: none, since Stop ends it at any point and a long write-up hit the
+     * limit instead of finishing (X6, Oct 14). A limit set by hand applies as for any stage.
+     */
+    fun writeUpTimeoutMs(nPredict: Int): Long? = if (stageTimeoutSeconds == null) null else stageTimeoutMs(nPredict)
+
     fun stageTimeoutMs(nPredict: Int): Long? = when {
         stageTimeoutSeconds == null -> autoStageTimeoutMs(nPredict)
         stageTimeoutSeconds <= 0 -> null

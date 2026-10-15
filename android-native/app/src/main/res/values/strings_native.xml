@@ -224,9 +224,11 @@
     <string name="native_debugLog_clear" formatted="false">Clear log</string>
     <string name="native_debugLog_saved" formatted="false">Log saved</string>
     <string name="native_debugLog_saveFailed" formatted="false">Couldn\'t save the log</string>
+    <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; Hardware telemetry in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
     <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
-    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches, the model locked in memory, no time limit. More heat and battery.</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon on the POCO X6 Pro), no time limit. More heat and battery.</string>
     <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
@@ -241,4 +243,17 @@
     <string name="native_models_selectUseEngine" formatted="false">🔘 Select &amp; Use · {{engine}} engine</string>
     <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
+    <string name="native_models_cancelDownload" formatted="false">Cancel</string>
+    <string name="native_settings_embeddingOk" formatted="false">Search model (for packs and documents): {{model}} ✓</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Search model (for packs and documents): {{model}}, not on the phone. Run setup again from Recovery.</string>
+    <string name="native_browse_discoverSubtitle" formatted="false">Browse Hugging Face models</string>
+    <string name="native_chat_stopping" formatted="false">Stopping…</string>
+    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
+    <string name="native_personalities_succinct_description" formatted="false">Fastest — 2–3 brief paragraphs or bullets, no preamble.</string>
+    <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
+    <string name="native_settings_resetDesc" formatted="false">Theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults. Your models, chats, PIN and language stay.</string>
+    <string name="native_settings_resetButton" formatted="false">Reset settings</string>
+    <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN, your language and your custom prompt are kept.</string>
+    <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
 </resources>

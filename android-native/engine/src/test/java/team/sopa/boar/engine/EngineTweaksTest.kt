@@ -104,6 +104,12 @@ class EngineTweaksTest {
         assertEquals(EngineTweaks(stageTimeoutSeconds = 0), EngineTweaks.fromJson(EngineTweaks(stageTimeoutSeconds = 0).toJson()))
     }
 
+    @Test fun `a Deep Research write-up has no time limit on Auto, and a limit set by hand still applies`() {
+        assertNull(EngineTweaks().writeUpTimeoutMs(2048))
+        assertEquals(300_000L, EngineTweaks(stageTimeoutSeconds = 300).writeUpTimeoutMs(2048))
+        assertNull(EngineTweaks(stageTimeoutSeconds = 0).writeUpTimeoutMs(2048))
+    }
+
     @Test fun `Auto context follows the phone's RAM, as contextSizeForRam`() {
         val gib = 1024L * 1024 * 1024
         val topo = CpuTopology(listOf(CpuTopology.Core(0, 2_000_000)))

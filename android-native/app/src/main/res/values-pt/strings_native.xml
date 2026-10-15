@@ -224,9 +224,11 @@
     <string name="native_debugLog_clear" formatted="false">Apagar log</string>
     <string name="native_debugLog_saved" formatted="false">Log salvo</string>
     <string name="native_debugLog_saveFailed" formatted="false">Não foi possível salvar o log</string>
+    <string name="native_tweaks_technicalDetails" formatted="false">Mostrar detalhes técnicos</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Sob cada resposta, toque no tempo e na velocidade para ver os detalhes (tempo até a primeira palavra, contexto, modelo); velocidade ao vivo no topo enquanto o BOAR responde; memória e armazenamento no fim do menu; Telemetria de hardware nas Configurações.</string>
     <string name="native_tweaks_presets" formatted="false">Predefinições</string>
     <string name="native_tweaks_preset_run" formatted="false">Corre, Javali</string>
-    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores, o modelo travado na memória, sem limite de tempo. Mais calor e bateria.</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores (a primeira palavra chega na metade do tempo no POCO X6 Pro), sem limite de tempo. Mais calor e bateria.</string>
     <string name="native_tweaks_preset_path" formatted="false">Trilha do Javali</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: o que medimos como melhor em celulares reais. Equilibrado.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Forrageio Tranquilo</string>
@@ -241,4 +243,17 @@
     <string name="native_models_selectUseEngine" formatted="false">🔘 Selecionar e Usar · motor {{engine}}</string>
     <string name="native_tweaks_evaluation" formatted="false">Avaliação (para quem desenvolve)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Roda o conjunto de avaliação do BOAR neste celular e envia o relatório. Versões para quem desenvolve também a mostram no menu.</string>
+    <string name="native_models_cancelDownload" formatted="false">Cancelar</string>
+    <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
+    <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
+    <string name="native_chat_stopping" formatted="false">Parando…</string>
+    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
+    <string name="native_personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução.</string>
+    <string name="native_settings_resetTitle" formatted="false">Redefinir configurações</string>
+    <string name="native_settings_resetDesc" formatted="false">Tema, estilo de resposta, Pesquisa Profunda, Ajustes avançados e opções de exibição voltam ao padrão. Seus modelos, conversas, PIN e idioma ficam.</string>
+    <string name="native_settings_resetButton" formatted="false">Redefinir configurações</string>
+    <string name="native_settings_resetConfirmTitle" formatted="false">Redefinir todas as configurações?</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">As configurações voltam ao padrão e a configuração inicial abre de novo. Modelos e pacotes baixados, suas conversas, seu PIN, seu idioma e seu prompt personalizado são mantidos.</string>
+    <string name="native_settings_resetConfirmButton" formatted="false">Redefinir</string>
 </resources>

@@ -60,7 +60,7 @@ fun BoarDrawer(
     storageUsed: () -> Long,
     ramBudgetBytes: Long,
     storageBudgetBytes: Long,
-    /** The memory and storage bars at the bottom (Advanced tweaks; off by default). */
+    /** The memory and storage bars at the bottom: a technical detail (Advanced tweaks → Show technical details). */
     showStats: Boolean,
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,

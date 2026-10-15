@@ -58,6 +58,9 @@ function flatten(obj, path = [], out = []) {
   return out;
 }
 const themes = colors.THEMES;
+// The native app opens in Moonlight; the Expo app keeps its own default (the first theme, Campfire).
+const NATIVE_DEFAULT_THEME = "moonlight";
+const defaultTheme = themes.find((t) => t.id === NATIVE_DEFAULT_THEME) ?? themes[0];
 const fields = flatten(themes[0]);
 for (const t of themes) {
   const f = flatten(t).map(([k]) => k).join(",");
@@ -85,8 +88,8 @@ ${flatten(t).map(([k, v]) => `        ${k} = ${v},`).join("\n")}
     )`).join("\n\n")}
 
     val all = listOf(${themes.map((t) => t.id).join(", ")})
-    const val DEFAULT_ID = "${esc(themes[0].id)}"
-    fun byId(id: String?) = all.firstOrNull { it.id == id } ?: ${themes[0].id}
+    const val DEFAULT_ID = "${esc(defaultTheme.id)}"
+    fun byId(id: String?) = all.firstOrNull { it.id == id } ?: ${defaultTheme.id}
 }
 
 /** spacing.ts */

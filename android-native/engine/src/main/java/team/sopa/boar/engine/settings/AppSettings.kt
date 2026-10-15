@@ -63,19 +63,57 @@ class AppSettings(private val file: File) {
     var customSystemPrompt: String? get() = str("customSystemPrompt"); set(v) = set("customSystemPrompt", v?.let(::JsonPrimitive))
     /** The answer length the user picked in Settings; null is Auto. */
     var maxTokensChoice: Int? get() = int("maxTokens"); set(v) = set("maxTokens", v?.let(::JsonPrimitive))
-    /** The answer's token limit: the user's pick, else Auto by style. */
-    val maxTokens: Int get() = maxTokensChoice ?: autoMaxTokens(personalityId)
+    /** The answer's token limit: the user's pick, else Auto by style (and Deep Research). */
+    val maxTokens: Int get() = maxTokensChoice ?: autoMaxTokens(personalityId, deepResearchMode)
+
+    /** The limit for an answer now: the user's pick as is, else Auto fitted to the context the model was opened with. */
+    fun answerTokens(openedContext: Int?): Int = maxTokensChoice ?: fitToContext(autoMaxTokens(personalityId, deepResearchMode), openedContext)
+
+    /**
+     * Settings → Reset settings: every preference back to its default (theme, answer style and length, Deep Research,
+     * Advanced tweaks, display and voice switches, chat history options). Kept: models and their roles, the PIN, the
+     * language, the custom prompt and the app's own bookkeeping. Chats live elsewhere and stay too.
+     */
+    fun resetPreferences() = update { PREFERENCE_KEYS.forEach { remove(it) } }
 
     companion object {
+        /** What "Reset settings" clears ([resetPreferences]). */
+        val PREFERENCE_KEYS = listOf(
+            "themeId", "fontScale", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
+            "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
+            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
+        )
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
+        /**
+         * A Deep Research write-up, any style: a Detailed one ran past 1024 tokens and stopped mid-sentence inside its own
+         * conclusion (X6, Oct 14). The largest choice in Settings; the style still sets how long it really is.
+         */
+        const val AUTO_MAX_TOKENS_RESEARCH = 2048
+
+        /** Context kept for the prompt (instructions, sources, history) when Auto sizes the answer. */
+        const val PROMPT_RESERVE = 1500
+        /** Auto never goes below this, however small the context. */
+        const val MIN_AUTO_TOKENS = 256
+
+        /**
+         * Auto length on a small context: a phone with up to 4.5 GB of RAM opens 2048 tokens (contextSizeForRam), where
+         * a 2048-token Deep Research write-up can't fit next to its prompt. Unknown context (no model loaded yet): [cap].
+         */
+        fun fitToContext(cap: Int, openedContext: Int?): Int =
+            if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
 
         /** No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). */
-        fun autoMaxTokens(personalityId: String?): Int =
-            if ((personalityId ?: "detailed") == "detailed") AUTO_MAX_TOKENS_DETAILED else AUTO_MAX_TOKENS
+        fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
+            deepResearch -> AUTO_MAX_TOKENS_RESEARCH
+            (personalityId ?: "detailed") == "detailed" -> AUTO_MAX_TOKENS_DETAILED
+            else -> AUTO_MAX_TOKENS
+        }
     }
     var deepResearchMode: Boolean get() = bool("deepResearchMode") ?: false; set(v) = set("deepResearchMode", JsonPrimitive(v))
+    /** The user closed the "Mixture of agents" line under the header (it stays closed). */
+    var researchBannerHidden: Boolean get() = bool("researchBannerHidden") ?: false; set(v) = set("researchBannerHidden", JsonPrimitive(v))
     var adaptiveRoutingEnabled: Boolean get() = bool("adaptiveRoutingEnabled") ?: false; set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
     var routingPreset: String? get() = str("routingPreset"); set(v) = set("routingPreset", v?.let(::JsonPrimitive))
     /** "campfire" or "moonlight"; the theme's default when unset. */
@@ -85,7 +123,12 @@ class AppSettings(private val file: File) {
     var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: true; set(v) = set("hapticsEnabled", JsonPrimitive(v))
     var hidePromptIdeas: Boolean get() = bool("hidePromptIdeas") ?: false; set(v) = set("hidePromptIdeas", JsonPrimitive(v))
-    var showLiveStats: Boolean get() = bool("showLiveStats") ?: false; set(v) = set("showLiveStats", JsonPrimitive(v))
+    /**
+     * Advanced tweaks → Show technical details (the Expo app's live-stats key): off, the chat shows the short receipt
+     * only; on, the receipt's details, live tok/s in the header, the menu's memory and storage bars, Hardware telemetry.
+     */
+    // On by default: the bounty's judges and early users want the numbers (time to first word, speed, memory).
+    var showLiveStats: Boolean get() = bool("showLiveStats") ?: true; set(v) = set("showLiveStats", JsonPrimitive(v))
 
     /** DEFAULT_MEMORY_SETTINGS when unset. */
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))

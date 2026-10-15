@@ -111,8 +111,11 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         val ram = runCatching { ActivityManager.MemoryInfo().also { app.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }.totalMem }.getOrDefault(0L)
-        // Not a Labs engine model (Big Boar, Hummingbird): those are copied over USB, never set up here.
-        val answer = services.catalog.setupModels.filter { it.engine == null }
+        // Only the built-in suggested models: models added from Hugging Face come in through "Discover GGUF models"
+        // (pickDiscovered), one at a time, as the user picks them; a Labs engine's model (Big Boar, Hummingbird) is
+        // copied over USB and never set up here.
+        val added = services.discovered().map { it.id }.toSet()
+        val answer = services.catalog.setupModels.filter { it.engine == null && it.id !in added }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
         _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id) }
         restore()
@@ -134,6 +137,10 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrNull() ?: return
         packageChosen = saved.packageChosen
         answerChosen = saved.answerChosen
+        // A model picked from Hugging Face before the process ended is listed again, so the choice survives.
+        saved.chosenId?.let { id -> services.catalog.byId(id) }?.let { m ->
+            _state.update { s -> if (s.models.any { it.id == m.id }) s else s.copy(models = s.models + m) }
+        }
         _state.update { s ->
             s.copy(
                 step = saved.step.coerceIn(1, 4),
@@ -172,6 +179,13 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
 
     fun next() = setStep(minOf(_state.value.step + 1, 3))
     fun back() = setStep(maxOf(_state.value.step - 1, 1))
+
+    /** A model added from Hugging Face in setup's Discover page: listed with the suggested ones and chosen. */
+    fun pickDiscovered(id: String) {
+        val m = services.catalog.byId(id) ?: return
+        _state.update { s -> if (s.models.any { it.id == id }) s else s.copy(models = s.models + m) }
+        choose(id)
+    }
 
     fun choose(id: String) {
         answerChosen = true

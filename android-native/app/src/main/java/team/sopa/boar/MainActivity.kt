@@ -155,10 +155,24 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             lifecycle.addObserver(observer)
             onDispose { lifecycle.removeObserver(observer) }
         }
+        // "Discover GGUF models" from the model step: the Hugging Face page on top of setup; a model added there is
+        // listed in setup and chosen, and setup comes back.
+        var browsing by rememberSaveable { mutableStateOf(false) }
+        val setupModels: ModelsViewModel = viewModel()
+        if (browsing) {
+            val modelsState by setupModels.state.collectAsState()
+            LaunchedEffect(modelsState.hfAddedId) { modelsState.hfAddedId?.let { id -> setup.pickDiscovered(id); browsing = false } }
+            BackHandler { browsing = false }
+            BrowseScreen(modelsState, setupModels) { browsing = false }
+            return
+        }
         SetupScreen(setupState, setup, team.sopa.boar.ui.setup.currentLanguage(services.settings.languageId),
             onLanguage = { id -> services.settings.languageId = id; prefs.setLanguage(id) },
-            onSkip = if (wasReady) ({ setup.forget(); screen = "chat" }) else null,
-        ) { setup.forget(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
+            // Settings too: after "Reset settings" the chat must show the default style and Deep Research off.
+            onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); screen = "chat" }) else null,
+            // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
+            onBrowse = { setupModels.clearAdded(); browsing = true },
+        ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
         return
     }
     if (screen == "pinOffer") {
@@ -254,8 +268,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     ramBudgetBytes = services.catalog.ramBudgetBytes,
-                    showStats = team.sopa.boar.BuildConfig.ALLOW_DRAWER_STATS && services.settings.showDrawerStats,
                     storageBudgetBytes = services.catalog.storageBudgetBytes,
+                    showStats = state.technicalDetails,
                     onNewChat = { go { vm.newChat() } },
                     onSelect = { id -> go { vm.openSession(id) } },
                     onDelete = { id -> vm.deleteSession(id); sessions = sessions.filter { it.id != id } },
@@ -269,7 +283,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onStop = vm::stop,
             onNewChat = vm::newChat,
             onMenu = { scope.launch { drawer.open() } },
-            onCycleTone = vm::cycleTone,
+            onSetTone = vm::setTone,
+            onSetDeepResearch = vm::setDeepResearch,
+            onHideResearchBanner = vm::hideResearchBanner,
             onRate = vm::rate,
             onDismissCrash = vm::dismissLoadCrash,
             onReused = { vm.showToast("chatScreen.messageReused") },

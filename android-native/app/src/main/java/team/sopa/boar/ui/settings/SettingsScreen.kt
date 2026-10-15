@@ -61,16 +61,18 @@ interface DisplayPrefs {
 fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) -> Unit, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     val s = services.settings
+    var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("←", style = Boar.type.titleLg, color = c.textPrimary, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
             Text(t("modelSetupScreen.header.title"), style = Boar.type.titleLg, color = c.textHeading)
         }
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
+            // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
             ToneSection(services)
             ModelsSection(services, onOpen)
             KnowledgeSection(services, onOpen)
-            SecuritySection(services, onPin)
             Section(t("modelSetupScreen.sections.memory")) {
                 var auto by remember { mutableStateOf(s.autoSummarize) }
                 SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), auto) { auto = it; s.autoSummarize = it }
@@ -99,10 +101,11 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }
                 Choices(null, listOf("system" to "System", "en" to "English", "pt" to "Português"), lang) { lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id) }
             }
-            TelemetrySection(services)
+            SecuritySection(services, onPin)
             VoiceSection(services)
-            TweaksSection(services, onOpen)
-            RecoverySection(onSetup)
+            if (tech) TelemetrySection(services)
+            TweaksSection(services, tech, { tech = it }, onOpen)
+            RecoverySection(services, prefs, onSetup)
         }
     }
 }
@@ -115,6 +118,10 @@ private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
         val llms = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
         Text(t("native.settings.activeModel", "model" to (services.answerModel()?.shortName ?: "—")), style = Boar.type.body, color = c.textPrimary)
         Text(t("modelSetupScreen.installedModels") + ": " + llms.joinToString(", ") { it.shortName }.ifEmpty { "—" }, style = Boar.type.subtext, color = c.textSecondary)
+        // The embedding model searches the knowledge packs and documents; it isn't a choice, so not in the catalog.
+        val emb = services.catalog.models.firstOrNull { it.kind == team.sopa.boar.engine.models.AssetKind.EMBEDDING }
+        if (emb != null) Text(t(if (services.fileOf(emb).isFile) "native.settings.embeddingOk" else "native.settings.embeddingMissing", "model" to emb.shortName),
+            style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("native.settings.openCatalog")) { onOpen("models") }
     }
 }
@@ -221,18 +228,34 @@ private fun ClearChats(services: BoarServices) {
 
 /** ModelSetupScreen.tsx's System Recovery & Danger Zone: run setup again, or wipe everything and start over. */
 @Composable
-private fun RecoverySection(onSetup: () -> Unit) {
+private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup: () -> Unit) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var purging by remember { mutableStateOf(false) }
+    var resetting by remember { mutableStateOf(false) }
     Section(t("modelSetupScreen.sections.recovery")) {
         Text(t("modelSetupScreen.recovery.wizardTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
+        // Defaults back without the multi-GB re-download "Clear all data" costs.
+        Text(t("native.settings.resetTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
+        Text(t("native.settings.resetDesc"), style = Boar.type.subtext, color = c.textSecondary)
+        LinkButton(t("native.settings.resetButton")) { resetting = true }
         Text(t("modelSetupScreen.recovery.dangerBadge"), style = Boar.type["mono.xs"], color = c.crimson400, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         Text(t("modelSetupScreen.recovery.dangerDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.dangerButton"), danger = true) { purging = true }
     }
+    if (resetting) androidx.compose.material3.AlertDialog({ resetting = false },
+        title = { Text(t("native.settings.resetConfirmTitle")) },
+        text = { Text(t("native.settings.resetConfirmBody")) },
+        confirmButton = { androidx.compose.material3.TextButton({
+            resetting = false
+            services.settings.resetPreferences()
+            prefs.setTheme(team.sopa.boar.ui.theme.ThemeTokens.DEFAULT_ID)
+            prefs.setFontScale("standard")
+            onSetup()
+        }) { Text(t("native.settings.resetConfirmButton"), color = Boar.colors.crimson400) } },
+        dismissButton = { androidx.compose.material3.TextButton({ resetting = false }) { Text(t("common.cancel")) } })
     if (purging) androidx.compose.material3.AlertDialog({ purging = false },
         title = { Text(t("modelSetupScreen.dangerModal.title")) },
         text = {
@@ -269,12 +292,12 @@ private fun ToneSection(services: BoarServices) {
             Field(prompt, t("personalitySettings.customPromptPlaceholder")) { prompt = it; s.customSystemPrompt = it }
         }
         var tokens by remember { mutableStateOf(s.maxTokensChoice) }
-        val auto = AppSettings.autoMaxTokens(id)
+        var deep by remember { mutableStateOf(s.deepResearchMode) }
+        val auto = AppSettings.autoMaxTokens(id, deep)
         Choices(t("personalitySettings.maxOutputTokens"),
             listOf<Pair<Int?, String>>(null to "${t("native.tweaks.auto")} ($auto)") + personalities.maxTokensOptions.map { it to "$it" },
             tokens) { tokens = it; s.maxTokensChoice = it }
         Note(t("personalitySettings.maxOutputTokensNote"))
-        var deep by remember { mutableStateOf(s.deepResearchMode) }
         SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
         var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
         SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
@@ -282,7 +305,7 @@ private fun ToneSection(services: BoarServices) {
 }
 
 @Composable
-private fun TweaksSection(services: BoarServices, onOpen: (String) -> Unit) {
+private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnical: (Boolean) -> Unit, onOpen: (String) -> Unit) {
     val s = services.settings
     val scope = rememberCoroutineScope()
     var tw by remember { mutableStateOf(s.engineTweaks) }
@@ -351,13 +374,11 @@ private fun TweaksSection(services: BoarServices, onOpen: (String) -> Unit) {
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
+        // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
+        SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
         // Always here for builders, menu or not: run the evaluation set and submit a report.
         LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
         Note(t("native.tweaks.evaluationNote"))
-        if (team.sopa.boar.BuildConfig.ALLOW_DRAWER_STATS) {
-            var stats by remember { mutableStateOf(s.showDrawerStats) }
-            SwitchRow(t("native.tweaks.drawerStats"), t("native.tweaks.drawerStatsNote"), stats) { s.showDrawerStats = it; stats = it }
-        }
         if (team.sopa.boar.app.DebugLog.available) DebugLogRows()
         // The experiments, last on purpose and only in EXPERIMENTAL_FEATURES builds (app/build.gradle.kts): off by default.
         if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) {

@@ -74,6 +74,8 @@ data class ChatState(
     val modelLabel: String? = null,
     val noModel: Boolean = false,
     val deepResearch: Boolean = false,
+    /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
+    val technicalDetails: Boolean = false,
     val error: String? = null,
     /** CR-2, shown once: the model that closed the app and the one answering instead. */
     val loadCrash: team.sopa.boar.engine.models.LoadGuard.Crash? = null,
@@ -83,6 +85,12 @@ data class ChatState(
     /** A short message over the chat for about 2 s (Toast.tsx): the new tone, a reused question. */
     val toast: String? = null,
     val toneIcon: String = "",
+    /** Stop was tapped and the answer hasn't ended yet (a step in progress finishes first). */
+    val stopping: Boolean = false,
+    /** The "Mixture of agents" line under the header was closed for good. */
+    val researchBannerHidden: Boolean = false,
+    /** The styles the header sheet offers (id to icon): "custom" only when a custom prompt is written. */
+    val tones: List<Pair<String, String>> = emptyList(),
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
@@ -95,7 +103,7 @@ data class ChatState(
  */
 class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
-    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode))
+    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
     /** A chat title or summary still being written; a new question stops it (one model, one generation). */
@@ -125,29 +133,30 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun refreshTone() {
         val id = services.settings.personalityId ?: services.personalities.defaultId
-        _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon) }
+        val custom = services.settings.customSystemPrompt.orEmpty().isNotBlank()
+        val tones = services.personalities.personalities.filter { it.id != "custom" || custom }.map { it.id to it.icon }
+        _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon, tones = tones, researchBannerHidden = services.settings.researchBannerHidden) }
+    }
+
+    fun hideResearchBanner() {
+        services.settings.researchBannerHidden = true
+        _state.update { it.copy(researchBannerHidden = true) }
+    }
+
+    /** The header sheet: answer in this style from the next question on. */
+    fun setTone(id: String) {
+        services.settings.personalityId = id
+        refreshTone()
     }
 
     /** Back from settings: the tone, Deep Research and model may have changed. */
     fun refreshSettings() {
         refreshTone()
         refreshModel()
-        _state.update { it.copy(deepResearch = services.settings.deepResearchMode) }
+        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
         val open = _state.value.sessionId
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
-    }
-
-    /** The header's tone button: the next style ("custom" only when a custom prompt is written). */
-    fun cycleTone() {
-        val custom = services.settings.customSystemPrompt.orEmpty().isNotBlank()
-        val order = services.personalities.personalities.map { it.id }.filter { it != "custom" || custom }
-        val next = order[(order.indexOf(_state.value.personalityId) + 1) % order.size]
-        services.settings.personalityId = next
-        refreshTone()
-        val app = getApplication<Application>()
-        val tone = "${services.personalities.get(next).icon} ${team.sopa.boar.ui.I18n.t(app, "personalities.$next.label")}"
-        _state.update { it.copy(toast = team.sopa.boar.ui.I18n.t(app, "chatScreen.toneChanged", "tone" to tone)) }
     }
 
     fun showToast(key: String) = _state.update { it.copy(toast = team.sopa.boar.ui.I18n.t(getApplication(), key)) }
@@ -224,6 +233,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun stop() {
         stopRequested = true
+        if (_state.value.answeringId != null) _state.update { it.copy(stopping = true) }
         services.host.current()?.cancel()
     }
 
@@ -257,6 +267,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var retrievalMs: Double? = null
             val text = StringBuilder()
             var sources: List<Chunk> = emptyList()
+            var reusedSources: List<Source>? = null
+            // The answer a meta follow-up ("summary", "continue") is written from: the last one with text.
+            val lastAnswer = prior.lastOrNull { it.role == "assistant" && it.text.isNotBlank() }
             var timedOut = false
             var firstAt = 0L
             var tokens = 0
@@ -277,13 +290,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 if (session == null) {
                     _state.update { it.copy(noModel = true, error = "no-model") }
                 } else if (deep) {
-                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs).run(
-                        q, systemPrompt, history, settings.maxTokens,
+                    val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
+                        q, systemPrompt, history, settings.answerTokens(services.host.openedContext),
                         onProgress = { p -> _state.update { it.copy(activity = Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount)) } },
                         onToken = ::onPiece,
                         shouldStop = { stopRequested },
+                        previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
                     )
                     sources = r.citations
+                    // Written from the last answer: its numbers [n] are that answer's sources.
+                    if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
                 } else if (settings.adaptiveRoutingEnabled && services.answerModel()?.engine == null) {
                     // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
@@ -292,7 +308,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.second
                 } else {
                     val pipeline = AnswerPipeline(session, services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, settings.maxTokens, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
+                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, settings.answerTokens(services.host.openedContext), history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
@@ -304,7 +320,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Throwable) {
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
-            val shown = sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
+            val shown = reusedSources ?: sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
             val stopped = stopRequested
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
@@ -316,7 +332,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
             )
             _state.update { s ->
-                s.copy(answeringId = null, activity = null,
+                s.copy(answeringId = null, activity = null, stopping = false,
                     messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt) else it })
             }
         }
@@ -386,7 +402,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, it.engine == null && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
-        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.maxTokens)
+        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.answerTokens(services.host.openedContext))
         val r = PlanExecutor(services.host, services::search, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
             .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->
                 _state.update { it.copy(activity = if (step.type.value == "retrieve") Activity.Retrieving else Activity.Thinking) }
