@@ -285,9 +285,9 @@ private fun ToneSection(services: BoarServices) {
     val personalities = services.personalities
     Section(t("modelSetupScreen.sections.tone")) {
         var id by remember { mutableStateOf(s.personalityId ?: personalities.defaultId) }
-        Choices(null, personalities.personalities.map { it.id to "${it.icon} ${t("personalities.${it.id}.label")}" }, id) { id = it; s.personalityId = it }
+        Choices(null, personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }.map { it.id to "${it.icon} ${t("personalities.${it.id}.label")}" }, id) { id = it; s.personalityId = it }
         Text(t("personalities.$id.description"), style = Boar.type.subtext, color = Boar.colors.textMuted)
-        if (id == "custom") {
+        if (id == "custom" && BoarServices.SHOW_CUSTOM_STYLE) {
             var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
             Field(prompt, t("personalitySettings.customPromptPlaceholder")) { prompt = it; s.customSystemPrompt = it }
         }
