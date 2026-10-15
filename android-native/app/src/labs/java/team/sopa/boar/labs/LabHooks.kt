@@ -82,6 +82,9 @@ object LabHooks {
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
     }
 
+    /** Every lab's models that may ship inside the offline APK, on or off: the lab finds its model when switched on. */
+    fun bundledAssets(): List<team.sopa.boar.engine.models.CatalogAsset> = LabRegistry.ALL.flatMap { it.bundledAssets }
+
     /** route to label key; empty while Labs is off. */
     fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn) listOf("labs" to "native.labs.drawer") else emptyList()
 
