@@ -17,16 +17,27 @@ import java.util.Date
 /**
  * The basket as an A4 PDF with Android's own PdfDocument: the title and date, the first illustration, then each item
  * (its question as the heading, the answer, its sources in small type), the second illustration halfway through.
- * Text flows across pages line by line; an illustration that doesn't fit starts a new page.
+ * Text flows across pages line by line; an illustration that doesn't fit starts a new page. A drawing placed right or
+ * left is smaller and the text wraps beside it, so the page has no empty band on either side.
  */
 object PdfCompiler {
     private const val W = 595 // A4 in points
     private const val H = 842
     private const val M = 56f // margins
     private val inner = (W - 2 * M).toInt()
+    /** A drawing beside the text: 200 pt of the 483 pt column, 14 pt from the text. */
+    private const val SIDE_IMAGE = 200f
+    private const val GUTTER = 14f
+
+    /** Where the drawings go: centred on their own, or right or left with the text beside them, or alternating. */
+    enum class Placement { CENTER, RIGHT, LEFT, ALTERNATE;
+        /** The side of the [index]th drawing: ALTERNATE starts on the right. */
+        fun sideOf(index: Int): Placement = if (this == ALTERNATE) (if (index % 2 == 0) RIGHT else LEFT) else this
+        companion object { fun of(s: String?) = entries.firstOrNull { it.name.equals(s, true) } ?: CENTER }
+    }
 
     /** What prints besides the text: the date under the title, each answer's model and speed, each answer's sources. */
-    data class Meta(val date: Boolean = true, val model: Boolean = false, val sources: Boolean = true)
+    data class Meta(val date: Boolean = true, val model: Boolean = false, val sources: Boolean = true, val images: Placement = Placement.CENTER)
 
     /** "Qwen3-4B · 12.3 tok/s", or null when the answer has neither. */
     fun modelLine(i: Basket.Item): String? = listOfNotNull(i.model, i.tokPerSec?.let { String.format(java.util.Locale.US, "%.1f tok/s", it) }).joinToString(" · ").ifEmpty { null }
@@ -40,17 +51,17 @@ object PdfCompiler {
             p.text(title, paint(24f, bold = true, color = 0xFF111111.toInt()), after = 4f)
             p.text((if (meta.date) DateFormat.getDateInstance(DateFormat.LONG).format(Date()) + " · " else "") + footer, paint(9f, color = 0xFF777777.toInt()), after = 18f)
             p.rule()
-            images.getOrNull(0)?.let { p.image(it) }
+            images.getOrNull(0)?.let { p.image(it, meta.images.sideOf(0)) }
             val half = (items.size + 1) / 2
             items.forEachIndexed { i, item ->
-                if (i == half && i > 0) images.getOrNull(1)?.let { p.image(it) }
+                if (i == half && i > 0) images.getOrNull(1)?.let { p.image(it, meta.images.sideOf(1)) }
                 p.text(item.question.ifBlank { item.chatTitle }, paint(14f, bold = true, color = 0xFF1B4D3E.toInt()), after = 6f)
                 p.text(plain(item.text), paint(11f, color = 0xFF222222.toInt()), after = 8f, spacing = 1.35f)
                 if (meta.model) modelLine(item)?.let { p.text(it, paint(8.5f, color = 0xFF1B4D3E.toInt()), after = 4f) }
                 if (meta.sources && item.sources.isNotEmpty()) p.text(sourceLines(item), paint(8.5f, color = 0xFF666666.toInt()), after = 18f)
                 else p.gap(12f)
             }
-            if (items.size == 1) images.getOrNull(1)?.let { p.image(it) }
+            if (items.size == 1) images.getOrNull(1)?.let { p.image(it, meta.images.sideOf(1)) }
             p.finish()
             out.parentFile?.mkdirs()
             out.outputStream().use { doc.writeTo(it) }
@@ -81,6 +92,7 @@ object PdfCompiler {
             page?.let { finishPage(it) }
             n++
             y = M
+            float = null
             return doc.startPage(PdfDocument.PageInfo.Builder(W, H, n).create()).also { page = it }
         }
 
@@ -90,37 +102,52 @@ object PdfCompiler {
             doc.finishPage(pg)
         }
 
+        /** A drawing beside the text: its side, width, and the y where the text gets the full width back. */
+        private class Beside(val left: Boolean, val width: Float, val bottom: Float)
+        private var float: Beside? = null
+
         fun text(s: String, paint: TextPaint, after: Float, spacing: Float = 1.2f) {
             if (s.isBlank()) return
-            val layout = StaticLayout.Builder.obtain(s, 0, s.length, paint, inner).setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(0f, spacing).build()
-            var line = 0
-            while (line < layout.lineCount) {
+            var rest = s
+            while (rest.isNotEmpty()) {
                 canvas // a page exists
+                val f = float?.takeIf { y < it.bottom }
+                if (f == null) float = null
+                // Beside a drawing the column is narrower; lines that start below it get the full width again.
+                val width = if (f != null) (inner - f.width - GUTTER).toInt() else inner
+                val x = if (f != null && f.left) M + f.width + GUTTER else M
+                val layout = StaticLayout.Builder.obtain(rest, 0, rest.length, paint, width).setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(0f, spacing).build()
                 val room = H - M - y
-                var last = line
-                while (last < layout.lineCount && layout.getLineBottom(last) - layout.getLineTop(line) <= room) last++
-                if (last == line) { newPage(); continue }
-                val top = layout.getLineTop(line).toFloat()
+                var last = 0
+                while (last < layout.lineCount && layout.getLineBottom(last) <= room && (f == null || layout.getLineTop(last) < f.bottom - y)) last++
+                if (last == 0) { newPage(); continue }
+                val top = y
                 val c = canvas
                 c.save()
-                c.translate(M, y - top)
-                c.clipRect(0f, top, inner.toFloat(), layout.getLineBottom(last - 1).toFloat())
+                c.translate(x, y)
+                c.clipRect(0f, 0f, width.toFloat(), layout.getLineBottom(last - 1).toFloat())
                 layout.draw(c)
                 c.restore()
-                y += layout.getLineBottom(last - 1) - top
-                line = last
-                if (line < layout.lineCount) newPage()
+                y += layout.getLineBottom(last - 1)
+                if (last == layout.lineCount) break
+                rest = rest.substring(layout.getLineStart(last))
+                // Stopped by the page's end, not by reaching the drawing's bottom: the rest goes on the next page.
+                if (layout.getLineBottom(last) > room) newPage()
+                else if (f != null && layout.getLineTop(last) >= f.bottom - top) float = null
             }
             y += after
         }
 
-        fun image(f: File) {
-            val bmp = BitmapFactory.decodeFile(f.path) ?: return
-            val side = 300f
-            if (H - M - y < side + 16) newPage()
-            val left = (W - side) / 2
-            canvas.drawBitmap(bmp, null, RectF(left, y, left + side, y + side), Paint(Paint.FILTER_BITMAP_FLAG))
-            y += side + 20
+        fun image(file: File, side: Placement = Placement.CENTER) {
+            val bmp = BitmapFactory.decodeFile(file.path) ?: return
+            float?.let { y = maxOf(y, it.bottom) }
+            float = null
+            val size = if (side == Placement.CENTER) 300f else SIDE_IMAGE
+            if (H - M - y < size + 16) newPage()
+            val left = when (side) { Placement.RIGHT -> W - M - size; Placement.LEFT -> M; else -> (W - size) / 2 }
+            canvas.drawBitmap(bmp, null, RectF(left, y, left + size, y + size), Paint(Paint.FILTER_BITMAP_FLAG))
+            if (side == Placement.CENTER) y += size + 20
+            else float = Beside(side == Placement.LEFT, size, y + size + 12)
             bmp.recycle()
         }
 

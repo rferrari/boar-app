@@ -140,6 +140,18 @@ object PrinterLab : LabPlugin {
                 ok.onSuccess { saved = uri.lastPathSegment?.substringAfterLast('/') ?: "PDF" }.onFailure { error = it.message }
             }
         }
+        // The same basket as Markdown: written straight to the file the user picks.
+        var markdown by remember { mutableStateOf<String?>(null) }
+        val saveMd = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
+            val text = markdown ?: return@rememberLauncherForActivityResult
+            markdown = null
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) { runCatching { ctx.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } ?: error("can't write there") } }
+                ok.onSuccess { saved = uri.lastPathSegment?.substringAfterLast('/') ?: "Markdown" }.onFailure { error = it.message }
+            }
+        }
+        val mdLabels = team.sopa.boar.engine.chat.ChatExport.Labels(t("native.labs.printer.mdReasoning"), t("sourceFootnotes.title"))
         val gallery = remember { File(ctx.filesDir, "labs/images").listFiles { f -> f.extension == "png" }.orEmpty().sortedByDescending { it.lastModified() } }
         val defaultTitle = items.firstOrNull()?.chatTitle?.takeIf { it.isNotBlank() } ?: t("native.labs.printer.untitled")
         var preview by rememberSaveable { mutableStateOf(false) }
@@ -147,12 +159,14 @@ object PrinterLab : LabPlugin {
         var meta by remember { mutableStateOf(PdfCompiler.Meta(
             date = team.sopa.boar.labs.LabPrefs.string("printer.date") != "off",
             model = team.sopa.boar.labs.LabPrefs.string("printer.model") == "on",
-            sources = team.sopa.boar.labs.LabPrefs.string("printer.sources") != "off")) }
+            sources = team.sopa.boar.labs.LabPrefs.string("printer.sources") != "off",
+            images = PdfCompiler.Placement.of(team.sopa.boar.labs.LabPrefs.string("printer.images")))) }
         fun setMeta(m: PdfCompiler.Meta) {
             meta = m
             team.sopa.boar.labs.LabPrefs.putString("printer.date", if (m.date) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.model", if (m.model) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.sources", if (m.sources) "on" else "off")
+            team.sopa.boar.labs.LabPrefs.putString("printer.images", m.images.name.lowercase())
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -255,6 +269,11 @@ object PrinterLab : LabPlugin {
                     }
                 }
             }
+            // Where the picked drawings go on the page; right and left wrap the text beside them.
+            if (picked.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
+                    Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
+            }
             }
 
             error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
@@ -284,6 +303,14 @@ object PrinterLab : LabPlugin {
                             ok.onSuccess { draft = out; saveAs.launch(slug(docTitle) + ".pdf") }.onFailure { error = it.message }
                         }
                     }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            if (!compiling) Text(t("native.labs.printer.markdown"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textSecondary,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp))
+                    .clickable {
+                        error = null; saved = null
+                        val docTitle = title.ifBlank { defaultTitle }
+                        markdown = MarkdownCompiler.compile(docTitle, items, I18n.t(ctx, "native.labs.printer.footer"), meta, mdLabels)
+                        saveMd.launch(slug(docTitle) + ".md")
+                    }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 
@@ -311,21 +338,23 @@ object PrinterLab : LabPlugin {
             Text((if (meta.date) java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG).format(java.util.Date()) + " · " else "") + t("native.labs.printer.footer"),
                 fontFamily = serif, fontSize = 10.sp, color = dim)
             Box(Modifier.fillMaxWidth().size(width = 0.dp, height = 1.dp).background(Color(0xFFCCCCCC)))
-            images.getOrNull(0)?.let { PreviewImage(it) }
+            images.getOrNull(0)?.let { PreviewImage(it, meta.images.sideOf(0)) }
             items.forEachIndexed { i, item ->
-                if (i == half && i > 0) images.getOrNull(1)?.let { PreviewImage(it) }
+                if (i == half && i > 0) images.getOrNull(1)?.let { PreviewImage(it, meta.images.sideOf(1)) }
                 Text(item.question.ifBlank { item.chatTitle }, fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = green, modifier = Modifier.padding(top = 6.dp))
                 Text(PdfCompiler.plain(item.text), fontFamily = serif, fontSize = 12.sp, lineHeight = 17.sp, color = ink)
                 if (meta.model) PdfCompiler.modelLine(item)?.let { Text(it, fontFamily = serif, fontSize = 9.sp, color = green) }
                 if (meta.sources && item.sources.isNotEmpty()) Text(PdfCompiler.sourceLines(item), fontFamily = serif, fontSize = 9.sp, lineHeight = 12.sp, color = Color(0xFF666666))
             }
-            if (items.size == 1) images.getOrNull(1)?.let { PreviewImage(it) }
+            if (items.size == 1) images.getOrNull(1)?.let { PreviewImage(it, meta.images.sideOf(1)) }
         }
     }
 
     @Composable
-    private fun PreviewImage(f: File) = Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Box(Modifier.size(180.dp)) { Thumb(f) }
+    private fun PreviewImage(f: File, side: PdfCompiler.Placement) = Box(Modifier.fillMaxWidth(), contentAlignment = when (side) {
+        PdfCompiler.Placement.RIGHT -> Alignment.CenterEnd; PdfCompiler.Placement.LEFT -> Alignment.CenterStart; else -> Alignment.Center }) {
+        // The side size is the PDF's 200 of 483 pt; the preview doesn't wrap text beside it.
+        Box(Modifier.size(if (side == PdfCompiler.Placement.CENTER) 180.dp else 120.dp)) { Thumb(f) }
     }
 
     /** A sheet feeding out of the printer, its lines printing top to bottom, for the length of a print run. */
