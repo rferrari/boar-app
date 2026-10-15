@@ -256,4 +256,7 @@
     <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
     <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN, your language and your custom prompt are kept.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
+    <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
+    <string name="native_chat_cutAtLimit" formatted="false">Stopped at the {{limit}}-token limit</string>
+    <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
 </resources>

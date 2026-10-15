@@ -287,6 +287,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onSetDeepResearch = vm::setDeepResearch,
             onHideResearchBanner = vm::hideResearchBanner,
             onRate = vm::rate,
+            onRedo = vm::redoWithLimit,
             onDismissCrash = vm::dismissLoadCrash,
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,

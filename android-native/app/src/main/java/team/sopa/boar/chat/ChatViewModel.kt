@@ -41,6 +41,7 @@ import team.sopa.boar.engine.routing.ModelRole
 import team.sopa.boar.engine.routing.Profiles
 import team.sopa.boar.engine.routing.RoutingPreset
 import team.sopa.boar.engine.routing.TaskType
+import team.sopa.boar.engine.settings.AnswerLimit
 
 /** A source as the chat shows it (and stores with the answer): the passage the model read, and its similarity to the question. */
 data class Source(val title: String, val source: String?, val relevance: Double?, val similarity: Double? = null, val docId: String? = null, val body: String = "")
@@ -54,6 +55,9 @@ data class UiMessage(
     val stopped: Boolean = false,
     val timedOut: Boolean = false,
     val receipt: Receipt? = null,
+    /** It ended at this token limit, not by itself (shown as a note with a redo at [nextLimit]). */
+    val cutAt: Int? = null,
+    val nextLimit: Int? = null,
 )
 
 /** What the assistant is doing for the message being answered. */
@@ -237,7 +241,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.host.current()?.cancel()
     }
 
-    fun send(query: String) {
+    /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
+    fun redoWithLimit(answerId: String, limit: Int) {
+        val messages = _state.value.messages
+        val i = messages.indexOfFirst { it.id == answerId }
+        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        send(q, limit)
+    }
+
+    /** [limit] overrides the answer's token limit (the "Allow more and redo" note); null uses the setting. */
+    fun send(query: String, limit: Int? = null) {
         val q = query.trim()
         if (q.isEmpty() || job?.isActive == true) return
         stopRequested = false
@@ -275,6 +288,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var tokens = 0
             // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers.
             val deep = _state.value.deepResearch
+            val budget = limit ?: settings.answerTokens(services.host.openedContext)
+            // The limit the answer could hit; the adaptive router picks its own.
+            var limited: Int? = budget
             fun onPiece(piece: String) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
@@ -291,7 +307,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update { it.copy(noModel = true, error = "no-model") }
                 } else if (deep) {
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
-                        q, systemPrompt, history, settings.answerTokens(services.host.openedContext),
+                        q, systemPrompt, history, budget,
                         onProgress = { p -> _state.update { it.copy(activity = Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount)) } },
                         onToken = ::onPiece,
                         shouldStop = { stopRequested },
@@ -303,12 +319,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.timedOut
                 } else if (settings.adaptiveRoutingEnabled && services.answerModel()?.engine == null) {
                     // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
+                    limited = null
                     val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
                     sources = r.first
                     timedOut = r.second
                 } else {
                     val pipeline = AnswerPipeline(session, services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, settings.answerTokens(services.host.openedContext), history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
+                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
@@ -323,6 +340,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val shown = reusedSources ?: sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
             val stopped = stopRequested
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
+            val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
+            val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }
             chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
             if (shown.isNotEmpty() || receipt != null) chats.setMessageMeta(answerId, metaOf(shown, receipt))
             afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
@@ -333,7 +352,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             )
             _state.update { s ->
                 s.copy(answeringId = null, activity = null, stopping = false,
-                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt) else it })
+                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit) else it })
             }
         }
     }

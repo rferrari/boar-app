@@ -97,6 +97,8 @@ fun ChatScreen(
     onSetDeepResearch: (Boolean) -> Unit,
     onHideResearchBanner: () -> Unit = {},
     onRate: (String, String) -> Unit,
+    /** The cut answer's "Allow more and redo": its id and the higher limit. */
+    onRedo: (String, Int) -> Unit = { _, _ -> },
     onDismissCrash: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
@@ -141,7 +143,7 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo) }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
@@ -408,7 +410,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit) {
+private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -449,9 +451,16 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     MarkdownMessage(shown, streaming)
                 }
             }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources)
+            // Stopped before writing anything: these are what the search found, not what the answer cites.
+            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
+            m.cutAt?.let { limit ->
+                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
+                    if (m.nextLimit != null && state.answeringId == null) FooterButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRedo(m.id, m.nextLimit) }
+                }
+            }
             var receiptOpen by remember { mutableStateOf(false) }
             // Plugin slots (Boar Labs): what this answer hands them, and their content under it.
             val ref = team.sopa.boar.plugins.AnswerRef(m.id, state.sessionId,
@@ -471,7 +480,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
                     team.sopa.boar.labs.LabHooks.AnswerActions(ref)
                     var copied by remember { mutableStateOf(false) }
-                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { clipboard.setText(AnnotatedString(shown)); copied = true }
+                    // With 💭 open, the reasoning is copied too: reviewing a thinking model needs both.
+                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
+                        clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
+                    }
                 }
                 if (receiptOpen && state.technicalDetails) m.receipt?.let { r -> ReceiptDetails(r) }
             }
