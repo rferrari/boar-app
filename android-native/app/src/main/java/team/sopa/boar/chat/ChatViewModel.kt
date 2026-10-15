@@ -116,6 +116,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private val suggestionData = team.sopa.boar.engine.chat.Suggestions.parse(app.assets.open("boar-data/suggestions.json").bufferedReader().use { it.readText() })
 
+    /**
+     * Every prompt idea this model and language can show; [pickIdeas] draws a few at random. Declared before init:
+     * a property declared after it is reset to its initial value once init's refreshModel() has filled it.
+     */
+    private var ideaPool: List<String> = emptyList()
+
     init {
         refreshModel()
         refreshTone()
@@ -207,9 +213,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(deepResearch = on) }
     }
 
-    /** Every prompt idea this model and language can show; [pickIdeas] draws a few at random. */
-    private var ideaPool: List<String> = emptyList()
-
     private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
 
     fun newChat() {
@@ -295,9 +298,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var tokens = 0
             // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers.
             val deep = _state.value.deepResearch
-            val budget = limit ?: settings.answerTokens(services.host.openedContext)
-            // The limit the answer could hit; the adaptive router picks its own.
-            var limited: Int? = budget
+            // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
+            var limited: Int? = null
             fun onPiece(piece: String) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
@@ -310,6 +312,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             try {
                 val session = services.activeSession()
+                // Read after the load: Auto fits the length to the context the model was opened with.
+                val budget = limit ?: settings.answerTokens(services.host.openedContext)
+                limited = budget
                 if (session == null) {
                     _state.update { it.copy(noModel = true, error = "no-model") }
                 } else if (deep) {

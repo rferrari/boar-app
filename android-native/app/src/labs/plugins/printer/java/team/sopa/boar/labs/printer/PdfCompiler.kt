@@ -61,6 +61,8 @@ object PdfCompiler {
                 if (meta.model) modelLine(item)?.let { p.text(it, paint(8.5f, color = 0xFF1B4D3E.toInt()), after = 4f) }
                 if (meta.sources && item.sources.isNotEmpty()) p.text(sourceLines(item), paint(8.5f, color = 0xFF666666.toInt()), after = 18f)
                 else p.gap(12f)
+                // A short answer beside its drawing: the next one starts below the drawing, not beside it.
+                p.endBeside()
             }
             p.finish()
             out.parentFile?.mkdirs()
@@ -136,6 +138,12 @@ object PdfCompiler {
                 else if (f != null && layout.getLineTop(last) >= f.bottom - top) float = null
             }
             y += after
+        }
+
+        /** Ends the text beside a drawing: what follows starts below it, at the full width. */
+        fun endBeside() {
+            float?.let { y = maxOf(y, it.bottom) }
+            float = null
         }
 
         fun image(file: File, side: Placement = Placement.CENTER) {
