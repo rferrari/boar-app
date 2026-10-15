@@ -249,7 +249,7 @@
     <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
-    <string name="native_personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução.</string>
+    <string name="native_personalities_succinct_description" formatted="false">Mais rápido. 2 ou 3 parágrafos curtos ou tópicos, sem introdução.</string>
     <string name="native_settings_resetTitle" formatted="false">Redefinir configurações</string>
     <string name="native_settings_resetDesc" formatted="false">Tema, estilo de resposta, Pesquisa Profunda, Ajustes avançados e opções de exibição voltam ao padrão. Seus modelos, conversas, PIN e idioma ficam.</string>
     <string name="native_settings_resetButton" formatted="false">Redefinir configurações</string>
@@ -259,4 +259,64 @@
     <string name="native_chat_foundBeforeStop" formatted="false">Encontradas antes de parar</string>
     <string name="native_chat_cutAtLimit" formatted="false">Parou no limite de {{limit}} tokens</string>
     <string name="native_chat_allowMore" formatted="false">Permitir {{limit}} e refazer</string>
+    <string name="native_chat_deepResearchOn" formatted="false">LIGADA · respostas mais profundas e lentas</string>
+    <string name="native_chat_deepResearchOff" formatted="false">DESLIGADA · respostas normais</string>
+    <string name="native_chat_deepResearchExplain" formatted="false">Divide sua pergunta em 2 ou 3 partes, pesquisa seu conhecimento para cada uma e escreve uma resposta com fontes. Mais profunda, porém mais lenta. Espere alguns minutos por resposta no celular.</string>
+    <string name="native_personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em subperguntas, pesquisa cada uma e escreve uma resposta. Roda várias etapas no mesmo modelo, por isso é mais lenta que uma resposta normal. Funciona com qualquer estilo, que define o tom. Pesquisa Profunda com Sucinto ainda dá uma resposta curta.</string>
+    <string name="native_chat_suggestions_b1" formatted="false">Quem criou a ideia de seleção natural?</string>
+    <string name="native_chat_suggestionTopics_b1" formatted="false">História da ciência</string>
+    <string name="native_chat_suggestions_b2" formatted="false">Como as vacinas funcionam?</string>
+    <string name="native_chat_suggestionTopics_b2" formatted="false">Saúde</string>
+    <string name="native_chat_suggestions_b3" formatted="false">Explique a fotossíntese de forma simples.</string>
+    <string name="native_chat_suggestionTopics_b3" formatted="false">Biologia</string>
+    <string name="native_chat_suggestions_b4" formatted="false">Revolução Francesa vs Industrial?</string>
+    <string name="native_chat_suggestionTopics_b4" formatted="false">História</string>
+    <string name="native_chat_suggestions_b5" formatted="false">Por que o Império Romano do Ocidente caiu?</string>
+    <string name="native_chat_suggestionTopics_b5" formatted="false">História</string>
+    <string name="native_chat_suggestions_b6" formatted="false">Como se forma um buraco negro?</string>
+    <string name="native_chat_suggestionTopics_b6" formatted="false">Espaço</string>
+    <string name="native_chat_suggestions_b7" formatted="false">Quem foi Napoleão Bonaparte?</string>
+    <string name="native_chat_suggestionTopics_b7" formatted="false">Pessoas</string>
+    <string name="native_chat_suggestions_b8" formatted="false">Por que os antibióticos param de funcionar?</string>
+    <string name="native_chat_suggestionTopics_b8" formatted="false">Medicina</string>
+    <string name="native_chat_suggestions_b9" formatted="false">Qual é a capital da Austrália?</string>
+    <string name="native_chat_suggestionTopics_b9" formatted="false">Geografia</string>
+    <string name="native_chat_suggestions_b10" formatted="false">Dá para ver a Muralha da China da Lua?</string>
+    <string name="native_chat_suggestionTopics_b10" formatted="false">Mitos</string>
+    <string name="native_chat_suggestions_b11" formatted="false">O urso-polar é maior que o urso-pardo?</string>
+    <string name="native_chat_suggestionTopics_b11" formatted="false">Animais</string>
+    <string name="native_chat_suggestions_b12" formatted="false">O Brasil tem mais gente que a Rússia?</string>
+    <string name="native_chat_suggestionTopics_b12" formatted="false">Geografia</string>
+    <string name="native_chat_suggestions_b13" formatted="false">Mosquitos podem transmitir HIV?</string>
+    <string name="native_chat_suggestionTopics_b13" formatted="false">Saúde</string>
+    <string name="native_chat_suggestions_b14" formatted="false">Quanto exercício um adulto deve fazer por semana?</string>
+    <string name="native_chat_suggestionTopics_b14" formatted="false">Saúde</string>
+    <string name="native_chat_suggestions_b15" formatted="false">Por que Kyoto é importante na história?</string>
+    <string name="native_chat_suggestionTopics_b15" formatted="false">Viagem</string>
+    <string name="native_chat_suggestions_b16" formatted="false">O Kilimanjaro é um vulcão?</string>
+    <string name="native_chat_suggestionTopics_b16" formatted="false">Ciências da Terra</string>
+    <string name="native_chat_suggestions_b17" formatted="false">Quando o Muro de Berlim foi erguido e derrubado?</string>
+    <string name="native_chat_suggestionTopics_b17" formatted="false">História</string>
+    <string name="native_chat_suggestions_b18" formatted="false">Por quanto tempo um guepardo corre no máximo?</string>
+    <string name="native_chat_suggestionTopics_b18" formatted="false">Animais</string>
+    <string name="native_chat_suggestions_b19" formatted="false">Que tomada e voltagem o Brasil usa?</string>
+    <string name="native_chat_suggestionTopics_b19" formatted="false">Viagem</string>
+    <string name="native_chat_suggestions_b20" formatted="false">O Japão é mais povoado que a Alemanha?</string>
+    <string name="native_chat_suggestionTopics_b20" formatted="false">Geografia</string>
+    <string name="native_chat_suggestions_b21" formatted="false">A dengue é pior na segunda vez?</string>
+    <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
+    <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Configurações, Ajustes avançados, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
+    <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
+    <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
+    <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
+    <string name="native_tweaks_runWarningKeepPath" formatted="false">Manter Trilha do Javali</string>
+    <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Limita o tamanho de uma resposta. Menor é mais rápido e gasta menos bateria.</string>
+    <string name="native_personalDocumentsManager_hint" formatted="false">Importe suas notas em .txt, .md, .csv, .json ou .pdf. Elas são indexadas só neste aparelho e nunca enviadas. PDFs precisam de texto selecionável: páginas digitalizadas ou só com imagem não são lidas (não há OCR), e PDFs com senha não são suportados.</string>
+    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito. Exporte antes se quiser guardar uma cópia.</string>
+    <string name="native_voiceSettings_unavailableNote" formatted="false">Nenhum serviço de reconhecimento de voz foi encontrado neste celular. Isso é comum no GrapheneOS e em outros sistemas sem Google. Digitar funciona normalmente.</string>
+    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibra ao tocar, enviar e ao terminar respostas, em todo o app, não só na voz.</string>
+    <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" foi adicionado à lista de modelos acima. Baixe-o por lá.</string>
+    <string name="native_evaluation_stoppedEarly" formatted="false">Interrompido. Resultados parciais salvos.</string>
+    <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} de {{total}}: {{name}}</string>
 </resources>

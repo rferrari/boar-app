@@ -9,6 +9,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -31,6 +32,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -129,7 +132,7 @@ fun ChatScreen(
     Box(Modifier.fillMaxSize().background(c.bgTerminal)) {
         Ambient()
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
-            Header(state, onMenu, { toneSheet = true }, onNewChat, onOpenRoute)
+            team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onOpenRoute, onSetDeepResearch) }
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { LoadingBanner(t(it)) }
             state.loadCrash?.let { CrashBanner(it, onDismissCrash) }
@@ -202,7 +205,7 @@ private fun AvatarFull(truffle: String?, onClose: () -> Unit) {
 }
 
 @Composable
-private fun Header(state: ChatState, onMenu: () -> Unit, onOpenStyles: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit) {
+private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit, onSetDeepResearch: (Boolean) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -220,25 +223,18 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onOpenStyles: () -> Uni
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
                         StatusPill(state.online)
                     }
-                    Text((state.modelLabel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, modifier = Modifier.padding(top = 1.dp))
+                    Text((state.modelLabel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
+                DeepResearchButton(state.deepResearch, onSetDeepResearch)
                 RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
             }
         }
         // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
         val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
-        if (state.deepResearch || tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
-            if (state.deepResearch) Row(
-                Modifier.clip(RoundedCornerShape(6.dp)).background(c.frontierBadgeBg).border(1.dp, c.frontierBadgeBorder, RoundedCornerShape(6.dp))
-                    .clickable(onClick = onOpenStyles).padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Text("🔬", fontSize = 11.sp)
-                Text(t("chatHeader.deepResearchActive"), style = type["mono.xs"], color = c.frontierText, fontWeight = FontWeight.Bold)
-            }
+        if (tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             tps?.let {
                 Row(
@@ -255,6 +251,33 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onOpenStyles: () -> Uni
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
 }
 
+/**
+ * Deep Research beside New chat: 🔬 lit when on, dim when off. A tap opens what it does and its switch, so it's found
+ * and understood in one place (the style sheet has the same switch).
+ */
+@Composable
+private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
+    val c = Boar.colors
+    var open by remember { mutableStateOf(false) }
+    Box {
+        RoundButton(if (on) c.frontierBadgeBg else Color.White.copy(alpha = 0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
+            Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
+        }
+        androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("🔬 " + t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
+                    }
+                    androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+                }
+                Text(t("native.chat.deepResearchExplain"), style = Boar.type.subtext, color = c.textSecondary)
+            }
+        }
+    }
+}
+
 @Composable
 private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content: @Composable () -> Unit) {
     var m = Modifier.size(42.dp).clip(CircleShape).background(bg)
@@ -265,14 +288,18 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
 @Composable
 private fun StatusPill(online: Boolean) {
     val c = Boar.colors
+    // The word shows only when it fits: with Large text and Labs badges the header is tight ("ONLIN / E", then "ONL").
+    // Without room the pill is just its dot, still green offline and amber online.
+    var fits by remember { mutableStateOf(true) }
     Row(
         Modifier.background(if (online) c.amberBgSubtle else c.emeraldBgSubtle, RoundedCornerShape(4.dp))
-            .border(1.dp, if (online) c.amberBorder else c.emeraldBorder, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp),
+            .border(1.dp, if (online) c.amberBorder else c.emeraldBorder, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
         Box(Modifier.size(5.dp).background(if (online) c.amber400 else c.emerald400, CircleShape))
-        Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
-            fontWeight = FontWeight.ExtraBold, color = if (online) c.textAccentAmber else c.textAccentEmerald)
+        if (fits) Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
+            fontWeight = FontWeight.ExtraBold, color = if (online) c.textAccentAmber else c.textAccentEmerald, maxLines = 1, softWrap = false,
+            onTextLayout = { if (it.hasVisualOverflow) fits = false })
     }
 }
 
@@ -371,7 +398,9 @@ private fun LoadingBanner(text: String) {
 private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFill: (String) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
-    Column(Modifier.fillMaxSize().padding(horizontal = 12.dp).padding(top = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    // Scrolls: with a large font size (or a small screen) the last ideas were below the input and out of reach.
+    Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 12.dp).padding(top = 20.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(96.dp), contentScale = ContentScale.Fit)
             Text("BOAR", style = type.headline, color = c.textHeading)
@@ -387,7 +416,8 @@ private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFil
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(t("chat.suggestionTopics.$k"), style = type.caption.copy(fontFamily = BrandType.familyFor(null, 600).first), color = c.textAccentEmerald)
-                    Text(q, style = type.body, color = c.textPrimary)
+                    // Two lines at most, so five ideas don't crowd the empty chat.
+                    Text(q, style = type.body, color = c.textPrimary, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
             }
         }
@@ -440,8 +470,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
-                split.thinkingInProgress && split.answer.isEmpty() && streaming ->
-                    Text("💭 " + (split.thinking?.takeLast(160) ?: ""), fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
+                split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
                 // The reasoning used the whole answer budget: the note says "tap 💭", so 💭 shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
                     Text(if (reasoningShown && split.thinking != null) split.thinking!! else "💭 " + t("chatScreen.reasoningUnfinished"),
@@ -497,13 +526,14 @@ private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.second
 @Composable
 private fun ReceiptShort(r: Receipt) =
     Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
-        maxLines = 1, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+        // Two lines with Large text rather than losing "tok/s" off the end.
+        maxLines = 2, textAlign = TextAlign.End, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
-    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 1,
+    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.End,
         modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
 }
 
@@ -529,6 +559,22 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
         t("chat.receipt.words") to count(r.tokens),
         t("chat.receipt.total") to ReceiptFormat.seconds(r.totalMs),
     )
+}
+
+/**
+ * The reasoning while it streams: always 3 lines high, showing its last 3 lines, cut at a word. A window of the last
+ * 160 characters wrapped to 2, 3 or 4 lines as tokens came in, and the bubble (and the auto-scroll with it) jumped.
+ */
+@Composable
+private fun ThinkingTail(thinking: String, modifier: Modifier) {
+    val c = Boar.colors
+    val tail = thinking.takeLast(400).let { t -> if (t.length < thinking.length) t.substringAfter(' ', t) else t }.replace(Regex("\\s+"), " ").trim()
+    val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
+    Box(modifier.fillMaxWidth().height(box).clipToBounds()) {
+        // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
+        Text("💭 $tail", fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,
+            modifier = Modifier.align(Alignment.BottomStart).wrapContentHeight(Alignment.Bottom, unbounded = true))
+    }
 }
 
 /** ProcessingIndicator.tsx: the stage line while nothing has streamed yet. */

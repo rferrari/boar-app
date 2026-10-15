@@ -75,7 +75,7 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null) {
                         Text(t("sourceFootnotes.localIndex"), style = mono, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
                         Text(s.docId ?: s.title, style = mono, color = c.textDim, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
                     }
-                    Text(s.body, style = mono.copy(lineHeight = 16.sp), color = c.textSecondary, maxLines = 6, overflow = TextOverflow.Ellipsis)
+                    Text(s.body, style = mono.copy(lineHeight = mono.fontSize * 1.45f), color = c.textSecondary, maxLines = 6, overflow = TextOverflow.Ellipsis)
                 }
             }
         }

@@ -1,3 +1,4 @@
+import java.time.LocalDate
 import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
@@ -69,9 +70,10 @@ android {
     // in the repo's .env (or the environment, or -Pboar.allowDrawerStats=false); then they never show.
     val allowDrawerStats = (providers.gradleProperty("boar.allowDrawerStats").orNull ?: env["ALLOW_DRAWER_STATS"] ?: System.getenv("ALLOW_DRAWER_STATS"))?.trim()?.toBoolean() ?: true
     // Evaluation in the menu: for builders who run and submit evaluations. SHOW_EVAL_IN_MENU in the repo's .env (or the
-    // environment, or -Pboar.showEvalInMenu); by default on only in EXPERIMENTAL_FEATURES builds. Either way the screen
-    // stays reachable from Settings → Advanced tweaks, and the USB runner (eval:device) never needs it.
-    val showEvalInMenu = (providers.gradleProperty("boar.showEvalInMenu").orNull ?: env["SHOW_EVAL_IN_MENU"] ?: System.getenv("SHOW_EVAL_IN_MENU"))?.trim()?.toBoolean() ?: experimental
+    // environment, or -Pboar.showEvalInMenu); off by default, Labs builds included (Oct 15: it's a builder's tool, not a
+    // menu entry). Either way the screen stays reachable from Settings → Advanced tweaks, and the USB runner (eval:device)
+    // never needs it.
+    val showEvalInMenu = (providers.gradleProperty("boar.showEvalInMenu").orNull ?: env["SHOW_EVAL_IN_MENU"] ?: System.getenv("SHOW_EVAL_IN_MENU"))?.trim()?.toBoolean() ?: false
     defaultConfig {
         buildConfigField("boolean", "SHOW_EVAL_IN_MENU", "$showEvalInMenu")
         buildConfigField("boolean", "ALLOW_DEBUG_LOG", "$allowDebugLog")
@@ -94,7 +96,13 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 4
-        versionName = "2.0.0-dev"
+        // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
+        // About always says exactly which code this APK is.
+        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
+        val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
+        val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
+        buildConfigField("String", "GIT_SHA", "\"${gitSha}${if (gitDirty) "+" else ""}\"")
+        buildConfigField("String", "BUILD_DATE", "\"${LocalDate.now()}\"")
         ndk { abiFilters += listOf("arm64-v8a") }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

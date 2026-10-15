@@ -326,11 +326,34 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
         Note(t("native.tweaks.intro"))
         // Presets first: one tap sets the knobs below; any knob changed by hand afterwards makes it Custom.
         val preset = team.sopa.boar.engine.TweakPreset.of(tw)
+        var runCard by remember { mutableStateOf(false) }
         Choices(
             t("native.tweaks.presets"),
             team.sopa.boar.engine.TweakPreset.entries.map<team.sopa.boar.engine.TweakPreset, Pair<team.sopa.boar.engine.TweakPreset?, String>> { it to "${it.emoji} ${t("native.tweaks.preset.${it.key}")}" },
             preset,
-        ) { p -> p?.let { save(it.applyTo(tw)) } }
+        ) { p ->
+            // Run Boar Run picked by hand for the first time: say what it costs before switching (once).
+            if (p == team.sopa.boar.engine.TweakPreset.RUN && !s.runPresetWarned) runCard = true
+            else p?.let { save(it.applyTo(tw)) }
+        }
+        if (runCard) {
+            val lowRam = services.totalRamBytes in 1 until 8_000_000_000L
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { runCard = false },
+                title = { Text("🐗 " + t("native.tweaks.preset.run")) },
+                text = { Text(t("native.tweaks.runWarning") + if (lowRam) "\n\n" + t("native.tweaks.runWarningLowRam") else "") },
+                confirmButton = {
+                    androidx.compose.material3.TextButton({
+                        s.runPresetWarned = true; runCard = false; save(team.sopa.boar.engine.TweakPreset.RUN.applyTo(tw))
+                    }) { Text(t("native.tweaks.runWarningGo"), color = Boar.colors.textAccentEmerald) }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton({ runCard = false }) {
+                        Text(if (preset == team.sopa.boar.engine.TweakPreset.PATH) t("native.tweaks.runWarningKeepPath") else t("common.cancel"), color = Boar.colors.textSecondary)
+                    }
+                },
+            )
+        }
         Note(preset?.let { t("native.tweaks.preset.${it.key}Note") } ?: t("native.tweaks.presetCustom"))
         val cpuAuto = CpuVariants.auto(features)?.let { n -> CpuVariants.ALL.first { it.name == n }.label } ?: t("native.tweaks.cpuBest")
         Choices(
@@ -360,7 +383,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
         Note(t("native.tweaks.repackNote"))
         Choices(t("native.tweaks.thinking"), listOf<Pair<Boolean?, String>>(null to autoOf(t("native.tweaks.off")), true to t("native.tweaks.on"), false to t("native.tweaks.off")), tw.thinking) { save(tw.copy(thinking = it)) }
         Note(t("native.tweaks.thinkingNote"))
-        Choices(t("native.tweaks.moe"), listOf<Pair<LazyMode?, String>>(null to autoOf(t("native.tweaks.off")), LazyMode.AUTO to autoLabel, LazyMode.ON to t("native.tweaks.on")), tw.lazyExperts) { save(tw.copy(lazyExperts = it)) }
+        Choices(t("native.tweaks.moe"), listOf<Pair<LazyMode?, String>>(null to autoOf(t("native.tweaks.off")), LazyMode.AUTO to t("native.tweaks.moeWhenNeeded"), LazyMode.ON to t("native.tweaks.on")), tw.lazyExperts) { save(tw.copy(lazyExperts = it)) }
         val autoMin = (EngineTweaks.autoStageTimeoutMs(s.maxTokens) / 60_000.0).let { "%.0f".format(it) }
         Choices(
             t("native.tweaks.timeout"),

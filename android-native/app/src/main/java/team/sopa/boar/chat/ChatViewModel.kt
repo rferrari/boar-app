@@ -194,8 +194,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has 1 in Portuguese): fill from
         // the ideas tested on the other models, same language, only for packs on the phone.
         val own = suggestionData.forModel(m?.id, lang, installed)
-        val ideas = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct().take(6)
-        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = ideas) }
+        val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct()
+        // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
+        ideaPool = (tested + BENCH_IDEAS).distinct()
+        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
     }
 
     fun dismissLoadCrash() = _state.update { it.copy(loadCrash = null) }
@@ -205,9 +207,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(deepResearch = on) }
     }
 
+    /** Every prompt idea this model and language can show; [pickIdeas] draws a few at random. */
+    private var ideaPool: List<String> = emptyList()
+
+    private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
+
     fun newChat() {
         if (job?.isActive == true) return
-        _state.update { it.copy(sessionId = null, messages = emptyList(), error = null) }
+        _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
     }
 
     /** The drawer's 🗑️: the chat and its messages; the open one becomes a new chat. */
@@ -475,5 +482,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         /** Messages sent verbatim as history (ChatScreen.tsx VERBATIM_MESSAGE_COUNT). */
         const val VERBATIM_MESSAGE_COUNT = 6
+
+        /** Prompt ideas shown in an empty chat, drawn again for each new chat. */
+        const val IDEAS_SHOWN = 5
+
+        /**
+         * Short questions (two lines at most) from the evaluations: b1…b9 from BOAR's 17-question set (eval-set.json),
+         * b10…b21 from the public BOAR Bench v0.1 items, without its trap, emergency, crypto and restaurant questions.
+         * Their text is chat.suggestions.b* in the app's languages.
+         */
+        val BENCH_IDEAS = (1..21).map { "b$it" }
     }
 }

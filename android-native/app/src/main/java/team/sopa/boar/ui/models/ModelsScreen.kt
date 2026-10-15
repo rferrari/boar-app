@@ -162,7 +162,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
             }
         }
-        Text(item.description, style = Boar.type.caption.copy(lineHeight = 18.sp), color = c.textSecondary)
+        // Line height follows the text size (a fixed 18 sp packed the lines at Large).
+        Text(item.description, style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
         row?.error?.let { e ->
             Row(Modifier.fillMaxWidth().background(c.crimsonBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("⚠️", fontSize = 12.sp)
@@ -193,7 +194,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             Text("✕ " + t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp))
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            when {
+            // The status takes the room left and wraps, so 🗑️ is never pushed off the card (Large text, Oct 15).
+            Box(Modifier.weight(1f)) { when {
                 // Copied over USB, never downloaded: say where it goes instead of offering a download.
                 !present && item.externalPath != null -> Text(t("native.models.placeOverUsb", "engine" to (engine?.engineLabel ?: "")), style = mono, color = c.textMuted)
                 !present -> SmallButton(if (row?.error != null) t("catalogItemCard.retryDownload") else t("catalogItemCard.downloadAsset")) { vm.download(item) }
@@ -203,8 +205,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 activating -> Busy(t("catalogItemCard.loadingModel"))
                 engine != null -> SmallButton(t("native.models.selectUseEngine", "engine" to engine.engineLabel), enabled = !busy) { vm.use(item) }
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
-            }
-            Spacer(Modifier.weight(1f))
+            } }
             // A Labs engine's model was copied over USB: BOAR never deletes it.
             if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
             else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))

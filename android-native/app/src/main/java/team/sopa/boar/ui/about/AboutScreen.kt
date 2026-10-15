@@ -72,8 +72,12 @@ fun AboutScreen(onClose: () -> Unit) {
 }
 
 @Composable
-private fun versionName(ctx: android.content.Context): String =
-    runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "—"
+/** "2.0.0-dev · 14193eea · 2026-10-15": the APK's version, the commit it was built from (+ if it had local changes) and the day. */
+private fun versionName(ctx: android.content.Context): String = listOfNotNull(
+    runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "—",
+    team.sopa.boar.BuildConfig.GIT_SHA.ifEmpty { null },
+    team.sopa.boar.BuildConfig.BUILD_DATE,
+).joinToString(" · ")
 
 @Composable
 private fun Card(title: String, body: String, extra: @Composable () -> Unit = {}) {

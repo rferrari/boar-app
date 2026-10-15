@@ -73,7 +73,7 @@ object BrandType {
 }
 
 /** The text styles of one text-size setting, by the TS names ("ui.body", "mono.sm"). */
-class BoarType(private val scale: String) {
+class BoarType(val scale: String) {
     private val specs = when (scale) { "compact" -> TypeTokens.compact; "large" -> TypeTokens.large; else -> TypeTokens.standard }
     private val cache = HashMap<String, TextStyle>()
     operator fun get(name: String): TextStyle = cache.getOrPut(name) { BrandType.style(specs.getValue(name), scale) }
@@ -90,6 +90,22 @@ class BoarType(private val scale: String) {
 
 private val LocalColors = staticCompositionLocalOf { ThemeTokens.byId(null) }
 private val LocalType = staticCompositionLocalOf { BoarType("standard") }
+
+/**
+ * Navigation chrome (the chat header) at most at the Standard text size whatever Settings → Text size says, and Android's own
+ * font size capped at 1.3×: its buttons are a fixed size, and larger text broke it (the status pill, the model name,
+ * the Labs badges). Reading text keeps the user's size.
+ */
+@Composable
+fun FixedSizeChrome(content: @Composable () -> Unit) {
+    val d = androidx.compose.ui.platform.LocalDensity.current
+    CompositionLocalProvider(
+        // Capped at Standard: Compact stays Compact, Large reads as Standard.
+        LocalType provides if (LocalType.current.scale == "large") BoarType("standard") else LocalType.current,
+        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(d.density, minOf(d.fontScale, 1.3f)),
+        content = content,
+    )
+}
 
 object Boar {
     val colors: BoarColors @Composable @ReadOnlyComposable get() = LocalColors.current
