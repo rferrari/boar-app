@@ -24,6 +24,10 @@ object Basket {
         val addedAt: Long,
         val model: String? = null,
         val tokPerSec: Double? = null,
+        /** The drawing picked for this answer (a file path); null leaves it to the answer's own illustration, if any. */
+        val image: String? = null,
+        /** No drawing for this answer, even if it has an illustration. */
+        val imageOff: Boolean = false,
     )
 
     private val _items = MutableStateFlow<List<Item>>(emptyList())
@@ -54,6 +58,9 @@ object Basket {
 
     /** The heading printed above an answer (its question, at first). */
     fun editHeading(id: String, heading: String) = change { list -> list.map { if (it.id == id) it.copy(question = heading) else it } }
+
+    /** One drawing per answer: [path] picks it, null means none for this answer. */
+    fun setImage(id: String, path: String?) = change { list -> list.map { if (it.id == id) it.copy(image = path, imageOff = path == null) else it } }
 
     /** Moves an item up (-1) or down (+1). */
     fun move(id: String, by: Int) = change { list ->
@@ -93,6 +100,7 @@ object Basket {
     private fun toJson(items: List<Item>) = JSONArray().apply {
         items.forEach { i ->
             put(JSONObject().put("id", i.id).put("chatTitle", i.chatTitle).put("question", i.question).put("text", i.text).put("addedAt", i.addedAt).put("model", i.model ?: JSONObject.NULL).put("tokPerSec", i.tokPerSec ?: JSONObject.NULL)
+                .put("image", i.image ?: JSONObject.NULL).put("imageOff", i.imageOff)
                 .put("sources", JSONArray().apply { i.sources.forEach { s -> put(JSONObject().put("title", s.title).put("source", s.source ?: JSONObject.NULL)) } }))
         }
     }
@@ -102,6 +110,7 @@ object Basket {
         val src = o.optJSONArray("sources") ?: JSONArray()
         Item(o.getString("id"), o.optString("chatTitle"), o.optString("question"), o.getString("text"),
             (0 until src.length()).map { k -> src.getJSONObject(k).let { Source(it.getString("title"), it.optString("source").takeIf { s -> s.isNotEmpty() && s != "null" }) } },
-            o.optLong("addedAt"), o.optString("model").takeIf { it.isNotEmpty() && it != "null" }, o.optDouble("tokPerSec").takeIf { !it.isNaN() })
+            o.optLong("addedAt"), o.optString("model").takeIf { it.isNotEmpty() && it != "null" }, o.optDouble("tokPerSec").takeIf { !it.isNaN() },
+            o.optString("image").takeIf { it.isNotEmpty() && it != "null" }, o.optBoolean("imageOff"))
     }
 }

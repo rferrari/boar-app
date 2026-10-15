@@ -137,7 +137,7 @@ private fun Console(text: String, cursorAlpha: Float, modifier: Modifier = Modif
     val c = Boar.colors
     Column(modifier.fillMaxWidth()) {
         Text(text.substringBefore('\n'), style = Boar.type.headline.copy(letterSpacing = 3.sp), color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
-        if ('\n' in text) Text(text.substringAfter('\n'), style = Boar.type["mono.xs"].copy(lineHeight = 18.sp), color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
+        if ('\n' in text) Text(text.substringAfter('\n'), style = Boar.type["mono.xs"].let { it.copy(lineHeight = it.fontSize * 1.6f) }, color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
         Text("█", style = Boar.type["mono.xs"], color = c.textAccentEmerald, modifier = Modifier.alpha(cursorAlpha))
     }
 }

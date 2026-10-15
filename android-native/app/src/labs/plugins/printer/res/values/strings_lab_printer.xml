@@ -11,7 +11,6 @@
     <string name="native_labs_printer_clear" formatted="false">CLEAR</string>
     <string name="native_labs_printer_sources_one" formatted="false">{{count}} source</string>
     <string name="native_labs_printer_sources_other" formatted="false">{{count}} sources</string>
-    <string name="native_labs_printer_images" formatted="false">ILLUSTRATIONS (UP TO {{max}})</string>
     <string name="native_labs_printer_noImages" formatted="false">No drawings yet. Make some in Image Gen, then pick them here.</string>
     <string name="native_labs_printer_compile" formatted="false">🖨️ Print to PDF</string>
     <string name="native_labs_printer_compiling" formatted="false">Printing…</string>
@@ -35,4 +34,7 @@
     <string name="native_labs_printer_place_right" formatted="false">▐ Right</string>
     <string name="native_labs_printer_place_left" formatted="false">▌ Left</string>
     <string name="native_labs_printer_place_alternate" formatted="false">⇄ Alternate</string>
+    <string name="native_labs_printer_metaDrawings" formatted="false">Drawings</string>
+    <string name="native_labs_printer_pickTitle" formatted="false">Drawing for this answer</string>
+    <string name="native_labs_printer_noDrawing" formatted="false">✕ No drawing</string>
 </resources>

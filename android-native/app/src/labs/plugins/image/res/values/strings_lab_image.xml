@@ -47,4 +47,5 @@
     <string name="native_labs_image_style_solarpunk" formatted="false">Solarpunk</string>
     <string name="native_labs_image_style_y2k" formatted="false">Y2K</string>
     <string name="native_labs_image_style_lofi" formatted="false">Lo-fi</string>
+    <string name="native_labs_image_illustrateNeedsModel" formatted="false">Illustrate (download the drawing model in Boar Labs, Image Gen, first)</string>
 </resources>

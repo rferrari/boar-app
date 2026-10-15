@@ -45,11 +45,12 @@ object LabHooks {
         val c = team.sopa.boar.ui.theme.Boar.colors
         Row(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Column(androidx.compose.ui.Modifier.weight(1f)) {
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsTitle"), style = team.sopa.boar.ui.theme.Boar.type.titleSm, color = c.textHeading)
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsNote"), style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted)
+                // Same look as Boar Avatars just above (Settings' SwitchRow).
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsTitle"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
             }
             androidx.compose.material3.Switch(LabPrefs.labsOn, { LabPrefs.labsOn = it },
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500))
+                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
         }
     }
 

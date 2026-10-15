@@ -63,7 +63,8 @@ import java.io.File
 
 /**
  * Field Printer: the research basket as a document. Answers come in from any chat ("＋ Basket"); here they're
- * reordered, edited or dropped, up to two Image Gen drawings are picked, and Compile writes an A4 PDF to share or save.
+ * reordered, edited or dropped, each gets at most one drawing (its own illustration, one from Image Gen, or none), and
+ * Compile writes an A4 PDF to share or save.
  */
 object PrinterLab : LabPlugin {
     override val id = "printer"
@@ -75,7 +76,15 @@ object PrinterLab : LabPlugin {
     override val emoji = "🖨️"
     override val status = LabStatus.BETA
 
-    const val MAX_IMAGES = 2
+    /** Each answer's own illustration (🎨 under it in the chat), from Image Gen's record: answer id to picture. */
+    private fun illustrations(ctx: android.content.Context): Map<String, File> = runCatching {
+        val o = org.json.JSONObject(File(ctx.filesDir, "labs/illustrations.json").readText())
+        o.keys().asSequence().mapNotNull { id -> File(o.getJSONObject(id).getString("file")).takeIf { it.isFile }?.let { id to it } }.toMap()
+    }.getOrDefault(emptyMap())
+
+    /** The drawing that prints with [item]: none if switched off, else the one picked, else its own illustration. */
+    private fun drawingOf(item: Basket.Item, own: Map<String, File>): File? =
+        if (item.imageOff) null else item.image?.let(::File)?.takeIf { it.isFile } ?: own[item.id]
 
     /** 📎 in the answer's 🧩 sheet: into the basket with its question, sources and chat title. */
     @Composable
@@ -101,7 +110,8 @@ object PrinterLab : LabPlugin {
         remember { Basket.load(ctx) }
         val n = Basket.items.collectAsState().value.size
         if (n == 0) return
-        Text("📎 $n", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold,
+        // Never wider than "9+" and never on two lines: the header is tight with Large text.
+        Text("📎 " + if (n > 9) "9+" else "$n", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false,
             modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp))
                 .clickable { go("lab:$id") }.padding(horizontal = 8.dp, vertical = 5.dp))
     }
@@ -125,7 +135,8 @@ object PrinterLab : LabPlugin {
         val heights = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
         val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 12.dp.toPx() }
         var editing by remember { mutableStateOf<String?>(null) }
-        var picked by remember { mutableStateOf(listOf<File>()) }
+        // The answer whose drawing is being chosen (the picker is open).
+        var choosing by remember { mutableStateOf<String?>(null) }
         var compiling by remember { mutableStateOf(false) }
         var error by remember { mutableStateOf<String?>(null) }
         var saved by remember { mutableStateOf<String?>(null) }
@@ -152,6 +163,7 @@ object PrinterLab : LabPlugin {
             }
         }
         val mdLabels = team.sopa.boar.engine.chat.ChatExport.Labels(t("native.labs.printer.mdReasoning"), t("sourceFootnotes.title"))
+        val own = remember { illustrations(ctx) }
         val gallery = remember { File(ctx.filesDir, "labs/images").listFiles { f -> f.extension == "png" }.orEmpty().sortedByDescending { it.lastModified() } }
         val defaultTitle = items.firstOrNull()?.chatTitle?.takeIf { it.isNotBlank() } ?: t("native.labs.printer.untitled")
         var preview by rememberSaveable { mutableStateOf(false) }
@@ -160,13 +172,15 @@ object PrinterLab : LabPlugin {
             date = team.sopa.boar.labs.LabPrefs.string("printer.date") != "off",
             model = team.sopa.boar.labs.LabPrefs.string("printer.model") == "on",
             sources = team.sopa.boar.labs.LabPrefs.string("printer.sources") != "off",
-            images = PdfCompiler.Placement.of(team.sopa.boar.labs.LabPrefs.string("printer.images")))) }
+            images = PdfCompiler.Placement.of(team.sopa.boar.labs.LabPrefs.string("printer.images")),
+            drawings = team.sopa.boar.labs.LabPrefs.string("printer.drawings") != "off")) }
         fun setMeta(m: PdfCompiler.Meta) {
             meta = m
             team.sopa.boar.labs.LabPrefs.putString("printer.date", if (m.date) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.model", if (m.model) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.sources", if (m.sources) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.images", m.images.name.lowercase())
+            team.sopa.boar.labs.LabPrefs.putString("printer.drawings", if (m.drawings) "on" else "off")
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -186,11 +200,20 @@ object PrinterLab : LabPlugin {
                 Toggle("🧠 " + t("native.labs.printer.metaModel"), meta.model, Modifier.weight(1f)) { setMeta(meta.copy(model = it)) }
                 Toggle("📚 " + t("native.labs.printer.metaSources"), meta.sources, Modifier.weight(1f)) { setMeta(meta.copy(sources = it)) }
             }
+            // Drawings off skips them all for this print, without losing what each answer has picked.
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Toggle("🖼 " + t("native.labs.printer.metaDrawings"), meta.drawings, Modifier.weight(1f)) { setMeta(meta.copy(drawings = it)) }
+            }
+            // Where the drawings go; right and left wrap the answer's text beside its drawing.
+            if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
+                    Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Toggle(t("native.labs.printer.arrange"), !preview, Modifier.weight(1f)) { preview = false }
                 Toggle(t("native.labs.printer.preview"), preview, Modifier.weight(1f)) { preview = true }
             }
-            if (preview) Preview(title.ifBlank { defaultTitle }, items, picked, meta)
+            if (preview) Preview(title.ifBlank { defaultTitle }, items, { drawingOf(it, own) }, meta)
             else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Label(t("native.labs.printer.items", "count" to items.size), Modifier.weight(1f))
@@ -252,30 +275,27 @@ object PrinterLab : LabPlugin {
                         BasicTextField(draft, { draft = it; Basket.edit(item.id, it) }, textStyle = Boar.type.caption.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
                             modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
                     } else Text(PdfCompiler.plain(item.text), style = Boar.type.caption, color = c.textMuted, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                    if (item.sources.isNotEmpty()) Text(t("native.labs.printer.sources", "count" to item.sources.size), style = Boar.type["mono.xs"], color = c.textDim)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (item.sources.isNotEmpty()) Text(t("native.labs.printer.sources", "count" to item.sources.size), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f))
+                        else androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                        // At most one drawing per answer: tap to choose, ✕ for none.
+                        val drawing = drawingOf(item, own)
+                        if (drawing != null) {
+                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp)).clickable { choosing = item.id }) { Thumb(drawing) }
+                            Icon("✕", true) { Basket.setImage(item.id, null) }
+                        } else Text("＋ 🖼", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(6.dp)).clickable { choosing = item.id }.padding(horizontal = 8.dp, vertical = 6.dp))
+                    }
                 }
             } }
 
-            Label(t("native.labs.printer.images", "max" to MAX_IMAGES))
-            if (gallery.isEmpty()) Text(t("native.labs.printer.noImages"), style = Boar.type.caption, color = c.textMuted)
-            else LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(gallery, key = { it.path }) { f ->
-                    val n = picked.indexOf(f)
-                    Box(Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).border(2.dp, if (n >= 0) c.emerald400 else c.borderSubtle, RoundedCornerShape(8.dp))
-                        .clickable { picked = if (n >= 0) picked - f else if (picked.size < MAX_IMAGES) picked + f else picked }) {
-                        Thumb(f)
-                        if (n >= 0) Text("${n + 1}", style = Boar.type["mono.xs"], color = c.textHeading, fontWeight = FontWeight.ExtraBold,
-                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(c.emeraldBgSubtle, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp))
-                    }
-                }
-            }
-            // Where the picked drawings go on the page; right and left wrap the text beside them.
-            if (picked.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
-                    Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
-            }
             }
 
+            choosing?.let { id ->
+                val item = items.firstOrNull { it.id == id }
+                if (item == null) { choosing = null; return@let }
+                DrawingPicker(own[id], gallery, drawingOf(item, own), onPick = { f -> Basket.setImage(id, f?.path); choosing = null }) { choosing = null }
+            }
             error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
             saved?.let { Text(t("native.labs.printer.saved", "name" to it), style = Boar.type.caption, color = c.textAccentEmerald) }
             // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
@@ -297,7 +317,7 @@ object PrinterLab : LabPlugin {
                             val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
                             // The print run takes at least as long as the animation: the sheet comes out whole.
                             val started = System.currentTimeMillis()
-                            val ok = withContext(Dispatchers.IO) { runCatching { PdfCompiler.compile(out, docTitle, items, picked, footer, meta) } }
+                            val ok = withContext(Dispatchers.IO) { runCatching { PdfCompiler.compile(out, docTitle, items, { drawingOf(it, own) }, footer, meta) } }
                             kotlinx.coroutines.delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
                             compiling = false
                             ok.onSuccess { draft = out; saveAs.launch(slug(docTitle) + ".pdf") }.onFailure { error = it.message }
@@ -327,26 +347,24 @@ object PrinterLab : LabPlugin {
 
     /** The PDF as it will print, on paper colors: same order, same switches, the drawings where they'll land. */
     @Composable
-    private fun Preview(title: String, items: List<Basket.Item>, images: List<File>, meta: PdfCompiler.Meta) {
+    private fun Preview(title: String, items: List<Basket.Item>, drawingOf: (Basket.Item) -> File?, meta: PdfCompiler.Meta) {
         val ink = Color(0xFF222222)
         val dim = Color(0xFF777777)
         val green = Color(0xFF1B4D3E)
         val serif = androidx.compose.ui.text.font.FontFamily.Serif
-        val half = (items.size + 1) / 2
         Column(Modifier.fillMaxWidth().background(Color(0xFFF7F4EC), RoundedCornerShape(4.dp)).padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = ink)
             Text((if (meta.date) java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG).format(java.util.Date()) + " · " else "") + t("native.labs.printer.footer"),
                 fontFamily = serif, fontSize = 10.sp, color = dim)
             Box(Modifier.fillMaxWidth().size(width = 0.dp, height = 1.dp).background(Color(0xFFCCCCCC)))
-            images.getOrNull(0)?.let { PreviewImage(it, meta.images.sideOf(0)) }
-            items.forEachIndexed { i, item ->
-                if (i == half && i > 0) images.getOrNull(1)?.let { PreviewImage(it, meta.images.sideOf(1)) }
+            var drawn = 0
+            items.forEach { item ->
+                if (meta.drawings) drawingOf(item)?.let { PreviewImage(it, meta.images.sideOf(drawn++)) }
                 Text(item.question.ifBlank { item.chatTitle }, fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = green, modifier = Modifier.padding(top = 6.dp))
                 Text(PdfCompiler.plain(item.text), fontFamily = serif, fontSize = 12.sp, lineHeight = 17.sp, color = ink)
                 if (meta.model) PdfCompiler.modelLine(item)?.let { Text(it, fontFamily = serif, fontSize = 9.sp, color = green) }
                 if (meta.sources && item.sources.isNotEmpty()) Text(PdfCompiler.sourceLines(item), fontFamily = serif, fontSize = 9.sp, lineHeight = 12.sp, color = Color(0xFF666666))
             }
-            if (items.size == 1) images.getOrNull(1)?.let { PreviewImage(it, meta.images.sideOf(1)) }
         }
     }
 
@@ -393,6 +411,30 @@ object PrinterLab : LabPlugin {
     @Composable
     private fun Icon(glyph: String, enabled: Boolean, onClick: () -> Unit) = Text(glyph, fontSize = 15.sp, color = Boar.colors.textAccentEmerald,
         modifier = Modifier.alpha(if (enabled) 1f else 0.25f).clip(RoundedCornerShape(4.dp)).clickable(enabled = enabled, onClick = onClick).padding(horizontal = 6.dp, vertical = 2.dp))
+
+    /** One answer's drawing: its own illustration first, then Image Gen's pictures, or none. */
+    @Composable
+    private fun DrawingPicker(own: File?, gallery: List<File>, current: File?, onPick: (File?) -> Unit, onClose: () -> Unit) {
+        val c = Boar.colors
+        val choices = listOfNotNull(own) + gallery.filter { it != own }
+        androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+            Column(Modifier.background(c.bgCard, RoundedCornerShape(16.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(16.dp)).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(t("native.labs.printer.pickTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                if (choices.isEmpty()) Text(t("native.labs.printer.noImages"), style = Boar.type.caption, color = c.textMuted)
+                else LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(choices, key = { it.path }) { f ->
+                        Box(Modifier.size(88.dp).clip(RoundedCornerShape(8.dp)).border(2.dp, if (f == current) c.emerald400 else c.borderSubtle, RoundedCornerShape(8.dp)).clickable { onPick(f) }) {
+                            Thumb(f)
+                            if (f == own) Text("🎨", fontSize = 12.sp, modifier = Modifier.align(Alignment.TopEnd).padding(4.dp))
+                        }
+                    }
+                }
+                Text(t("native.labs.printer.noDrawing"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onPick(null) }.padding(8.dp))
+            }
+        }
+    }
 
     @Composable
     private fun Thumb(f: File) {

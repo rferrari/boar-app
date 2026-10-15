@@ -93,8 +93,10 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         val st = Illustrator.status(ctx, a.id)
         val running = st is Illustrator.Status.Choosing || st is Illustrator.Status.Drawing
         val notReady = t("native.labs.image.illustrateNotReady")
-        val label = t(when { running -> "native.labs.image.illustrateRunning"; st is Illustrator.Status.Done -> "native.labs.image.illustrateAgain"; else -> "native.labs.image.illustrate" })
-        return listOf(team.sopa.boar.labs.LabAction("🎨", label, done = st is Illustrator.Status.Done, enabled = !running) { Illustrator.start(ctx, a, notReady) })
+        // No drawing model (or engine) on the phone yet: 🎨 is greyed out and says where to get it, instead of failing on tap.
+        val ready = SdRunner.ready(ctx) // a file check, read each time the sheet is drawn so a fresh download counts
+        val label = t(when { !ready -> "native.labs.image.illustrateNeedsModel"; running -> "native.labs.image.illustrateRunning"; st is Illustrator.Status.Done -> "native.labs.image.illustrateAgain"; else -> "native.labs.image.illustrate" })
+        return listOf(team.sopa.boar.labs.LabAction("🎨", label, done = st is Illustrator.Status.Done, enabled = ready && !running) { Illustrator.start(ctx, a, notReady) })
     }
 
     /** The drawing (or its progress) under the answer, with what was drawn and how long it took. */
