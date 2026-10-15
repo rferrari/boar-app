@@ -1,6 +1,14 @@
 package team.sopa.boar.labs.printer
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -105,7 +113,17 @@ object PrinterLab : LabPlugin {
         val scope = rememberCoroutineScope()
         LaunchedEffect(Unit) { withContext(Dispatchers.IO) { Basket.load(ctx) } }
         val items by Basket.items.collectAsState()
-        var title by rememberSaveable { mutableStateOf("") }
+        // The document title stays between visits; saved a moment after typing stops (each save is a debug-log line).
+        var title by rememberSaveable { mutableStateOf(team.sopa.boar.labs.LabPrefs.string("printer.title").orEmpty()) }
+        LaunchedEffect(title) {
+            kotlinx.coroutines.delay(800)
+            if (title != team.sopa.boar.labs.LabPrefs.string("printer.title").orEmpty()) team.sopa.boar.labs.LabPrefs.putString("printer.title", title)
+        }
+        // Drag to arrange: the card held by its ⠿ follows the finger and swaps with a neighbour once it passes half of it.
+        var dragId by remember { mutableStateOf<String?>(null) }
+        var dragDy by remember { mutableStateOf(0f) }
+        val heights = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
+        val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 12.dp.toPx() }
         var editing by remember { mutableStateOf<String?>(null) }
         var picked by remember { mutableStateOf(listOf<File>()) }
         var compiling by remember { mutableStateOf(false) }
@@ -164,26 +182,65 @@ object PrinterLab : LabPlugin {
                 Label(t("native.labs.printer.items", "count" to items.size), Modifier.weight(1f))
                 Text(t("native.labs.printer.clear"), style = Boar.type["mono.xs"], color = c.crimson400, modifier = Modifier.clickable { Basket.clear() }.padding(4.dp))
             }
-            items.forEachIndexed { i, item ->
+            if (items.size > 1) Text(t("native.labs.printer.dragHint"), style = Boar.type.caption, color = c.textMuted)
+            items.forEachIndexed { i, item -> androidx.compose.runtime.key(item.id) {
                 val open = editing == item.id
-                Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, if (open) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).padding(10.dp),
+                val dragging = dragId == item.id
+                val upLabel = t("native.labs.printer.moveUp")
+                val downLabel = t("native.labs.printer.moveDown")
+                Column(Modifier.fillMaxWidth()
+                    .onGloballyPositioned { heights[item.id] = it.size.height }
+                    .zIndex(if (dragging) 1f else 0f)
+                    .graphicsLayer { if (dragging) { translationY = dragDy; shadowElevation = 12f; scaleX = 1.02f; scaleY = 1.02f } }
+                    .background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, if (open || dragging) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).padding(10.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("⠿", fontSize = 18.sp, color = if (dragging) c.textAccentEmerald else c.textDim,
+                            modifier = Modifier
+                                .semantics {
+                                    customActions = listOf(
+                                        CustomAccessibilityAction(upLabel) { Basket.move(item.id, -1); true },
+                                        CustomAccessibilityAction(downLabel) { Basket.move(item.id, 1); true },
+                                    )
+                                }
+                                .pointerInput(item.id) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = { dragId = item.id; dragDy = 0f },
+                                        onDragEnd = { dragId = null; dragDy = 0f },
+                                        onDragCancel = { dragId = null; dragDy = 0f },
+                                    ) { change, amount ->
+                                        change.consume()
+                                        dragDy += amount.y
+                                        val list = Basket.items.value
+                                        val at = list.indexOfFirst { it.id == item.id }
+                                        if (dragDy > 0 && at in 0 until list.size - 1) {
+                                            val step = (heights[list[at + 1].id] ?: 0) + gapPx
+                                            if (dragDy > step / 2) { Basket.move(item.id, 1); dragDy -= step }
+                                        } else if (dragDy < 0 && at > 0) {
+                                            val step = (heights[list[at - 1].id] ?: 0) + gapPx
+                                            if (-dragDy > step / 2) { Basket.move(item.id, -1); dragDy += step }
+                                        }
+                                    }
+                                }
+                                .padding(horizontal = 4.dp))
                         Text("${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
                         Text(item.question.ifBlank { item.chatTitle }, style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                        Icon("▲", i > 0) { Basket.move(item.id, -1) }
-                        Icon("▼", i < items.size - 1) { Basket.move(item.id, 1) }
                         Icon(if (open) "✓" else "✎", true) { editing = if (open) null else item.id }
                         Icon("✕", true) { Basket.remove(item.id) }
                     }
                     if (open) {
+                        // The heading printed above this answer, then its text; both saved as you type.
+                        var heading by remember(item.id) { mutableStateOf(item.question.ifBlank { item.chatTitle }) }
+                        Label(t("native.labs.printer.heading"))
+                        BasicTextField(heading, { heading = it; Basket.editHeading(item.id, it) }, singleLine = true, textStyle = Boar.type.titleSm.copy(fontSize = 13.sp, color = c.textHeading), cursorBrush = SolidColor(c.textAccentEmerald),
+                            modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
                         var draft by remember(item.id) { mutableStateOf(item.text) }
                         BasicTextField(draft, { draft = it; Basket.edit(item.id, it) }, textStyle = Boar.type.caption.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
                             modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
                     } else Text(PdfCompiler.plain(item.text), style = Boar.type.caption, color = c.textMuted, maxLines = 3, overflow = TextOverflow.Ellipsis)
                     if (item.sources.isNotEmpty()) Text(t("native.labs.printer.sources", "count" to item.sources.size), style = Boar.type["mono.xs"], color = c.textDim)
                 }
-            }
+            } }
 
             Label(t("native.labs.printer.images", "max" to MAX_IMAGES))
             if (gallery.isEmpty()) Text(t("native.labs.printer.noImages"), style = Boar.type.caption, color = c.textMuted)

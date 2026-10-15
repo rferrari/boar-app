@@ -52,6 +52,9 @@ object Basket {
 
     fun edit(id: String, text: String) = change { list -> list.map { if (it.id == id) it.copy(text = text) else it } }
 
+    /** The heading printed above an answer (its question, at first). */
+    fun editHeading(id: String, heading: String) = change { list -> list.map { if (it.id == id) it.copy(question = heading) else it } }
+
     /** Moves an item up (-1) or down (+1). */
     fun move(id: String, by: Int) = change { list ->
         val i = list.indexOfFirst { it.id == id }
