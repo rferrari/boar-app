@@ -71,6 +71,9 @@ interface LabPlugin {
      */
     fun eraseUserData(context: Context, scope: team.sopa.boar.plugins.UserData.Scope) {}
 
+    /** Models this lab can find inside the offline APK (scripts/build-offline-apk.sh), unpacked with the app's on first launch. */
+    val bundledAssets: List<team.sopa.boar.engine.models.CatalogAsset> get() = emptyList()
+
     /** The search slot: a step after search for every answer (a reranker); see team.sopa.boar.plugins.SearchStage. */
     val searchStage: team.sopa.boar.plugins.SearchStage? get() = null
 

@@ -18,7 +18,7 @@ class BundledAssets(private val services: BoarServices, private val context: Con
     class Corrupt(val asset: CatalogAsset) : Exception("${asset.filename} doesn't match the catalog")
 
     /** Shipped in this APK, and not yet (or not fully) on disk. */
-    fun pending(): List<CatalogAsset> = services.catalog.models.filter { a ->
+    fun pending(): List<CatalogAsset> = (services.catalog.models + team.sopa.boar.labs.LabHooks.bundledAssets()).filter { a ->
         inApk(a) && services.fileOf(a).let { !it.isFile || it.length() != a.sizeBytes }
     }
 

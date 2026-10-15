@@ -59,6 +59,7 @@ import java.util.Locale
 /** Boar Designer (was Image Gen) as a Boar Labs plugin: the screen stays on while it draws or downloads, and back waits for the drawing. */
 object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val id = "image"
+    override val bundledAssets = listOf(ImageLab.MODEL)
 
     override suspend fun selfTest(context: android.content.Context, args: Map<String, String>, say: (String) -> Unit): Boolean {
         DesignerSelfTest.run(context, args, say); return true
