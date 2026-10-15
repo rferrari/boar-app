@@ -160,25 +160,16 @@ fun VaultScreen(vault: TruffleVault, onBack: () -> Unit) {
 }
 
 /** "Truffle unearthed" over any screen, for a few seconds, with a way to equip it at once. */
+/** A newly unearthed boar, offered as the app's toast (top, below the header) with Equip. */
 @Composable
-fun FreshTruffle(vault: TruffleVault, modifier: Modifier = Modifier) {
-    val c = Boar.colors
-    var shown by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+fun FreshTruffle(vault: TruffleVault) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     androidx.compose.runtime.LaunchedEffect(vault) {
         vault.fresh.collect { id ->
-            shown = id
-            kotlinx.coroutines.delay(6_000)
-            if (shown == id) shown = null
+            val art = TruffleArt.byId[id] ?: return@collect
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.Toasts.Toast(
+                team.sopa.boar.ui.I18n.t(ctx, "native.vault.fresh", "name" to team.sopa.boar.ui.I18n.t(ctx, "native.truffle.$id")),
+                image = art.avatar, action = team.sopa.boar.ui.I18n.t(ctx, "native.vault.equip"), onAction = { vault.equip(id) }))
         }
-    }
-    val id = shown ?: return
-    val art = TruffleArt.byId[id] ?: return
-    Row(modifier.navigationBarsPadding().padding(16.dp).fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(14.dp))
-        .border(1.dp, c.emerald500, RoundedCornerShape(14.dp)).padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Image(painterResource(art.avatar), null, Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)))
-        Text(t("native.vault.fresh", "name" to t("native.truffle.$id")), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
-        Text(t("native.vault.equip"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clickable { vault.equip(id); shown = null }.padding(6.dp))
     }
 }

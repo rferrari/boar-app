@@ -319,4 +319,5 @@
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" foi adicionado à lista de modelos acima. Baixe-o por lá.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Interrompido. Resultados parciais salvos.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} de {{total}}: {{name}}</string>
+    <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
 </resources>

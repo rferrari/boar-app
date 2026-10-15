@@ -234,7 +234,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
             // Picked again after it closed the app: the user's call (CR-2's confirmation).
             if (a.kind == AssetKind.LLM) services.loadGuard.confirm(a.id)
             if (a.kind == AssetKind.LLM) runCatching { services.host.unload(); services.activeSession() }
-            _state.update { it.copy(activating = null, toast = a.label) }
+            _state.update { it.copy(activating = null) }
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.models.nowUsing", "model" to a.shortName))
             refresh()
         }
     }

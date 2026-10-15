@@ -125,7 +125,9 @@ class MainActivity : ComponentActivity() {
                     if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
                     else androidx.compose.foundation.layout.Box {
                         App(services, prefs)
-                        team.sopa.boar.ui.appearance.FreshTruffle(services.vault, Modifier.align(androidx.compose.ui.Alignment.BottomCenter))
+                        team.sopa.boar.ui.appearance.FreshTruffle(services.vault)
+                        // The one toast, over every screen (Toasts).
+                        team.sopa.boar.ui.ToastHost(Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                     }
                 }
             }

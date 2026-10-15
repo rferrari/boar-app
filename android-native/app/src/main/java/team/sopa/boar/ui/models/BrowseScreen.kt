@@ -113,8 +113,10 @@ private fun sizeLabel(s: HfQuery.Size): String = when (s) {
 @Composable
 private fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val c = Boar.colors
-    Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
+    // Wraps: scrolling sideways cut the first and last chips at the edges (Large text, Oct 15).
+    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.CenterVertically))
         for ((value, text) in options) {
             val on = value == selected
             Text(text, style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary,

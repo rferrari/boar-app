@@ -169,7 +169,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
     }
 
-    fun showToast(key: String) = _state.update { it.copy(toast = team.sopa.boar.ui.I18n.t(getApplication(), key)) }
+    fun showToast(key: String) = team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), key))
     fun hideToast() = _state.update { it.copy(toast = null) }
 
     /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
