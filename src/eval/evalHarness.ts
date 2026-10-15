@@ -9,6 +9,7 @@
  * written to the persisted execution telemetry (recordExecution), so eval
  * runs show up in the Execution Telemetry screen like any other message.
  */
+import appConfig from "../../app.json";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { getMemoryInfo } from "ram-monitor";
@@ -180,6 +181,11 @@ async function runOne(
     retrievalMs: result?.retrievalMs,
     contextTokensBefore: result?.contextTokensBefore,
     contextTokensAfter: result?.contextTokensAfter,
+    promptTokens: result?.engineTimings?.promptTokens,
+    promptMs: result?.engineTimings?.promptMs,
+    cachedTokens: result?.engineTimings?.cachedTokens,
+    predictedTokens: result?.engineTimings?.predictedTokens,
+    predictedMs: result?.engineTimings?.predictedMs,
     configId: evalConfigId(config),
     configLabel: config.label,
     routingPreset,
@@ -195,6 +201,7 @@ async function runOne(
     expectedKbHit: expectedKbHit(q.expectedKbTitles, retrievedTitles),
     timedOut: result?.timedOut ?? false,
     createdAt: Date.now(),
+    appVersion: appConfig.expo.version,
   };
 }
 

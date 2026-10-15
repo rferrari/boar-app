@@ -40,7 +40,7 @@ It started from Vitalik's call for an offline research tool that is "more than
 half as good" as search plus a frontier model, running an extreme mixture of
 experts that mostly sits on disk. That model doesn't exist yet, so BOAR is two
 things: a useful offline companion today, and a workbench that measures how close
-a phone can get. Full reasoning: [MANIFESTO.md](MANIFESTO.md).
+a phone can get. What we believe: [MANIFESTO.md](MANIFESTO.md).
 
 <table>
 <tr>

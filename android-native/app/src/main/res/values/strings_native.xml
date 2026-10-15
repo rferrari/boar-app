@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts of the native app's own screens (not in the Expo app's locales), written by hand. Keys: native.* -->
+<resources>
+    <string name="native_tweaks_title" formatted="false">Advanced tweaks</string>
+    <string name="native_tweaks_intro" formatted="false">Every engine setting, for people who want to try them. Auto is what we measured best on real phones; anything you set here wins. A value your phone can\'t run is adjusted, never fatal.</string>
+    <string name="native_tweaks_auto" formatted="false">Auto</string>
+    <string name="native_tweaks_autoValue" formatted="false">Auto ({{value}})</string>
+    <string name="native_tweaks_resetAll" formatted="false">Reset all to Auto</string>
+    <string name="native_tweaks_appliesNext" formatted="false">Applies from the next answer (the model reloads).</string>
+    <string name="native_tweaks_appliesRestart" formatted="false">Applies after the app restarts.</string>
+    <string name="native_tweaks_adjusted" formatted="false">Adjusted for this phone: {{notes}}</string>
+    <string name="native_tweaks_cpuBuild" formatted="false">CPU build</string>
+    <string name="native_tweaks_cpuBuildNote" formatted="false">Which instruction set the engine runs. Auto skips the SVE build where it reads prompts slower.</string>
+    <string name="native_tweaks_cpuBest" formatted="false">Engine\'s pick</string>
+    <string name="native_tweaks_threads" formatted="false">Threads</string>
+    <string name="native_tweaks_threadsNote" formatted="false">More threads than fast cores pulls in the slow cores and is usually slower.</string>
+    <string name="native_tweaks_threadsBatch" formatted="false">Threads for reading the prompt</string>
+    <string name="native_tweaks_cores" formatted="false">Cores</string>
+    <string name="native_tweaks_coresFast" formatted="false">Fast cores</string>
+    <string name="native_tweaks_coresAll" formatted="false">Any core</string>
+    <string name="native_tweaks_strict" formatted="false">Keep threads on those cores only</string>
+    <string name="native_tweaks_context" formatted="false">Context window (tokens)</string>
+    <string name="native_tweaks_batch" formatted="false">Prompt batch</string>
+    <string name="native_tweaks_microBatch" formatted="false">Micro-batch</string>
+    <string name="native_tweaks_kv" formatted="false">KV cache</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; on the X6 Pro, Q8_0 with flash attention generated 20% slower.</string>
+    <string name="native_tweaks_flash" formatted="false">Flash attention</string>
+    <string name="native_tweaks_on" formatted="false">On</string>
+    <string name="native_tweaks_off" formatted="false">Off</string>
+    <string name="native_tweaks_load" formatted="false">Model weights</string>
+    <string name="native_tweaks_loadMmap" formatted="false">Mapped from storage</string>
+    <string name="native_tweaks_loadLock" formatted="false">Mapped and locked in RAM</string>
+    <string name="native_tweaks_loadRead" formatted="false">Read into memory</string>
+    <string name="native_tweaks_moe" formatted="false">Stream MoE experts</string>
+    <string name="native_tweaks_timeout" formatted="false">Time limit per generation</string>
+    <string name="native_tweaks_timeoutNote" formatted="false">Auto grows with the max output tokens, so long answers and Deep Research aren\'t cut short. A generation that hits the limit keeps what it wrote.</string>
+    <string name="native_tweaks_noLimit" formatted="false">No limit</string>
+    <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
+    <string name="native_settings_back" formatted="false">Back</string>
+    <string name="native_settings_textSize" formatted="false">Text size</string>
+    <string name="native_settings_compact" formatted="false">Compact</string>
+    <string name="native_settings_standard" formatted="false">Standard</string>
+    <string name="native_settings_large" formatted="false">Large</string>
+    <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
+    <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed, and can check the answer against its sources.</string>
+    <string name="native_drawer_settings" formatted="false">Settings</string>
+    <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
+    <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
+    <string name="native_eval_adaptiveLater" formatted="false">Adaptive routing isn\'t in the native build yet, so only fixed models are listed.</string>
+    <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} closed the app while loading (not enough memory), so BOAR is answering with {{fallback}}. Pick it again in the Model Catalog to retry.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} closed the app while loading (not enough memory). Pick a smaller model in the Model Catalog.</string>
+    <string name="native_tweaks_thinking" formatted="false">Thinking before answering</string>
+    <string name="native_tweaks_thinkingNote" formatted="false">Lets a thinking model reason first. Auto: off, so the answer\'s token budget isn\'t spent on reasoning.</string>
+    <string name="native_tweaks_repack" formatted="false">Repacked weights</string>
+    <string name="native_tweaks_repackNote" formatted="false">Auto: on (prompts read about 2x faster). After a load that ran out of memory, the next one keeps the weights mapped from storage.</string>
+    <string name="native_pin_enterTitle" formatted="false">Enter your PIN</string>
+    <string name="native_pin_enterSubtitle" formatted="false">Your chats are sealed with it.</string>
+    <string name="native_pin_wrong" formatted="false">Wrong PIN.</string>
+    <string name="native_pin_wait" formatted="false">Too many tries. Wait {{seconds}} s.</string>
+    <string name="native_pin_forgot" formatted="false">Forgot the PIN?</string>
+    <string name="native_pin_forgotTitle" formatted="false">Erase your chats?</string>
+    <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes the PIN too. Models, packs and documents stay.</string>
+    <string name="native_pin_forgotConfirm" formatted="false">Erase chats</string>
+    <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
+    <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
+    <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
+    <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BOAR.</string>
+    <string name="native_pin_confirmTitle" formatted="false">Enter it again</string>
+    <string name="native_pin_mismatch" formatted="false">The PINs didn\'t match. Choose it again.</string>
+    <string name="native_pin_offerTitle" formatted="false">Lock BOAR with a PIN?</string>
+    <string name="native_pin_offerBody" formatted="false">With a PIN, your chats are stored sealed: someone with your phone or its files over USB can\'t read them. You can set it or remove it later in Settings.</string>
+    <string name="native_pin_offerSet" formatted="false">Set a PIN</string>
+    <string name="native_pin_offerSkip" formatted="false">Not now</string>
+    <string name="native_settings_security" formatted="false">Security</string>
+    <string name="native_settings_pinOn" formatted="false">PIN on. Chats are stored sealed with it.</string>
+    <string name="native_settings_pinOff" formatted="false">No PIN. Anyone with the phone unlocked can open your chats.</string>
+    <string name="native_settings_pinSet" formatted="false">Set a PIN</string>
+    <string name="native_settings_pinChange" formatted="false">Change PIN</string>
+    <string name="native_settings_pinRemove" formatted="false">Remove PIN</string>
+    <string name="native_settings_clearChatsDone" formatted="false">Chat history cleared.</string>
+    <string name="native_settings_openCatalog" formatted="false">Open the model catalog</string>
+    <string name="native_settings_openDocuments" formatted="false">Open My Documents</string>
+    <string name="native_settings_activeModel" formatted="false">Answering with: {{model}}</string>
+    <string name="native_settings_installedCount" formatted="false">{{count}} installed</string>
+    <string name="native_settings_packsInstalled" formatted="false">Knowledge packs on this phone: {{packs}}</string>
+    <string name="native_settings_noPacks" formatted="false">No knowledge packs yet: the built-in library only.</string>
+    <string name="native_settings_documents" formatted="false">Your documents: {{count}} collections</string>
+    <string name="native_telemetry_device" formatted="false">Device</string>
+    <string name="native_telemetry_chip" formatted="false">Chip</string>
+    <string name="native_telemetry_cores" formatted="false">Cores</string>
+    <string name="native_telemetry_ram" formatted="false">RAM</string>
+    <string name="native_telemetry_features" formatted="false">CPU features for llama.cpp</string>
+    <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
+    <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
+    <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
+    <string name="native_telemetry_chats" formatted="false">Chats saved</string>
+    <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
+    <string name="native_telemetry_lastEval" formatted="false">Last evaluation</string>
+    <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} answered · median {{tps}} tok/s · {{date}}</string>
+    <string name="native_telemetry_none" formatted="false">none yet</string>
+    <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone. Results are shared only from the Evaluation screen, after you see what\'s sent.</string>
+    <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
+    <string name="native_browse_title" formatted="false">Browse models</string>
+    <string name="native_browse_cta" formatted="false">Browse Hugging Face models</string>
+    <string name="native_browse_ctaNote" formatted="false">Text models in GGUF, one file under 12 GB, that this app can run. Not vetted by BOAR.</string>
+    <string name="native_browse_size" formatted="false">Size</string>
+    <string name="native_browse_sizeAny" formatted="false">Any</string>
+    <string name="native_browse_sort" formatted="false">Sort</string>
+    <string name="native_browse_sortTrending" formatted="false">Trending</string>
+    <string name="native_browse_sortDownloads" formatted="false">Most downloaded</string>
+    <string name="native_browse_sortLikes" formatted="false">Most liked</string>
+    <string name="native_browse_sortNewest" formatted="false">Newest</string>
+    <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
+    <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
+    <string name="native_browse_more" formatted="false">Loading more…</string>
+    <string name="native_browse_files" formatted="false">Files</string>
+    <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; Hardware telemetry in Settings.</string>
+    <string name="native_tweaks_presets" formatted="false">Presets</string>
+    <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches, the model locked in memory, no time limit. More heat and battery.</string>
+    <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
+    <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
+    <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
+    <string name="native_tweaks_preset_forageNote" formatted="false">Cooler and longer battery: 2 threads, a smaller context, no reasoning, 5 minutes at most per step. Slower answers.</string>
+    <string name="native_tweaks_preset_cool" formatted="false">Cool Down</string>
+    <string name="native_tweaks_preset_coolNote" formatted="false">For a hot phone: 1 thread, small prompt batches, a smaller context, no reasoning, 5 minutes at most per step. The slowest.</string>
+    <string name="native_tweaks_presetCustom" formatted="false">Custom: your own settings below. Pick a preset to start over from it.</string>
+    <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
+    <string name="native_models_cancelDownload" formatted="false">Cancel</string>
+    <string name="native_settings_embeddingOk" formatted="false">Search model (for packs and documents): {{model}} ✓</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Search model (for packs and documents): {{model}}, not on the phone. Run setup again from Recovery.</string>
+    <string name="native_browse_discoverSubtitle" formatted="false">Browse Hugging Face models</string>
+    <string name="native_chat_stopping" formatted="false">Stopping…</string>
+    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
+    <string name="native_personalities_succinct_description" formatted="false">Fastest — 2–3 brief paragraphs or bullets, no preamble.</string>
+</resources>

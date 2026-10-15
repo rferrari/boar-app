@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos das telas próprias do app nativo (fora dos locales do app Expo), escritos à mão. Chaves: native.* -->
+<resources>
+    <string name="native_tweaks_title" formatted="false">Ajustes avançados</string>
+    <string name="native_tweaks_intro" formatted="false">Todos os ajustes do motor, para quem quer experimentar. Auto é o que medimos como melhor em celulares reais; o que você escolher aqui vale. Um valor que o seu celular não roda é ajustado, nunca trava o app.</string>
+    <string name="native_tweaks_auto" formatted="false">Auto</string>
+    <string name="native_tweaks_autoValue" formatted="false">Auto ({{value}})</string>
+    <string name="native_tweaks_resetAll" formatted="false">Voltar tudo para Auto</string>
+    <string name="native_tweaks_appliesNext" formatted="false">Vale a partir da próxima resposta (o modelo recarrega).</string>
+    <string name="native_tweaks_appliesRestart" formatted="false">Vale depois que o app reiniciar.</string>
+    <string name="native_tweaks_adjusted" formatted="false">Ajustado para este celular: {{notes}}</string>
+    <string name="native_tweaks_cpuBuild" formatted="false">Versão para a CPU</string>
+    <string name="native_tweaks_cpuBuildNote" formatted="false">Qual conjunto de instruções o motor usa. Auto evita a versão SVE onde ela lê o prompt mais devagar.</string>
+    <string name="native_tweaks_cpuBest" formatted="false">Escolha do motor</string>
+    <string name="native_tweaks_threads" formatted="false">Threads</string>
+    <string name="native_tweaks_threadsNote" formatted="false">Mais threads do que núcleos rápidos usa os núcleos lentos e costuma ficar mais devagar.</string>
+    <string name="native_tweaks_threadsBatch" formatted="false">Threads para ler o prompt</string>
+    <string name="native_tweaks_cores" formatted="false">Núcleos</string>
+    <string name="native_tweaks_coresFast" formatted="false">Núcleos rápidos</string>
+    <string name="native_tweaks_coresAll" formatted="false">Qualquer núcleo</string>
+    <string name="native_tweaks_strict" formatted="false">Manter as threads só nesses núcleos</string>
+    <string name="native_tweaks_context" formatted="false">Janela de contexto (tokens)</string>
+    <string name="native_tweaks_batch" formatted="false">Lote do prompt</string>
+    <string name="native_tweaks_microBatch" formatted="false">Microlote</string>
+    <string name="native_tweaks_kv" formatted="false">Cache KV</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 e Q4_0 usam menos memória; no X6 Pro, Q8_0 com flash attention gerou 20% mais devagar.</string>
+    <string name="native_tweaks_flash" formatted="false">Flash attention</string>
+    <string name="native_tweaks_on" formatted="false">Ligado</string>
+    <string name="native_tweaks_off" formatted="false">Desligado</string>
+    <string name="native_tweaks_load" formatted="false">Pesos do modelo</string>
+    <string name="native_tweaks_loadMmap" formatted="false">Mapeados do armazenamento</string>
+    <string name="native_tweaks_loadLock" formatted="false">Mapeados e travados na RAM</string>
+    <string name="native_tweaks_loadRead" formatted="false">Lidos para a memória</string>
+    <string name="native_tweaks_moe" formatted="false">Carregar experts MoE sob demanda</string>
+    <string name="native_tweaks_timeout" formatted="false">Tempo máximo por geração</string>
+    <string name="native_tweaks_timeoutNote" formatted="false">Auto cresce com o máximo de tokens da resposta, para respostas longas e a Pesquisa profunda não serem cortadas. Uma geração que chega ao limite mantém o que já escreveu.</string>
+    <string name="native_tweaks_noLimit" formatted="false">Sem limite</string>
+    <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
+    <string name="native_settings_back" formatted="false">Voltar</string>
+    <string name="native_settings_textSize" formatted="false">Tamanho do texto</string>
+    <string name="native_settings_compact" formatted="false">Compacto</string>
+    <string name="native_settings_standard" formatted="false">Padrão</string>
+    <string name="native_settings_large" formatted="false">Grande</string>
+    <string name="native_settings_adaptiveTitle" formatted="false">Roteamento adaptativo</string>
+    <string name="native_settings_adaptiveNote" formatted="false">Escolhe um modelo por pergunta entre os instalados e pode conferir a resposta com as fontes.</string>
+    <string name="native_drawer_settings" formatted="false">Configurações</string>
+    <string name="native_about_airGappedBody" formatted="false">BOAR é um sistema de IA móvel que funciona offline, explorando roteamento adaptativo de modelos, busca local e inferência consciente dos recursos. Roda os modelos com o llama.cpp, embutido no app, e a busca híbrida local (SQLite FTS5 + embeddings no aparelho), sem nenhuma dependência de nuvem.</string>
+    <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
+    <string name="native_eval_adaptiveLater" formatted="false">O roteamento adaptativo ainda não está no app nativo; por isso só aparecem modelos fixos.</string>
+    <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar (memória insuficiente); o BOAR está respondendo com {{fallback}}. Escolha-o de novo no Catálogo de Modelos para tentar outra vez.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar (memória insuficiente). Escolha um modelo menor no Catálogo de Modelos.</string>
+    <string name="native_tweaks_thinking" formatted="false">Pensar antes de responder</string>
+    <string name="native_tweaks_thinkingNote" formatted="false">Deixa um modelo que pensa raciocinar primeiro. Auto: desligado, para o limite de tokens da resposta não ir para o raciocínio.</string>
+    <string name="native_tweaks_repack" formatted="false">Pesos reempacotados</string>
+    <string name="native_tweaks_repackNote" formatted="false">Auto: ligado (o prompt é lido cerca de 2x mais rápido). Depois de um carregamento sem memória, o próximo mantém os pesos mapeados do armazenamento.</string>
+    <string name="native_pin_enterTitle" formatted="false">Digite seu PIN</string>
+    <string name="native_pin_enterSubtitle" formatted="false">Suas conversas estão protegidas com ele.</string>
+    <string name="native_pin_wrong" formatted="false">PIN errado.</string>
+    <string name="native_pin_wait" formatted="false">Tentativas demais. Espere {{seconds}} s.</string>
+    <string name="native_pin_forgot" formatted="false">Esqueceu o PIN?</string>
+    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas?</string>
+    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagá-las remove o PIN também. Modelos, pacotes e documentos continuam.</string>
+    <string name="native_pin_forgotConfirm" formatted="false">Apagar conversas</string>
+    <string name="native_pin_forgotCountdown" formatted="false">Fecha em {{seconds}} s</string>
+    <string name="native_pin_currentTitle" formatted="false">PIN atual</string>
+    <string name="native_pin_newTitle" formatted="false">Escolha um PIN</string>
+    <string name="native_pin_newSubtitle" formatted="false">De 4 a 8 dígitos. Você vai digitá-lo sempre que abrir o BOAR.</string>
+    <string name="native_pin_confirmTitle" formatted="false">Digite de novo</string>
+    <string name="native_pin_mismatch" formatted="false">Os PINs não conferem. Escolha de novo.</string>
+    <string name="native_pin_offerTitle" formatted="false">Trancar o BOAR com um PIN?</string>
+    <string name="native_pin_offerBody" formatted="false">Com um PIN, suas conversas ficam guardadas lacradas: quem tiver seu celular ou os arquivos dele via USB não consegue lê-las. Dá para ativar ou remover depois, nas Configurações.</string>
+    <string name="native_pin_offerSet" formatted="false">Definir um PIN</string>
+    <string name="native_pin_offerSkip" formatted="false">Agora não</string>
+    <string name="native_settings_security" formatted="false">Segurança</string>
+    <string name="native_settings_pinOn" formatted="false">PIN ativo. As conversas ficam guardadas lacradas com ele.</string>
+    <string name="native_settings_pinOff" formatted="false">Sem PIN. Quem tiver o celular desbloqueado pode abrir suas conversas.</string>
+    <string name="native_settings_pinSet" formatted="false">Definir um PIN</string>
+    <string name="native_settings_pinChange" formatted="false">Trocar o PIN</string>
+    <string name="native_settings_pinRemove" formatted="false">Remover o PIN</string>
+    <string name="native_settings_clearChatsDone" formatted="false">Histórico de conversas apagado.</string>
+    <string name="native_settings_openCatalog" formatted="false">Abrir o catálogo de modelos</string>
+    <string name="native_settings_openDocuments" formatted="false">Abrir Meus documentos</string>
+    <string name="native_settings_activeModel" formatted="false">Respondendo com: {{model}}</string>
+    <string name="native_settings_installedCount" formatted="false">{{count}} instalados</string>
+    <string name="native_settings_packsInstalled" formatted="false">Pacotes de conhecimento no celular: {{packs}}</string>
+    <string name="native_settings_noPacks" formatted="false">Nenhum pacote ainda: só a biblioteca embutida.</string>
+    <string name="native_settings_documents" formatted="false">Seus documentos: {{count}} coleções</string>
+    <string name="native_telemetry_device" formatted="false">Aparelho</string>
+    <string name="native_telemetry_chip" formatted="false">Chip</string>
+    <string name="native_telemetry_cores" formatted="false">Núcleos</string>
+    <string name="native_telemetry_ram" formatted="false">RAM</string>
+    <string name="native_telemetry_features" formatted="false">Recursos de CPU para o llama.cpp</string>
+    <string name="native_telemetry_build" formatted="false">Build de CPU do motor</string>
+    <string name="native_telemetry_appMemory" formatted="false">Memória do app agora</string>
+    <string name="native_telemetry_storage" formatted="false">Armazenamento do BOAR</string>
+    <string name="native_telemetry_chats" formatted="false">Conversas salvas</string>
+    <string name="native_telemetry_evals" formatted="false">Avaliações neste celular</string>
+    <string name="native_telemetry_lastEval" formatted="false">Última avaliação</string>
+    <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} respondidas · mediana {{tps}} tok/s · {{date}}</string>
+    <string name="native_telemetry_none" formatted="false">nenhuma ainda</string>
+    <string name="native_telemetry_note" formatted="false">Nada daqui sai do celular. Resultados só são compartilhados pela tela de Avaliação, depois de você ver o que vai.</string>
+    <string name="native_voice_onDevice" formatted="false">Reconhecimento de fala no aparelho (o áudio fica no celular)</string>
+    <string name="native_browse_title" formatted="false">Explorar modelos</string>
+    <string name="native_browse_cta" formatted="false">Explorar modelos do Hugging Face</string>
+    <string name="native_browse_ctaNote" formatted="false">Modelos de texto em GGUF, um arquivo abaixo de 12 GB, que este app consegue rodar. Não verificados pelo BOAR.</string>
+    <string name="native_browse_size" formatted="false">Tamanho</string>
+    <string name="native_browse_sizeAny" formatted="false">Qualquer</string>
+    <string name="native_browse_sort" formatted="false">Ordenar</string>
+    <string name="native_browse_sortTrending" formatted="false">Em alta</string>
+    <string name="native_browse_sortDownloads" formatted="false">Mais baixados</string>
+    <string name="native_browse_sortLikes" formatted="false">Mais curtidos</string>
+    <string name="native_browse_sortNewest" formatted="false">Mais recentes</string>
+    <string name="native_browse_empty" formatted="false">Nenhum modelo de texto GGUF encontrado.</string>
+    <string name="native_browse_unvetted" formatted="false">Não verificado pelo BOAR</string>
+    <string name="native_browse_more" formatted="false">Carregando mais…</string>
+    <string name="native_browse_files" formatted="false">Arquivos</string>
+    <string name="native_tweaks_technicalDetails" formatted="false">Mostrar detalhes técnicos</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Sob cada resposta, toque no tempo e na velocidade para ver os detalhes (tempo até a primeira palavra, contexto, modelo); velocidade ao vivo no topo enquanto o BOAR responde; memória e armazenamento no fim do menu; Telemetria de hardware nas Configurações.</string>
+    <string name="native_tweaks_presets" formatted="false">Predefinições</string>
+    <string name="native_tweaks_preset_run" formatted="false">Corre, Javali</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores, o modelo travado na memória, sem limite de tempo. Mais calor e bateria.</string>
+    <string name="native_tweaks_preset_path" formatted="false">Trilha do Javali</string>
+    <string name="native_tweaks_preset_pathNote" formatted="false">Auto: o que medimos como melhor em celulares reais. Equilibrado.</string>
+    <string name="native_tweaks_preset_forage" formatted="false">Forrageio Tranquilo</string>
+    <string name="native_tweaks_preset_forageNote" formatted="false">Mais frio e mais bateria: 2 threads, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. Respostas mais lentas.</string>
+    <string name="native_tweaks_preset_cool" formatted="false">Esfriar</string>
+    <string name="native_tweaks_preset_coolNote" formatted="false">Para um celular quente: 1 thread, lotes pequenos, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. O mais lento.</string>
+    <string name="native_tweaks_presetCustom" formatted="false">Personalizado: seus próprios ajustes abaixo. Escolha uma predefinição para recomeçar a partir dela.</string>
+    <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
+    <string name="native_models_cancelDownload" formatted="false">Cancelar</string>
+    <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
+    <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
+    <string name="native_chat_stopping" formatted="false">Parando…</string>
+    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
+    <string name="native_personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução.</string>
+</resources>

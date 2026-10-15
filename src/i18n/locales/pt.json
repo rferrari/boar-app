@@ -132,7 +132,7 @@
       "subtitle": "BOAR — Inteligência Local Adaptativa"
     },
     "sections": {
-      "tone": "Tom do Assistente & Estilo de Resposta",
+      "tone": "Como o BOAR responde",
       "models": "Modelos de Raciocínio",
       "knowledgeBase": "Base de Conhecimento Offline (RAG)",
       "memory": "Configurações de Memória e Contexto",
@@ -222,7 +222,7 @@
       "customizeWhileWaiting": "Enquanto espera, deixe do seu jeito — escolha um tema e fonte abaixo.",
       "tipLabel": "💡 Aviso do terminal de campo",
       "tipText": "Após a inicialização, o BOAR é completamente autônomo. Você pode ativar o modo avião e usar o app em total isolamento, sem perda de funcionalidade.",
-      "launchButton": "🐗 Iniciar Terminal BOAR",
+      "launchButton": "Iniciar Terminal BOAR",
       "indexingError": "Erro de indexação: {{error}}",
       "buildingIndex": "Construindo base de conhecimento local & índice vetorial…",
       "waitingForDownloads": "Aguardando downloads…",
@@ -247,7 +247,7 @@
     }
   },
   "personalitySettings": {
-    "title": "Tom do assistente e estilo de resposta",
+    "title": "Como o BOAR responde",
     "customPromptPlaceholder": "Escreva seu próprio prompt de sistema…",
     "maxOutputTokens": "Máximo de tokens de saída",
     "maxOutputTokensNote": "Limita o tamanho de uma única resposta — quanto menor, mais rápido e mais econômico para a bateria do celular.",
@@ -316,7 +316,7 @@
     "openDrawer": "Abrir menu de navegação",
     "offline": "OFFLINE",
     "localLlmCore": "NÚCLEO LLM LOCAL",
-    "cycleTone": "Alternar tom do assistente",
+    "cycleTone": "Mudar como o BOAR responde",
     "newChatSession": "Nova sessão de chat",
     "deepResearch": "Pesquisa Aprofundada",
     "deepResearchActive": "Pesquisa Aprofundada Ativa",
@@ -382,7 +382,7 @@
     "repoBody": "O código-fonte, os manifestos de modelos quantizados e os scripts de indexação offline estão disponíveis em:"
   },
   "sourceFootnotes": {
-    "title": "Fontes verificadas offline",
+    "title": "Fontes consultadas",
     "localIndex": "ÍNDICE LOCAL"
   },
   "promptIdeasCarousel": {
@@ -575,6 +575,295 @@
       "tagline": "Respostas deste celular, com fontes",
       "fill": "Colocar no campo para editar",
       "ask": "Perguntar: {{question}}"
+    },
+    "receipt": {
+      "sourcePassage": "Trecho da fonte",
+      "localModel": "Modelo local",
+      "noOfflineSource": "Sem fonte offline",
+      "calculator": "Cálculo",
+      "started": "começou em {{time}}",
+      "offline": "offline",
+      "speed": "{{rate}} tok/s",
+      "details": "Detalhes de desempenho",
+      "load": "Carregar modelo",
+      "search": "Busca",
+      "prefill": "Leitura das fontes",
+      "context": "Contexto",
+      "start": "Início",
+      "words": "Gerado",
+      "wordCount": "~{{words}} palavras",
+      "total": "Total",
+      "verification": "Verificação",
+      "copy": "Copiar recibo",
+      "copied": "Recibo copiado",
+      "verified": {
+        "passed": "aprovada",
+        "failed": "reprovada",
+        "uncertain": "incerta"
+      },
+      "answeredIn": "Respondido em {{time}}",
+      "offlineMap": "Mapa offline",
+      "speedLabel": "Velocidade",
+      "speedBoth": "{{rate}} tok/s (~{{words}} palavras/s)",
+      "model": "Modelo",
+      "tokenCount": "{{tokens}} tokens (~{{words}} palavras)"
     }
+  },
+  "flows": {
+    "onboarding": {
+      "brandSub": "Assistente de pesquisa offline",
+      "introLabel": "Como funciona",
+      "phoneLabel": "Este celular",
+      "phoneMemory": "Memória",
+      "phoneFree": "Espaço livre",
+      "phoneEngine": "Roda em",
+      "phoneEngineValue": "No próprio celular",
+      "introBody": "Pesquisa com IA que roda inteira no seu celular. Depois de configurada, funciona sem internet, suas perguntas não saem do celular e cada resposta mostra as fontes que usou.",
+      "meta": {
+        "onDisk": "{{size}} no disco depois de instalar",
+        "time": "~{{minutes}} min a {{speed}}/s"
+      },
+      "start": "Começar",
+      "backToApp": "Voltar ao app",
+      "step2Title": "Escolha o que instalar",
+      "step2Sub": "Tudo é baixado uma vez e depois funciona offline.",
+      "step2SubOffline": "Esta versão não acessa a internet: você importa os arquivos uma vez, e depois tudo funciona offline.",
+      "step3Title": "Instalando",
+      "step3Sub": "Esta é a única vez que o BOAR usa a internet.",
+      "indexTitle": "Organizando a biblioteca do BOAR",
+      "indexSub": "O BOAR está organizando os artigos dos pacotes de conhecimento para achar tudo rápido. Ele só lê o que acabou de baixar, nunca suas fotos ou arquivos. Não precisa de internet.",
+      "package": {
+        "essential": {
+          "name": "Essencial",
+          "body": "Modelos de resposta e de busca, mais coleções básicas da Wikipédia."
+        },
+        "encyclopedia": {
+          "name": "Enciclopédia",
+          "body": "O Essencial mais 50 mil artigos da Wikipédia, para perguntas mais amplas."
+        }
+      },
+      "recommended": "Recomendado",
+      "alreadyDownloaded": "Já está no celular",
+      "noSpace": "Falta espaço: são necessários mais {{size}}.",
+      "install": "Baixar {{size}}",
+      "continue": "Continuar",
+      "back": "Voltar",
+      "backTitle": "Voltar para os pacotes?",
+      "backBody": "Os downloads em andamento continuam enquanto o BOAR estiver aberto.",
+      "stay": "Ficar aqui",
+      "goBack": "Voltar",
+      "totalLabel": "Download total",
+      "importedLabel": "Importado",
+      "ofFiles_one": "de {{total}} arquivo",
+      "ofFiles_other": "de {{total}} arquivos",
+      "keepOpenImport": "Mantenha o BOAR aberto enquanto ele confere os arquivos. Se sair, a conferência pode parar.",
+      "totalValue": "{{done}} / {{total}}",
+      "percentAnnounce": "{{pct}}% baixado",
+      "percentImportedAnnounce": "{{pct}}% importado",
+      "queued": "Na fila",
+      "importingLabel": "Importando",
+      "fileOf": "Arquivo {{n}} de {{total}} — {{name}}",
+      "bootChecking": "Conferindo os arquivos neste celular…",
+      "category": {
+        "answer": "Modelo de resposta",
+        "search": "Modelo de busca",
+        "knowledge": "Conhecimento",
+        "places": "Lugares",
+        "extras": "Também importado"
+      },
+      "categoryStatus": {
+        "failed": "Falhou",
+        "moving": "Baixando",
+        "importing": "Importando",
+        "ready": "Pronto",
+        "queued": "Na fila",
+        "import": "Importar"
+      },
+      "categoryHint": "Mostra os arquivos",
+      "categoryA11y": "{{name}}, {{done}} de {{total}} arquivos, {{pct}}%",
+      "openWhenReady": "Disponível quando todos os arquivos estiverem no celular",
+      "llmLabel": "Modelo",
+      "chooseAnswerTitle": "Assistente",
+      "chooseAnswerHint": "Escolher Rápido ou Mais preciso",
+      "workingMemory": "precisa de ~{{size}} de memória",
+      "currentItem": "Item {{n}} de {{total}} — {{name}}",
+      "keepOpenTitle": "Melhor com o BOAR aberto",
+      "keepOpenIndex": "O BOAR está organizando os próprios artigos. Se você sair, ele pausa e continua de onde parou quando você voltar.",
+      "stage": {
+        "start": "Início",
+        "choose": "Escolha",
+        "install": "Instalar",
+        "index": "Biblioteca",
+        "model": "Modelo",
+        "knowledge": "Conhecimento",
+        "download": "Download"
+      },
+      "stageOf": "Passo {{n}} de {{total}}: {{name}}",
+      "checking": "Conferindo",
+      "failedShort": "Falhou",
+      "downloadingLine": "{{pct}}% · {{done}} de {{total}}",
+      "ready": "Pronto",
+      "indexRow": "Organizando os pacotes de conhecimento",
+      "waitingDownloads": "Começa quando todos os arquivos estiverem no celular",
+      "indexStarting": "Começando",
+      "indexCounter": "{{done}} de {{total}} artigos do BOAR",
+      "minutesLeft_one": "falta cerca de {{count}} min",
+      "minutesLeft_other": "faltam cerca de {{count}} min",
+      "indexFailed": "A organização da biblioteca falhou",
+      "downloadFailed": "Um download falhou",
+      "restart": "Baixar de novo",
+      "restartHint": "Os downloads pararam de avançar?",
+      "keepOpen": "Os downloads vão mais rápido com o BOAR aberto. Se você sair, eles pausam e continuam de onde pararam quando você voltar.",
+      "doneTitle": "Pronto",
+      "doneBody": "Tudo roda offline a partir de agora.",
+      "doneSummary": "Neste celular",
+      "doneAnswer": "Modelo de resposta",
+      "doneKnowledge": "Conhecimento",
+      "doneCollections_one": "{{value}} coleção",
+      "doneCollections_other": "{{value}} coleções",
+      "donePlaces": "Lugares",
+      "doneIndex": "Biblioteca",
+      "doneArticles_one": "{{value}} artigo pronto para busca",
+      "doneArticles_other": "{{value}} artigos prontos para busca",
+      "doneAnnounce": "Configuração concluída. O BOAR está pronto.",
+      "open": "Abrir o BOAR",
+      "languageAnnounce": "Idioma: Português",
+      "smallerPackage": "Pacote menor",
+      "importTitle": "Importe os arquivos",
+      "importSub": "Esta versão não acessa a internet. Copie os arquivos para o celular e escolha-os aqui.",
+      "importHow": "A lista de arquivos e onde baixar cada um estão no guia de instalação offline:",
+      "copyLink": "Copiar link",
+      "linkCopied": "Link copiado",
+      "toImport": "Ainda não importado",
+      "importPlacesNote": "Os pacotes de lugares ainda não estão publicados para download: escolha os arquivos aqui (a região e o arquivo de lugares do mundo).",
+      "compactWhy": "O Mais preciso pode não rodar bem neste celular, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.",
+      "answerTier": {
+        "default": "Mais preciso",
+        "compact": "Rápido"
+      },
+      "compactLowRam": "Este celular tem {{ram}} de memória ou menos, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.",
+      "canLeaveTitle": "Pode sair do BOAR",
+      "indexReading": "Arquivando: {{title}}",
+      "loadingLines": {
+        "l1": "Alimentando o javali…",
+        "l2": "O javali parou para farejar uma trufa…",
+        "l3": "Afiando as presas…",
+        "l4": "Separando as bolotas por assunto…",
+        "l5": "Ensinando o javali a ler notas de rodapé…",
+        "l6": "Cavando fatos debaixo do carvalho…",
+        "l7": "O javali está lendo a enciclopédia inteira. Devagar.",
+        "l8": "Arrumando lanches para a viagem sem internet…",
+        "l9": "Conferindo cada fonte duas vezes…",
+        "l10": "Rolando na lama do conhecimento…",
+        "l11": "O javali achou um atalho. Era uma árvore.",
+        "l12": "Contando páginas com os cascos…"
+      },
+      "modelTitle": "Escolha o modelo de respostas",
+      "modelSub": "Ele escreve as respostas neste celular. Você pode trocar depois em Modelos.",
+      "knowledgeTitle": "Escolha o conhecimento"
+    },
+    "row": {
+      "copying": "Copiando",
+      "downloading": "Baixando",
+      "verifying": "Conferindo",
+      "loading": "Carregando",
+      "failed": "Falhou",
+      "failedAnnounce": "{{name}} falhou. Dá para tentar de novo.",
+      "verified": "Conferido",
+      "importChecking": "Conferindo {{name}}",
+      "importOther": "{{name}} é outro item, não este. Escolha o arquivo deste item.",
+      "unverified": "Não conferido",
+      "active": "Em uso",
+      "usedFor": "Usado para: {{roles}}",
+      "role": {
+        "answer": "Respostas",
+        "deep": "Aprofundar",
+        "search": "Busca"
+      },
+      "kind": {
+        "llm": "Modelo de IA",
+        "embedding": "Modelo de busca",
+        "corpus": "Conhecimento"
+      },
+      "progressLabel": "Progresso de {{name}}",
+      "fit": {
+        "streaming": "Maior que a memória deste celular, então roda mais devagar.",
+        "thrashing": "Pode ficar lento neste celular: usa quase toda a memória.",
+        "insufficient": "Não cabe: este celular não tem memória livre suficiente para rodá-lo."
+      },
+      "error": {
+        "network": "Sem conexão. Conecte-se e tente de novo.",
+        "stalled": "O download parou de avançar.",
+        "storage": "Falta espaço livre no celular.",
+        "hash-mismatch": "O arquivo veio diferente do esperado. Pegue uma cópia nova do arquivo e tente de novo.",
+        "empty-file": "O arquivo está vazio (0 bytes). Copie-o de novo para o celular.",
+        "unreadable-file": "O BOAR não conseguiu ler este arquivo.",
+        "corrupt": "O arquivo parece corrompido. Copie de novo ou escolha outro.",
+        "size-mismatch": "O arquivo veio incompleto. Pegue uma cópia nova do arquivo e tente de novo.",
+        "offline-variant": "Esta versão não acessa a internet. Importe o arquivo.",
+        "load": "Não foi possível carregar este modelo.",
+        "unknown": "Algo deu errado.",
+        "unknown-file": "Este arquivo não é um que o BOAR conhece. Escolha o arquivo indicado para este item.",
+        "too-large": "Este arquivo é maior do que o BOAR aceita para este tipo de item.",
+        "no-source": "Este item ainda não está publicado para download. Importe o arquivo."
+      },
+      "errorDetail": {
+        "interrupted": "Parou em {{done}} de {{total}}. Tente de novo para continuar de onde parou.",
+        "paused": "Sem progresso por {{seconds}} s. Toque em Tentar de novo para continuar."
+      },
+      "download": "Baixar {{size}}",
+      "retry": "Tentar de novo",
+      "use": "Usar nas respostas",
+      "remove": "Remover",
+      "inUseHint": "Em uso. Escolha outro modelo antes de remover este.",
+      "removeTitle": "Remover {{name}}?",
+      "removeBody": "Libera {{size}} neste celular. Dá para adicionar de novo depois.",
+      "removed": "{{name}} removido",
+      "wontFitTitle": "{{name}} não cabe neste celular",
+      "downloadAnyway": "Baixar",
+      "fitDetail": "Ele precisa de cerca de {{need}} de memória de trabalho que não dá para ler do armazenamento; há cerca de {{free}} livres de {{total}}. Estimativa.",
+      "importFile": "Importar {{size}}",
+      "importAnyway": "Importar",
+      "anywayHint": "{{size}} · pode não abrir neste celular",
+      "notOnDisk": "Não baixado",
+      "fitShort": {
+        "resident": "Cabe na memória",
+        "streaming": "Mais lento aqui",
+        "thrashing": "Pode ficar lento",
+        "insufficient": "Não cabe"
+      },
+      "mayClose": "Pode fechar o app",
+      "mayCloseWhy": "Grande demais para a memória deste celular",
+      "didNotOpen": "Não abriu aqui",
+      "wontFitHere": "Grande demais",
+      "wontFitWhy": "Precisa de mais memória do que este celular tem",
+      "wontFitNumbers": "Precisa de ~{{need}} de memória · este celular tem {{total}}",
+      "didNotOpenBefore": "O BOAR fechou da última vez que carregou o ",
+      "mayCloseTitle": "Usar este modelo?",
+      "mayCloseBefore": "O BOAR pode fechar ao carregar o ",
+      "mayCloseAfter": ". O Rápido é o recomendado aqui.",
+      "showAll": "Mostrar tudo",
+      "showLess": "Mostrar menos",
+      "keepCompact": "Manter o Rápido",
+      "useAnyway": "Usar mesmo assim",
+      "fitWhy": {
+        "streaming": "Maior que a memória deste celular",
+        "thrashing": "Usa quase toda a memória deste celular",
+        "insufficient": "Falta memória livre neste celular"
+      }
+    },
+    "assistant": {
+      "sub": {
+        "compact": "Respostas mais rápidas, menos memória",
+        "default": "Respostas melhores, um pouco mais lento"
+      }
+    },
+    "knowledge": {
+      "topicPacksTitle": "Pacotes temáticos",
+      "topicPacksFooter": "Coleções sobre um assunto, para ler sem internet. Cada arquivo é conferido antes do uso."
+    }
+  },
+  "nav": {
+    "knowledge": "Conhecimento"
   }
 }

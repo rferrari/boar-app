@@ -1,96 +1,53 @@
-# The BOAR Manifesto
+# Your questions. Your phone. Your AI.
 
-*An offline research companion for today, and a workbench for the one we're still waiting for.*
+The tools we use to think should be ours to keep.
 
-## The dream
+We ask AI questions we once kept in notebooks, brought to friends, or worked through alone. As these tools become part of how we learn and make decisions, who controls them matters. Whoever runs the service can change the price, change the terms, or close the door. A connection can fail. A question can leave a record we never meant to create.
 
-Vitalik described it plainly: a research tool that lives on your phone, works with
-no signal at all, and is more than half as good as internet search plus a frontier
-AI model. He also sketched how it might work: an extreme mixture-of-experts model,
-around 100B parameters, mostly sitting on disk, with less than 1B of them waking up
-for each token.
+We want AI to put more capability in more hands. That means building tools people can use without making every question depend on a distant server and someone else’s permission.
 
-That model doesn't exist yet. Nobody can download it today, and we can't train it
-ourselves.
+BOAR begins with a small AI and a library of knowledge on your phone. After the setup download, it answers without a network. The ambition is knowledge you can carry, examine, and pass on.
 
-We built BOAR anyway.
+## Your questions belong with you.
 
-## What BOAR is today
+You should be able to work through a worry, explore an unfamiliar idea, or ask a question you are embarrassed to ask out loud without sending it to a company’s server.
 
-**A useful offline companion.** Install it, let it download its models once, and
-put your phone in airplane mode. It still answers questions, explains things,
-compares ideas, and searches a local knowledge base, all on the device. Nothing
-leaves your phone. No account, no API, no Google Play Services.
+In BOAR, the model runs on your phone. No server receives your questions. That is a choice about where the work happens, and who gets to see it.
 
-**An honest workbench.** BOAR measures itself. Every answer records which model
-ran, how long it took to load, how long until the first word, how fast it
-generated, how much memory it used, and what it retrieved. Our first real-phone
-benchmarks (Xiaomi, Dimensity 8300, 11.6 GB RAM) look like this:
+The phone still needs protection. Local storage cannot protect a compromised device. We owe you a clear account of that boundary, just as we owe you a clear account of what stays on the phone.
 
-| Model | Speed | Median answer time | What we saw |
-|---|---|---|---|
-| Qwen2.5-1.5B | ~11–17 tok/s | 10–21 s | Fast, fine on simple questions, slips on synthesis; with the Wikipedia pack, 6/6 knowledge questions right |
-| LFM2.5-8B-A1B (MoE) | ~15 tok/s | 57 s | 8B total, ~1.5B active: fastest generation and the only one to solve the RAM question, but thinks so long 4 of 17 answers ran out of budget |
-| Phi-3.5-mini | ~4 tok/s | 73 s | Best comparisons, slow, invents citations |
-| Qwen2.5-7B | ~3 tok/s | 107 s | Accurate, often too slow to finish |
-| Instella-MoE-16B | — | — | Didn't load: architecture not supported yet |
+## A tool you depend on should remain in your hands.
 
-Not the dream, and we say so. Every number comes from a real phone, the raw
-results are in [docs/evidence](docs/evidence/), and every run is reproducible
-from this repository.
+You should be able to keep using a tool when its makers change direction. You should be able to inspect it, change it, and choose who you trust to maintain it.
 
-## What we believe
+BOAR’s code is open source under the MIT license. You can build it yourself, bring your own documents, and choose a compatible model. There is no account to suspend or subscription required to keep asking questions locally.
 
-1. **Offline means offline.** One download at setup, then nothing. Not "mostly
-   local", not "offline except when it matters".
-2. **Measure, don't hype.** A model card isn't a benchmark. Total parameters,
-   active parameters and "mobile-ready" labels mean little until a phone runs the
-   model and we write down what happened, failures included.
-3. **The phone decides.** Prompt processing, memory bandwidth, heat and the
-   runtime matter as much as the model. A model that thinks well but takes two
-   minutes to start talking isn't useful on a mountain.
-4. **Useful now beats perfect later.** 4–15 tok/s is enough to find out how to
-   treat a blister, what a museum is about, or why the train isn't running, when
-   there's no signal and nobody around to ask.
-5. **Open and reproducible.** Code, models, data sources and benchmark results
-   are all in the repo. If our numbers look wrong, run them yourself and tell us.
-6. **It should be fun.** Watching a new model boot on your phone, seeing if it
-   survives the reasoning questions, comparing notes with others: that's the
-   good part of building this.
+This is what sanctuary technology means to us: tools built so that relying on them gives someone else as little power over you as possible. Our responsibility is to make BOAR useful while leaving you free to take it in another direction.
 
-## Join us
+## Losing signal should not mean losing the tool.
 
-BOAR is a tool for anyone curious about what phones can really do.
+A connection is useful. It should not be a permanent condition of access to the knowledge you already carry.
 
-- **Test a new model before your next trip.** Found a promising GGUF on Hugging
-  Face? Download it from the app's model browser and benchmark it on your own
-  phone:
+On a train, in a mountain hut, or at home during an outage, the model and library should remain available. Airplane mode is a simple test of that promise after setup.
 
-  ```bash
-  npm run eval:device -- --models <model>
-  ```
+Building for the phone also sets a harder task: making useful AI fit the hardware people have. Storage, memory, battery, and heat matter. We want each improvement to make the tool practical for more people, including those whose connection is unreliable or expensive.
 
-  You get load time, time to first token, tokens/sec, peak memory and every
-  answer side by side. See [docs/EVAL_QUERIES.md](docs/EVAL_QUERIES.md).
-- **Share your results.** Different phones, different chips, different numbers.
-  A result from your device is data nobody else has.
-- **Break it.** Ask the questions a 1B model fails on. Find where retrieval pulls
-  in nonsense. Open an issue with the output.
-- **Build the missing pieces.** Expert-aware caching for mixture-of-experts
-  models streaming from storage. Bigger offline knowledge packs. Better routing
-  between small and large models. Each one moves us closer to the dream model
-  running here.
+## Knowledge should grow as it passes between people.
 
-Getting started: [README.md](README.md) for the app, [AGENTS.md](AGENTS.md) for
-building from source.
+A library becomes more useful when people can add what they know. A student collects material for a course. A neighbor gathers information about the place they live. Someone else checks it, corrects it, and passes it on.
 
-## The deal
+BOAR’s knowledge packs are files people can build and share. Sharing a copy leaves the original in your hands. We want that simple property to shape the project: people helping one another carry more knowledge, with room to question and improve what they receive.
 
-When the dream model finally arrives, a huge mixture-of-experts model that runs from
-a phone's storage and thinks like a frontier model, it should have a place
-to land: an app, real measurements, and people who already know how to
-test it.
+## Every answer should be open to challenge.
 
-Until then: keep your phone charged, pack BOAR, and go somewhere without signal.
+An answer can sound certain and still be wrong. Running it on your own phone does not change that.
 
-🐗
+BOAR shows the sources it used so you can check them. Sources themselves can be incomplete, and a model can misread them. We commit to publishing measurements with their conditions, reporting failures, and making our work reproducible. Confidence has to be earned in the open.
+
+The app is the first shape of this idea. There is more to build, and the people using it should help decide what comes next.
+
+Try it on your phone. Bring a question it gets wrong. Improve a pack. Read the code. Make a version we would not have thought to make.
+
+We are building toward a world where people can carry useful AI with them, keep their questions to themselves, and share what they learn.
+
+**Knowledge you can carry. Open source, and growing in public.**

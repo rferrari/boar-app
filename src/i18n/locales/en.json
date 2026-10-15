@@ -132,7 +132,7 @@
       "subtitle": "BOAR — Adaptive Local Intelligence"
     },
     "sections": {
-      "tone": "Assistant Tone & Response Style",
+      "tone": "How BOAR answers",
       "models": "Reasoning Models",
       "knowledgeBase": "Offline Knowledge Base (RAG)",
       "memory": "Memory & Context Settings",
@@ -222,7 +222,7 @@
       "customizeWhileWaiting": "While you wait, make it yours — pick a theme and font below.",
       "tipLabel": "💡 Field terminal notice",
       "tipText": "Once initialized, BOAR is completely self-contained. You can toggle airplane mode and use the app in complete isolation without loss of functionality.",
-      "launchButton": "🐗 Launch BOAR Terminal",
+      "launchButton": "Launch BOAR Terminal",
       "indexingError": "Indexing error: {{error}}",
       "buildingIndex": "Building local knowledge base & vector index…",
       "waitingForDownloads": "Waiting for downloads…",
@@ -247,7 +247,7 @@
     }
   },
   "personalitySettings": {
-    "title": "Assistant tone & response style",
+    "title": "How BOAR answers",
     "customPromptPlaceholder": "Write your own system prompt…",
     "maxOutputTokens": "Max output tokens",
     "maxOutputTokensNote": "Caps how long a single response can be — lower is faster and more battery-friendly on phone hardware.",
@@ -316,7 +316,7 @@
     "openDrawer": "Open Navigation Drawer",
     "offline": "OFFLINE",
     "localLlmCore": "LOCAL LLM CORE",
-    "cycleTone": "Cycle Assistant Tone",
+    "cycleTone": "Change how BOAR answers",
     "newChatSession": "New Chat Session",
     "deepResearch": "Deep Research",
     "deepResearchActive": "Deep Research Active",
@@ -382,7 +382,7 @@
     "repoBody": "Source code, quantized model manifests, and offline indexing scripts are available at:"
   },
   "sourceFootnotes": {
-    "title": "Offline verified sources",
+    "title": "Retrieved sources",
     "localIndex": "LOCAL INDEX"
   },
   "promptIdeasCarousel": {
@@ -575,6 +575,295 @@
       "tagline": "Answers from this phone, with sources",
       "fill": "Put in the input to edit",
       "ask": "Ask: {{question}}"
+    },
+    "receipt": {
+      "sourcePassage": "Source passage",
+      "localModel": "Local model",
+      "noOfflineSource": "No offline source",
+      "calculator": "Calculation",
+      "started": "started in {{time}}",
+      "offline": "offline",
+      "speed": "{{rate}} tok/s",
+      "details": "Performance details",
+      "load": "Model load",
+      "search": "Search",
+      "prefill": "Reading sources",
+      "context": "Context",
+      "start": "Start",
+      "words": "Generated",
+      "wordCount": "~{{words}} words",
+      "total": "Total",
+      "verification": "Verification",
+      "copy": "Copy receipt",
+      "copied": "Receipt copied",
+      "verified": {
+        "passed": "passed",
+        "failed": "failed",
+        "uncertain": "uncertain"
+      },
+      "answeredIn": "Answered in {{time}}",
+      "offlineMap": "Offline map",
+      "speedLabel": "Speed",
+      "speedBoth": "{{rate}} tok/s (~{{words}} words/s)",
+      "model": "Model",
+      "tokenCount": "{{tokens}} tokens (~{{words}} words)"
     }
+  },
+  "flows": {
+    "onboarding": {
+      "brandSub": "Offline research assistant",
+      "introLabel": "How it works",
+      "phoneLabel": "This phone",
+      "phoneMemory": "Memory",
+      "phoneFree": "Free space",
+      "phoneEngine": "Runs on",
+      "phoneEngineValue": "Right on this phone",
+      "introBody": "AI research that runs entirely on your phone. Once it is set up it works without internet, your questions never leave the phone, and every answer shows the sources behind it.",
+      "meta": {
+        "onDisk": "{{size}} on disk after install",
+        "time": "~{{minutes}} min at {{speed}}/s"
+      },
+      "start": "Get started",
+      "backToApp": "Back to the app",
+      "step2Title": "Choose what to install",
+      "step2Sub": "Everything is downloaded once and then works offline.",
+      "step2SubOffline": "This version has no internet access: you import the files once, and then everything works offline.",
+      "step3Title": "Installing",
+      "step3Sub": "This is the only time BOAR uses the internet.",
+      "indexTitle": "Organizing BOAR’s library",
+      "indexSub": "BOAR is sorting the articles in its knowledge packs so it can find them fast. It only reads what it just downloaded, never your photos or files. No internet needed.",
+      "package": {
+        "essential": {
+          "name": "Essential",
+          "body": "Answer and search models, plus core Wikipedia collections."
+        },
+        "encyclopedia": {
+          "name": "Encyclopedia",
+          "body": "Essential plus 50,000 Wikipedia articles, for broader questions."
+        }
+      },
+      "recommended": "Recommended",
+      "alreadyDownloaded": "Already on the phone",
+      "noSpace": "Not enough space: {{size}} more is needed.",
+      "install": "Download {{size}}",
+      "continue": "Continue",
+      "back": "Back",
+      "backTitle": "Go back to the packages?",
+      "backBody": "Downloads already running keep going while BOAR is open.",
+      "stay": "Stay here",
+      "goBack": "Go back",
+      "totalLabel": "Total download",
+      "importedLabel": "Imported",
+      "ofFiles_one": "of {{total}} file",
+      "ofFiles_other": "of {{total}} files",
+      "keepOpenImport": "Keep BOAR open while it checks the files. If you leave, the check may stop.",
+      "totalValue": "{{done}} / {{total}}",
+      "percentAnnounce": "{{pct}}% downloaded",
+      "percentImportedAnnounce": "{{pct}}% imported",
+      "queued": "Waiting",
+      "importingLabel": "Importing",
+      "fileOf": "File {{n}} of {{total}} — {{name}}",
+      "bootChecking": "Checking the files on this phone…",
+      "category": {
+        "answer": "Answer model",
+        "search": "Search model",
+        "knowledge": "Knowledge",
+        "places": "Places",
+        "extras": "Also imported"
+      },
+      "categoryStatus": {
+        "failed": "Failed",
+        "moving": "Downloading",
+        "importing": "Importing",
+        "ready": "Ready",
+        "queued": "Waiting",
+        "import": "To import"
+      },
+      "categoryHint": "Shows the files",
+      "categoryA11y": "{{name}}, {{done}} of {{total}} files, {{pct}}%",
+      "openWhenReady": "Available when every file is on the phone",
+      "llmLabel": "Model",
+      "chooseAnswerTitle": "Assistant",
+      "chooseAnswerHint": "Choose Fast or More accurate",
+      "workingMemory": "needs ~{{size}} of memory",
+      "currentItem": "Item {{n}} of {{total}} — {{name}}",
+      "keepOpenTitle": "Best with BOAR open",
+      "keepOpenIndex": "BOAR is organizing its own articles. If you leave, it pauses and picks up where it stopped when you come back.",
+      "stage": {
+        "start": "Start",
+        "choose": "Choose",
+        "install": "Install",
+        "index": "Library",
+        "model": "Model",
+        "knowledge": "Knowledge",
+        "download": "Download"
+      },
+      "stageOf": "Step {{n}} of {{total}}: {{name}}",
+      "checking": "Checking",
+      "failedShort": "Failed",
+      "downloadingLine": "{{pct}}% · {{done}} of {{total}}",
+      "ready": "Ready",
+      "indexRow": "Organizing the knowledge packs",
+      "waitingDownloads": "Starts when every file is on the phone",
+      "indexStarting": "Starting",
+      "indexCounter": "{{done}} of {{total}} BOAR articles",
+      "minutesLeft_one": "about {{count}} min left",
+      "minutesLeft_other": "about {{count}} min left",
+      "indexFailed": "Organizing the library failed",
+      "downloadFailed": "A download failed",
+      "restart": "Restart downloads",
+      "restartHint": "Downloads not moving?",
+      "keepOpen": "Downloads go fastest with BOAR open. If you leave, they pause, and they continue where they stopped when you come back.",
+      "doneTitle": "Ready",
+      "doneBody": "Everything runs offline from now on.",
+      "doneSummary": "On this phone",
+      "doneAnswer": "Answer model",
+      "doneKnowledge": "Knowledge",
+      "doneCollections_one": "{{value}} collection",
+      "doneCollections_other": "{{value}} collections",
+      "donePlaces": "Places",
+      "doneIndex": "Library",
+      "doneArticles_one": "{{value}} article ready to search",
+      "doneArticles_other": "{{value}} articles ready to search",
+      "doneAnnounce": "Setup finished. BOAR is ready.",
+      "open": "Open BOAR",
+      "languageAnnounce": "Language: English",
+      "smallerPackage": "Smaller package",
+      "importTitle": "Import the files",
+      "importSub": "This version has no internet access. Copy the files to the phone, then choose them here.",
+      "importHow": "The file list and where to get each file are in the offline install guide:",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied",
+      "toImport": "Not imported yet",
+      "importPlacesNote": "Place packs aren't published for download yet: choose their files here (the region and the world places file).",
+      "compactWhy": "More accurate may not run well on this phone, so Fast is selected. You can still choose More accurate.",
+      "answerTier": {
+        "default": "More accurate",
+        "compact": "Fast"
+      },
+      "compactLowRam": "This phone has {{ram}} of memory or less, so Fast is selected. You can still choose More accurate.",
+      "canLeaveTitle": "You can leave BOAR",
+      "indexReading": "Filing: {{title}}",
+      "loadingLines": {
+        "l1": "Feeding the boar…",
+        "l2": "The boar stopped to sniff a truffle…",
+        "l3": "Sharpening the tusks…",
+        "l4": "Sorting acorns by subject…",
+        "l5": "Teaching the boar to read footnotes…",
+        "l6": "Digging for facts under the oak tree…",
+        "l7": "The boar is reading the whole encyclopedia. Slowly.",
+        "l8": "Packing snacks for the trip offline…",
+        "l9": "Checking every source twice…",
+        "l10": "Rolling in the mud of knowledge…",
+        "l11": "The boar found a shortcut. It was a tree.",
+        "l12": "Counting pages with hooves…"
+      },
+      "modelTitle": "Choose the answer model",
+      "modelSub": "It writes the answers on this phone. You can change it later in Models.",
+      "knowledgeTitle": "Choose your knowledge"
+    },
+    "row": {
+      "copying": "Copying",
+      "downloading": "Downloading",
+      "verifying": "Checking",
+      "loading": "Loading",
+      "failed": "Failed",
+      "failedAnnounce": "{{name}} failed. Retry is available.",
+      "verified": "Checked",
+      "importChecking": "Checking {{name}}",
+      "importOther": "{{name}} is a different item, not this one. Choose this item's file.",
+      "unverified": "Not checked",
+      "active": "In use",
+      "usedFor": "Used for: {{roles}}",
+      "role": {
+        "answer": "Answers",
+        "deep": "Deep answers",
+        "search": "Search"
+      },
+      "kind": {
+        "llm": "AI model",
+        "embedding": "Search model",
+        "corpus": "Knowledge"
+      },
+      "progressLabel": "{{name}} progress",
+      "fit": {
+        "streaming": "Bigger than this phone's memory, so it runs slower.",
+        "thrashing": "May be slow on this phone: it needs most of its memory.",
+        "insufficient": "Won't fit: this phone doesn't have enough free memory to run it."
+      },
+      "error": {
+        "network": "No connection. Connect and try again.",
+        "stalled": "The download stopped making progress.",
+        "storage": "Not enough free space on the phone.",
+        "hash-mismatch": "The file doesn't match the expected one. Get a fresh copy of the file and try again.",
+        "empty-file": "The file is empty (0 bytes). Copy it to the phone again.",
+        "unreadable-file": "BOAR couldn't read this file.",
+        "corrupt": "The file looks damaged. Copy it again or choose another.",
+        "size-mismatch": "The file is incomplete. Get a fresh copy of the file and try again.",
+        "offline-variant": "This version has no internet access. Import the file instead.",
+        "load": "Couldn't load this model.",
+        "unknown": "Something went wrong.",
+        "unknown-file": "This file isn't one BOAR knows. Choose the file listed for this item.",
+        "too-large": "This file is larger than BOAR accepts for this kind of item.",
+        "no-source": "This item isn't published for download yet. Import its file instead."
+      },
+      "errorDetail": {
+        "interrupted": "Stopped at {{done}} of {{total}}. Try again to continue from there.",
+        "paused": "No progress for {{seconds}} s. Tap Try again to continue."
+      },
+      "download": "Download {{size}}",
+      "retry": "Try again",
+      "use": "Use for answers",
+      "remove": "Remove",
+      "inUseHint": "In use. Choose another model before removing this one.",
+      "removeTitle": "Remove {{name}}?",
+      "removeBody": "Frees {{size}} on this phone. You can add it again later.",
+      "removed": "{{name}} removed",
+      "wontFitTitle": "{{name}} won't fit on this phone",
+      "downloadAnyway": "Download",
+      "fitDetail": "It needs about {{need}} of working memory that can't be read from storage; about {{free}} is free of {{total}}. Estimate.",
+      "importFile": "Import {{size}}",
+      "importAnyway": "Import",
+      "anywayHint": "{{size}} · may not open on this phone",
+      "notOnDisk": "Not on disk",
+      "fitShort": {
+        "resident": "Fits in memory",
+        "streaming": "Slower here",
+        "thrashing": "May be slow",
+        "insufficient": "Won't fit"
+      },
+      "mayClose": "May close the app",
+      "mayCloseWhy": "Too big for this phone's memory",
+      "didNotOpen": "Didn't open here",
+      "wontFitHere": "Too big",
+      "wontFitWhy": "Needs more memory than this phone has",
+      "wontFitNumbers": "Needs ~{{need}} of memory · this phone has {{total}}",
+      "didNotOpenBefore": "BOAR closed the last time it loaded ",
+      "mayCloseTitle": "Use this model?",
+      "mayCloseBefore": "BOAR may close when it loads ",
+      "mayCloseAfter": ". Fast is the recommended one here.",
+      "showAll": "Show all",
+      "showLess": "Show less",
+      "keepCompact": "Keep Fast",
+      "useAnyway": "Use anyway",
+      "fitWhy": {
+        "streaming": "Larger than this phone's memory",
+        "thrashing": "Needs most of this phone's memory",
+        "insufficient": "Not enough free memory on this phone"
+      }
+    },
+    "assistant": {
+      "sub": {
+        "compact": "Quicker answers, less memory",
+        "default": "Better answers, a bit slower"
+      }
+    },
+    "knowledge": {
+      "topicPacksTitle": "Topic packs",
+      "topicPacksFooter": "Collections on one subject, readable without internet. Each file is checked before use."
+    }
+  },
+  "nav": {
+    "knowledge": "Knowledge"
   }
 }
