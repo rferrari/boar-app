@@ -133,7 +133,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun refreshTone() {
         val id = services.settings.personalityId ?: services.personalities.defaultId
-        val custom = services.settings.customSystemPrompt.orEmpty().isNotBlank()
+        val custom = BoarServices.SHOW_CUSTOM_STYLE && services.settings.customSystemPrompt.orEmpty().isNotBlank()
         val tones = services.personalities.personalities.filter { it.id != "custom" || custom }.map { it.id to it.icon }
         _state.update { it.copy(personalityId = id, toneIcon = services.personalities.get(id).icon, tones = tones, researchBannerHidden = services.settings.researchBannerHidden) }
     }

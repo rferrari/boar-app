@@ -250,6 +250,11 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     companion object {
+        /**
+         * The Custom answer style (a prompt the user writes) is hidden from Settings and the style sheet: it could be used to
+         * make BOAR say anything and post it as BOAR's own words. The setting and prompt still work if already chosen.
+         */
+        const val SHOW_CUSTOM_STYLE = false
         const val DEFAULT_PERSONALITY_ID = "detailed"
 
         @Volatile private var instance: BoarServices? = null
