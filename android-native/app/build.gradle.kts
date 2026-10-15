@@ -86,6 +86,11 @@ android {
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: ""}\"")
         // The release keeps the Expo app's id and key, so it installs over v1.1.x with its models.
         applicationId = "team.sopa.aoair"
+        // A second install beside BOAR (its own data): -Pboar.appIdSuffix=.labs gives team.sopa.aoair.labs, labelled
+        // "BOAR Labs", from the same release build.
+        val appIdSuffix = (findProperty("boar.appIdSuffix") as String?)?.takeIf { it.isNotBlank() }
+        appIdSuffix?.let { applicationIdSuffix = it }
+        manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
         versionCode = 4
