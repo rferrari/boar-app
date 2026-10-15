@@ -186,6 +186,18 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     val state by vm.state.collectAsState()
     // While setup's install step runs, setup stays: also when this composition was dropped for the lock screen.
     var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished && !SetupViewModel.running) "chat" else "setup") }
+    // The offline APK: its models are copied out once, before anything else; no network involved.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val bundled = remember { team.sopa.boar.app.BundledAssets(services, context.applicationContext) }
+    var unpacking by rememberSaveable { mutableStateOf(bundled.pending().isNotEmpty()) }
+    if (unpacking) {
+        team.sopa.boar.ui.setup.UnpackScreen(bundled) {
+            setup.restart()
+            screen = if (setup.ready() && !setup.unfinished) "chat" else "setup"
+            unpacking = false
+        }
+        return
+    }
     // The source a "Read the whole article" opened (SourceReaderScreen): kept across rotation, as the screen is.
     var readDoc by rememberSaveable { mutableStateOf("") }
     var readTitle by rememberSaveable { mutableStateOf("") }

@@ -669,4 +669,10 @@
     <string name="native_a11y_backspace" formatted="false">Apagar dígito</string>
     <string name="native_a11y_done" formatted="false">Confirmar</string>
     <string name="native_a11y_back" formatted="false">Voltar</string>
+    <string name="native_unpack_title" formatted="false">Preparando o BOAR para uso offline</string>
+    <string name="native_unpack_body" formatted="false">Descompactando os modelos que vieram com o app. Acontece uma vez, leva um ou dois minutos e não precisa de rede.</string>
+    <string name="native_unpack_progress" formatted="false">{{done}} de {{total}} GB</string>
+    <string name="native_unpack_noSpace" formatted="false">Sem espaço livre suficiente: são necessários cerca de {{gb}} GB. Libere espaço e tente de novo.</string>
+    <string name="native_unpack_failed" formatted="false">Um arquivo de modelo não foi descompactado corretamente. Tente de novo; se continuar falhando, reinstale o app.</string>
+    <string name="native_unpack_retry" formatted="false">Tentar de novo</string>
 </resources>
