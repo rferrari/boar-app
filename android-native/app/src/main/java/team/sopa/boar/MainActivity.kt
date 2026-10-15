@@ -178,6 +178,18 @@ internal fun afterSetup(pinSet: Boolean) = if (pinSet) "chat" else "pinOffer"
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
     val state by vm.state.collectAsState()
     var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished) "chat" else "setup") }
+    // The offline APK: its models are copied out once, before anything else; no network involved.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val bundled = remember { team.sopa.boar.app.BundledAssets(services, context.applicationContext) }
+    var unpacking by rememberSaveable { mutableStateOf(bundled.pending().isNotEmpty()) }
+    if (unpacking) {
+        team.sopa.boar.ui.setup.UnpackScreen(bundled) {
+            setup.restart()
+            screen = if (setup.ready() && !setup.unfinished) "chat" else "setup"
+            unpacking = false
+        }
+        return
+    }
     if (screen == "setup") {
         val setupState by setup.state.collectAsState()
         // Downloads pause in the background on MIUI: the screen stays on while setup runs.

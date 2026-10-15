@@ -557,4 +557,10 @@
     <string name="native_documents_personalNote" formatted="false">Ask about them with the Personal Files style.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Personal Files · {{count}} collection</string>
     <string name="native_documents_personalFolded_other" formatted="false">Personal Files · {{count}} collections</string>
+    <string name="native_unpack_title" formatted="false">Preparing BOAR for offline use</string>
+    <string name="native_unpack_body" formatted="false">Unpacking the models that came with this app. It happens once, takes a minute or two and needs no network.</string>
+    <string name="native_unpack_progress" formatted="false">{{done}} of {{total}} GB</string>
+    <string name="native_unpack_noSpace" formatted="false">Not enough free space: about {{gb}} GB is needed. Free some space and try again.</string>
+    <string name="native_unpack_failed" formatted="false">A model file didn\'t unpack correctly. Try again; if it keeps failing, reinstall the app.</string>
+    <string name="native_unpack_retry" formatted="false">Try again</string>
 </resources>
