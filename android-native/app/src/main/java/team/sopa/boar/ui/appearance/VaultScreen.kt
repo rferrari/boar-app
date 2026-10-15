@@ -66,7 +66,9 @@ fun ThemePicker(vault: TruffleVault, themeId: String?, onTheme: (String) -> Unit
         // Unlocked themes show (and apply) only while Boar Avatars is on.
         val openThemes = Themes.all.filter { it.id in Themes.open || (avatarsOn && (it.id in Themes.starter || it.id in state.themes)) }
         val selected = Themes.byId(themeId?.takeIf { avatarsOn || it in Themes.open }).id
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        // Wraps like Settings' other choices: scrolling sideways cut the third theme at the edge (Large text, Oct 15).
+        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             for (th in openThemes) Chip("${th.icon} ${th.name}", th.id == selected) { onTheme(th.id) }
         }
         val locked = Themes.all.size - openThemes.size
@@ -89,8 +91,10 @@ fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
         Text(t(if (TruffleVault.LAUNCHER_ICONS) "native.vault.iconNoteLauncher" else "native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).clickable(onClick = onOpenVault).padding(12.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(t("native.vault.card", "n" to state.unlocked.size, "total" to Vault.RULES.size), style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
-            Text(t("native.vault.open"), style = Boar.type.body, color = c.textAccentEmerald)
+            Text(t("native.vault.card", "n" to state.unlocked.size, "total" to Vault.RULES.size), style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f).padding(end = 8.dp))
+            // One line: the arrow was left alone on a second line at Large text.
+            Text(t("native.vault.open"), style = Boar.type.body, color = c.textAccentEmerald, maxLines = 1, softWrap = false)
         }
     }
 }
