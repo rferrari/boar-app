@@ -48,6 +48,8 @@
     <string name="native_labs_image_style_y2k" formatted="false">Y2K</string>
     <string name="native_labs_image_style_lofi" formatted="false">Lo-fi</string>
     <string name="native_labs_image_style_watercolor" formatted="false">Aquarela</string>
+    <string name="native_labs_image_seedKeep" formatted="false">🔒 Mesma semente {{seed}}</string>
+    <string name="native_labs_image_seedNew" formatted="false">🎲 Nova semente</string>
     <string name="native_labs_image_shape_square" formatted="false">Quadrado</string>
     <string name="native_labs_image_shape_portrait" formatted="false">Retrato</string>
     <string name="native_labs_image_shape_banner" formatted="false">Banner</string>

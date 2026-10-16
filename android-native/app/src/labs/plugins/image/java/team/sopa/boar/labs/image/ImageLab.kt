@@ -31,6 +31,23 @@ object ImageLab {
      * banner sizes are candidates to time on the X6 (Oct 16) before the list is cut to the ones kept; 256 px broke the
      * shapes on Oct 13, so 576×256 is the low end.
      */
+    /** What a drawing was made from, kept beside it as <image>.png.json: subject, style key, size key, seed. */
+    data class Recipe(val subject: String, val style: String, val size: String, val seed: Int)
+
+    fun recipeFile(image: java.io.File) = java.io.File(image.path + ".json")
+
+    fun writeRecipe(image: java.io.File, r: Recipe) {
+        runCatching { recipeFile(image).writeText(org.json.JSONObject().put("subject", r.subject).put("style", r.style).put("size", r.size).put("seed", r.seed).toString()) }
+    }
+
+    /** The recipe saved with [image]; null for drawings made before recipes were kept. */
+    fun recipeOf(image: java.io.File): Recipe? = runCatching {
+        org.json.JSONObject(recipeFile(image).readText()).let { o -> Recipe(o.getString("subject"), o.getString("style"), o.getString("size"), o.getInt("seed")) }
+    }.getOrNull()
+
+    /** Deletes a drawing and its recipe. */
+    fun deleteDrawing(image: java.io.File) { image.delete(); recipeFile(image).delete() }
+
     data class Canvas(val w: Int, val h: Int) {
         /** "384" for a square (the key older saves and times used), "384x512" otherwise. */
         val key: String get() = if (w == h) "$w" else "${w}x$h"
@@ -129,6 +146,9 @@ data class ImageLabState(
     val lastChat: String? = null,
     /** What the shown picture was drawn from, for Regenerate. */
     val subject: String? = null,
+    /** The shown picture's seed, and whether the next drawing reuses it (same composition, new words). */
+    val seed: Int? = null,
+    val seedLocked: Boolean = false,
 )
 
 class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
@@ -179,7 +199,17 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setStyle(s: ImageLab.Style) = _state.update { it.copy(style = s) }
     fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c) }
-    fun show(f: File) = _state.update { it.copy(image = f, seconds = null, error = null) }
+    /** Shows [f] and puts back what it was drawn from (style, size, seed) when it has a recipe; the screen fills the subject. */
+    fun show(f: File) {
+        val r = ImageLab.recipeOf(f)
+        _state.update { s ->
+            s.copy(image = f, seconds = null, error = null, subject = r?.subject ?: s.subject, seed = r?.seed,
+                style = r?.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } } ?: s.style,
+                size = r?.size?.let { ImageLab.Canvas.of(it) } ?: s.size)
+        }
+    }
+
+    fun setSeedLocked(on: Boolean) = _state.update { it.copy(seedLocked = on && it.seed != null) }
 
     fun generate(subject: String) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
@@ -189,11 +219,11 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         // The old picture goes: its square shows the drawing in progress until the new one arrives.
         _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null) }
         job = viewModelScope.launch {
-            runCatching { SdRunner.draw(getApplication(), subject, s.style, s.size) { ph -> _state.update { it.copy(phase = ph) } } }
+            runCatching { SdRunner.draw(getApplication(), subject, s.style, s.size, seed = s.seed.takeIf { s.seedLocked }) { ph -> _state.update { it.copy(phase = ph) } } }
                 .onSuccess { d ->
                     // Regenerate: the new picture takes the old one's place, which is deleted, not kept in the gallery.
-                    replacing?.takeIf { it != d.file }?.delete()
-                    _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim()) }
+                    replacing?.takeIf { it != d.file }?.let { ImageLab.deleteDrawing(it) }
+                    _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim(), seed = d.seed) }
                 }
                 .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = e.message) } }
             refresh()
@@ -211,7 +241,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     fun cancel() { SdRunner.cancel(); job?.cancel(); _state.update { it.copy(phase = null) } }
 
     fun deleteAll(files: Collection<File>) {
-        files.forEach { it.delete() }
+        files.forEach { ImageLab.deleteDrawing(it) }
         if (_state.value.image in files) _state.update { it.copy(image = null, seconds = null) }
         refresh()
     }
@@ -226,7 +256,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun delete(f: File) {
-        f.delete()
+        ImageLab.deleteDrawing(f)
         if (_state.value.image == f) _state.update { it.copy(image = null, seconds = null) }
         refresh()
     }

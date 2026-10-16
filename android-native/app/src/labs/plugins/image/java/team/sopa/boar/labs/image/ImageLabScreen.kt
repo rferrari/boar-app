@@ -180,7 +180,15 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                     if (busy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Busy(t("native.labs.image.phase.${state.phase}"))
                         Button(t("common.cancel")) { vm.cancel() }
-                    } else Button(t("native.labs.image.generate"), enabled = subject.isNotBlank()) { vm.generate(subject) }
+                    } else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Button(t("native.labs.image.generate"), enabled = subject.isNotBlank()) { vm.generate(subject) }
+                        // Seed lock: the next drawing reuses the shown one's seed, so changed words keep its composition.
+                        state.seed?.let { sd ->
+                            Chip(if (state.seedLocked) t("native.labs.image.seedKeep", "seed" to sd) else t("native.labs.image.seedNew"), state.seedLocked, Modifier.weight(1f)) {
+                                vm.setSeedLocked(!state.seedLocked)
+                            }
+                        }
+                    }
                 }
             }
             state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
@@ -201,7 +209,8 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
             if (state.gallery.isNotEmpty()) {
                 Label(t("native.labs.image.gallery"))
                 // The latest 25 as a 5×5 grid; the rest, and deleting, in the media manager.
-                Thumbs(state.gallery.take(GRID), columns = 5, selected = setOfNotNull(state.image)) { vm.show(it) }
+                // Tapping a drawing puts back its subject, style, size and seed (prompt history).
+                Thumbs(state.gallery.take(GRID), columns = 5, selected = setOfNotNull(state.image)) { f -> vm.show(f); ImageLab.recipeOf(f)?.let { subject = it.subject } }
                 Text(t(if (state.gallery.size > GRID) "native.labs.image.showMore" else "native.labs.image.manage", "count" to state.gallery.size),
                     style = Boar.type.caption, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onManage).padding(vertical = 6.dp))
@@ -249,7 +258,8 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
         }
         Text(t("native.labs.image.managerNote"), style = Boar.type.caption, color = c.textMuted)
         if (files.isEmpty()) Text(t("native.labs.image.managerEmpty"), style = Boar.type.body, color = c.textSecondary)
-        Thumbs(files, columns = 4, selected = picked) { f -> picked = if (f in picked) picked - f else picked + f }
+        var viewing by remember { mutableStateOf<File?>(null) }
+        Thumbs(files, columns = 4, selected = picked) { f -> picked = if (f in picked) picked - f else picked + f; viewing = if (f in picked) f else picked.lastOrNull() }
         if (picked.isNotEmpty()) {
             if (confirm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(t("native.labs.image.deleteConfirm", "count" to picked.size), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
@@ -259,6 +269,14 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
                         .clickable { vm.deleteAll(picked); picked = emptySet(); confirm = false }.padding(horizontal = 16.dp, vertical = 10.dp))
             } else Text(t("native.labs.image.deleteSelected", "count" to picked.size), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.crimson400,
                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, c.crimson400, RoundedCornerShape(8.dp)).clickable { confirm = true }.padding(horizontal = 16.dp, vertical = 10.dp))
+        }
+        // The selected drawing in full, at its own shape, with what it was drawn from.
+        viewing?.takeIf { it in picked && it.isFile }?.let { f ->
+            Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
+            ImageLab.recipeOf(f)?.let { r ->
+                Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${ImageLab.Canvas.of(r.size)?.label ?: r.size} · seed ${r.seed}",
+                    style = Boar.type["mono.xs"], color = c.textDim)
+            }
         }
     }
 }

@@ -33,19 +33,21 @@ object SdRunner {
 
     fun outDir(ctx: Context) = File(ctx.filesDir, "labs/images")
 
-    data class Drawn(val file: File, val seconds: Double?)
+    data class Drawn(val file: File, val seconds: Double?, val seed: Int)
 
     /** Draws [subject] in [style]; [onPhase] gets "loading", "drawing", "decoding". Throws on failure. */
-    suspend fun draw(ctx: Context, subject: String, style: ImageLab.Style, size: ImageLab.Canvas, onPhase: (String) -> Unit = {}): Drawn = lock.withLock {
+    /** [seed]: null draws a new random one (the default); a seed kept from the last drawing holds its composition. */
+    suspend fun draw(ctx: Context, subject: String, style: ImageLab.Style, size: ImageLab.Canvas, seed: Int? = null, onPhase: (String) -> Unit = {}): Drawn = lock.withLock {
         withContext(Dispatchers.IO) {
             val bin = engine(ctx) ?: error("no image engine in this build")
             val out = File(outDir(ctx).apply { mkdirs() }, "${System.currentTimeMillis()}-${style.key}-${size.key}.png")
             onPhase("loading")
+            val useSeed = seed ?: Random.nextInt(1, Int.MAX_VALUE)
             val started = System.nanoTime()
             // The 4 fast cores on an 8-core phone, as measured; elsewhere the scheduler picks.
             val pin = if (Runtime.getRuntime().availableProcessors() == 8 && File("/system/bin/taskset").exists()) listOf("/system/bin/taskset", "f0") else emptyList()
             val cmd = pin + listOf(bin.path, "-m", modelFile(ctx).path, "-p", style.prompt(subject), "--cfg-scale", "1", "--steps", "1",
-                "-W", "${size.w}", "-H", "${size.h}", "-t", "4", "--seed", "${Random.nextInt(1, Int.MAX_VALUE)}", "-o", out.path)
+                "-W", "${size.w}", "-H", "${size.h}", "-t", "4", "--seed", "$useSeed", "-o", out.path)
             val p = ProcessBuilder(cmd).redirectErrorStream(true).start().also { process = it }
             var done = false
             var drawn: Drawn? = null
@@ -54,7 +56,13 @@ object SdRunner {
                 // Cancelled (the screen closed, ✕ on an illustration): stop sd-cli, which ends the read below.
                 kotlinx.coroutines.coroutineScope {
                     val stopper = launch { try { kotlinx.coroutines.awaitCancellation() } finally { if (!done) p.destroy() } }
-                    try { readAll(p, out, size, started, onPhase).also { done = true; drawn = it } } finally { stopper.cancel() }
+                    try {
+                        readAll(p, out, size, started, onPhase).copy(seed = useSeed).also { d ->
+                            // What it was drawn from, next to it: tapping it later puts these back (prompt history, seed lock).
+                            ImageLab.writeRecipe(out, ImageLab.Recipe(subject.trim(), style.key, size.key, useSeed))
+                            done = true; drawn = d
+                        }
+                    } finally { stopper.cancel() }
                 }
             } catch (e: Throwable) {
                 failure = e
@@ -85,7 +93,7 @@ object SdRunner {
         val code = p.waitFor()
         if (code != 0 || !out.exists()) { out.delete(); error("sd-cli exit $code: ${tail.joinToString(" | ").take(400)}") }
         ImageLab.recordTime(size, (System.nanoTime() - started) / 1e9)
-        return Drawn(out, seconds)
+        return Drawn(out, seconds, 0)
     }
 
     fun cancel() { process?.destroy() }

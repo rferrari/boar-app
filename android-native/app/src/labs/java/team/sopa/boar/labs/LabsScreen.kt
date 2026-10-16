@@ -200,5 +200,7 @@ fun StatusChip(status: LabStatus) {
     // UNDER REVIEW reads as a warning: red and a size up from the other tags.
     val review = status == LabStatus.REVIEW
     Text(t("native.labs.status.${status.name.lowercase()}"), style = Boar.type["mono.xs"].copy(fontSize = if (review) 11.sp else 9.sp), color = fg, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.background(bg, RoundedCornerShape(4.dp)).padding(horizontal = if (review) 8.dp else 6.dp, vertical = if (review) 3.dp else 2.dp))
+        // A dark base under the tint keeps the tag readable over a tile's avatar.
+        modifier = Modifier.background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).background(bg, RoundedCornerShape(4.dp))
+            .padding(horizontal = if (review) 8.dp else 6.dp, vertical = if (review) 3.dp else 2.dp))
 }
