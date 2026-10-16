@@ -102,7 +102,8 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", true) }
+        // Every lab starts off: turning on Boar Labs shows the grid, and the user switches on each lab to try (Oct 16).
+        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", false) }
         on.value = p.getBoolean("labs.on", false)
     }
 
@@ -111,7 +112,7 @@ object LabPrefs {
         get() = BuildConfig.EXPERIMENTAL_FEATURES && on.value
         set(v) { team.sopa.boar.app.DebugLog.settingChanged("labs.on", on.value, v); on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
 
-    fun enabled(id: String) = switches[id] ?: true
+    fun enabled(id: String) = switches[id] ?: false
 
     fun setEnabled(id: String, on: Boolean) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)

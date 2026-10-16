@@ -3,7 +3,7 @@
     <string name="native_labs_image_title" formatted="false">Boar Designer</string>
     <string name="native_labs_image_intro" formatted="false">Experimental. Draws one illustration on this phone, offline. Pick a style and type what to draw.</string>
     <string name="native_labs_image_noEngine" formatted="false">This build has no image engine. Build with -Pboar.labs=true after scripts/build-sd-cli.sh.</string>
-    <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet.</string>
+    <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet. It needs internet once to download; after that, drawing works offline.</string>
     <string name="native_labs_image_download" formatted="false">Download (683 MB)</string>
     <string name="native_labs_image_downloading" formatted="false">Downloading… {{pct}}%</string>
     <string name="native_labs_image_style" formatted="false">STYLE</string>
