@@ -100,6 +100,15 @@ class MainActivity : ComponentActivity() {
         BoarServices.get(this).onTrimMemory(level)
     }
 
+    /** Settings → Screen rotation: Auto follows the phone's own rotation lock; Portrait and Landscape hold it. */
+    private fun applyOrientation(mode: String) {
+        requestedOrientation = when (mode) {
+            "portrait" -> android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+            "landscape" -> android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+            else -> android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -108,6 +117,7 @@ class MainActivity : ComponentActivity() {
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }
+        applyOrientation(services.settings.screenOrientation)
         setContent {
             val equipped by services.vault.icon.collectAsState()
             val avatarsOn by services.vault.enabled.collectAsState()
@@ -117,6 +127,7 @@ class MainActivity : ComponentActivity() {
             val prefs = object : DisplayPrefs {
                 override fun setTheme(id: String) { theme = id }
                 override fun setFontScale(scale: String) { fontScale = scale }
+                override fun setOrientation(mode: String) { applyOrientation(mode) }
                 override fun setLanguage(id: String?) { recreate() }
             }
             androidx.compose.runtime.CompositionLocalProvider(team.sopa.boar.appearance.LocalTruffle provides truffle) {
@@ -246,7 +257,13 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
-    LaunchedEffect(drawer.isOpen, state.answeringId) { if (drawer.isOpen) sessions = services.chats.listSessions() }
+    LaunchedEffect(drawer.isOpen, state.answeringId) {
+        if (drawer.isOpen) sessions = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            // Old "<think>" titles (named by a reasoning model before Oct 15) read as the chat's first question.
+            services.chats.repairThinkingTitles()
+            services.chats.listSessions()
+        }
+    }
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {

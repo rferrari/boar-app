@@ -20,6 +20,14 @@ class SourceGroupsTest {
         assertEquals(listOf("b", "c", "a"), g.items.map { it.doc })
     }
 
+    @Test fun samePageFromTwoPacksIsOneArticle() {
+        val vital = SourceGroups.articleKey("Wikipedia — https://en.wikipedia.org/wiki/Methane", "pack:wiki-vital5:Methane", "Methane")
+        val big = SourceGroups.articleKey("Wikipedia — https://en.wikipedia.org/wiki/Methane (CC BY-SA 4.0)", "pack:enwiki:a42", "Methane")
+        assertEquals(vital, big)
+        assertEquals("doc-7", SourceGroups.articleKey(null, "doc-7", "Notes"))
+        assertEquals("Notes", SourceGroups.articleKey("My notes", null, "Notes"))
+    }
+
     @Test fun renumbersCitations() {
         val map = mapOf(1 to 2, 2 to 1, 3 to 2, 4 to 1)
         assertEquals("Methane [1] traps heat [2]; ice [2].", SourceGroups.renumber("Methane [2][4] traps heat [1]; ice [3].", map))

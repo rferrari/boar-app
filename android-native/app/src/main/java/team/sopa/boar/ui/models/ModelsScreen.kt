@@ -48,6 +48,7 @@ import team.sopa.boar.models.ModelsViewModel
 import team.sopa.boar.models.Row as AssetRow
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import team.sopa.boar.ui.theme.BrandType
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -165,7 +166,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             }
         }
         // Line height follows the text size (a fixed 18 sp packed the lines at Large).
-        Text(item.description, style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
+        // Models added before the rename keep the old name in their saved description.
+        Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
         row?.error?.let { e ->
             Row(Modifier.fillMaxWidth().background(c.crimsonBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("⚠️", fontSize = 12.sp)
@@ -276,14 +278,15 @@ private fun StatusBadge(present: Boolean, active: Boolean, downloading: Boolean)
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (active && present) Box(Modifier.size(6.dp).background(c.emerald400, CircleShape))
-        Text(text as String, style = mono.copy(fontSize = 9.sp), color = fg as Color, fontWeight = FontWeight.ExtraBold)
+        Text(text as String, style = mono.copy(fontSize = (9 * BrandType.factor(Boar.type.scale)).sp), color = fg as Color, fontWeight = FontWeight.ExtraBold)
     }
 }
 
 @Composable
 internal fun SmallButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type.titleSm.copy(fontSize = 12.sp), color = c.textAccentEmerald,
+    // Scaled with Settings → Text size: fixed at 12 sp they stayed tiny at Large (X6, Oct 16).
+    Text(label, style = Boar.type.titleSm.copy(fontSize = (12 * BrandType.factor(Boar.type.scale)).sp), color = c.textAccentEmerald,
         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp))
             .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp))
 }

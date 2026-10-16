@@ -79,7 +79,7 @@ class AppSettings(private val file: File) {
     companion object {
         /** What "Reset settings" clears ([resetPreferences]). */
         val PREFERENCE_KEYS = listOf(
-            "themeId", "fontScale", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
+            "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
         )
@@ -121,6 +121,8 @@ class AppSettings(private val file: File) {
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))
+    /** "auto" (follows the phone's rotation setting), "portrait" or "landscape". */
+    var screenOrientation: String get() = str("screenOrientation") ?: "auto"; set(v) = set("screenOrientation", JsonPrimitive(v))
     var languageId: String? get() = str("languageId"); set(v) = set("languageId", v?.let(::JsonPrimitive))
     var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: true; set(v) = set("hapticsEnabled", JsonPrimitive(v))

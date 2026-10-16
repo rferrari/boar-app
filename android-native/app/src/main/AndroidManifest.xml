@@ -11,6 +11,8 @@
         <package android:name="app.grapheneos.apps" />
         <package android:name="com.google.android.gms" />
     </queries>
+    <!-- Settings → Haptic feedback (a normal permission: granted at install, no prompt). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:label="${appLabel}"
         android:icon="@mipmap/ic_launcher"

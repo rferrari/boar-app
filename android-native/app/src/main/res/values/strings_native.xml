@@ -38,6 +38,10 @@
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
     <string name="native_settings_back" formatted="false">Back</string>
     <string name="native_settings_textSize" formatted="false">Text size</string>
+    <string name="native_settings_orientation" formatted="false">Screen rotation</string>
+    <string name="native_settings_orientation_auto" formatted="false">Auto</string>
+    <string name="native_settings_orientation_portrait" formatted="false">Portrait</string>
+    <string name="native_settings_orientation_landscape" formatted="false">Landscape</string>
     <string name="native_settings_compact" formatted="false">Compact</string>
     <string name="native_settings_standard" formatted="false">Standard</string>
     <string name="native_settings_large" formatted="false">Large</string>
@@ -315,7 +319,7 @@
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
-    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate on taps, sends and finished answers, across the app, not just voice input.</string>
+    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above. Download it from there.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>

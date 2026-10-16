@@ -56,7 +56,7 @@ network.
 
 ## iOS
 
-The iPhone app and its build guide live on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch, which builds both platforms. `main` is Android only.
+The iPhone app and its build guide live on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch, which builds both platforms. `main` is Android only.
 
 ## Development
 

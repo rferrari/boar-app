@@ -16,7 +16,7 @@
     <string name="drawer_newChat" formatted="false">Nova Sessão de Pesquisa</string>
     <string name="drawer_recentSessions" formatted="false">Sessões recentes</string>
     <string name="modelCatalogScreen_title" formatted="false">Catálogo de Modelos</string>
-    <string name="modelCatalogScreen_subtitle" formatted="false">Pesos Offline Locais Verificados</string>
+    <string name="modelCatalogScreen_subtitle" formatted="false">Modelos que rodam offline, sem servidor</string>
     <string name="modelCatalogScreen_filters_all" formatted="false">Todos</string>
     <string name="modelCatalogScreen_filters_llm" formatted="false">LLM</string>
     <string name="modelCatalogScreen_filters_corpus" formatted="false">Corpus</string>

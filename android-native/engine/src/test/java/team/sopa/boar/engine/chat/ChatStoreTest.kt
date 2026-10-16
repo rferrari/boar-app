@@ -15,6 +15,20 @@ class ChatStoreTest {
         return ChatStore(db) { clock++ }
     }
 
+    @Test fun `titles written as thinking are repaired from the first question`() {
+        val s = store()
+        val a = s.createSession("<think>")
+        s.addMessage(a.id, "user", "Why is the sky blue?", "u1")
+        val b = s.createSession("<think>The user asks about tides</think>Tides and the Moon")
+        val c = s.createSession("Trip planning")
+        assertEquals(2, s.repairThinkingTitles())
+        val titles = s.listSessions().associate { it.id to it.title }
+        assertEquals("Why is the sky blue?", titles[a.id])
+        assertEquals("Tides and the Moon", titles[b.id])
+        assertEquals("Trip planning", titles[c.id])
+        assertEquals(0, s.repairThinkingTitles())
+    }
+
     @Test fun `sessions, messages, ratings and meta round-trip`() {
         val s = store()
         val a = s.createSession()

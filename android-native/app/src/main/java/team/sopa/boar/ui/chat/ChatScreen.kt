@@ -135,7 +135,7 @@ fun ChatScreen(
             team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onOpenRoute, onSetDeepResearch) }
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { LoadingBanner(t(it)) }
-            state.loadCrash?.let { CrashBanner(it, onDismissCrash) }
+            state.loadCrash?.let { CrashBanner(it, state.modelLabel, onDismissCrash) }
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
@@ -322,9 +322,12 @@ private fun DeepResearchBanner(onClose: () -> Unit) {
 }
 
 @Composable
-private fun CrashBanner(crash: team.sopa.boar.engine.models.LoadGuard.Crash, onDismiss: () -> Unit) {
+private fun CrashBanner(crash: team.sopa.boar.engine.models.LoadGuard.Crash, answering: String?, onDismiss: () -> Unit) {
     val c = Boar.colors
-    val text = if (crash.fallbackLabel.isNotEmpty()) t("native.chat.loadCrashed", "crashed" to crash.crashedLabel, "fallback" to crash.fallbackLabel)
+    // The recorded fallback is the model loaded before; when that was the crashed model itself (a reload after a
+    // restart), the banner named it as its own fallback (X6, Oct 15). Then it names the model answering now.
+    val fallback = crash.fallbackLabel.takeIf { it.isNotEmpty() && crash.fallbackModelId != crash.crashedModelId } ?: answering.orEmpty()
+    val text = if (fallback.isNotEmpty()) t("native.chat.loadCrashed", "crashed" to crash.crashedLabel, "fallback" to fallback)
     else t("native.chat.loadCrashedNoFallback", "crashed" to crash.crashedLabel)
     Row(Modifier.fillMaxWidth().background(c.amberBgSubtle).clickable(onClick = onDismiss).padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {

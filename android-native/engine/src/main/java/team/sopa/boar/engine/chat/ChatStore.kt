@@ -86,6 +86,18 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
     }
 
     fun setTitle(sessionId: String, title: String) { db.execute("UPDATE chat_sessions SET title = ? WHERE id = ?", listOf(seal(title), sessionId)) }
+    /**
+     * Titles a reasoning model wrote as "<think>…" before titles skipped the thinking (fixed Oct 15): the thinking is
+     * dropped, and a title left empty becomes the chat's first question. Returns how many were repaired.
+     */
+    fun repairThinkingTitles(): Int = listSessions().count { s ->
+        if ("<think" !in s.title && "</think>" !in s.title) return@count false
+        val kept = team.sopa.boar.engine.answer.AnswerText.stripThinking(s.title).replace(Regex("</?think>"), "").trim()
+        val title = kept.ifEmpty { messages(s.id).firstOrNull { it.role == "user" }?.text?.trim()?.take(60).orEmpty() }.ifEmpty { "New chat" }
+        setTitle(s.id, title)
+        true
+    }
+
     fun setSummary(sessionId: String, summary: String) { db.execute("UPDATE chat_sessions SET summary = ? WHERE id = ?", listOf(seal(summary), sessionId)) }
 
     fun deleteSession(sessionId: String) = db.transaction {

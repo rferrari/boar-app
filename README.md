@@ -55,7 +55,7 @@ a phone can get. What we believe: [MANIFESTO.md](MANIFESTO.md).
 </tr>
 </table>
 
-**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The iPhone app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch.
+**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The iPhone app is built from the same engine on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch.
 
 ## Online once, offline from then on
 
@@ -86,7 +86,7 @@ memory and what it retrieved. Details: [docs/ADAPTIVE_ROUTING.md](docs/ADAPTIVE_
 
 - **Built in:** Wikipedia articles, plus the Standard (+1,000 topics) and Full (+4,000) libraries. The Encyclopedia setup adds 50,000 Wikipedia Vital Articles.
 - **Knowledge packs:** pre-indexed files such as Wikipedia Vital Articles, Emergency & preparedness, Ethereum & cryptography ([KNOWLEDGE_PACKS](docs/KNOWLEDGE_PACKS.md)).
-- **Places packs (in the iPhone app on [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
+- **Places packs (in the iPhone app on [`ios`](https://github.com/rferrari/boar-app/tree/ios) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
 - **Your files:** `.txt`, `.md`, `.csv`, `.json`, `.pdf` (selectable text, no OCR), chunked and embedded on the phone. Toggle, delete, or export a collection as a JSON pack to share over Bluetooth or Nearby Share ([USING](docs/USING.md)).
 
 ## Measured on a real phone
@@ -159,7 +159,7 @@ git clone https://github.com/rferrari/boar-app.git && cd boar-app
 make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
 ```
 
-**iPhone:** the iOS app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch, together with its build guide and the steps to install it on your own iPhone with a free Apple ID.
+**iPhone:** the iOS app is built from the same engine on the [`ios`](https://github.com/rferrari/boar-app/tree/ios) branch, together with its build guide and the steps to install it on your own iPhone with a free Apple ID.
 
 ## Docs
 

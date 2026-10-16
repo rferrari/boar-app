@@ -38,6 +38,10 @@
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
     <string name="native_settings_back" formatted="false">Voltar</string>
     <string name="native_settings_textSize" formatted="false">Tamanho do texto</string>
+    <string name="native_settings_orientation" formatted="false">Rotação da tela</string>
+    <string name="native_settings_orientation_auto" formatted="false">Automática</string>
+    <string name="native_settings_orientation_portrait" formatted="false">Retrato</string>
+    <string name="native_settings_orientation_landscape" formatted="false">Paisagem</string>
     <string name="native_settings_compact" formatted="false">Compacto</string>
     <string name="native_settings_standard" formatted="false">Padrão</string>
     <string name="native_settings_large" formatted="false">Grande</string>
@@ -315,7 +319,7 @@
     <string name="native_personalDocumentsManager_hint" formatted="false">Importe suas notas em .txt, .md, .csv, .json ou .pdf. Elas são indexadas só neste aparelho e nunca enviadas. PDFs precisam de texto selecionável: páginas digitalizadas ou só com imagem não são lidas (não há OCR), e PDFs com senha não são suportados.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito. Exporte antes se quiser guardar uma cópia.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">Nenhum serviço de reconhecimento de voz foi encontrado neste celular. Isso é comum no GrapheneOS e em outros sistemas sem Google. Digitar funciona normalmente.</string>
-    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibra ao tocar, enviar e ao terminar respostas, em todo o app, não só na voz.</string>
+    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrar ao enviar uma pergunta e quando a resposta termina.</string>
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" foi adicionado à lista de modelos acima. Baixe-o por lá.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Interrompido. Resultados parciais salvos.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} de {{total}}: {{name}}</string>

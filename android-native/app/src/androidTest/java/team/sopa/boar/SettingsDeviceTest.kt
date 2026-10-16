@@ -49,6 +49,7 @@ class SettingsDeviceTest {
             val prefs = object : DisplayPrefs {
                 override fun setTheme(id: String) {}
                 override fun setFontScale(scale: String) {}
+                override fun setOrientation(mode: String) {}
                 override fun setLanguage(id: String?) {}
             }
             var opened by mutableStateOf<String?>(null)
@@ -96,7 +97,7 @@ class SettingsDeviceTest {
         services.settings.showLiveStats = true // Hardware telemetry is a technical detail
         try {
             var opened by mutableStateOf<String?>(null)
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
+            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = { opened = it }) {} } }
             click(t("native.settings.openCatalog")); assertEquals("models", opened)
             click(t("native.settings.openDocuments")); assertEquals("documents", opened)
@@ -116,7 +117,7 @@ class SettingsDeviceTest {
         val was = services.settings.showLiveStats
         services.settings.showLiveStats = false
         try {
-            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setLanguage(id: String?) {} }
+            val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = {}) {} } }
             compose.onNodeWithText(t("native.telemetry.chip")).assertDoesNotExist()
             click(t("native.tweaks.title"))

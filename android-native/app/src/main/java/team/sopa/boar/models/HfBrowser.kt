@@ -87,7 +87,7 @@ object HfBrowser {
             filename = "models/$id.gguf", sizeBytes = f.sizeBytes, sha256 = f.sha256 ?: "",
             sourceUrl = "https://huggingface.co/${repoPath(repoId)}/resolve/${enc(f.revision ?: "main")}/${f.filename.split("/").joinToString("/") { enc(it) }}",
             license = "Unknown — check the model's Hugging Face page",
-            description = "$repoId — added via model search, not vetted by aoair", required = false,
+            description = "$repoId — added via model search, not vetted by BOAR", required = false,
         )
     }
 

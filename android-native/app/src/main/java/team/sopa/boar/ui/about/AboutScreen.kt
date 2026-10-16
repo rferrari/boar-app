@@ -64,8 +64,9 @@ fun AboutScreen(onClose: () -> Unit) {
             Card(t("aboutScreen.hardwareTitle"), t("aboutScreen.hardwareBody"))
             Card(t("aboutScreen.benchmarkTitle"), t("aboutScreen.benchmarkBody"))
             Card(t("aboutScreen.repoTitle"), t("aboutScreen.repoBody")) {
-                Text("github.com/rferrari/boar-app", style = Boar.type["mono.sm"], color = c.textAccentCyan,
-                    modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp)).padding(10.dp))
+                for (link in listOf("github.com/rferrari/boar-app", "boarapp.com"))
+                    Text(link, style = Boar.type["mono.sm"], color = c.textAccentCyan,
+                        modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp)).padding(10.dp))
             }
         }
     }

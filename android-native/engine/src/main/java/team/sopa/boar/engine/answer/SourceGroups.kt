@@ -23,6 +23,14 @@ object SourceGroups {
         return Grouped(items, renumber)
     }
 
+    private val URL = Regex("https?://[^\\s)]+")
+
+    /**
+     * Which article a passage belongs to: its page URL when the source names one, so the same article from two packs is
+     * one source; else its document id; else its title.
+     */
+    fun articleKey(source: String?, docId: String?, title: String): String = source?.let { URL.find(it)?.value } ?: docId ?: title
+
     private val CITE = Regex("\\[(\\d{1,4})\\]")
     private val REPEATED = Regex("\\[(\\d{1,4})\\]((?:[ \\t]*\\[\\1\\])+)")
 
