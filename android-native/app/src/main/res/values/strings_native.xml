@@ -51,9 +51,20 @@
     <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
     <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BOAR.</string>
-    <string name="native_about_verify" formatted="false">DON\'T TRUST, VERIFY!</string>
+    <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
+    <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
+    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Settings → Advanced tweaks → Evaluation.</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget.</string>
+    <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
+    <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
+    <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
+    <string name="native_about_post_team" formatted="false">Built by:</string>
+    <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
+    <string name="native_about_creditsAll" formatted="false">Show all {{n}}</string>
+    <string name="native_about_creditsLess" formatted="false">Show fewer</string>
     <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
     <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab!</string>
     <string name="native_about_teamTitle" formatted="false">Core team</string>

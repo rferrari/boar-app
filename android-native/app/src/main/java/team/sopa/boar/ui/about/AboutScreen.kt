@@ -1,14 +1,16 @@
 package team.sopa.boar.ui.about
 
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,11 +18,17 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,13 +38,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import team.sopa.boar.R
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
-/** About BOAR (AboutScreen.tsx), with the engine line for the native build and the CPU build it runs. */
+/**
+ * About BOAR as a thread from @boar_app (brand book, manifesto register: one idea per post, ends on what BOAR does),
+ * with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
+ * here. The version, build and engine line closes the thread.
+ */
 @Composable
 fun AboutScreen(onClose: () -> Unit) {
     val c = Boar.colors
@@ -50,36 +61,79 @@ fun AboutScreen(onClose: () -> Unit) {
                 modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Image(painterResource(R.drawable.boar), null, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)).padding(bottom = 4.dp), contentScale = ContentScale.Fit)
-                Text("BOAR", style = Boar.type.headline, color = c.textHeading)
-                Text(t("aboutScreen.heroSubtitle"), style = Boar.type["mono.xs"].copy(letterSpacing = 0.5.sp), color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
-                Text(
-                    t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
-                    style = Boar.type["mono.xs"], color = c.textSecondary,
-                    modifier = Modifier.padding(top = 4.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-                )
+        Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
+            val posts = POSTS
+            posts.forEachIndexed { i, key ->
+                Post(last = i == posts.lastIndex) {
+                    Text(t("native.about.post.$key"), style = Boar.type.body, color = c.textPrimary)
+                    when (key) {
+                        "open" -> Link("github.com/rferrari/boar-app")
+                        "verify" -> {
+                            Link("boarapp.com"); Link("x.com/boar_app"); Link("farcaster.xyz/boarapp")
+                            Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
+                        }
+                        "packs" -> Link("huggingface.co/datasets/r4topunk/boar-packs")
+                        "team" -> for ((name, handle) in TEAM) Link("$name · @$handle", copy = "x.com/$handle")
+                        "credits" -> Credits()
+                    }
+                }
             }
-            Card(t("aboutScreen.airGappedTitle"), t("native.about.airGappedBody"))
-            Card(t("aboutScreen.hardwareTitle"), t("aboutScreen.hardwareBody"))
-            Card(t("aboutScreen.benchmarkTitle"), t("aboutScreen.benchmarkBody"))
-            Card(t("aboutScreen.repoTitle"), t("aboutScreen.repoBody")) { Link("github.com/rferrari/boar-app") }
-            // The website is where updates are announced; the card warns about look-alike downloads.
-            Card(t("native.about.siteTitle"), t("native.about.siteBody")) {
-                Link("boarapp.com")
-                Link("x.com/boar_app")
-                Link("farcaster.xyz/boarapp")
-                Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim)
-                Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+            Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 4.dp))
+            Text(
+                t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
+                style = Boar.type["mono.xs"], color = c.textSecondary,
+                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+            )
+        }
+    }
+}
+
+/** The thread, in order: the why, offline, the receipt, memory and storage, open source, verify, packs, team, credits. */
+private val POSTS = listOf("why", "offline", "receipt", "budget", "open", "verify", "packs", "team", "credits")
+
+/** One post: the round avatar with the thread line under it (none after the last), the name, then the content. */
+@Composable
+private fun Post(last: Boolean, content: @Composable () -> Unit) {
+    val c = Boar.colors
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(painterResource(R.drawable.boar_mark), null, Modifier.size(44.dp).clip(CircleShape).border(1.dp, c.borderDefault, CircleShape),
+                contentScale = ContentScale.Crop)
+            if (!last) Box(Modifier.width(2.dp).weight(1f).padding(vertical = 4.dp).background(c.borderDefault))
+        }
+        Column(Modifier.weight(1f).padding(bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Boar", style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.Bold)
+                Text("@boar_app", style = Boar.type.caption, color = c.textDim)
             }
-            Card(t("native.about.packsTitle"), t("native.about.packsBody")) { Link("huggingface.co/datasets/r4topunk/boar-packs") }
-            // The core team on X, in alphabetical order; each row copies its x.com address.
-            Card(t("native.about.teamTitle"), t("native.about.teamBody")) {
-                for ((name, handle) in TEAM) Link("$name · @$handle", copy = "x.com/$handle")
+            content()
+        }
+    }
+}
+
+/** The open work BOAR stands on: libraries, then each model and pack with its license; the full list one tap away. */
+@Composable
+private fun Credits() {
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    val models = remember {
+        team.sopa.boar.app.BoarServices.get(ctx).catalog.models
+            .filter { !it.license.startsWith("Unknown") && it.license.isNotBlank() }
+            .map { it.label to it.license }
+            .distinct()
+    }
+    val all = AboutCredits.libraries + AboutCredits.extra() + models
+    val shown = if (open) all else all.take(4)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        shown.forEach { (name, license) ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(name, style = Boar.type.caption, color = c.textSecondary, modifier = Modifier.weight(1f))
+                Text(license, style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
+        Text(if (open) t("native.about.creditsLess") else t("native.about.creditsAll", "n" to all.size), style = Boar.type.caption, color = c.textAccentCyan,
+            fontWeight = FontWeight.SemiBold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { open = !open }.padding(vertical = 4.dp))
     }
 }
 
@@ -100,7 +154,7 @@ private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r
 @Composable
 private fun Link(text: String, copy: String = text) {
     val c = Boar.colors
-    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val ctx = LocalContext.current
     val copied = t("native.about.copied")
     Text(text, style = Boar.type["mono.sm"], color = c.textAccentCyan,
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp))
@@ -110,15 +164,4 @@ private fun Link(text: String, copy: String = text) {
                 android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
             })
             .padding(10.dp))
-}
-
-@Composable
-private fun Card(title: String, body: String, extra: @Composable () -> Unit = {}) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(title, style = Boar.type.titleSm, color = c.textHeading)
-        Text(body, style = Boar.type.body, color = c.textSecondary)
-        extra()
-    }
 }

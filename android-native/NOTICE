@@ -1,5 +1,5 @@
 BOAR native (android-native/)
-Copyright (c) 2026 aoair contributors. Licensed under the MIT License (see ../LICENSE).
+Copyright (c) 2026 BOAR contributors. Licensed under the MIT License (see ../LICENSE).
 
 This directory includes or is derived from the following third-party work, each under its own terms.
 
@@ -25,3 +25,13 @@ Baloo 2 and Lexend fonts — https://github.com/EkType/Baloo2, https://github.co
 
 PdfBox-Android — https://github.com/TomRoush/PdfBox-Android
   Apache License 2.0. Extracts the text of PDFs the user imports (a port of Apache PDFBox).
+
+Models and data (downloaded by the user at setup or from the Model Catalog and Knowledge, never bundled in the APK;
+each keeps its own license, shown in the app's catalog and in About):
+  Qwen3-4B-Instruct-2507, Qwen2.5-1.5B / 7B-Instruct (Alibaba Qwen) — Apache License 2.0
+  LFM2.5-8B-A1B (Liquid AI) — LFM Open License v1.0
+  Phi-3.5-mini-instruct (Microsoft) — MIT License
+  Gemma 4 E4B (Google) — as listed in the catalog
+  bge-small-en-v1.5 (BAAI) — MIT License
+  Wikipedia text in the knowledge base and packs — CC BY-SA 4.0
+
