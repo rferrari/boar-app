@@ -37,7 +37,7 @@ check_pin() {  # <name> <checkout> <commit> [<patch marker>]
     echo "$1 is at ${at:0:8}, pinned ${3:0:8} (scripts/engine-pins.env): git -C $2 checkout $3, or ALLOW_UNPINNED=1" >&2; exit 1
   fi
   if [ -n "${4:-}" ] && [ "$(cat "$2/.boar-patches" 2>/dev/null)" != "$4" ]; then
-    echo "warning: $1 doesn't carry BOAR's patch series $4 (scripts/build-native-engines.sh on engine-optimizations)" >&2
+    echo "warning: $1 doesn't carry BOAR's patch series $4 (scripts/build-native-engines.sh on experimental-engines)" >&2
   fi
 }
 check_pin colibri "$COLIBRI" "$COLIBRI_PIN"
