@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_colibri_title" formatted="false">Beija-flor</string>
+    <string name="native_labs_colibri_title" formatted="false">Boar Wisp</string>
     <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B no colibri, um motor minúsculo em C puro: um quarto dos especialistas de cada camada fica na memória, o resto vem do armazenamento.</string>
     <string name="native_labs_colibri_engine" formatted="false">MOTOR</string>
     <string name="native_labs_colibri_engineOk" formatted="false">O colibri está nesta versão</string>

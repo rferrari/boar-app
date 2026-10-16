@@ -63,9 +63,19 @@ interface LabPlugin {
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
 class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val onClick: () -> Unit)
 
-/** A tile for something in testing: no screen, no slots. */
+/** A tile for something in testing: no screen, no slots. Its boar shows as a silhouette until it launches. */
 class ClassifiedLab(override val id: String, override val emoji: String) : LabPlugin {
     override val status = LabStatus.CLASSIFIED
+    override val art: Int? get() = CLASSIFIED_ART[id]
+
+    companion object {
+        /** Each classified lab's boar, shown dark like a locked truffle in the vault; a different one per tile. */
+        private val CLASSIFIED_ART = mapOf(
+            "truffleHunt" to team.sopa.boar.R.drawable.truffle_biolum,
+            "bigBrain" to team.sopa.boar.R.drawable.truffle_quantum,
+            "signboard" to team.sopa.boar.R.drawable.truffle_cosmo,
+        )
+    }
 }
 
 object LabRegistry {

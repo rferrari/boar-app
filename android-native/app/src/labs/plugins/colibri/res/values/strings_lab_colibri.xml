@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_colibri_title" formatted="false">Hummingbird</string>
+    <string name="native_labs_colibri_title" formatted="false">Boar Wisp</string>
     <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B on colibri, a tiny pure-C engine: a quarter of each layer\'s experts stay in memory, the rest stream from storage.</string>
     <string name="native_labs_colibri_engine" formatted="false">ENGINE</string>
     <string name="native_labs_colibri_engineOk" formatted="false">colibri is in this build</string>

@@ -149,11 +149,13 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+            // Classified: the boar in near-black with a "?", as a locked truffle in the vault (VaultScreen SILHOUETTE).
             lab.art?.let { res ->
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
-            if (locked) Text("🔒", fontSize = 22.sp)
+            if (locked) Text(if (lab.art != null) "?" else "🔒", style = if (lab.art != null) Boar.type.titleLg else Boar.type.body,
+                fontSize = if (lab.art != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status) }
             if (!locked && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp).background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
@@ -166,6 +168,14 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
             color = if (locked) c.textDim else c.textMuted)
     }
 }
+
+/** A locked boar's look, the vault's: its shape in near-black. */
+private val SILHOUETTE = androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
+    0f, 0f, 0f, 0f, 18f,
+    0f, 0f, 0f, 0f, 18f,
+    0f, 0f, 0f, 0f, 24f,
+    0f, 0f, 0f, 1f, 0f,
+)))
 
 /** "Reads signs." → "▇▇▇▇▇ ▇▇▇▇▇.": every word blacked out, its length and punctuation kept, so the lines still wrap like text. */
 private fun redactAll(s: String): String = s.replace(Regex("[\\p{L}\\p{N}]+")) { "▇".repeat(it.value.length) }

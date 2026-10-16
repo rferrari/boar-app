@@ -35,13 +35,14 @@ import team.sopa.boar.ui.theme.Boar
 import java.io.File
 
 /**
- * Hummingbird: OLMoE-1B-7B on colibri (https://github.com/JustVugg/colibri, Apache-2.0), a pure-C engine that keeps
+ * Boar Wisp (was Hummingbird): OLMoE-1B-7B on colibri (https://github.com/JustVugg/colibri, Apache-2.0), a pure-C engine that keeps
  * part of each layer's experts in RAM and streams the rest from storage. The converted model folder (about 7 GB) is
  * copied over USB; the engine is built by scripts/build-lab-engines.sh into this folder's jniLibs.
  */
 object ColibriLab : LabPlugin, EngineProvider {
     override val id = "colibri"
     override val emoji = "🐦"
+    override val art = team.sopa.boar.R.drawable.truffle_spirit
     /** Measured too slow to use (0.8 tok/s on the X6, Oct 14): kept open to try, marked under review. */
     override val status = LabStatus.REVIEW
 
@@ -57,7 +58,7 @@ object ColibriLab : LabPlugin, EngineProvider {
     )
 
     override val engine: EngineProvider get() = this
-    override val engineLabel = "Hummingbird"
+    override val engineLabel = "Boar Wisp"
     override val engineEmoji get() = emoji
     override fun models() = listOf(MODEL)
 
