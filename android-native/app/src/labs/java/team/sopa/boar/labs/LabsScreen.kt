@@ -1,5 +1,6 @@
 package team.sopa.boar.labs
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
