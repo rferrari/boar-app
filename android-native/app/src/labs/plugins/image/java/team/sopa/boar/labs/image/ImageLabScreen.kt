@@ -154,7 +154,7 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                             Text(t("native.labs.image.shape.$shape"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(0.8f))
                             canvases.forEach { cv ->
                                 val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label} · $it s" }
-                                    ?: if (cv.w == cv.h) t("native.labs.image.size.${cv.w}") else cv.label
+                                    ?: if (cv.w == cv.h && cv.w in ImageLab.SIZES) t("native.labs.image.size.${cv.w}") else cv.label
                                 Chip(label, cv == state.size, Modifier.weight(1f)) { vm.setSize(cv) }
                             }
                             repeat(3 - canvases.size) { Box(Modifier.weight(1f)) }
@@ -219,6 +219,8 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
 }
 
 private const val GRID = 25
+/** Drawings per page in the media manager. */
+private const val PAGE = 40
 
 /** Square thumbnails, [columns] per row; [selected] get a green border. */
 @Composable
@@ -231,7 +233,7 @@ private fun Thumbs(files: List<File>, columns: Int, selected: Set<File>, onTap: 
                     Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(6.dp))
                         .then(if (f in selected) Modifier.border(2.dp, c.emerald400, RoundedCornerShape(6.dp)) else Modifier)
                         .clickable { onTap(f) }) {
-                        Picture(f, Modifier.fillMaxSize())
+                        Picture(f, Modifier.fillMaxSize(), thumb = true)
                         if (f in selected && columns < 5) Text("✓", color = c.textHeading, fontWeight = FontWeight.ExtraBold,
                             modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(c.emerald600, RoundedCornerShape(10.dp)).padding(horizontal = 6.dp))
                     }
@@ -259,7 +261,11 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
         Text(t("native.labs.image.managerNote"), style = Boar.type.caption, color = c.textMuted)
         if (files.isEmpty()) Text(t("native.labs.image.managerEmpty"), style = Boar.type.body, color = c.textSecondary)
         var viewing by remember { mutableStateOf<File?>(null) }
-        Thumbs(files, columns = 4, selected = picked) { f -> picked = if (f in picked) picked - f else picked + f; viewing = if (f in picked) f else picked.lastOrNull() }
+        // Pages of 40: a phone with hundreds of drawings lays out and decodes only what was asked for.
+        var shown by remember { mutableStateOf(PAGE) }
+        Thumbs(files.take(shown), columns = 4, selected = picked) { f -> picked = if (f in picked) picked - f else picked + f; viewing = if (f in picked) f else picked.lastOrNull() }
+        if (files.size > shown) Text(t("native.labs.image.showPage", "n" to minOf(PAGE, files.size - shown)), style = Boar.type.caption, color = c.textAccentCyan,
+            fontWeight = FontWeight.SemiBold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { shown += PAGE }.padding(vertical = 6.dp))
         if (picked.isNotEmpty()) {
             if (confirm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(t("native.labs.image.deleteConfirm", "count" to picked.size), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
@@ -282,9 +288,11 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
 }
 
 @Composable
-private fun Picture(f: File, modifier: Modifier) {
-    val bmp by produceState<ImageBitmap?>(null, f.path, f.lastModified()) {
-        value = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(f.path)?.asImageBitmap() }.getOrNull() }
+private fun Picture(f: File, modifier: Modifier, thumb: Boolean = false) {
+    val bmp by produceState<ImageBitmap?>(null, f.path, f.lastModified(), thumb) {
+        // A grid tile decodes at a quarter of the size (about 1/16 of the memory); the full view decodes it whole.
+        val opts = BitmapFactory.Options().apply { if (thumb) inSampleSize = 4 }
+        value = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(f.path, opts)?.asImageBitmap() }.getOrNull() }
     }
     Box(modifier.background(Boar.colors.bgCard)) { bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) } }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_image_title" formatted="false">Boar Designer</string>
-    <string name="native_labs_image_intro" formatted="false">Experimental. Draws one illustration on this phone, offline, in under 20 seconds. Pick a style and type what to draw.</string>
+    <string name="native_labs_image_intro" formatted="false">Experimental. Draws one illustration on this phone, offline. Pick a style and type what to draw.</string>
     <string name="native_labs_image_noEngine" formatted="false">This build has no image engine. Build with -Pboar.labs=true after scripts/build-sd-cli.sh.</string>
     <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet.</string>
     <string name="native_labs_image_download" formatted="false">Download (683 MB)</string>
@@ -20,7 +20,7 @@
     <string name="native_labs_image_phase_decoding" formatted="false">Finishing the picture…</string>
     <string name="native_labs_image_delete" formatted="false">Delete</string>
     <string name="native_labs_image_gallery" formatted="false">ON THIS PHONE</string>
-    <string name="native_labs_image_body" formatted="false">Draw an illustration from a few words, offline, in under 20 seconds.</string>
+    <string name="native_labs_image_body" formatted="false">Draw an illustration from a few words, offline, on this phone.</string>
     <string name="native_labs_image_fromChat" formatted="false">↳ From your last chat: “{{title}}”</string>
     <string name="native_labs_image_setDefault" formatted="false">★ Make {{combo}} my default, also in the chat</string>
     <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} is your default, also for 🎨 in the chat</string>
@@ -50,6 +50,7 @@
     <string name="native_labs_image_style_watercolor" formatted="false">Watercolor</string>
     <string name="native_labs_image_seedKeep" formatted="false">🔒 Same seed {{seed}}</string>
     <string name="native_labs_image_seedNew" formatted="false">🎲 New seed</string>
+    <string name="native_labs_image_showPage" formatted="false">Show {{n}} more</string>
     <string name="native_labs_image_shape_square" formatted="false">Square</string>
     <string name="native_labs_image_shape_portrait" formatted="false">Portrait</string>
     <string name="native_labs_image_shape_banner" formatted="false">Banner</string>

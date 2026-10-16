@@ -56,9 +56,10 @@ object ImageLab {
         companion object { fun of(key: String?): Canvas? = CANVASES.firstOrNull { it.key == key } }
     }
 
+    /** Small, medium and high per shape (Oct 16): 768×320 drew in 13 s on the X6, so the high sizes are worth timing. */
     val CANVASES = listOf(
-        Canvas(384, 384), Canvas(512, 512),
-        Canvas(320, 448), Canvas(384, 512),
+        Canvas(384, 384), Canvas(512, 512), Canvas(640, 640),
+        Canvas(320, 448), Canvas(384, 512), Canvas(448, 640),
         Canvas(576, 256), Canvas(640, 320), Canvas(768, 320),
     )
 
