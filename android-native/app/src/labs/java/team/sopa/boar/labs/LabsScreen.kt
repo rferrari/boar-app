@@ -149,7 +149,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-            Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
+            lab.art?.let { res ->
+                androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+            } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
             if (locked) Text("🔒", fontSize = 22.sp)
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status) }
             if (!locked && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,

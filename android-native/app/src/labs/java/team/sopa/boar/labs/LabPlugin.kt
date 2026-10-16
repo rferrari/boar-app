@@ -31,6 +31,8 @@ interface LabPlugin {
     val id: String
     /** Stands in for the tile's art until there is a picture. */
     val emoji: String
+    /** The tile's picture (a drawable), shown instead of [emoji] when set. */
+    val art: Int? get() = null
     val status: LabStatus
 
     /** The experiment's page, below the shared header (LabScaffold). */

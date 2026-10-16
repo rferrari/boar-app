@@ -56,7 +56,7 @@ import team.sopa.boar.ui.theme.Boar
 import java.io.File
 import java.util.Locale
 
-/** Image Gen as a Boar Labs plugin: the screen stays on while it draws or downloads, and back waits for the drawing. */
+/** Boar Designer (was Image Gen) as a Boar Labs plugin: the screen stays on while it draws or downloads, and back waits for the drawing. */
 object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val id = "image"
 
@@ -66,6 +66,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         if (scope == team.sopa.boar.plugins.UserData.Scope.EVERYTHING) SdRunner.outDir(context).listFiles().orEmpty().forEach { it.delete() }
     }
     override val emoji = "🎨"
+    override val art = team.sopa.boar.R.drawable.truffle_retrowave
     override val status = team.sopa.boar.labs.LabStatus.BETA
 
     @Composable
@@ -146,16 +147,22 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                         }
                     }
                     Label(t("native.labs.image.size"))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        // The phone's own average once it has drawn at that size; until then the conservative estimate.
-                        ImageLab.SIZES.forEach { px ->
-                            val label = ImageLab.expectedSeconds(px)?.let { t("native.labs.image.sizeMeasured", "px" to px, "s" to it) } ?: t("native.labs.image.size.$px")
-                            Chip(label, px == state.size, Modifier.weight(1f)) { vm.setSize(px) }
+                    // One row per shape. The phone's own average once it has drawn at that size; until then a square shows the
+                    // conservative estimate and the new shapes their size alone.
+                    ImageLab.CANVASES.groupBy { it.shape }.forEach { (shape, canvases) ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(t("native.labs.image.shape.$shape"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(0.8f))
+                            canvases.forEach { cv ->
+                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label} · $it s" }
+                                    ?: if (cv.w == cv.h) t("native.labs.image.size.${cv.w}") else cv.label
+                                Chip(label, cv == state.size, Modifier.weight(1f)) { vm.setSize(cv) }
+                            }
+                            repeat(3 - canvases.size) { Box(Modifier.weight(1f)) }
                         }
                     }
                     // One line in one style either way, so picking a style or size never moves the screen.
                     val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
-                    val combo = t("native.labs.image.style.${state.style.key}") + " · ${state.size} px"
+                    val combo = t("native.labs.image.style.${state.style.key}") + " · ${state.size.label}"
                     Text(if (isDefault) t("native.labs.image.isDefault", "combo" to combo) else t("native.labs.image.setDefault", "combo" to combo),
                         style = Boar.type.caption, color = if (isDefault) c.textDim else c.textAccentCyan, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable(enabled = !isDefault) { vm.setDefaults() }.padding(vertical = 4.dp))
@@ -179,10 +186,11 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
             state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
             // The picture's square is always there: raining code while empty or drawing, so nothing moves when a picture lands.
             val image = state.image.takeIf { !busy }
-            if (image == null) team.sopa.boar.labs.MatrixRain(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)),
+            if (image == null) team.sopa.boar.labs.MatrixRain(Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
                 label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
             image?.let { f ->
-                Picture(f, Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp)))
+                // At the drawing's own shape: a portrait or banner isn't cropped to a square.
+                Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.seconds?.let { Text(String.format(Locale.US, "%.1f s", it), style = Boar.type["mono.xs"], color = c.textAccentCyan, modifier = Modifier.weight(1f)) }
                         ?: Box(Modifier.weight(1f))
@@ -262,6 +270,10 @@ private fun Picture(f: File, modifier: Modifier) {
     }
     Box(modifier.background(Boar.colors.bgCard)) { bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) } }
 }
+
+/** Width over height of a saved drawing, from its file name ("…-384x512.png"); 1 for a square or an older file. */
+private fun aspectOf(f: File): Float =
+    Regex("-(\\d+)x(\\d+)\\.png$").find(f.name)?.destructured?.let { (w, h) -> w.toFloat() / h.toFloat() } ?: 1f
 
 @Composable
 private fun Label(text: String) = Text(text, style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold)

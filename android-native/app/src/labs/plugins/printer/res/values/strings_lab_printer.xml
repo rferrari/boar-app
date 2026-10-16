@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_printer_title" formatted="false">Field Printer</string>
-    <string name="native_labs_printer_body" formatted="false">Collect answers from any chat into a basket, then compile them with drawings into a PDF.</string>
+    <string name="native_labs_printer_body" formatted="false">Collect answers from any chat into a basket, then compile them into a PDF or a Markdown file.</string>
     <string name="native_labs_printer_empty" formatted="false">The basket is empty.</string>
     <string name="native_labs_printer_howTo" formatted="false">Under any answer in a chat, tap 📎 to add it here. Collect from as many chats as you like, then come back to arrange and compile.</string>
     <string name="native_labs_printer_docTitle" formatted="false">DOCUMENT TITLE</string>

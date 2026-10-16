@@ -36,16 +36,16 @@ object SdRunner {
     data class Drawn(val file: File, val seconds: Double?)
 
     /** Draws [subject] in [style]; [onPhase] gets "loading", "drawing", "decoding". Throws on failure. */
-    suspend fun draw(ctx: Context, subject: String, style: ImageLab.Style, size: Int, onPhase: (String) -> Unit = {}): Drawn = lock.withLock {
+    suspend fun draw(ctx: Context, subject: String, style: ImageLab.Style, size: ImageLab.Canvas, onPhase: (String) -> Unit = {}): Drawn = lock.withLock {
         withContext(Dispatchers.IO) {
             val bin = engine(ctx) ?: error("no image engine in this build")
-            val out = File(outDir(ctx).apply { mkdirs() }, "${System.currentTimeMillis()}-${style.key}-$size.png")
+            val out = File(outDir(ctx).apply { mkdirs() }, "${System.currentTimeMillis()}-${style.key}-${size.key}.png")
             onPhase("loading")
             val started = System.nanoTime()
             // The 4 fast cores on an 8-core phone, as measured; elsewhere the scheduler picks.
             val pin = if (Runtime.getRuntime().availableProcessors() == 8 && File("/system/bin/taskset").exists()) listOf("/system/bin/taskset", "f0") else emptyList()
             val cmd = pin + listOf(bin.path, "-m", modelFile(ctx).path, "-p", style.prompt(subject), "--cfg-scale", "1", "--steps", "1",
-                "-W", "$size", "-H", "$size", "-t", "4", "--seed", "${Random.nextInt(1, Int.MAX_VALUE)}", "-o", out.path)
+                "-W", "${size.w}", "-H", "${size.h}", "-t", "4", "--seed", "${Random.nextInt(1, Int.MAX_VALUE)}", "-o", out.path)
             val p = ProcessBuilder(cmd).redirectErrorStream(true).start().also { process = it }
             var done = false
             var drawn: Drawn? = null
@@ -71,7 +71,7 @@ object SdRunner {
     }
 
     /** sd-cli's output to the end: the phase as it goes, the picture or an error with its last lines. */
-    private fun readAll(p: Process, out: File, size: Int, started: Long, onPhase: (String) -> Unit): Drawn {
+    private fun readAll(p: Process, out: File, size: ImageLab.Canvas, started: Long, onPhase: (String) -> Unit): Drawn {
         val tail = ArrayDeque<String>()
         var seconds: Double? = null
         p.inputStream.bufferedReader().forEachLine { line ->

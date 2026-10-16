@@ -53,7 +53,7 @@ object Illustrator {
             val subject = fromModel?.takeIf { !repeated } ?: fallback(a)
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: question=\"${a.question.take(80)}\" model=\"$fromModel\" repeated=$repeated -> \"$subject\"")
             status[a.id] = Status.Drawing(subject)
-            runCatching { SdRunner.draw(ctx, subject, ImageLab.defaultStyle(), ImageLab.defaultSize()) }
+            runCatching { SdRunner.draw(ctx, subject, ImageLab.defaultStyle(), ImageLab.defaultCanvas()) }
                 .onSuccess { d ->
                     // Forgotten (✕) while it drew: the result has no answer to go to.
                     if (status[a.id] !is Status.Drawing) { d.file.delete(); return@onSuccess }

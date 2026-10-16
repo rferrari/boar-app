@@ -52,13 +52,14 @@ import java.io.File
 import java.util.Locale
 
 /**
- * Device Pulse: what the phone feels while BOAR works. Once a second: battery temperature (with the last two minutes
+ * Boar Vitals (was Device Pulse): what the phone feels while BOAR works. Once a second: battery temperature (with the last two minutes
  * as a line), Android's thermal status, each core's clock, free RAM and BOAR's own share, and the CPU features that
  * pick the engine build. Leave it open, then run a chat or an image in another lab and come back to see the heat.
  */
 object DevicePulseLab : LabPlugin {
     override val id = "pulse"
     override val emoji = "🌡️"
+    override val art = team.sopa.boar.R.drawable.truffle_synthetic
     override val status = LabStatus.LIVE
 
     private const val HISTORY = 120

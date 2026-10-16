@@ -27,6 +27,25 @@ object ImageLab {
     val SIZES = listOf(384, 512)
 
     /**
+     * A drawing's size in pixels: square, portrait (taller) or banner (wider), sides in multiples of 64. The portrait and
+     * banner sizes are candidates to time on the X6 (Oct 16) before the list is cut to the ones kept; 256 px broke the
+     * shapes on Oct 13, so 576×256 is the low end.
+     */
+    data class Canvas(val w: Int, val h: Int) {
+        /** "384" for a square (the key older saves and times used), "384x512" otherwise. */
+        val key: String get() = if (w == h) "$w" else "${w}x$h"
+        val shape: String get() = when { w == h -> "square"; h > w -> "portrait"; else -> "banner" }
+        val label: String get() = if (w == h) "$w px" else "$w×$h"
+        companion object { fun of(key: String?): Canvas? = CANVASES.firstOrNull { it.key == key } }
+    }
+
+    val CANVASES = listOf(
+        Canvas(384, 384), Canvas(512, 512),
+        Canvas(320, 448), Canvas(384, 512),
+        Canvas(576, 256), Canvas(640, 320), Canvas(768, 320),
+    )
+
+    /**
      * The styles chosen on Oct 14 from 22 drawn on the X6 (same subject and seed, 384 px; docs/…image-gen-styles):
      * 7 chips in two rows. The subject goes where {s} is. Dropped: textbook, vector, watercolor, pencil (look-alikes of
      * the ink styles with this one-step model), mecha, glitch, tactical, vaporwave, synthwave, dreamcore, cottagecore.
@@ -46,7 +65,9 @@ object ImageLab {
         SOLARPUNK("solarpunk", "{s}, solarpunk, green technology, golden sunlight, vines on chrome"),
         Y2K("y2k", "{s}, y2k aesthetic, chrome and glossy bubbles, iridescent, early 2000s digital art"),
         // Shown as "Lo-fi"; the anime words are what give the look.
-        LOFI("lofi", "{s}, lo-fi anime illustration, soft pastel colors, cozy evening light, cel shading");
+        LOFI("lofi", "{s}, lo-fi anime illustration, soft pastel colors, cozy evening light, cel shading"),
+        // Back on Oct 16 at the user's request (dropped Oct 14 as a look-alike of the ink styles with this one-step model).
+        WATERCOLOR("watercolor", "{s}, loose watercolor, paper texture");
 
         fun prompt(subject: String) = template.replace("{s}", subject.trim())
     }
@@ -56,25 +77,25 @@ object ImageLab {
 
     fun setDefaultStyle(s: Style) = team.sopa.boar.labs.LabPrefs.putString("image.style", s.key)
 
-    /** The user's size ("Set as default" saves style and size together), else the first of [SIZES]. */
-    fun defaultSize(): Int = team.sopa.boar.labs.LabPrefs.string("image.size")?.toIntOrNull()?.takeIf { it in SIZES } ?: SIZES.first()
+    /** The user's size ("Set as default" saves style and size together), else the first of [CANVASES]. */
+    fun defaultCanvas(): Canvas = Canvas.of(team.sopa.boar.labs.LabPrefs.string("image.size")) ?: CANVASES.first()
 
-    fun setDefaultSize(px: Int) = team.sopa.boar.labs.LabPrefs.putString("image.size", "$px")
+    fun setDefaultCanvas(c: Canvas) = team.sopa.boar.labs.LabPrefs.putString("image.size", c.key)
 
     private const val TIMES_KEPT = 10
 
     /** A finished drawing's time, tap to picture (model load included), kept per size: the last [TIMES_KEPT]. */
-    fun recordTime(size: Int, seconds: Double) {
-        val key = "image.times.$size"
+    fun recordTime(size: Canvas, seconds: Double) {
+        val key = "image.times.${size.key}"
         val kept = (times(size) + seconds).takeLast(TIMES_KEPT)
         team.sopa.boar.labs.LabPrefs.putString(key, kept.joinToString(",") { String.format(java.util.Locale.US, "%.2f", it) })
     }
 
-    private fun times(size: Int): List<Double> =
-        team.sopa.boar.labs.LabPrefs.string("image.times.$size")?.split(',')?.mapNotNull { it.toDoubleOrNull() }.orEmpty()
+    private fun times(size: Canvas): List<Double> =
+        team.sopa.boar.labs.LabPrefs.string("image.times.${size.key}")?.split(',')?.mapNotNull { it.toDoubleOrNull() }.orEmpty()
 
     /** What this phone takes at [size]: the average of its last drawings, rounded up; null before the first one. */
-    fun expectedSeconds(size: Int): Int? = times(size).takeIf { it.isNotEmpty() }?.average()?.let { kotlin.math.ceil(it).toInt() }
+    fun expectedSeconds(size: Canvas): Int? = times(size).takeIf { it.isNotEmpty() }?.average()?.let { kotlin.math.ceil(it).toInt() }
 
     val MODEL = CatalogAsset(
         id = "lab-sdxs-512-q8",
@@ -96,8 +117,8 @@ data class ImageLabState(
     val downloadPct: Int? = null,
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
-    val defaultSize: Int = ImageLab.SIZES.first(),
-    val size: Int = ImageLab.SIZES.first(),
+    val defaultSize: ImageLab.Canvas = ImageLab.CANVASES.first(),
+    val size: ImageLab.Canvas = ImageLab.CANVASES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
     val image: File? = null,
@@ -120,7 +141,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     init {
         team.sopa.boar.labs.LabPrefs.init(app)
         val ds = ImageLab.defaultStyle()
-        val dz = ImageLab.defaultSize()
+        val dz = ImageLab.defaultCanvas()
         _state.update { it.copy(style = ds, defaultStyle = ds, size = dz, defaultSize = dz) }
         refresh()
     }
@@ -157,7 +178,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setStyle(s: ImageLab.Style) = _state.update { it.copy(style = s) }
-    fun setSize(px: Int) = _state.update { it.copy(size = px) }
+    fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c) }
     fun show(f: File) = _state.update { it.copy(image = f, seconds = null, error = null) }
 
     fun generate(subject: String) {
@@ -183,7 +204,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     fun setDefaults() {
         val s = _state.value
         ImageLab.setDefaultStyle(s.style)
-        ImageLab.setDefaultSize(s.size)
+        ImageLab.setDefaultCanvas(s.size)
         _state.update { it.copy(defaultStyle = s.style, defaultSize = s.size) }
     }
 

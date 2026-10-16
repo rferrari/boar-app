@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_pulse_title" formatted="false">Pulso do aparelho</string>
+    <string name="native_labs_pulse_title" formatted="false">Boar Vitals</string>
     <string name="native_labs_pulse_body" formatted="false">Veja o celular trabalhar: calor, o clock de cada núcleo, a memória e o chip em que o BOAR roda.</string>
     <string name="native_labs_pulse_heat" formatted="false">CALOR</string>
     <string name="native_labs_pulse_heatNote" formatted="false">últimos {{seconds}} s · mín {{min}} °C · máx {{max}} °C</string>
