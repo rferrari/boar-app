@@ -61,7 +61,7 @@
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
     <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
-    <string name="native_about_post_team" formatted="false">Built by:</string>
+    <string name="native_about_post_team" formatted="false">Core team, on X:</string>
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
     <string name="native_about_creditsAll" formatted="false">Show all {{n}}</string>
     <string name="native_about_creditsLess" formatted="false">Show fewer</string>

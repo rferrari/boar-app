@@ -61,7 +61,7 @@
     <string name="native_about_post_open" formatted="false">Código aberto, MIT. O código, a lista de modelos e os scripts que montam os pacotes de conhecimento:</string>
     <string name="native_about_post_verify" formatted="false">As novidades saem só destes endereços. Confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
     <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Lab do R4to:</string>
-    <string name="native_about_post_team" formatted="false">Feito por:</string>
+    <string name="native_about_post_team" formatted="false">Equipe principal, no X:</string>
     <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença:</string>
     <string name="native_about_creditsAll" formatted="false">Mostrar todos ({{n}})</string>
     <string name="native_about_creditsLess" formatted="false">Mostrar menos</string>
