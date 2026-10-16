@@ -23,7 +23,7 @@
     <string name="native_tweaks_batch" formatted="false">Lote do prompt</string>
     <string name="native_tweaks_microBatch" formatted="false">Microlote</string>
     <string name="native_tweaks_kv" formatted="false">Cache KV</string>
-    <string name="native_tweaks_kvNote" formatted="false">Q8_0 e Q4_0 usam menos memória; no X6 Pro, Q8_0 com flash attention gerou 20% mais devagar.</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 e Q4_0 usam menos memória; nos nossos testes, Q8_0 com flash attention gerou 20% mais devagar.</string>
     <string name="native_tweaks_flash" formatted="false">Flash attention</string>
     <string name="native_tweaks_on" formatted="false">Ligado</string>
     <string name="native_tweaks_off" formatted="false">Desligado</string>
@@ -228,7 +228,7 @@
     <string name="native_tweaks_technicalDetailsNote" formatted="false">Sob cada resposta, toque no tempo e na velocidade para ver os detalhes (tempo até a primeira palavra, contexto, modelo); velocidade ao vivo no topo enquanto o BOAR responde; memória e armazenamento no fim do menu; Telemetria de hardware nas Configurações.</string>
     <string name="native_tweaks_presets" formatted="false">Predefinições</string>
     <string name="native_tweaks_preset_run" formatted="false">Corre, Javali</string>
-    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores (a primeira palavra chega na metade do tempo no POCO X6 Pro), sem limite de tempo. Mais calor e bateria.</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores (a primeira palavra chega na metade do tempo nos nossos testes), sem limite de tempo. Mais calor e bateria.</string>
     <string name="native_tweaks_preset_path" formatted="false">Trilha do Javali</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: o que medimos como melhor em celulares reais. Equilibrado.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Forrageio Tranquilo</string>

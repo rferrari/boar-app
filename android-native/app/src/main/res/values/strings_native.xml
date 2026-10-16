@@ -23,7 +23,7 @@
     <string name="native_tweaks_batch" formatted="false">Prompt batch</string>
     <string name="native_tweaks_microBatch" formatted="false">Micro-batch</string>
     <string name="native_tweaks_kv" formatted="false">KV cache</string>
-    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; on the X6 Pro, Q8_0 with flash attention generated 20% slower.</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; in our tests, Q8_0 with flash attention generated 20% slower.</string>
     <string name="native_tweaks_flash" formatted="false">Flash attention</string>
     <string name="native_tweaks_on" formatted="false">On</string>
     <string name="native_tweaks_off" formatted="false">Off</string>
@@ -228,7 +228,7 @@
     <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; Hardware telemetry in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
     <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
-    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon on the POCO X6 Pro), no time limit. More heat and battery.</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon in our tests), no time limit. More heat and battery.</string>
     <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>

@@ -194,9 +194,11 @@ fun StatusChip(status: LabStatus) {
     val (fg, bg) = when (status) {
         LabStatus.LIVE -> c.textAccentEmerald to c.emeraldBgSubtle
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
-        LabStatus.REVIEW -> c.amber400 to c.amberBgSubtle
+        LabStatus.REVIEW -> c.crimson400 to c.crimsonBgSubtle
         LabStatus.CLASSIFIED -> c.textDim to Color.White.copy(alpha = 0.06f)
     }
-    Text(t("native.labs.status.${status.name.lowercase()}"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = fg, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.background(bg, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
+    // UNDER REVIEW reads as a warning: red and a size up from the other tags.
+    val review = status == LabStatus.REVIEW
+    Text(t("native.labs.status.${status.name.lowercase()}"), style = Boar.type["mono.xs"].copy(fontSize = if (review) 11.sp else 9.sp), color = fg, fontWeight = FontWeight.ExtraBold,
+        modifier = Modifier.background(bg, RoundedCornerShape(4.dp)).padding(horizontal = if (review) 8.dp else 6.dp, vertical = if (review) 3.dp else 2.dp))
 }

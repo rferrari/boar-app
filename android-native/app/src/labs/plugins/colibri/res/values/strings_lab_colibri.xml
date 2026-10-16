@@ -11,6 +11,6 @@
     <string name="native_labs_colibri_use" formatted="false">Answer with this model</string>
     <string name="native_labs_colibri_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
     <string name="native_labs_colibri_note" formatted="false">No reasoning, English only, and a small model: an engine experiment more than an assistant. Adaptive routing is skipped while it\'s selected.</string>
-    <string name="native_labs_colibri_review" formatted="false">Measured at 0.8 tok/s on a POCO X6 Pro (Oct 14), too slow for an assistant: a short answer takes minutes. Big Boar runs a model 5× bigger at 3.5 to 3.9 tok/s. Still here to try and compare.</string>
+    <string name="native_labs_colibri_review" formatted="false">Measured at 0.8 tok/s on our test phone (Oct 14), too slow for an assistant: a short answer takes minutes. Big Boar runs a model 5× bigger at 3.5 to 3.9 tok/s. Still here to try and compare.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">under 1 tok/s</string>
 </resources>
