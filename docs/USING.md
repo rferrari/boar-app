@@ -30,6 +30,21 @@ local FTS5 + vector search used everywhere else in the app:
   same way.
 - Everything happens on-device; nothing is uploaded anywhere.
 
+## The ONLINE / OFFLINE pill
+
+The pill next to BOAR in the chat header says whether the phone has working internet right now.
+
+- **OFFLINE** (moon-blue outline): no working internet. This is BOAR's normal state: answers, sources and your documents all work.
+- **ONLINE** (filled gold): the phone has working internet. BOAR still answers on the phone; the network is only used for downloads you start yourself (models, knowledge packs) and for searching Hugging Face for other models.
+
+How it decides:
+
+- The pill turns ONLINE only when Android has checked that the connection really reaches the internet ("validated"). After you turn Wi-Fi or mobile data on, that check usually takes a few seconds, more on a slow network, so the pill changes a moment after the Wi-Fi icon does.
+- A connection without real internet stays OFFLINE: a hotel or airport login page, a hotspot with no data, a router with no uplink.
+- Losing the network turns the pill OFFLINE at once, because Android reports a lost network immediately.
+
+When the header is tight (large text), the pill shows only its dot, in the same colors.
+
 ## Finding more models
 
 
