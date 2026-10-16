@@ -74,6 +74,20 @@ class DeepResearchFollowUpTest {
         assertEquals(listOf(1000L, 1000L, 1000L, null), limits)
     }
 
+    @Test fun `the receipt gets the write-up's numbers`() = runBlocking {
+        // Deep Research answers had an empty receipt: no context, no engine speed (X6, Oct 13).
+        fun m(prompt: Int) = team.sopa.boar.engine.GenerationMetrics(prompt, prompt, 10, 1.0, 1.0, 1.0, 1.0, 9.5, 2.0, "eos", null)
+        val gen = object : StageGenerator {
+            var n = 0
+            override suspend fun generate(system: String, user: String, nPredict: Int, temperature: Float, timeoutMs: Long?, onToken: ((String) -> Unit)?): GenResult =
+                GenResult(if (system.startsWith("You plan")) "Sub one about gases?\nSub two about heat?" else "ok", m(100 + n++))
+        }
+        val r = DeepResearch(gen, { _, _ -> emptyList() }, { null }).run("How does the greenhouse effect warm the planet?", null, null, 256)
+        assertEquals(103, r.metrics?.promptTokens)
+        val meta = DeepResearch(gen, { _, _ -> emptyList() }, { null }).run("summary", null, history, 256, previousAnswer = "Gases trap heat [1].")
+        assertEquals(104, meta.metrics?.promptTokens)
+    }
+
     @Test fun `a stopped question with no answer is skipped for the one before it`() {
         val h = ConversationHistory(turns = history.turns + ConversationTurn("user", "conclusion"))
         assertEquals("How does the greenhouse effect warm the planet?", DeepResearch.lastExchange("continue", h)?.question)

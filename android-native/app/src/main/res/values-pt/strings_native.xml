@@ -320,4 +320,7 @@
     <string name="native_evaluation_stoppedEarly" formatted="false">Interrompido. Resultados parciais salvos.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} de {{total}}: {{name}}</string>
     <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
+    <string name="native_sourceFootnotes_localIndex" formatted="false">FONTE</string>
+    <string name="native_sourceFootnotes_yourDocuments" formatted="false">Seus documentos</string>
+    <string name="native_drawer_answeringHint" formatted="false">Respondendo… pare a resposta para trocar de conversa.</string>
 </resources>

@@ -144,10 +144,10 @@ private fun ForgetDialog(onErase: () -> Unit, onClose: () -> Unit) {
         },
         confirmButton = {
             // A tap that lands after the deadline (between two countdown ticks) closes instead of erasing.
-            TextButton({ if (android.os.SystemClock.elapsedRealtime() - openedAt < FORGET_WINDOW_MS) onErase() else onClose() }) { Text(t("native.pin.forgotConfirm"), color = Boar.colors.crimson400) }
+            TextButton({ if (android.os.SystemClock.elapsedRealtime() - openedAt < FORGET_WINDOW_MS) onErase() else onClose() }) { Text(t("native.pin.forgotConfirm"), color = Boar.colors.crimson400, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
         },
-        // The countdown belongs to Cancel: at zero the question closes and nothing is erased.
-        dismissButton = { TextButton(onClose) { Text("${t("common.cancel")} ($seconds)") } })
+        // One countdown, the line above; at zero the question closes and nothing is erased.
+        dismissButton = { TextButton(onClose) { Text(t("common.cancel"), color = Boar.colors.textSecondary) } })
 }
 
 enum class PinFlow { NEW, CHANGE, REMOVE }

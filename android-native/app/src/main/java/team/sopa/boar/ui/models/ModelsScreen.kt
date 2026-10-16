@@ -126,7 +126,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.label, style = Boar.type.titleSm, color = c.textHeading)
+                // A Hugging Face file name reads as a name ("Meta Llama 3.1 8B Instruct · Q4_K_M").
+                Text(if (item.id.startsWith("hf-")) item.shortName else item.label, style = Boar.type.titleSm, color = c.textHeading)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(t("catalogItemCard.kind.${item.kind.name.lowercase()}"), style = mono.copy(fontSize = 9.sp), fontWeight = FontWeight.Bold, color = c.textSecondary,
                         modifier = Modifier.background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))

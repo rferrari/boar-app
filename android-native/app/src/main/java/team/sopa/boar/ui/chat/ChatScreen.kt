@@ -142,7 +142,8 @@ fun ChatScreen(
                 }
             } else {
                 LazyColumn(
-                    Modifier.weight(1f).fillMaxWidth(), state = list,
+                    // A readable line length on a wide screen (landscape, tablets), centred; a phone held upright is narrower.
+                    Modifier.weight(1f).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -156,6 +157,9 @@ fun ChatScreen(
         }
     }
 }
+
+/** The chat column's widest: about 75 characters of body text. */
+private val MAX_CHAT_WIDTH = 720.dp
 
 /** components/Ambient.tsx: Campfire's ember glow rising from the bottom, Moonlight's faint moon at the top right. */
 @Composable

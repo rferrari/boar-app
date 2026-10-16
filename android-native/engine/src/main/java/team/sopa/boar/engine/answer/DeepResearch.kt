@@ -1,5 +1,6 @@
 package team.sopa.boar.engine.answer
 
+import team.sopa.boar.engine.GenerationMetrics
 import team.sopa.boar.engine.EngineTweaks
 import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.ConversationHistory
@@ -36,6 +37,8 @@ data class ResearchResult(
     val timedOut: Boolean = false,
     /** Written from the previous answer alone ("summary", "continue"): its sources are the previous answer's. */
     val fromPreviousAnswer: Boolean = false,
+    /** The write-up's own numbers (context read, speed), for the answer's receipt; null when nothing was written. */
+    val metrics: GenerationMetrics? = null,
 )
 
 /**
@@ -68,6 +71,7 @@ class DeepResearch(
         previousAnswer: String? = null,
     ): ResearchResult {
         timedOut = false
+        lastMetrics = null
         onProgress(ResearchProgress(ResearchStage.DECOMPOSING))
         // A follow-up ("conclusion", "continue", "and its side effects?") is split, searched and judged as a standalone
         // question; split as written it searched for "conclusion" and refused (X6, Oct 13).
@@ -80,7 +84,7 @@ class DeepResearch(
         if (exchange != null && meta) {
             onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
             val answer = fromPrevious(query, exchange, previousAnswer, systemPrompt, maxTokens, onToken, answerLanguage)
-            return ResearchResult(answer, emptyList(), emptyList(), emptyList(), timedOut, fromPreviousAnswer = true)
+            return ResearchResult(answer, emptyList(), emptyList(), emptyList(), timedOut, fromPreviousAnswer = true, metrics = lastMetrics)
         }
         @Suppress("NAME_SHADOWING") val query = if (exchange != null) standalone(query, exchange) else query
         // Stop cancels only the generation running at that moment: the next stage would start a new one.
@@ -111,14 +115,17 @@ class DeepResearch(
         if (shouldStop()) return ResearchResult("", subQuestions, all, full(), timedOut)
         onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
         val answer = synthesize(query, subResults, systemPrompt, maxTokens, onToken, answerLanguage, exchange?.let { it to asked })
-        return ResearchResult(answer, subQuestions, all, full(), timedOut)
+        return ResearchResult(answer, subQuestions, all, full(), timedOut, metrics = lastMetrics)
     }
 
     private var timedOut = false
+    /** The latest stage's numbers: after the write-up, the write-up's. */
+    private var lastMetrics: GenerationMetrics? = null
 
     private suspend fun stage(system: String, user: String, nPredict: Int, temperature: Float, onToken: ((String) -> Unit)?, timeoutMs: Long? = timeoutFor(nPredict)): String {
         val r = generator.generate(system, user, nPredict, temperature, timeoutMs, onToken)
         if (r.timedOut) timedOut = true
+        lastMetrics = r.metrics
         return r.text
     }
 

@@ -272,6 +272,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                     ramBudgetBytes = services.catalog.ramBudgetBytes,
                     storageBudgetBytes = services.catalog.storageBudgetBytes,
                     showStats = state.technicalDetails,
+                    answering = state.answeringId != null,
                     onNewChat = { go { vm.newChat() } },
                     onSelect = { id -> go { vm.openSession(id) } },
                     onDelete = { id -> vm.deleteSession(id); sessions = sessions.filter { it.id != id } },

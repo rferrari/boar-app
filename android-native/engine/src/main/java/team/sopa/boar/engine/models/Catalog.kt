@@ -81,8 +81,11 @@ data class CatalogAsset(
      */
     val externalPath: String? = null,
 ) {
-    /** Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf). */
-    val shortName: String get() = displayName ?: label
+    /**
+     * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from
+     * Hugging Face reads from its file name ("Meta Llama 3.1 8B Instruct · Q4_K_M").
+     */
+    val shortName: String get() = displayName ?: if (id.startsWith("hf-")) ModelNames.readable(label) else label
 }
 
 /**

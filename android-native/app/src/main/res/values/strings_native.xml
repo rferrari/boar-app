@@ -320,4 +320,7 @@
     <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>
     <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
+    <string name="native_sourceFootnotes_localIndex" formatted="false">FROM</string>
+    <string name="native_sourceFootnotes_yourDocuments" formatted="false">Your documents</string>
+    <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
 </resources>

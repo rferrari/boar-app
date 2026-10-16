@@ -69,15 +69,16 @@ object Packs {
     /** Lexical and semantic candidates from one format-1 pack, scored like the built-in knowledge base's. */
     fun searchFormat1(db: SqlDatabase, packId: String, query: String, queryVec: FloatArray, limit: Int, explain: Boolean? = null): Found {
         val lq = RagPure.buildLexicalQuery(query) ?: return Found(emptyList(), emptyList())
-        data class Row(val id: Long, val title: String, val body: String, val vec: ByteArray, val rank: Double)
+        data class Row(val id: Long, val title: String, val body: String, val vec: ByteArray, val rank: Double, val source: String?)
         val rows = db.query(
-            """SELECT c.id, c.title, c.body, c.vec, bm25(chunks_fts) AS rank
+            """SELECT c.id, c.title, c.body, c.vec, bm25(chunks_fts) AS rank, c.source
                FROM chunks_fts f JOIN chunks c ON c.id = f.rowid
                WHERE chunks_fts MATCH ? ORDER BY rank LIMIT ?""",
             listOf(lq.match, PACK_CANDIDATES),
-        ) { Row(it.long(0), it.string(1)!!, it.string(2)!!, it.blob(3)!!, it.double(4)) }
+        ) { Row(it.long(0), it.string(1)!!, it.string(2)!!, it.blob(3)!!, it.double(4), it.string(5)?.ifBlank { null }) }
         fun chunk(r: Row, score: Double, type: MatchType) = Chunk(
-            "pack:$packId:${r.id}", "pack:$packId:${r.title}", r.title, r.body,
+            // The pack records each article's origin ("Wikipedia — https://en.wikipedia.org/wiki/Nosebleed").
+            "pack:$packId:${r.id}", "pack:$packId:${r.title}", r.title, r.body, r.source,
             score = score, matchType = type, similarity = RagPure.cosineInt8(queryVec, r.vec),
         )
         var lex = RagPure.filterByTermCoverage(rows.map { chunk(it, -it.rank, MatchType.LEXICAL) }, lq.terms).take(limit)

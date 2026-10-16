@@ -24,6 +24,7 @@ import team.sopa.boar.engine.answer.AnswerPipeline
 import team.sopa.boar.engine.answer.AnswerRequest
 import team.sopa.boar.engine.answer.AnswerStage
 import team.sopa.boar.engine.answer.AnswerText
+import team.sopa.boar.engine.answer.SourceGroups
 import team.sopa.boar.engine.answer.DeepResearch
 import team.sopa.boar.engine.answer.HistoryBudget
 import team.sopa.boar.engine.answer.PipelineInput
@@ -329,12 +330,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     // Written from the last answer: its numbers [n] are that answer's sources.
                     if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
+                    metrics = r.metrics
                 } else if (settings.adaptiveRoutingEnabled && services.answerModel()?.engine == null) {
                     // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
                     limited = null
                     val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
                     sources = r.first
                     timedOut = r.second
+                    metrics = r.third
                 } else {
                     val pipeline = AnswerPipeline(session, services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
@@ -349,7 +352,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Throwable) {
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
-            val shown = reusedSources ?: sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
+            val passages = sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
+            // One source per article, best first; the answer's numbers follow (a reused list is already grouped).
+            val grouped = SourceGroups.group(passages, { it.docId ?: it.title }, { it.similarity ?: it.relevance }) { g ->
+                g.first().copy(similarity = g.mapNotNull { it.similarity }.maxOrNull(), relevance = g.mapNotNull { it.relevance }.maxOrNull(),
+                    body = g.joinToString("\n…\n") { it.body })
+            }
+            val shown = reusedSources ?: grouped.items
+            if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
@@ -428,7 +438,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
-    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Pair<List<Chunk>, Boolean> {
+    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         val s = services.settings
         val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, it.engine == null && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
@@ -439,7 +449,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 _state.update { it.copy(activity = if (step.type.value == "retrieve") Activity.Retrieving else Activity.Thinking) }
             }, shouldStop = { stopRequested })
         if (r.answer.isBlank() && !stopRequested) error("adaptive routing produced no answer: ${r.warnings.joinToString()}")
-        return r.citations to r.timedOut
+        return Triple(r.citations, r.timedOut, r.metrics)
     }
 
     /** The phone's RAM (ram-monitor's getDeviceTotalRamBytes); 0 when unreadable. */
@@ -449,8 +459,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }.getOrDefault(0L)
 
     /**
-     * The answer's receipt, from the engine's own numbers where the pipeline reports them (Deep Research and adaptive
-     * routing don't), else from the tokens as they streamed. None when nothing was generated.
+     * The answer's receipt, from the engine's own numbers (for Deep Research and adaptive routing, those of the step that
+     * wrote the answer), else from the tokens as they streamed. None when nothing was generated.
      */
     private fun receiptOf(startAt: Long, firstAt: Long, streamed: Int, m: GenerationMetrics?, retrievalMs: Double?): Receipt? {
         if (firstAt == 0L || streamed == 0) return null

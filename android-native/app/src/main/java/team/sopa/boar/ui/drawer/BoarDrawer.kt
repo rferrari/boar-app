@@ -62,6 +62,8 @@ fun BoarDrawer(
     storageBudgetBytes: Long,
     /** The memory and storage bars at the bottom: a technical detail (Advanced tweaks → Show technical details). */
     showStats: Boolean,
+    /** BOAR is answering: chats can't be switched, opened or deleted until it ends (the list is dimmed, with a hint). */
+    answering: Boolean = false,
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
@@ -79,24 +81,25 @@ fun BoarDrawer(
                 }
             }
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
-                .clickable(onClick = onNewChat).padding(horizontal = 12.dp, vertical = 10.dp),
+                .alpha(if (answering) 0.4f else 1f).clickable(enabled = !answering, onClick = onNewChat).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("＋", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = c.textAccentEmerald)
                 Text(t("drawer.newChat"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textAccentEmerald)
             }
             Text(t("drawer.recentSessions"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            if (answering) Text(t("native.drawer.answeringHint"), style = Boar.type.caption, color = c.textAccentAmber, modifier = Modifier.padding(bottom = 6.dp))
             LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(sessions, key = { it.id }) { s ->
                         val active = s.id == activeSessionId
                         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp))
                             .then(if (active) Modifier.background(c.cyanBgSubtle).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)) else Modifier)
-                            .clickable { onSelect(s.id) }.padding(horizontal = 8.dp, vertical = 9.dp),
+                            .alpha(if (answering && !active) 0.4f else 1f).clickable(enabled = !answering) { onSelect(s.id) }.padding(horizontal = 8.dp, vertical = 9.dp),
                             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(Modifier.weight(1f)) {
                                 Text(s.title, style = Boar.type.caption, color = c.textPrimary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, modifier = Modifier.padding(top = 2.dp))
                             }
-                            Text("🗑️", fontSize = 13.sp, modifier = Modifier.alpha(0.7f).clickable { onDelete(s.id) }.padding(4.dp))
+                            if (!answering) Text("🗑️", fontSize = 13.sp, modifier = Modifier.alpha(0.7f).clickable { onDelete(s.id) }.padding(4.dp))
                         }
                     }
                 }
