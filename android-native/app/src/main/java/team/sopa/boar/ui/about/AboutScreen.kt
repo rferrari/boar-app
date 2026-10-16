@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.about
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -63,10 +64,15 @@ fun AboutScreen(onClose: () -> Unit) {
             Card(t("aboutScreen.airGappedTitle"), t("native.about.airGappedBody"))
             Card(t("aboutScreen.hardwareTitle"), t("aboutScreen.hardwareBody"))
             Card(t("aboutScreen.benchmarkTitle"), t("aboutScreen.benchmarkBody"))
-            Card(t("aboutScreen.repoTitle"), t("aboutScreen.repoBody")) {
-                for (link in listOf("github.com/rferrari/boar-app", "boarapp.com"))
-                    Text(link, style = Boar.type["mono.sm"], color = c.textAccentCyan,
-                        modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp)).padding(10.dp))
+            Card(t("aboutScreen.repoTitle"), t("aboutScreen.repoBody")) { Link("github.com/rferrari/boar-app") }
+            // The website is where updates are announced; the card warns about look-alike downloads.
+            Card(t("native.about.siteTitle"), t("native.about.siteBody")) {
+                Link("boarapp.com")
+                Link("x.com/boar_app")
+                Link("farcaster.xyz/boarapp")
+                Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim)
+                Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
         }
     }
@@ -79,6 +85,23 @@ private fun versionName(ctx: android.content.Context): String = listOfNotNull(
     team.sopa.boar.BuildConfig.GIT_SHA.ifEmpty { null },
     team.sopa.boar.BuildConfig.BUILD_DATE,
 ).joinToString(" · ")
+
+/** An address to type or paste, never opened from here; press and hold copies it. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun Link(text: String) {
+    val c = Boar.colors
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val copied = t("native.about.copied")
+    Text(text, style = Boar.type["mono.sm"], color = c.textAccentCyan,
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp))
+            .combinedClickable(onClick = {}, onLongClick = {
+                (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+                    .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", text))
+                android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
+            })
+            .padding(10.dp))
+}
 
 @Composable
 private fun Card(title: String, body: String, extra: @Composable () -> Unit = {}) {
