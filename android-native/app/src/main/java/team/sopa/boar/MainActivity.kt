@@ -266,7 +266,11 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
                         if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
                         else items.take(3) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(3)
-                    } + team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } },
+                    }.let { items ->
+                        // Boar Labs goes before About: About is always the menu's last item (Oct 16).
+                        val labs = team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } }
+                        items.filter { it.key != "about" } + labs + items.filter { it.key == "about" }
+                    },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     ramBudgetBytes = services.catalog.ramBudgetBytes,
