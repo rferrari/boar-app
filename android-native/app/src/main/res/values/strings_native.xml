@@ -54,6 +54,10 @@
     <string name="native_about_verify" formatted="false">DON\'T TRUST, VERIFY!</string>
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
+    <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
+    <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab!</string>
+    <string name="native_about_teamTitle" formatted="false">Core team</string>
+    <string name="native_about_teamBody" formatted="false">On X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
     <string name="native_eval_adaptiveLater" formatted="false">Adaptive routing isn\'t in the native build yet, so only fixed models are listed.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>

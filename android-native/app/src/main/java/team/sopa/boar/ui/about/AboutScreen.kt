@@ -74,6 +74,11 @@ fun AboutScreen(onClose: () -> Unit) {
                 Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
+            Card(t("native.about.packsTitle"), t("native.about.packsBody")) { Link("huggingface.co/datasets/r4topunk/boar-packs") }
+            // The core team on X, in alphabetical order; each row copies its x.com address.
+            Card(t("native.about.teamTitle"), t("native.about.teamBody")) {
+                for ((name, handle) in TEAM) Link("$name · @$handle", copy = "x.com/$handle")
+            }
         }
     }
 }
@@ -86,10 +91,14 @@ private fun versionName(ctx: android.content.Context): String = listOfNotNull(
     team.sopa.boar.BuildConfig.BUILD_DATE,
 ).joinToString(" · ")
 
-/** An address to type or paste, never opened from here; press and hold copies it. */
+/** BOAR's core team on X, alphabetical by name. */
+private val TEAM = listOf("Bielcx" to "bielthegoat", "Jasper" to "btcjasper", "r4to" to "r4topunk", "Sopa" to "sopaagency",
+    "vaipraonde" to "arferrari", "vlad" to "sk8ordao")
+
+/** An address to type or paste, never opened from here; press and hold copies [copy] (the text itself by default). */
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun Link(text: String) {
+private fun Link(text: String, copy: String = text) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val copied = t("native.about.copied")
@@ -97,7 +106,7 @@ private fun Link(text: String) {
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(c.bgTerminal, RoundedCornerShape(6.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp))
             .combinedClickable(onClick = {}, onLongClick = {
                 (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
-                    .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", text))
+                    .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", copy))
                 android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
             })
             .padding(10.dp))

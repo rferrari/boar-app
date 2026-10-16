@@ -54,6 +54,10 @@
     <string name="native_about_verify" formatted="false">NÃO CONFIE, VERIFIQUE!</string>
     <string name="native_about_copied" formatted="false">Copiado</string>
     <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar.</string>
+    <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
+    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to!</string>
+    <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
+    <string name="native_about_teamBody" formatted="false">No X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
     <string name="native_eval_adaptiveLater" formatted="false">O roteamento adaptativo ainda não está no app nativo; por isso só aparecem modelos fixos.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
