@@ -54,6 +54,8 @@
     <string name="native_about_verify" formatted="false">Não confie, verifique.</string>
     <string name="native_about_copied" formatted="false">Copiado</string>
     <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar.</string>
+    <string name="native_about_tagline" formatted="false">Suas perguntas.\nSeu celular. Sua IA.</string>
+    <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
     <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
     <string name="native_about_post_offline" formatted="false">Um download na configuração. Depois, modo avião tudo bem: o BOAR responde com a biblioteca do seu celular, com o llama.cpp embutido, e mostra os artigos que usou.</string>
     <string name="native_about_post_receipt" formatted="false">Cada resposta registra como rodou: o modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes. Meça o seu celular em Configurações → Ajustes avançados → Avaliação.</string>

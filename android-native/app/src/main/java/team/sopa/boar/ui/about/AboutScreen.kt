@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,9 +64,12 @@ fun AboutScreen(onClose: () -> Unit) {
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
+            Profile()
             // Three posts: about BOAR, its addresses, the open work it stands on.
             Post(last = false) {
-                for (key in listOf("why", "offline", "receipt", "budget")) Text(t("native.about.post.$key"), style = Boar.type.body, color = c.textPrimary)
+                listOf("why", "offline", "receipt", "budget").forEachIndexed { i, key ->
+                    Text(t("native.about.post.$key"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.padding(top = if (i == 0) 0.dp else 8.dp))
+                }
             }
             Post(last = false) {
                 Text(t("native.about.post.open"), style = Boar.type.body, color = c.textPrimary)
@@ -87,6 +92,32 @@ fun AboutScreen(onClose: () -> Unit) {
                 style = Boar.type["mono.xs"], color = c.textSecondary,
                 modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
             )
+        }
+    }
+}
+
+/**
+ * The @boar_app profile from the brand book: the banner (the boar reading his phone by the fire), the tagline over
+ * it, the round mark overlapping its lower edge, then the name, handle and bio.
+ */
+@Composable
+private fun Profile() {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+        Box(Modifier.fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().aspectRatio(3f).clip(RoundedCornerShape(12.dp))) {
+                Image(painterResource(R.drawable.boar_banner), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                Text(t("native.about.tagline"), style = Boar.type.titleSm, color = Color(0xFFF3ECDC), fontWeight = FontWeight.ExtraBold, maxLines = 2,
+                    modifier = Modifier.fillMaxWidth(0.62f).padding(start = 14.dp, top = 12.dp))
+            }
+            Image(painterResource(R.drawable.boar_mark), null,
+                Modifier.align(Alignment.BottomStart).padding(start = 12.dp).offset(y = 40.dp).size(80.dp).clip(CircleShape)
+                    .border(3.dp, c.bgSurface, CircleShape), contentScale = ContentScale.Crop)
+        }
+        Column(Modifier.padding(top = 48.dp, start = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text("Boar 🐗", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
+            Text("@boar_app", style = Boar.type["mono.xs"], color = c.textDim)
+            Text(t("native.about.bio"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }
