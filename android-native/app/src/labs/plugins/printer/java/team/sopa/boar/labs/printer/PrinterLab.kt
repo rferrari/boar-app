@@ -62,7 +62,7 @@ import team.sopa.boar.ui.theme.Boar
 import java.io.File
 
 /**
- * Field Printer: the research basket as a document. Answers come in from any chat ("＋ Basket"); here they're
+ * Boar Press (was Field Printer): the research basket as a document. Answers come in from any chat ("＋ Basket"); here they're
  * reordered, edited or dropped, each gets at most one drawing (its own illustration, one from Image Gen, or none), and
  * Compile writes an A4 PDF to share or save.
  */
@@ -74,6 +74,7 @@ object PrinterLab : LabPlugin {
         Basket.eraseAll(context)
     }
     override val emoji = "🖨️"
+    override val art = team.sopa.boar.R.drawable.truffle_steampunk
     override val status = LabStatus.BETA
 
     /** Each answer's own illustration (🎨 under it in the chat), from Image Gen's record: answer id to picture. */

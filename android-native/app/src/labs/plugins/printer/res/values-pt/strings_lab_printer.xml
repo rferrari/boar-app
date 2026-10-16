@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_printer_title" formatted="false">Impressora de campo</string>
+    <string name="native_labs_printer_title" formatted="false">Boar Press</string>
     <string name="native_labs_printer_body" formatted="false">Junte respostas de qualquer conversa numa cesta e compile tudo em um PDF ou arquivo Markdown.</string>
     <string name="native_labs_printer_empty" formatted="false">A cesta está vazia.</string>
     <string name="native_labs_printer_howTo" formatted="false">Embaixo de qualquer resposta numa conversa, toque em 📎 para adicioná-la aqui. Junte de quantas conversas quiser e volte para organizar e compilar.</string>

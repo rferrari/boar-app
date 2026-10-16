@@ -44,6 +44,7 @@ import java.util.Locale
 object BmoeLab : LabPlugin, EngineProvider {
     override val id = "bmoe"
     override val emoji = "🦣"
+    override val art = team.sopa.boar.R.drawable.truffle_sovereign
     override val status = LabStatus.BETA
 
     /** Where `adb push` puts it (the experimental-engines branch used the same path). */
