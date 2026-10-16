@@ -5,12 +5,12 @@
     <string name="native_labs_compass_noSensor" formatted="false">Este celular não tem magnetômetro, então não pode mostrar uma bússola.</string>
     <string name="native_labs_compass_calibrate" formatted="false">Precisão baixa: mova o celular em forma de 8 algumas vezes, longe de metal e ímãs.</string>
     <string name="native_labs_compass_note" formatted="false">Aponta para o norte magnético, calculado neste celular sem internet. O norte verdadeiro difere alguns graus conforme onde você está; precisaria da sua localização, que o BOAR não pede. Segure o celular na horizontal.</string>
-    <string name="native_labs_compass_dir_n N" formatted="false"></string>
-    <string name="native_labs_compass_dir_ne NE" formatted="false"></string>
-    <string name="native_labs_compass_dir_e L" formatted="false"></string>
-    <string name="native_labs_compass_dir_se SE" formatted="false"></string>
-    <string name="native_labs_compass_dir_s S" formatted="false"></string>
-    <string name="native_labs_compass_dir_sw SO" formatted="false"></string>
-    <string name="native_labs_compass_dir_w O" formatted="false"></string>
-    <string name="native_labs_compass_dir_nw NO" formatted="false"></string>
+    <string name="native_labs_compass_dir_n" formatted="false">N</string>
+    <string name="native_labs_compass_dir_ne" formatted="false">NE</string>
+    <string name="native_labs_compass_dir_e" formatted="false">L</string>
+    <string name="native_labs_compass_dir_se" formatted="false">SE</string>
+    <string name="native_labs_compass_dir_s" formatted="false">S</string>
+    <string name="native_labs_compass_dir_sw" formatted="false">SO</string>
+    <string name="native_labs_compass_dir_w" formatted="false">O</string>
+    <string name="native_labs_compass_dir_nw" formatted="false">NO</string>
 </resources>
