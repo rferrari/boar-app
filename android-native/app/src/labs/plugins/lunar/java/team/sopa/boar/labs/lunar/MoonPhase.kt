@@ -55,14 +55,29 @@ object MoonPhase {
         return State(age, length, (1 - cos(2 * PI * phase)) / 2, phase, epochMs(lastNew), epochMs(nextNew), epochMs(nextFull))
     }
 
-    /** One of eight names, by the phase: new, waxing crescent, first quarter, waxing gibbous, full, waning gibbous… */
-    fun nameKey(phase: Double): String = KEYS[((phase * 8 + 0.5).toInt()) % 8]
+    /**
+     * Which of the eight phases [s] is in: new, first quarter, full and last quarter within a day of their moment, the
+     * crescents and gibbous moons between. Equal eighths named day 5.9 (34 % lit) "first quarter" (X6, Oct 16).
+     */
+    fun index(s: State): Int {
+        val q = s.lengthDays / 4
+        fun near(day: Double) = kotlin.math.abs(s.ageDays - day) < 1.0
+        return when {
+            s.ageDays < 1.0 || s.ageDays > s.lengthDays - 1.0 -> 0
+            near(q) -> 2
+            near(2 * q) -> 4
+            near(3 * q) -> 6
+            s.ageDays < q -> 1
+            s.ageDays < 2 * q -> 3
+            s.ageDays < 3 * q -> 5
+            else -> 7
+        }
+    }
+
+    fun nameKey(s: State): String = KEYS[index(s)]
 
     /** The phase as an emoji, drawn as seen from the north; [south] mirrors it (a waxing moon is lit on the left there). */
-    fun emoji(phase: Double, south: Boolean): String {
-        val i = ((phase * 8 + 0.5).toInt()) % 8
-        return (if (south) SOUTH else NORTH)[i]
-    }
+    fun emoji(s: State, south: Boolean): String = (if (south) SOUTH else NORTH)[index(s)]
 
     private val KEYS = listOf("new", "waxingCrescent", "firstQuarter", "waxingGibbous", "full", "waningGibbous", "lastQuarter", "waningCrescent")
     private val NORTH = listOf("🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘")

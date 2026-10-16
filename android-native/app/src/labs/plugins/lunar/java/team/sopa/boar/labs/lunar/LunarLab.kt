@@ -48,11 +48,18 @@ object LunarLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_lunar
     override val status = LabStatus.BETA
 
-    /** Countries mostly south of the equator: the default hemisphere until the user picks one. */
-    private val SOUTH_COUNTRIES = setOf("BR", "AR", "CL", "UY", "PY", "BO", "PE", "AU", "NZ", "ZA", "MZ", "MG", "AO", "NA", "BW", "ZW", "ZM")
+    /**
+     * Time zones south of the equator: the default hemisphere until the user picks one. The time zone, not the language:
+     * a phone in Brazil set to English (US) said "north" (X6, Oct 16).
+     */
+    private val SOUTH_ZONES = listOf("America/Sao_Paulo", "America/Argentina", "America/Buenos_Aires", "America/Santiago", "America/Montevideo",
+        "America/Asuncion", "America/La_Paz", "America/Lima", "America/Bahia", "America/Recife", "America/Fortaleza", "America/Belem",
+        "America/Maceio", "America/Cuiaba", "America/Campo_Grande", "America/Porto_Velho", "America/Rio_Branco", "America/Noronha", "America/Araguaina",
+        "Australia/", "Pacific/Auckland", "Pacific/Fiji", "Africa/Johannesburg", "Africa/Maputo", "Africa/Harare", "Africa/Lusaka",
+        "Africa/Windhoek", "Africa/Gaborone", "Indian/Antananarivo", "Indian/Mauritius", "Antarctica/")
 
     private fun south(): Boolean = team.sopa.boar.labs.LabPrefs.string("lunar.south")?.let { it == "on" }
-        ?: (Locale.getDefault().country.uppercase() in SOUTH_COUNTRIES)
+        ?: java.util.TimeZone.getDefault().id.let { id -> SOUTH_ZONES.any { id.startsWith(it) } }
 
     @Composable
     override fun Content() {
@@ -66,8 +73,8 @@ object LunarLab : LabPlugin {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(MoonPhase.emoji(m.phase, isSouth), fontSize = 96.sp)
-                Text(t("native.labs.lunar.phase.${MoonPhase.nameKey(m.phase)}"), style = Boar.type.title, color = c.textHeading)
+                Text(MoonPhase.emoji(m, isSouth), fontSize = 96.sp)
+                Text(t("native.labs.lunar.phase.${MoonPhase.nameKey(m)}"), style = Boar.type.title, color = c.textHeading)
                 Text(t("native.labs.lunar.lit", "pct" to Math.round(m.illumination * 100), "age" to String.format(Locale.US, "%.1f", m.ageDays)),
                     style = Boar.type.caption, color = c.textMuted)
             }
@@ -124,7 +131,7 @@ object LunarLab : LabPlugin {
                             Column(Modifier.weight(1f).aspectRatio(0.8f).clip(RoundedCornerShape(6.dp))
                                 .then(if (isToday) Modifier.border(1.dp, c.emerald400, RoundedCornerShape(6.dp)) else Modifier),
                                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                Text(MoonPhase.emoji(MoonPhase.at(noon.timeInMillis).phase, south), fontSize = 16.sp)
+                                Text(MoonPhase.emoji(MoonPhase.at(noon.timeInMillis), south), fontSize = 16.sp)
                                 Text("$d", style = Boar.type["mono.xs"], color = if (isToday) c.textAccentEmerald else c.textMuted)
                             }
                         }
