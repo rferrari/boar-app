@@ -158,11 +158,14 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))
         if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
-        // Classified: the description is struck through, like a redacted file.
-        Text(t("native.labs.${lab.id}.body"), style = if (locked) Boar.type.caption.copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough) else Boar.type.caption,
+        // Classified: the description is blacked out word by word like the title, a redacted file.
+        Text(if (locked) redactAll(t("native.labs.${lab.id}.body")) else t("native.labs.${lab.id}.body"), style = Boar.type.caption,
             color = if (locked) c.textDim else c.textMuted)
     }
 }
+
+/** "Reads signs." → "▇▇▇▇▇ ▇▇▇▇▇.": every word blacked out, its length and punctuation kept, so the lines still wrap like text. */
+private fun redactAll(s: String): String = s.replace(Regex("[\\p{L}\\p{N}]+")) { "▇".repeat(it.value.length) }
 
 /** "Big Brain" → "Big ▇▇▇▇▇": the first word stays, the rest is blacked out. */
 private fun redact(s: String): String {
