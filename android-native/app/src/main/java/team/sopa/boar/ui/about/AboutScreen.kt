@@ -115,7 +115,7 @@ private fun Profile() {
                     .border(3.dp, c.bgSurface, CircleShape), contentScale = ContentScale.Crop)
         }
         Column(Modifier.padding(top = 48.dp, start = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("Boar 🐗", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
+            Text("Boar", style = Boar.type.title, color = c.textHeading, fontWeight = FontWeight.Bold)
             Text("@boar_app", style = Boar.type["mono.xs"], color = c.textDim)
             Text(t("native.about.bio"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(top = 6.dp))
         }
