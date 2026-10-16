@@ -76,6 +76,8 @@ export interface PoiSearchResult {
   coverage: "none" | "partial" | "full";
   /** Id of the pack that answered. */
   region?: string;
+  /** The gazetteer's city for the search center ("near you in Tokyo"), when the gazetteer is installed. */
+  nearPlace?: { name: string; country?: string };
   /** How the list is ordered, in words, for "best" questions. */
   criterion: string;
   timingsMs: { search: number };

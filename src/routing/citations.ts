@@ -118,7 +118,8 @@ export const ATTRIBUTION_MIN_SUPPORT = 0.75;
 export function attributeCitations(answer: string, sources: RetrievedChunk[]): AttributedCitations {
   const added: number[] = [];
   if (!sources.length) return { text: answer, added };
-  const text = answer.replace(/[^.!?\n]+[.!?]*/g, (sentence: string, at: number) => {
+  // A "." between digits is a decimal point, not a sentence end: "9.4 million" got "9 [2].4 million" (Anvil, exp-35 traces).
+  const text = answer.replace(/(?:[^.!?\n]|(?<=\d)\.(?=\d))+[.!?]*/g, (sentence: string, at: number) => {
     if (/\[\d+\]/.test(sentence)) return sentence;
     // A citation right after the sentence's punctuation ("… Zone. [1]") is its own (Prism CIT-2: "[1]. [1]").
     if (/^\s*\[\d+\]/.test(answer.slice(at + sentence.length))) return sentence;

@@ -11,6 +11,7 @@
  * a double send can never run two completions on one context.
  */
 import { classifyTask } from "./classify";
+import { gatedTaskType, routeGateSkip, routeGateMessages, routeGateVerdict, ROUTE_GATE_CONFIG, ROUTE_GATE_MODEL_IDS, ROUTE_GATE_N_PROBS, type GateMessage, type TokenProb } from "./routeGate";
 import {
   compressContext,
   selectInstant,
@@ -50,6 +51,11 @@ import {
   NO_SOURCE_INSTRUCTION,
   uncitedPreface,
   noHealthSourceAnswer,
+  isSpanishQuestion,
+  isHealthFollowUp,
+  isNoStepsAnswer,
+  isPtDefinitional,
+  definesName,
   onTopic,
   namedByLexicon,
   PT_QUESTION,
@@ -69,8 +75,15 @@ import { ptLexicon } from "../rag/ptLexiconAsset";
 import { cleanPlaceName } from "../rag/poiPack";
 import { attributeCitations, checkCitations } from "./citations";
 import { calculate } from "./calculators";
+import { travelDistanceAnswer } from "./travelDistance";
+import { verdictGuard } from "./verdictGuard";
+import { arithmeticAnswer } from "./arithmetic";
+import { numericGuard } from "./numguard";
 import { emergencyNumbersAnswer } from "./emergencyNumbers";
-import { isSnakebiteFirstAid, snakebiteFirstAidCard } from "./firstAidCards";
+import { factsAnswer } from "../rag/facts";
+import { coHazardAnswer, isCoHazardQuestion } from "./coHazard";
+import { isSnakebiteFirstAid, snakebiteFirstAidCard as cut2SnakebiteCard } from "./firstAidCards";
+import { DETECTOR_FLOOR } from "./emergencyHead";
 import type { LoadFailureKind } from "../inference/loadError";
 import { DepthModel, planAnswer, resolveDeepModel, AnswerPlan, deepAutoIneligibility } from "./depth";
 import { isCompactModel, pickDefaultAnswerModel, tooBigForLowRam } from "./defaultModel";
@@ -114,6 +127,43 @@ import type { AnswerSettings } from "../models/settings";
 import type { ResearchOptions, ResearchProgress, ResearchResult } from "../services/orchestrator";
 import type { ExecutionOutcome, ExecutionTelemetryRecord, ModelResidency } from "../services/executionTelemetry.pure";
 import { smallTalkReply } from "./smallTalk";
+import { conditionCardText as cut2ConditionCardText, conversationCondition, isCardEmergency } from "./conditionCards";
+import { withReviewedSnakebiteText } from "./snakebiteCardText";
+import { classify as classifyHealthGap, doseExcerpt, healthGapCard, healthGapCodes, healthGapTitle, noDoseAnswer, type HealthGap } from "./healthGap";
+
+// SBt (cut-3 final candidate): the snakebite card's EN text is the reviewed text (snakebiteCardText.ts); the trigger and
+// the card code in firstAidCards.ts / conditionCards.ts are cut 2's, byte for byte.
+const snakebiteFirstAidCard = (query: string, pt: boolean, es = false) => withReviewedSnakebiteText(cut2SnakebiteCard(query, pt, es));
+const conditionCardText = (...args: Parameters<typeof cut2ConditionCardText>) => withReviewedSnakebiteText(cut2ConditionCardText(...args));
+
+/**
+ * The no-source health card (Sonar exp-29, r4to 2026-10-03: never answer an emergency from memory, recover with
+ * first-aid cards): a question whose terms name exactly one condition (conditionCards.ts, Compass trigger v1) gets
+ * that condition's card; several or none, or a Spanish question (no ES card texts yet) → the generic card.
+ */
+function noSourceHealthCard(query: string, pt: boolean, es: boolean, reasonCodes: string[], userTurns: string[] = [], gap: HealthGap | null = null): { text: string; label: string } {
+  const { condition: r, fromHistory } = conversationCondition(query, userTurns);
+  if (r === "MULTI") reasonCodes.push("grounding:fa-card-multi");
+  const condition = r === "MULTI" ? null : r;
+  const text = condition ? conditionCardText(condition, query, es ? "es" : pt ? "pt" : "en") : null;
+  if (condition && text) {
+    reasonCodes.push(`grounding:fa-card-${condition}`);
+    if (fromHistory) reasonCodes.push("grounding:fa-card-from-history");
+    return { text, label: "First aid card" };
+  }
+  // HEALTHGAP (rule v1.1 §2.2): no specific card -> the class's own: the poisoning or CO card, the dose line; survival keeps the generic line.
+  const fallback = healthGapCard(gap);
+  const card = fallback ? conditionCardText(fallback, query, es ? "es" : pt ? "pt" : "en") : null;
+  if (fallback && card) {
+    reasonCodes.push(`grounding:fa-card-${fallback}`);
+    return { text: card, label: "First aid card" };
+  }
+  if (gap?.cls === "dose") {
+    reasonCodes.push("grounding:health-no-dose");
+    return { text: noDoseAnswer(pt, es), label: "No offline source" };
+  }
+  return { text: noHealthSourceAnswer(pt, es), label: "No offline source" };
+}
 
 /** Development builds log each answer's checks to Metro ([ANSWER] lines); never in a release build or a test. */
 const DEV_LOG = typeof __DEV__ !== "undefined" && __DEV__ && process.env.NODE_ENV !== "test";
@@ -139,6 +189,11 @@ export interface AnswerEngine {
   estimateFit(filename: string): Promise<MemoryFit | null>;
   /** Keeps this prompt start prefilled in the KV cache between answers (LlamaEngine.setAnswerPrefix). */
   setAnswerPrefix?(prefix: PromptPrefix | null): void;
+  /**
+   * Top-N probabilities of the next token after `messages` (chat template applied), on the model in `modelFilename`.
+   * Null when that model isn't the loaded one (the route gate then keeps the rules).
+   */
+  nextTokenProbs?(messages: GateMessage[], opts: { modelFilename: string; nProbs: number }): Promise<TokenProb[] | null>;
 }
 
 export interface AnswerDeps {
@@ -178,6 +233,27 @@ export interface AnswerDeps {
    * after the models load). A question asked meanwhile waits instead of searching an empty index.
    */
   knowledgeReady?(): Promise<void>;
+  /**
+   * Sonar exp-30 (health11): a learned multilingual emergency detector (mmBERT-small GGUF via llama.rn +
+   * a JS head, src/routing/emergencyHead.ts). When present it replaces the lexical isHealthQuestion as the
+   * health predicate (OR the card triggers and the health follow-up). null = unavailable -> lexical.
+   */
+  emergencyScore?(query: string, userTurns: string[]): Promise<{ p: number; fire: boolean } | null>;
+  /**
+   * HEALTHGAP (src/routing/healthGap.ts, rule v1.1): a dose, poisoning, carbon-monoxide-reading or survival-time question
+   * counts as a detector fire (the health route) and gets its class's no-source answer (dose line, poisoning or CO card).
+   * Codes keep the detector's own detector:p / detector:fire and add healthgap:<class>. Default off; true = on.
+   */
+  healthgap?: boolean;
+  /** FACTS instant tier (src/rag/facts.ts); default on. false = off (model-path tests whose fixtures are fact questions). */
+  facts?: boolean;
+  /**
+   * NUMGUARD (src/routing/numguard.ts): when the learned detector fires on an English, single-turn pure conversion or clock
+   * calculation with no health or person word in any user turn, a deterministic calculator may answer it (codes keep detector:p,
+   * detector:fire, numguard:fired). No calculator answers -> the detector's call stands (code numguard:no-calculator): a model never
+   * answers a fired message. Default off; true = on.
+   */
+  numguard?: boolean;
   /**
    * English article names a Portuguese question mentions (Bramble's lexicon, src/rag/ptLexicon.ts
    * englishNamesIn): "Por que existem as estações do ano?" -> ["Season"]. The grounding guard matches
@@ -305,6 +381,12 @@ const defaultEnglishNames = (query: string) => englishNamesIn(query, ptLexicon()
 const withoutRelevance = (s: RetrievedChunk[]): RetrievedChunk[] => s.map(({ relevance: _r, ...c }: SourceChunk) => c);
 
 /** Receipts of answers no model wrote (fixed answers, source excerpts). */
+/** Crypto-pack sources (their source labels) and a crypto cue in the user's own words (PT/EN/ES). "gás/gas" is not a
+ *  cue: a gas leak is an emergency. Sonar exp-30 (health11). */
+const CRYPTO_SOURCE = /^(Ethereum EIPs\/ERCs|Ethereum specs|ethereum\.org|Bitcoin BIPs)\b/;
+const CRYPTO_CUE =
+  /(?<![\p{L}\p{N}])(ethereum|ether|eth|bitcoin|btc|blockchains?|cripto\p{L}*|crypto\p{L}*|tokens?|nfts?|erc-?\d*|eip-?\d*|bip-?\d*|carteiras?( digita\p{L}*| cripto\p{L}*)?|wallets?|billeteras?|staking|stake|validador\p{L}*|validator\p{L}*|rollups?|l2s?|layer ?2|camada ?2|capa ?2|defi|smart contracts?|contratos? inteligentes?|solidity|minera\p{L}*|mining|hash\p{L}*|merkle|zk\p{L}*|sharding|consenso|consensus|privacy pools?|tornado cash|stablecoins?|usdc|usdt|uniswap|airdrops?|chave privada|private keys?|seed phrase|frase semente|mempool|satoshis?|lightning network|proof of (stake|work)|prova de (participa\p{L}+|trabalho)|prueba de (participaci\p{L}+|trabajo)|vitalik|buterin|nakamoto|dapps?|web3)(?![\p{L}\p{N}])/iu;
+
 const NOT_A_MODEL = new Set(["grounding-guard", "extractive", "none", "places", "calculator"]);
 
 export function createAnswerer(deps: AnswerDeps) {
@@ -320,7 +402,7 @@ export function createAnswerer(deps: AnswerDeps) {
     let signalStop: () => void = () => {};
     const stopSignal = new Promise<"stopped">((r) => (signalStop = () => r("stopped")));
     // Health, first aid or a disaster: the chat shows the emergency-services line (one classifier: this one).
-    const safety = isSafetyQuery(req.query);
+    const safety = isSafetyQuery(req.query) || isCoHazardQuestion(req.query);
     /** Whether the chat was already told that no strong source backs this answer. */
     let weakSourcesSent = false;
     const emit = (e: AnswerEvent) => {
@@ -550,7 +632,7 @@ export function createAnswerer(deps: AnswerDeps) {
         truncated: found.pois.length >= PLACES_LIMIT,
         attribution,
       });
-      reasonCodes.push(`places:${places.length}`, `places:coverage-${found.coverage}`, ...(found.region ? [`places:region-${found.region}`] : []));
+      reasonCodes.push(`places:${places.length}`, `places:coverage-${found.coverage}`, ...(found.region ? [`places:region-${found.region}`] : []), ...(byDistance && found.nearPlace ? ["places:near-city"] : []));
       const text = formatPlacesAnswer({
         intent,
         places,
@@ -558,6 +640,7 @@ export function createAnswerer(deps: AnswerDeps) {
         byDistance,
         radiusM: found.radiusUsedM,
         osmDate: attribution.find((a) => a.source === "osm")?.date,
+        nearCity: byDistance ? found.nearPlace ?? null : null,
       });
       const r = receipt(retrievalMs);
       emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r });
@@ -573,18 +656,64 @@ export function createAnswerer(deps: AnswerDeps) {
       const stage = (name: AnswerStageName, tier: AnswerTier, modelId?: string, detail?: StageDetail) =>
         emit({ type: "stage", answerId, stage: name, tier, modelId, detail, at: deps.now() });
 
+      // Sonar exp-30: the learned emergency detector runs first, so an emergency never takes the small-talk or
+      // calculator shortcut ("help", "e agora?"). Unavailable or failing -> null -> the lexical predicate.
+      const userTurns = (ctx.history?.turns ?? []).filter((t) => t.role === "user").map((t) => t.text);
+      let learned = deps.emergencyScore && !req.reuseSources ? await deps.emergencyScore(req.query, userTurns).catch(() => null) : null;
+      // NUMGUARD: the window over earlier turns fired -> the conversation is the emergency, never overridden.
+      const windowFire = userTurns.length > 0 && !!learned?.fire;
+      // DETMAX: earlier user turns dilute the detector window ("Hi, quick question." + a dog bite: 0.554 -> 0.049). With history, the current turn
+      // is also scored alone and the larger score wins (fire if either window fires). Same threshold and model; no history -> no extra call.
+      if (learned && userTurns.length && deps.emergencyScore) {
+        const alone = await deps.emergencyScore(req.query, []).catch(() => null);
+        if (alone) learned = { p: Math.max(learned.p, alone.p), fire: learned.fire || alone.fire };
+      }
+      const detectorCodes: string[] = learned ? [`detector:p=${learned.p.toFixed(3)}`, ...(learned.fire ? ["detector:fire"] : [])] : [];
+      // NUMGUARD: a pure conversion or clock calculation (EN, no health or person word in this or any earlier user turn, the history
+      // window did not fire) may take a deterministic calculator answer when the detector fires: the calculator shortcuts below see
+      // "not fired" (small talk and FACTS stay off), and if none answers the detector's call is restored before anything else runs.
+      const numguard = deps.numguard === true && !!learned?.fire && !windowFire && numericGuard(req.query, isPortugueseQuestion(req.query), userTurns);
+      if (numguard && learned) {
+        learned = { p: learned.p, fire: false };
+        detectorCodes.push("numguard:fired");
+      }
+
+      // HEALTHGAP (deps.healthgap): a dose, poisoning, carbon-monoxide-reading or survival-time question the detector scores low
+      // counts as a detector fire from here on (no small talk, calculator, FACTS or places; the health route). The detector's
+      // own codes stay as scored; healthgap:<class> is added after them.
+      const healthGap = deps.healthgap === true && !req.reuseSources ? classifyHealthGap(req.query, userTurns) : null;
+      if (healthGap) {
+        learned = { p: learned?.p ?? 0, fire: true };
+        detectorCodes.push(...healthGapCodes(healthGap));
+      }
+      // HEALTHGAP (rule v1.2 §2.5): a dose or survival turn keeps a source whose title names its medicine or condition.
+      const gapTitle = healthGapTitle(healthGap, req.query, userTurns);
+      const gapSource = (c: RetrievedChunk) => !!gapTitle && gapTitle.test(c.title);
+
       // Arithmetic (temperature, fuel economy, Naismith, currency at a given rate, battery Wh) is answered
       // exactly, before anything else: "Minha conta do jantar deu 2.450 baht…" is a sum, not a restaurant
       // search (Sextant 3ccf7c0, mth-003-pt went to task:places).
       if (!req.reuseSources && req.tier !== "deep") {
         // Snakebite first aid: a fixed card from the WHO text, never a pack passage (Boar, after 3ffd7e0).
         if (isSnakebiteFirstAid(req.query)) {
-          const card = snakebiteFirstAidCard(req.query, isPortugueseQuestion(req.query));
+          // Spanish first: isPortugueseQuestion also fires on Spanish ("Me picó una culebra, que hago?"), and ES_ONLY
+          // holds no words Portuguese shares, so a Portuguese question is not Spanish here.
+          const esQ = isSpanishQuestion(req.query);
+          const card = snakebiteFirstAidCard(req.query, !esQ && isPortugueseQuestion(req.query), esQ);
           markVisible();
           const r: AnswerReceipt = { modelId: "grounding-guard", modelLabel: "First aid (WHO)", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: ["answer:first-aid-card-snakebite"] };
           emit({ type: "token", answerId, tier: "instant", text: card });
           emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
           return { answerId, tier: "instant", outcome: "success", text: card, sources: [], receipt: r, cited: [] };
+        }
+        // CO hazard (EN): a fuel-burning device in a garage, tent or home is never a model answer (ship L3: "yes, with ventilation").
+        if (!isPortugueseQuestion(req.query) && !isSpanishQuestion(req.query) && isCoHazardQuestion(req.query)) {
+          const text = coHazardAnswer(req.query);
+          markVisible();
+          const r: AnswerReceipt = { modelId: "grounding-guard", modelLabel: "Safety facts (CDC)", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: [...detectorCodes, "answer:safety-fact-co-hazard"] };
+          emit({ type: "token", answerId, tier: "instant", text });
+          emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
+          return { answerId, tier: "instant", outcome: "success", text, sources: [], receipt: r, cited: [] };
         }
         // A country's emergency numbers: a fixed table, never a guess (Sextant trv-001-pt).
         const numbers = emergencyNumbersAnswer(req.query, isPortugueseQuestion(req.query));
@@ -596,7 +725,7 @@ export function createAnswerer(deps: AnswerDeps) {
           return { answerId, tier: "instant", outcome: "success", text: numbers, sources: [], receipt: r, cited: [] };
         }
         // Small talk ("hi", "valeu", "who are you", "what time is it"): a fixed reply, no model load, no search.
-        const chat = smallTalkReply(req.query, isPortugueseQuestion(req.query), new Date());
+        const chat = learned?.fire || numguard ? null : smallTalkReply(req.query, isPortugueseQuestion(req.query), new Date());
         if (chat) {
           markVisible();
           const r: AnswerReceipt = { modelId: "small-talk", modelLabel: "BOAR", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: [`answer:small-talk-${chat.kind}`] };
@@ -604,15 +733,58 @@ export function createAnswerer(deps: AnswerDeps) {
           emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
           return { answerId, tier: "instant", outcome: "success", text: chat.text, sources: [], receipt: r, cited: [] };
         }
-        const calc = calculate(req.query, isPortugueseQuestion(req.query));
+        const calc = learned?.fire ? null : calculate(req.query, isPortugueseQuestion(req.query));
         if (calc) {
           markVisible();
-          const codes = [`answer:${calc.kind === "temperature" ? "temperature-conversion" : `calculator-${calc.kind}`}`];
+          const codes = [...(numguard ? detectorCodes : []), `answer:${calc.kind === "temperature" ? "temperature-conversion" : `calculator-${calc.kind}`}`];
           const r: AnswerReceipt = { modelId: "calculator", modelLabel: "Calculator", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: codes };
           emit({ type: "token", answerId, tier: "instant", text: calc.text });
           emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
           return { answerId, tier: "instant", outcome: "success", text: calc.text, sources: [], receipt: r, cited: [] };
         }
+        // AR (cut 3 dev, coordinator 4B-LOSS-ANATOMY arm 3): rate x quantity -> time and ceil-division word problems,
+        // exact, from the question's own numbers (EN). It also runs when the learned detector fired, because the message
+        // has no health, injury or danger word (the numeric guard: vit-sci-003 "10 tokens per second… how long?" got
+        // "I won't give health advice from memory" on every cut-2 seed).
+        const arith = isPortugueseQuestion(req.query) || isSpanishQuestion(req.query) ? null : arithmeticAnswer(req.query);
+        if (arith) {
+          markVisible();
+          const codes = [...detectorCodes, ...(learned?.fire || numguard ? ["detector:numeric-guard"] : []), `answer:calculator-${arith.kind}`];
+          const r: AnswerReceipt = { modelId: "calculator", modelLabel: "Calculator", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: codes };
+          emit({ type: "token", answerId, tier: "instant", text: arith.text });
+          emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
+          return { answerId, tier: "instant", outcome: "success", text: arith.text, sources: [], receipt: r, cited: [] };
+        }
+        // Travel distance between two cities (EN): an estimate from the bundled city table, never a mapped route; a place
+        // not in the table -> null -> the normal path (Anvil, V-exact Paris–Rome).
+        const travel = learned?.fire || isPortugueseQuestion(req.query) || isSpanishQuestion(req.query) ? null : travelDistanceAnswer(req.query);
+        if (travel) {
+          markVisible();
+          const r: AnswerReceipt = { modelId: "calculator", modelLabel: "Calculator", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: [...(numguard ? detectorCodes : []), "answer:calculator-travel-distance"] };
+          emit({ type: "token", answerId, tier: "instant", text: travel.text });
+          emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
+          return { answerId, tier: "instant", outcome: "success", text: travel.text, sources: [], receipt: r, cited: [] };
+        }
+        // FACTS (coordinator arm, criterion arms/facts 4328960e): a fact from the offline Wikidata table when the question names a
+        // table entity and asks exactly one property (population, area, capital, height, length, depth, dates, plugs/voltage,
+        // host city, award winner); comparisons get a computed verdict. Never on a health or emergency message (EN only).
+        const fact =
+          deps.facts === false || learned?.fire || numguard || isPortugueseQuestion(req.query) || isSpanishQuestion(req.query) || isHealthQuestion(req.query) || isCardEmergency(req.query)
+            ? null
+            : factsAnswer(req.query);
+        if (fact) {
+          markVisible();
+          const r: AnswerReceipt = { modelId: "grounding-guard", modelLabel: "Offline facts (Wikidata)", tokens: 0, tokPerSec: 0, ttftMs: deps.now() - t0, totalMs: deps.now() - t0, reasonCodes: [`answer:facts-${fact.template}`] };
+          emit({ type: "token", answerId, tier: "instant", text: fact.text });
+          emit({ type: "done", answerId, tier: "instant", outcome: "success", receipt: r, cited: [] });
+          return { answerId, tier: "instant", outcome: "success", text: fact.text, sources: [], receipt: r, cited: [] };
+        }
+      }
+
+      // NUMGUARD: no calculator answered the guarded turn -> the detector's call stands; a model never answers a fired message.
+      if (numguard && learned) {
+        learned = { p: learned.p, fire: true };
+        detectorCodes.splice(detectorCodes.indexOf("numguard:fired"), 1, "numguard:no-calculator");
       }
 
       // Places questions never touch a model: the answer is built from the
@@ -622,7 +794,11 @@ export function createAnswerer(deps: AnswerDeps) {
         : req.tier === "deep" || req.reuseSources
           ? null
           : detectGeoIntent(req.query);
-      if (geoIntent) return runGeo(geoIntent as GeoIntent, t0, markVisible, () => firstVisibleAt);
+      // health13 (blind hand read): "choking at a restaurant" got "the places pack is not installed". The places pack is
+      // food/venue search only, so a health message never takes this path.
+      const healthNow = learned ? learned.fire || (learned.p >= DETECTOR_FLOOR && isHealthQuestion(req.query)) : isHealthQuestion(req.query);
+      if (geoIntent && !healthNow && !isCardEmergency(req.query)) return runGeo(geoIntent as GeoIntent, t0, markVisible, () => firstVisibleAt);
+      if (geoIntent) detectorCodes.push("places:skipped-health");
 
       const { settings, installed, speeds, fastLlm, lowRamNote, lowRamBlocked } = await selectAnswerModel(deps);
       const byId = new Map(installed.map((m) => [m.id, m]));
@@ -645,7 +821,63 @@ export function createAnswerer(deps: AnswerDeps) {
       );
       const depthModels = deepCandidates.map((m) => toDepth(m, fits.get(m.id)));
       const deepModel = resolveDeepModel(depthModels, fastLlm?.id, settings.deepModelId);
-      const taskType = classifyTask(req.query);
+      // Route gate (4B only): the loaded model decides whether to search; the rules stay the fallback.
+      const ruleTaskType = classifyTask(req.query);
+      const gateCodes: string[] = [];
+      let gateLoadMs = 0;
+      let taskType = ruleTaskType;
+      let gateSkip = false;
+      if (
+        fastLlm &&
+        deps.engine.nextTokenProbs &&
+        !ROUTE_GATE_CONFIG.off &&
+        (ROUTE_GATE_CONFIG.anyModel || ROUTE_GATE_MODEL_IDS.has(fastLlm.id)) &&
+        (req.tier ?? "auto") === "auto" &&
+        !req.reuseSources &&
+        !req.answerAnyway &&
+        // CUT5-SPEED: the rules decide (lookup/research/compare, no detector fire, no history, not about BOAR): no gate pass.
+        !(gateSkip = routeGateSkip({
+          ruleTaskType,
+          query: req.query,
+          historyTurns: ctx.history?.turns?.length ?? 0,
+          detectorFired: !!learned?.fire,
+          emergencyLexical: isCardEmergency(req.query) || isSafetyQuery(req.query),
+        }))
+      ) {
+        // Cold start (the first message after launch): the gate runs only on the resident model, so load the fast model
+        // now. The answer below would load the same file anyway (ensureLoaded then finds it resident); a failed load
+        // leaves the rules, as before. The time is counted in the answer's loadMs.
+        if (deps.engine.getModelInfo()?.filename !== fastLlm.filename) {
+          stage("loading_model", "fast", fastLlm.id);
+          const ls = deps.now();
+          try {
+            const r = await deps.engine.load(fastLlm.filename, { meta: { modelId: fastLlm.id, label: fastLlm.label } });
+            gateCodes.push("route-gate:cold-load");
+            // As ensureLoaded: the answer below finds the model resident, so this load's result is the only report.
+            if (r?.warning) emit({ type: "warning", answerId, code: "model_streams_from_storage", message: r.warning });
+            if (r?.backend?.kind === "cpu-fallback") gateCodes.push("backend:cpu-fallback");
+          } catch (e: any) {
+            console.warn("[answer] route gate cold load failed:", e?.message ?? e);
+          }
+          gateLoadMs = deps.now() - ls;
+        }
+        const probs = await deps.engine
+          .nextTokenProbs(routeGateMessages(req.query, ctx.history), { modelFilename: fastLlm.filename, nProbs: ROUTE_GATE_N_PROBS })
+          .catch((e) => {
+            console.warn("[answer] route gate failed:", e?.message ?? e);
+            return null;
+          });
+        if (!probs) gateCodes.push("route-gate:unavailable");
+        else {
+          const v = routeGateVerdict(probs);
+          // A health question always searches: the gate may only skip a search where a wrong skip is harmless.
+          const decision = v.decision === "answer" && isHealthQuestion(req.query) ? "search" : v.decision;
+          taskType = gatedTaskType(ruleTaskType, decision);
+          gateCodes.push(`route-gate:${decision}`, `route-gate:score-${v.score === null ? "none" : v.score.toFixed(3)}`);
+          if (decision !== v.decision) gateCodes.push("route-gate:health-guard");
+          if (taskType !== ruleTaskType) gateCodes.push(`route-gate:${ruleTaskType}->${taskType}`);
+        }
+      } else if (gateSkip) gateCodes.push("route-gate:skip-rules");
       const plan: AnswerPlan = planAnswer({
         taskType,
         requestedTier: req.tier ?? "auto",
@@ -660,7 +892,7 @@ export function createAnswerer(deps: AnswerDeps) {
         verifiers: depthModels.filter((m) => m.roles.includes("verifier") && deepAutoIneligibility(m) === null),
         hasReusedSources: !!req.reuseSources?.length,
       });
-      const reasonCodes = [`task:${taskType}`, ...plan.reasonCodes, ...(lowRamNote ? [lowRamNote] : [])];
+      const reasonCodes = [`task:${taskType}`, ...gateCodes, ...plan.reasonCodes, ...(lowRamNote ? [lowRamNote] : []), ...detectorCodes];
       if (!deepModel && !settings.deepModelId) {
         for (const m of depthModels.filter((d) => d.roles.includes("reasoning"))) {
           const why = deepAutoIneligibility(m);
@@ -668,7 +900,15 @@ export function createAnswerer(deps: AnswerDeps) {
         }
       }
       // Health never goes through multi-pass Deep Research: it would answer from memory past the grounding guard.
-      const health = isHealthQuestion(req.query);
+      const healthFollowUp = isHealthFollowUp(req.query, userTurns);
+      // health11: the learned detector replaces the broad regex (15/57 hard-negative fires on Sonar's dev). The broad
+      // regex still counts with weak detector evidence (DETECTOR_FLOOR), and the precise lexical parts stay: card-condition
+      // triggers and the health follow-up.
+      const lexicalHealth = learned ? learned.fire || (learned.p >= DETECTOR_FLOOR && isHealthQuestion(req.query)) : isHealthQuestion(req.query);
+      const cardEmergency = !lexicalHealth && !healthFollowUp && isCardEmergency(req.query);
+      const health = lexicalHealth || healthFollowUp || cardEmergency;
+      if (cardEmergency) reasonCodes.push("grounding:health-card-condition");
+      if (healthFollowUp) reasonCodes.push("grounding:health-follow-up");
       const gen =
         health && plan.generation?.mode === "multipass"
           ? { ...plan.generation, mode: "single" as const, retrieveK: Math.max(plan.generation.retrieveK, 6) }
@@ -773,7 +1013,7 @@ export function createAnswerer(deps: AnswerDeps) {
         ? history.search
         : pt
           ? englishSearchTerms(req.query)
-          : isHealthQuestion(req.query)
+          : (learned ? health : isHealthQuestion(req.query)) // without the detector: unchanged
             ? canonicalHealthTerms(req.query)
             : null;
       if (english && !history) reasonCodes.push("retrieve:pt-en-terms");
@@ -789,8 +1029,11 @@ export function createAnswerer(deps: AnswerDeps) {
       const acronyms = [...new Set(req.query.match(/\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+\b|\b[A-Z]{2,}[0-9]*\b/g) ?? [])];
       const matchQuery = english ?? (names.length ? [...names, ...ids, ...acronyms].join(" ") : req.query);
       // Lexicon names are article titles: a source must be titled by one ("Season", not "Hurricane Season ...").
+      // Sonar exp-30: a translated PT question's English terms can be crypto words too ("queimadura… crianças" ->
+      // "burn child" matched ERC-7401/7891, which burn child tokens). Crypto-pack sources need a crypto cue in the question.
+      const cryptoBlocked = (c: RetrievedChunk) => !!english && !history && CRYPTO_SOURCE.test(c.source ?? "") && !CRYPTO_CUE.test(req.query);
       const onSubject = (c: RetrievedChunk) =>
-        history
+        cryptoBlocked(c) ? false : history
           ? history.isDateArticle(c.title)
           : names.length
             ? // Or the question's own words: identifiers and English terms a PT question uses as written
@@ -862,12 +1105,12 @@ export function createAnswerer(deps: AnswerDeps) {
         reasonCodes.push("grounding:health-strict");
         // Health: only sources whose title names the health topic (never a plant, a cave or a TV show).
         const topic = healthTopicTerms(req.query, english);
-        const onTopicHealth = sources.filter((c) => onHealthTopic(topic, c));
+        const onTopicHealth = sources.filter((c) => onHealthTopic(topic, c) || gapSource(c));
         if (onTopicHealth.length < sources.length) reasonCodes.push(`grounding:health-off-topic-dropped-${sources.length - onTopicHealth.length}`);
         sources = onTopicHealth;
         // The best source to quote may have been cut by compression (relative relevance): a
         // first-aid book's section loses to the clinical article's wording. Bring it back.
-        const pool = raw.filter((c) => onHealthTopic(topic, c));
+        const pool = raw.filter((c) => onHealthTopic(topic, c) || gapSource(c));
         if (pool.length) {
           const best = pool[healthSourceIndex(pool, coreProcedure(topic))];
           if (!sources.some((c) => c.chunkId === best.chunkId)) {
@@ -883,8 +1126,20 @@ export function createAnswerer(deps: AnswerDeps) {
       // 2. Instant snippet (no LLM): only a sentence that covers the question. Not for an extractive
       // health answer: its snippet is the excerpt below (EQ-2: the preview quoted "Do not run during
       // the quake!" by word overlap, before the Drop, Cover and Hold On excerpt).
-      const healthExtractive = health && sources.length > 0 && req.tier !== "deep";
-      if (plan.instant !== "off" && raw.length && !healthExtractive) {
+      // HEALTHGAP (rule v1.2 §2.6): a survival-time question with a kept source titled by its condition ("Cold weather",
+      // "Hypothermia") is answered by the model from that source under the health grounding, as the deep tier answers health.
+      const survivalSourced = healthGap?.cls === "survival" && sources.some(gapSource);
+      if (survivalSourced) reasonCodes.push("grounding:health-survival-sourced");
+      const healthExtractive = health && sources.length > 0 && req.tier !== "deep" && !survivalSourced;
+      // Never for health/danger (a single sentence is never a first-aid answer, and with no source the guard below
+      // answers), and never when the sources were matched against a translation instead of the question (a PT
+      // question's pt-en terms or lexicon names): coverage of "child" or "India" alone let an off-topic pack line
+      // ("Reject child token 2.", "Atheism is not taboo in India") stand as the final answer (Sonar exp-29).
+      const translated = matchQuery !== req.query;
+      // A PT/ES definition question matched through lexicon names may still get its snippet, if the sentence defines the name.
+      const definitional = translated && !health && names.length > 0 && isPtDefinitional(req.query);
+      if (plan.instant !== "off" && raw.length && (health || (translated && !definitional))) reasonCodes.push(health ? "instant:off-health" : "instant:off-translated");
+      if (plan.instant !== "off" && raw.length && !health && (!translated || definitional)) {
         // Lexicon names: the sentence comes from a source titled by one (a one-word name is in many titles).
         const pool = names.length ? raw.filter(onSubject) : raw;
         const snip = pool.length ? selectInstant(matchQuery, pool) : null;
@@ -895,7 +1150,9 @@ export function createAnswerer(deps: AnswerDeps) {
           onSubject(pool[snip.sourceIndex]) &&
           termCoverage(matchQuery, `${pool[snip.sourceIndex].title} ${snip.text}`) >= MIN_TERM_COVERAGE &&
           // The sentence itself names the subject, not only its page's title (Sextant q7, EN and PT).
-          sentenceNamesSubject(matchQuery, pool[snip.sourceIndex].title, snip.text);
+          sentenceNamesSubject(matchQuery, pool[snip.sourceIndex].title, snip.text) &&
+          (!definitional || definesName(names, snip.text));
+        if (definitional) reasonCodes.push("instant:pt-definitional");
         if (snip && sourceIndex >= 0 && !covers) reasonCodes.push("instant:off-topic");
         if (snip && sourceIndex >= 0 && covers) {
           markVisible();
@@ -926,14 +1183,52 @@ export function createAnswerer(deps: AnswerDeps) {
       // "not from the offline library" instruction below, never quoting them.
       if (health && gen?.mode !== "multipass" && sources.length === 0) {
         reasonCodes.push("grounding:health-no-source");
-        const text = noHealthSourceAnswer(pt);
+        const { text, label } = noSourceHealthCard(req.query, pt, !pt && isSpanishQuestion(req.query), reasonCodes, (ctx.history?.turns ?? []).filter((t) => t.role === "user").map((t) => t.text), healthGap);
         markVisible();
         emit({ type: "token", answerId, tier: genTier, text });
-        return finish(genTier, "success", text, [], receipt({ modelId: "grounding-guard", modelLabel: "No offline source", retrievalMs }));
+        return finish(genTier, "success", text, [], receipt({ modelId: "grounding-guard", modelLabel: label, retrievalMs }));
       }
       // Health with a good source: the answer IS the source's text, not the model's
       // retelling (Sextant: the models misplaced the pinch point, iced snake bites,
       // put cream on burns). "Deeper answer" (tier deep) lets the model summarize it, strictly.
+      // A coastal quake (tsunami card): the pack's earthquake excerpts say "take cover", the wrong action at the coast, so the
+      // card goes first (Sonar exp-29, Compass round 2).
+      if (healthExtractive && conversationCondition(req.query, userTurns).condition === "tsunami") {
+        const card = conditionCardText("tsunami", req.query, !pt && isSpanishQuestion(req.query) ? "es" : pt ? "pt" : "en");
+        if (card) {
+          reasonCodes.push("grounding:fa-card-tsunami", "grounding:health-card-first");
+          markVisible();
+          emit({ type: "token", answerId, tier: genTier, text: card });
+          return finish(genTier, "success", card, [], receipt({ modelId: "grounding-guard", modelLabel: "First aid card", retrievalMs }));
+        }
+      }
+      // HEALTHGAP: a poisoning event (a deadly mushroom, or something swallowed or breathed in) gets its card before any excerpt:
+      // the specific condition's card if there is one (button battery, chemical in the eye…), else the poisoning card.
+      if (healthExtractive && healthGap?.event) {
+        const { condition: named } = conversationCondition(req.query, userTurns);
+        const condition = named && named !== "MULTI" ? named : "poisoning";
+        const card = conditionCardText(condition, req.query, !pt && isSpanishQuestion(req.query) ? "es" : pt ? "pt" : "en");
+        if (card) {
+          reasonCodes.push(`grounding:fa-card-${condition}`, "grounding:health-card-first");
+          markVisible();
+          emit({ type: "token", answerId, tier: genTier, text: card });
+          return finish(genTier, "success", card, [], receipt({ modelId: "grounding-guard", modelLabel: "First aid card", retrievalMs }));
+        }
+      }
+      // HEALTHGAP: a dose question with a kept source gets the source's own amount, quoted and cited, or the dose line; never a
+      // first-aid excerpt and never a model.
+      if (healthExtractive && healthGap?.cls === "dose") {
+        const es = !pt && isSpanishQuestion(req.query);
+        const fullSources = sources.map((c) => raw.find((r) => r.chunkId === c.chunkId) ?? c);
+        const quoted = doseExcerpt(fullSources, gapTitle, pt, es);
+        reasonCodes.push(quoted ? "grounding:health-dose-excerpt" : "grounding:health-no-dose");
+        const text = quoted ?? noDoseAnswer(pt, es);
+        markVisible();
+        emit({ type: "token", answerId, tier: "instant", text });
+        return quoted
+          ? finish("instant", "success", text, sources, receipt({ modelId: "extractive", modelLabel: "Source excerpt", retrievalMs }))
+          : finish("instant", "success", text, [], receipt({ modelId: "grounding-guard", modelLabel: "No offline source", retrievalMs }));
+      }
       if (healthExtractive) {
         reasonCodes.push("grounding:health-extractive");
         // Score on each source's full text: compression keeps the sentences matching the question
@@ -961,9 +1256,26 @@ export function createAnswerer(deps: AnswerDeps) {
           }
           break;
         }
+        // No first-aid steps in the source: the condition's card when there is one (Sonar exp-29: a diabetic's low sugar).
+        if (text && isNoStepsAnswer(text)) {
+          const { condition: named } = conversationCondition(req.query, userTurns);
+          const condition = named && named !== "MULTI" ? named : healthGapCard(healthGap); // HEALTHGAP: poisoning / CO card fallback
+          const card = condition ? conditionCardText(condition, req.query, !pt && isSpanishQuestion(req.query) ? "es" : pt ? "pt" : "en") : null;
+          if (card) {
+            reasonCodes.push("grounding:health-no-steps", `grounding:fa-card-${condition}`);
+            markVisible();
+            emit({ type: "token", answerId, tier: "instant", text: card });
+            return finish("instant", "success", card, [], receipt({ modelId: "grounding-guard", modelLabel: "First aid card", retrievalMs }));
+          }
+        }
         if (!text) {
           reasonCodes.push("grounding:health-no-safe-excerpt");
-          const fixed = noSafeStepsAnswer(pt);
+          // No safe excerpt: the condition's first-aid card when there is one (Sonar exp-29), else the fixed line.
+          const { condition: named } = conversationCondition(req.query, userTurns);
+          const condition = named && named !== "MULTI" ? named : healthGapCard(healthGap); // HEALTHGAP: poisoning / CO card fallback
+          const card = condition ? conditionCardText(condition, req.query, !pt && isSpanishQuestion(req.query) ? "es" : pt ? "pt" : "en") : null;
+          if (card) reasonCodes.push(`grounding:fa-card-${condition}`);
+          const fixed = card ?? noSafeStepsAnswer(pt);
           markVisible();
           emit({ type: "token", answerId, tier: "instant", text: fixed });
           return finish("instant", "success", fixed, [], receipt({ modelId: "grounding-guard", modelLabel: "No safe source", retrievalMs }));
@@ -1022,7 +1334,7 @@ export function createAnswerer(deps: AnswerDeps) {
         });
       }
 
-      let loadMs = 0;
+      let loadMs = gateLoadMs;
       /** ModelLoadError.kind of the last failed load (memory | engine | corrupt | missing). */
       let loadFailureKind: LoadFailureKind | undefined;
       const ensureLoaded = async (m: InstalledLlm, tier: AnswerTier): Promise<string | null> => {
@@ -1033,7 +1345,7 @@ export function createAnswerer(deps: AnswerDeps) {
           const r = await deps.engine.load(m.filename, { meta: { modelId: m.id, label: m.label } });
           loadMs += deps.now() - ls;
           if (r.warning) emit({ type: "warning", answerId, code: "model_streams_from_storage", message: r.warning });
-          if (r.backend?.kind === "cpu-fallback") reasonCodes.push("backend:cpu-fallback");
+          if (r.backend?.kind === "cpu-fallback" && !reasonCodes.includes("backend:cpu-fallback")) reasonCodes.push("backend:cpu-fallback");
           return null;
         } catch (e: any) {
           loadFailureKind = e?.kind;
@@ -1136,7 +1448,12 @@ export function createAnswerer(deps: AnswerDeps) {
           text = withoutModelReferences(
             await deps.engine.generate(
               useTemplate
-                ? { ...common, messages: deps.assembleChatMessages(req.query, sources, ctx.systemPrompt, ctx.history, styleReminder) }
+                ? {
+                    ...common,
+                    messages: deps.assembleChatMessages(req.query, sources, ctx.systemPrompt, ctx.history, styleReminder),
+                    // CUT5-SPEED: with no sources and no conversation summary the system message is static -> its own KV session file.
+                    ...(sources.length === 0 && !ctx.history?.summary?.trim() ? { staticSystem: true } : {}),
+                  }
                 : { ...common, prompt: deps.assemblePrompt(req.query, sources, ctx.systemPrompt, ctx.history, styleReminder) }
             )
           );
@@ -1245,6 +1562,17 @@ export function createAnswerer(deps: AnswerDeps) {
         if (attributed.added.length) {
           reasonCodes.push(`citations:added-${attributed.added.join("-")}`);
           text = attributed.text;
+          finalText = text;
+        }
+      }
+      // VG (cut 3 dev, coordinator 4B-LOSS-ANATOMY arm 1): a Yes/No or winner that the answer's own facts contradict
+      // ("No, astronauts did not walk on the Moon before 1970… July 20, 1969") is rewritten from those facts. EN model
+      // answers only: never health (cards, excerpts), PT or ES. Unflagged answers are untouched.
+      if (!health && !pt && !isSpanishQuestion(req.query) && text.trim() && !stopRequested) {
+        const vg = verdictGuard(req.query, text);
+        if (vg) {
+          reasonCodes.push(`verdict-guard:${vg.kind}`);
+          text = vg.text;
           finalText = text;
         }
       }

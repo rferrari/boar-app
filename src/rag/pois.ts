@@ -8,7 +8,7 @@ import * as SQLite from "expo-sqlite";
 import * as FileSystem from "expo-file-system/legacy";
 import type { CatalogModel } from "../models/manifest";
 import { onAssetInstalled, registerAssetProvider, unregisterAssetProvider } from "../models/assetRegistry";
-import { PoiPack, resolvePlaceIn, searchPlacesIn, searchPoiPacks, type PlaceSuggestion, type PoiArea } from "./poiPack";
+import { PoiPack, nearestPlaceIn, resolvePlaceIn, searchPlacesIn, searchPoiPacks, type PlaceSuggestion, type PoiArea } from "./poiPack";
 import { WORLD_PLACES_ID, tileBbox, tileEntry, tileIdsFor, type PoiTile } from "./poiRegions";
 import type { PlaceMatch, PoiQuery, PoiSearchResult } from "./pois.types";
 import type { PackSql } from "./wikiPack";
@@ -138,7 +138,11 @@ export const closeAllPoiPacks = forgetAllPoiPacks;
 registerResetHook("forget", "places", forgetAllPoiPacks);
 
 export async function searchPois(q: PoiQuery): Promise<PoiSearchResult> {
-  return searchPoiPacks(await installedPoiAreas(), q);
+  const [found, near] = await Promise.all([
+    searchPoiPacks(await installedPoiAreas(), q),
+    gazetteer().then((db) => (db ? nearestPlaceIn(db, q.center) : null)).catch(() => null),
+  ]);
+  return near ? { ...found, nearPlace: near } : found;
 }
 
 function gazetteer(): Promise<PackSql | null> {

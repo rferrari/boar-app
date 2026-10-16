@@ -45,6 +45,8 @@ export interface PoiSearchResult {
   coverage: "none" | "partial" | "full";
   region?: string;
   timingsMs?: { search: number };
+  /** The gazetteer's city for the search center (src/rag/pois.ts), named in a "near you" header. */
+  nearPlace?: { name: string; country?: string };
 }
 
 export interface GeoPoint {
@@ -305,10 +307,12 @@ export interface PlacesAnswerInput {
   radiusM?: number;
   /** OpenStreetMap extract date, for the provenance line. */
   osmDate?: string;
+  /** Near the device: the gazetteer's city for the fix, named in the header ("near you in Tokyo, Japan"). */
+  nearCity?: { name: string; country?: string } | null;
 }
 
 /** Text answer (also what screen readers and "copy" get). Every name comes from `places`. */
-export function formatPlacesAnswer({ intent, places, areaLabel, byDistance, radiusM, osmDate }: PlacesAnswerInput): string {
+export function formatPlacesAnswer({ intent, places, areaLabel, byDistance, radiusM, osmDate, nearCity }: PlacesAnswerInput): string {
   const pt = intent.lang === "pt";
   const L = pt ? "pt" : "en";
   const dietWords = intent.diet.map((d) => DIET_LABEL[L][d]).join(pt ? " e " : " and ");
@@ -316,7 +320,14 @@ export function formatPlacesAnswer({ intent, places, areaLabel, byDistance, radi
   const guide = places.filter((p) => !listed.includes(p));
 
   const what = pt ? `Lugares${dietWords ? ` com opção ${dietWords}` : " para comer"}` : `${dietWords ? `${dietWords[0].toUpperCase()}${dietWords.slice(1)} places` : "Places to eat"}`;
-  const where = byDistance ? (pt ? "perto de você" : "near you") : pt ? `em ${areaLabel}` : `in ${areaLabel}`;
+  const city = nearCity ? `${nearCity.name}${nearCity.country ? `, ${nearCity.country}` : ""}` : "";
+  const where = byDistance
+    ? pt
+      ? `perto de você${city ? ` (${city})` : ""}`
+      : `near you${city ? ` in ${city}` : ""}`
+    : pt
+      ? `em ${areaLabel}`
+      : `in ${areaLabel}`;
   const order = intent.diet.length
     ? byDistance
       ? pt

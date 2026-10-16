@@ -181,14 +181,108 @@ export function selectInstant(query: string, chunks: RetrievedChunk[]): InstantS
  */
 const POINTER = /\b(can be found|is available (at|in|from)|see (the|also|below|above)|for more (information|details)|refer to|repository|see https?:|https?:\/\/)/i;
 
+/** Bullet, dash or heading marker followed by a space ("- —", "• ", "## "), or a "==" heading. A dash glued to a word or digit ("-5 C", "—France") is text. */
+const FRAGMENT_START = /^\s*(?:[-\u2013\u2014\u2022*\u00b7]+\s|#{1,6}\s|={2,})/;
+/** Modifiers that turn "capital" into a figure of speech ("gastronomic capital of France"), not the seat of government. */
+const FIGURATIVE_MODIFIER =
+  "gastronomic|gastronomical|culinary|cultural|financial|economic|commercial|industrial|spiritual|religious|intellectual|artistic|fashion|wine|beer|music|musical|film|tech|technology|entertainment|sports?|sporting|party|literary|medical|banking|business|trade|shopping|design|art|food|culture|style|crime|murder";
+const FIG_CAPITAL = new RegExp(`\\b(${FIGURATIVE_MODIFIER})\\s+capital\\b`, "gi");
+/**
+ * "What is the capital of X?" answered by "X's gastronomic capital ...": every "capital" in the sentence is figurative
+ * and the question did not use the modifier. One literal "capital" in the sentence is enough to leave it alone.
+ */
+function figurativeCapital(q: string, snippet: string): boolean {
+  if (!/\bcapital\b/i.test(q)) return false;
+  const all = snippet.match(/\bcapital\b/gi)?.length ?? 0;
+  if (!all) return false;
+  const mods = [...snippet.matchAll(FIG_CAPITAL)].map((m) => m[1].toLowerCase()).filter((m) => !new RegExp(`\\b${m}\\b`, "i").test(q));
+  return mods.length === all;
+}
+
+/**
+ * INSTANT-SUBJ. Entity aliases (normalised: lower case, no accents, dots dropped), the first entry being the canonical name.
+ * Includes the adjective where "the French capital" is the usual possessor form.
+ */
+const ENTITY_ALIASES: string[][] = [
+  ["usa", "us", "united states", "united states of america", "america", "american"],
+  ["uk", "united kingdom", "britain", "great britain", "british"],
+  ["uae", "united arab emirates", "emirates"],
+  ["netherlands", "holland", "dutch"],
+  ["russia", "russian federation", "russian"],
+  ["south korea", "republic of korea", "korea", "korean"],
+  ["czech republic", "czechia", "czech"],
+  ["myanmar", "burma", "burmese"],
+  ["ivory coast", "cote d'ivoire"],
+  ["france", "french"],
+  ["germany", "german"],
+  ["italy", "italian"],
+  ["spain", "spanish"],
+  ["china", "chinese", "prc"],
+  ["japan", "japanese"],
+  ["india", "indian"],
+  ["brazil", "brazilian"],
+  ["mexico", "mexican"],
+  ["canada", "canadian"],
+  ["australia", "australian"],
+  ["ethereum", "eth"],
+  ["bitcoin", "btc"],
+];
+
+const normSubj = (s: string): string =>
+  s
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[\u2019\u2018]/g, "'")
+    .replace(/(?<=\b[a-z])\.(?=[a-z]\b)/g, "")
+    .replace(/\b([a-z])\.(?=\s|$|,)/g, "$1");
+
+/**
+ * "What is the capital of the USA?" must not be answered by "Baton Rouge is the capital of Louisiana": the question's
+ * entity has to be the subject of the snippet sentence or the possessor of the answered slot ("capital of <E>", "<E>'s
+ * capital"). Only questions of the form "<wh> is the <slot> of <E>" / "<wh> is <E>'s <slot>" are judged (E at most 4
+ * words); every other shape returns false (not blocked).
+ */
+function entityMismatch(query: string, snippet: string): boolean {
+  const q = normSubj(query.trim()).replace(/[?!.\s]+$/, "");
+  let slot: string | undefined;
+  let entity: string | undefined;
+  let m = q.match(/^(?:what|who|which|where)\s+(?:is|was|are|were)\s+(?:the\s+)?(?:(?!of\b)[\w'-]+\s+){0,3}?([\w'-]+)\s+of\s+(?:the\s+)?(.+)$/);
+  if (m) [, slot, entity] = m;
+  else if ((m = q.match(/^(?:what|who|which|where)\s+(?:is|was|are|were)\s+(?:the\s+)?(.+?)'s\s+(?:[\w'-]+\s+){0,2}?([\w'-]+)$/))) [, entity, slot] = m;
+  if (!slot || !entity) return false;
+  entity = entity.split(/\s+(?:in|on|at|for|during|from|by|with|to)\s+/)[0].replace(/^(?:the|a|an)\s+/, "").trim();
+  if (!entity || entity.split(/\s+/).length > 4) return false;
+  const group = ENTITY_ALIASES.find((g) => g.includes(entity!));
+  const names = group ?? [entity];
+  const alt = names.map(escRe).join("|");
+  const E = `(?:${alt})`;
+  const sn = normSubj(snippet).replace(/\s+/g, " ").trim();
+  const slotRe = escRe(slot);
+  // possessor: "<slot> ... of <E>" with no other "of" in between, "<E>'s ... <slot>", or "<E> <slot>" (the French capital)
+  const possessor = new RegExp(
+    `\\b${slotRe}\\b(?:(?!\\bof\\b)[^.;])*?\\bof\\s+(?:the\\s+)?${E}(?![\\w])|(?<![\\w])${E}'s?\\s+(?:[\\w'-]+\\s+){0,3}?${slotRe}\\b|(?<![\\w])${E}\\s+(?:[\\w'-]+\\s+){0,2}?${slotRe}\\b`
+  );
+  if (possessor.test(sn)) return false;
+  // subject: E opens the sentence (optionally after "in"/"the")
+  const subject = new RegExp(`^(?:(?:in|for|according to)\\s+)?(?:the\\s+)?${E}(?![\\w])`);
+  if (subject.test(sn)) return false;
+  return true;
+}
+
 export function instantFinalBlock(
   query: string,
   snippet: string,
   matchQuery: string = query
-): "anaphora" | "list" | "compound" | "not-definition" | "health" | "pointer" | "title-only" | null {
+): "anaphora" | "list" | "compound" | "not-definition" | "health" | "pointer" | "title-only" | "fragment" | "figurative" | "subject" | null {
   const q = query.trim().replace(/[?!.\s]+$/, "");
   // One sentence is never a complete first-aid answer.
   if (isHealthQuestion(q)) return "health";
+  // A list entry or heading that lost its subject ("- — France's gastronomic capital ...") is not a statement.
+  if (FRAGMENT_START.test(snippet)) return "fragment";
+  if (figurativeCapital(q, snippet)) return "figurative";
+  // INSTANT-SUBJ: the sentence must be about the question's entity, not a neighbouring one (Baton Rouge for "capital of the USA").
+  if (entityMismatch(q, snippet)) return "subject";
   if (/^(it|its|this|that|these|those|they|their|he|she|his|her|such|both)\b/i.test(snippet.trim())) return "anaphora";
   if (/\b(and|or)\s+(what|how|why|which|who|when|where)\b/i.test(q)) return "compound";
   if (/^(which|what)\b.*\b(are|were)\b/i.test(q)) return "list";
@@ -250,14 +344,88 @@ export const ACTION_INTENT =
 // "derramou água fervendo no braço", "got bitten", "está sangrando"): health when the
 // question asks what to do (gate ee1f2b7: 20/20 free answers, one said "medicinal oil").
 const INJURY_DESCRIBED =
-  /(^|[^\p{L}])(spill\p{L}*|splash\p{L}*|scald\p{L}*|burn\p{L}*|boiling|blister\p{L}*|bit|bitten|stung|sting\p{L}*|bleed\p{L}*|faint\p{L}*|passed out|chok\p{L}*|cut (my|his|her|their|him|herself|himself|myself)|fell (off|down|from)|broke (my|his|her|their)|twist\p{L}*|sprain\p{L}*|swallow\p{L}*|electrocut\p{L}*|derram\p{L}*|escald\p{L}*|queim\p{L}*|fervend\p{L}*|fervent\p{L}*|bolha\p{L}*|mord\p{L}*|picou|picad\p{L}*|sangr\p{L}*|desmai\p{L}*|engasg\p{L}*|cortou|caiu d\p{L}*|bateu a cabe[çc]a|torceu|quebrou|engoliu|choque el[ée]trico)(?![\p{L}])/iu;
+  /(^|[^\p{L}])(spill\p{L}*|splash\p{L}*|scald\p{L}*|burn\p{L}*|boiling|blister\p{L}*|bit|bitten|stung|sting\p{L}*|bleed\p{L}*|faint\p{L}*|passed out|chok\p{L}*|cut (my|his|her|their|him|herself|himself|myself)|fell (off|down|from)|broke (my|his|her|their)|twist\p{L}*|sprain\p{L}*|swallow\p{L}*|electrocut\p{L}*|derram\p{L}*|escald\p{L}*|queim\p{L}*|fervend\p{L}*|fervent\p{L}*|bolha\p{L}*|mord\p{L}*|picou|picad\p{L}*|sangr\p{L}*|desmai\p{L}*|engasg\p{L}*|cortou|caiu d\p{L}*|bateu a cabe[çc]a|torceu|quebrou|engoliu|choque el[ée]trico|collaps\p{L}*|desabou|desmaiou|se desmay\p{L}*)(?![\p{L}])/iu;
+
+// A venomous animal with a sting/bite, a child or a severity question; something swallowed; a person who doesn't
+// respond. PT/ES/EN, no action phrase needed ("Escorpião picou meu filho, é grave?", "Mi hijo se tragó una pila"):
+// these went to the model and came back "Scorpions do not sting children" (Sonar exp-29).
+const VENOMOUS = /(^|[^\p{L}])(escorpi\p{L}*|alacr[aá]n\p{L}*|scorpions?|aranhas?|ara[ñn]as?|spiders?|vespas?|abelhas?|avispas?|wasps?|bees?|marimbondos?|lacraia\p{L}*|centopeia\p{L}*|cobras?|serpientes?|víboras?|snakes?|jellyfish|[áa]gua-viva|medusas?)(?![\p{L}])/iu;
+const STUNG_OR_RISK = /(^|[^\p{L}])(pic\p{L}*|mord\p{L}*|ferro\p{L}*|stung|stings?|bit|bitten|bites?|grave|perigos\p{L}*|peligros\p{L}*|dangerous|deadly|mata|matar|crian[çc]\p{L}*|beb[êeé]s?|filh[oa]s?|hij[oa]s?|niñ[oa]s?|child\p{L}*|baby|babies|kids?)(?![\p{L}])/iu;
+const SWALLOWED = /(^|[^\p{L}])(engol\p{L}*|se trag\p{L}*|trag[oó]|swallow\p{L}*)(?![\p{L}])/iu;
+const UNRESPONSIVE = /(^|[^\p{L}])(sem responder|n[ãa]o responde\p{L}*|inconscient\p{L}*|desacordad\p{L}*|no responde|unresponsive|not responding|n[ãa]o est[áa] respirando|no respira|not breathing)(?![\p{L}])/iu;
+const HEALTH_ES = /(^|[^\p{L}])(picad[oa]s?|picó|mordid[oa]s?|mordió|quemad\p{L}*|quemó|atragant\p{L}*|envenen\p{L}*|intoxica\p{L}*|convulsi\p{L}*|desmay\p{L}*|sangrando|sangrad\p{L}*|sangre|fiebre|emergencia|primeros auxilios)(?![\p{L}])/iu;
+
+// "Should I put ice or butter on it?", "Should I stand in a doorway or run outside?": asking what to do, as a should-
+// question (safety track saf-004, saf-007; Sonar exp-29). Only next to a described injury or a disaster.
+// Not a trip being planned ("burning season — should I bring masks?", "earthquakes in Wellington? Should I worry?").
+export const SHOULD_INTENT = /(^|[^\p{L}])(should (i|we|you|he|she|they)(?! (worry|bring|pack|visit|go(?! to (the )?(hospital|doctor|er|a&e|clinic|emergency))|travel|book|plan|cancel|still|be worried|be concerned|avoid (going|traveling|travelling)))|devo|devemos|debo|debemos|qu[ée] hago|qu[ée] hacemos)(?![\p{L}])/iu;
+// Chest pain and its lay forms (Sonar exp-29: "my dad has chest pain" went to the model, which said "In Japan, dial 119").
+// A head injury described (Sonar exp-29: "my 6 year old hit his head hard… thrown up twice", "bateu a cabeça na borda da
+// piscina, apagou" went to the model): the head-injury card's own words.
+const HEAD_INJURY = /(^|[^\p{L}])(head injur\p{L}*|hit (his|her|my|their) head|bumped (his|her|my|their) head|fell on (his|her|my|their) head|concussion|bateu a cabe[çc]a|batida na cabe[çc]a|pancada na cabe[çc]a|caiu de cabe[çc]a|traumatismo cran\p{L}*|concuss[ãa]o|se golpe[óo] la cabeza|golpe en la cabeza|traumatismo craneal|conmoci[óo]n cerebral)(?![\p{L}])/iu;
+// Not a metaphor ("dor no peito de saudade", heartbreak): the same exclusion as the heart-attack card trigger.
+const CHEST_PAIN_METAPHOR = /saudade|cora[çc][ãa]o partido|heartbreak|broken heart|de amor|desamor|por (ela|ele|ti|vos)/iu;
+const CHEST_PAIN = /(^|[^\p{L}])(chest (pain|pains|tightness|pressure|hurts?)|pain in (my|his|her|their) chest|pressure (in|on) (my|his|her|their) chest|tight(ness)? in (my|his|her|their) chest|dor (forte )?no peito|aperto no peito|press[ãa]o no peito|dolor (fuerte )?(en el|de) pecho|opresi[óo]n en el pecho)(?![\p{L}])/iu;
+// "frostbitten" (saf-009): HEALTH's \bfrostbite\b misses the participle.
+const FROSTBITE = /(^|[^\p{L}])(frostbit\p{L}*|frostnip)(?![\p{L}])/iu;
+
+// A follow-up turn that only asks what to do now, or how serious it is ("what do I do now?", "e agora?", "Should I go to
+// the hospital?") continues the previous user turn's health question (Sonar exp-29). It may hold only function words,
+// what-to-do words and care words: any other word ("vegan restaurant", "offline", "eat … healthy life") is a new question.
+export const FOLLOW_UP_WORDS = new Set(
+  ("and now what then so ok okay please i we you he she they it this that them him her my our me us do does did should can could must " +
+   "would will is are was be it's i'm what's how what which when where why if someone somebody happens happen anything something " +
+   "go take call give get bring put need still right serious bad dangerous emergency hospital doctor ambulance er a&e clinic " +
+   "the a an to of for in on at with by now yet first next " +
+   "e agora o que eu fa\u00e7o faço fazer faz devo devemos posso preciso levar ligar chamar ir é grave perigoso perigosa urgente hospital " +
+   "médico medico pronto socorro pronto-socorro samu emergência emergencia ele ela isso isto se acontecer alguém alguem um uma ao à a pra para no na " +
+   "y ahora qué que hago hacer hacemos debo debemos puedo llevar llamar ir es grave peligroso peligrosa urgencias médico si le pasa a alguien " +
+   "un una al la el lo eso esto ella él").split(/\s+/).filter(Boolean)
+);
+const FOLLOW_INTENT = /(^|[^\p{L}])(what (do|should|can|must) (i|we) do|what now|now what|and now|e agora|o que (eu )?fa[çc]o|o que fazer|qu[ée] hago|qu[ée] hacemos|qu[ée] hacer|should (i|we)|devo|debo|is (it|that|this) (serious|bad|dangerous|an emergency)|[ée] grave|es grave|[ée] perigos[oa]|es peligros[oa]|hospital|doctor|ambulance|m[ée]dico|pronto.socorro|samu|urgencias)(?![\p{L}])/iu;
+export function isHealthFollowUp(query: string, userTurns: string[]): boolean {
+  const last = userTurns[userTurns.length - 1];
+  if (!last || isHealthQuestion(query)) return false;
+  // The previous turn is health, or becomes health with this turn's ask ("meu filho bateu a cabeça" + "o que eu faço?").
+  if (!isHealthQuestion(last) && !isHealthQuestion(`${last}. ${query}`)) return false;
+  const words = query.toLowerCase().replace(/[¿¡?!.,;:]/g, " ").split(/\s+/).filter(Boolean);
+  if (!words.length || words.length > 12 || words.some((w) => !FOLLOW_UP_WORDS.has(w))) return false;
+  return FOLLOW_INTENT.test(query);
+}
+
+/**
+ * A one-subject definition question in PT/ES ("O que é uma monção?", "Quem foi Tiradentes?", "¿Qué es el bitcoin?"): its
+ * instant snippet may stand even though the sources were matched against the lexicon's English names, provided the
+ * sentence defines one of those names (definesName). Two-part questions ("… e por que …", "… y cómo …") are not (Sonar exp-29).
+ */
+const PT_DEFINITIONAL = /^\s*[¿]?\s*(o que (é|são|significa)|quem (foi|é|era)|qu[ée] (es|son|significa)|qui[ée]n (es|fue|era))\s+\S/iu;
+const COMPOUND_PT_ES = /\s(e|y)\s+(o que|o\s|como|por que|porque|quando|onde|qual|quais|qu[ée]|c[óo]mo|cu[áa]ndo|d[óo]nde|cu[áa]l)/iu;
+export function isPtDefinitional(query: string): boolean {
+  const q = query.trim();
+  return PT_DEFINITIONAL.test(q) && !COMPOUND_PT_ES.test(q) && q.split(/\s+/).length <= 10;
+}
+/** The sentence says what one of the names is: "A monsoon is …", "Tiradentes was …". */
+export function definesName(names: string[], sentence: string): boolean {
+  return names.some((n) => {
+    const esc = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[^\\p{L}])${esc}s?(?![\\p{L}])[^.]{0,60}?(?<![\\p{L}])(is|are|was|were|refers to|stands for|means)(?![\\p{L}])`, "iu").test(sentence);
+  });
+}
 
 export function isHealthQuestion(query: string): boolean {
   return (
+    (VENOMOUS.test(query) && STUNG_OR_RISK.test(query)) ||
+    SWALLOWED.test(query) ||
+    UNRESPONSIVE.test(query) ||
+    HEALTH_ES.test(query) ||
     HEALTH.test(query) ||
     HEALTH_PT.test(query) ||
-    (DISASTER.test(query) && ACTION_INTENT.test(query)) ||
-    (INJURY_DESCRIBED.test(query) && ACTION_INTENT.test(query)) ||
+    (DISASTER.test(query) && (ACTION_INTENT.test(query) || SHOULD_INTENT.test(query))) ||
+    // "a bit" is not "bit" (bitten): "should I see Machu Picchu… if I'm a bit weak at hiking?" (Sonar exp-29).
+    (INJURY_DESCRIBED.test(query.replace(/\ba (little )?bit\b/gi, " ")) && (ACTION_INTENT.test(query) || SHOULD_INTENT.test(query))) ||
+    FROSTBITE.test(query) ||
+    (CHEST_PAIN.test(query) && !CHEST_PAIN_METAPHOR.test(query)) ||
+    HEAD_INJURY.test(query) ||
     // Health for the content, translation for the form (Sextant lng-009, gate 52a2310: the 4B wrote "Je suis
     // allergique au peanut" for a phrase the traveller shows a waiter): a phrase to translate that carries
     // health content stays on the health path, and without a source it declines.
@@ -341,6 +509,8 @@ export function healthTopicTerms(query: string, articleTerms: string | null): Se
  */
 /** Sources written for laypeople (first-aid book, travel health, Ready.gov/CDC): preferred for what to do. */
 const LAY_SOURCE = /^(Wikibooks|Wikivoyage|US government):/;
+const FIRST_AID_SOURCE = /^(Wikibooks|US government):/;
+const HEALTH_SECTION = /\b(stay (healthy|safe)|health|first aid|dangers?|medical|safety|emergenc\w*|treatment)\b/i;
 
 // Technical specifications are never first-aid sources ("EIP-7775: BURN opcode" for a burn).
 const NON_HEALTH_SOURCE = /^(Ethereum EIPs\/ERCs|Ethereum specs|ethereum\.org|Bitcoin BIPs):/;
@@ -382,7 +552,12 @@ export function onHealthTopic(topic: Set<string>, chunk: RetrievedChunk): boolea
   // ("Oral rehydration therapy › Treatment" is an action section, not about burns). So does a
   // lay first-aid source whose text names it (Army FM 21-76 "Before you start treating a
   // snakebite...", Wikibooks "Outdoor Survival/First Aid › Insect and animal bite").
-  return (action === true || LAY_SOURCE.test(chunk.title)) && titleNames(chunk.body, topic);
+  // Not inside a hyphenated compound: "traffic-choked" (Wikivoyage: Kabul) is not about choking (Sonar exp-29).
+  // A lay source's text counts in a first-aid manual, a health/safety section, or a passage that instructs ("Boil the
+  // water…"), never a place's overview: "traffic-choked streets … choking pollution" (Wikivoyage: Kabul) is not about
+  // choking (Sonar exp-29).
+  const layHealth = FIRST_AID_SOURCE.test(chunk.title) || HEALTH_SECTION.test(sectionHeading(chunk)) || imperativeSteps(chunk.body) >= 1;
+  return (action === true || layHealth) && titleNames(chunk.body.replace(/\p{L}+(?:-\p{L}+)+/gu, " "), topic);
 }
 
 /** Next to the question (small models follow instructions there, s32): health answers stay inside the sources. */
@@ -1099,8 +1274,16 @@ export function healthExtract(source: RetrievedChunk, sourceNumber: number, pt: 
     : pt
       ? "A fonte offline não traz os passos de socorro para isso. Em uma emergência, ligue para o serviço de emergência local (192 SAMU, 193 Bombeiros). O que a fonte diz (em inglês):"
       : "The offline source doesn't give first-aid steps for this. In an emergency, call your local emergency number. What the source says:";
-  // The emergency line closes every health answer; the "no steps" lead already says it.
-  return steps ? `${lead}\n${text} [${sourceNumber}]\n\n${emergencyLine(pt)}` : `${lead}\n${text} [${sourceNumber}]`;
+  // No first-aid steps and no instruction in the text: no quote either. The quote was whatever passed the topic match, often another subject
+  // ("wood burning stoves" for a scald, "Grand Mosque seizure" for a seizure; Sonar exp-29): stop at the emergency line.
+  // A passage that still instructs ("Drop, cover, and hold on") is quoted under the no-steps lead, as before.
+  if (!steps && imperativeSteps(text) >= 1) return `${lead}\n${text} [${sourceNumber}]`;
+  if (!steps)
+    return pt
+      ? "A fonte offline não traz os passos de socorro para isso. Em uma emergência, ligue para o serviço de emergência local (192 SAMU ou 193 Bombeiros no Brasil, 112 na Europa, 911 nos EUA)."
+      : "The offline source doesn't give first-aid steps for this. In an emergency, call your local emergency number (911 in the US, 112 in Europe).";
+  // The emergency line closes every health answer.
+  return `${lead}\n${text} [${sourceNumber}]\n\n${emergencyLine(pt)}`;
 }
 
 // First-aid instructions the sources call wrong (NHS, CDC, Ready.gov), as a model might phrase them.
@@ -1116,6 +1299,9 @@ const RISKY_HEALTH: Array<[string, RegExp]> = [
   ["burn-cream", /\b(cream|ointment|lotion)s?\b[^.]{0,30}\bburn|\bburn\w*\b[^.]{0,40}\b(cream|ointment|lotion)|pomada/i],
   ["doorway", /\bdoorway|batente|v[ãa]o da porta/i],
   ["run-outside-quake", /\b(run|rush)\w* (outside|outdoors)/i],
+  // Hypothermia: exertion is advice for the healthy hiker, not first aid (safety rule hypo-exertion; Wikivoyage "Cold weather":
+  // "Keeping on walking even when tired is important… to keep warm"; Sonar exp-29).
+  ["hypo-exertion", /\bkeep(?:ing)?\s+(?:on\s+)?(?:walking|moving|hiking)\b[^.]{0,80}\b(warm|cold|tired|shelter)\b|\b(?:walk|walking|exercise|exercising|exert\w*)\b[^.]{0,40}\b(?:keep|stay|get)\s+warm\b/i],
 ];
 // Known-false technical claims, as a model might phrase them (gate 394bf31, crypto-named-001 seed 5: "Quantum-
 // resistant signature algorithms include those based on elliptic curve cryptography (ECC)"; the NSA passage in
@@ -1248,15 +1434,34 @@ function exertionNegated(sentence: string, index: number): boolean {
 export function riskyHealthInstruction(answer: string): string | null {
   const cold = HYPOTHERMIA_CONTEXT.test(answer);
   for (const sentence of splitSentences(answer)) {
-    for (const [id, re] of RISKY_HEALTH) if (re.test(sentence) && !NEGATED.test(sentence)) return id;
+    // "not only to reach shelter, but also…" is not a negation of the advice (Sonar exp-29).
+    for (const [id, re] of RISKY_HEALTH) if (re.test(sentence) && !NEGATED.test(sentence.replace(/\bnot only\b/gi, ""))) return id;
     if (!cold || (MILD.test(sentence) && !SEVERE.test(sentence))) continue;
     for (const m of sentence.matchAll(EXERTION)) if (!exertionNegated(sentence, m.index ?? 0)) return "exertion-hypothermia";
   }
   return null;
 }
 
+/**
+ * A Spanish question (no ES path elsewhere): inverted marks, or three distinct words Portuguese and English don't use.
+ * Words that are also Portuguese ("está", "se", "grave") are not in the list: three of them made a Portuguese question
+ * ("…e está inchando, se piorar é grave?") Spanish.
+ */
+const ES_ONLY = /(?<![\p{L}])(qué|cómo|cuándo|dónde|hago|hijo|hija|niño|niña|niños|bebé|mi|una|tragó|picó|mordió|ayuda|ayudarlo|ayudarla|pila|alacrán|peligroso|es|muy|tiene|puedo|debo|hacer)(?![\p{L}])/giu;
+export function isSpanishQuestion(query: string): boolean {
+  if (/[¿¡]/.test(query)) return true;
+  return new Set((query.match(ES_ONLY) ?? []).map((w) => w.toLowerCase())).size >= 3;
+}
+
 /** Health question without a good source: fixed text, no model. */
-export function noHealthSourceAnswer(pt: boolean): string {
+/** healthExtract's no-steps answer (no quote): the source had no first-aid steps for this. */
+export function isNoStepsAnswer(text: string): boolean {
+  return /^(The offline source doesn't give first-aid steps for this\.|A fonte offline não traz os passos de socorro para isso\.)/.test(text) && !/\[\d+\]/.test(text);
+}
+
+export function noHealthSourceAnswer(pt: boolean, es = false): string {
+  if (es && !pt)
+    return "No tengo una fuente offline confiable sobre esto, así que no voy a dar consejos de salud de memoria. En una emergencia, llama al número de emergencias local (911 en gran parte de América, 112 en Europa).";
   return pt
     ? "Não tenho uma fonte offline confiável sobre isso, então não vou arriscar orientações de saúde de memória. Em uma emergência, ligue para o serviço de emergência local (192 SAMU ou 193 Bombeiros no Brasil, 112 na Europa, 911 nos EUA)."
     : "I don't have a reliable offline source on this, so I won't give health advice from memory. In an emergency, call your local emergency number (911 in the US, 112 in Europe).";

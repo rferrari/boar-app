@@ -12,17 +12,22 @@
 import { emergencyLine } from "./context";
 import { emergencyNumbersLine } from "./emergencyNumbers";
 
-const SNAKE = /(?<![\p{L}])(snakes?|vipers?|rattlesnakes?|cobras?|serpentes?|jararacas?|cascav[ée]is|cascavel|surucucus?)(?![\p{L}])/iu;
-const BITE = /(?<![\p{L}])(bit|bitten|bite|bites|biting|snakebite|picad[oa]s?|picou|mordid[oa]s?|mordeu|mordida|picada)(?![\p{L}])/iu;
+const SNAKE = /(?<![\p{L}])(snakes?|vipers?|rattlesnakes?|cobras?|serpentes?|jararacas?|cascav[ée]is|cascavel|surucucus?|serpientes?|culebras?|v[íi]boras?|cascabel(?:es)?|nauyacas?|yarar[áa]s?|mapanares?)(?![\p{L}])/iu;
+const BITE = /(?<![\p{L}])(bit|bitten|bite|bites|biting|snakebite|picad[oa]s?|picou|mordid[oa]s?|mordeu|mordida|picada|mordi[óo]|mordedura|picó|(?<=(?:me|te|le|lo|la|nos|les) )pico|picadura)(?![\p{L}])/iu; // not "Pico de Orizaba"
 const AID =
-  /\b(what (do|should|can) (i|we|he|she|they) do|what to do|first aid|help|now)\b|(?<![\p{L}])(o que (eu )?(fa[çc]o|fazer|devo fazer)|como (agir|socorrer)|primeiros socorros|socorro|ajuda|agora)(?![\p{L}])/iu;
+  /\b(what (do|should|can) (i|we|he|she|they) do|what to do|first aid|help|now)\b|(?<![\p{L}])(o que (eu )?(fa[çc]o|fazer|devo fazer)|como (agir|socorrer)|primeiros socorros|socorro|ajuda|agora|qu[ée] (hago|hacer|hacemos|debo hacer)|c[óo]mo (lo |la )?(ayudo|ayudar|actuar)|primeros auxilios|auxilio|ayuda|ahora)(?![\p{L}])/iu;
 
 /** A snakebite first-aid question ("fui picado por uma cobra, o que faço?"), not a question about snakes. */
 export function isSnakebiteFirstAid(query: string): boolean {
   return SNAKE.test(query) && BITE.test(query) && AID.test(query);
 }
 
-export function snakebiteFirstAidCard(query: string, pt: boolean): string {
+export function snakebiteFirstAidCard(query: string, pt: boolean, es = false): string {
+  // ES (health12; usted register as the reviewed cards, health13): a translation of the EN/PT text above, same WHO source.
+  if (es)
+    return "Mordedura de serpiente, primeros auxilios: aléjese de la serpiente y no intente atraparla ni matarla. Mantenga a la persona quieta y tranquila, sin que se mueva en absoluto; si puede, llévela en una camilla improvisada y llévela a atención médica sin demora. NO use un torniquete apretado, NO corte la herida y NO chupe el veneno ni ponga productos químicos.\n\n" +
+      "Fuente: OMS, preguntas y respuestas sobre el envenenamiento por mordedura de serpiente (2019).\n\n" +
+      "En una emergencia, llame al número de emergencias local (911 en gran parte de América, 112 en Europa).";
   const emergency = emergencyNumbersLine(query, pt) ?? emergencyLine(pt);
   return pt
     ? "Picada de cobra, primeiros socorros: afaste-se da cobra e não tente pegá-la nem matá-la. Mantenha a pessoa parada e calma, sem se mexer; se der, carregue-a numa maca improvisada e leve-a ao atendimento médico sem demora. NÃO use torniquete apertado, NÃO corte o local e NÃO chupe o veneno nem passe produtos químicos.\n\n" +

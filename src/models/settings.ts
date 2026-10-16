@@ -34,6 +34,8 @@ interface Settings {
   routingPreset?: RoutingPreset;
   modelRoleAssignments?: Partial<Record<ModelRole, string>>;
   adaptiveRoutingEnabled?: boolean;
+  /** Chat answers through src/routing/answerService.ts answer() (the measured path). Default on. */
+  measuredAnswerPath?: boolean;
   answerQuickFirst?: boolean;
   answerAlwaysComplete?: boolean;
   /** null = explicitly no deep model; undefined = pick automatically (see src/routing/depth.ts). */
@@ -467,6 +469,27 @@ export async function setAdaptiveRoutingEnabled(enabled: boolean): Promise<void>
   return serialized(async () => {
     const s = await readSettings();
     s.adaptiveRoutingEnabled = enabled;
+    await writeSettings(s);
+  });
+}
+
+/**
+ * Measured answer path: ordinary chat (not Deep Research Mode) answers through
+ * answer() in src/routing/answerService.ts, the pipeline the in-app evaluation
+ * and BOAR Bench measure, via src/ui-android/chat/answerBridge.ts. On by
+ * default. Off: the legacy chat paths (adaptive routing, then the fixed
+ * active model) run exactly as before. When on, adaptiveRoutingEnabled does
+ * not pick the chat path any more (it still seeds answerQuickFirst, below).
+ */
+export async function getMeasuredAnswerPathEnabled(): Promise<boolean> {
+  const s = await readSettings();
+  return s.measuredAnswerPath ?? true;
+}
+
+export async function setMeasuredAnswerPathEnabled(enabled: boolean): Promise<void> {
+  return serialized(async () => {
+    const s = await readSettings();
+    s.measuredAnswerPath = enabled;
     await writeSettings(s);
   });
 }

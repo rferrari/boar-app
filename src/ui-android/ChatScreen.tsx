@@ -44,7 +44,11 @@ import {
   getDeepResearchMode,
   getVoiceInputEnabled,
   getAdaptiveRoutingEnabled,
+  getMeasuredAnswerPathEnabled,
 } from "../models/settings";
+import { answer as measuredAnswer } from "../routing/answerService";
+import type { AnswerHandle } from "../routing/events";
+import { buildChatHistory, ChatStatusLabel, queryStatsFromAnswer, runChatAnswer, VERBATIM_MESSAGE_COUNT } from "./chat/answerBridge";
 import { runDeepResearch, ResearchProgress } from "../services/orchestrator";
 import { runAdaptiveChat } from "../services/adaptiveChat";
 import { getPersonality, PersonalityId, PERSONALITIES } from "../constants/personalities";
@@ -95,10 +99,10 @@ interface Message {
   stopped?: boolean;
   timedOut?: boolean;
   interruptedByBackground?: boolean;
+  /** The measured path ended with an error: shown, never persisted, kept out of the history. */
+  failed?: boolean;
   feedback?: "up" | "down" | null;
 }
-
-const VERBATIM_MESSAGE_COUNT = 6;
 
 function researchStageLabel(p: ResearchProgress, t: (key: string, opts?: Record<string, unknown>) => string): string {
   if (p.stage === "decomposing") return t("chatScreen.research.decomposing");
@@ -410,6 +414,8 @@ export function ChatScreen({
   }, [ready, deviceEvalRequest]);
 
   const stopRequestedRef = useRef(false);
+  // The measured path's running answer (answerService), so Stop and backgrounding reach answer().stop() too.
+  const activeAnswerRef = useRef<AnswerHandle | null>(null);
 
   // Stop only takes effect between generated tokens, so while the prompt is
   // still being processed it can take a while; show that the tap registered.
@@ -419,7 +425,7 @@ export function ChatScreen({
     setStopping(true);
     setProcessing((prev) => (prev ? { ...prev, label: t("chatScreen.stopping") } : prev));
     impact(ImpactFeedbackStyle.Heavy);
-    await llamaEngine.stop();
+    await Promise.all([llamaEngine.stop(), activeAnswerRef.current?.stop()]);
   }, [t]);
 
   const cancelBackgroundTask = useCallback(async () => {
@@ -446,7 +452,7 @@ export function ChatScreen({
   const stopAndAwaitGeneration = useCallback(async () => {
     if (!sendTaskRef.current) return;
     stopRequestedRef.current = true;
-    await llamaEngine.stop();
+    await Promise.all([llamaEngine.stop(), activeAnswerRef.current?.stop()]);
     await sendTaskRef.current.catch(() => {});
   }, []);
 
@@ -560,11 +566,11 @@ export function ChatScreen({
       const systemPrompt = activePersonalityId === "custom" ? customPrompt : personality.systemPrompt;
       const styleReminder = activePersonalityId === "custom" ? undefined : personality.styleReminder;
 
-      const priorMessages = messagesRef.current.filter((m) => m.text.length > 0);
-      const verbatimTurns: ConversationTurn[] = priorMessages
-        .slice(-VERBATIM_MESSAGE_COUNT)
-        .map((m) => ({ role: m.role, text: m.role === "assistant" ? stripThinking(m.text) : m.text }));
-      const history = { summary: sessionSummaryRef.current, turns: verbatimTurns };
+      // Same window for every path: the session summary + the last VERBATIM_MESSAGE_COUNT messages.
+      const { history, priorMessages } = buildChatHistory(
+        messagesRef.current.filter((m) => !m.failed),
+        sessionSummaryRef.current
+      );
 
       let firstToken = true;
       let firstTokenTime = 0;
@@ -591,6 +597,12 @@ export function ChatScreen({
       // for Deep Research and for the plain fixed-active-model path, so
       // existing QueryStats consumers see no shape change for those.
       let adaptiveTelemetry: Partial<QueryStats> | null = null;
+      // Set when the measured path answered: its stats come from the receipt, and answer() already
+      // persisted the execution record.
+      let measuredStats: QueryStats | null = null;
+      // The measured answer ended in an error (also after some streamed text): no success haptic,
+      // not persisted, no title or summary from it.
+      let measuredFailed = false;
 
       if (deepResearchModeRef.current) {
         // Deep Research Mode is completely separate from adaptive routing
@@ -642,9 +654,67 @@ export function ChatScreen({
           return c;
         };
 
-        const adaptiveRoutingEnabled = await getAdaptiveRoutingEnabled();
+        const measuredPathEnabled = await getMeasuredAnswerPathEnabled();
+        const adaptiveRoutingEnabled = measuredPathEnabled ? false : await getAdaptiveRoutingEnabled();
 
-        if (adaptiveRoutingEnabled) {
+        if (measuredPathEnabled) {
+          // The measured engine (answerService.answer: router, retrieval, grounding guards, citations
+          // check), the one the in-app evaluation and BOAR Bench score. Off in Settings: the legacy paths below.
+          const statusLabel = (label?: ChatStatusLabel) =>
+            !label
+              ? undefined
+              : label.kind === "loading_model"
+                ? t("chatScreen.mountingWeights")
+                : label.kind === "research"
+                  ? t("chatScreen.research.researching", { index: label.index, count: label.count })
+                  : t("chatScreen.research.synthesizing");
+          const r = await runChatAnswer({
+            answer: measuredAnswer,
+            query,
+            ctx: { systemPrompt, styleReminder, history, maxTokens },
+            now: () => performance.now(),
+            isStopRequested: () => stopRequestedRef.current,
+            onHandle: (h) => {
+              activeAnswerRef.current = h;
+            },
+            sink: {
+              setStatus: (status, label) => {
+                if (stopRequestedRef.current) return; // keep the "Stopping…" label
+                setProcessing({ messageId: assistantId, status, label: statusLabel(label) });
+              },
+              setText: (text) =>
+                setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, text } : m))),
+              appendText: (piece) =>
+                setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, text: m.text + piece } : m))),
+              setLiveTokPerSec,
+            },
+          }).finally(() => {
+            activeAnswerRef.current = null;
+          });
+          assistantText = r.text;
+          tokensGenerated = r.streamedTokens;
+          measuredFailed = r.outcome === "error";
+          chunks = r.citations;
+          if (r.timedOut) {
+            setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, timedOut: true } : m)));
+          }
+          if (r.warnings.length || r.error) {
+            console.log(`[ChatScreen] answer ${r.outcome} tier=${r.tier} warnings=${r.warnings.join(",")}${r.declined ? " declined" : ""}${r.error ? ` error=${r.error.code}` : ""}`);
+          }
+          // The engine may answer with another model than the loaded one (low RAM, crashed load): show that one.
+          const usedId = r.receipt?.modelId;
+          if (usedId && usedId !== activeModelRef.current?.id) {
+            const all = [...MODEL_CATALOG, ...(await listDiscoveredModels().catch(() => [] as CatalogModel[]))];
+            const used = all.find((m) => m.id === usedId && m.kind === "llm");
+            if (used) setActiveModel(used);
+          }
+          measuredStats = queryStatsFromAnswer(r, {
+            durationMs: performance.now() - startTime,
+            peakRssBytes: peakRss.stop(),
+            timestamp: Date.now(),
+            fallbackModelId: baseModelId,
+          });
+        } else if (adaptiveRoutingEnabled) {
           try {
             const result = await runAdaptiveChat(
               { query, systemPrompt, styleReminder, history },
@@ -732,13 +802,13 @@ export function ChatScreen({
       const wasStopped = stopRequestedRef.current;
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === assistantId ? { ...m, citations: chunks, stopped: wasStopped } : m
+          m.id === assistantId ? { ...m, citations: chunks, stopped: wasStopped, ...(measuredFailed ? { failed: true } : {}) } : m
         )
       );
-      notification(wasStopped ? NotificationFeedbackType.Warning : NotificationFeedbackType.Success);
+      notification(wasStopped || measuredFailed ? NotificationFeedbackType.Warning : NotificationFeedbackType.Success);
 
       const durationMs = performance.now() - startTime;
-      const finalStats: QueryStats = {
+      const finalStats: QueryStats = measuredStats ?? {
         tokensGenerated,
         durationMs,
         ttftMs,
@@ -756,7 +826,8 @@ export function ChatScreen({
       // compatibility layer for the existing live Usage Stats display; this
       // is the new Phase 7 source of truth. Fire-and-forget: telemetry
       // must never block or fail the chat response the user already has.
-      recordExecution({
+      // The measured path's record is written by answer() itself (answerService recordExecution).
+      if (!measuredStats) recordExecution({
         modelId: finalStats.modelId,
         taskType: finalStats.taskType,
         adaptiveRoutingUsed: finalStats.adaptiveRoutingUsed ?? false,
@@ -775,14 +846,16 @@ export function ChatScreen({
         outcome: finalStats.outcome ?? (wasStopped ? "cancelled" : "success"),
       }).catch(() => {});
 
-      if (assistantText.trim().length > 0) {
+      if (assistantText.trim().length > 0 && !measuredFailed) {
         await persistMessage(sessionId, "assistant", assistantText, assistantId);
       }
 
       const settings = memorySettingsRef.current;
       const allMessages = [...priorMessages, userMsg, { ...userMsg, id: assistantId, role: "assistant" as const, text: assistantText }];
 
-      if (isNewSession && settings.autoGenerateTitles && !wasStopped) {
+      if (measuredFailed) {
+        // Nothing to title or summarize: the failed answer is not saved.
+      } else if (isNewSession && settings.autoGenerateTitles && !wasStopped) {
         const sid = sessionId;
         backgroundTaskRef.current = generateSessionTitle(query)
           .then(async (title) => {
