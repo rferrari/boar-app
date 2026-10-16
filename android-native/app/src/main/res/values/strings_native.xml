@@ -216,8 +216,8 @@
     <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Forage deep in the woods: airplane mode, 7 days in a row.</string>
     <string name="native_rule_ALL_OTHERS" formatted="false">The legendary truffle: unearth every other boar in the vault.</string>
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 days off the grid, in any order.</string>
-    <string name="native_vault_section" formatted="false">Boar Avatars</string>
-    <string name="native_vault_experimental" formatted="false">Boar Avatars (experimental)</string>
+    <string name="native_vault_section" formatted="false">Boarverse</string>
+    <string name="native_vault_experimental" formatted="false">Boarverse (experimental)</string>
     <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
