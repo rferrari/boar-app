@@ -44,8 +44,8 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
 /**
- * About BOAR as a thread from @boar_app (brand book, manifesto register: one idea per post, ends on what BOAR does),
- * with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
+ * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
+ * open work it stands on, with the brand mark (direction A, "Tusk moon") as the avatar. Addresses copy on press and hold; nothing opens from
  * here. The version, build and engine line closes the thread.
  */
 @Composable
@@ -62,21 +62,24 @@ fun AboutScreen(onClose: () -> Unit) {
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
-            val posts = POSTS
-            posts.forEachIndexed { i, key ->
-                Post(last = i == posts.lastIndex) {
-                    Text(t("native.about.post.$key"), style = Boar.type.body, color = c.textPrimary)
-                    when (key) {
-                        "open" -> Link("github.com/rferrari/boar-app")
-                        "verify" -> {
-                            Link("boarapp.com"); Link("x.com/boar_app"); Link("farcaster.xyz/boarapp")
-                            Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
-                        }
-                        "packs" -> Link("huggingface.co/datasets/r4topunk/boar-packs")
-                        "team" -> for ((name, handle) in TEAM) Link("$name · @$handle", copy = "x.com/$handle")
-                        "credits" -> Credits()
-                    }
-                }
+            // Three posts: about BOAR, its addresses, the open work it stands on.
+            Post(last = false) {
+                for (key in listOf("why", "offline", "receipt", "budget")) Text(t("native.about.post.$key"), style = Boar.type.body, color = c.textPrimary)
+            }
+            Post(last = false) {
+                Text(t("native.about.post.open"), style = Boar.type.body, color = c.textPrimary)
+                Link("github.com/rferrari/boar-app")
+                Text(t("native.about.post.verify"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.padding(top = 6.dp))
+                Link("boarapp.com"); Link("x.com/boar_app"); Link("farcaster.xyz/boarapp")
+                Text(t("native.about.verify"), style = Boar.type.title, color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
+                Text(t("native.about.post.packs"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.padding(top = 6.dp))
+                Link("huggingface.co/datasets/r4topunk/boar-packs")
+                Text(t("native.about.post.team"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.padding(top = 6.dp))
+                for ((name, handle) in TEAM) Link("$name · @$handle", copy = "x.com/$handle")
+            }
+            Post(last = true) {
+                Text(t("native.about.post.credits"), style = Boar.type.body, color = c.textPrimary)
+                Credits()
             }
             Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 4.dp))
             Text(
@@ -87,9 +90,6 @@ fun AboutScreen(onClose: () -> Unit) {
         }
     }
 }
-
-/** The thread, in order: the why, offline, the receipt, memory and storage, open source, verify, packs, team, credits. */
-private val POSTS = listOf("why", "offline", "receipt", "budget", "open", "verify", "packs", "team", "credits")
 
 /** One post: the round avatar with the thread line under it (none after the last), the name, then the content. */
 @Composable
@@ -119,7 +119,8 @@ private fun Credits() {
     var open by remember { mutableStateOf(false) }
     val models = remember {
         team.sopa.boar.app.BoarServices.get(ctx).catalog.models
-            .filter { !it.license.startsWith("Unknown") && it.license.isNotBlank() }
+            // Hidden models (no longer offered, such as Phi-3.5) aren't credited.
+            .filter { !it.hidden && !it.license.startsWith("Unknown") && it.license.isNotBlank() }
             .map { it.label to it.license }
             .distinct()
     }
