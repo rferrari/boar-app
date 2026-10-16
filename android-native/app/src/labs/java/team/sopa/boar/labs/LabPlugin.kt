@@ -61,7 +61,7 @@ interface LabPlugin {
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
-class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val onClick: () -> Unit)
+class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null, val onClick: () -> Unit)
 
 /** A tile for something in testing: no screen, no slots. Its boar shows as a silhouette until it launches. */
 class ClassifiedLab(override val id: String, override val emoji: String) : LabPlugin {

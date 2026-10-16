@@ -80,7 +80,9 @@ object LabHooks {
                     Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
                         .clickable(enabled = act.enabled) { act.onClick(); open = false }.padding(horizontal = 8.dp, vertical = 12.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        androidx.compose.material3.Text(act.emoji, fontSize = 20.sp)
+                        // The lab's avatar when it has one, else the action's emoji.
+                        act.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, androidx.compose.ui.Modifier.size(28.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                            ?: androidx.compose.material3.Text(act.emoji, fontSize = 20.sp)
                         androidx.compose.material3.Text(act.label, style = team.sopa.boar.ui.theme.Boar.type.body, color = if (act.enabled) c.textPrimary else c.textDim, modifier = androidx.compose.ui.Modifier.weight(1f))
                         if (act.done) androidx.compose.material3.Text("✓", color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                     }

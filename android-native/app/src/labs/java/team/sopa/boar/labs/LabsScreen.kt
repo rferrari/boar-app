@@ -72,7 +72,8 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
     Shell(t("native.labs.title"), onClose) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(lab.emoji, fontSize = 36.sp)
+            lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: Text(lab.emoji, fontSize = 36.sp)
             Column(Modifier.weight(1f)) {
                 Text(t("native.labs.${lab.id}.title"), style = Boar.type.title, color = c.textHeading)
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)

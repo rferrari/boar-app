@@ -60,6 +60,7 @@ object ColibriLab : LabPlugin, EngineProvider {
     override val engine: EngineProvider get() = this
     override val engineLabel = "Boar Wisp"
     override val engineEmoji get() = emoji
+    override val engineArt get() = art
     override fun models() = listOf(MODEL)
 
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {

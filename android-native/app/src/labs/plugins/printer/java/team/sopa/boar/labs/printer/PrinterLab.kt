@@ -94,7 +94,7 @@ object PrinterLab : LabPlugin {
         val scope = rememberCoroutineScope()
         remember { Basket.load(ctx) }
         val added = Basket.items.collectAsState().value.any { it.id == a.id }
-        return listOf(team.sopa.boar.labs.LabAction("📎", t(if (added) "native.labs.printer.inBasket" else "native.labs.printer.addToBasket"), done = added) {
+        return listOf(team.sopa.boar.labs.LabAction("📎", t(if (added) "native.labs.printer.inBasket" else "native.labs.printer.addToBasket"), done = added, art = art) {
             if (added) Basket.remove(a.id)
             else scope.launch(Dispatchers.IO) {
                 val title = runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.listSessions().firstOrNull { it.id == a.sessionId }?.title }.getOrNull().orEmpty()

@@ -44,7 +44,7 @@ import java.util.Locale
 object BmoeLab : LabPlugin, EngineProvider {
     override val id = "bmoe"
     override val emoji = "🦣"
-    override val art = team.sopa.boar.R.drawable.truffle_sovereign
+    override val art = team.sopa.boar.R.drawable.truffle_moe
     override val status = LabStatus.BETA
 
     /** Where `adb push` puts it (the experimental-engines branch used the same path). */
@@ -64,6 +64,7 @@ object BmoeLab : LabPlugin, EngineProvider {
     override val engine: EngineProvider get() = this
     override val engineLabel = "Big Boar"
     override val engineEmoji get() = emoji
+    override val engineArt get() = art
     override fun models() = listOf(MODEL)
 
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {

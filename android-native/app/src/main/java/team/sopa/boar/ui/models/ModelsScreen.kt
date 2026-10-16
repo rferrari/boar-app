@@ -145,7 +145,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            Text(engine.engineEmoji, fontSize = 10.sp)
+            engine.engineArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: Text(engine.engineEmoji, fontSize = 10.sp)
             Text(t("native.models.engineTag", "engine" to engine.engineLabel), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
         } else if (item.kind == AssetKind.LLM && ramBytes > 0) {
             val comp = Compatibility.compute(item.sizeBytes, ramBytes)
