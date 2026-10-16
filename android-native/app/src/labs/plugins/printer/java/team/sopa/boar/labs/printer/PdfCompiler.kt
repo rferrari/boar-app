@@ -37,7 +37,9 @@ object PdfCompiler {
     }
 
     /** What prints besides the text: the date under the title, each answer's model and speed, each answer's sources. */
-    data class Meta(val date: Boolean = true, val model: Boolean = false, val sources: Boolean = true, val images: Placement = Placement.CENTER, val drawings: Boolean = true)
+    /** [drawingFirst]: the drawing above its heading; off (default), the heading comes first and the text starts beside the drawing. */
+    data class Meta(val date: Boolean = true, val model: Boolean = false, val sources: Boolean = true, val images: Placement = Placement.CENTER, val drawings: Boolean = true,
+        val drawingFirst: Boolean = false)
 
     /** "Qwen3-4B · 12.3 tok/s", or null when the answer has neither. */
     fun modelLine(i: Basket.Item): String? = listOfNotNull(i.model, i.tokPerSec?.let { String.format(java.util.Locale.US, "%.1f tok/s", it) }).joinToString(" · ").ifEmpty { null }
@@ -55,8 +57,11 @@ object PdfCompiler {
             var drawn = 0
             items.forEach { item ->
                 // ALTERNATE counts the drawings, not the answers: right, left, right… whichever answers have one.
-                if (meta.drawings) drawingOf(item)?.let { p.image(it, meta.images.sideOf(drawn++)) }
-                p.text(item.question.ifBlank { item.chatTitle }, paint(14f, bold = true, color = 0xFF1B4D3E.toInt()), after = 6f)
+                val drawing = if (meta.drawings) drawingOf(item) else null
+                val side = drawing?.let { meta.images.sideOf(drawn++) }
+                if (drawing != null && meta.drawingFirst) p.image(drawing, side!!)
+                p.text(plain(item.question.ifBlank { item.chatTitle }), paint(14f, bold = true, color = 0xFF1B4D3E.toInt()), after = 6f)
+                if (drawing != null && !meta.drawingFirst) p.image(drawing, side!!)
                 p.text(plain(item.text), paint(11f, color = 0xFF222222.toInt()), after = 8f, spacing = 1.35f)
                 if (meta.model) modelLine(item)?.let { p.text(it, paint(8.5f, color = 0xFF1B4D3E.toInt()), after = 4f) }
                 if (meta.sources && item.sources.isNotEmpty()) p.text(sourceLines(item), paint(8.5f, color = 0xFF666666.toInt()), after = 18f)

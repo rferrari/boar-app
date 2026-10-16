@@ -35,6 +35,8 @@
     <string name="native_labs_printer_place_left" formatted="false">▌ Esquerda</string>
     <string name="native_labs_printer_place_alternate" formatted="false">⇄ Alternar</string>
     <string name="native_labs_printer_metaDrawings" formatted="false">Desenhos</string>
+    <string name="native_labs_printer_pos_after" formatted="false">↓ Título, depois desenho</string>
+    <string name="native_labs_printer_pos_before" formatted="false">↑ Desenho, depois título</string>
     <string name="native_labs_printer_pickTitle" formatted="false">Desenho desta resposta</string>
     <string name="native_labs_printer_noDrawing" formatted="false">✕ Sem desenho</string>
 </resources>

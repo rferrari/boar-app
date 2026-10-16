@@ -173,7 +173,8 @@ object PrinterLab : LabPlugin {
             model = team.sopa.boar.labs.LabPrefs.string("printer.model") == "on",
             sources = team.sopa.boar.labs.LabPrefs.string("printer.sources") != "off",
             images = PdfCompiler.Placement.of(team.sopa.boar.labs.LabPrefs.string("printer.images")),
-            drawings = team.sopa.boar.labs.LabPrefs.string("printer.drawings") != "off")) }
+            drawings = team.sopa.boar.labs.LabPrefs.string("printer.drawings") != "off",
+            drawingFirst = team.sopa.boar.labs.LabPrefs.string("printer.drawingPos") == "before")) }
         fun setMeta(m: PdfCompiler.Meta) {
             meta = m
             team.sopa.boar.labs.LabPrefs.putString("printer.date", if (m.date) "on" else "off")
@@ -181,6 +182,7 @@ object PrinterLab : LabPlugin {
             team.sopa.boar.labs.LabPrefs.putString("printer.sources", if (m.sources) "on" else "off")
             team.sopa.boar.labs.LabPrefs.putString("printer.images", m.images.name.lowercase())
             team.sopa.boar.labs.LabPrefs.putString("printer.drawings", if (m.drawings) "on" else "off")
+            team.sopa.boar.labs.LabPrefs.putString("printer.drawingPos", if (m.drawingFirst) "before" else "after")
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -208,6 +210,11 @@ object PrinterLab : LabPlugin {
             if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
                     Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
+            }
+            // The drawing above its heading, or the heading first with the text starting beside the drawing.
+            if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Toggle(t("native.labs.printer.pos.after"), !meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = false)) }
+                Toggle(t("native.labs.printer.pos.before"), meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = true)) }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Toggle(t("native.labs.printer.arrange"), !preview, Modifier.weight(1f)) { preview = false }
@@ -352,6 +359,8 @@ object PrinterLab : LabPlugin {
         val dim = Color(0xFF777777)
         val green = Color(0xFF1B4D3E)
         val serif = androidx.compose.ui.text.font.FontFamily.Serif
+        val headingStyle = androidx.compose.ui.text.TextStyle(fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = green)
+        val bodyStyle = androidx.compose.ui.text.TextStyle(fontFamily = serif, fontSize = 12.sp, lineHeight = 17.sp, color = ink)
         Column(Modifier.fillMaxWidth().background(Color(0xFFF7F4EC), RoundedCornerShape(4.dp)).padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = ink)
             Text((if (meta.date) java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG).format(java.util.Date()) + " · " else "") + t("native.labs.printer.footer"),
@@ -359,9 +368,19 @@ object PrinterLab : LabPlugin {
             Box(Modifier.fillMaxWidth().size(width = 0.dp, height = 1.dp).background(Color(0xFFCCCCCC)))
             var drawn = 0
             items.forEach { item ->
-                if (meta.drawings) drawingOf(item)?.let { PreviewImage(it, meta.images.sideOf(drawn++)) }
-                Text(item.question.ifBlank { item.chatTitle }, fontFamily = serif, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = green, modifier = Modifier.padding(top = 6.dp))
-                Text(PdfCompiler.plain(item.text), fontFamily = serif, fontSize = 12.sp, lineHeight = 17.sp, color = ink)
+                val heading = PdfCompiler.plain(item.question.ifBlank { item.chatTitle })
+                val body = PdfCompiler.plain(item.text)
+                val drawing = if (meta.drawings) drawingOf(item) else null
+                val side = drawing?.let { meta.images.sideOf(drawn++) }
+                if (drawing == null || side == PdfCompiler.Placement.CENTER) {
+                    if (drawing != null && meta.drawingFirst) PreviewImage(drawing)
+                    Text(heading, style = headingStyle, modifier = Modifier.padding(top = 6.dp))
+                    if (drawing != null && !meta.drawingFirst) PreviewImage(drawing)
+                    Text(body, style = bodyStyle)
+                } else {
+                    if (!meta.drawingFirst) Text(heading, style = headingStyle, modifier = Modifier.padding(top = 6.dp))
+                    Beside(drawing, side == PdfCompiler.Placement.LEFT, if (meta.drawingFirst) heading else null, headingStyle, body, bodyStyle)
+                }
                 if (meta.model) PdfCompiler.modelLine(item)?.let { Text(it, fontFamily = serif, fontSize = 9.sp, color = green) }
                 if (meta.sources && item.sources.isNotEmpty()) Text(PdfCompiler.sourceLines(item), fontFamily = serif, fontSize = 9.sp, lineHeight = 12.sp, color = Color(0xFF666666))
             }
@@ -369,11 +388,42 @@ object PrinterLab : LabPlugin {
     }
 
     @Composable
-    private fun PreviewImage(f: File, side: PdfCompiler.Placement) = Box(Modifier.fillMaxWidth(), contentAlignment = when (side) {
-        PdfCompiler.Placement.RIGHT -> Alignment.CenterEnd; PdfCompiler.Placement.LEFT -> Alignment.CenterStart; else -> Alignment.Center }) {
-        // The side size is the PDF's 200 of 483 pt; the preview doesn't wrap text beside it.
-        Box(Modifier.size(if (side == PdfCompiler.Placement.CENTER) 180.dp else 120.dp)) { Thumb(f) }
-    }
+    private fun PreviewImage(f: File) = Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Box(Modifier.size(180.dp)) { Thumb(f) } }
+
+    /**
+     * A drawing on the right or left with the text beside it, as in the PDF (200 of the 483 pt column, 14 pt gutter): the
+     * lines that fit beside the drawing go there, the rest continues below at the full width. [heading], when given, sits
+     * beside the drawing above the text (drawing before the heading).
+     */
+    @Composable
+    private fun Beside(f: File, left: Boolean, heading: String?, headingStyle: androidx.compose.ui.text.TextStyle, body: String, bodyStyle: androidx.compose.ui.text.TextStyle) =
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val imageW = maxWidth * (200f / 483f)
+            val gutter = maxWidth * (14f / 483f)
+            val textW = with(density) { (maxWidth - imageW - gutter).roundToPx() }
+            val imageH = with(density) { imageW.roundToPx() }
+            val headingH = heading?.let { measurer.measure(it, headingStyle, constraints = androidx.compose.ui.unit.Constraints(maxWidth = textW)).size.height + with(density) { 6.dp.roundToPx() } } ?: 0
+            val layout = measurer.measure(body, bodyStyle, constraints = androidx.compose.ui.unit.Constraints(maxWidth = textW))
+            // The lines whose bottom is still within the drawing's height go beside it.
+            val fit = (0 until layout.lineCount).lastOrNull { layout.getLineBottom(it) <= imageH - headingH }
+            val cut = fit?.let { layout.getLineEnd(it, visibleEnd = true) } ?: 0
+            val besideText = body.substring(0, cut).trimEnd()
+            val rest = body.substring(cut).trimStart()
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(gutter)) {
+                    val image = @Composable { Box(Modifier.size(imageW)) { Thumb(f) } }
+                    if (left) image()
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        heading?.let { Text(it, style = headingStyle) }
+                        if (besideText.isNotEmpty()) Text(besideText, style = bodyStyle)
+                    }
+                    if (!left) image()
+                }
+                if (rest.isNotEmpty()) Text(rest, style = bodyStyle)
+            }
+        }
 
     /** A sheet feeding out of the printer, its lines printing top to bottom, for the length of a print run. */
     @Composable
