@@ -288,20 +288,25 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
     Box(m.clickable(onClick = onClick), contentAlignment = Alignment.Center) { content() }
 }
 
+/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill. */
+private val MOON = Color(0xFF9EC7F0)
+
 @Composable
 private fun StatusPill(online: Boolean) {
     val c = Boar.colors
     // The word shows only when it fits: with Large text and Labs badges the header is tight ("ONLIN / E", then "ONL").
-    // Without room the pill is just its dot, still green offline and amber online.
+    // Without room the pill is just its dot. Told apart by hue and by shape (Oct 16, both were yellow in Moonlight):
+    // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
     var fits by remember { mutableStateOf(true) }
+    val tint = if (online) c.amber400 else MOON
     Row(
-        Modifier.background(if (online) c.amberBgSubtle else c.emeraldBgSubtle, RoundedCornerShape(4.dp))
-            .border(1.dp, if (online) c.amberBorder else c.emeraldBorder, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
+        Modifier.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
+            .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Box(Modifier.size(5.dp).background(if (online) c.amber400 else c.emerald400, CircleShape))
+        Box(Modifier.size(5.dp).background(tint, CircleShape))
         if (fits) Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
-            fontWeight = FontWeight.ExtraBold, color = if (online) c.textAccentAmber else c.textAccentEmerald, maxLines = 1, softWrap = false,
+            fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false,
             onTextLayout = { if (it.hasVisualOverflow) fits = false })
     }
 }
