@@ -125,7 +125,7 @@ class AppSettings(private val file: File) {
     var screenOrientation: String get() = str("screenOrientation") ?: "auto"; set(v) = set("screenOrientation", JsonPrimitive(v))
     var languageId: String? get() = str("languageId"); set(v) = set("languageId", v?.let(::JsonPrimitive))
     var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
-    var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: true; set(v) = set("hapticsEnabled", JsonPrimitive(v))
+    var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: false; set(v) = set("hapticsEnabled", JsonPrimitive(v))
     var hidePromptIdeas: Boolean get() = bool("hidePromptIdeas") ?: false; set(v) = set("hidePromptIdeas", JsonPrimitive(v))
     /**
      * Advanced tweaks → Show technical details (the Expo app's live-stats key): off, the chat shows the short receipt
