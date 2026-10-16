@@ -28,6 +28,17 @@ object LabHooks {
         LabContext.app = context.applicationContext
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
+        // About → credits: the engines Boar Labs ships and the models its labs use (android-native/NOTICE lists them too).
+        team.sopa.boar.ui.about.AboutCredits.extra = {
+            listOf(
+                "stable-diffusion.cpp (Boar Designer)" to "MIT",
+                "BigMoeOnEdge (Big Boar)" to "Apache-2.0",
+                "colibri (Boar Wisp)" to "Apache-2.0",
+                "SDXS-512 image model (Boar Designer)" to "license not yet verified",
+                "Qwen3.6-35B-A3B (Big Boar)" to "Apache-2.0",
+                "OLMoE-1B-7B (Boar Wisp)" to "Apache-2.0",
+            )
+        }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext

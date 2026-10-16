@@ -35,3 +35,13 @@ each keeps its own license, shown in the app's catalog and in About):
   bge-small-en-v1.5 (BAAI) — MIT License
   Wikipedia text in the knowledge base and packs — CC BY-SA 4.0
 
+Boar Labs (built only with EXPERIMENTAL_FEATURES=true, installed as its own app):
+  stable-diffusion.cpp — https://github.com/leejet/stable-diffusion.cpp
+    MIT License. Built as the sd-cli executable Boar Designer runs (scripts/engine-pins.env, SD_PIN).
+  BigMoeOnEdge — https://github.com/Helldez/BigMoeOnEdge
+    Apache License 2.0. Built as the bmoe-cli executable Big Boar runs (BMOE_PIN).
+  colibri — https://github.com/JustVugg/colibri
+    Apache License 2.0. Built as the executable Boar Wisp runs (COLIBRI_PIN).
+  Models the labs use, never bundled: SDXS-512 tinySD distilled (license not yet verified), Qwen3.6-35B-A3B
+  (Apache License 2.0), OLMoE-1B-7B (Apache License 2.0).
+
