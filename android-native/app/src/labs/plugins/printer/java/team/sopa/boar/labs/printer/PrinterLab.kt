@@ -75,7 +75,7 @@ object PrinterLab : LabPlugin {
     }
     override val emoji = "🖨️"
     override val art = team.sopa.boar.R.drawable.truffle_steampunk
-    override val status = LabStatus.LIVE
+    override val status = LabStatus.BETA
     override val onByDefault = true
 
     /** Each answer's own illustration (🎨 under it in the chat), from Image Gen's record: answer id to picture. */

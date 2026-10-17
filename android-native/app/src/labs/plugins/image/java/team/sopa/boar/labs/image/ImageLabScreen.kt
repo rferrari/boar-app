@@ -67,7 +67,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     }
     override val emoji = "🎨"
     override val art = team.sopa.boar.R.drawable.truffle_retrowave
-    override val status = team.sopa.boar.labs.LabStatus.LIVE
+    override val status = team.sopa.boar.labs.LabStatus.BETA
     override val onByDefault = true
 
     @Composable
