@@ -34,6 +34,8 @@ interface LabPlugin {
     /** The tile's picture (a drawable), shown instead of [emoji] when set. */
     val art: Int? get() = null
     val status: LabStatus
+    /** Switched on in a fresh install (or after Reset); every other lab starts off until the user turns it on. */
+    val onByDefault: Boolean get() = false
 
     /** The experiment's page, below the shared header (LabScaffold). */
     @Composable fun Content() {}
@@ -102,12 +104,12 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // Every lab starts off: turning on Boar Labs shows the grid, and the user switches on each lab to try (Oct 16).
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", false) }
-        on.value = p.getBoolean("labs.on", false)
+        // Boar Designer and Boar Press start on (LIVE, Oct 17); every other lab starts off until the user switches it on.
+        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault) }
+        on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
     }
 
-    /** The master switch at the bottom of Advanced tweaks: off by default, and then no lab shows anywhere. */
+    /** The master switch at the bottom of Advanced tweaks: on by default in the Labs build; off, no lab shows anywhere. */
     var labsOn: Boolean
         get() = BuildConfig.EXPERIMENTAL_FEATURES && on.value
         set(v) { team.sopa.boar.app.DebugLog.settingChanged("labs.on", on.value, v); on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
