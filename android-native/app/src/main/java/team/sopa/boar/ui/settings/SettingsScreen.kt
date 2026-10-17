@@ -256,6 +256,8 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         confirmButton = { androidx.compose.material3.TextButton({
             resetting = false
             services.settings.resetPreferences()
+            // BOAR's own avatar again; the boars unlocked in the vault stay unlocked.
+            services.vault.equip(null)
             prefs.setTheme(team.sopa.boar.ui.theme.ThemeTokens.DEFAULT_ID)
             prefs.setFontScale("standard")
             prefs.setOrientation("auto")
