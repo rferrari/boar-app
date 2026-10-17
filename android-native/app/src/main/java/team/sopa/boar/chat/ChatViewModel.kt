@@ -456,6 +456,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
 
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
+        lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
         val s = services.settings
         val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, it.engine == null && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT

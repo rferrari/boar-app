@@ -545,7 +545,7 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     // Mode first: the answer style, then how it was written (Deep Research, from this chat, adaptive routing and its plan).
     val mode = r.style?.let { style ->
         listOfNotNull(
-            t("native.receipt.style.$style"),
+            t("native.receipt.style.$style").takeUnless { it == "native.receipt.style.$style" } ?: style,  // an unknown style shows its id
             when (r.path) {
                 "deep" -> t("native.receipt.path.deep")
                 "chat" -> t("native.receipt.path.chat")
