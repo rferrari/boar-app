@@ -222,13 +222,19 @@ export function fuseRetrievalResults(
   normalize(semantic, weights.semantic);
 
   // At most MAX_CHUNKS_PER_ARTICLE per title, so one article's chunks can't crowd out a
-  // second topic (knowledge packs store up to 3 chunks per article).
+  // second topic (knowledge packs store up to 3 chunks per article). And one library per article:
+  // another library's copy is skipped here, before the cut, so the next distinct source takes its place.
   const perTitle = new Map<string, number>();
+  const libraryOfTitle = new Map<string, string>();
   const out: RetrievedChunk[] = [];
   for (const c of Array.from(byId.values()).sort((a, b) => b.score - a.score)) {
-    const key = c.title.trim().toLowerCase();
+    const key = articleKey(c);
     const n = perTitle.get(key) ?? 0;
     if (n >= MAX_CHUNKS_PER_ARTICLE) continue;
+    const lib = libraryOf(c);
+    const first = libraryOfTitle.get(key);
+    if (first !== undefined && lib !== null && first !== lib) continue;
+    if (lib !== null && first === undefined) libraryOfTitle.set(key, lib);
     perTitle.set(key, n + 1);
     out.push(c);
     if (out.length >= topK) break;
@@ -237,6 +243,39 @@ export function fuseRetrievalResults(
 }
 
 export const MAX_CHUNKS_PER_ARTICLE = 2;
+
+/** An article's identity across libraries: its title as shown, normalized ("Wikivoyage: Paris" stays apart from "Paris"). */
+export function articleKey(c: { title: string }): string {
+  return c.title.normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/**
+ * The library a passage comes from: a knowledge pack (`pack:<id>:…`) or the built-in corpus (`wiki-<collection>-…`,
+ * all of its collections). Null for the user's own documents: they're never treated as a copy of a library article.
+ */
+export function libraryOf(c: { chunkId: string }): string | null {
+  const pack = /^pack:([^:]+):/.exec(c.chunkId);
+  if (pack) return `pack:${pack[1]}`;
+  return c.chunkId.startsWith("wiki-") ? "builtin" : null;
+}
+
+/**
+ * One library per article: a passage is dropped when a better-ranked one (earlier in the list) has the same
+ * article title from another library. The built-in corpus and the Vital Articles pack both have "Vaccine", often as
+ * different paragraphs (word-pair overlap 0.40, under dedupeArticleCopies' 0.6), and the model read both
+ * (X6 Pro, v1.1.0). Passages of one library (a pack's lead and its Treatment section) all stay.
+ */
+export function dropCrossLibraryCopies<T extends { title: string; chunkId: string }>(chunks: T[]): T[] {
+  const libraryOfTitle = new Map<string, string>();
+  return chunks.filter((c) => {
+    const lib = libraryOf(c);
+    if (lib === null) return true;
+    const key = articleKey(c);
+    const first = libraryOfTitle.get(key);
+    if (first === undefined) libraryOfTitle.set(key, lib);
+    return first === undefined || first === lib;
+  });
+}
 
 /**
  * Relevance gate on fused results (retrieve.ts), on the real cosine similarity rather than the
