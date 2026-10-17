@@ -34,7 +34,7 @@ object LabHooks {
                 "stable-diffusion.cpp (Boar Designer)" to "MIT",
                 "BigMoeOnEdge (Big Boar)" to "Apache-2.0",
                 "colibri (Boar Wisp)" to "Apache-2.0",
-                "SDXS-512 image model (Boar Designer)" to "license not yet verified",
+                "SDXS-512 image model (Boar Designer)" to "OpenRAIL++-M",
                 "Qwen3.6-35B-A3B (Big Boar)" to "Apache-2.0",
                 "OLMoE-1B-7B (Boar Wisp)" to "Apache-2.0",
             )

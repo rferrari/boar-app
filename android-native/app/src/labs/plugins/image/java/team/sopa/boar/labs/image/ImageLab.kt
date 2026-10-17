@@ -123,7 +123,7 @@ object ImageLab {
         sizeBytes = 682_847_200,
         sha256 = "409ab23582ee074c6b9d5395784fc0741b0599fb9d138686c69087c71678eb6a",
         sourceUrl = "https://huggingface.co/concedo/sdxs-512-tinySDdistilled-GGUF/resolve/main/sdxs-512-tinySDdistilled_Q8_0.gguf",
-        license = "unverified",
+        license = "CreativeML Open RAIL++-M",  // with use restrictions (Attachment A); the download screen says so
         description = "Image lab model",
         required = false,
     )
