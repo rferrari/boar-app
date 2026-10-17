@@ -54,6 +54,15 @@
     <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
     <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
+    <string name="native_receipt_mode" formatted="false">Mode</string>
+    <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
+    <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
+    <string name="native_receipt_style_summary" formatted="false">Executive Summary</string>
+    <string name="native_receipt_style_custom" formatted="false">Custom</string>
+    <string name="native_receipt_path_deep" formatted="false">Deep Research</string>
+    <string name="native_receipt_path_chat" formatted="false">From this chat</string>
+    <string name="native_receipt_path_adaptive" formatted="false">Adaptive routing</string>
+    <string name="native_receipt_checked" formatted="false">checked</string>
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>

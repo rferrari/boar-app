@@ -542,7 +542,20 @@ private fun ReceiptDetails(r: Receipt) {
 private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     val ctx = LocalContext.current
     fun count(tokens: Int) = I18n.t(ctx, "chat.receipt.tokenCount", "tokens" to "$tokens", "words" to "${ReceiptFormat.words(tokens.toDouble())}")
+    // Mode first: the answer style, then how it was written (Deep Research, from this chat, adaptive routing and its plan).
+    val mode = r.style?.let { style ->
+        listOfNotNull(
+            t("native.receipt.style.$style"),
+            when (r.path) {
+                "deep" -> t("native.receipt.path.deep")
+                "chat" -> t("native.receipt.path.chat")
+                "adaptive" -> listOfNotNull(t("native.receipt.path.adaptive"), r.task, if (r.checked) t("native.receipt.checked") else null).joinToString(" · ")
+                else -> null
+            },
+        ).joinToString(" · ")
+    }
     return listOfNotNull(
+        mode?.let { t("native.receipt.mode") to it },
         r.retrievalMs?.let { t("chat.receipt.search") to ReceiptFormat.seconds(it) },
         r.prefillMs?.let { t("chat.receipt.prefill") to ReceiptFormat.seconds(it) },
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },

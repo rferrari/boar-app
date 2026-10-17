@@ -22,18 +22,28 @@ data class Receipt(
     val retrievalMs: Double? = null,
     val prefillMs: Double? = null,
     val contextTokens: Int? = null,
+    /** The answer style's id ("succinct", "detailed", "summary", "custom"); null on answers saved before it was kept. */
+    val style: String? = null,
+    /** How it was answered: null (the normal answer), "deep" (Deep Research), "chat" (written from this chat), "adaptive". */
+    val path: String? = null,
+    /** Adaptive routing only: the task type it planned for ("lookup", "explanation"…), and whether a second model checked it. */
+    val task: String? = null,
+    val checked: Boolean = false,
 ) {
     fun toJson() = JsonObject(listOfNotNull(
         "totalMs" to JsonPrimitive(totalMs), "ttftMs" to JsonPrimitive(ttftMs), "tokPerSec" to JsonPrimitive(tokPerSec), "tokens" to JsonPrimitive(tokens),
         model?.let { "model" to JsonPrimitive(it) }, retrievalMs?.let { "retrievalMs" to JsonPrimitive(it) },
         prefillMs?.let { "prefillMs" to JsonPrimitive(it) }, contextTokens?.let { "contextTokens" to JsonPrimitive(it) },
+        style?.let { "style" to JsonPrimitive(it) }, path?.let { "path" to JsonPrimitive(it) }, task?.let { "task" to JsonPrimitive(it) },
+        if (checked) "checked" to JsonPrimitive(true) else null,
     ).toMap())
 
     companion object {
         fun fromJson(o: JsonObject): Receipt {
             fun d(k: String) = o[k]?.jsonPrimitive?.content?.toDoubleOrNull()
-            return Receipt(d("totalMs")!!, d("ttftMs")!!, d("tokPerSec")!!, d("tokens")!!.toInt(), o["model"]?.jsonPrimitive?.content,
-                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt())
+            fun s(k: String) = o[k]?.jsonPrimitive?.content
+            return Receipt(d("totalMs")!!, d("ttftMs")!!, d("tokPerSec")!!, d("tokens")!!.toInt(), s("model"),
+                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt(), s("style"), s("path"), s("task"), s("checked") == "true")
         }
     }
 }

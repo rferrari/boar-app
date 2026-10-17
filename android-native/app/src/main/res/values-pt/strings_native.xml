@@ -54,6 +54,15 @@
     <string name="native_about_verify" formatted="false">Não confie, verifique.</string>
     <string name="native_about_copied" formatted="false">Copiado</string>
     <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar.</string>
+    <string name="native_receipt_mode" formatted="false">Modo</string>
+    <string name="native_receipt_style_succinct" formatted="false">Sucinto e direto</string>
+    <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
+    <string name="native_receipt_style_summary" formatted="false">Resumo executivo</string>
+    <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
+    <string name="native_receipt_path_deep" formatted="false">Pesquisa Profunda</string>
+    <string name="native_receipt_path_chat" formatted="false">Desta conversa</string>
+    <string name="native_receipt_path_adaptive" formatted="false">Roteamento adaptativo</string>
+    <string name="native_receipt_checked" formatted="false">verificado</string>
     <string name="native_about_tagline" formatted="false">Suas perguntas.\nSeu celular. Sua IA.</string>
     <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
     <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
