@@ -299,8 +299,30 @@ private fun StatusPill(online: Boolean) {
     // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
     var fits by remember { mutableStateOf(true) }
     val tint = if (online) c.amber400 else MOON
+    // One warm glow when the signal comes back (OFFLINE to ONLINE), then the pill rests: not at app start, never
+    // repeating, and none when Android's animations are off (Settings, Accessibility, Remove animations).
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val glow = remember { androidx.compose.animation.core.Animatable(0f) }
+    var was by remember { mutableStateOf(online) }
+    LaunchedEffect(online) {
+        val back = online && !was
+        was = online
+        if (!back) { glow.snapTo(0f); return@LaunchedEffect }
+        val animOff = android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        if (animOff) return@LaunchedEffect
+        glow.animateTo(1f, androidx.compose.animation.core.tween(250))
+        glow.animateTo(0f, androidx.compose.animation.core.tween(1200))
+    }
     Row(
-        Modifier.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
+        Modifier.drawBehind {
+            val g = glow.value
+            if (g > 0f) drawRoundRect(
+                brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                    listOf(c.amber400.copy(alpha = 0.55f * g), Color.Transparent), center = center, radius = size.maxDimension * 0.9f),
+                topLeft = androidx.compose.ui.geometry.Offset(-size.width * 0.35f, -size.height * 1.2f),
+                size = androidx.compose.ui.geometry.Size(size.width * 1.7f, size.height * 3.4f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height * 1.7f))
+        }.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
             .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
