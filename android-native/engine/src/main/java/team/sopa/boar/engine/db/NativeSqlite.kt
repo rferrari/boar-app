@@ -104,7 +104,7 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
         // A pack closed by reloadPacks while a search still holds it: an error the retriever skips, never a native crash.
         if (db == 0L) throw SqlException(SQLITE_MISUSE, "database is closed")
         val st = SqliteNative.prepare(db, sql.toByteArray())
-        if (st < 0) throw SqlException((-st).toInt(), "${msg()} in: ${sql.take(200)}")
+        if (isError(st)) throw SqlException((-st).toInt(), "${msg()} in: ${sql.take(200)}")
         args.forEachIndexed { k, v ->
             val i = k + 1
             val rc = when (v) {
@@ -146,10 +146,17 @@ class NativeSqlite private constructor(private var db: Long) : SqlDatabase {
         private const val OPEN_READWRITE = 0x2
         private const val OPEN_CREATE = 0x4
 
+        /**
+         * The bridge returns a handle (a pointer) or an SQLite error code negated. Only a small negative number is an
+         * error: on Android 11 to 13 the allocator tags a pointer's top byte, so a valid handle can read as negative too
+         * (the Labs build crashed at first launch on a POCO F3, Android 13, Oct 17).
+         */
+        internal fun isError(handle: Long) = handle in -0xFFFFFL..-1L
+
         fun open(path: String, readOnly: Boolean = false): NativeSqlite {
             val flags = if (readOnly) OPEN_READONLY else OPEN_READWRITE or OPEN_CREATE
             val h = SqliteNative.open(path.toByteArray(), flags)
-            if (h <= 0) throw SqlException((-h).toInt(), "can't open $path")
+            if (h == 0L || isError(h)) throw SqlException((-h).toInt(), "can't open $path")
             return NativeSqlite(h)
         }
 
