@@ -46,6 +46,8 @@ Boar Labs (built only with EXPERIMENTAL_FEATURES=true, installed as its own app)
     Apache License 2.0. Built as the bmoe-cli executable Big Boar runs (BMOE_PIN).
   colibri — https://github.com/JustVugg/colibri
     Apache License 2.0. Built as the executable Boar Wisp runs (COLIBRI_PIN).
+  Boar Calculator — ported from r4to's (BOAR R&D) src/routing/arithmetic.ts, numguard.ts and the
+    calculator shortcuts in answer.ts (PR #85). MIT License.
   Models the labs use, never bundled: SDXS-512 tinySD distilled (CreativeML Open RAIL++-M, with
   use restrictions: https://huggingface.co/IDKiro/sdxs-512-0.9/blob/main/LICENSE; downloaded from
   huggingface.co/concedo/sdxs-512-tinySDdistilled-GGUF, from akleine/sdxs-512 and IDKiro/sdxs-512-dreamshaper), Qwen3.6-35B-A3B

@@ -39,9 +39,11 @@ object LabHooks {
                 "SDXS-512 image model (Boar Designer)" to "OpenRAIL++-M",
                 "Qwen3.6-35B-A3B (Big Boar)" to "Apache-2.0",
                 "OLMoE-1B-7B (Boar Wisp)" to "Apache-2.0",
+                "r4to's calculator, BOAR R&D (Boar Calculator)" to "MIT",
             )
         }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
+        team.sopa.boar.plugins.AnswerTools.tools = { LabRegistry.active.mapNotNull { it.answerTool } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
