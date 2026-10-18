@@ -100,6 +100,8 @@ class AppSettings(private val file: File) {
         )
         const val MODEL_LAST_USED = "modelLastUsedAt"
         const val MODEL_ADDED = "modelAddedAt"
+        /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
+        const val DEFAULT_ORIENTATION = "portrait"
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
@@ -141,7 +143,7 @@ class AppSettings(private val file: File) {
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))
     var fontScale: String get() = str("fontScale") ?: "standard"; set(v) = set("fontScale", JsonPrimitive(v))
     /** "auto" (follows the phone's rotation setting), "portrait" or "landscape". */
-    var screenOrientation: String get() = str("screenOrientation") ?: "auto"; set(v) = set("screenOrientation", JsonPrimitive(v))
+    var screenOrientation: String get() = str("screenOrientation") ?: DEFAULT_ORIENTATION; set(v) = set("screenOrientation", JsonPrimitive(v))
     var languageId: String? get() = str("languageId"); set(v) = set("languageId", v?.let(::JsonPrimitive))
     var voiceInputEnabled: Boolean get() = bool("voiceInputEnabled") ?: true; set(v) = set("voiceInputEnabled", JsonPrimitive(v))
     var hapticsEnabled: Boolean get() = bool("hapticsEnabled") ?: false; set(v) = set("hapticsEnabled", JsonPrimitive(v))
