@@ -4,7 +4,7 @@
 #   cohazard-mixed                    a CO planning question that also carries another tool's trigger; Cohazard must win
 #   health, seed                      never Facts or Distance (nor the calculator, for health)
 #   pt, es                            never Facts, Distance or Cohazard
-#   cohazard-pt                       a CO question in Portuguese: Cohazard is English only, and no other tool may take it
+#   cohazard-pt, cohazard-es          a CO question in Portuguese or Spanish: Cohazard must win, never Facts or Distance
 #   crazy                             anything; only no exception, one deterministic winner and clean text
 
 calc | I have 23 L of water and 5 L jerrycans. How many jerrycans do I need?
@@ -75,6 +75,15 @@ cohazard-pt | Posso usar a churrasqueira a carvão dentro de casa?
 cohazard-pt | Posso ligar o gerador na garagem com a porta aberta?
 cohazard-pt | Posso usar o fogareiro dentro da barraca para cozinhar?
 cohazard-pt | É seguro acender a churrasqueira na varanda fechada?
+cohazard-pt | Posso usar aquecedor a gás dentro da barraca?
+cohazard-pt | gerador na garagem fechada
+cohazard-pt | churrasqueira dentro de casa
+cohazard-pt | fogareiro na barraca
+cohazard-pt | Qual a distância de Lisboa ao Porto, e posso ligar o gerador na garagem?
+cohazard-es | ¿Puedo usar un generador en el garaje?
+cohazard-es | brasero dentro de la tienda
+cohazard-es | ¿Puedo usar carbón dentro de la casa? Me preocupa el monóxido de carbón.
+cohazard-es | ¿Cuánto es 2+2 y puedo encender la barbacoa en el garaje?
 crazy |
 crazy |
 crazy | \t\n\t

@@ -38,9 +38,13 @@ object LabTools {
         return table?.answer(query)?.let { Hit("facts-${it.template}", it.text) }
     }
 
-    /** Boar Cohazard: English planning questions about a fuel-burning device in an enclosed space. */
-    fun coHazard(query: String): Hit? =
-        if (notEnglish(query) || !CoHazard.isCoHazardQuestion(query)) null else Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query))
+    /** Boar Cohazard: planning questions about a fuel-burning device in an enclosed space. English as before; then the
+     * Portuguese and Spanish patterns (draft answers in the question's language), whatever the language detectors say:
+     * "gerador na garagem fechada" has none of their words. */
+    fun coHazard(query: String): Hit? {
+        if (!notEnglish(query) && CoHazard.isCoHazardQuestion(query)) return Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query))
+        return CoHazard.coHazardLanguage(query)?.let { Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query, it)) }
+    }
 
     /** Boar Guard: English, not health, no thinking block; else VerdictGuard's repair. */
     fun guard(question: String, answer: String): Hit? {

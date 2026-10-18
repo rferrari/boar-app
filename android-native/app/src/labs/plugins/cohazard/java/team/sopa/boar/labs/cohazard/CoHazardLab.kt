@@ -23,7 +23,8 @@ import team.sopa.boar.ui.theme.Boar
  * Boar Cohazard: the CO hazard step of r4to's src/routing/answer.ts, around src/routing/coHazard.ts (PR #85, BOAR R&D,
  * MIT; engine/routing CoHazard). A planning question about a generator, grill, camping stove, fuel heater or engine in a
  * garage, tent, camper or home gets a fixed carbon monoxide answer, reviewed and sourced (CDC, US CPSC, NHS), and the
- * model never runs: a model answered "yes, with ventilation". English only. A question with symptoms or an alarm going
+ * model never runs: a model answered "yes, with ventilation". English, and Portuguese and Spanish with draft translations
+ * of the English text (not yet reviewed). A question with symptoms or an alarm going
  * off is not a planning question and goes to the model as a health question.
  */
 object CoHazardLab : LabPlugin {

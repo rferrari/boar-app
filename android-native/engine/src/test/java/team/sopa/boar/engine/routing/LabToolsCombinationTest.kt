@@ -11,7 +11,7 @@ import kotlin.random.Random
  * The Boar Labs answer plugins together: every subset of {calc, distance, facts, cohazard} with Boar Guard on and off
  * (32 combinations), over src/test/resources/labs (EN and PT questions, crazy ones, fake model answers) and 5,000 fuzzed
  * strings. Each invariant names its letter: (a) no exception, (b) one deterministic winner, (c) health, seed, PT and ES
- * kept from the tools that must not take them, (d) Cohazard wins its questions, (e) Guard only on model answers, sound
+ * kept from the tools that must not take them, (d) Cohazard wins its questions (EN, PT and ES), (e) Guard only on model answers, sound
  * and idempotent, (f) each tool decides fast, (g) no leaked placeholders, class names or non-finite numbers.
  * Failures are collected and printed as a table before the test fails, so one run shows every broken combination.
  */
@@ -153,10 +153,11 @@ class LabToolsCombinationTest {
                 when (cat) {
                     "health" -> if (by in listOf("facts", "distance", "calc")) f.add(combo, 'c', "health taken by $by: ${short(q)}")
                     "seed" -> if (by in listOf("facts", "distance")) f.add(combo, 'c', "seed taken by $by: ${short(q)}")
-                    "pt", "es", "cohazard-pt" -> if (by in listOf("facts", "distance", "cohazard")) f.add(combo, 'c', "$cat taken by $by: ${short(q)}")
+                    "pt", "es" -> if (by in listOf("facts", "distance", "cohazard")) f.add(combo, 'c', "$cat taken by $by: ${short(q)}")
+                    "cohazard-pt", "cohazard-es" -> if (by in listOf("facts", "distance")) f.add(combo, 'c', "$cat taken by $by: ${short(q)}")
                 }
-                // (d)
-                if (cat.startsWith("cohazard") && cat != "cohazard-pt" && "cohazard" in c.first && by != "cohazard")
+                // (d): CO questions in English, Portuguese and Spanish.
+                if (cat.startsWith("cohazard") && "cohazard" in c.first && by != "cohazard")
                     f.add(combo, 'd', "CO question taken by ${by ?: "the model"}: ${short(q)}")
                 // (e): the check slot never reads an instant answer; with Guard off a model answer stays as written.
                 if (win != null) {
