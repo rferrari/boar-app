@@ -25,6 +25,8 @@ class CoHazardTest {
             "I have a generator. Can I keep it running in the shed during the storm?",
             "Can I put the generator in the carport?",
             "Running a pressure washer in an enclosed porch, is that ok?",
+            "Can I run a propane heater in the car while I wait out the storm?",
+            "Is it ok to use a Mr. Heater inside my truck overnight?",
         )) assertTrue(q, CoHazard.isCoHazardQuestion(q))
     }
 

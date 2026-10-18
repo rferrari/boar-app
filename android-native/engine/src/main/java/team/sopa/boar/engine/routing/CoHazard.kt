@@ -100,7 +100,8 @@ object CoHazard {
     private val SPACE = re(
         listOf(
             """${B}indoors?$E""",
-            """$B(?:inside|in|into) (?:the |my |our |a |your |an |his |her |their )?(?:[\p{L}-]+ ){0,2}(?:house|home|bedroom|living room|apartment|flat|cabin|room|tent|camper|garage|basement|shed|van|rv|caravan|trailer|motorhome|boat|yurt|hut|shelter|dorm|condo|workshop|barn|porch|sunroom|conservatory)$E""",
+            // A car or truck cab too (Oct 18): "can I run a propane heater in the car?" got no warning.
+            """$B(?:inside|in|into) (?:the |my |our |a |your |an |his |her |their )?(?:[\p{L}-]+ ){0,2}(?:house|home|bedroom|living room|apartment|flat|cabin|room|tent|camper|garage|basement|shed|van|rv|caravan|trailer|motorhome|boat|yurt|hut|shelter|dorm|condo|workshop|barn|porch|sunroom|conservatory|car|truck|suv|vehicle|minivan|pickup)$E""",
             """${B}garages?$E(?! (?:sale|band|door opener))""",
             """${B}carports?$E""",
             """${B}on (?:the |my |our |a )?(?:enclosed |screened |screened-in |covered |closed-in )?(?:porch|sunroom|veranda)$E""",
@@ -263,7 +264,7 @@ object CoHazard {
         feet = JsRegex.re("""(\d+(?:[.,]\d+)?) ?(m|metros?|p[ée]s|ft)(?![\p{L}])""", "giu"),
         space = re(
             listOf(
-                """$B(?:dentro|em|no|na|nos|nas|num|numa|para dentro)(?: d[aeo]s?| de)? (?:minha |meu |nossa |nosso |sua |seu |uma |um )?(?:[\p{L}-]+ ){0,2}(?:casa|quartos?|salas?|apartamentos?|cabanas?|chal[ée]s?|barracas?|trailers?|motorhomes?|garage(?:m|ns)|por[ãa]o|por[õo]es|dep[óo]sitos?|galp[ãa]o|ed[íi]culas?|vans?|kombis?|barcos?|cabines?|banheiros?|cozinhas?|celeiros?|est[áa]bulos?|oficinas?|abrigos?|quitinetes?|kitnets?)$E""",
+                """$B(?:dentro|em|no|na|nos|nas|num|numa|para dentro)(?: d[aeo]s?| de)? (?:minha |meu |nossa |nosso |sua |seu |uma |um )?(?:[\p{L}-]+ ){0,2}(?:casa|quartos?|salas?|apartamentos?|cabanas?|chal[ée]s?|barracas?|trailers?|motorhomes?|garage(?:m|ns)|por[ãa]o|por[õo]es|dep[óo]sitos?|galp[ãa]o|ed[íi]culas?|vans?|kombis?|barcos?|cabines?|banheiros?|cozinhas?|celeiros?|est[áa]bulos?|oficinas?|abrigos?|quitinetes?|kitnets?|carros?|caminhonetes?|ve[íi]culos?)$E""",
                 """${B}garage(?:m|ns)$E(?! (?:sale|band))""",
                 """$B(?:barracas?|trailers?|motorhomes?|por[ãa]o|por[õo]es|galp[ãa]o)$E(?! de praia)""",
                 """$B(?:varanda|[áa]rea|lugar|local|ambiente|espa[çc]o|c[ôo]modo|quarto|sala|garagem) (?:fechad[oa]|coberto e fechado|sem ventila[çc][ãa]o)$E""",
@@ -327,7 +328,7 @@ object CoHazard {
         feet = JsRegex.re("""(\d+(?:[.,]\d+)?) ?(m|metros?|pies|ft)(?![\p{L}])""", "giu"),
         space = re(
             listOf(
-                """$B(?:dentro|adentro|en|al)(?: de| del)? (?:la |el |los |las |mi |mis |nuestra |nuestro |una |un |tu |su )?(?:[\p{L}-]+ ){0,2}(?:casa|habitaci[óo]n|habitaciones|cuartos?|dormitorios?|sal[óo]n|salas?|apartamentos?|pisos?|caba[ñn]as?|carpas?|caravanas?|autocaravanas?|garajes?|cocheras?|s[óo]tanos?|cobertizos?|trasteros?|furgonetas?|camionetas?|barcos?|ba[ñn]os?|cocinas?|talleres?|graneros?|establos?|refugios?)$E""",
+                """$B(?:dentro|adentro|en|al)(?: de| del)? (?:la |el |los |las |mi |mis |nuestra |nuestro |una |un |tu |su )?(?:[\p{L}-]+ ){0,2}(?:casa|habitaci[óo]n|habitaciones|cuartos?|dormitorios?|sal[óo]n|salas?|apartamentos?|pisos?|caba[ñn]as?|carpas?|caravanas?|autocaravanas?|garajes?|cocheras?|s[óo]tanos?|cobertizos?|trasteros?|furgonetas?|camionetas?|barcos?|ba[ñn]os?|cocinas?|talleres?|graneros?|establos?|refugios?|coches?|carros?|autos?|veh[íi]culos?)$E""",
                 """$B(?:garajes?|cocheras?|s[óo]tanos?|cobertizos?|carpas?|caravanas?|autocaravanas?|tienda de campa[ñn]a)$E(?! (?:de playa))""",
                 """$B(?:porche|terraza|espacio|lugar|habitaci[óo]n|cuarto|[áa]rea|garaje) (?:cerrad[oa]|sin ventilaci[óo]n)$E""",
                 """$B(?:dentro|adentro|aqu[íi] dentro|ah[íi] dentro|bajo techo|en interiores|en un interior)$E""",

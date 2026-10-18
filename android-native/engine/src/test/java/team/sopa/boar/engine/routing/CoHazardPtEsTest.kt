@@ -27,6 +27,7 @@ class CoHazardPtEsTest {
         "O gerador a 3 metros da janela está bom?",
         "Podemos levar o aquecedor a querosene para o trailer durante a noite?",
         "Tudo bem usar carvão no quarto pra esquentar?",
+        "Posso usar o aquecedor a gás dentro do carro?",
     )
     private val es = listOf(
         "¿Puedo usar un generador en el garaje?",
@@ -39,6 +40,7 @@ class CoHazardPtEsTest {
         "¿Puedo usar el horno de gas para calentar la casa?",
         "¿El monóxido de carbón del hornillo dentro de la tienda es peligroso?",
         "¿A qué distancia de la ventana tiene que estar el generador?",
+        "¿Puedo usar una estufa de propano dentro del coche?",
     )
 
     @Test fun `Portuguese and Spanish CO planning questions fire, in their language`() {
