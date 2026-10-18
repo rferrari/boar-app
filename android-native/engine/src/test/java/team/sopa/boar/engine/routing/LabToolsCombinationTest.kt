@@ -42,6 +42,10 @@ class LabToolsCombinationTest {
                 "crazy" to sentence.toString().take(20_000),
                 "crazy" to "a".repeat(20_000),
                 "crazy" to "1+".repeat(10_000),
+                // A long run of digits made the calculator's number patterns quadratic (fix(labs) on Calculators.NUM).
+                "crazy" to "9".repeat(20_000),
+                "crazy" to "9".repeat(19_990) + " L per 100 km in mpg?",
+                "crazy" to "I have " + "1".repeat(5_000) + " L of water and 5 L jerrycans. How many jerrycans do I need?",
                 "cohazard" to "Can I run my portable generator in the attached garage if I keep the door open? " + "Please answer. ".repeat(1_300),
             )
         }

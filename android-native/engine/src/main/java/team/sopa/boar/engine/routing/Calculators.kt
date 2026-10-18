@@ -12,7 +12,9 @@ object Calculators {
     /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water". */
     data class Calculation(val kind: String, val text: String)
 
-    private const val NUM = """(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)"""
+    // Starts only where a run of digits starts: from every digit inside a long run, \d+ backtracked over the rest of it,
+    // so 4,000 digits took 5 s and 20,000 over two minutes (the TypeScript has the same pattern).
+    private const val NUM = """(?<!\d)(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)"""
 
     private val WS_ANY = JsRegex.re("""\s""")
     private val COMMA_3_END = JsRegex.re(""",\d{3}$""")
@@ -193,7 +195,7 @@ object Calculators {
 
     // from context.ts; replace with the shared port when context.ts lands
     private val TEMPERATURE = JsRegex.re(
-        """(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
+        """(?<!\d)(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
         "i",
     )
 
