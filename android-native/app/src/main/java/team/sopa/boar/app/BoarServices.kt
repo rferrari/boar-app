@@ -311,14 +311,8 @@ class BoarServices private constructor(private val context: Context) {
         @Volatile private var session: TextModel? = null
         private var filename: String? = null
         private var residentId: String? = null
-<<<<<<< HEAD
-=======
-        private var residentRepacked = false
         /** The minute-later settle of the current load (LoadGuard.settled), cancelled when that load goes. */
         private var settleJob: kotlinx.coroutines.Job? = null
-        /** Models that stalled with repacked weights in this process: mapped from storage until the app restarts (#73). */
-        private val keepMapped = java.util.Collections.synchronizedSet(HashSet<String>())
->>>>>>> fullnative-dev
 
         override fun residentFilename(): String? = filename
         fun residentId(): String? = residentId
@@ -329,19 +323,11 @@ class BoarServices private constructor(private val context: Context) {
             val asset = catalog.byId(modelId)?.takeIf(::isInstalled) ?: return null
             val provider = providerFor(asset) ?: return null
             val tweaks = settings.engineTweaks
-<<<<<<< HEAD
             val reload = provider === builtInEngine && filename == asset.filename && builtInEngine.needsReload(asset)
             if (filename != asset.filename || session == null || reload) {
+                settleJob?.cancel(); settleJob = null
                 // Switching models: the one going out didn't kill the app (an engine without a marker must not inherit it).
                 if (session != null) { residentId?.let(loadGuard::settled); session?.close(); DebugLog.modelUnload(residentId) }
-=======
-            // A stall while repacked: reload as the mapped file before the next generation (the caller waits on the lock).
-            val reloadMapped = filename == asset.filename && residentRepacked && asset.id in keepMapped && tweaks.weightRepack != true
-            if (filename != asset.filename || session == null || reloadMapped) {
-                val previous = (residentId ?: settings.lastLoadedModelId)?.let(catalog::byId)?.let { LoadGuard.Meta(it.filename, it.id, it.label) }
-                settleJob?.cancel(); settleJob = null
-                session?.close()
->>>>>>> fullnative-dev
                 session = null
                 filename = null
                 residentId = null
@@ -360,7 +346,7 @@ class BoarServices private constructor(private val context: Context) {
                 openedContext = params.nCtx
                 // Or a minute loaded without being killed: Android kills an app whose model doesn't fit within seconds.
                 settleJob?.cancel()
-                val loaded = s
+                val loaded = m
                 settleJob = lifeScope.launch {
                     kotlinx.coroutines.delay(LOAD_SETTLE_MS)
                     // Only for this very load: a model unloaded and loaded again since has its own marker and timer.
@@ -402,12 +388,8 @@ class BoarServices private constructor(private val context: Context) {
         suspend fun unload() = lock.withLock {
             val id = residentId
             // Unloaded on purpose (free memory, Close BOAR): the model didn't kill the app, so its load marker goes.
-<<<<<<< HEAD
-            id?.let(loadGuard::settled)
-=======
             settleJob?.cancel(); settleJob = null
-            residentId?.let(loadGuard::settled)
->>>>>>> fullnative-dev
+            id?.let(loadGuard::settled)
             session?.close()
             session = null
             filename = null
