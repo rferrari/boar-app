@@ -93,6 +93,24 @@ object QueryContext {
             // A phrase to translate that carries health content stays on the health path.
             (PHRASE_ASK.containsMatchIn(query) && PHRASE_HEALTH_CONTENT.containsMatchIn(query))
 
+    // Seed phrases and wallet backups (the prompt test plan's trigger list, Oct 18): a wrong detail loses the coins.
+    private val SEED_PHRASE = re(
+        """(?<![\p{L}\p{N}])(seed ?phrases?|recovery (phrases?|words|seeds?)|mnemonic (phrases?|words|seeds?)|private keys?|wallet back ?ups?|back(ing|ed)? ?up (my|your|the|a|our) (\p{L}+ )?wallets?|frases? (semente|de recupera[çc][ãa]o)|palavras (de recupera[çc][ãa]o|semente)|chaves? privadas?|backup (da|de|das|de uma|da minha|da sua) (\p{L}+ )?carteiras?)(?![\p{L}\p{N}])""",
+        "iu",
+    )
+    // "Mnemonic" and "12/24 words" count only next to a wallet or a coin: a mnemonic for the planets is not a seed.
+    private val SEED_WORDS = re(
+        """(?<![\p{L}\p{N}])(mnemonic|(12|24|twelve|twenty[- ]four)[- ]words?|(12|24|doze|vinte e quatro) palavras)(?![\p{L}\p{N}])""",
+        "iu",
+    )
+    private val CRYPTO_CONTEXT = re(
+        """(?<![\p{L}\p{N}])(wallets?|carteiras?|crypto\p{L}*|cripto\p{L}*|bitcoins?|btc|ethereum|eth|coins?|moedas?|blockchain|metamask|ledger|trezor|seed|semente|bip ?39)(?![\p{L}\p{N}])""",
+        "iu",
+    )
+
+    fun isSeedPhraseQuestion(query: String): Boolean =
+        SEED_PHRASE.containsMatchIn(query) || (SEED_WORDS.containsMatchIn(query) && CRYPTO_CONTEXT.containsMatchIn(query))
+
     private val PT_QUESTION = re("""\b(como|o que|quando|onde|qual|quais|por que|porque|devo|fazer|posso|existe|quem|quanto)\b""", "i")
     private val PT_ONLY = re(
         """(?<![\p{L}])(é|são|não|em|uma|umas|dos|das|nos|nas|pelo|pela|com|sem|isso|isto|está|estão|também|você|vocês|meu|minha|seus|suas|dar|fazer|que|para|da|lá|alguns|algumas)(?![\p{L}])""",

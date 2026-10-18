@@ -339,7 +339,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
             val chosenStyle = settings.personalityId ?: services.personalities.defaultId
-            val style = if (chosenStyle == "detailed" && team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q)) "succinct" else chosenStyle
+            // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
+            val shortReason = when {
+                chosenStyle != "detailed" -> null
+                team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q) -> "health"
+                team.sopa.boar.engine.routing.QueryContext.isSeedPhraseQuestion(q) -> "seed"
+                else -> null
+            }
+            val style = if (shortReason != null) "succinct" else chosenStyle
             val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt)
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
@@ -444,7 +451,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked, tool = tool?.tool)
+                r.copy(style = style, path = path, task = task, checked = checked, tool = tool?.tool, styleNote = shortReason)
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }

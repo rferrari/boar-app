@@ -500,6 +500,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (!streaming && !m.stopped && state.error != null && state.messages.lastOrNull()?.id == m.id)
                 Text(t(UserErrors.chatKey(state.error)), style = type.bodyLg, color = c.crimson400)
             // Stopped before writing anything: these are what the search found, not what the answer cites.
+            // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
+            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
             if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))

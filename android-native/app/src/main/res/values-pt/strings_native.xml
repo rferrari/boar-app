@@ -305,6 +305,8 @@
     <string name="native_common_somethingWrong" formatted="false">Algo deu errado. Tente de novo.</string>
     <string name="native_chat_dbFailed" formatted="false">Não deu certo. Tente de novo.</string>
     <string name="native_chat_ratingNote" formatted="false">Salvo só neste celular. Nada é enviado. O BOAR ainda não aprende com isso.</string>
+    <string name="native_chat_styleNote_health" formatted="false">Resposta curta: perguntas de saúde ficam breves.</string>
+    <string name="native_chat_styleNote_seed" formatted="false">Resposta curta: perguntas sobre frase-semente ficam breves, para sua segurança.</string>
     <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
