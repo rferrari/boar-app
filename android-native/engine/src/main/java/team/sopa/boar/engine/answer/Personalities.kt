@@ -17,6 +17,12 @@ data class Personality(
     val systemPrompt: String,
     /** Appended to the question: small models follow what is closest to it. */
     val styleReminder: String? = null,
+    /**
+     * For a small answer model (under [SMALL_MODEL_BYTES]): Detailed uses r4to's D1 here, without D4's "Always do what
+     * the user asks", which made the 1.5B follow first-aid asks with wrong steps in his engine tests (Oct 18).
+     */
+    val systemPromptSmall: String? = null,
+    val styleReminderSmall: String? = null,
 )
 
 @Serializable
@@ -29,13 +35,20 @@ data class Personalities(
     /** Unknown ids fall back to the first style, as getPersonality does. */
     fun get(id: String?): Personality = personalities.firstOrNull { it.id == id } ?: personalities.first()
 
-    /** The system prompt and style reminder for a setting; "custom" uses the user's prompt and no reminder. */
-    fun promptFor(id: String?, customPrompt: String?): Pair<String, String?> {
+    /**
+     * The system prompt and style reminder for a setting; "custom" uses the user's prompt and no reminder. [smallModel]:
+     * the answer model is under [SMALL_MODEL_BYTES], and a style's small-model texts are used where it has them.
+     */
+    fun promptFor(id: String?, customPrompt: String?, smallModel: Boolean = false): Pair<String, String?> {
         val effective = id ?: defaultId
-        return if (effective == "custom") (customPrompt ?: "") to null else get(effective).let { it.systemPrompt to it.styleReminder }
+        if (effective == "custom") return (customPrompt ?: "") to null
+        val p = get(effective)
+        return if (smallModel && p.systemPromptSmall != null) p.systemPromptSmall to p.styleReminderSmall else p.systemPrompt to p.styleReminder
     }
 
     companion object {
+        /** Models smaller than this file size are "small" for [promptFor] (Qwen2.5 1.5B is 1.0 GB, Qwen3 4B 2.5 GB). */
+        const val SMALL_MODEL_BYTES = 2_000_000_000L
         private val json = Json { ignoreUnknownKeys = true }
         fun parse(text: String): Personalities = json.decodeFromString(serializer(), text)
     }

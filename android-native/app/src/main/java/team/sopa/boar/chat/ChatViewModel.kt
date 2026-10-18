@@ -470,14 +470,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
             val chosenStyle = settings.personalityId ?: services.personalities.defaultId
             // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
-            val shortReason = when {
-                chosenStyle != "detailed" -> null
-                team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q) -> "health"
-                team.sopa.boar.engine.routing.QueryContext.isSeedPhraseQuestion(q) -> "seed"
-                else -> null
-            }
+            // A follow-up in such a chat too ("and for how long?" after a burn question).
+            val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
             val style = if (shortReason != null) "succinct" else chosenStyle
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt)
+            // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
+            val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
+            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
