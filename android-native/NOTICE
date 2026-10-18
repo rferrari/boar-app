@@ -51,6 +51,10 @@ Boar Labs (built only with EXPERIMENTAL_FEATURES=true, installed as its own app)
   Boar Distance — ported from r4to's (BOAR R&D) src/routing/travelDistance.ts (PR #85). MIT License.
     Its city table (app/src/labs/plugins/distance/res/raw, bundled in the APK) is GeoNames (geonames.org),
     cities15000, the 6,000 most populous cities, CC BY 4.0.
+  Boar Cohazard — ported from r4to's (BOAR R&D) src/routing/coHazard.ts (PR #85). MIT License. Its fixed
+    carbon monoxide answer follows public guidance: CDC, "What to Do to Protect Yourself During a Power Outage"
+    and Carbon Monoxide guidance; US CPSC, "Portable Generator Hazards" and "Generators and Engine-Driven Tools";
+    NHS, "Carbon monoxide poisoning".
   Models the labs use, never bundled: SDXS-512 tinySD distilled (CreativeML Open RAIL++-M, with
   use restrictions: https://huggingface.co/IDKiro/sdxs-512-0.9/blob/main/LICENSE; downloaded from
   huggingface.co/concedo/sdxs-512-tinySDdistilled-GGUF, from akleine/sdxs-512 and IDKiro/sdxs-512-dreamshaper), Qwen3.6-35B-A3B

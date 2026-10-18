@@ -45,6 +45,7 @@ object LabHooks {
                 "r4to's calculator, BOAR R&D (Boar Calculator)" to "MIT",
                 "r4to's travel distance, BOAR R&D (Boar Distance)" to "MIT",
                 "GeoNames cities15000 (Boar Distance)" to "CC BY 4.0",
+                "r4to's CO hazard check, BOAR R&D (Boar Cohazard)" to "MIT",
             )
         }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
