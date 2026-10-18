@@ -6,11 +6,14 @@ import kotlinx.serialization.json.Json
 /**
  * CR-2 (src/inference/loadMarker.ts) plus #73's mapped retry. A model load that gets the app killed (low memory) leaves
  * no error behind, so a marker is written right before the load and cleared after it returns. A marker found on the
- * next start means that load killed the app:
- * - it had repacked weights (llama.cpp copies them into app memory for its fast ARM kernels, which Android can only
- *   swap): the next load of that model keeps the mapped file instead, once ([mappedNext]);
- * - otherwise it's a crash: the model isn't loaded again on its own ([isBlocked]) until the user picks it again
- *   ([confirm]) or it loads fine; the chat says so once ([consume]).
+ * next start means that load killed the app, with repacked weights or the mapped file alike: the model isn't loaded
+ * again on its own ([isBlocked]), so a model too big for the phone closes the app once, not on every start. The chat
+ * says so once ([consume]) and lets the user choose:
+ * - "Try again with less memory" ([retryMapped]): unblocked, and loaded keeping the mapped file instead of repacking
+ *   it (llama.cpp copies repacked weights into app memory for its fast ARM kernels, which Android can only swap);
+ * - picking it again in the Model Catalog ([confirm]).
+ * A mapped load that works stays mapped ([mappedNext]), so it doesn't go back to the repacked load that closed the app
+ * (Advanced tweaks → Repacked weights still decides when the user sets it).
  */
 class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, private val now: () -> Long = System::currentTimeMillis) {
     @Serializable
@@ -55,21 +58,18 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         runCatching {
             val m = json.decodeFromString(Marker.serializer(), raw)
             val id = m.modelId ?: m.filename
-            if (m.repacked) {
-                ledger.mappedIds = (ledger.mappedIds + id).distinct()
-            } else {
-                ledger.crashedIds = (ledger.crashedIds + id).distinct()
-                ledger.mappedIds = ledger.mappedIds - id
-                ledger.pendingCrash = toCrash(m)
-            }
+            // Repacked or mapped, the load closed the app: never again on its own (one kill, not two).
+            ledger.crashedIds = (ledger.crashedIds + id).distinct()
+            if (!m.repacked) ledger.mappedIds = ledger.mappedIds - id
+            ledger.pendingCrash = toCrash(m)
         }
         runCatching { store.clear() }
     }
 
-    /** True when the next load of [modelId] should keep the mapped file (its last repacked load was killed). */
+    /** True when the next load of [modelId] should keep the mapped file (the user chose "Try again with less memory"). */
     fun mappedNext(modelId: String): Boolean { ensureChecked(); return modelId in ledger.mappedIds }
 
-    /** A model whose load killed the app: not loaded again on its own. */
+    /** A model whose last load killed the app: not loaded again on its own. */
     fun isBlocked(modelId: String): Boolean { ensureChecked(); return modelId in ledger.crashedIds }
 
     fun begin(meta: Meta, previous: Meta?, repacked: Boolean) {
@@ -77,17 +77,24 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
         store.write(json.encodeToString(Marker.serializer(), Marker(meta.filename, meta.modelId, meta.label, previous, now(), repacked)))
     }
 
-    /** After the load returned. A model that loaded is unblocked, and goes back to repacked weights on its next load. */
+    /**
+     * After the load returned. A model that loaded is unblocked; one the user retried with the mapped file keeps it
+     * ([mappedNext]) so the next start doesn't repeat the repacked load that closed the app.
+     */
     fun end(meta: Meta, loaded: Boolean) {
         store.clear()
         val id = meta.modelId ?: return
-        if (loaded) {
-            if (id in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - id
-            if (id in ledger.mappedIds) ledger.mappedIds = ledger.mappedIds - id
-        }
+        if (loaded && id in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - id
     }
 
-    /** The user picked the model again: let it load (CR-2's confirmation). */
+    /** "Try again with less memory": the user's call to load [modelId] again now, keeping the mapped file. */
+    fun retryMapped(modelId: String) {
+        ensureChecked()
+        if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId
+        if (modelId !in ledger.mappedIds) ledger.mappedIds = ledger.mappedIds + modelId
+    }
+
+    /** The user picked the model again in the Model Catalog: let it load (CR-2's confirmation). */
     fun confirm(modelId: String) {
         ensureChecked()
         if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId

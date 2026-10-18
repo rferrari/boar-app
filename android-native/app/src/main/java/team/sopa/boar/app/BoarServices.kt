@@ -142,14 +142,31 @@ class BoarServices private constructor(private val context: Context) {
     }, settings.loadLedger)
 
     /**
-     * The model the chat answers with: the active one, unless its load killed the app (CR-2). Then the model loaded
+     * The model the chat answers with: the active one, unless its last load killed the app (CR-2). Then the model loaded
      * before it, else the smallest installed one that isn't blocked, so a phone doesn't crash on every start.
      */
     fun answerModel(): CatalogAsset? {
         val m = activeModel() ?: return null
         if (!loadGuard.isBlocked(m.id)) return m
-        val ok = installed(AssetKind.LLM).filter { !loadGuard.isBlocked(it.id) }
-        return settings.lastLoadedModelId?.let { id -> ok.firstOrNull { it.id == id } } ?: ok.minByOrNull { it.sizeBytes }
+        val llms = installed(AssetKind.LLM)
+        val pick = team.sopa.boar.engine.models.StartLoad.fallback(llms.map(::startModel), loadGuard::isBlocked, settings.lastLoadedModelId)
+        return pick?.let { p -> llms.firstOrNull { it.id == p.id } }
+    }
+
+    private fun startModel(a: CatalogAsset) = team.sopa.boar.engine.models.StartLoad.Model(a.id, a.sizeBytes)
+
+    /** What the chat may load on its own now (StartLoad): a blocked model never, a RED one only after "Load anyway". */
+    fun startDecision(): team.sopa.boar.engine.models.StartLoad.Decision =
+        team.sopa.boar.engine.models.StartLoad.decide(activeModel()?.let(::startModel), installed(AssetKind.LLM).map(::startModel),
+            loadGuard::isBlocked, settings.lastLoadedModelId, totalRamBytes, settings.loadAnywayIds.toSet())
+
+    /** Rated RED for this phone's memory (Compatibility, as the Model Catalog shows it). */
+    fun isRisky(a: CatalogAsset): Boolean = team.sopa.boar.engine.models.StartLoad.risky(startModel(a), totalRamBytes)
+
+    /** "Load anyway": [modelId] loads at start from now on without asking. */
+    fun rememberLoadAnyway(modelId: String) {
+        val ids = settings.loadAnywayIds
+        if (modelId !in ids) settings.loadAnywayIds = ids + modelId
     }
 
     // --- Packs and retrieval -----------------------------------------------------------------------------------

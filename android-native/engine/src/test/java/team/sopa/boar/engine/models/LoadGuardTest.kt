@@ -37,21 +37,37 @@ class LoadGuardTest {
         assertFalse(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
     }
 
-    @Test fun `a killed repacked load keeps the mapped file once, and isn't a crash`() {
+    @Test fun `a killed repacked load blocks the model for automatic loads after one kill`() {
+        val store = Mem(); val ledger = L()
+        val g = killedDuring(store, ledger, big, repacked = true, previous = small)
+        assertTrue(g.isBlocked("qwen3-4b"))
+        assertFalse(g.mappedNext("qwen3-4b"))
+        val crash = g.consume()!!
+        assertEquals("qwen3-4b", crash.crashedModelId)
+        assertEquals("Qwen2.5-1.5B", crash.fallbackLabel)
+        assertNull(g.consume())
+        assertNull(store.v)
+    }
+
+    @Test fun `try again with less memory loads the mapped file, and keeps it after it works`() {
         val store = Mem(); val ledger = L()
         val g = killedDuring(store, ledger, big, repacked = true)
-        assertTrue(g.mappedNext("qwen3-4b"))
+        g.retryMapped("qwen3-4b")
         assertFalse(g.isBlocked("qwen3-4b"))
-        assertNull(g.consume())
-        // The mapped load works: back to repacked weights next time.
+        assertTrue(g.mappedNext("qwen3-4b"))
         g.begin(big, null, repacked = false)
         g.end(big, loaded = true)
-        assertFalse(g.mappedNext("qwen3-4b"))
+        // The next start doesn't go back to the repacked load that closed the app.
+        val g2 = LoadGuard(store, ledger)
+        assertTrue(g2.mappedNext("qwen3-4b"))
+        assertFalse(g2.isBlocked("qwen3-4b"))
     }
 
     @Test fun `a killed mapped load is a crash, reported once with the fallback`() {
         val store = Mem(); val ledger = L()
         val g1 = killedDuring(store, ledger, big, repacked = true)
+        g1.consume()
+        g1.retryMapped("qwen3-4b")
         assertTrue(g1.mappedNext("qwen3-4b"))
         g1.begin(big, small, repacked = false)
         val g2 = LoadGuard(store, ledger)
@@ -60,6 +76,19 @@ class LoadGuardTest {
         val crash = g2.consume()!!
         assertEquals(listOf("qwen3-4b", "Qwen3-4B", "qwen2.5-1.5b", "Qwen2.5-1.5B"), listOf(crash.crashedModelId, crash.crashedLabel, crash.fallbackModelId, crash.fallbackLabel))
         assertNull(g2.consume())
+    }
+
+    @Test fun `ledger and marker JSON from the earlier version still parse`() {
+        // A marker written before this change (no "repacked" key: a mapped load) and a crash as settings.json stored it.
+        val store = Mem().apply { v = """{"filename":"models/qwen3-4b.gguf","modelId":"qwen3-4b","label":"Qwen3-4B","previous":{"filename":"models/qwen2.5-1.5b.gguf","modelId":"qwen2.5-1.5b","label":"Qwen2.5-1.5B"},"at":1000}""" }
+        val ledger = L().apply { mappedIds = listOf("qwen3-4b", "lfm2.5-8b") }
+        val g = LoadGuard(store, ledger)
+        assertTrue(g.isBlocked("qwen3-4b"))
+        assertFalse(g.mappedNext("qwen3-4b"))
+        assertTrue(g.mappedNext("lfm2.5-8b"))
+        val stored = LoadGuard.crashFromJson("""{"crashedModelId":"a","crashedLabel":"A","fallbackModelId":"b","fallbackLabel":"B","at":5,"extra":1}""")!!
+        assertEquals(LoadGuard.Crash("a", "A", "b", "B", 5), stored)
+        assertEquals(stored, LoadGuard.crashFromJson(LoadGuard.crashToJson(stored)))
     }
 
     @Test fun `the user picking the model again, or a load that works, unblocks it`() {
@@ -71,6 +100,15 @@ class LoadGuardTest {
         ledger.crashedIds = listOf("qwen3-4b")
         g.begin(big, null, repacked = true); g.end(big, loaded = true)
         assertFalse(g.isBlocked("qwen3-4b"))
+    }
+
+    @Test fun `picking it again in the Model Catalog unblocks it after a repacked kill`() {
+        val store = Mem(); val ledger = L()
+        val g = killedDuring(store, ledger, big, repacked = true)
+        assertTrue(g.isBlocked("qwen3-4b"))
+        g.confirm("qwen3-4b")
+        assertFalse(g.isBlocked("qwen3-4b"))
+        assertFalse(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
     }
 
     @Test fun `a failed load (returned, not killed) is neither a crash nor a mapped retry`() {

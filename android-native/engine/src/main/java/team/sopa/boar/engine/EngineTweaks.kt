@@ -41,8 +41,8 @@ data class EngineTweaks(
      */
     val stageTimeoutSeconds: Int? = null,
     /**
-     * Repacked weights. Auto: on (prompts read about 2x faster), except the load after a repacked load got the app
-     * killed, which keeps the mapped file once (LoadGuard, as #73).
+     * Repacked weights. Auto: on (prompts read about 2x faster), except for a model whose load got the app killed and
+     * that the user tried again with less memory: it keeps the mapped file (LoadGuard, as #73).
      */
     val weightRepack: Boolean? = null,
     /** Let a thinking model reason before it answers. Auto: off, so the answer's token cap isn't spent on reasoning. */

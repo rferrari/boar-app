@@ -35,6 +35,7 @@ import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.Summarize
 import team.sopa.boar.engine.models.AssetKind
+import team.sopa.boar.engine.models.StartLoad
 import team.sopa.boar.engine.rag.Chunk
 import team.sopa.boar.engine.rag.ConversationHistory
 import team.sopa.boar.engine.rag.ConversationTurn
@@ -75,6 +76,21 @@ sealed interface Activity {
     data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?) : Activity
 }
 
+/** A note over the chat about the answer model and the phone's memory, with what the user can do about it. */
+sealed interface LoadNote {
+    val modelId: String
+    val label: String
+
+    /**
+     * [label]'s last load closed the app (not enough memory) and it isn't loaded on its own. [fallbackLabel] answers
+     * instead (null: no model can); [onlyModel]: no other model is installed.
+     */
+    data class Crashed(override val modelId: String, override val label: String, val fallbackLabel: String?, val onlyModel: Boolean) : LoadNote
+
+    /** [label] is rated RED for this phone's memory and wasn't loaded; "Load anyway" loads it. */
+    data class Risky(override val modelId: String, override val label: String, val onlyModel: Boolean) : LoadNote
+}
+
 data class ChatState(
     val sessionId: String? = null,
     val messages: List<UiMessage> = emptyList(),
@@ -87,8 +103,8 @@ data class ChatState(
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
     val error: String? = null,
-    /** CR-2, shown once: the model that closed the app and the one answering instead. */
-    val loadCrash: team.sopa.boar.engine.models.LoadGuard.Crash? = null,
+    /** The answer model's memory note (StartLoad): it closed the app last time, or may not fit; with its actions. */
+    val loadNote: LoadNote? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
     /** The model being loaded, by name, and the engine when it isn't BOAR's own (Big Boar…), for the banner. */
@@ -177,8 +193,18 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return true
     }
 
-    /** Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. */
+    /**
+     * Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. Not a model
+     * whose last load closed the app, nor one that may not fit this phone's memory: the chat asks first (StartLoad).
+     */
     private fun preload() {
+        if (services.activeModel() == null) return
+        val decision = services.startDecision()
+        if (decision is StartLoad.Decision.AskRisky || decision is StartLoad.Decision.NoFallback) {
+            services.loadGuard.consume()
+            _state.update { it.copy(loadNote = noteFor(decision)) }
+            return
+        }
         // The model that really loads: the active one, or a fallback when its last load crashed the app.
         val model = services.answerModel() ?: return
         val engine = model.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it)?.engineLabel }
@@ -186,9 +212,80 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             loadingSince = android.os.SystemClock.elapsedRealtime()) }
         preloading = safeScope.launch(Dispatchers.Default) {
             runCatching { services.activeSession() }
+            // Shown once: the model that closed the app last time, and the one answering instead.
             val crash = services.loadGuard.consume()
-            _state.update { it.copy(loadingKey = null, loadCrash = crash) }
+            _state.update { it.copy(loadingKey = null, loadNote = crash?.let(::crashNote) ?: it.loadNote) }
             if (crash != null) refreshModel()
+        }
+    }
+
+    /** The note for a decision that doesn't load the user's model on its own; null when it loads. */
+    private fun noteFor(d: StartLoad.Decision): LoadNote? = when (d) {
+        is StartLoad.Decision.AskRisky -> LoadNote.Risky(d.modelId, labelOf(d.modelId), d.onlyModel)
+        is StartLoad.Decision.NoFallback -> LoadNote.Crashed(d.blockedId, labelOf(d.blockedId), null, d.onlyModel)
+        else -> null
+    }
+
+    private fun crashNote(c: team.sopa.boar.engine.models.LoadGuard.Crash): LoadNote.Crashed {
+        val answering = services.answerModel()?.takeIf { it.id != c.crashedModelId }
+        val only = services.installed(AssetKind.LLM).none { it.id != c.crashedModelId }
+        val label = services.catalog.byId(c.crashedModelId)?.label?.let(::shortLabel) ?: c.crashedLabel
+        return LoadNote.Crashed(c.crashedModelId, label, answering?.label?.let(::shortLabel), only)
+    }
+
+    private fun labelOf(modelId: String) = services.catalog.byId(modelId)?.label?.let(::shortLabel) ?: modelId
+
+    /** A question asked while the memory note's model wasn't loaded: sent once the user loads it. */
+    @Volatile private var heldQuestion: String? = null
+
+    /** The note a question gets instead of an answer: the user's model may not fit, or closed the app last time. */
+    private fun gateNote(): LoadNote? {
+        val d = services.startDecision()
+        val id = when (d) {
+            is StartLoad.Decision.AskRisky -> d.modelId
+            is StartLoad.Decision.NoFallback -> d.blockedId
+            else -> return null
+        }
+        // Already loaded in this process (picked in the Model Catalog): it answers.
+        val file = services.catalog.byId(id)?.filename
+        if (file != null && services.host.residentFilename() == file && services.host.current() != null) return null
+        return noteFor(d)
+    }
+
+    /** The memory note's "Load anyway": loads the model now, and at start from now on without asking. */
+    fun loadAnyway(modelId: String) {
+        services.rememberLoadAnyway(modelId)
+        userLoad(modelId)
+    }
+
+    /** The crash note's "Try again with less memory": loads the model now, keeping the mapped file (LoadGuard). */
+    fun retryWithLessMemory(modelId: String) {
+        services.loadGuard.retryMapped(modelId)
+        // The user's call: a model that may not fit isn't asked about again at start.
+        if (services.catalog.byId(modelId)?.let(services::isRisky) == true) services.rememberLoadAnyway(modelId)
+        userLoad(modelId)
+    }
+
+    /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
+    fun openedCatalog() {
+        heldQuestion = null
+        _state.update { it.copy(loadNote = null) }
+    }
+
+    private fun userLoad(modelId: String) {
+        val note = _state.value.loadNote
+        val held = heldQuestion.also { heldQuestion = null }
+        _state.update { it.copy(loadNote = null, loadingKey = "chatScreen.mountingWeights") }
+        val previous = preloading
+        preloading = safeScope.launch(Dispatchers.Default) {
+            previous?.join()
+            val loaded = runCatching { services.host.load(modelId) }.getOrNull() != null
+            withContext(Dispatchers.Main) {
+                refreshModel()
+                // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
+                _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
+                if (loaded && held != null) send(held)
+            }
         }
     }
 
@@ -247,7 +344,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val lang = getApplication<Application>().resources.configuration.locales[0]?.language
         val installed = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.map { it.id }
         // shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507").
-        val label = m?.label?.replace(Regex("\\s*\\([^)]*\\)"), "")?.replace(Regex("\\s{2,}"), " ")?.trim()?.ifEmpty { m.label.trim() }
+        val label = m?.label?.let(::shortLabel)
         // Fewer than 3 tested on this model (a Hugging Face model has none; Qwen2.5 1.5B has 1 in Portuguese): fill from
         // the ideas tested on the other models, same language, only for packs on the phone.
         val own = suggestionData.forModel(m?.id, lang, installed)
@@ -255,9 +352,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
         _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
+        // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
+        val note = _state.value.loadNote
+        val holds = when (note) {
+            null -> true
+            is LoadNote.Crashed -> services.loadGuard.isBlocked(note.modelId)
+            is LoadNote.Risky -> services.startDecision().let { it is StartLoad.Decision.AskRisky && it.modelId == note.modelId }
+        }
+        if (!holds) _state.update { it.copy(loadNote = null) }
     }
 
-    fun dismissLoadCrash() = _state.update { it.copy(loadCrash = null) }
+    /** shortModelLabel: the catalog label without its parenthesis ("Qwen3-4B-Instruct-2507"). */
+    private fun shortLabel(label: String): String =
+        label.replace(Regex("\\s*\\([^)]*\\)"), "").replace(Regex("\\s{2,}"), " ").trim().ifEmpty { label.trim() }
+
+    fun dismissLoadNote() {
+        heldQuestion = null
+        _state.update { it.copy(loadNote = null) }
+    }
 
     fun setDeepResearch(on: Boolean) {
         services.settings.deepResearchMode = on
@@ -324,6 +436,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun send(query: String, limit: Int? = null) {
         val q = query.trim()
         if (q.isEmpty() || job?.isActive == true) return
+        // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
+        gateNote()?.let { n ->
+            heldQuestion = q
+            _state.update { it.copy(loadNote = n) }
+            return
+        }
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
         job = safeScope.launch(Dispatchers.Default) {

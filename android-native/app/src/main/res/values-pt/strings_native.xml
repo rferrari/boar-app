@@ -85,12 +85,18 @@
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
     <string name="native_eval_adaptiveLater" formatted="false">O roteamento adaptativo ainda não está no app nativo; por isso só aparecem modelos fixos.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
-    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar (memória insuficiente); o BOAR está respondendo com {{fallback}}. Escolha-o de novo no Catálogo de Modelos para tentar outra vez.</string>
-    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar (memória insuficiente). Escolha um modelo menor no Catálogo de Modelos.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Por enquanto, o BOAR está respondendo com {{fallback}}.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Tente de novo com menos memória ou escolha um modelo menor no Catálogo de Modelos.</string>
+    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} não carregou da última vez: memória insuficiente neste celular. Baixe um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB).</string>
+    <string name="native_chat_retryLessMemory" formatted="false">Tentar de novo com menos memória</string>
+    <string name="native_chat_mayNotFit" formatted="false">{{model}} pode não caber na memória deste celular.</string>
+    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} pode não caber na memória deste celular. Um modelo menor, como o Qwen2.5 1.5B (cerca de 1 GB), cabe melhor.</string>
+    <string name="native_chat_loadAnyway" formatted="false">Carregar mesmo assim</string>
+    <string name="native_chat_pickAnother" formatted="false">Escolher outro modelo</string>
     <string name="native_tweaks_thinking" formatted="false">Pensar antes de responder</string>
     <string name="native_tweaks_thinkingNote" formatted="false">Deixa um modelo que pensa raciocinar primeiro. Auto: desligado, para o limite de tokens da resposta não ir para o raciocínio.</string>
     <string name="native_tweaks_repack" formatted="false">Pesos reempacotados</string>
-    <string name="native_tweaks_repackNote" formatted="false">Auto: ligado (o prompt é lido cerca de 2x mais rápido no nosso celular de teste, out. 2026). Depois de um carregamento sem memória, o próximo mantém os pesos mapeados do armazenamento.</string>
+    <string name="native_tweaks_repackNote" formatted="false">Auto: ligado (o prompt é lido cerca de 2x mais rápido no nosso celular de teste, out. 2026). Depois de um carregamento sem memória, Tentar de novo com menos memória mantém os pesos mapeados do armazenamento para esse modelo.</string>
     <string name="native_pin_enterTitle" formatted="false">Digite seu PIN</string>
     <string name="native_pin_enterSubtitle" formatted="false">Suas conversas estão protegidas com ele.</string>
     <string name="native_pin_wrong" formatted="false">PIN errado.</string>

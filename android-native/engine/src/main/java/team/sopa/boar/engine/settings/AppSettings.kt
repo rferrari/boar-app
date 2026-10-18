@@ -190,6 +190,12 @@ class AppSettings(private val file: File) {
             set(v) = set("pendingLoadCrash", v?.let { json.parseToJsonElement(team.sopa.boar.engine.models.LoadGuard.crashToJson(it)) })
     }
 
+    /**
+     * Models the user chose to load although rated RED for this phone ("Load anyway"): loaded at start without asking
+     * again. Kept by "Reset settings", like the load ledger above.
+     */
+    var loadAnywayIds: List<String> get() = strings("loadAnywayIds"); set(v) = setStrings("loadAnywayIds", v.distinct())
+
     /** The last model that loaded: CR-2's fallback after a crash on a cold start. */
     var lastLoadedModelId: String? get() = str("lastLoadedModelId"); set(v) = set("lastLoadedModelId", v?.let(::JsonPrimitive))
 

@@ -103,7 +103,11 @@ fun ChatScreen(
     onRate: (String, String) -> Unit,
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
-    onDismissCrash: () -> Unit = {},
+    /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
+    onDismissLoadNote: () -> Unit = {},
+    onRetryLessMemory: (String) -> Unit = {},
+    onLoadAnyway: (String) -> Unit = {},
+    onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
     /** Opens an app route from a plugin's header badge ("lab:printer"). */
@@ -136,7 +140,7 @@ fun ChatScreen(
             team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onOpenRoute, onSetDeepResearch) }
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { key -> LoadingBanner(state.loadingModel, state.loadingEngine, state.loadingSince, t(key)) }
-            state.loadCrash?.let { CrashBanner(it, state.modelLabel, onDismissCrash) }
+            state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
@@ -349,18 +353,50 @@ private fun DeepResearchBanner(onClose: () -> Unit) {
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
 }
 
+/**
+ * The answer model and the phone's memory: it closed the app last time (with "Try again with less memory" and the
+ * Model Catalog), or it may not fit (with "Load anyway" and another model). Nothing is blocked for good.
+ */
 @Composable
-private fun CrashBanner(crash: team.sopa.boar.engine.models.LoadGuard.Crash, answering: String?, onDismiss: () -> Unit) {
+private fun LoadNoteBanner(
+    note: team.sopa.boar.chat.LoadNote,
+    onDismiss: () -> Unit,
+    onRetryLessMemory: (String) -> Unit,
+    onLoadAnyway: (String) -> Unit,
+    onOpenModels: () -> Unit,
+) {
     val c = Boar.colors
-    // The recorded fallback is the model loaded before; when that was the crashed model itself (a reload after a
-    // restart), the banner named it as its own fallback (X6, Oct 15). Then it names the model answering now.
-    val fallback = crash.fallbackLabel.takeIf { it.isNotEmpty() && crash.fallbackModelId != crash.crashedModelId } ?: answering.orEmpty()
-    val text = if (fallback.isNotEmpty()) t("native.chat.loadCrashed", "crashed" to crash.crashedLabel, "fallback" to fallback)
-    else t("native.chat.loadCrashedNoFallback", "crashed" to crash.crashedLabel)
-    Row(Modifier.fillMaxWidth().background(c.amberBgSubtle).clickable(onClick = onDismiss).padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
-        Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
+    val catalog = t("modelCatalogScreen.title")
+    val (text, actions) = when (note) {
+        is team.sopa.boar.chat.LoadNote.Crashed -> {
+            val retry = t("native.chat.retryLessMemory") to { onRetryLessMemory(note.modelId) }
+            when {
+                note.onlyModel -> t("native.chat.loadCrashedOnly", "model" to note.label) to listOf(catalog to onOpenModels, retry)
+                note.fallbackLabel != null -> t("native.chat.loadCrashed", "crashed" to note.label, "fallback" to note.fallbackLabel) to listOf(retry, catalog to onOpenModels)
+                else -> t("native.chat.loadCrashedNoFallback", "crashed" to note.label) to listOf(retry, catalog to onOpenModels)
+            }
+        }
+        is team.sopa.boar.chat.LoadNote.Risky -> {
+            val load = t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }
+            if (note.onlyModel) t("native.chat.mayNotFitOnly", "model" to note.label) to listOf(load, catalog to onOpenModels)
+            else t("native.chat.mayNotFit", "model" to note.label) to listOf(load, t("native.chat.pickAnother") to onOpenModels)
+        }
+    }
+    Column(Modifier.fillMaxWidth().background(c.amberBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+            Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
+            Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
+                Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((label, action) in actions) {
+                Box(Modifier.weight(1f, fill = false).clip(RoundedCornerShape(8.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(8.dp))
+                    .clickable(onClick = action).padding(horizontal = 12.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                    Text(label, style = Boar.type.subtext, color = c.amber400, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                }
+            }
+        }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.amberBorder))
 }
