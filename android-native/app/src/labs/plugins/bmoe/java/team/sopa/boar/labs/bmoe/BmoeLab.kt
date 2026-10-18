@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -19,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import team.sopa.boar.app.BoarServices
 import team.sopa.boar.engine.EngineParams
 import team.sopa.boar.engine.TextModel
@@ -28,12 +31,14 @@ import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.models.Compatibility
 import team.sopa.boar.engine.models.EngineChoice
 import team.sopa.boar.engine.models.GgufHeader
+import team.sopa.boar.engine.models.HfQuery
 import team.sopa.boar.labs.LabContext
 import team.sopa.boar.labs.LabPrefs
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.labs.engines.EngineProcess
 import team.sopa.boar.plugins.EngineProvider
+import team.sopa.boar.ui.models.ChipRow
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.io.File
@@ -129,6 +134,59 @@ object BmoeLab : LabPlugin, EngineProvider {
         val services = LabContext.app?.let { BoarServices.get(it) } ?: return false
         return runCatching { resolve(asset, services) == EngineChoice.Engine.BIG_BOAR }.getOrDefault(false)
     }
+
+    // --- Model Catalog and Hugging Face search --------------------------------------------------------------------
+
+    override val browseMoeFilter: Boolean get() = true
+
+    /** Known architecture: only one Big Boar runs. Not listed: the repo's name (a hint; the header decides after download). */
+    override fun browseHint(repoId: String, architecture: String?): String? {
+        val runs = if (architecture != null) architecture in SUPPORTED_ARCHS else HfQuery.moeHint(repoId, null)
+        return if (runs) "native.labs.bmoe.browseHint" else null
+    }
+
+    /**
+     * On an eligible model's card: the Engine chips (Auto, showing what it picks; BOAR; Big Boar) and why Big Boar
+     * helps on this phone. The 35B runs only on Big Boar (its engine tag says so), so it shows just the reason.
+     */
+    @Composable
+    override fun CatalogCardExtra(asset: CatalogAsset) {
+        if (asset.kind != AssetKind.LLM) return
+        val ctx = LocalContext.current
+        val services = remember { BoarServices.get(ctx) }
+        val scope = rememberCoroutineScope()
+        val memFit = remember(asset.id, asset.sizeBytes) { fit(asset, services) }
+        if (asset.engine == id) {
+            if (memFit == Compatibility.RED) Hint(t("native.labs.bmoe.card.red"))
+            return
+        }
+        if (asset.engine != null) return
+        // The header is read off the main thread, once per file.
+        val canRun by produceState(false, asset.id) { value = withContext(Dispatchers.IO) { runCatching { eligible(asset, services) }.getOrDefault(false) } }
+        if (!canRun) return
+        var current by remember(asset.id) { mutableStateOf(choice(asset.id)) }
+        val auto = if (EngineChoice.resolve(EngineChoice.Choice.AUTO, memFit, eligible = true) == EngineChoice.Engine.BIG_BOAR) engineLabel else "BOAR"
+        ChipRow(t("native.labs.bmoe.card.engine"), listOf(
+            EngineChoice.Choice.AUTO to t("native.labs.bmoe.card.auto", "engine" to auto),
+            EngineChoice.Choice.BOAR to "BOAR",
+            EngineChoice.Choice.BIG_BOAR to engineLabel,
+        ), current) { picked ->
+            if (picked != current) {
+                current = picked
+                setChoice(asset.id, picked)
+                // Loaded by the other engine: the next answer loads it again with this one.
+                if (services.host.residentId() == asset.id) scope.launch { services.host.unload() }
+            }
+        }
+        when (memFit) {
+            Compatibility.RED -> Hint(t("native.labs.bmoe.card.red"))
+            Compatibility.YELLOW -> Hint(t("native.labs.bmoe.card.yellow"))
+            else -> {}
+        }
+    }
+
+    @Composable
+    private fun Hint(text: String) = Text(text, style = Boar.type.subtext, color = Boar.colors.textAccentCyan)
 
     @Composable
     override fun Content() {

@@ -41,8 +41,9 @@ object HfBrowser {
     /**
      * One page of the search ([HfQuery.searchUrl], or the `next` of the previous page): text-generation GGUF repos
      * whose architecture BOAR can chat with, without uncensored ones unless the build allows them. A page can come back shorter than asked, or empty with a next page.
+     * [moeOnly]: the Mixture of experts filter (Boar Labs), kept by HfQuery.moeHint.
      */
-    fun browse(url: String): Page {
+    fun browse(url: String, moeOnly: Boolean = false): Page {
         require(url.startsWith("$API/models?")) { "Not a Hugging Face model listing: $url" }
         val (body, link) = get(url)
         val repos = Json.parseToJsonElement(body).jsonArray.map { it.jsonObject }.map { o ->
@@ -52,6 +53,7 @@ object HfBrowser {
         }.filter { it.id.isNotEmpty() && HfQuery.chatArchitecture(it.architecture) }
             // Uncensored and adult models only in builds with ALLOW_UNCENSORED_MODELS=true (app/build.gradle.kts).
             .filter { team.sopa.boar.BuildConfig.ALLOW_UNCENSORED_MODELS || !HfQuery.uncensored(it.id, it.tags) }
+            .filter { !moeOnly || HfQuery.moeHint(it.id, it.architecture) }
         return Page(repos, HfQuery.nextUrl(link))
     }
 

@@ -165,6 +165,9 @@
     <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
     <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
     <string name="native_browse_more" formatted="false">Loading more…</string>
+    <string name="native_browse_kind" formatted="false">Type</string>
+    <string name="native_browse_kindAll" formatted="false">All</string>
+    <string name="native_browse_kindMoe" formatted="false">Mixture of experts</string>
     <string name="native_browse_files" formatted="false">Files</string>
     <!-- Truffle Vault -->
     <string name="native_truffle_cosmo" formatted="false">Cosmo Boar</string>

@@ -11,4 +11,9 @@
     <string name="native_labs_bmoe_use" formatted="false">Responder com este modelo</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
     <string name="native_labs_bmoe_note" formatted="false">A primeira resposta carrega o modelo (um minuto ou mais). Depois cada resposta leva minutos e o celular esquenta: ligue o Log de depuração para ver velocidade e calor. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
+    <string name="native_labs_bmoe_card_engine" formatted="false">Motor</string>
+    <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>
+    <string name="native_labs_bmoe_card_red" formatted="false">🦣 Grande demais para a memória deste celular: o Big Boar consegue rodar, mais devagar.</string>
+    <string name="native_labs_bmoe_card_yellow" formatted="false">O Big Boar usa menos memória.</string>
+    <string name="native_labs_bmoe_browseHint" formatted="false">🦣 O Big Boar consegue rodar este</string>
 </resources>

@@ -11,4 +11,9 @@
     <string name="native_labs_bmoe_use" formatted="false">Answer with this model</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
     <string name="native_labs_bmoe_note" formatted="false">The first answer loads the model (a minute or more). Each answer then takes minutes, and the phone gets warm: turn on the Debug log to see speed and heat. Adaptive routing is skipped while it\'s selected.</string>
+    <string name="native_labs_bmoe_card_engine" formatted="false">Engine</string>
+    <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>
+    <string name="native_labs_bmoe_card_red" formatted="false">🦣 Too big for this phone\'s memory: Big Boar can run it, slower.</string>
+    <string name="native_labs_bmoe_card_yellow" formatted="false">Big Boar uses less memory.</string>
+    <string name="native_labs_bmoe_browseHint" formatted="false">🦣 Big Boar can run this</string>
 </resources>

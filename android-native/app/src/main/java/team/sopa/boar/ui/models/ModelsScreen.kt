@@ -186,6 +186,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
             }
         }
+        // Boar Labs' rows for this model (Big Boar's engine choice); nothing while Labs is off.
+        team.sopa.boar.labs.LabHooks.CatalogCardExtra(item)
         // Line height follows the text size (a fixed 18 sp packed the lines at Large).
         // Models added before the rename keep the old name in their saved description.
         Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)

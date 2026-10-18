@@ -55,6 +55,8 @@ data class ModelsState(
     val hfQuery: String = "",
     val hfSize: HfQuery.Size = HfQuery.Size.ANY,
     val hfSort: HfQuery.Sort = HfQuery.Sort.TRENDING,
+    /** The Mixture of experts filter, offered while Boar Labs' Big Boar is on. */
+    val hfMoe: Boolean = false,
     val hfSearching: Boolean = false,
     val hfNext: String? = null,
     val hfSearched: Boolean = false,
@@ -90,12 +92,14 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     private val hfSearch = java.util.concurrent.atomic.AtomicInteger()
 
     /** A new search with these filters (the browse page): replaces the results; an older answer still running is dropped. */
-    fun hfBrowse(query: String = _state.value.hfQuery, size: HfQuery.Size = _state.value.hfSize, sort: HfQuery.Sort = _state.value.hfSort) {
+    fun hfBrowse(query: String = _state.value.hfQuery, size: HfQuery.Size = _state.value.hfSize, sort: HfQuery.Sort = _state.value.hfSort, moe: Boolean = _state.value.hfMoe) {
         val request = hfSearch.incrementAndGet()
         hfRequest.incrementAndGet() // a repo's files still loading belong to the old results
-        _state.update { it.copy(hfQuery = query, hfSize = size, hfSort = sort, hfSearching = true, hfSearched = true, hfError = null,
+        // Only while Boar Labs offers the filter; off, the search is exactly the usual one.
+        val moeOnly = moe && team.sopa.boar.labs.LabHooks.moeFilter()
+        _state.update { it.copy(hfQuery = query, hfSize = size, hfSort = sort, hfMoe = moeOnly, hfSearching = true, hfSearched = true, hfError = null,
             hfResults = emptyList(), hfNext = null, hfOpenRepo = null, hfFiles = emptyList(), hfBusy = false, hfAdded = null, hfAddedId = null) }
-        fetchPage(request, HfQuery.searchUrl(query, size, sort), append = false)
+        fetchPage(request, HfQuery.searchUrl(query, size, sort, moe = moeOnly), append = false, moeOnly = moeOnly)
     }
 
     /** The next page of the same search, at the end of the list. */
@@ -104,12 +108,12 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         val next = s.hfNext ?: return
         if (s.hfSearching) return
         _state.update { it.copy(hfSearching = true, hfError = null) }
-        fetchPage(hfSearch.get(), next, append = true)
+        fetchPage(hfSearch.get(), next, append = true, moeOnly = s.hfMoe)
     }
 
-    private fun fetchPage(request: Int, url: String, append: Boolean) {
+    private fun fetchPage(request: Int, url: String, append: Boolean, moeOnly: Boolean) {
         safeScope.launch(Dispatchers.IO) {
-            runCatching { HfBrowser.browse(url) }
+            runCatching { HfBrowser.browse(url, moeOnly) }
                 .onSuccess { p -> _state.update { if (hfSearch.get() != request) it else it.copy(hfResults = ((if (append) it.hfResults else emptyList()) + p.repos).distinctBy { r -> r.id }, hfNext = p.next, hfSearching = false) } }
                 .onFailure { e -> _state.update { if (hfSearch.get() != request) it else it.copy(hfError = e.message ?: e.toString(), hfSearching = false) } }
         }

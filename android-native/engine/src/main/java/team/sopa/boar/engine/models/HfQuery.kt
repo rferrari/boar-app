@@ -42,10 +42,21 @@ object HfQuery {
         "maincoder", "kimi-linear", "kimi-k3", "talkie", "mellum", "nanbeige",
     )
 
-    /** The first page of a search: text-generation GGUF repos in the size bucket, with their GGUF header facts. */
-    fun searchUrl(query: String, size: Size, sort: Sort, limit: Int = 30): String {
+    /**
+     * With the Mixture of experts filter and no size picked: models up to this many parameters (Boar Labs' Big Boar
+     * streams a mixture of experts from storage, so it needn't fit in RAM; [MAX_FILE_BYTES] still caps the file).
+     */
+    const val MOE_MAX_PARAMS = "40B"
+
+    /**
+     * The first page of a search: text-generation GGUF repos in the size bucket, with their GGUF header facts. [moe]:
+     * the Mixture of experts filter (Boar Labs), which widens Any to [MOE_MAX_PARAMS]; the results are then kept by
+     * [moeHint] (HfBrowser), as the listing has no filter for it.
+     */
+    fun searchUrl(query: String, size: Size, sort: Sort, limit: Int = 30, moe: Boolean = false): String {
         val q = query.trim().takeIf { it.isNotEmpty() }?.let { "search=${URLEncoder.encode(it, "UTF-8")}&" } ?: ""
-        return "$API/models?${q}filter=gguf&pipeline_tag=text-generation&num_parameters=min:${size.min},max:${size.max}" +
+        val max = if (moe && size == Size.ANY) MOE_MAX_PARAMS else size.max
+        return "$API/models?${q}filter=gguf&pipeline_tag=text-generation&num_parameters=min:${size.min},max:$max" +
             "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags"
     }
 
@@ -56,6 +67,20 @@ object HfQuery {
     }
 
     fun chatArchitecture(arch: String?): Boolean = arch != null && arch in CHAT_ARCHITECTURES
+
+    /** Active parameters in a mixture of experts' name: "30B-A3B", "8B-A1B", "A2.7B". */
+    private val ACTIVE_PARAMS = Regex("(?<![a-z0-9])a\\d+(\\.\\d+)?b(?![a-z0-9])", RegexOption.IGNORE_CASE)
+
+    /**
+     * A mixture of experts by its listing: an architecture named so (qwen3moe, lfm2moe, olmoe), or a repo name with
+     * active parameters ("Qwen3-30B-A3B") or the word MoE or Mixtral. A hint only: the downloaded file's header decides.
+     */
+    fun moeHint(repoId: String, architecture: String?): Boolean {
+        if (architecture != null && "moe" in architecture.lowercase()) return true
+        val name = repoId.substringAfter('/')
+        if (ACTIVE_PARAMS.containsMatchIn(name)) return true
+        return name.lowercase().split(Regex("[^a-z0-9]+")).any { it == "moe" || it == "mixtral" }
+    }
 
     private val UNCENSORED_WORDS = setOf("uncensored", "abliterated", "abliteration", "nsfw", "erotic", "erp", "lewd", "porn", "hentai", "unaligned", "adult")
 

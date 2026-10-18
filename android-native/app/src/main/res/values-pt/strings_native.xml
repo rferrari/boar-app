@@ -165,6 +165,9 @@
     <string name="native_browse_empty" formatted="false">Nenhum modelo de texto GGUF encontrado.</string>
     <string name="native_browse_unvetted" formatted="false">Não verificado pelo BOAR</string>
     <string name="native_browse_more" formatted="false">Carregando mais…</string>
+    <string name="native_browse_kind" formatted="false">Tipo</string>
+    <string name="native_browse_kindAll" formatted="false">Todos</string>
+    <string name="native_browse_kindMoe" formatted="false">Mistura de especialistas</string>
     <string name="native_browse_files" formatted="false">Arquivos</string>
     <!-- Truffle Vault -->
     <string name="native_truffle_cosmo" formatted="false">Javali Cósmico</string>

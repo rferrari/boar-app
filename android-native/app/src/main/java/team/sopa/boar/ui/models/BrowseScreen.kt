@@ -90,6 +90,10 @@ fun BrowseScreen(
                 HfQuery.Sort.TRENDING to t("native.browse.sortTrending"), HfQuery.Sort.DOWNLOADS to t("native.browse.sortDownloads"),
                 HfQuery.Sort.LIKES to t("native.browse.sortLikes"), HfQuery.Sort.NEWEST to t("native.browse.sortNewest"),
             ), state.hfSort) { vm.hfBrowse(query.trim(), sort = it) }
+            // Boar Labs' Big Boar runs a mixture of experts bigger than the phone's memory: only while it's on.
+            if (team.sopa.boar.labs.LabHooks.moeFilter()) ChipRow(t("native.browse.kind"), listOf(
+                false to t("native.browse.kindAll"), true to t("native.browse.kindMoe"),
+            ), state.hfMoe) { vm.hfBrowse(query.trim(), moe = it) }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         LazyColumn(state = list, contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
@@ -143,6 +147,7 @@ private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel,
         Column(Modifier.fillMaxWidth().clickable { vm.hfOpen(r.id) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(r.id, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
             Text(listOfNotNull(r.params?.let(HfQuery::formatParams), r.architecture).joinToString(" · "), style = Boar.type.subtext, color = c.textSecondary)
+            team.sopa.boar.labs.LabHooks.browseHint(r.id, r.architecture)?.let { Text(t(it), style = Boar.type.subtext, color = c.textAccentCyan) }
             Text(t("modelBrowser.downloadsLikes", "downloads" to (r.downloads ?: 0), "likes" to (r.likes ?: 0)) + " · " + t("native.browse.unvetted"),
                 style = Boar.type.micro, color = c.textDim)
         }

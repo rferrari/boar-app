@@ -166,6 +166,20 @@ object LabHooks {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) { LabRegistry.active.forEach { it.AnswerExtra(a) } }
     }
 
+    /** A model's card in the Model Catalog: each active lab's rows for it; nothing while Labs is off. */
+    @Composable
+    fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {
+        Init()
+        LabRegistry.active.forEach { it.CatalogCardExtra(asset) }
+    }
+
+    /** The Hugging Face search's Mixture of experts filter: offered while a lab that runs them is on. */
+    fun moeFilter(): Boolean = LabRegistry.active.any { it.browseMoeFilter }
+
+    /** A line for a Hugging Face result from the active labs (a string key), or null. */
+    fun browseHint(repoId: String, architecture: String?): String? =
+        LabRegistry.active.firstNotNullOfOrNull { runCatching { it.browseHint(repoId, architecture) }.getOrNull() }
+
     @Composable
     fun HeaderBadges(go: (String) -> Unit) {
         Init()

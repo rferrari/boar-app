@@ -49,6 +49,15 @@ interface LabPlugin {
     /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
     @Composable fun HeaderBadge(go: (String) -> Unit) {}
 
+    /** Rows on a model's card in the Model Catalog, under its memory badge (Big Boar's engine choice). */
+    @Composable fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {}
+
+    /** The Hugging Face search offers its Mixture of experts filter while this lab is on. */
+    val browseMoeFilter: Boolean get() = false
+
+    /** A line under a Hugging Face result ([architecture] from its GGUF facts, when listed): a string key, or null. */
+    fun browseHint(repoId: String, architecture: String?): String? = null
+
     /**
      * Erases what this lab made for the user (team.sopa.boar.plugins.UserData): from chats only ([UserData.Scope.CHATS]),
      * or everything. Runs even when the lab is switched off.
