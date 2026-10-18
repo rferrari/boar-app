@@ -7,9 +7,10 @@
     <string name="native_labs_bmoe_engineMissing" formatted="false">Não está nesta versão: rode scripts/build-lab-engines.sh e compile de novo</string>
     <string name="native_labs_bmoe_model" formatted="false">MODELO</string>
     <string name="native_labs_bmoe_modelOk" formatted="false">Encontrado: {{size}}</string>
-    <string name="native_labs_bmoe_modelMissing" formatted="false">Não está no celular. Copie pelo USB: adb push {{file}} {{path}}</string>
+    <string name="native_labs_bmoe_modelMissing" formatted="false">Ainda não está no celular. Baixe no Catálogo de Modelos ({{size}}) ou copie pelo USB para {{path}}</string>
     <string name="native_labs_bmoe_use" formatted="false">Responder com este modelo</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
+    <string name="native_labs_bmoe_more" formatted="false">Outros modelos de mistura de especialistas também rodam no Big Boar: baixe um no Catálogo de Modelos e escolha o motor no cartão dele. O Auto usa o Big Boar quando o modelo é grande demais para a memória deste celular.</string>
     <string name="native_labs_bmoe_note" formatted="false">A primeira resposta carrega o modelo (um minuto ou mais). Depois cada resposta leva minutos e o celular esquenta: ligue o Log de depuração para ver velocidade e calor. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
     <string name="native_labs_bmoe_card_engine" formatted="false">Motor</string>
     <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>

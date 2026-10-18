@@ -7,9 +7,10 @@
     <string name="native_labs_bmoe_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
     <string name="native_labs_bmoe_model" formatted="false">MODEL</string>
     <string name="native_labs_bmoe_modelOk" formatted="false">Found: {{size}}</string>
-    <string name="native_labs_bmoe_modelMissing" formatted="false">Not on the phone. Copy it over USB: adb push {{file}} {{path}}</string>
+    <string name="native_labs_bmoe_modelMissing" formatted="false">Not on the phone yet. Download it in the Model Catalog ({{size}}), or copy it over USB to {{path}}</string>
     <string name="native_labs_bmoe_use" formatted="false">Answer with this model</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
+    <string name="native_labs_bmoe_more" formatted="false">Other mixture-of-experts models run on Big Boar too: download one in the Model Catalog and pick its engine on its card. Auto uses Big Boar when a model is too big for this phone\'s memory.</string>
     <string name="native_labs_bmoe_note" formatted="false">The first answer loads the model (a minute or more). Each answer then takes minutes, and the phone gets warm: turn on the Debug log to see speed and heat. Adaptive routing is skipped while it\'s selected.</string>
     <string name="native_labs_bmoe_card_engine" formatted="false">Engine</string>
     <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>

@@ -45,10 +45,12 @@ import java.io.File
 import java.util.Locale
 
 /**
- * Big Boar: Qwen3.6-35B-A3B on BigMoeOnEdge (https://github.com/Helldez/BigMoeOnEdge, Apache-2.0), a 35B mixture of
- * experts bigger than the phone's RAM. The model is copied to the phone over USB (12.3 GB), never downloaded; the
- * engine is built by scripts/build-lab-engines.sh into this folder's jniLibs. While this lab is on, the model is
- * listed in Models like any other and answers through the engine slot (BmoeModel).
+ * Big Boar: BigMoeOnEdge (https://github.com/Helldez/BigMoeOnEdge, Apache-2.0) runs a mixture of experts bigger than
+ * the phone's RAM. Its own model, Qwen3.6-35B-A3B (12.3 GB), is a catalog entry like any other while this lab is on:
+ * downloaded into BOAR's models folder, or used from where it was copied over USB. Any other mixture of experts on the
+ * phone of a [SUPPORTED_ARCHS] architecture can run on it too, by the user's engine choice on its card (Auto: when it's
+ * too big for the phone's memory). The engine is built by scripts/build-lab-engines.sh into this folder's jniLibs and
+ * answers through the engine slot (BmoeModel).
  */
 object BmoeLab : LabPlugin, EngineProvider {
     override val id = "bmoe"
@@ -56,17 +58,17 @@ object BmoeLab : LabPlugin, EngineProvider {
     override val art = team.sopa.boar.R.drawable.truffle_moe
     override val status = LabStatus.BETA
 
-    /** Where `adb push` puts it (the experimental-engines branch used the same path). */
-    private const val MODEL_PATH = "/data/local/tmp/bmoe/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"
+    /** Where a copy over USB goes (the experimental-engines branch's path): used when it's there, never downloaded again. */
+    private const val USB_PATH = "/data/local/tmp/bmoe/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"
 
     val MODEL = CatalogAsset(
         id = "qwen3.6-35b-a3b-bmoe", kind = AssetKind.LLM,
         label = "Qwen3.6-35B-A3B · BigMoeOnEdge (experimental)", displayName = "Qwen3.6 35B · Big Boar",
-        filename = "external/qwen3.6-35b-a3b-ud-q2-k-xl", externalPath = MODEL_PATH, engine = "bmoe",
+        filename = "models/qwen3.6-35b-a3b-ud-q2-k-xl.gguf", engine = "bmoe",
         sizeBytes = 12_290_628_576, sha256 = "",
         sourceUrl = "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/resolve/main/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf",
         license = "Apache-2.0",
-        description = "A 35B mixture of experts (about 3B used per word), bigger than the phone's RAM: BigMoeOnEdge keeps the always-used weights in memory and reads each word's experts from storage. Slow, but a real 35B. Copy it over USB first (Boar Labs → Big Boar).",
+        description = "A 35B mixture of experts (about 3B used per word), bigger than the phone's RAM: BigMoeOnEdge keeps the always-used weights in memory and reads each word's experts from storage. Slow, but a real 35B. Download it here (12.3 GB) or copy it over USB (Boar Labs → Big Boar).",
         required = false,
     )
 
@@ -74,7 +76,19 @@ object BmoeLab : LabPlugin, EngineProvider {
     override val engineLabel = "Big Boar"
     override val engineEmoji get() = emoji
     override val engineArt get() = art
-    override fun models() = listOf(MODEL)
+    override fun models() = listOf(model35())
+
+    /**
+     * The 35B as the catalog lists it now: BOAR's own copy once fully downloaded; else a copy over USB at [USB_PATH]
+     * when there is one (externalPath: not downloaded again, never deleted by the app); else a model to download.
+     */
+    fun model35(): CatalogAsset {
+        val ctx = LabContext.app ?: return MODEL
+        val own = File(ctx.filesDir, MODEL.filename)
+        if (own.isFile && own.length() == MODEL.sizeBytes) return MODEL
+        val usb = File(USB_PATH)
+        return if (runCatching { usb.isFile && usb.canRead() }.getOrDefault(false)) MODEL.copy(externalPath = USB_PATH) else MODEL
+    }
 
     /** From BOAR's own storage (a downloaded model) or the path it was copied to over USB: wherever the app finds it. */
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {
@@ -195,8 +209,10 @@ object BmoeLab : LabPlugin, EngineProvider {
         val services = remember { BoarServices.get(ctx) }
         val scope = rememberCoroutineScope()
         val engineOk = remember { EngineProcess.executable(ctx, BmoeModel.BINARY) != null }
-        val file = remember { File(MODEL_PATH) }
-        val present = remember { file.isFile && file.canRead() }
+        val asset = remember { model35() }
+        val file = remember { services.fileOf(asset) }
+        // Over USB: there and readable. Downloaded: all of it (a download in progress isn't the model yet).
+        val present = remember { file.isFile && file.canRead() && (asset.externalPath != null || file.length() == asset.sizeBytes) }
         var using by remember { mutableStateOf(services.settings.activeModelId("llm") == MODEL.id) }
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.bmoe.engine")) {
@@ -206,7 +222,7 @@ object BmoeLab : LabPlugin, EngineProvider {
                 Text(MODEL.label, style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
                 Text(
                     if (present) t("native.labs.bmoe.modelOk", "size" to String.format(Locale.US, "%.1f GB", file.length() / 1e9))
-                    else t("native.labs.bmoe.modelMissing", "file" to MODEL_PATH.substringAfterLast('/'), "path" to MODEL_PATH),
+                    else t("native.labs.bmoe.modelMissing", "size" to String.format(Locale.US, "%.1f GB", MODEL.sizeBytes / 1e9), "path" to USB_PATH),
                     style = Boar.type["mono.xs"], color = if (present) c.textAccentEmerald else c.textMuted,
                 )
             }
@@ -222,6 +238,7 @@ object BmoeLab : LabPlugin, EngineProvider {
                         }.padding(14.dp),
                 )
             }
+            Text(t("native.labs.bmoe.more"), style = Boar.type.subtext, color = c.textSecondary)
             Text(t("native.labs.bmoe.note"), style = Boar.type.subtext, color = c.textMuted)
         }
     }
