@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_facts_title" formatted="false">Boar Fatos</string>
+    <string name="native_labs_facts_body" formatted="false">Um dado sobre um país, cidade, montanha, rio, monumento ou prêmio, de uma tabela da Wikidata, sem o modelo.</string>
+    <string name="native_labs_facts_answers" formatted="false">RESPONDE SOZINHO</string>
+    <string name="native_labs_facts_answersList" formatted="false">• População, área, capital, moeda, línguas oficiais, continente e fronteiras\n• Altura ou altitude, comprimento e profundidade\n• Quando um monumento foi construído ou derrubado\n• Tipos de tomada e voltagem\n• Onde um evento aconteceu, e quem ganhou um prêmio em um ano\n• Dois lugares comparados: qual é maior, mais alto, mais longo ou tem mais gente</string>
+    <string name="native_labs_facts_try" formatted="false">EXPERIMENTE</string>
+    <string name="native_labs_facts_example1" formatted="false">Does Brazil have more people than Russia?</string>
+    <string name="native_labs_facts_example2" formatted="false">What plug type and voltage does Brazil use?</string>
+    <string name="native_labs_facts_example3" formatted="false">If you stood the Burj Khalifa on the deepest point of Lake Baikal, would its top stick out of the water?</string>
+    <string name="native_labs_facts_note" formatted="false">Só responde quando a pergunta cita algo da tabela e pede exatamente um desses dados; toda resposta termina com a fonte e a data da tabela (Wikidata, CC0, outubro de 2026), e uma população mais antiga diz de quando é. Dois dados de uma vez, um resumo, um por quê ou como, um nome que ele não sabe distinguir (Georgia) ou uma conversa sobre saúde vão para o modelo, como sempre. Perguntas e respostas só em inglês. Portado dos fatos offline de r4to (BOAR R&amp;D).</string>
+</resources>

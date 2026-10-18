@@ -1,0 +1,279 @@
+package team.sopa.boar.engine.rag
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+/** Ported from src/rag/facts.test.ts in r4to's PR #85 (BOAR R&D, MIT), case for case. */
+class FactsTest {
+    companion object {
+        // The table ships with the Boar Facts lab (app/src/labs/plugins/facts).
+        val facts = Facts(File("../app/src/labs/plugins/facts/res/raw/lab_facts_facts_v1.json").readText())
+    }
+
+    private fun text(q: String) = facts.answer(q)?.text
+    private fun matches(pattern: String, q: String) {
+        val t = text(q)
+        assertNotNull(q, t)
+        assertTrue("$q -> $t", Regex(pattern).containsMatchIn(t!!))
+    }
+    private fun none(q: String) = assertNull(q, facts.answer(q))
+
+    // ---- the step-1 target items (bench v0.1, dev) ----
+
+    @Test fun `lan-cmp-001, two-country population comparison gives a computed yes-no verdict`() {
+        val a = facts.answer("Does Brazil have more people than Russia?")!!
+        assertEquals("population", a.template)
+        assertTrue(a.text, Regex("""^Yes\. Brazil has more people than Russia: Brazil 21\d\.\d million \(20\d\d\) vs Russia 14\d\.\d million""").containsMatchIn(a.text))
+        matches("""^No\. Brazil has more people than Russia""", "Does Russia have more people than Brazil?")
+        matches("""^Yes\.""", "Does Russia have fewer people than Brazil?")
+    }
+
+    @Test fun `lan-rsn-002, a building's height against a lake's depth`() {
+        matches(
+            """^No\. Burj Khalifa is 828 m tall; Lake Baikal is 1,642 m deep at its deepest point, so its top would be about 814 m below the surface""",
+            "If you stood the Burj Khalifa on the deepest point of Lake Baikal, would its top stick out of the water?",
+        )
+    }
+
+    @Test fun `lan-ref-001 and lan-ref-005, award winner by year, host city`() {
+        matches("""2017: Kazuo Ishiguro\.""", "Who received the Nobel Prize in Literature in 2017?")
+        none("Who received the Nobel Prize in Literature?") // no year -> no fire
+        matches("""held in Rio de Janeiro""", "Which city hosted the 2016 Summer Olympics?")
+    }
+
+    @Test fun `lan-ref-004, lan-exp-006, lan-rsn-007, area, elevation with type and country, dates`() {
+        matches("""^Iceland \(.*\): area 103,004 km²""", "How big is Iceland in square kilometres?")
+        matches("""Tanzania; type: dormant volcano.*elevation 5,895 m""", "What is Kilimanjaro, how high is it, and is it a volcano?")
+        matches("""13 August 1961.*9 November 1989""", "In which year was the Berlin Wall built, and in which year did it come down?")
+    }
+
+    @Test fun `trv-002, plugs and voltage are one template`() {
+        matches("""Type C .*Type N .*127 V / 220 V""", "What plug type and voltage does Brazil use?")
+    }
+
+    @Test fun `every answer carries the source line`() {
+        matches("""The capital of Kenya is Nairobi\.\n\nSource: Wikidata \(CC0\), offline table as of 2026-10-06\.""", "What is the capital of Kenya?")
+    }
+
+    // ---- the trigger stays narrow ----
+
+    @Test fun `no fire on multi-slot overviews or explanation wording`() {
+        none("What are the key facts about Montenegro: capital, currency, coastline and how it became independent?")
+        none("Give me the essentials on Kenya: its location, capital, official languages and year of independence.")
+        none("Give me a quick overview of Singapore: where it is, how it became independent, and what languages people speak there.")
+        none("Describe Greenland: who governs it, its capital, roughly how many people live there, and how much of it is covered by ice.")
+        none("Tell me about Japan")
+        assertEquals(listOf("capital", "currency"), Facts.templates("What is the capital and currency of Peru?"))
+        none("What is the capital and currency of Peru?")
+    }
+
+    @Test fun `no fire on unsupported slots, set queries or an entity without the value`() {
+        none("Which is more densely populated, Japan or Germany, and by how much?")
+        none("Which countries are bigger than India by area?")
+        none("How long is the Great Wall of China, and can you really see it from the Moon?")
+        none("What is the capital of Lake Baikal?")
+        none("What is the population of Atlantis?")
+    }
+
+    @Test fun `no fire on health, danger or non-questions`() {
+        none("I'm at 4,000 m in the Andes with a headache and nausea. What should I do?")
+        none("Is it safe to go to La Paz with the altitude?")
+        none("I love the capital of France")
+    }
+
+    @Test fun `entities, longest name first, inner words never resolve twice, lone words must be capitalized`() {
+        assertEquals(listOf("Berlin Wall"), facts.factEntities("When was the Berlin Wall built?").map { it.n })
+        assertEquals(emptyList<String>(), facts.factEntities("what is the population of turkey?").map { it.n }) // r3: risk-list word
+        assertTrue(facts.factEntities("Which is longer, the Nile or the Amazon River?").isNotEmpty())
+    }
+
+    @Test fun `comparison needs two entities with the value, a which question gets the verdict without yes-no`() {
+        matches("""^Brazil has more people than Russia""", "Which has more people, Brazil or Russia?")
+        matches("""^No\. Brazil is larger by area than Iceland""", "Is Iceland bigger than Brazil?") // r3: "bigger than" -> area
+    }
+
+    @Test fun `lookup is fast (warm)`() {
+        facts.answer("How big is Iceland in square kilometres?")
+        val t0 = System.nanoTime()
+        repeat(200) { facts.answer("Does Brazil have more people than Russia?") }
+        assertTrue((System.nanoTime() - t0) / 1e6 / 200 < 5)
+    }
+
+    // ---- r2: data and trigger gates ----
+
+    @Test fun `r2 gate 1, no founding year for countries, the Berlin Wall keeps its dates`() {
+        none("When was Italy founded?")
+        none("When was the United States founded?")
+        matches("""13 August 1961""", "In which year was the Berlin Wall built, and in which year did it come down?")
+    }
+
+    @Test fun `r2 gate 2, population only when dated 2020 or later`() {
+        none("What is the population of the Netherlands?") // latest statement 2013
+        matches("""\((dated )?20(2\d)\)""", "What is the population of Iceland?")
+    }
+
+    @Test fun `r2 gate 3, no former or unbuilt entities, no out-of-range values, no answer for a name with two entities`() {
+        none("How long is the Bian River?")
+        none("How tall is X-Seed 4000?")
+        none("How big is Lake Agassiz?")
+        none("What is the population of Bandung?") // city and regency share the label
+        none("What is the capital of Georgia?") // the US state is not in the table
+    }
+
+    @Test fun `r2 gate 4, nickname aliases removed, every word of a name typed capitalised`() {
+        none("How tall is the White House?")
+        none("How big is Michigan?")
+        none("How high is the Cape?")
+        none("How long is the Green River?")
+        none("How many people live in Garden City?")
+        none("How tall is Trump Tower?")
+        // r4 rule 1 (kept in r5 rule D): a lowercase multi-word name that names exactly one entity resolves.
+        assertEquals(listOf("Lake Baikal"), facts.factEntities("how deep is lake baikal?").map { it.n })
+        assertEquals(listOf("Lake Baikal"), facts.factEntities("How deep is Lake Baikal?").map { it.n })
+    }
+
+    // ---- r3: trigger recall fixes ----
+
+    @Test fun `r3 fix 1, one-word country or capital names may be typed lowercase, risk words and multi-word names may not`() {
+        matches("""^Canada \(.*\): population 40 million""", "what is the population of canada")
+        matches("""Official language of Egypt: Arabic""", "what is the official language of egypt")
+        matches("""^Peru is in South America""", "what continent is peru on")
+        assertEquals(listOf("Paris"), facts.factEntities("how big is paris").map { it.n })
+        for (w in listOf("georgia", "turkey", "chad", "jordan", "china", "america")) none("what is the population of $w")
+        none("how tall is jordan")
+        assertEquals(listOf("Q3783"), facts.answer("how long is the amazon river")?.entities) // r4/r5 rule D: one exact label
+        none("how tall is kilimanjaro") // a mountain, not a country or capital
+        none("what is the population of south sudan") // not Sudan
+        matches("""^Mexico City \(""", "what is the population of mexico city") // r4/r5 rule D; not Mexico
+        none("what is the population of new mexico")
+    }
+
+    @Test fun `r3 fix 2, aliases China, UK, US, the Amazon`() {
+        assertEquals(listOf("Q148"), facts.factEntities("What is the population of China?").map { it.q })
+        for (q in listOf("What currency does the UK use?", "what currency does the uk use", "What is the capital of the U.K.?", "How big is Britain?"))
+            assertEquals(q, listOf("Q145"), facts.answer(q)?.entities)
+        for (q in listOf("What currency does the US use?", "How big is the U.S.?", "What is the population of the USA?", "How big is America?"))
+            assertEquals(q, listOf("Q30"), facts.answer(q)?.entities)
+        none("what is the population of the us") // lowercase "us" is a pronoun
+        matches("""^Nile is longer than Amazon River""", "Which is longer, the Nile or the Amazon?")
+        none("How big is Amazon?") // the company: only "the Amazon" is the river
+    }
+
+    @Test fun `r3 fix 3, size of, how big, bigger, larger, smaller than, which is bigger ask for area`() {
+        matches("""^Brazil \(.*\): area 8,515,767 km²""", "what's the size of brazil")
+        matches("""^Canada is larger by area than United States: Canada 9,984,670 km² .* vs United States 9,826,675 km²""", "Which is bigger, Canada or the United States?")
+        matches("""^Yes\. Brazil is larger by area than Iceland""", "Is Iceland smaller than Brazil?")
+        assertEquals(listOf("area"), Facts.templates("Which is larger, Peru or Chile?"))
+        assertEquals(listOf("population"), Facts.templates("Is Brazil's population larger than Russia's?")) // a named property wins
+    }
+
+    @Test fun `r3 fix 4, a name glued to an unknown capitalised word, or a compound property word, does not fire`() {
+        none("How tall is Paris Hilton?")
+        none("When was the Paris Agreement signed?")
+        none("How tall is the London Eye?")
+        none("How tall is Michael Jordan?")
+        none("How big is South America?")
+        // r6: Lake Chad is a table lake; the glued name answers for the lake, never the country Chad.
+        assertEquals(listOf("Q125309"), facts.answer("How big is Lake Chad?")?.entities)
+        none("What is the area code for London?")
+        assertEquals(emptyList<String>(), Facts.templates("What is your area of expertise?"))
+        matches("""^France \(.*\): population""", "What Is The Population Of France?") // title case still fires
+        matches("""^Danube \(.*\): length 2,850 km""", "How long is the Danube River?") // feature word of the same kind
+    }
+
+    @Test fun `r3 fix 5, a population dated before 2023 prints (dated YEAR), 2023 and later prints (YEAR)`() {
+        matches("""population 211\.4 million \(dated 2021\)\.""", "How many people live in Nigeria?")
+        matches("""population 40 million \(2023\)\.""", "What is the population of Canada?")
+    }
+
+    // ---- r5: two-sided neighbour guard, question openers, whole-label override ----
+
+    @Test fun `r5 rule A, a lowercase content word on either side of a name, no fire`() {
+        for (q in listOf(
+            "how tall is paris hilton", "how tall is a mont blanc pen", "how big is a cuba libre", "how big is a london broil",
+            "how tall is mount everest base camp", "how tall is the paris las vegas eiffel tower", "how high is the mexico city metro fare",
+            "how long is the rio grande valley", "how tall is the berlin wall memorial", "what language is the japan times written in",
+            "how many people live in jersey city", "what is the population of new england",
+        )) none(q)
+    }
+
+    @Test fun `r5 rule A, question, property, hedge, unit and comparison words, and another resolved name, are allowed neighbours`() {
+        assertEquals(listOf("Q513"), facts.answer("how tall is mount everest")?.entities)
+        matches("""^Mount Everest \(""", "how tall is mount everest in feet")
+        matches("""^Kuala Lumpur Tower \(.*\): height 421 m""", "how tall is the kuala lumpur tower") // the whole label
+        matches("""^Canada \(.*\): population 40 million""", "roughly how many people live in canada today?")
+        matches("""^The capital of Ethiopia is Addis Ababa""", "What's the capital city of Ethiopia?") // "capital city"
+        matches("""^Yes\. Chad is larger by area than Jordan""", "Is Chad bigger than Jordan by area?")
+        matches("""^Danube \(""", "how long is the danube river") // r3 feature-word exception, any casing
+    }
+
+    @Test fun `r5 rule A, a capitalised content word is checked too, on both sides and across punctuation`() {
+        none("How tall is Paris Hilton?")
+        none("Which language is spoken in Swiss schools?")
+        none("What is the population of Paris, the city of light?") // "city" is not part of the label
+        none("How big is Greater London?")
+    }
+
+    @Test fun `r5 rule B, whats, hows, wheres and size, capital, population of are questions without a question mark`() {
+        matches("""^The capital of Philippines is Manila""", "whats the capital of the philippines")
+        matches("""Wellington""", "capital of new zealand")
+        matches("""^Japan \(.*\): population""", "population of japan")
+        none("the capital of japan") // no opener, no "?"
+    }
+
+    @Test fun `r5 rule C, a whole multi-word label resolves even with a risk-list word, a lone risk word still does not`() {
+        matches("""^Lake Victoria \(.*\): area 68,100 km²""", "how big is lake victoria")
+        none("how big is victoria")
+        none("what is the population of georgia")
+    }
+
+    @Test fun `r5 rule D (r4 kept), safe lowercase multi-word names, typo-tolerant the`() {
+        matches("""^Mont Blanc \(.*\): elevation 4,806 m""", "how high is mont blanc")
+        assertNotNull(facts.answer("how high are the petronas towers"))
+        matches("""is Amsterdam""", "what is the capital of thw Netherlands?")
+    }
+
+    // ---- r6: five trigger fixes ----
+
+    @Test fun `r6 fix 1, opener typos whta, waht, wat, hwo, whats'`() {
+        matches("""^The capital of Chile is Santiago""", "waht is the capital of Chile")
+        none("waht is the capital of chile") // lowercase "chile" stays on the r3 risk list
+        matches("""^Canada \(.*\): population""", "whta is the population of Canada?")
+        matches("""^France \(.*\): area 643,801 km²""", "wat is the area of france")
+        matches("""^Burj Khalifa \(.*\): height 828 m""", "hwo tall is the burj khalifa")
+        matches("""^The capital of Peru is Lima""", "whats' the capital of peru")
+        none("Wat Arun is a temple") // only the opening word of a question frame
+    }
+
+    @Test fun `r6 fix 2, official language(s) of X and continent of X without what or a question mark`() {
+        matches("""^Official languages of Brazil: .*Portuguese""", "official language of brazil")
+        matches("""French, German, Italian and Romansh""", "official languages of switzerland")
+        matches("""^Kenya is in Africa\.""", "continent of kenya")
+        none("language of brazil") // not one of the listed openers
+    }
+
+    @Test fun `r6 fix 3, what or which continent is a place in or on gives its one country's continent`() {
+        matches("""^Addis Ababa is in Ethiopia, which is in Africa\.""", "which continent is Addis Ababa in?")
+        matches("""^Nairobi is in Kenya, which is in Africa\.""", "what continent is nairobi on")
+        none("What continent is Paris on?") // France spans several continents (overseas regions)
+    }
+
+    @Test fun `r6 fix 4, what country or countries surround X asks for borders`() {
+        matches("""^Iran borders Afghanistan, .*Turkmenistan""", "what countries surround iran?")
+        matches("""^Lesotho borders South Africa\.""", "What country surrounds Lesotho")
+    }
+
+    @Test fun `r6 fix 5, which is taller or higher, two mountains or two structures, any casing`() {
+        matches("""^Aconcagua is taller than Mount Kilimanjaro: Aconcagua 6,962 m""", "which is higher, aconcagua or kilimanjaro")
+        matches("""^No\. K2 is taller than Aconcagua""", "is aconcagua higher than k2?")
+        matches("""^No\. CN Tower is taller than Eiffel Tower""", "is the eiffel tower taller than the cn tower?")
+        matches("""^Empire State Building is taller than Chrysler Building""", "which is taller, the empire state building or the chrysler building?")
+        none("which is higher, aconcagua or the burj khalifa") // a mountain and a building
+        none("which is taller, everest base camp or k2") // a side that is not one whole name
+        none("Which is taller, K2 or Everest?") // "Everest" alone is not a label or alias
+    }
+}
