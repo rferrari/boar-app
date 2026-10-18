@@ -160,6 +160,13 @@ class DeepResearchFollowUpTest {
         assertFalse(DeepResearch.isConversationRecap("Write a report about the conversation between Kennedy and Khrushchev"))
         assertFalse(DeepResearch.isConversationRecap("escreva um texto sobre a Revolução Francesa"))
         assertFalse(DeepResearch.isConversationRecap("write"))
+        // The document must follow the verb on the same line, as the single regex read it.
+        assertFalse(DeepResearch.isConversationRecap("write\na report of our conversation"))
+        assertFalse(DeepResearch.isConversationRecap("a report: write our conversation"))
+        // Linear: 20,000 characters of "write," took 2.7 s with the single regex.
+        val t = System.nanoTime()
+        assertFalse(DeepResearch.isConversationRecap("write,".repeat(3_333) + " our chat"))
+        assertTrue((System.nanoTime() - t) / 1e6 < 300)
     }
 
     @Test fun `plain chat writes a summary from the last answer, not a continue`() {
