@@ -36,6 +36,13 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+        <!-- Boar Labs: opens BOAR again after a crash, from a process of its own (labs/CrashRestart.kt). -->
+        <activity
+            android:name=".labs.RestartActivity"
+            android:process=":restart"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="false" />
         <!-- Engine bench and the eval:device runner, started from adb (am start -n …/team.sopa.boar.bench.BenchActivity). -->
         <activity
             android:name=".bench.BenchActivity"

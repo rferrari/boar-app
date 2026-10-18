@@ -109,12 +109,19 @@ object LabPrefs {
         // Boar Designer and Boar Press start on (LIVE, Oct 17); every other lab starts off until the user switches it on.
         LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault) }
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
+        restart.value = p.getBoolean("autoRestart", true)
     }
 
     /** The master switch at the bottom of Advanced tweaks: on by default in the Labs build; off, no lab shows anywhere. */
     var labsOn: Boolean
         get() = BuildConfig.EXPERIMENTAL_FEATURES && on.value
         set(v) { team.sopa.boar.app.DebugLog.settingChanged("labs.on", on.value, v); on.value = v; prefs?.edit()?.putBoolean("labs.on", v)?.apply() }
+
+    /** Open BOAR again after it crashes (CrashRestart); on by default. */
+    var autoRestart: Boolean
+        get() = restart.value
+        set(v) { team.sopa.boar.app.DebugLog.settingChanged("labs.autoRestart", restart.value, v); restart.value = v; prefs?.edit()?.putBoolean("autoRestart", v)?.apply() }
+    private val restart = androidx.compose.runtime.mutableStateOf(true)
 
     fun enabled(id: String) = switches[id] ?: false
 

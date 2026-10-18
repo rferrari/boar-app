@@ -26,6 +26,8 @@ object LabHooks {
     fun init(context: android.content.Context) {
         LabPrefs.init(context)
         LabContext.app = context.applicationContext
+        CrashRestart.install(context)
+        CrashRestart.noteKey(context)?.let { team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(context, it)) }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
         // About → credits: the engines Boar Labs ships and the models its labs use (android-native/NOTICE lists them too).
@@ -62,6 +64,14 @@ object LabHooks {
                 androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
             }
             androidx.compose.material3.Switch(LabPrefs.labsOn, { LabPrefs.labsOn = it },
+                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+        }
+        if (LabPrefs.labsOn) Row(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            Column(androidx.compose.ui.Modifier.weight(1f)) {
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.crash.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.crash.settingNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
+            }
+            androidx.compose.material3.Switch(LabPrefs.autoRestart, { LabPrefs.autoRestart = it },
                 colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
         }
     }
