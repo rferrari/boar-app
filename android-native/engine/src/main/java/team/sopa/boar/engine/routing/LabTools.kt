@@ -54,8 +54,9 @@ object LabTools {
     }
 
     /** Safety answers before the rest: Boar Cohazard's CO answer must win over a calculation or a fact in the same
-     * question ("How long can I run a propane heater in the camper at 0.5 kg per hour?"). Grid order within a rank. */
-    fun slotRank(labId: String): Int = if (labId == "cohazard") 0 else 1
+     * question ("How long can I run a propane heater in the camper at 0.5 kg per hour?"). Then Boar Polyglot: a question
+     * BOAR can't read gets its reply before a tool half-reads it. Grid order within a rank. */
+    fun slotRank(labId: String): Int = when (labId) { "cohazard" -> 0; "polyglot" -> 1; else -> 2 }
 
     /** The first item with an answer; one that throws is skipped. Both slots dispatch through this. */
     fun <T, R : Any> first(items: List<T>, run: (T) -> R?): R? = items.firstNotNullOfOrNull { runCatching { run(it) }.getOrNull() }

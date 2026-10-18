@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_polyglot_title" formatted="false">Boar Polyglot</string>
+    <string name="native_labs_polyglot_body" formatted="false">Avisa na hora quando você pergunta numa língua que o BOAR ainda não fala, em vez de uma resposta confusa.</string>
+    <string name="native_labs_polyglot_reply" formatted="false">Desculpe, o BOAR ainda não fala {{language}}. Pergunte em inglês ou português.</string>
+    <string name="native_labs_polyglot_answers" formatted="false">RESPONDE SOZINHO</string>
+    <string name="native_labs_polyglot_answersList" formatted="false">• Uma pergunta completa numa língua que não seja inglês, português ou espanhol\n• Outros alfabetos pelas letras: russo, ucraniano, chinês, japonês, coreano, árabe, hebraico, hindi, tailandês, grego e outros\n• Línguas no alfabeto latino (francês, alemão, italiano, holandês, polonês, turco) quando o detector de idioma do celular tem certeza</string>
+    <string name="native_labs_polyglot_try" formatted="false">EXPERIMENTE</string>
+    <string name="native_labs_polyglot_example1" formatted="false">Как долго нужно кипятить воду, чтобы она была безопасной?</string>
+    <string name="native_labs_polyglot_example2" formatted="false">烧水需要多长时间才能安全饮用？</string>
+    <string name="native_labs_polyglot_example3" formatted="false">Wie lange dauert es, bis das Wasser kocht?</string>
+    <string name="native_labs_polyglot_note" formatted="false">Mensagens curtas, agradecimentos e cumprimentos, nomes, citações, código e links vão para o modelo como sempre, e uma pergunta com inglês ou português no meio também (O que significa \'merci\'?). Uma continuação curta numa conversa em andamento também vai para o modelo. Espanhol é respondido como antes. Os detalhes da resposta dizem Ferramenta: language. Sem o detector de idioma do celular (Android 10 ou mais novo), só outros alfabetos recebem o aviso.</string>
+</resources>

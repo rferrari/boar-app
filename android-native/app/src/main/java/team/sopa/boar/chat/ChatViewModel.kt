@@ -477,7 +477,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 if (shown.isNotEmpty() || receipt != null) chats.setMessageMeta(answerId, metaOf(shown, receipt))
                 afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
                 chats.prune(settings.maxSavedSessions)
-                if (text.isNotBlank()) services.vault.answered(
+                // Boar Polyglot's "doesn't speak it yet" reply isn't an answer.
+                if (text.isNotBlank() && tool?.tool != team.sopa.boar.engine.routing.LanguageGate.TOOL) services.vault.answered(
                     sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
                     tokPerSec = receipt?.tokPerSec?.takeIf { instant == null }, newChat = isNewSession,
                 )
