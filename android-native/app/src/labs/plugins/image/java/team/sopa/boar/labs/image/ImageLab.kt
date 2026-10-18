@@ -200,7 +200,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(downloadPct = 0, error = null) }
         viewModelScope.launch {
             runCatching { store.download(ImageLab.MODEL) { p -> _state.update { it.copy(downloadPct = (p.bytesDone * 100 / p.bytesTotal.coerceAtLeast(1)).toInt()) } } }
-                .onFailure { e -> _state.update { it.copy(error = e.message) } }
+                .onFailure { _ -> _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.downloadFailed")) } }
             _state.update { it.copy(downloadPct = null) }
             refresh()
         }
@@ -234,7 +234,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
                     replacing?.takeIf { it != d.file }?.let { ImageLab.deleteDrawing(it) }
                     _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim(), seed = d.seed) }
                 }
-                .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = e.message) } }
+                .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.drawFailed")) } }
             refresh()
         }
     }

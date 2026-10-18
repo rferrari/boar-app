@@ -159,9 +159,9 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(t("native.labs.image.shape.$shape"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(0.8f))
                             canvases.forEach { cv ->
-                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label} · ~${it}s" }
+                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label}\n~${it}s" }
                                     ?: if (cv.w == cv.h && cv.w in ImageLab.SIZES) t("native.labs.image.size.${cv.w}") else cv.label
-                                Chip(label, cv == state.size, Modifier.weight(1f)) { vm.setSize(cv) }
+                                Chip(label, cv == state.size, Modifier.weight(1f), lines = 2) { vm.setSize(cv) }
                             }
                             repeat(3 - canvases.size) { Box(Modifier.weight(1f)) }
                         }
@@ -314,9 +314,9 @@ private fun aspectOf(f: File): Float =
 private fun Label(text: String) = Text(text, style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold)
 
 @Composable
-private fun Chip(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun Chip(label: String, selected: Boolean, modifier: Modifier, lines: Int = 1, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type.caption.copy(fontSize = 12.sp), color = if (selected) c.textAccentEmerald else c.textSecondary, maxLines = 1,
+    Text(label, style = Boar.type.caption.copy(fontSize = 12.sp), color = if (selected) c.textAccentEmerald else c.textSecondary, maxLines = lines, minLines = lines,
         modifier = modifier.clip(RoundedCornerShape(8.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
             .border(1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(horizontal = 6.dp, vertical = 10.dp),
         textAlign = androidx.compose.ui.text.style.TextAlign.Center)
