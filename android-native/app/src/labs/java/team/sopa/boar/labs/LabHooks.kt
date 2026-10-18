@@ -47,11 +47,13 @@ object LabHooks {
                 "GeoNames cities15000 (Boar Distance)" to "CC BY 4.0",
                 "r4to's offline facts, BOAR R&D (Boar Facts)" to "MIT",
                 "Wikidata facts table (Boar Facts)" to "CC0",
+                "r4to's verdict guard, BOAR R&D (Boar Guard)" to "MIT",
                 "r4to's CO hazard check, BOAR R&D (Boar Cohazard)" to "MIT",
             )
         }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
         team.sopa.boar.plugins.AnswerTools.tools = { LabRegistry.active.mapNotNull { it.answerTool } }
+        team.sopa.boar.plugins.AnswerChecks.checks = { LabRegistry.active.mapNotNull { it.answerCheck } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
