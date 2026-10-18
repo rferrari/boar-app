@@ -67,7 +67,7 @@
     <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
     <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
     <string name="native_about_post_offline" formatted="false">Um download na configuração. Depois, modo avião tudo bem: o BOAR responde com a biblioteca do seu celular, com o llama.cpp embutido, e mostra os artigos que usou.</string>
-    <string name="native_about_post_receipt" formatted="false">Cada resposta registra como rodou: o modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes. Meça o seu celular em Configurações → Ajustes avançados → Avaliação.</string>
+    <string name="native_about_post_receipt" formatted="false">Cada resposta registra como rodou: o modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes. Meça o seu celular em Menu → Avaliação.</string>
     <string name="native_about_post_budget" formatted="false">Antes de carregar um modelo, o BOAR confere se ele cabe na memória do seu celular. Os downloads ficam dentro de um limite de 50 GB.</string>
     <string name="native_about_post_open" formatted="false">Código aberto, MIT. O código, a lista de modelos e os scripts que montam os pacotes de conhecimento:</string>
     <string name="native_about_post_verify" formatted="false">As novidades saem só destes endereços. Confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
@@ -130,6 +130,8 @@
     <string name="native_telemetry_build" formatted="false">Build de CPU do motor</string>
     <string name="native_telemetry_appMemory" formatted="false">Memória do app agora</string>
     <string name="native_telemetry_storage" formatted="false">Armazenamento do BOAR</string>
+    <string name="native_telemetry_storageValue" formatted="false">{{used}} de {{limit}} do limite do BOAR</string>
+    <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} em uso agora</string>
     <string name="native_telemetry_chats" formatted="false">Conversas salvas</string>
     <string name="native_telemetry_evals" formatted="false">Avaliações neste celular</string>
     <string name="native_telemetry_lastEval" formatted="false">Última avaliação</string>
@@ -280,6 +282,20 @@
     <string name="native_tweaks_evaluation" formatted="false">Avaliação (para quem desenvolve)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Roda o conjunto de avaliação do BOAR neste celular e envia o relatório. Versões para quem desenvolve também a mostram no menu.</string>
     <string name="native_models_cancelDownload" formatted="false">Cancelar</string>
+    <string name="native_models_sort" formatted="false">Ordem</string>
+    <string name="native_models_sortSmart" formatted="false">Inteligente</string>
+    <string name="native_models_sortLastUsed" formatted="false">Usados por último</string>
+    <string name="native_models_sortAdded" formatted="false">Adicionados por último</string>
+    <string name="native_models_show" formatted="false">Mostrar</string>
+    <string name="native_models_filterAll" formatted="false">Todos</string>
+    <string name="native_models_filterOnPhone" formatted="false">Neste celular</string>
+    <string name="native_models_filterDownloading" formatted="false">Baixando</string>
+    <string name="native_models_filterMine" formatted="false">Adicionados por você</string>
+    <string name="native_models_emptyFilter" formatted="false">Nenhum modelo aqui. Escolha Todos para ver todos.</string>
+    <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
+    <string name="native_models_addedToast" formatted="false">Adicionado aos seus modelos. Baixe aqui ou no Catálogo de Modelos.</string>
+    <string name="native_models_inYourModels" formatted="false">Nos seus modelos</string>
+    <string name="native_models_useNow" formatted="false">Usar agora</string>
     <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
     <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
     <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
@@ -347,7 +363,7 @@
     <string name="native_chat_suggestions_b21" formatted="false">A dengue é pior na segunda vez?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Configurações, Ajustes avançados, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida no menu, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
     <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
@@ -360,7 +376,6 @@
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" foi adicionado à lista de modelos acima. Baixe-o por lá.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Interrompido. Resultados parciais salvos.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} de {{total}}: {{name}}</string>
-    <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
     <string name="native_sourceFootnotes_localIndex" formatted="false">FONTE</string>
     <string name="native_sourceFootnotes_yourDocuments" formatted="false">Seus documentos</string>
     <string name="native_drawer_answeringHint" formatted="false">Respondendo… pare a resposta para trocar de conversa.</string>
@@ -375,7 +390,12 @@
     <string name="native_setup_indexFailed" formatted="false">A criação do índice de busca parou. Tente de novo.</string>
     <string name="native_download_errorNoSource" formatted="false">Ainda não disponível para download. Importe o arquivo.</string>
     <string name="native_download_errorOffline" formatted="false">Esta versão do BOAR não tem acesso à rede. Importe o arquivo.</string>
-    <string name="native_download_errorStorage" formatted="false">Espaço livre insuficiente no celular. Libere espaço e tente de novo.</string>
+    <string name="native_download_errorStorage" formatted="false">O celular tem só {{free}} livres e o download precisa de {{needed}}. Libere espaço e tente de novo.</string>
+    <string name="native_download_errorBudget" formatted="false">O limite de {{budget}} do BOAR foi atingido: já são {{used}} em modelos. Remova um modelo primeiro. O celular ainda pode ter espaço.</string>
+    <string name="native_download_errorBudgetDownloading" formatted="false">O limite de {{budget}} do BOAR foi atingido: {{used}} em modelos e {{downloading}} baixando. Remova um modelo ou cancele um download. O celular ainda pode ter espaço.</string>
+    <string name="native_drawerStats_ramBoar" formatted="false">O BOAR usa {{app}} da memória do celular</string>
+    <string name="native_drawerStats_diskLimit" formatted="false">Limite do BOAR, não do celular</string>
+    <string name="native_drawerStats_diskDownloading" formatted="false">Limite do BOAR · {{size}} baixando</string>
     <string name="native_download_errorSizeChanged" formatted="false">O servidor agora tem um arquivo diferente do que esta versão do BOAR espera. Importe o arquivo ou atualize o app.</string>
     <string name="native_download_errorPaused" formatted="false">O download pausou (sem dados). Verifique a conexão e tente de novo.</string>
     <string name="native_download_errorChecksum" formatted="false">O arquivo não bateu com o checksum e foi removido. Tente o download de novo.</string>

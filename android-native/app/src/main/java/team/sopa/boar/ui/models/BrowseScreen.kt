@@ -53,7 +53,13 @@ import team.sopa.boar.ui.theme.Boar
  * can run are listed (HfQuery). The network is used only while this page is open.
  */
 @Composable
-fun BrowseScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
+fun BrowseScreen(
+    state: ModelsState,
+    vm: ModelsViewModel,
+    /** Download and Use on each added file; off in setup, which picks the added model itself. */
+    rowActions: Boolean = true,
+    onBack: () -> Unit,
+) {
     val c = Boar.colors
     val keyboard = LocalSoftwareKeyboardController.current
     var query by rememberSaveable { mutableStateOf(state.hfQuery) }
@@ -64,6 +70,7 @@ fun BrowseScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
     val nearEnd by remember { derivedStateOf { list.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let { it >= list.layoutInfo.totalItemsCount - 3 } == true } }
     LaunchedEffect(nearEnd, state.hfNext, state.hfSearching) { if (nearEnd && state.hfNext != null && !state.hfSearching) vm.hfMore() }
 
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
@@ -90,14 +97,15 @@ fun BrowseScreen(state: ModelsState, vm: ModelsViewModel, onBack: () -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(t("native.browse.ctaNote"), style = Boar.type.subtext, color = c.textMuted)
                     state.hfError?.let { Text(it, style = Boar.type.subtext, color = c.crimson400) }
-                    state.hfAdded?.let { Text(t("modelBrowser.addedMessage", "label" to it), style = Boar.type.subtext, color = c.textAccentEmerald) }
                     if (!state.hfSearching && state.hfError == null && state.hfSearched && state.hfResults.isEmpty() && state.hfNext == null)
                         Text(t("native.browse.empty"), style = Boar.type.body, color = c.textMuted)
                 }
             }
-            items(state.hfResults, key = { it.id }) { r -> RepoCard(r, state, vm) }
+            items(state.hfResults, key = { it.id }) { r -> RepoCard(r, state, vm, rowActions) }
             if (state.hfSearching) item { Busy(if (state.hfResults.isEmpty()) "…" else t("native.browse.more")) }
         }
+    }
+    if (rowActions) state.toast?.let { androidx.compose.runtime.LaunchedEffect(it) { team.sopa.boar.ui.Toasts.show(it); vm.toastShown() } }
     }
 }
 
@@ -111,7 +119,7 @@ private fun sizeLabel(s: HfQuery.Size): String = when (s) {
 }
 
 @Composable
-private fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val c = Boar.colors
     // Wraps: scrolling sideways cut the first and last chips at the edges (Large text, Oct 15).
     @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -128,7 +136,7 @@ private fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected:
 }
 
 @Composable
-private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel) {
+private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel, rowActions: Boolean) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         // Only the header opens and closes the repo; tapping a file below doesn't collapse it.
@@ -150,9 +158,35 @@ private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel)
                             if (f.sha256 == null) t("modelBrowser.noChecksum") else null).joinToString(" · "),
                             style = Boar.type.micro, color = if (f.filename == rec) c.textAccentEmerald else c.textDim)
                     }
-                    SmallButton(t("modelBrowser.addButton")) { vm.hfAdd(r.id, f) }
+                    FileAction(r.id, f, state, vm, rowActions)
                 }
             }
         }
+    }
+}
+
+/**
+ * What a file row offers, following the model in Models: Add, then Download (with its progress and a cancel), then
+ * Use now, then ✓ Active. A file already in the list (added before, or in BOAR's own catalog) is never added twice.
+ */
+@Composable
+private fun FileAction(repo: String, f: HfBrowser.GgufFile, state: ModelsState, vm: ModelsViewModel, rowActions: Boolean) {
+    val c = Boar.colors
+    val asset = remember(repo, f) { runCatching { HfBrowser.toAsset(repo, f) }.getOrNull() }
+    val item = asset?.let { a -> state.items.firstOrNull { it.id == a.id || it.filename == a.filename } }
+    val row = item?.let { state.rows[it.id] }
+    if (!rowActions || item == null) { SmallButton(t("modelBrowser.addButton")) { vm.hfAdd(repo, f) }; return }
+    when {
+        row?.downloading == true -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Busy("%.0f%%".format(row.progress * 100))
+            Text("✕", style = Boar.type.body, color = c.crimson400, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { vm.cancelDownload(item) }.padding(4.dp))
+        }
+        row?.present != true -> Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            SmallButton(t(if (row?.error != null) "catalogItemCard.retryDownload" else "catalogItemCard.downloadAsset")) { vm.download(item) }
+            Text(row?.error ?: t("native.models.inYourModels"), style = Boar.type.micro, color = if (row?.error != null) c.crimson400 else c.textDim)
+        }
+        item.id == state.activeLlm -> Check(t("catalogItemCard.activeNote"))
+        state.activating == item.id -> Busy(t("catalogItemCard.loadingModel"))
+        else -> SmallButton(t("native.models.useNow"), enabled = state.activating == null) { vm.use(item) }
     }
 }

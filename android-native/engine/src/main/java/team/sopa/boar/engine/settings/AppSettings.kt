@@ -10,6 +10,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import team.sopa.boar.engine.EngineTweaks
 import java.io.File
 
@@ -55,6 +56,19 @@ class AppSettings(private val file: File) {
         put("activeModelId", JsonObject(m))
     }
 
+    /** When each model was last loaded to answer ([MODEL_LAST_USED]) or added/downloaded ([MODEL_ADDED]): epoch ms by id. */
+    fun modelTimes(key: String): Map<String, Long> =
+        (data[key] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.longOrNull?.let { k to it } }?.toMap() ?: emptyMap()
+    fun stampModel(key: String, id: String, at: Long = System.currentTimeMillis()) = update {
+        val m = (this[key] as? JsonObject)?.toMutableMap() ?: mutableMapOf()
+        m[id] = JsonPrimitive(at)
+        put(key, JsonObject(m))
+    }
+
+    /** The Models screen's sort and filter (ModelOrder names); null is the default (Smart, All). */
+    var modelSort: String? get() = str("modelCatalogSort"); set(v) = set("modelCatalogSort", v?.let(::JsonPrimitive))
+    var modelFilter: String? get() = str("modelCatalogFilter"); set(v) = set("modelCatalogFilter", v?.let(::JsonPrimitive))
+
     /** modelRoleAssignments: role ("fast", "general"…) to model id. */
     fun modelRoleAssignments(): Map<String, String> =
         (data["modelRoleAssignments"] as? JsonObject)?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.contentOrNull?.ifEmpty { null }?.let { k to it } }?.toMap() ?: emptyMap()
@@ -82,8 +96,10 @@ class AppSettings(private val file: File) {
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
-            "freeMemoryInBackground", "freeMemoryAfterMinutes",
+            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
         )
+        const val MODEL_LAST_USED = "modelLastUsedAt"
+        const val MODEL_ADDED = "modelAddedAt"
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024

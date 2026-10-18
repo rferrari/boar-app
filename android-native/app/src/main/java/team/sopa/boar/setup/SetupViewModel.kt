@@ -272,7 +272,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 val transient = e is AssetStore.DownloadException.Paused || (e is IOException && e !is AssetStore.DownloadException)
                 if (transient && attempt++ < 3) { delay(5_000L * attempt); continue }
-                update(a) { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), team.sopa.boar.engine.UserErrors.downloadKey(e)), verifying = false, storage = e is AssetStore.DownloadException.Storage) }
+                update(a) { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), team.sopa.boar.engine.UserErrors.downloadKey(e), *team.sopa.boar.engine.UserErrors.downloadArgs(e)), verifying = false, storage = e is AssetStore.DownloadException.Storage) }
                 return false
             }
         }

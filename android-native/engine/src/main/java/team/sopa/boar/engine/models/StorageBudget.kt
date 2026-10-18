@@ -23,9 +23,23 @@ object StorageBudget {
     sealed interface Check {
         val projectedBytes: Long
         data class Ok(override val projectedBytes: Long) : Check
-        data class Refused(val reason: Reason, override val projectedBytes: Long, val message: String) : Check
+        /**
+         * [usedBytes]: what BOAR already holds on disk; [downloadingBytes]: the full size of other downloads running;
+         * [neededBytes]: what this download still has to fetch; [freeDiskBytes]: the phone's free space, when known.
+         */
+        data class Refused(
+            val reason: Reason,
+            override val projectedBytes: Long,
+            val message: String,
+            val budgetBytes: Long = 0,
+            val usedBytes: Long = 0,
+            val downloadingBytes: Long = 0,
+            val neededBytes: Long = 0,
+            val freeDiskBytes: Long? = null,
+        ) : Check
     }
 
+    /** BUDGET: BOAR's own storage limit is reached (the phone may have room). DISK: the phone itself lacks space. */
     enum class Reason { BUDGET, DISK }
 
     fun check(input: Input): Check {
@@ -35,6 +49,8 @@ object StorageBudget {
                 Reason.BUDGET, projected,
                 "Not enough room in BOAR's ${Units.formatBytes(input.budgetBytes)} storage budget: this ${Units.formatBytes(input.downloadBytes)} download " +
                     "would bring the total to about ${Units.formatBytes(projected)}. Remove a model first.",
+                budgetBytes = input.budgetBytes, usedBytes = input.usedBytes, downloadingBytes = input.reservedBytes,
+                neededBytes = input.downloadBytes, freeDiskBytes = input.freeDiskBytes,
             )
         }
         val stillNeeded = maxOf(input.downloadBytes - input.alreadyDownloadedBytes, 0L)
@@ -44,6 +60,8 @@ object StorageBudget {
                 Reason.DISK, projected,
                 "Not enough free space on this phone: the download needs ${Units.formatBytes(stillNeeded)} and only " +
                     "${Units.formatBytes(free)} is free. Free up space or remove a model first.",
+                budgetBytes = input.budgetBytes, usedBytes = input.usedBytes, downloadingBytes = input.reservedBytes,
+                neededBytes = stillNeeded, freeDiskBytes = free,
             )
         }
         return Check.Ok(projected)

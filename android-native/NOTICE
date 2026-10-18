@@ -10,6 +10,11 @@ AndroidLM — https://github.com/Phineas1500/AndroidLM
   with a document-frequency cut, whole-index BM25 with a title-column weight and a popularity prior, titles
   resolved through redirects, and per-article passages. BOAR's changes and additions are described in that file.
 
+BOAR R&D (r4to) — https://github.com/r4topunk
+  MIT License. The health and first-aid question detector in
+  engine/src/main/java/team/sopa/boar/engine/routing/QueryContext.kt is ported from src/routing/context.ts
+  (PR #85); health questions answer in Succinct because of it.
+
 llama.cpp / ggml — https://github.com/ggml-org/llama.cpp
   MIT License, Copyright (c) 2023-2026 The ggml authors. Git submodule under engine/src/main/cpp/llama.cpp.
 

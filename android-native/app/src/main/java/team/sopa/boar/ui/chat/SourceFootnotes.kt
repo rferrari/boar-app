@@ -73,7 +73,8 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(t("sourceFootnotes.localIndex"), style = mono, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
                         // Where the passage comes from ("Wikipedia — https://…"), never the internal id ("pack:wiki-vital5:…").
-                        Text(s.source ?: if (s.docId?.startsWith("pack:") == true) s.title else t("native.sourceFootnotes.yourDocuments"),
+                        // "Your documents" only for the user's own (DocumentImport's "custom-…" ids); BOAR's built-in passages name their title.
+                        Text(s.source ?: if (s.docId?.startsWith("custom-") == true) t("native.sourceFootnotes.yourDocuments") else s.title,
                             style = mono, color = c.textDim, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
                     Text(s.body, style = mono.copy(lineHeight = mono.fontSize * 1.45f), color = c.textSecondary, maxLines = 6, overflow = TextOverflow.Ellipsis)

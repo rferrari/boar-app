@@ -38,6 +38,8 @@ import java.io.File
  */
 class BoarServices private constructor(private val context: Context) {
     private val files = context.filesDir
+    /** The app's files dir, where models, packs and the chat database live. */
+    val filesDir: java.io.File get() = files
     val settings = AppSettings(File(files, "settings.json"))
     private val baseCatalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     private val discoveredFile = File(files, "discovered_models.json")
@@ -74,7 +76,7 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addDiscovered(asset: CatalogAsset) = synchronized(this) {
         val all = discovered()
-        if (all.none { it.id == asset.id }) writeDiscovered(all + asset)
+        if (all.none { it.id == asset.id }) { writeDiscovered(all + asset); settings.stampModel(AppSettings.MODEL_ADDED, asset.id) }
         ownCatalog = withDiscovered()
     }
 
@@ -310,6 +312,7 @@ class BoarServices private constructor(private val context: Context) {
                 residentId = asset.id
                 openedContext = params.nCtx
                 settings.lastLoadedModelId = asset.id
+                settings.stampModel(AppSettings.MODEL_LAST_USED, asset.id)
             }
             SessionEngine(session!!, tweaks.thinkingEnabled)
         }

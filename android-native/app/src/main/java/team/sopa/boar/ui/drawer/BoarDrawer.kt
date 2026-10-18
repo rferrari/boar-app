@@ -24,6 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import team.sopa.boar.engine.models.Units
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -58,7 +61,8 @@ fun BoarDrawer(
     items: List<DrawerItem>,
     lastTokPerSec: Double?,
     storageUsed: () -> Long,
-    ramBudgetBytes: Long,
+    /** What the running downloads still have to fetch: they count against BOAR's limit before they land. */
+    downloading: () -> Long,
     storageBudgetBytes: Long,
     /** The memory and storage bars at the bottom: a technical detail (Advanced tweaks → Show technical details). */
     showStats: Boolean,
@@ -111,7 +115,7 @@ fun BoarDrawer(
                 }
             }
         }
-        if (showStats) FooterStats(lastTokPerSec, storageUsed, ramBudgetBytes, storageBudgetBytes)
+        if (showStats) FooterStats(lastTokPerSec, storageUsed, downloading, storageBudgetBytes)
     }
 }
 
@@ -127,29 +131,44 @@ private fun relativeTime(ms: Long): String {
 }
 
 /** "1.8/12GB": one decimal, a whole number without it, the unit once. */
+/** Decimal GB, like the catalog's model sizes and the phone's own storage screen. */
 private fun usage(used: Long, total: Long): String {
-    fun gb(b: Long) = if (b <= 0) "0" else String.format(Locale.US, "%.1f", b / 1073741824.0).removeSuffix(".0")
+    fun gb(b: Long) = if (b <= 0) "0" else String.format(Locale.US, "%.1f", b / 1e9).removeSuffix(".0")
     return "${gb(used)}/${gb(total)}GB"
 }
 
-private fun rssBytes(): Long = team.sopa.boar.app.AppMemory.residentBytes()
-
-/** DrawerFooterStats.tsx: the app's RAM and the models' disk use against BOAR's budgets, and the last answer's speed. */
+/**
+ * DrawerFooterStats.tsx, with real numbers: the phone's memory in use (BOAR's part highlighted) against the phone's
+ * total, and BOAR's disk use plus what running downloads still fetch against BOAR's own storage limit, which the
+ * caption names so it isn't read as the phone's space. Then the last answer's speed.
+ */
 @Composable
-private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, ramBudget: Long, storageBudget: Long) {
+private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloading: () -> Long, storageBudget: Long) {
     val c = Boar.colors
-    var rss by remember { mutableLongStateOf(0L) }
+    val ctx = LocalContext.current
+    var app by remember { mutableLongStateOf(0L) }
+    var phone by remember { mutableStateOf(team.sopa.boar.app.AppMemory.Phone(0L, 0L)) }
     var disk by remember { mutableLongStateOf(0L) }
+    var fetching by remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {
         while (true) {
-            withContext(Dispatchers.IO) { rss = rssBytes(); disk = storageUsed() }
+            withContext(Dispatchers.IO) {
+                app = team.sopa.boar.app.AppMemory.residentBytes(); phone = team.sopa.boar.app.AppMemory.phone(ctx)
+                disk = storageUsed(); fetching = downloading()
+            }
             delay(5000)
         }
     }
     Column(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
-        Bar(t("drawerFooterStats.ram"), rss, ramBudget, c.emerald400)
-        Bar(t("drawerFooterStats.disk"), disk, storageBudget, c.cyan400)
+        Bar(t("drawerFooterStats.ram"), listOf(minOf(app, phone.usedBytes) to c.emerald400, maxOf(phone.usedBytes - app, 0L) to c.textDim), phone.totalBytes,
+            usage(phone.usedBytes, phone.totalBytes))
+        Caption(t("native.drawerStats.ramBoar", "app" to Units.formatBytes(app, Locale.getDefault())))
+        Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)), storageBudget, usage(disk + fetching, storageBudget))
+        Caption(
+            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.getDefault()))
+            else t("native.drawerStats.diskLimit"),
+        )
         if (lastTokPerSec != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
             Text("●", fontSize = 8.sp, color = c.cyan400)
             Text(t("drawerFooterStats.lastQuery", "rate" to String.format(Locale.US, "%.1f", lastTokPerSec)), style = Boar.type["mono.xs"].copy(fontSize = 9.sp),
@@ -159,14 +178,25 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, ramBudg
 }
 
 @Composable
-private fun Bar(label: String, used: Long, total: Long, color: Color) {
+private fun Caption(text: String) =
+    Text(text, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = Boar.colors.textDim, modifier = Modifier.padding(start = 46.dp))
+
+/** A bar of stacked [parts] (bytes, color) out of [total]; red when they pass it. */
+@Composable
+private fun Bar(label: String, parts: List<Pair<Long, Color>>, total: Long, text: String) {
     val c = Boar.colors
-    val frac = if (total > 0) used.toFloat() / total else 0f
+    val sum = parts.sumOf { it.first }
+    val over = total > 0 && sum > total
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.widthIn(min = 40.dp))
-        Box(Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
-            Box(Modifier.fillMaxWidth(frac.coerceIn(0f, 1f)).fillMaxHeight().background(if (frac > 1f) c.crimson500 else color))
+        Row(Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
+            if (total > 0) parts.forEach { (bytes, color) ->
+                val frac = (bytes.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f)
+                if (frac > 0f) Box(Modifier.weight(frac).fillMaxHeight().background(if (over) c.crimson500 else color))
+            }
+            val rest = if (total > 0) 1f - (sum.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f) else 1f
+            if (rest > 0f) Box(Modifier.weight(rest))
         }
-        Text(usage(used, total), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textMuted, maxLines = 1)
+        Text(text, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textMuted, maxLines = 1)
     }
 }

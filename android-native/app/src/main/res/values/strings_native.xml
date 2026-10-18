@@ -67,7 +67,7 @@
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
     <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
-    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Settings → Advanced tweaks → Evaluation.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Menu → Evaluation.</string>
     <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget.</string>
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
     <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
@@ -130,6 +130,8 @@
     <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
     <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
     <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
+    <string name="native_telemetry_storageValue" formatted="false">{{used}} of BOAR\'s {{limit}} limit</string>
+    <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
     <string name="native_telemetry_chats" formatted="false">Chats saved</string>
     <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
     <string name="native_telemetry_lastEval" formatted="false">Last evaluation</string>
@@ -280,6 +282,20 @@
     <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
     <string name="native_models_cancelDownload" formatted="false">Cancel</string>
+    <string name="native_models_sort" formatted="false">Sort</string>
+    <string name="native_models_sortSmart" formatted="false">Smart</string>
+    <string name="native_models_sortLastUsed" formatted="false">Last used</string>
+    <string name="native_models_sortAdded" formatted="false">Recently added</string>
+    <string name="native_models_show" formatted="false">Show</string>
+    <string name="native_models_filterAll" formatted="false">All</string>
+    <string name="native_models_filterOnPhone" formatted="false">On this phone</string>
+    <string name="native_models_filterDownloading" formatted="false">Downloading</string>
+    <string name="native_models_filterMine" formatted="false">Added by you</string>
+    <string name="native_models_emptyFilter" formatted="false">No models here. Pick All to see every model.</string>
+    <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
+    <string name="native_models_addedToast" formatted="false">Added to your models. Download it here or in Model Catalog.</string>
+    <string name="native_models_inYourModels" formatted="false">In your models</string>
+    <string name="native_models_useNow" formatted="false">Use now</string>
     <string name="native_settings_embeddingOk" formatted="false">Search model (for packs and documents): {{model}} ✓</string>
     <string name="native_settings_embeddingMissing" formatted="false">Search model (for packs and documents): {{model}}, not on the phone. Run setup again from Recovery.</string>
     <string name="native_browse_discoverSubtitle" formatted="false">Browse Hugging Face models</string>
@@ -347,7 +363,7 @@
     <string name="native_chat_suggestions_b21" formatted="false">Is dengue worse the second time?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from Settings, Advanced tweaks, Evaluation, to compare installed models on the same questions, or drive it from a computer with npm run eval:device.</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from the menu, Evaluation, to compare installed models on the same questions, or drive it from a computer with npm run eval:device.</string>
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
@@ -360,7 +376,6 @@
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above. Download it from there.</string>
     <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
     <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>
-    <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
     <string name="native_sourceFootnotes_localIndex" formatted="false">FROM</string>
     <string name="native_sourceFootnotes_yourDocuments" formatted="false">Your documents</string>
     <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
@@ -375,7 +390,12 @@
     <string name="native_setup_indexFailed" formatted="false">Building the search index stopped. Try again.</string>
     <string name="native_download_errorNoSource" formatted="false">Not available for download yet. Import the file instead.</string>
     <string name="native_download_errorOffline" formatted="false">This build of BOAR has no network access. Import the file instead.</string>
-    <string name="native_download_errorStorage" formatted="false">Not enough free space on the phone. Free some space and retry.</string>
+    <string name="native_download_errorStorage" formatted="false">This phone has only {{free}} free and the download needs {{needed}}. Free some space and retry.</string>
+    <string name="native_download_errorBudget" formatted="false">BOAR\'s {{budget}} storage limit is reached: {{used}} of models already. Remove a model first. The phone itself may still have room.</string>
+    <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: {{used}} of models, {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
+    <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
+    <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
+    <string name="native_drawerStats_diskDownloading" formatted="false">BOAR\'s storage limit · {{size}} downloading</string>
     <string name="native_download_errorSizeChanged" formatted="false">The server now has a different file than this version of BOAR expects. Import the file or update the app.</string>
     <string name="native_download_errorPaused" formatted="false">The download paused (no data). Check your connection and try again.</string>
     <string name="native_download_errorChecksum" formatted="false">The file didn\'t match its checksum and was removed. Retry the download.</string>

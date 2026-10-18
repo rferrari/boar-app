@@ -155,6 +155,7 @@ private fun TelemetrySection(services: BoarServices) {
     val sharing = remember { team.sopa.boar.share.ResultsSharing(ctx, services.settings) }
     val d = remember { sharing.device() }
     val resident = remember { team.sopa.boar.app.AppMemory.residentBytes() }
+    val phoneMemory = remember { team.sopa.boar.app.AppMemory.phone(ctx) }
     val storage = remember { services.storageUsedBytes() }
     val evals = remember {
         java.io.File(ctx.filesDir, "eval").listFiles { f -> f.name.endsWith(".jsonl") }.orEmpty().sortedBy { it.lastModified() }
@@ -168,18 +169,21 @@ private fun TelemetrySection(services: BoarServices) {
                 "date" to java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(f.lastModified())))
         } ?: team.sopa.boar.ui.I18n.t(ctx, "native.telemetry.none")
     }
-    fun gb(b: Long) = String.format(java.util.Locale.US, "%.1f GB", b / 1073741824.0)
+    // Decimal GB, like the catalog's model sizes and the drawer.
+    fun gb(b: Long) = String.format(java.util.Locale.US, "%.1f GB", b / 1e9)
     Section(t("modelSetupScreen.sections.telemetry")) {
         val inf = d.cpuFeatures.orEmpty()
         listOf(
             t("native.telemetry.device") to listOfNotNull(d.brand, d.model).joinToString(" ") + " · Android ${d.osVersion}",
             t("native.telemetry.chip") to (team.sopa.boar.engine.eval.ShareResults.describeChipset(d) ?: "—"),
             t("native.telemetry.cores") to (team.sopa.boar.engine.eval.ShareResults.describeCores(d.coreMaxFreqKHz) ?: "${d.cpuCores ?: "—"}"),
-            t("native.telemetry.ram") to (d.ramBytes?.let(::gb) ?: "—"),
+            t("native.telemetry.ram") to (d.ramBytes?.let { total ->
+                if (phoneMemory.usedBytes > 0) t("native.telemetry.ramValue", "total" to gb(total), "used" to gb(phoneMemory.usedBytes)) else gb(total)
+            } ?: "—"),
             t("native.telemetry.features") to listOf("dotprod" to "asimddp", "i8mm" to "i8mm", "SVE" to "sve", "SME" to "sme").joinToString(" · ") { (n, f) -> (if (f in inf) "✓ " else "✗ ") + n },
             t("native.telemetry.build") to (team.sopa.boar.engine.BoarEngine.loadedVariant ?: "—"),
             t("native.telemetry.appMemory") to gb(resident),
-            t("native.telemetry.storage") to gb(storage),
+            t("native.telemetry.storage") to t("native.telemetry.storageValue", "used" to gb(storage), "limit" to gb(services.catalog.storageBudgetBytes)),
             t("native.telemetry.chats") to "${services.chats.listSessions().size}",
             t("native.telemetry.evals") to "${evals.size}",
             t("native.telemetry.lastEval") to last,

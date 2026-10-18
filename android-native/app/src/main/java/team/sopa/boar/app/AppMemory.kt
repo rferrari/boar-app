@@ -1,5 +1,7 @@
 package team.sopa.boar.app
 
+import android.app.ActivityManager
+import android.content.Context
 import java.io.File
 
 /**
@@ -62,4 +64,13 @@ object AppMemory {
     }.getOrDefault(0L)
 
     const val APP = "app"
+
+    /** The phone's memory: its total and what is in use now (by BOAR and everything else), as Android reports it. */
+    data class Phone(val totalBytes: Long, val usedBytes: Long)
+
+    fun phone(context: Context): Phone = runCatching {
+        val info = ActivityManager.MemoryInfo()
+        (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(info)
+        Phone(info.totalMem, (info.totalMem - info.availMem).coerceAtLeast(0L))
+    }.getOrDefault(Phone(0L, 0L))
 }

@@ -48,7 +48,7 @@ class AssetStore(
     sealed class DownloadException(message: String) : IOException(message) {
         class NoSource(asset: CatalogAsset) : DownloadException("${asset.label} isn't available for download yet. Import the file instead.")
         class OfflineBuild : DownloadException("This build of BOAR has no network permission. Import the file instead.")
-        class Storage(message: String) : DownloadException(message)
+        class Storage(message: String, val refused: StorageBudget.Check.Refused? = null) : DownloadException(message)
         class SizeChanged(asset: CatalogAsset, val serverBytes: Long) : DownloadException(
             "The download server now serves $serverBytes bytes for ${asset.label}, not the ${asset.sizeBytes} this version of BOAR expects. " +
                 "Skip it for now, import the file, or update the app.",
@@ -62,7 +62,6 @@ class AssetStore(
 
     private val json = Json { ignoreUnknownKeys = true }
     private val integrityFile get() = File(filesDir, "integrity.json")
-    private val activeDownloads = mutableMapOf<String, CatalogAsset>()
 
     fun fileOf(asset: CatalogAsset) = File(filesDir, asset.filename)
 
@@ -123,7 +122,7 @@ class AssetStore(
                 budgetBytes = catalog.storageBudgetBytes,
             ),
         )
-        if (check is StorageBudget.Check.Refused) throw DownloadException.Storage(check.message)
+        if (check is StorageBudget.Check.Refused) throw DownloadException.Storage(check.message, check)
 
         if (partialBytes == asset.sizeBytes) {
             log("${asset.id}: complete file already on disk, verifying instead of downloading")
@@ -249,6 +248,14 @@ class AssetStore(
     companion object {
         const val INACTIVITY_TIMEOUT_MS = 60_000
         private val STORAGE_DIRS = listOf("models/", "corpus/", "poi/", "SQLite/")
+
+        /** Downloads running now, shared by every AssetStore (the Models screen makes a new one after an import). */
+        private val activeDownloads = mutableMapOf<String, CatalogAsset>()
+
+        /** What the running downloads still have to fetch, as the drawer's disk line shows it. */
+        fun downloadingBytes(filesDir: File): Long = synchronized(activeDownloads) {
+            activeDownloads.values.sumOf { a -> maxOf(a.sizeBytes - File(filesDir, a.filename).length(), 0L) }
+        }
 
         private fun contentRangeTotal(conn: HttpURLConnection): Long? =
             conn.getHeaderField("Content-Range")?.substringAfterLast('/')?.trim()?.toLongOrNull()

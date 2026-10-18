@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.models.Compatibility
+import team.sopa.boar.engine.models.ModelOrder
 import team.sopa.boar.models.ModelsState
 import team.sopa.boar.models.ModelsViewModel
 import team.sopa.boar.models.Row as AssetRow
@@ -56,6 +57,7 @@ import kotlin.math.floor
 @Composable
 fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
@@ -68,16 +70,35 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
-            // Ready to use first (the active one on top), then what can be downloaded, each in catalog order. Knowledge
-            // packs are on the Knowledge screen, as in the Expo app (KnowledgePacks below); the embedding model is BOAR's
-            // own search engine, not a choice, so it's in Settings → Models.
-            val models = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
-                .sortedWith(compareByDescending<CatalogAsset> { it.id == state.activeLlm }.thenByDescending { state.rows[it.id]?.present == true })
+            // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
+            // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
+            // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
+            val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
+            val facts = ModelOrder.Facts(
+                active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
+                downloading = state.rows.filterValues { it.downloading }.keys, mine = state.mine, lastUsed = state.lastUsed, added = state.added,
+            )
+            val models = ModelOrder.apply(all, state.sort, state.filter, facts)
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ChipRow(t("native.models.sort"), listOf(
+                        ModelOrder.Sort.SMART to t("native.models.sortSmart"), ModelOrder.Sort.LAST_USED to t("native.models.sortLastUsed"),
+                        ModelOrder.Sort.ADDED to t("native.models.sortAdded"),
+                    ), state.sort, vm::setSort)
+                    ChipRow(t("native.models.show"), listOf(
+                        ModelOrder.Filter.ALL to t("native.models.filterAll"), ModelOrder.Filter.ON_PHONE to t("native.models.filterOnPhone"),
+                        ModelOrder.Filter.DOWNLOADING to t("native.models.filterDownloading"), ModelOrder.Filter.MINE to t("native.models.filterMine"),
+                    ), state.filter, vm::setFilter)
+                }
+            }
+            if (models.isEmpty()) item { Text(t("native.models.emptyFilter"), style = Boar.type.body, color = c.textMuted, modifier = Modifier.padding(vertical = 8.dp)) }
             items(models, key = { it.id }) { a ->
                 val active = if (a.kind == AssetKind.LLM) a.id == state.activeLlm else state.rows[a.id]?.present == true
                 CatalogCard(a, state.rows[a.id], active, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
             }
         }
+    }
+    state.toast?.let { androidx.compose.runtime.LaunchedEffect(it) { team.sopa.boar.ui.Toasts.show(it); vm.toastShown() } }
     }
 }
 
@@ -292,7 +313,7 @@ internal fun SmallButton(label: String, enabled: Boolean = true, onClick: () -> 
 }
 
 @Composable
-private fun Check(label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+internal fun Check(label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
     Text("✓", color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold)
     Text(label, style = Boar.type.caption, color = Boar.colors.textAccentEmerald)
 }
