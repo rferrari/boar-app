@@ -96,12 +96,12 @@ object QueryContext {
     // Seed phrases and wallet backups (the prompt test plan's trigger list, Oct 18; Spanish and hyphenated forms added the
     // same day): a wrong detail loses the coins.
     private val SEED_PHRASE = re(
-        """(?<![\p{L}\p{N}])(seed[- ]?phrases?|recovery (phrases?|words|seeds?)|mnemonic (phrases?|words|seeds?)|private keys?|wallet back ?ups?|back(ing|ed)? ?up (my|your|the|a|our) (\p{L}+ )?wallets?|frases?[- ](sementes?|de recupera[çc][ãa]o)|palavras[- ](de recupera[çc][ãa]o|sementes?)|chaves? privadas?|frases?[- ](semillas?|de recuperaci[óo]n)|palabras[- ](semillas?|de recuperaci[óo]n)|claves? privadas?|copias? de seguridad (de la|de mi|de tu|del) (\p{L}+ )?(cartera|billetera|monedero)s?|backup (da|de|das|de uma|da minha|da sua) (\p{L}+ )?carteiras?)(?![\p{L}\p{N}])""",
+        """(?<![\p{L}\p{N}])(seed[- ]?phrases?|recovery (phrases?|words|seeds?)|mnemonic (phrases?|words|seeds?)|wallet back ?ups?|back(ing|ed)? ?up (my|your|the|a|our) (\p{L}+ )?wallets?|frases?[- ](sementes?|de recupera[çc][ãa]o)|palavras[- ](de recupera[çc][ãa]o|sementes?)|frases?[- ](semillas?|de recuperaci[óo]n)|palabras[- ](semillas?|de recuperaci[óo]n)|copias? de seguridad (de la|de mi|de tu|del) (\p{L}+ )?(cartera|billetera|monedero)s?|backup (da|de|das|de uma|da minha|da sua) (\p{L}+ )?carteiras?)(?![\p{L}\p{N}])""",
         "iu",
     )
-    // "Mnemonic" and "12/24 words" count only next to a wallet or a coin: a mnemonic for the planets is not a seed.
+    // "Mnemonic", "private key" and "12/24 words" count only next to a wallet or a coin (an SSH private key is not one): a mnemonic for the planets is not a seed.
     private val SEED_WORDS = re(
-        """(?<![\p{L}\p{N}])(mnemonic|(12|24|twelve|twenty[- ]four)[- ]words?|(12|24|doze|vinte e quatro) palavras)(?![\p{L}\p{N}])""",
+        """(?<![\p{L}\p{N}])(mnemonic|private keys?|chaves? privadas?|claves? privadas?|(12|24|twelve|twenty[- ]four)[- ]words?|(12|24|doze|vinte e quatro) palavras)(?![\p{L}\p{N}])""",
         "iu",
     )
     private val CRYPTO_CONTEXT = re(

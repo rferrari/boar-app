@@ -25,18 +25,20 @@ class SeedPhraseQuestionTest {
             "¿Dónde guardo mi frase semilla?",
             "¿Cómo hago una copia de seguridad de mi billetera?",
             "Perdí mi frase de recuperación",
-            "¿Es seguro compartir mi clave privada?",
+            "¿Es seguro compartir la clave privada de mi billetera?",
+            "Where do I keep my bitcoin private key?",
             "Onde guardar a frase de recuperação?",
             "Onde guardar a frase de recuperacao?",
             "Perdi as palavras de recuperação, e agora?",
             "Posso tirar foto das 12 palavras da minha carteira?",
             "As 24 palavras do bitcoin ficam no celular?",
-            "O que é uma chave privada?",
+            "O que é uma chave privada de bitcoin?",
             "Como fazer backup da carteira?",
         ).forEach { assertTrue(it, QueryContext.isSeedPhraseQuestion(it)) }
     }
 
     @Test fun walletsWithoutABackupOrSecretDoNot() {
+        listOf("How do I generate an SSH private key?", "Onde fica a chave privada do certificado TLS?").forEach { assertFalse(it, QueryContext.isSeedPhraseQuestion(it)) }
         listOf(
             "What's a wallet?",
             "wallet for coins",

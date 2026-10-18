@@ -160,6 +160,8 @@ class DeepResearchFollowUpTest {
         assertFalse(DeepResearch.isConversationRecap("Write a report about the conversation between Kennedy and Khrushchev"))
         assertFalse(DeepResearch.isConversationRecap("escreva um texto sobre a Revolução Francesa"))
         assertFalse(DeepResearch.isConversationRecap("write"))
+        assertFalse(DeepResearch.isConversationRecap("Write a report on Bitcoin's history so far"))
+        assertFalse(DeepResearch.isConversationRecap("Make notes on all of this year's Ethereum upgrades"))
         // The document must follow the verb on the same line, as the single regex read it.
         assertFalse(DeepResearch.isConversationRecap("write\na report of our conversation"))
         assertFalse(DeepResearch.isConversationRecap("a report: write our conversation"))

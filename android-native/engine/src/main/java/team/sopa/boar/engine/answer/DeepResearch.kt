@@ -281,6 +281,12 @@ class DeepResearch(
             WRITE_UP_VERB.find(line)?.let { WRITE_UP_DOC.find(line, it.range.last + 1) } != null
         }
         // This chat, not a conversation named in the question ("the conversation between Kennedy and Khrushchev").
+        // A write-up must name the chat itself: "a report on Bitcoin's history so far" is about Bitcoin (CodeRabbit, Oct 18).
+        private val CHAT_REFERENCE = Regex(
+            "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|(what )?we('ve| have)? (talked about|discussed|covered)|" +
+                "(nossa|essa|esta) conversa|(o que )?(falamos|conversamos|discutimos))\\b",
+            RegexOption.IGNORE_CASE,
+        )
         private val RECAP_OBJECT = Regex(
             "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|all (of )?(this|that)|" +
                 "(what )?we('ve| have)? (talked about|discussed|covered)|so far|" +
@@ -294,7 +300,8 @@ class DeepResearch(
         /** A request to summarize this conversation ("Summarize our conversation in 3 bullet points", "resuma a nossa conversa"). */
         fun isConversationRecap(query: String): Boolean =
             query.split(Regex("\\s+")).count { it.isNotBlank() } <= 16 &&
-                (RECAP_ASK.containsMatchIn(query) || isWriteUpAsk(query)) && RECAP_OBJECT.containsMatchIn(query)
+                (RECAP_ASK.containsMatchIn(query) && RECAP_OBJECT.containsMatchIn(query) ||
+                    isWriteUpAsk(query) && CHAT_REFERENCE.containsMatchIn(query))
 
         /** A model declining instead of answering ("I'm sorry, but…", "Desculpe, não posso…"). */
         private val REFUSAL = Regex(
