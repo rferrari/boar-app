@@ -148,6 +148,20 @@ class DeepResearchFollowUpTest {
         assertFalse(DeepResearch.isConversationRecap("Summarize a chat about Ubuntu"))
     }
 
+    @Test fun `a write-up of this chat is a recap, a write-up of a subject is not`() {
+        assertTrue(DeepResearch.isConversationRecap("write an artifact about all our conversation"))
+        assertTrue(DeepResearch.isConversationRecap("Make a report of what we discussed"))
+        assertTrue(DeepResearch.isConversationRecap("create notes from this chat"))
+        assertTrue(DeepResearch.isConversationRecap("Give me a short document covering everything we talked about so far"))
+        assertTrue(DeepResearch.isConversationRecap("faça um relatório da nossa conversa"))
+        assertTrue(DeepResearch.isConversationRecap("escreva um documento sobre o que conversamos"))
+        assertFalse(DeepResearch.isConversationRecap("Write a report about the French Revolution"))
+        assertFalse(DeepResearch.isConversationRecap("make notes on photosynthesis"))
+        assertFalse(DeepResearch.isConversationRecap("Write a report about the conversation between Kennedy and Khrushchev"))
+        assertFalse(DeepResearch.isConversationRecap("escreva um texto sobre a Revolução Francesa"))
+        assertFalse(DeepResearch.isConversationRecap("write"))
+    }
+
     @Test fun `plain chat writes a summary from the last answer, not a continue`() {
         assertTrue(DeepResearch.isSummaryFollowUp("TL;DR"))
         assertTrue(DeepResearch.isSummaryFollowUp("a brief summary please"))

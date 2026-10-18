@@ -262,6 +262,13 @@ class DeepResearch(
         const val RECAP_ANSWER_CHARS = 600
 
         private val RECAP_ASK = Regex("\\b(summar(y|ize|ise)|recap|tl;?dr|resum[aoeir]*|resumo)\\b", RegexOption.IGNORE_CASE)
+        // "Write an artifact about our conversation", "faça um relatório da nossa conversa": a write-up of the chat is a
+        // recap too (it searched the library instead and saw only the last exchanges, Oct 18).
+        private val WRITE_UP_ASK = Regex(
+            "\\b(write|make|create|draft|prepare|compile|turn|put|give me|escrev\\p{L}*|fa[çc]a|fazer|cri[ae]\\p{L}*|mont\\p{L}*|ger[ae]\\p{L}*|prepar\\p{L}*)\\b" +
+                ".*\\b(report|document|doc|notes|artifact|write-?up|overview|memo|brief|article|outline|relat[óo]rio|documento|notas|artefato|texto|artigo)\\b",
+            RegexOption.IGNORE_CASE,
+        )
         // This chat, not a conversation named in the question ("the conversation between Kennedy and Khrushchev").
         private val RECAP_OBJECT = Regex(
             "\\b((our|this|my) (whole |entire )?(conversation|chat|discussion|session)|all (of )?(this|that)|" +
@@ -275,7 +282,8 @@ class DeepResearch(
 
         /** A request to summarize this conversation ("Summarize our conversation in 3 bullet points", "resuma a nossa conversa"). */
         fun isConversationRecap(query: String): Boolean =
-            query.split(Regex("\\s+")).count { it.isNotBlank() } <= 14 && RECAP_ASK.containsMatchIn(query) && RECAP_OBJECT.containsMatchIn(query)
+            query.split(Regex("\\s+")).count { it.isNotBlank() } <= 16 &&
+                (RECAP_ASK.containsMatchIn(query) || WRITE_UP_ASK.containsMatchIn(query)) && RECAP_OBJECT.containsMatchIn(query)
 
         /** A model declining instead of answering ("I'm sorry, but…", "Desculpe, não posso…"). */
         private val REFUSAL = Regex(
