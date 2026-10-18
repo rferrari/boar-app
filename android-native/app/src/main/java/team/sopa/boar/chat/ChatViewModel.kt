@@ -43,6 +43,8 @@ import team.sopa.boar.engine.routing.Profiles
 import team.sopa.boar.engine.routing.RoutingPreset
 import team.sopa.boar.engine.routing.TaskType
 import team.sopa.boar.engine.settings.AnswerLimit
+import team.sopa.boar.plugins.AnswerTools
+import team.sopa.boar.plugins.ToolResult
 
 /** A source as the chat shows it (and stores with the answer): the passage the model read, and its similarity to the question. */
 data class Source(val title: String, val source: String?, val relevance: Double?, val similarity: Double? = null, val docId: String? = null, val body: String = "")
@@ -307,6 +309,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val deep = _state.value.deepResearch
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
+            // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for Deep Research or a recap.
+            val tool = if (deep || aboutConversation(q, history, conversation)) null
+            else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
+            val instant = tool as? ToolResult.Instant
+            val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             fun onPiece(piece: String) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
@@ -318,11 +325,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             try {
-                val session = services.activeSession()
+                // An instant answer doesn't load the model.
+                val session = if (instant != null) null else services.activeSession()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = limit ?: settings.answerTokens(services.host.openedContext)
                 limited = budget
-                if (session == null) {
+                if (instant != null) {
+                    limited = null
+                    onPiece(instant.text)
+                } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = "no-model") }
                 } else if (deep || aboutConversation(q, history, conversation)) {
                     val research = deep
@@ -344,13 +355,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
                     limited = null
                     path = "adaptive"
-                    val r = adaptive(q, systemPrompt, styleReminder, history, ::onPiece)
+                    val r = adaptive(q, toolPrompt, styleReminder, history, ::onPiece)
                     sources = r.first
                     timedOut = r.second
                     metrics = r.third
                 } else {
                     val pipeline = AnswerPipeline(session, services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    pipeline.answer(AnswerRequest(q, systemPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
+                    pipeline.answer(AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
@@ -371,9 +382,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
-            val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.let { r ->
+            // An instant answer generated nothing: its receipt has the time and the tool, no speed.
+            val measured = if (instant != null) Receipt(totalMs = (System.nanoTime() - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0)
+            else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
+            val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = settings.personalityId ?: services.personalities.defaultId, path = path, task = task, checked = checked)
+                r.copy(style = settings.personalityId ?: services.personalities.defaultId, path = path, task = task, checked = checked, tool = tool?.tool)
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }
@@ -383,7 +397,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             chats.prune(settings.maxSavedSessions)
             if (text.isNotBlank()) services.vault.answered(
                 sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
-                tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
+                tokPerSec = receipt?.tokPerSec?.takeIf { instant == null }, newChat = isNewSession,
             )
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->

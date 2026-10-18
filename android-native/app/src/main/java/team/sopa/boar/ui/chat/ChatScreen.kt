@@ -535,19 +535,25 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
     }
 }
 
+/** A tool's instant answer generated nothing: "0.0 s · instant" instead of a speed. */
+private fun Receipt.instant() = tool != null && tokens == 0
+
 private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
+
+@Composable
+private fun receiptRate(r: Receipt) = if (r.instant()) t("native.receipt.instant") else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
 
 /** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
 @Composable
 private fun ReceiptShort(r: Receipt) =
-    Text(receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
+    Text(receiptShort(r, receiptRate(r)), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
         // Two lines with Large text rather than losing "tok/s" off the end.
         maxLines = 2, textAlign = TextAlign.End, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
-    val short = receiptShort(r, t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec)))
+    val short = receiptShort(r, receiptRate(r))
     Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.End,
         modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
 }
@@ -583,8 +589,9 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },
         t("chat.receipt.start") to ReceiptFormat.seconds(r.ttftMs),
         r.model?.let { t("chat.receipt.model") to it },
-        t("chat.receipt.speedLabel") to t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}"),
-        t("chat.receipt.words") to count(r.tokens),
+        r.tool?.let { t("native.receipt.tool") to it },
+        if (r.instant()) null else t("chat.receipt.speedLabel") to t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}"),
+        if (r.instant()) null else t("chat.receipt.words") to count(r.tokens),
         t("chat.receipt.total") to ReceiptFormat.seconds(r.totalMs),
     )
 }

@@ -35,6 +35,8 @@ import team.sopa.boar.engine.rag.OpenPack
 import team.sopa.boar.engine.rag.Packs
 import team.sopa.boar.engine.rag.Retriever
 import team.sopa.boar.engine.rag.WikiPack
+import team.sopa.boar.plugins.AnswerTools
+import team.sopa.boar.plugins.ToolResult
 import java.io.File
 
 /**
@@ -259,6 +261,10 @@ class DeviceEvalRunner(
         s: LlamaSession, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
+        // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
+        val toolStart = System.nanoTime()
+        val tool = AnswerTools.run(q.query, emptyList())
+        if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
@@ -268,7 +274,7 @@ class DeviceEvalRunner(
         var done: AnswerEvent.Done? = null
         var error: String? = null
         try {
-            pipeline.answer(AnswerRequest(q.query, systemPrompt, null, maxTokens)).collect { e ->
+            pipeline.answer(AnswerRequest(q.query, AnswerTools.systemPrompt(systemPrompt, tool), null, maxTokens)).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }
@@ -304,8 +310,22 @@ class DeviceEvalRunner(
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "tool" to tool?.tool,
         )
     }
+
+    /** A row a tool answered: its text, reason code answer:<tool> (as answer.ts's receipts), nothing generated or retrieved. */
+    private fun toolRow(
+        runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String, maxTokens: Int, residency: String, loadMs: Double, tool: ToolResult.Instant, ms: Double,
+    ) = json(
+        "modelId" to config.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to false, "reasonCodes" to listOf("answer:${tool.tool}"),
+        "retrievalUsed" to false, "modelSwitches" to 0, "crossMessageModelSwitch" to false, "modelResidency" to residency, "modelLoadMs" to loadMs,
+        "ttftMs" to ms, "totalLatencyMs" to ms, "tokensGenerated" to 0, "outcome" to "success", "runId" to runId, "evalSetVersion" to q.setVersion,
+        "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+        "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to tool.text, "retrievedTitles" to emptyList<String>(),
+        "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, emptyList()),
+        "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion, "tool" to tool.tool,
+    )
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),
@@ -325,7 +345,7 @@ class DeviceEvalRunner(
             "retrievedTitles", "expectedKbTitles", "expectedKbHit", "reasonCodes", "modelSwitches", "crossMessageModelSwitch",
             "modelResidency", "modelLoadMs", "ttftMs", "retrievalMs", "contextTokensBefore", "contextTokensAfter",
             "generationLatencyMs", "promptTokens", "promptMs", "cachedTokens", "predictedTokens", "predictedMs", "totalLatencyMs",
-            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion")
+            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion", "tool")
 
         fun toCsv(rows: List<JsonObject>): String =
             (listOf(CSV_COLUMNS.joinToString(",")) + rows.map { r -> CSV_COLUMNS.joinToString(",") { csvCell(r[it]) } }).joinToString("\n")

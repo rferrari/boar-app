@@ -60,6 +60,9 @@ interface LabPlugin {
 
     /** The engine slot: models this lab runs on its own engine, listed with the app's (team.sopa.boar.plugins.EnginePlugins). */
     val engine: team.sopa.boar.plugins.EngineProvider? get() = null
+
+    /** The tool slot: looks at the question before the model and answers it or adds context (team.sopa.boar.plugins.AnswerTools). */
+    val answerTool: team.sopa.boar.plugins.AnswerTool? get() = null
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */

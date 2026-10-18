@@ -63,6 +63,8 @@
     <string name="native_receipt_path_chat" formatted="false">Desta conversa</string>
     <string name="native_receipt_path_adaptive" formatted="false">Roteamento adaptativo</string>
     <string name="native_receipt_checked" formatted="false">verificado</string>
+    <string name="native_receipt_tool" formatted="false">Ferramenta</string>
+    <string name="native_receipt_instant" formatted="false">instantâneo</string>
     <string name="native_about_tagline" formatted="false">Suas perguntas.\nSeu celular. Sua IA.</string>
     <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
     <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
