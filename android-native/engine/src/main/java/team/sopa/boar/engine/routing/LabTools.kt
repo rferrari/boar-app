@@ -14,18 +14,21 @@ object LabTools {
 
     private fun notEnglish(q: String) = QueryContext.isPortugueseQuestion(q) || QueryContext.isSpanishQuestion(q)
 
+    /** A seed phrase or private key anywhere in the question: an instant fact or distance would drop that half of it. */
+    private fun seed(q: String) = QueryContext.isSeedPhraseQuestion(q)
+
     /** Boar Calculator: CalcShortcut, with its own NumGuard lexicon over this and the earlier user turns. */
     fun calc(query: String, userTurns: List<String>): Hit? = CalcShortcut.answer(query, userTurns)?.let { Hit(it.code, it.text) }
 
-    /** Boar Distance: English only; NumGuard's health lexicon over this and the earlier user turns keeps it off health. */
+    /** Boar Distance: English only, not a seed phrase; NumGuard's health lexicon over this and the earlier user turns keeps it off health. */
     fun distance(table: TravelDistance?, query: String, userTurns: List<String>): Hit? {
-        if (notEnglish(query) || (listOf(query) + userTurns).any(NumGuard::healthLexicon)) return null
+        if (notEnglish(query) || seed(query) || (listOf(query) + userTurns).any(NumGuard::healthLexicon)) return null
         return table?.answer(query)?.let { Hit("calculator-travel-distance", it.text) }
     }
 
-    /** Boar Facts: English only; QueryContext's health detector over this and the earlier user turns keeps it off health. */
+    /** Boar Facts: English only, not a seed phrase; QueryContext's health detector over this and the earlier user turns keeps it off health. */
     fun facts(table: Facts?, query: String, userTurns: List<String>): Hit? {
-        if (notEnglish(query) || (listOf(query) + userTurns).any(QueryContext::isHealthQuestion)) return null
+        if (notEnglish(query) || seed(query) || (listOf(query) + userTurns).any(QueryContext::isHealthQuestion)) return null
         return table?.answer(query)?.let { Hit("facts-${it.template}", it.text) }
     }
 
