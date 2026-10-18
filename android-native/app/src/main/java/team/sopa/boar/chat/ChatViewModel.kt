@@ -1,5 +1,7 @@
 package team.sopa.boar.chat
 
+import kotlinx.coroutines.plus
+
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -108,6 +110,13 @@ data class ChatState(
  */
 class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
+    /**
+     * Background work runs here: an unexpected error ends that job with a toast instead of closing the app, and an
+     * answer it cut short is closed with the generic error line (layer 1 of the error handler, [team.sopa.boar.app.Safe]).
+     */
+    private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
+        _state.update { it.copy(answeringId = null, activity = null, stopping = false, error = "generic") }
+    }
     private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
@@ -123,18 +132,45 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      */
     private var ideaPool: List<String> = emptyList()
 
+    private var preloading: Job? = null
+    /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
+    private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
+
     init {
         refreshModel()
         refreshTone()
         watchConnectivity(app)
         preload()
+        services.addBusyCheck(busy)
+    }
+
+    override fun onCleared() {
+        services.removeBusyCheck(busy)
+        super.onCleared()
+    }
+
+    /**
+     * Menu → Close BOAR: stops an answer (what it wrote so far is saved, as with Stop) and a title or summary, then
+     * frees the model. The caller closes the app after.
+     */
+    suspend fun closeAndFreeMemory(): Boolean {
+        stop()
+        // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
+        if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
+            showToast("native.drawer.closeStillSaving")
+            return false
+        }
+        stopBackground()
+        preloading?.cancel()
+        services.host.unload()
+        return true
     }
 
     /** Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. */
     private fun preload() {
         if (services.activeModel() == null) return
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
-        viewModelScope.launch(Dispatchers.Default) {
+        preloading = safeScope.launch(Dispatchers.Default) {
             runCatching { services.activeSession() }
             val crash = services.loadGuard.consume()
             _state.update { it.copy(loadingKey = null, loadCrash = crash) }
@@ -225,16 +261,19 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteSession(id: String) {
         // Not the chat still being answered: its answer would be saved into a deleted session.
         if (job?.isActive == true && _state.value.sessionId == id) return
-        viewModelScope.launch(Dispatchers.IO) { services.chats.deleteSession(id) }
+        // A database error (disk full, a damaged file) is told in a toast; uncaught here it would close the app.
+        safeScope.launch(Dispatchers.IO) { runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") } }
         if (_state.value.sessionId == id) newChat()
     }
 
     fun openSession(id: String) {
         if (job?.isActive == true) return
-        viewModelScope.launch {
-            val msgs = withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
-                UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta))
-            }
+        safeScope.launch {
+            val msgs = runCatching {
+                withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
+                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta))
+                }
+            }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
         }
     }
@@ -243,7 +282,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val current = _state.value.messages.firstOrNull { it.id == messageId }?.feedback
         val next = if (current == rating) null else rating
         _state.update { s -> s.copy(messages = s.messages.map { if (it.id == messageId) it.copy(feedback = next) else it }) }
-        viewModelScope.launch(Dispatchers.IO) { services.chats.setFeedback(messageId, next) }
+        // Once, on the first rating: ratings stay on the phone and nothing uses them yet.
+        if (next != null && !services.settings.ratingNoteShown) { services.settings.ratingNoteShown = true; showToast("native.chat.ratingNote") }
+        safeScope.launch(Dispatchers.IO) {
+            runCatching { services.chats.setFeedback(messageId, next) }.onFailure {
+                _state.update { s -> s.copy(messages = s.messages.map { if (it.id == messageId) it.copy(feedback = current) else it }) }
+                showToast("native.chat.dbFailed")
+            }
+        }
     }
 
     fun stop() {
@@ -266,24 +312,35 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (q.isEmpty() || job?.isActive == true) return
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
-        job = viewModelScope.launch(Dispatchers.Default) {
+        job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
             val isNewSession = _state.value.sessionId == null
-            // The question stands in as the title until the model writes one.
-            val sessionId = _state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, q.take(60)) }.id
             val prior = _state.value.messages.filter { it.text.isNotEmpty() }
             val userId = chats.newId()
             val answerId = chats.newId()
-            chats.addMessage(sessionId, "user", q, userId)
+            // A failed write (disk full) shows as a failed answer instead of closing the app.
+            val sessionId = try {
+                // The question stands in as the title until the model writes one.
+                (_state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, q.take(60)) }.id)
+                    .also { chats.addMessage(it, "user", q, userId) }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _state.update { it.copy(error = e.message ?: e.toString(), messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", "")) }
+                return@launch
+            }
             _state.update {
                 it.copy(sessionId = sessionId, error = null, answeringId = answerId, activity = Activity.Retrieving, liveTokPerSec = null,
                     messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(settings.personalityId, settings.customSystemPrompt)
+            // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
+            // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
+            val chosenStyle = settings.personalityId ?: services.personalities.defaultId
+            val style = if (chosenStyle == "detailed" && team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(q)) "succinct" else chosenStyle
+            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt)
             val history = ConversationHistory(
-                summary = chats.listSessions().firstOrNull { it.id == sessionId }?.summary,
+                summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
                 turns = HistoryBudget.budget(prior.takeLast(VERBATIM_MESSAGE_COUNT).map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) }),
             )
@@ -323,7 +380,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 val budget = limit ?: settings.answerTokens(services.host.openedContext)
                 limited = budget
                 if (session == null) {
-                    _state.update { it.copy(noModel = true, error = "no-model") }
+                    _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
                 } else if (deep || aboutConversation(q, history, conversation)) {
                     val research = deep
                     path = if (research) "deep" else "chat"
@@ -373,18 +430,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val stopped = stopRequested
             val receipt = receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = settings.personalityId ?: services.personalities.defaultId, path = path, task = task, checked = checked)
+                r.copy(style = style, path = path, task = task, checked = checked)
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }
-            chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
-            if (shown.isNotEmpty() || receipt != null) chats.setMessageMeta(answerId, metaOf(shown, receipt))
-            afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
-            chats.prune(settings.maxSavedSessions)
-            if (text.isNotBlank()) services.vault.answered(
-                sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
-                tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
-            )
+            try {
+                chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
+                if (shown.isNotEmpty() || receipt != null) chats.setMessageMeta(answerId, metaOf(shown, receipt))
+                afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
+                chats.prune(settings.maxSavedSessions)
+                if (text.isNotBlank()) services.vault.answered(
+                    sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
+                    tokPerSec = receipt?.tokPerSec, newChat = isNewSession,
+                )
+            } catch (e: Exception) {
+                // Not saved (disk full): the answer stays on screen with the error under it; the app keeps running.
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _state.update { it.copy(error = e.message ?: e.toString()) }
+            }
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, activity = null, stopping = false,
@@ -415,9 +478,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (stopped) return
         val s = services.settings
         val session = services.host.current() ?: return
-        val gen = SessionEngine(session)
+        // Reads the model's info: throws once the model was unloaded (switched in Models or Settings) after the answer.
+        val gen = runCatching { SessionEngine(session) }.getOrNull() ?: return
         if (isNewSession && s.autoGenerateTitles) {
-            background = viewModelScope.launch(Dispatchers.Default) {
+            background = safeScope.launch(Dispatchers.Default) {
                 runCatching { services.chats.setTitle(sessionId, Summarize.title(gen, all.first { it.role == "user" }.text)) }
                 runCatching { warmPrefix(session, systemPrompt, hadSources) }
             }
@@ -425,7 +489,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val older = all.dropLast(VERBATIM_MESSAGE_COUNT)
             if (older.isEmpty()) return
             val previous = services.chats.listSessions().firstOrNull { it.id == sessionId }?.summary
-            background = viewModelScope.launch(Dispatchers.Default) {
+            background = safeScope.launch(Dispatchers.Default) {
                 runCatching {
                     // Bounded like the answer's history: a whole detailed chat (thousands of tokens) took tens of seconds to read.
                     val turns = HistoryBudget.budget(older.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
@@ -516,6 +580,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         /** Messages sent verbatim as history (ChatScreen.tsx VERBATIM_MESSAGE_COUNT). */
         const val VERBATIM_MESSAGE_COUNT = 6
+        /** Close BOAR waits this long for a stopped answer to save what it wrote. */
+        const val CLOSE_WAIT_MS = 15_000L
 
         /**
          * A message about the conversation itself, answered from it without a search: "summarize our conversation", or

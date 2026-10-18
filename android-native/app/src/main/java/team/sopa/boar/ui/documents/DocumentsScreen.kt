@@ -118,9 +118,9 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
             packs()
         }
     }
-    exportError?.let { msg -> AlertDialog({ exportError = null }, confirmButton = { TextButton({ exportError = null }) { Text("OK") } },
+    exportError?.let { msg -> AlertDialog({ exportError = null }, confirmButton = { TextButton({ exportError = null }) { Text(t("native.common.ok")) } },
         title = { Text(t("personalDocumentsManager.exportFailedTitle")) }, text = { Text(msg) }) }
-    if (nameMissing) AlertDialog({ nameMissing = false }, confirmButton = { TextButton({ nameMissing = false }) { Text("OK") } },
+    if (nameMissing) AlertDialog({ nameMissing = false }, confirmButton = { TextButton({ nameMissing = false }) { Text(t("native.common.ok")) } },
         title = { Text(t("personalDocumentsManager.nameRequiredTitle")) }, text = { Text(t("personalDocumentsManager.nameRequiredMessage")) },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary)
     removing?.let { col ->

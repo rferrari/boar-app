@@ -81,7 +81,8 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         team.sopa.boar.app.DebugLog.foreground(false)
-        BoarServices.get(this).onBackground()
+        // A rotation or font change stops and starts the activity: that isn't leaving BOAR.
+        if (!isChangingConfigurations) BoarServices.get(this).onBackground()
         stoppedAt = android.os.SystemClock.elapsedRealtime() // not the wall clock: changing the time can't skip the lock
         // The equipped boar goes on the launcher now that BOAR is off screen (switching it while open closes the app).
         if (!isChangingConfigurations) BoarServices.get(this).vault.applyIcon()
@@ -264,6 +265,19 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             services.chats.listSessions()
         }
     }
+    // Menu → Close BOAR: the answer stops (what it wrote is saved), the model is freed, the app closes. Chats are saved.
+    val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    var confirmClose by remember { mutableStateOf(false) }
+    var closing by remember { mutableStateOf(false) }
+    fun closeBoar() {
+        if (closing) return
+        closing = true
+        scope.launch { if (runCatching { vm.closeAndFreeMemory() }.getOrDefault(true)) activity?.finishAndRemoveTask() else closing = false }
+    }
+    if (confirmClose) androidx.compose.material3.AlertDialog({ confirmClose = false },
+        text = { Text(t("native.drawer.closeConfirm")) },
+        confirmButton = { androidx.compose.material3.TextButton({ confirmClose = false; closeBoar() }) { Text(t("native.drawer.closeButton"), color = Boar.colors.crimson400) } },
+        dismissButton = { androidx.compose.material3.TextButton({ confirmClose = false }) { Text(t("common.cancel")) } })
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {
@@ -278,15 +292,17 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("knowledge", t("nav.knowledge")) { go { screen = "documents" } },
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
+                        DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
                         DrawerItem("about", t("chatScreen.drawerItems.about")) { go { screen = "about" } },
                     ).let { items ->
                         // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
                         if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
                         else items.take(3) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(3)
                     }.let { items ->
-                        // Boar Labs goes before About: About is always the menu's last item (Oct 16).
+                        // Boar Labs goes before Close BOAR and About: About is always the menu's last item (Oct 16).
                         val labs = team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } }
-                        items.filter { it.key != "about" } + labs + items.filter { it.key == "about" }
+                        val last = setOf("close", "about")
+                        items.filter { it.key !in last } + labs + items.filter { it.key in last }
                     },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },

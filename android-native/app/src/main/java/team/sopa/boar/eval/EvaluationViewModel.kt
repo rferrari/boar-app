@@ -1,5 +1,7 @@
 package team.sopa.boar.eval
 
+import team.sopa.boar.app.safeScope
+
 import android.app.Application
 import android.content.Intent
 import androidx.core.content.FileProvider
@@ -49,7 +51,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
     val state: StateFlow<EvaluationState> = _state
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             val configs = runner.installedModels().map { EvalConfig.Model(it.first.id, it.first.label) }
             val set = runner.evalSets().evalSet
             _state.update { it.copy(configs = configs, selected = configs.map { c -> c.id }.toSet(), queries = set, setVersion = set.firstOrNull()?.setVersion ?: "") }
@@ -65,7 +67,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
         val chosen = s.configs.orEmpty().filter { it.id in s.selected }
         if (s.running || chosen.isEmpty()) return
         _state.update { it.copy(running = true, stopping = false, rows = emptyList(), runId = null, savedPath = null, stopped = false, error = null) }
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             try {
                 // One model in memory at a time: the chat's is reloaded on its next message.
                 services.host.unload()
@@ -87,7 +89,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
     /** Opens the preview: nothing is sent until the user presses Share there. */
     fun previewShare() {
         if (_state.value.rows.isEmpty() || _state.value.running) return
-        viewModelScope.launch(Dispatchers.IO) { val d = sharing.device(); _state.update { it.copy(sharePreview = d, shareLog = emptyList(), shareOutcome = null) } }
+        safeScope.launch(Dispatchers.IO) { val d = sharing.device(); _state.update { it.copy(sharePreview = d, shareLog = emptyList(), shareOutcome = null) } }
     }
 
     fun closeShare() = _state.update { it.copy(sharePreview = null, shareLog = emptyList(), shareOutcome = null) }
@@ -96,7 +98,7 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value
         if (s.shareSending || s.rows.isEmpty()) return
         _state.update { it.copy(shareSending = true, shareLog = emptyList(), shareOutcome = null) }
-        viewModelScope.launch {
+        safeScope.launch {
             val started = System.currentTimeMillis()
             val outcome = sharing.share(s.rows) { info ->
                 _state.update { it.copy(shareLog = it.shareLog + info) }

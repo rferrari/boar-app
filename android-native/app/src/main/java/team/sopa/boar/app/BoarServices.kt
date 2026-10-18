@@ -223,17 +223,6 @@ class BoarServices private constructor(private val context: Context) {
         if (critical && host.residentIsExternal()) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
     }
 
-    /** BOAR left the screen: a Labs engine still idle after [BACKGROUND_RELEASE_MS] gives its memory back. */
-    fun onBackground() {
-        backgroundRelease?.cancel()
-        backgroundRelease = lifeScope.launch {
-            kotlinx.coroutines.delay(BACKGROUND_RELEASE_MS)
-            if (host.residentIsExternal()) host.unloadIfIdle("background ${BACKGROUND_RELEASE_MS / 60_000} min")
-        }
-    }
-
-    fun onForeground() { backgroundRelease?.cancel(); backgroundRelease = null }
-
     val retriever: Retriever by lazy {
         Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon })
     }
@@ -289,7 +278,7 @@ class BoarServices private constructor(private val context: Context) {
 
     inner class SessionHost : ModelHost {
         private val lock = Mutex()
-        private var session: TextModel? = null
+        @Volatile private var session: TextModel? = null
         private var filename: String? = null
         private var residentId: String? = null
 
@@ -357,6 +346,60 @@ class BoarServices private constructor(private val context: Context) {
             residentId = null
             if (id != null) DebugLog.modelUnload(id)
         }
+    }
+
+    // --- Free memory when I leave BOAR -------------------------------------------------------------------------
+
+    /** A Labs engine's release after [BACKGROUND_RELEASE_MS] in the background, apart from BOAR's own free-memory timer. */
+    private var labsRelease: kotlinx.coroutines.Job? = null
+    @Volatile private var inForeground = true
+    /** What uses the model besides a single generation: the chat's answer, its title or summary job, its preload. */
+    private val busyChecks = java.util.concurrent.CopyOnWriteArrayList<() -> Boolean>()
+
+    fun addBusyCheck(check: () -> Boolean) { busyChecks += check }
+    fun removeBusyCheck(check: () -> Boolean) { busyChecks -= check }
+    private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
+
+    /**
+     * BOAR left the screen: with Settings → Free memory when I leave BOAR on, the model is unloaded after the chosen
+     * delay (Auto 5 min). An answer, title or summary still running is waited for; coming back first cancels it. The
+     * chat stays as it is and the next question loads the model again.
+     */
+    @Synchronized fun onBackground() {
+        inForeground = false
+        backgroundRelease?.cancel()
+        backgroundRelease = null
+        labsRelease?.cancel()
+        // A Labs engine (its own process) still idle after BACKGROUND_RELEASE_MS gives its memory back, setting or not.
+        labsRelease = lifeScope.launch {
+            kotlinx.coroutines.delay(BACKGROUND_RELEASE_MS)
+            if (host.residentIsExternal()) host.unloadIfIdle("background ${BACKGROUND_RELEASE_MS / 60_000} min")
+        }
+        if (!settings.freeMemoryInBackground) return
+        val wait = team.sopa.boar.engine.settings.FreeMemory.delayMs(settings.freeMemoryAfterMinutes)
+        backgroundRelease = lifeScope.launch {
+            kotlinx.coroutines.delay(wait)
+            while (true) {
+                val d = team.sopa.boar.engine.settings.FreeMemory.decide(settings.freeMemoryInBackground, inForeground, host.current() != null, modelBusy())
+                when (d) {
+                    team.sopa.boar.engine.settings.FreeMemory.Decision.SKIP -> return@launch
+                    team.sopa.boar.engine.settings.FreeMemory.Decision.WAIT -> kotlinx.coroutines.delay(team.sopa.boar.engine.settings.FreeMemory.BUSY_POLL_MS)
+                    team.sopa.boar.engine.settings.FreeMemory.Decision.UNLOAD -> {
+                        host.unload()
+                        android.util.Log.i("BOAR", "model unloaded after ${wait / 1000} s in the background")
+                        return@launch
+                    }
+                }
+            }
+        }
+    }
+
+    @Synchronized fun onForeground() {
+        inForeground = true
+        backgroundRelease?.cancel()
+        backgroundRelease = null
+        labsRelease?.cancel()
+        labsRelease = null
     }
 
     /** Loads the active model if it isn't resident; null when no model is installed or it fails to load. */

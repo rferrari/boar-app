@@ -128,6 +128,8 @@ private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
         if (emb != null) Text(t(if (services.fileOf(emb).isFile) "native.settings.embeddingOk" else "native.settings.embeddingMissing", "model" to emb.shortName),
             style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("native.settings.openCatalog")) { onOpen("models") }
+        var free by remember { mutableStateOf(services.settings.freeMemoryInBackground) }
+        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; services.settings.freeMemoryInBackground = it }
     }
 }
 
@@ -405,6 +407,15 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
+        // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
+        var freeAfter by remember { mutableStateOf(s.freeMemoryAfterMinutes) }
+        Choices(
+            t("native.tweaks.freeMemoryAfter"),
+            listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.minutes", "n" to team.sopa.boar.engine.settings.FreeMemory.AUTO_MINUTES))) +
+                team.sopa.boar.engine.settings.FreeMemory.CHOICES_MINUTES.map { it to if (it == 0) t("native.tweaks.immediately") else t("native.tweaks.minutes", "n" to it) },
+            freeAfter,
+        ) { freeAfter = it; s.freeMemoryAfterMinutes = it }
+        Note(t("native.tweaks.freeMemoryAfterNote"))
         // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
         SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
         // Always here for builders, menu or not: run the evaluation set and submit a report.

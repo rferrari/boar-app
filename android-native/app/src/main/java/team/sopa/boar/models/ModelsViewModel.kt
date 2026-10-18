@@ -1,5 +1,7 @@
 package team.sopa.boar.models
 
+import team.sopa.boar.app.safeScope
+
 import android.app.ActivityManager
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -96,7 +98,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun fetchPage(request: Int, url: String, append: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             runCatching { HfBrowser.browse(url) }
                 .onSuccess { p -> _state.update { if (hfSearch.get() != request) it else it.copy(hfResults = ((if (append) it.hfResults else emptyList()) + p.repos).distinctBy { r -> r.id }, hfNext = p.next, hfSearching = false) } }
                 .onFailure { e -> _state.update { if (hfSearch.get() != request) it else it.copy(hfError = e.message ?: e.toString(), hfSearching = false) } }
@@ -110,7 +112,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         val request = hfRequest.incrementAndGet()
         if (_state.value.hfOpenRepo == repo) { _state.update { it.copy(hfOpenRepo = null, hfFiles = emptyList(), hfBusy = false) }; return }
         _state.update { it.copy(hfBusy = true, hfError = null, hfOpenRepo = repo, hfFiles = emptyList()) }
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             runCatching { HfBrowser.files(repo) }
                 .onSuccess { f -> _state.update { if (hfRequest.get() != request) it else it.copy(hfFiles = f, hfBusy = false) } }
                 .onFailure { e -> _state.update { if (hfRequest.get() != request) it else it.copy(hfError = e.message ?: e.toString(), hfBusy = false) } }
@@ -122,7 +124,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Adds the file to the list above as a downloadable model (not downloaded yet). */
     fun hfAdd(repo: String, f: HfBrowser.GgufFile) {
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             val asset = runCatching { HfBrowser.toAsset(repo, f) }.getOrElse { e -> _state.update { it.copy(hfError = e.message) }; return@launch }
             services.addDiscovered(asset)
             services.vault.record { f -> f.copy(hfModels = maxOf(f.hfModels, services.discovered().size)) }
@@ -152,7 +154,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         if (a.externalPath != null) return // copied over USB, never downloaded
         if (_state.value.rows[a.id]?.downloading == true) return
         row(a.id) { Row(downloading = true) }
-        downloads[a.id] = viewModelScope.launch(Dispatchers.IO) {
+        downloads[a.id] = safeScope.launch(Dispatchers.IO) {
             var lastT = System.nanoTime()
             var lastB = 0L
             var speed: Double? = null
@@ -178,7 +180,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
                 row(a.id) { Row() }
                 throw e
             } catch (e: Exception) {
-                row(a.id) { Row(error = e.message ?: e.toString()) }
+                row(a.id) { Row(error = team.sopa.boar.ui.I18n.t(getApplication(), team.sopa.boar.engine.UserErrors.downloadKey(e))) }
             } finally {
                 // Only this job's entry: a retry started right after a cancel has already registered its own.
                 coroutineContext[kotlinx.coroutines.Job]?.let { downloads.remove(a.id, it) }
@@ -197,7 +199,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     fun isDiscovered(a: CatalogAsset) = services.discovered().any { it.id == a.id }
 
     fun removeFromList(a: CatalogAsset) {
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             // Wait for the download's own cleanup, so it can't run after the delete and bring the row back.
             downloads[a.id]?.cancelAndJoin()
             store.delete(a)
@@ -229,7 +231,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     fun use(a: CatalogAsset) {
         if (_state.value.activating != null) return
         _state.update { it.copy(activating = a.id) }
-        viewModelScope.launch(Dispatchers.Default) {
+        safeScope.launch(Dispatchers.Default) {
             services.settings.setActiveModelId(a.kind.name.lowercase(), a.id)
             // Picked again after it closed the app: the user's call (CR-2's confirmation).
             if (a.kind == AssetKind.LLM) services.loadGuard.confirm(a.id)
@@ -241,7 +243,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun remove(a: CatalogAsset) {
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             if (a.id == _state.value.activeLlm) services.host.unload()
             // Placed over USB by hand: the app never deletes it.
             if (a.externalPath != null) { refresh(); return@launch }

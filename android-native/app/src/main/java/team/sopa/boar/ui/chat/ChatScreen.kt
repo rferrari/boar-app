@@ -78,6 +78,7 @@ import team.sopa.boar.chat.Receipt
 import team.sopa.boar.chat.ReceiptFormat
 import team.sopa.boar.chat.Source
 import team.sopa.boar.chat.UiMessage
+import team.sopa.boar.engine.UserErrors
 import team.sopa.boar.engine.answer.AnswerText
 import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.ui.t
@@ -495,6 +496,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     MarkdownMessage(shown, streaming)
                 }
             }
+            // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
+            if (!streaming && !m.stopped && state.error != null && state.messages.lastOrNull()?.id == m.id)
+                Text(t(UserErrors.chatKey(state.error)), style = type.bodyLg, color = c.crimson400)
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))

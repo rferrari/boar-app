@@ -19,11 +19,20 @@ object DocumentImport {
     const val TEXT_LIMIT = 25_000_000L
     const val PDF_LIMIT = 100_000_000L
 
+    /**
+     * The largest file read into memory at all, checked before reading: a whole file (and PDFBox's parse of a PDF) sits
+     * on the heap, and a bigger one ran out of memory, which closes the app.
+     */
+    const val READ_LIMIT = TEXT_LIMIT
+
+    /** [sizeBytes] as the picker reports it; unknown (0 or less) is read, and an out-of-memory then caught. */
+    fun tooLargeToRead(sizeBytes: Long): Boolean = sizeBytes > READ_LIMIT
+
     data class Doc(val title: String, val source: String, val body: String)
     data class File(val name: String, val sizeBytes: Long, val text: String)
     data class Planned(val chunks: List<Chunk>, val docCount: Int)
 
-    class TooLarge(message: String) : IllegalArgumentException(message)
+    class TooLarge(val fileName: String, message: String) : IllegalArgumentException(message)
 
     /** chunkText: overlapping slices of the trimmed text (one chunk when it's short; none when empty). */
     fun chunkText(text: String): List<String> {
@@ -71,7 +80,7 @@ object DocumentImport {
     fun parse(file: File): List<Doc> {
         val ext = file.name.lowercase().substringAfterLast('.', file.name.lowercase())
         val limit = if (ext == "pdf") PDF_LIMIT else TEXT_LIMIT
-        if (file.sizeBytes > limit) throw TooLarge("\"${file.name}\" is too large (max ${limit / 1_000_000} MB). Split it into smaller files.")
+        if (file.sizeBytes > limit) throw TooLarge(file.name, "\"${file.name}\" is too large (max ${limit / 1_000_000} MB). Split it into smaller files.")
         val title = file.name.replace(EXT, "")
         if (ext == "json") {
             val parsed = runCatching { Json.parseToJsonElement(file.text) }.getOrNull()

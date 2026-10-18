@@ -77,7 +77,7 @@
     <string name="native_about_creditsAll" formatted="false">Mostrar todos ({{n}})</string>
     <string name="native_about_creditsLess" formatted="false">Mostrar menos</string>
     <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
-    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to!</string>
+    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to.</string>
     <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
     <string name="native_about_teamBody" formatted="false">No X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
@@ -102,6 +102,7 @@
     <string name="native_pin_newTitle" formatted="false">Escolha um PIN</string>
     <string name="native_pin_newSubtitle" formatted="false">De 4 a 8 dígitos. Você vai digitá-lo sempre que abrir o BOAR.</string>
     <string name="native_pin_confirmTitle" formatted="false">Digite de novo</string>
+    <string name="native_pin_saveFailed" formatted="false">Não foi possível alterar o PIN. Tente de novo.</string>
     <string name="native_pin_mismatch" formatted="false">Os PINs não conferem. Escolha de novo.</string>
     <string name="native_pin_offerTitle" formatted="false">Trancar o BOAR com um PIN?</string>
     <string name="native_pin_offerBody" formatted="false">Com um PIN, suas conversas ficam guardadas lacradas: quem tiver seu celular ou os arquivos dele via USB não consegue lê-las. Dá para ativar ou remover depois, nas Configurações.</string>
@@ -282,6 +283,11 @@
     <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
     <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
     <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
+    <string name="native_chat_errorNoModel" formatted="false">Nenhum modelo de resposta está carregado. Abra o Catálogo de Modelos para escolher um.</string>
+    <string name="native_common_somethingWrong" formatted="false">Algo deu errado. Tente de novo.</string>
+    <string name="native_chat_dbFailed" formatted="false">Não deu certo. Tente de novo.</string>
+    <string name="native_chat_ratingNote" formatted="false">Salvo só neste celular. Nada é enviado. O BOAR ainda não aprende com isso.</string>
+    <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
     <string name="native_personalities_succinct_description" formatted="false">Mais rápido. 2 ou 3 parágrafos curtos ou tópicos, sem introdução.</string>
@@ -358,4 +364,32 @@
     <string name="native_sourceFootnotes_localIndex" formatted="false">FONTE</string>
     <string name="native_sourceFootnotes_yourDocuments" formatted="false">Seus documentos</string>
     <string name="native_drawer_answeringHint" formatted="false">Respondendo… pare a resposta para trocar de conversa.</string>
+    <string name="native_documents_tooLarge" formatted="false">Grande demais: {{name}} (mais de {{mb}} MB).</string>
+    <string name="native_documents_unreadable" formatted="false">Não foi possível ler {{name}}.</string>
+    <string name="native_documents_passwordProtected" formatted="false">{{name}} é protegido por senha. O BOAR não abre PDFs protegidos.</string>
+    <string name="native_documents_noText" formatted="false">{{name}} não tem texto selecionável. Páginas escaneadas precisam de OCR, que o BOAR não faz.</string>
+    <string name="native_documents_failed" formatted="false">Não foi possível importar estes arquivos. Tente de novo.</string>
+    <string name="native_documents_shareTitle" formatted="false">Compartilhar a base de conhecimento {{name}}</string>
+    <string name="native_setup_indexNoEmbedder" formatted="false">O modelo de busca está faltando. Tente o download de novo.</string>
+    <string name="native_setup_indexEmbedderFailed" formatted="false">O modelo de busca não carregou. Tente de novo.</string>
+    <string name="native_setup_indexFailed" formatted="false">A criação do índice de busca parou. Tente de novo.</string>
+    <string name="native_download_errorNoSource" formatted="false">Ainda não disponível para download. Importe o arquivo.</string>
+    <string name="native_download_errorOffline" formatted="false">Esta versão do BOAR não tem acesso à rede. Importe o arquivo.</string>
+    <string name="native_download_errorStorage" formatted="false">Espaço livre insuficiente no celular. Libere espaço e tente de novo.</string>
+    <string name="native_download_errorSizeChanged" formatted="false">O servidor agora tem um arquivo diferente do que esta versão do BOAR espera. Importe o arquivo ou atualize o app.</string>
+    <string name="native_download_errorPaused" formatted="false">O download pausou (sem dados). Verifique a conexão e tente de novo.</string>
+    <string name="native_download_errorChecksum" formatted="false">O arquivo não bateu com o checksum e foi removido. Tente o download de novo.</string>
+    <string name="native_download_errorServer" formatted="false">O servidor de download não respondeu. Tente mais tarde.</string>
+    <string name="native_download_errorNetwork" formatted="false">Sem conexão com o servidor de download. Verifique a conexão e tente de novo.</string>
+    <string name="native_download_errorGeneric" formatted="false">O download parou. Tente de novo.</string>
+    <string name="native_common_ok" formatted="false">OK</string>
+    <string name="native_settings_freeMemory" formatted="false">Liberar memória quando eu sair do BOAR</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Depois de alguns minutos fora, o BOAR descarrega o modelo para liberar memória. A próxima resposta demora alguns segundos a mais para começar.</string>
+    <string name="native_tweaks_freeMemoryAfter" formatted="false">Liberar memória depois de</string>
+    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado.</string>
+    <string name="native_tweaks_immediately" formatted="false">Na hora</string>
+    <string name="native_drawer_closeStillSaving" formatted="false">Ainda salvando a resposta. Tente de novo em instantes.</string>
+    <string name="native_drawer_close" formatted="false">Fechar o BOAR (libera memória)</string>
+    <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
+    <string name="native_drawer_closeButton" formatted="false">Fechar</string>
 </resources>

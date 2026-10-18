@@ -165,6 +165,7 @@ fun PinSetup(lock: PinLock, flow: PinFlow, onDone: () -> Unit, onCancel: () -> U
     val subtitle = if (step == "new") t("native.pin.newSubtitle") else null
     val wrong = t("native.pin.wrong")
     val mismatch = t("native.pin.mismatch")
+    val failed = t("native.pin.saveFailed")
     PinPad(title, subtitle, error, busy, onSubmit = { pin ->
         error = null
         when (step) {
@@ -172,9 +173,10 @@ fun PinSetup(lock: PinLock, flow: PinFlow, onDone: () -> Unit, onCancel: () -> U
                 busy = true
                 scope.launch {
                     if (flow == PinFlow.REMOVE) {
-                        val ok = withContext(Dispatchers.Default) { lock.disable(pin) }
+                        // The Keystore can refuse (a locked or reset key store): say so and stay here.
+                        val ok = withContext(Dispatchers.Default) { runCatching { lock.disable(pin) } }
                         busy = false
-                        if (ok) onDone() else error = wrong
+                        ok.onSuccess { if (it) onDone() else error = wrong }.onFailure { error = failed }
                     } else {
                         // Checked when the new PIN is saved (change() re-derives); keep it until then.
                         current = pin; busy = false; step = "new"
@@ -185,9 +187,9 @@ fun PinSetup(lock: PinLock, flow: PinFlow, onDone: () -> Unit, onCancel: () -> U
             else -> if (pin != first) { error = mismatch; step = "new" } else {
                 busy = true
                 scope.launch {
-                    val ok = withContext(Dispatchers.Default) { if (flow == PinFlow.NEW) { lock.enable(pin); true } else lock.change(current, pin) }
+                    val ok = withContext(Dispatchers.Default) { runCatching { if (flow == PinFlow.NEW) { lock.enable(pin); true } else lock.change(current, pin) } }
                     busy = false
-                    if (ok) onDone() else { error = wrong; step = "current" }
+                    ok.onSuccess { if (it) onDone() else { error = wrong; step = "current" } }.onFailure { error = failed; step = "new" }
                 }
             }
         }

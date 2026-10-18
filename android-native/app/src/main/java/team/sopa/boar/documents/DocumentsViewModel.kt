@@ -1,5 +1,7 @@
 package team.sopa.boar.documents
 
+import team.sopa.boar.app.safeScope
+
 import android.app.Application
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -36,7 +38,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     fun import(uris: List<Uri>, name: String) {
         if (uris.isEmpty() || _state.value.stage != null) return
         _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0) }
-        viewModelScope.launch(Dispatchers.IO) {
+        safeScope.launch(Dispatchers.IO) {
             try {
                 val resolver = getApplication<Application>().contentResolver
                 val files = uris.map { uri ->
@@ -45,8 +47,15 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                     resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
                         if (c.moveToFirst()) { fileName = c.getString(0) ?: fileName; size = c.getLong(1) }
                     }
-                    val text = if (fileName.lowercase().endsWith(".pdf")) pdfText(uri, fileName)
-                    else resolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: error("Couldn't read \"$fileName\"")
+                    if (size <= 0) size = runCatching { resolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull() ?: 0L
+                    if (DocumentImport.tooLargeToRead(size)) throw TooLarge(fileName)
+                    val text = try {
+                        if (fileName.lowercase().endsWith(".pdf")) pdfText(uri, fileName)
+                        else resolver.openInputStream(uri)?.use { readCapped(it) ?: throw TooLarge(fileName) }?.toString(Charsets.UTF_8) ?: throw Failed(text("native.documents.unreadable", fileName))
+                    } catch (e: OutOfMemoryError) {
+                        // Not an Exception: uncaught, it closes the app. The file's text is dropped with the frame.
+                        throw TooLarge(fileName)
+                    }
                     DocumentImport.File(fileName, if (size > 0) size else text.toByteArray().size.toLong(), text)
                 }
                 _state.update { it.copy(stage = "chunking") }
@@ -54,26 +63,43 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update { it.copy(stage = "embedding", done = d, total = t) }
                 })
                 services.vault.record { f -> f.copy(documents = f.documents + files.size) }
+            } catch (e: TooLarge) {
+                _state.update { it.copy(error = tooLarge(e.fileName)) }
+            } catch (e: DocumentImport.TooLarge) {
+                _state.update { it.copy(error = tooLarge(e.fileName)) }
+            } catch (e: Failed) {
+                _state.update { it.copy(error = e.message) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: e.toString()) }
+                // Storage or embedding failures: a plain line, not the exception text.
+                _state.update { it.copy(error = text("native.documents.failed")) }
             }
             _state.update { it.copy(stage = null) }
             refresh()
         }
     }
 
+    private class TooLarge(val fileName: String) : Exception()
+
+    /** A failure the user can act on, already in their language. */
+    private class Failed(message: String) : Exception(message)
+
+    private fun text(key: String, name: String? = null) = team.sopa.boar.ui.I18n.t(getApplication(), key, "name" to name)
+
+    private fun tooLarge(fileName: String) =
+        team.sopa.boar.ui.I18n.t(getApplication(), "native.documents.tooLarge", "name" to fileName, "mb" to DocumentImport.READ_LIMIT / 1_000_000)
+
     /** The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. */
     private fun pdfText(uri: Uri, fileName: String): String {
         val app = getApplication<Application>()
         com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(app)
-        val input = app.contentResolver.openInputStream(uri) ?: error("Couldn't read \"$fileName\"")
+        val input = app.contentResolver.openInputStream(uri) ?: throw Failed(text("native.documents.unreadable", fileName))
         return try {
             input.use { s -> com.tom_roush.pdfbox.pdmodel.PDDocument.load(s).use { doc -> com.tom_roush.pdfbox.text.PDFTextStripper().getText(doc) } }
         } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
-            error("\"$fileName\" is password-protected — password-protected PDFs aren't supported.")
+            throw Failed(text("native.documents.passwordProtected", fileName))
         } catch (e: java.io.IOException) {
-            error("Couldn't read \"$fileName\": ${e.message}")
-        }.also { if (it.isBlank()) error("\"$fileName\" has no selectable text (scanned pages need OCR, which BOAR doesn't do).") }
+            throw Failed(text("native.documents.unreadable", fileName))
+        }.also { if (it.isBlank()) throw Failed(text("native.documents.noText", fileName)) }
     }
 
     fun setActive(id: String, on: Boolean) {
@@ -94,10 +120,22 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
             type = "application/json"
             putExtra(android.content.Intent.EXTRA_STREAM, uri)
             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }, "Share \"${col.name}\" knowledge base")
+        }, team.sopa.boar.ui.I18n.t(app, "native.documents.shareTitle", "name" to col.name))
     }
 
     fun remove(id: String) {
-        viewModelScope.launch(Dispatchers.IO) { services.knowledgeBase.deleteCollection(id); refresh() }
+        safeScope.launch(Dispatchers.IO) { services.knowledgeBase.deleteCollection(id); refresh() }
+    }
+
+    /** Reads at most [DocumentImport.READ_LIMIT] bytes; null as soon as the file is longer (its size wasn't known up front). */
+    private fun readCapped(input: java.io.InputStream): ByteArray? {
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(64 * 1024)
+        while (true) {
+            val n = input.read(buf)
+            if (n < 0) return out.toByteArray()
+            if (out.size() + n > DocumentImport.READ_LIMIT) return null
+            out.write(buf, 0, n)
+        }
     }
 }

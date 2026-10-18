@@ -227,6 +227,7 @@ Java_team_sopa_boar_engine_BoarNative_cancel(JNIEnv *, jobject, jlong h) {
 JNIEXPORT jstring JNICALL
 Java_team_sopa_boar_engine_BoarNative_modelInfo(JNIEnv * env, jobject, jlong h) {
     Session * s = S(h);
+    if (!s) return env->NewStringUTF("{}");
     char buf[512];
     json o;
     llama_model_desc(s->model, buf, sizeof buf);
@@ -246,6 +247,7 @@ Java_team_sopa_boar_engine_BoarNative_modelInfo(JNIEnv * env, jobject, jlong h) 
 JNIEXPORT jbyteArray JNICALL
 Java_team_sopa_boar_engine_BoarNative_formatChat(JNIEnv * env, jobject, jlong h, jstring jmessages, jboolean enableThinking) {
     Session * s = S(h);
+    if (!s) return jbytes(env, "{\"error\":\"model unloaded\"}");
     json msgs = json::parse(jstr(env, jmessages), nullptr, false);
     common_chat_templates_inputs in;
     if (msgs.is_array()) {
@@ -277,6 +279,7 @@ Java_team_sopa_boar_engine_BoarNative_formatChat(JNIEnv * env, jobject, jlong h,
 JNIEXPORT jbyteArray JNICALL
 Java_team_sopa_boar_engine_BoarNative_generate(JNIEnv * env, jobject, jlong h, jbyteArray jprompt, jstring jsampling, jobject callback) {
     Session * s = S(h);
+    if (!s) return jbytes(env, "{\"error\":\"model unloaded\"}");
     s->cancel.store(false);
     jsize plen = env->GetArrayLength(jprompt);
     std::string prompt(plen, '\0');
@@ -374,6 +377,7 @@ Java_team_sopa_boar_engine_BoarNative_generate(JNIEnv * env, jobject, jlong h, j
 JNIEXPORT jfloatArray JNICALL
 Java_team_sopa_boar_engine_BoarNative_embed(JNIEnv * env, jobject, jlong h, jbyteArray jtext, jboolean normalize) {
     Session * s = S(h);
+    if (!s) return env->NewFloatArray(0);
     jsize len = env->GetArrayLength(jtext);
     std::string text(len, '\0');
     env->GetByteArrayRegion(jtext, 0, len, reinterpret_cast<jbyte *>(&text[0]));
@@ -406,6 +410,7 @@ Java_team_sopa_boar_engine_BoarNative_embed(JNIEnv * env, jobject, jlong h, jbyt
 JNIEXPORT jstring JNICALL
 Java_team_sopa_boar_engine_BoarNative_bench(JNIEnv * env, jobject, jlong h, jint nPp, jint nTg, jint reps) {
     Session * s = S(h);
+    if (!s) return env->NewStringUTF("{}");
     s->cancel.store(false);
     const int n_vocab = llama_vocab_n_tokens(s->vocab);
     std::vector<double> pp, tg;

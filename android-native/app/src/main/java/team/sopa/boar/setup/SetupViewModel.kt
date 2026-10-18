@@ -1,5 +1,7 @@
 package team.sopa.boar.setup
 
+import team.sopa.boar.app.safeScope
+
 import android.app.ActivityManager
 import android.app.Application
 import android.os.StatFs
@@ -236,7 +238,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         save()
         rateStart = null
         lastMove = Pair(_state.value.doneBytes, System.currentTimeMillis())
-        job = viewModelScope.launch(Dispatchers.IO) {
+        job = safeScope.launch(Dispatchers.IO) {
             for (a in assets) {
                 if (store.status(a).present) { update(a) { it.copy(done = true, bytesDone = a.sizeBytes) }; continue }
                 if (!fetch(a)) return@launch
@@ -270,7 +272,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Exception) {
                 val transient = e is AssetStore.DownloadException.Paused || (e is IOException && e !is AssetStore.DownloadException)
                 if (transient && attempt++ < 3) { delay(5_000L * attempt); continue }
-                update(a) { it.copy(error = e.message ?: e.toString(), verifying = false, storage = e is AssetStore.DownloadException.Storage) }
+                update(a) { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), team.sopa.boar.engine.UserErrors.downloadKey(e)), verifying = false, storage = e is AssetStore.DownloadException.Storage) }
                 return false
             }
         }
@@ -289,7 +291,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** No byte for a minute while a download runs: offer to restart (the Expo wizard's STALL_MS). */
-    private fun watchStall() = viewModelScope.launch(Dispatchers.Default) {
+    private fun watchStall() = safeScope.launch(Dispatchers.Default) {
         while (isActive) {
             delay(5_000)
             val s = _state.value
@@ -320,16 +322,16 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     /** Runs the index again after it failed (the embedder didn't load, or seeding stopped). */
     fun retryIndex() {
         if (job?.isActive == true) return
-        job = viewModelScope.launch(Dispatchers.IO) { index() }
+        job = safeScope.launch(Dispatchers.IO) { index() }
     }
 
     private suspend fun index() {
         _state.update { it.copy(indexPhase = IndexPhase.BUILDING, indexError = null) }
         indexStart = null
         val app = getApplication<Application>()
-        val emb = services.installed(AssetKind.EMBEDDING).firstOrNull() ?: run { indexFailed("embedding model missing"); return }
+        val emb = services.installed(AssetKind.EMBEDDING).firstOrNull() ?: run { indexFailed(team.sopa.boar.ui.I18n.t(getApplication(), "native.setup.indexNoEmbedder")); return }
         val embedder = LlamaSession.load(services.fileOf(emb).path, EngineParams(nCtx = 512, threads = 2, embeddings = true))
-            ?: run { indexFailed("embedding model failed to load"); return }
+            ?: run { indexFailed(team.sopa.boar.ui.I18n.t(getApplication(), "native.setup.indexEmbedderFailed")); return }
         try {
             val builtin = app.assets.open("corpus/corpus.json").bufferedReader().use { it.readText() }
             val collections = listOf(SeedCorpus.Collection(SeedCorpus.BUILTIN, SeedCorpus.docs(SeedCorpus.BUILTIN, builtin))) +
@@ -354,7 +356,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            indexFailed(e.message ?: e.toString())
+            indexFailed(team.sopa.boar.ui.I18n.t(getApplication(), "native.setup.indexFailed"))
         } finally {
             // Also after a cancel (Restart, Recovery): the native session must not leak.
             withContext(NonCancellable + Dispatchers.IO) { embedder.close() }
