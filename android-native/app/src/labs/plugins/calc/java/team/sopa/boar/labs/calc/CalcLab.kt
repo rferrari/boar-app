@@ -28,6 +28,7 @@ import team.sopa.boar.ui.theme.Boar
 object CalcLab : LabPlugin {
     override val id = "calc"
     override val emoji = "🧮"
+    override val art = team.sopa.boar.R.drawable.lab_calc
     override val status = LabStatus.BETA
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->

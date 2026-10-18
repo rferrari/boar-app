@@ -79,9 +79,9 @@ class ClassifiedLab(override val id: String, override val emoji: String) : LabPl
     companion object {
         /** Each classified lab's boar, shown dark like a locked truffle in the vault; a different one per tile. */
         private val CLASSIFIED_ART = mapOf(
-            "truffleHunt" to team.sopa.boar.R.drawable.truffle_biolum,
-            "bigBrain" to team.sopa.boar.R.drawable.truffle_quantum,
-            "signboard" to team.sopa.boar.R.drawable.truffle_cosmo,
+            "truffleHunt" to team.sopa.boar.R.drawable.lab_truffle_hunt,
+            "bigBrain" to team.sopa.boar.R.drawable.lab_big_brain,
+            "signboard" to team.sopa.boar.R.drawable.lab_signboard,
         )
     }
 }
