@@ -38,6 +38,7 @@ import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import kotlin.math.cos
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -55,6 +56,8 @@ object CompassLab : LabPlugin {
 
     /** How much of each new reading goes into the shown heading: smooth enough to read, quick enough to follow. */
     private const val SMOOTHING = 0.15f
+    /** The fallback's raw accelerometer and magnetometer readings are noisy: each new one counts this much. */
+    private const val RAW_SMOOTHING = 0.12f
 
     @Composable
     override fun Content() {
@@ -63,30 +66,46 @@ object CompassLab : LabPlugin {
         val sm = remember { ctx.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
         val accel = remember { sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) }
         val mag = remember { sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) }
+        // Android's fused orientation (gyroscope, accelerometer and magnetometer) when the phone has it: far steadier
+        // than the two raw sensors, which flicked the rose (Oct 18). The raw pair is the fallback.
+        val fused = remember { sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) }
         var heading by remember { mutableFloatStateOf(0f) }
         var accuracy by remember { mutableIntStateOf(SensorManager.SENSOR_STATUS_UNRELIABLE) }
         var seen by remember { mutableStateOf(false) }
         if (accel != null && mag != null) DisposableEffect(Unit) {
             val g = FloatArray(3); val m = FloatArray(3); var haveG = false; var haveM = false
             val rot = FloatArray(9); val orient = FloatArray(3)
+            fun show(deg: Float) {
+                // Smoothed along the shortest way round, so 359° → 1° doesn't swing through 180°.
+                val delta = ((deg - heading + 540) % 360) - 180
+                heading = if (!seen) deg else (heading + SMOOTHING * delta + 360) % 360
+                seen = true
+            }
+            fun lowPass(v: FloatArray, into: FloatArray, first: Boolean) {
+                for (i in 0 until 3) into[i] = if (first) v[i] else into[i] + RAW_SMOOTHING * (v[i] - into[i])
+            }
             val listener = object : SensorEventListener {
                 override fun onSensorChanged(e: SensorEvent) {
                     when (e.sensor.type) {
-                        Sensor.TYPE_ACCELEROMETER -> { e.values.copyInto(g, endIndex = 3); haveG = true }
-                        Sensor.TYPE_MAGNETIC_FIELD -> { e.values.copyInto(m, endIndex = 3); haveM = true; accuracy = e.accuracy }
+                        Sensor.TYPE_ROTATION_VECTOR -> {
+                            SensorManager.getRotationMatrixFromVector(rot, e.values)
+                            SensorManager.getOrientation(rot, orient)
+                            show(((Math.toDegrees(orient[0].toDouble()) + 360) % 360).toFloat())
+                            return
+                        }
+                        Sensor.TYPE_ACCELEROMETER -> { lowPass(e.values, g, !haveG); haveG = true }
+                        // With the fused sensor, the magnetometer only reports whether it needs calibrating.
+                        Sensor.TYPE_MAGNETIC_FIELD -> { lowPass(e.values, m, !haveM); haveM = true; accuracy = e.accuracy; if (fused != null) return }
                     }
                     if (haveG && haveM && SensorManager.getRotationMatrix(rot, null, g, m)) {
                         SensorManager.getOrientation(rot, orient)
-                        val deg = ((Math.toDegrees(orient[0].toDouble()) + 360) % 360).toFloat()
-                        // Smoothed along the shortest way round, so 359° → 1° doesn't swing through 180°.
-                        val delta = ((deg - heading + 540) % 360) - 180
-                        heading = (heading + SMOOTHING * delta + 360) % 360
-                        seen = true
+                        show(((Math.toDegrees(orient[0].toDouble()) + 360) % 360).toFloat())
                     }
                 }
                 override fun onAccuracyChanged(s: Sensor, a: Int) { if (s.type == Sensor.TYPE_MAGNETIC_FIELD) accuracy = a }
             }
-            sm.registerListener(listener, accel, SensorManager.SENSOR_DELAY_UI)
+            if (fused != null) sm.registerListener(listener, fused, SensorManager.SENSOR_DELAY_UI)
+            else sm.registerListener(listener, accel, SensorManager.SENSOR_DELAY_UI)
             sm.registerListener(listener, mag, SensorManager.SENSOR_DELAY_UI)
             onDispose { sm.unregisterListener(listener) }
         }
@@ -95,7 +114,11 @@ object CompassLab : LabPlugin {
                 Text(t("native.labs.compass.noSensor"), style = Boar.type.body, color = c.textSecondary)
                 return@Column
             }
-            val deg = heading.roundToInt() % 360
+            // The number moves in whole degrees and only once the heading has moved at least 1°, so it doesn't flicker
+            // between two values while the phone is still.
+            var shownDeg by remember { mutableIntStateOf(0) }
+            if (abs(((heading - shownDeg + 540) % 360) - 180) >= 1f) shownDeg = heading.roundToInt() % 360
+            val deg = shownDeg
             Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(if (seen) "$deg° ${t("native.labs.compass.dir.${cardinal(deg)}")}" else "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
