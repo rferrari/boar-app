@@ -52,7 +52,8 @@ object LabHooks {
             )
         }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }
-        team.sopa.boar.plugins.AnswerTools.tools = { LabRegistry.active.mapNotNull { it.answerTool } }
+        // Safety tools first (Boar Cohazard), then grid order.
+        team.sopa.boar.plugins.AnswerTools.tools = { LabRegistry.active.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } }
         team.sopa.boar.plugins.AnswerChecks.checks = { LabRegistry.active.mapNotNull { it.answerCheck } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext

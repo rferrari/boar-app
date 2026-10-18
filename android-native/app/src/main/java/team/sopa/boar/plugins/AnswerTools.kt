@@ -25,7 +25,7 @@ sealed interface ToolResult {
 }
 
 object AnswerTools {
-    /** Set by Boar Labs at start: the tools of the labs switched on now, in grid order. */
+    /** Set by Boar Labs at start: the tools of the labs switched on now, safety first, then grid order (LabTools.slotRank). */
     @Volatile var tools: () -> List<AnswerTool> = { emptyList() }
 
     /** The first tool with something to say; one that throws is skipped, as a search stage is. */
