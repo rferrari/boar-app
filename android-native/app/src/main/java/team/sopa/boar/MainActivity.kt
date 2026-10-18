@@ -269,11 +269,20 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     var confirmClose by remember { mutableStateOf(false) }
     var closing by remember { mutableStateOf(false) }
+    // Boar Labs: green rain with each closing step for a moment, so closing reads as BOAR putting things away.
+    var closeStage by remember { mutableStateOf<String?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     fun closeBoar() {
         if (closing) return
         closing = true
-        scope.launch { if (runCatching { vm.closeAndFreeMemory() }.getOrDefault(true)) activity?.finishAndRemoveTask() else closing = false }
+        val rain = team.sopa.boar.labs.LabHooks.closeAnimation(ctx)
+        scope.launch {
+            suspend fun stage(s: String) { closeStage = s; if (rain) kotlinx.coroutines.delay(STAGE_MS) }
+            if (runCatching { vm.closeAndFreeMemory(::stage) }.getOrDefault(true)) { stage("closing"); activity?.finishAndRemoveTask() }
+            else { closing = false; closeStage = null }
+        }
     }
+    if (closing && closeStage != null && team.sopa.boar.labs.LabHooks.closeAnimation(ctx)) team.sopa.boar.labs.LabHooks.ClosingOverlay(closeStage!!)
     if (confirmClose) androidx.compose.material3.AlertDialog({ confirmClose = false },
         text = { Text(t("native.drawer.closeConfirm")) },
         confirmButton = { androidx.compose.material3.TextButton({ confirmClose = false; closeBoar() }) { Text(t("native.drawer.closeButton"), color = Boar.colors.crimson400) } },
@@ -336,3 +345,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         )
     }
 }
+
+/** How long each closing step shows in the Boar Labs animation: about 1.6 s for the four. */
+private const val STAGE_MS = 400L

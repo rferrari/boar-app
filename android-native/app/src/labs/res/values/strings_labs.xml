@@ -20,6 +20,10 @@
     <string name="native_labs_storage_auto" formatted="false">Auto (50 GB)</string>
     <string name="native_labs_storage_none" formatted="false">No limit</string>
     <string name="native_labs_storage_settingNote" formatted="false">How much space BOAR\'s models and packs may take. No limit: only the phone\'s free space counts.</string>
+    <string name="native_labs_close_stopping" formatted="false">Stopping the answer…</string>
+    <string name="native_labs_close_saving" formatted="false">Saving your chats…</string>
+    <string name="native_labs_close_freeing" formatted="false">Freeing the model\'s memory…</string>
+    <string name="native_labs_close_closing" formatted="false">Closing BOAR…</string>
     <string name="native_labs_settingsNote" formatted="false">Unfinished experiments in the menu and under answers. They may be slow, rough or change without notice.</string>
     <string name="native_labs_enabled" formatted="false">Enabled</string>
     <string name="native_labs_enabledNote" formatted="false">Off: this lab disappears from the chat too.</string>

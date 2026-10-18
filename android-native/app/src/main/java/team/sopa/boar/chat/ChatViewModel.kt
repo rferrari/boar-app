@@ -90,6 +90,10 @@ data class ChatState(
     val loadCrash: team.sopa.boar.engine.models.LoadGuard.Crash? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
+    /** The model being loaded, by name, and the engine when it isn't BOAR's own (Big Boar…), for the banner. */
+    val loadingModel: String? = null,
+    val loadingEngine: String? = null,
+    val loadingSince: Long = 0,
     val personalityId: String = BoarServices.DEFAULT_PERSONALITY_ID,
     /** A short message over the chat for about 2 s (Toast.tsx): the new tone, a reused question. */
     val toast: String? = null,
@@ -155,8 +159,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * Menu → Close BOAR: stops an answer (what it wrote so far is saved, as with Stop) and a title or summary, then
      * frees the model. The caller closes the app after.
      */
-    suspend fun closeAndFreeMemory(): Boolean {
+    suspend fun closeAndFreeMemory(onStage: suspend (String) -> Unit = {}): Boolean {
+        // Each step as it really happens, for the closing animation (Boar Labs): stopping, saving, freeing.
+        if (_state.value.answeringId != null) onStage("stopping")
         stop()
+        onStage("saving")
         // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
         if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
             showToast("native.drawer.closeStillSaving")
@@ -164,14 +171,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         stopBackground()
         preloading?.cancel()
+        onStage("freeing")
         services.host.unload()
         return true
     }
 
     /** Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. */
     private fun preload() {
-        if (services.activeModel() == null) return
-        _state.update { it.copy(loadingKey = "chatScreen.mountingWeights") }
+        val model = services.activeModel() ?: return
+        val engine = model.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it)?.engineLabel }
+        _state.update { it.copy(loadingKey = "chatScreen.mountingWeights", loadingModel = model.shortName, loadingEngine = engine,
+            loadingSince = android.os.SystemClock.elapsedRealtime()) }
         preloading = safeScope.launch(Dispatchers.Default) {
             runCatching { services.activeSession() }
             val crash = services.loadGuard.consume()

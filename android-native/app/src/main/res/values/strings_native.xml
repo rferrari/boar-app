@@ -308,6 +308,8 @@
     <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BOAR doesn\'t learn from it yet.</string>
     <string name="native_chat_styleNote_health" formatted="false">Short answer: health questions are kept brief.</string>
     <string name="native_chat_styleNote_seed" formatted="false">Short answer: seed-phrase questions are kept brief, for your safety.</string>
+    <string name="native_chat_loadingModel" formatted="false">Loading {{model}} · {{s}} s</string>
+    <string name="native_chat_loadingModelWith" formatted="false">Loading {{model}} with {{engine}} · {{s}} s</string>
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->

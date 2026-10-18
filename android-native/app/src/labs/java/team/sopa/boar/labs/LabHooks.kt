@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
@@ -90,6 +91,20 @@ object LabHooks {
     }
 
     private const val STORAGE_LIMIT = "storageLimit"
+
+    /** Close BOAR shows the rain while Labs is on, unless the phone's animations are off (Android's remove animations). */
+    fun closeAnimation(context: android.content.Context): Boolean = LabPrefs.labsOn &&
+        android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+
+    /** Full screen, over everything: the green rain with the closing step in the middle. */
+    @Composable
+    fun ClosingOverlay(stage: String) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = {}, properties = androidx.compose.ui.window.DialogProperties(
+            dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows = false,
+        )) {
+            MatrixRain(androidx.compose.ui.Modifier.fillMaxWidth().fillMaxSize(), label = team.sopa.boar.ui.t("native.labs.close.$stage"))
+        }
+    }
 
     /** "auto" or unknown: null (the catalog's 50 GB); "none": only the phone's free space; else that many GB. */
     fun storageLimitBytes(choice: String?): Long? = when (choice) {

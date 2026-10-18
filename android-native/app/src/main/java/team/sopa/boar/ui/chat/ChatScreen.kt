@@ -135,7 +135,7 @@ fun ChatScreen(
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
             team.sopa.boar.ui.theme.FixedSizeChrome { Header(state, onMenu, onNewChat, onOpenRoute, onSetDeepResearch) }
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
-            state.loadingKey?.let { LoadingBanner(t(it)) }
+            state.loadingKey?.let { key -> LoadingBanner(state.loadingModel, state.loadingEngine, state.loadingSince, t(key)) }
             state.loadCrash?.let { CrashBanner(it, state.modelLabel, onDismissCrash) }
             if (state.messages.isEmpty()) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -398,9 +398,17 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
     }
 }
 
+/** "Loading Qwen3 4B · 3 s" (and "with Big Boar" for an engine plugin): which model, and that it's still going. */
 @Composable
-private fun LoadingBanner(text: String) {
+private fun LoadingBanner(model: String?, engine: String?, since: Long, fallback: String) {
     val c = Boar.colors
+    var seconds by remember(since) { mutableStateOf(0L) }
+    LaunchedEffect(since) { while (true) { seconds = (android.os.SystemClock.elapsedRealtime() - since) / 1000; kotlinx.coroutines.delay(1000) } }
+    val text = when {
+        model == null -> fallback
+        engine == null -> t("native.chat.loadingModel", "model" to model, "s" to seconds)
+        else -> t("native.chat.loadingModelWith", "model" to model, "engine" to engine, "s" to seconds)
+    }
     Row(Modifier.fillMaxWidth().background(c.emeraldBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
         Text(text, style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
