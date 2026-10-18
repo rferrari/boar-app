@@ -129,6 +129,11 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
     val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
     val busy = state.phase != null
+    var confirmRemove by rememberSaveable { mutableStateOf(false) }
+    if (confirmRemove) androidx.compose.material3.AlertDialog({ confirmRemove = false },
+        text = { Text(t("native.labs.image.removeConfirm")) },
+        confirmButton = { androidx.compose.material3.TextButton({ confirmRemove = false; vm.removeModel() }) { Text(t("native.labs.image.remove"), color = c.crimson400) } },
+        dismissButton = { androidx.compose.material3.TextButton({ confirmRemove = false }) { Text(t("common.cancel")) } })
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(t("native.labs.image.intro"), style = Boar.type.caption, color = c.textMuted)
             when {
@@ -216,6 +221,9 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                     style = Boar.type.caption, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onManage).padding(vertical = 6.dp))
             }
+            // Gives the model's space back; the drawings stay. Drawing again needs the download once more.
+            if (!busy && state.downloadPct == null) Text(t("native.labs.image.removeModel"), style = Boar.type.caption, color = c.textMuted,
+                modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { confirmRemove = true }.padding(vertical = 6.dp))
         }
 }
 

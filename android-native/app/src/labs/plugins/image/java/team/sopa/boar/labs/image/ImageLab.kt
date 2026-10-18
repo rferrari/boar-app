@@ -181,6 +181,14 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         _state.value.image?.takeIf { !it.isFile }?.let { _state.update { s -> s.copy(image = null, seconds = null, subject = null) } }
     }
 
+    /** Deletes the image model (its 683 MB come back); the drawings stay. Not while drawing or downloading. */
+    fun removeModel() {
+        if (_state.value.phase != null || _state.value.downloadPct != null) return
+        val f = SdRunner.modelFile(getApplication())
+        f.delete(); java.io.File(f.path + ".part").delete()
+        refresh()
+    }
+
     private fun refresh() {
         val ctx = getApplication<Application>()
         val gallery = SdRunner.outDir(ctx).listFiles { f -> f.extension == "png" }.orEmpty().sortedByDescending { it.lastModified() }

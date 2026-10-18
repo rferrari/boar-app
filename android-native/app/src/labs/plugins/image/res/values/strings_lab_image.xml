@@ -55,4 +55,7 @@
     <string name="native_labs_image_shape_portrait" formatted="false">Portrait</string>
     <string name="native_labs_image_shape_banner" formatted="false">Banner</string>
     <string name="native_labs_image_illustrateNeedsModel" formatted="false">Illustrate (download the drawing model in Boar Labs, Boar Designer, first)</string>
+    <string name="native_labs_image_removeModel" formatted="false">Remove the image model (683 MB)</string>
+    <string name="native_labs_image_removeConfirm" formatted="false">Remove the image model? Your drawings stay. To draw again, BOAR downloads it once more (683 MB, internet once).</string>
+    <string name="native_labs_image_remove" formatted="false">Remove</string>
 </resources>
