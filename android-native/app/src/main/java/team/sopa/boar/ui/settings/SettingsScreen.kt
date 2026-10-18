@@ -159,11 +159,13 @@ private fun TelemetrySection(services: BoarServices) {
     var phone by remember { mutableStateOf(team.sopa.boar.app.AppMemory.Phone(0L, 0L)) }
     var storage by remember { mutableStateOf(0L) }
     var fetching by remember { mutableStateOf(0L) }
+    var chatCount by remember { mutableStateOf<Int?>(null) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 app = team.sopa.boar.app.AppMemory.residentBytes(); phone = team.sopa.boar.app.AppMemory.phone(ctx)
                 storage = services.storageUsedBytes(); fetching = team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir)
+                chatCount = runCatching { services.chats.listSessions().size }.getOrNull()
             }
             kotlinx.coroutines.delay(5000)
         }
@@ -209,7 +211,7 @@ private fun TelemetrySection(services: BoarServices) {
         }
         rows(listOf(
             t("native.telemetry.device") to listOfNotNull(d.brand, d.model).joinToString(" ") + " · Android ${d.osVersion}",
-            t("native.telemetry.chats") to "${services.chats.listSessions().size}",
+            t("native.telemetry.chats") to (chatCount?.toString() ?: "—"),
         ))
         Text(t("native.telemetry.technical"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
         val inf = d.cpuFeatures.orEmpty()

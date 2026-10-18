@@ -179,7 +179,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Loads the model when the chat opens, as the Expo app does, so the first answer doesn't wait for it. */
     private fun preload() {
-        val model = services.activeModel() ?: return
+        // The model that really loads: the active one, or a fallback when its last load crashed the app.
+        val model = services.answerModel() ?: return
         val engine = model.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it)?.engineLabel }
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights", loadingModel = model.shortName, loadingEngine = engine,
             loadingSince = android.os.SystemClock.elapsedRealtime()) }

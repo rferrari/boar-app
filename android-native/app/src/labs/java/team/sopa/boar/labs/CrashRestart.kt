@@ -34,11 +34,15 @@ object CrashRestart {
             val restart = LabPrefs.labsOn && LabPrefs.autoRestart && now - p.getLong("restartAt", 0) > WINDOW_MS
             // The stack only: no question or answer text goes to the log.
             Log.e("BOAR", "crash on ${t.name}: ${e.javaClass.simpleName}${if (restart) ", restarting" else ""}", e)
-            runCatching { p.edit().putLong("crashAt", now).apply { if (restart) putLong("restartAt", now).putBoolean("noteDue", true) }.commit() }
+            runCatching { p.edit().putLong("crashAt", now).commit() }
             val started = restart && runCatching {
                 app.startActivity(Intent(app, RestartActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra(RestartActivity.PID, Process.myPid()))
             }.isSuccess
-            if (started) { Process.killProcess(Process.myPid()); exitProcess(10) }
+            // Only a restart that really started counts toward the once-a-minute limit and the "restarted" note.
+            if (started) {
+                runCatching { p.edit().putLong("restartAt", now).putBoolean("noteDue", true).commit() }
+                Process.killProcess(Process.myPid()); exitProcess(10)
+            }
             prior?.uncaughtException(t, e)
         }
     }
