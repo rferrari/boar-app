@@ -381,10 +381,10 @@ class BoarServices private constructor(private val context: Context) {
         /** The loaded model, for the default path (AnswerPipeline). */
         fun current(): team.sopa.boar.engine.TextModel? = session
 
-        /** Frees the model; the next answer loads it again (with changed Advanced tweaks, or another model). */
         /** BOAR left the foreground: a kill from now on is Android reclaiming a background app, not the model's load. */
         fun settleResident() { residentId?.let(loadGuard::settled) }
 
+        /** Frees the model; the next answer loads it again (with changed Advanced tweaks, or another model). */
         suspend fun unload() = lock.withLock {
             val id = residentId
             // Unloaded on purpose (free memory, Close BOAR): the model didn't kill the app, so its load marker goes.
