@@ -132,7 +132,7 @@ private fun relativeTime(ms: Long): String {
 
 /** "1.8/12GB": one decimal, a whole number without it, the unit once. */
 /** Decimal GB, like the catalog's model sizes and the phone's own storage screen. */
-private fun usage(used: Long, total: Long): String {
+internal fun usage(used: Long, total: Long): String {
     fun gb(b: Long) = if (b <= 0) "0" else String.format(Locale.US, "%.1f", b / 1e9).removeSuffix(".0")
     return "${gb(used)}/${gb(total)}GB"
 }
@@ -186,18 +186,31 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
 }
 
 @Composable
-private fun Caption(text: String) =
-    Text(text, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = Boar.colors.textDim, modifier = Modifier.padding(start = 46.dp))
+private fun Caption(text: String) = UsageCaption(text, large = false)
 
-/** A bar of stacked [parts] (bytes, color) out of [total]; red when they pass it. */
 @Composable
-private fun Bar(label: String, parts: List<Pair<Long, Color>>, total: Long, text: String) {
+private fun Bar(label: String, parts: List<Pair<Long, Color>>, total: Long, text: String) = UsageBar(label, parts, total, text, large = false)
+
+/** The line under a [UsageBar], lined up with the bar. */
+@Composable
+internal fun UsageCaption(text: String, large: Boolean) =
+    Text(text, style = if (large) Boar.type.subtext else Boar.type["mono.xs"].copy(fontSize = 9.sp), color = Boar.colors.textDim,
+        modifier = Modifier.padding(start = if (large) 92.dp else 46.dp))
+
+/**
+ * A bar of stacked [parts] (bytes, color) out of [total]; red when they pass it. Small in the menu, [large] in
+ * Settings (readable text, a taller bar).
+ */
+@Composable
+internal fun UsageBar(label: String, parts: List<Pair<Long, Color>>, total: Long, text: String, large: Boolean) {
     val c = Boar.colors
     val sum = parts.sumOf { it.first }
     val over = total > 0 && sum > total
+    val small = Boar.type["mono.xs"].copy(fontSize = 9.sp)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.widthIn(min = 40.dp))
-        Row(Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
+        Text(label, style = if (large) Boar.type.subtext else small, color = if (large) c.textSecondary else c.textDim, fontWeight = FontWeight.Bold, maxLines = 1,
+            modifier = Modifier.widthIn(min = if (large) 86.dp else 40.dp))
+        Row(Modifier.weight(1f).height(if (large) 9.dp else 5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
             if (total > 0) parts.forEach { (bytes, color) ->
                 val frac = (bytes.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f)
                 if (frac > 0f) Box(Modifier.weight(frac).fillMaxHeight().background(if (over) c.crimson500 else color))
@@ -205,6 +218,6 @@ private fun Bar(label: String, parts: List<Pair<Long, Color>>, total: Long, text
             val rest = if (total > 0) 1f - (sum.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f) else 1f
             if (rest > 0f) Box(Modifier.weight(rest))
         }
-        Text(text, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textMuted, maxLines = 1)
+        Text(text, style = if (large) Boar.type["mono.xs"] else small, color = c.textMuted, maxLines = 1)
     }
 }

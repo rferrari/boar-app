@@ -23,7 +23,7 @@
     <string name="native_tweaks_batch" formatted="false">Prompt batch</string>
     <string name="native_tweaks_microBatch" formatted="false">Micro-batch</string>
     <string name="native_tweaks_kv" formatted="false">KV cache</string>
-    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; in our tests, Q8_0 with flash attention generated 20% slower.</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; in our tests, Q8_0 with flash attention generated 20% slower (our test phone, Oct 2026).</string>
     <string name="native_tweaks_flash" formatted="false">Flash attention</string>
     <string name="native_tweaks_on" formatted="false">On</string>
     <string name="native_tweaks_off" formatted="false">Off</string>
@@ -90,7 +90,7 @@
     <string name="native_tweaks_thinking" formatted="false">Thinking before answering</string>
     <string name="native_tweaks_thinkingNote" formatted="false">Lets a thinking model reason first. Auto: off, so the answer\'s token budget isn\'t spent on reasoning.</string>
     <string name="native_tweaks_repack" formatted="false">Repacked weights</string>
-    <string name="native_tweaks_repackNote" formatted="false">Auto: on (prompts read about 2x faster). After a load that ran out of memory, the next one keeps the weights mapped from storage.</string>
+    <string name="native_tweaks_repackNote" formatted="false">Auto: on (prompts read about 2x faster on our test phone, Oct 2026). After a load that ran out of memory, the next one keeps the weights mapped from storage.</string>
     <string name="native_pin_enterTitle" formatted="false">Enter your PIN</string>
     <string name="native_pin_enterSubtitle" formatted="false">Your chats are sealed with it.</string>
     <string name="native_pin_wrong" formatted="false">Wrong PIN.</string>
@@ -110,7 +110,7 @@
     <string name="native_pin_offerBody" formatted="false">With a PIN, your chats are stored sealed: someone with your phone or its files over USB can\'t read them. You can set it or remove it later in Settings.</string>
     <string name="native_pin_offerSet" formatted="false">Set a PIN</string>
     <string name="native_pin_offerSkip" formatted="false">Not now</string>
-    <string name="native_settings_security" formatted="false">Security</string>
+    <string name="native_settings_security" formatted="false">PIN lock</string>
     <string name="native_settings_pinOn" formatted="false">PIN on. Chats are stored sealed with it.</string>
     <string name="native_settings_pinOff" formatted="false">No PIN. Anyone with the phone unlocked can open your chats.</string>
     <string name="native_settings_pinSet" formatted="false">Set a PIN</string>
@@ -132,6 +132,10 @@
     <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
     <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
     <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
+    <string name="native_telemetry_memory" formatted="false">Memory</string>
+    <string name="native_telemetry_memoryCaption" formatted="false">BOAR {{app}} · other apps {{others}}</string>
+    <string name="native_telemetry_disk" formatted="false">Storage</string>
+    <string name="native_telemetry_technical" formatted="false">TECHNICAL</string>
     <string name="native_telemetry_storageValue" formatted="false">{{used}} of BOAR\'s {{limit}} limit</string>
     <string name="native_telemetry_storageNoLimit" formatted="false">{{used}}, no BOAR limit</string>
     <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
@@ -266,7 +270,7 @@
     <string name="native_debugLog_saved" formatted="false">Log saved</string>
     <string name="native_debugLog_saveFailed" formatted="false">Couldn\'t save the log</string>
     <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
-    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; Hardware telemetry in Settings.</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
     <string name="native_tweaks_presets" formatted="false">Presets</string>
     <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
     <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon in our tests), no time limit. More heat and battery.</string>
@@ -318,7 +322,7 @@
     <string name="native_settings_resetDesc" formatted="false">Theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults. Your models, chats, PIN and language stay.</string>
     <string name="native_settings_resetButton" formatted="false">Reset settings</string>
     <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
-    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN, your language and your custom prompt are kept.</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN and your language are kept.</string>
     <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
     <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
     <string name="native_chat_cutAtLimit" formatted="false">Stopped at the {{limit}}-token limit</string>
@@ -420,4 +424,25 @@
     <string name="native_drawer_close" formatted="false">Close BOAR (frees memory)</string>
     <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
     <string name="native_drawer_closeButton" formatted="false">Close</string>
+    <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
+    <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>
+    <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
+    <string name="native_modelSetupScreen_sections_knowledgeBase" formatted="false">Knowledge</string>
+    <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
+    <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
+    <string name="native_modelSetupScreen_recovery_wizardTitle" formatted="false">First-time setup</string>
+    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
+    <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
+    <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Erase everything</string>
+    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every downloaded model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
+    <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
+    <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Erase everything?</string>
+    <string name="native_modelSetupScreen_dangerModal_subtitle" formatted="false">This happens at once and can\'t be undone.</string>
+    <string name="native_modelSetupScreen_dangerModal_confirmButton" formatted="false">Erase everything</string>
+    <string name="native_memorySettings_clearAllChatHistory" formatted="false">Clear chat history</string>
+    <string name="native_memorySettings_clearAllConfirmTitle" formatted="false">Clear chat history?</string>
+    <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
+    <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
+    <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
+    <string name="native_personalities_detailed_description" formatted="false">Structured, in-depth answers on what it knows well.</string>
 </resources>
