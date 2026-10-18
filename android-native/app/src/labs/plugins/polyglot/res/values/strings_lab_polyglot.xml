@@ -2,12 +2,12 @@
 <resources>
     <string name="native_labs_polyglot_title" formatted="false">Boar Polyglot</string>
     <string name="native_labs_polyglot_body" formatted="false">Says so at once when you ask in a language BOAR doesn\'t speak yet, instead of a confused answer.</string>
-    <string name="native_labs_polyglot_reply" formatted="false">Sorry, BOAR doesn\'t speak {{language}} yet. Ask in English or Portuguese.</string>
+    <string name="native_labs_polyglot_reply" formatted="false">Sorry, BOAR doesn\'t speak {{language}} yet. Ask in English.</string>
     <string name="native_labs_polyglot_answers" formatted="false">REPLIES ON ITS OWN</string>
-    <string name="native_labs_polyglot_answersList" formatted="false">• A full question in a language other than English, Portuguese or Spanish\n• Other alphabets by their letters: Russian, Ukrainian, Chinese, Japanese, Korean, Arabic, Hebrew, Hindi, Thai, Greek and more\n• Languages in the Latin alphabet (French, German, Italian, Dutch, Polish, Turkish) when the phone\'s language detector is sure</string>
+    <string name="native_labs_polyglot_answersList" formatted="false">• A full question in a language other than English\n• Other alphabets by their letters: Russian, Ukrainian, Chinese, Japanese, Korean, Arabic, Hebrew, Hindi, Thai, Greek and more\n• Languages in the Latin alphabet (French, German, Italian, Dutch, Polish, Turkish) when the phone\'s language detector is sure</string>
     <string name="native_labs_polyglot_try" formatted="false">TRY</string>
     <string name="native_labs_polyglot_example1" formatted="false">Как долго нужно кипятить воду, чтобы она была безопасной?</string>
     <string name="native_labs_polyglot_example2" formatted="false">烧水需要多长时间才能安全饮用？</string>
     <string name="native_labs_polyglot_example3" formatted="false">Wie lange dauert es, bis das Wasser kocht?</string>
-    <string name="native_labs_polyglot_note" formatted="false">Short messages, thanks and greetings, names, quotes, code and links go to the model as usual, and so does a question with English or Portuguese in it (What does \'merci\' mean?). A short follow-up in a chat already going goes to the model too. Spanish is answered as before. The answer\'s details say Tool: language. Without the phone\'s language detector (Android 10 and later) only other alphabets get the reply.</string>
+    <string name="native_labs_polyglot_note" formatted="false">Short messages, thanks and greetings, names, quotes, code and links go to the model as usual, and so does a question with English in it (What does \'merci\' mean?). A short follow-up in a chat already going goes to the model too. The answer\'s details say Tool: language. Without the phone\'s language detector (Android 10 and later) only other alphabets get the reply.</string>
 </resources>
