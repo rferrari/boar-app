@@ -83,16 +83,12 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 @Composable
 fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
-    Shell(t("native.labs.title"), onClose) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-                ?: Text(lab.emoji, fontSize = 36.sp)
-            Column(Modifier.weight(1f)) {
-                Text(t("native.labs.${lab.id}.title"), style = Boar.type.title, color = c.textHeading)
-                Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
-            }
-            StatusChip(lab.status)
-        }
+    // The lab's own bar: its picture, name and status where "Boar Labs" was, so the page keeps its room. Done goes back to the grid.
+    Shell(t("native.labs.${lab.id}.title"), onClose, lead = {
+        lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+            ?: Text(lab.emoji, fontSize = 20.sp)
+    }, tag = { StatusChip(lab.status) }) {
+        Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
         if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
             modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
@@ -110,11 +106,20 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
 }
 
 @Composable
-private fun Shell(title: String, onClose: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+private fun Shell(
+    title: String, onClose: () -> Unit,
+    lead: (@Composable () -> Unit)? = null, tag: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            lead?.invoke()
+            Text(title, style = Boar.type.titleSm, color = c.textHeading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false))
+            tag?.invoke()
+            Spacer(Modifier.weight(1f))
             Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
         }
