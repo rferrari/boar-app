@@ -159,7 +159,7 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(t("native.labs.image.shape.$shape"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(0.8f))
                             canvases.forEach { cv ->
-                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label} · $it s" }
+                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label} · ~${it}s" }
                                     ?: if (cv.w == cv.h && cv.w in ImageLab.SIZES) t("native.labs.image.size.${cv.w}") else cv.label
                                 Chip(label, cv == state.size, Modifier.weight(1f)) { vm.setSize(cv) }
                             }

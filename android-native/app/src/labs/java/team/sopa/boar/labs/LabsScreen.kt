@@ -83,15 +83,22 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 @Composable
 fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
-    // The lab's own bar: its picture, name and status where "Boar Labs" was, so the page keeps its room. Done goes back to the grid.
-    Shell(t("native.labs.${lab.id}.title"), onClose, lead = {
-        lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-            ?: Text(lab.emoji, fontSize = 20.sp)
-    }, tag = { StatusChip(lab.status) }) {
-        Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
-        // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
-            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
+    // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
+    // grid, and the on/off switch, all in one block; the page below is the lab's.
+    Shell(t("native.labs.${lab.id}.title"), onClose, header = {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: Text(lab.emoji, fontSize = 36.sp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(t("native.labs.${lab.id}.title"), style = Boar.type.title, color = c.textHeading, maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    StatusChip(lab.status)
+                }
+                Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
+            }
+            DoneButton(onClose)
+        }
         Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(t("native.labs.enabled"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading)
@@ -100,7 +107,10 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
                 colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500))
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+    }) {
+        // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
+        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
+            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
         if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
     }
 }
@@ -108,24 +118,26 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
 @Composable
 private fun Shell(
     title: String, onClose: () -> Unit,
-    lead: (@Composable () -> Unit)? = null, tag: (@Composable () -> Unit)? = null,
+    header: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            lead?.invoke()
-            Text(title, style = Boar.type.titleSm, color = c.textHeading, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false))
-            tag?.invoke()
-            Spacer(Modifier.weight(1f))
-            Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+        if (header != null) Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
+        else Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
+            DoneButton(onClose)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
+}
+
+@Composable
+private fun DoneButton(onClose: () -> Unit) {
+    val c = Boar.colors
+    Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
+        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
 }
 
 /** The lab's console: the lines type themselves once, with a blinking cursor after. */

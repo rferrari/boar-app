@@ -10,8 +10,8 @@
     <string name="native_labs_image_style_engraving" formatted="false">Gravura</string>
     <string name="native_labs_image_style_scientific" formatted="false">Científico</string>
     <string name="native_labs_image_size" formatted="false">TAMANHO</string>
-    <string name="native_labs_image_size_512" formatted="false">512 px · ~20 s</string>
-    <string name="native_labs_image_size_384" formatted="false">384 px · ~15 s</string>
+    <string name="native_labs_image_size_512" formatted="false">512 px · ~20s</string>
+    <string name="native_labs_image_size_384" formatted="false">384 px · ~15s</string>
     <string name="native_labs_image_subject" formatted="false">O QUE DESENHAR</string>
     <string name="native_labs_image_placeholder" formatted="false">um javali</string>
     <string name="native_labs_image_generate" formatted="false">Desenhar</string>
@@ -41,7 +41,7 @@
     <string name="native_labs_image_deleteConfirm" formatted="false">Apagar {{count}} imagens de vez?</string>
     <string name="native_labs_image_style_photo" formatted="false">Foto</string>
     <string name="native_labs_image_style_cyber" formatted="false">Cyberpunk</string>
-    <string name="native_labs_image_sizeMeasured" formatted="false">{{px}} px · ~{{s}} s</string>
+    <string name="native_labs_image_sizeMeasured" formatted="false">{{px}} px · ~{{s}}s</string>
     <string name="native_labs_image_regenerate" formatted="false">Gerar outra</string>
     <string name="native_labs_image_style_none" formatted="false">Nenhum</string>
     <string name="native_labs_image_style_solarpunk" formatted="false">Solarpunk</string>
