@@ -25,7 +25,11 @@ import team.sopa.boar.engine.EngineParams
 import team.sopa.boar.engine.TextModel
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.CatalogAsset
+import team.sopa.boar.engine.models.Compatibility
+import team.sopa.boar.engine.models.EngineChoice
+import team.sopa.boar.engine.models.GgufHeader
 import team.sopa.boar.labs.LabContext
+import team.sopa.boar.labs.LabPrefs
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.labs.engines.EngineProcess
@@ -67,9 +71,63 @@ object BmoeLab : LabPlugin, EngineProvider {
     override val engineArt get() = art
     override fun models() = listOf(MODEL)
 
+    /** From BOAR's own storage (a downloaded model) or the path it was copied to over USB: wherever the app finds it. */
     override suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel? {
         val ctx = LabContext.app ?: return null
-        return BmoeModel.start(ctx, asset.externalPath ?: return null, params)
+        val file = BoarServices.get(ctx).fileOf(asset).takeIf { it.isFile } ?: return null
+        return BmoeModel.start(ctx, file.path, params)
+    }
+
+    // --- Any mixture of experts on the phone ----------------------------------------------------------------------
+
+    /**
+     * Architectures Big Boar runs as a streamed mixture of experts. Its llama.cpp also knows "llama" (Mixtral and
+     * other llama-based MoEs), left out until one is measured on a phone.
+     */
+    val SUPPORTED_ARCHS = setOf("qwen3moe", "qwen35moe", "lfm2moe")
+
+    private const val CHOICE_KEY = "bmoe.engine."
+
+    /** The user's engine for [modelId] (Engine chips on its card): Auto until they pick. */
+    fun choice(modelId: String): EngineChoice.Choice = EngineChoice.Choice.of(LabPrefs.string(CHOICE_KEY + modelId))
+
+    fun setChoice(modelId: String, choice: EngineChoice.Choice) = LabPrefs.putString(CHOICE_KEY + modelId, choice.value)
+
+    private fun engineInBuild(ctx: android.content.Context) = EngineProcess.executable(ctx, BmoeModel.BINARY) != null
+
+    /**
+     * A model of BOAR's own Big Boar can run: an LLM fully on the phone whose GGUF header says it's a mixture of
+     * experts of a [SUPPORTED_ARCHS] architecture (read once per file, GgufHeader). Reads the file: call off the main thread
+     * the first time.
+     */
+    fun eligible(asset: CatalogAsset, services: BoarServices): Boolean {
+        if (asset.kind != AssetKind.LLM || asset.engine != null) return false
+        val ctx = LabContext.app ?: return false
+        if (!engineInBuild(ctx)) return false
+        val file = services.fileOf(asset)
+        // A download still running isn't the model yet.
+        if (!file.isFile || (asset.sizeBytes > 0 && file.length() != asset.sizeBytes)) return false
+        val moe = GgufHeader.moe(file) ?: return false
+        return moe.experts > 0 && moe.arch in SUPPORTED_ARCHS
+    }
+
+    /** The memory fit the catalog shows for [asset] on this phone. */
+    fun fit(asset: CatalogAsset, services: BoarServices): Compatibility = Compatibility.compute(asset.sizeBytes, services.totalRamBytes)
+
+    /** The engine [asset] answers with now: the user's choice, Auto = Big Boar when it's too big for this phone's memory. */
+    fun resolve(asset: CatalogAsset, services: BoarServices): EngineChoice.Engine {
+        val choice = choice(asset.id)
+        val fit = fit(asset, services)
+        // The header is read only when the choice could pick Big Boar.
+        if (!EngineChoice.prefersBigBoar(choice, fit)) return EngineChoice.Engine.BOAR
+        return EngineChoice.resolve(choice, fit, eligible(asset, services))
+    }
+
+    /** The routing slot (EnginePlugins.route): a model of BOAR's own that resolves to Big Boar answers here. */
+    override fun claims(asset: CatalogAsset): Boolean {
+        if (asset.engine != null || asset.kind != AssetKind.LLM) return false
+        val services = LabContext.app?.let { BoarServices.get(it) } ?: return false
+        return runCatching { resolve(asset, services) == EngineChoice.Engine.BIG_BOAR }.getOrDefault(false)
     }
 
     @Composable

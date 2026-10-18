@@ -22,6 +22,11 @@ interface EngineProvider {
     fun models(): List<CatalogAsset>
     /** Starts the engine with [asset]; null when it can't (its error is logged). [params]: the user's Advanced tweaks. */
     suspend fun load(asset: CatalogAsset, params: EngineParams): TextModel?
+    /**
+     * A model of BOAR's own engine ([CatalogAsset.engine] null) this engine runs instead, by the user's choice (Big Boar
+     * for a mixture of experts too big for the phone's memory). Asked through [EnginePlugins.route]; false by default.
+     */
+    fun claims(asset: CatalogAsset): Boolean = false
 }
 
 object EnginePlugins {
@@ -31,4 +36,13 @@ object EnginePlugins {
     fun models(): List<CatalogAsset> = runCatching { providers().flatMap { it.models() } }.getOrDefault(emptyList())
 
     fun forEngine(id: String): EngineProvider? = providers().firstOrNull { it.id == id }
+
+    /**
+     * Set by Boar Labs at start: the id of the engine that runs [CatalogAsset] instead of its own (the user's engine
+     * choice on the model's card). Null, the default and always with Labs off, keeps [CatalogAsset.engine]'s rule.
+     */
+    @Volatile var route: (CatalogAsset) -> String? = { null }
+
+    /** The engine [route] picks for [asset], if any; a failing route is today's rule. */
+    fun routed(asset: CatalogAsset): EngineProvider? = runCatching { route(asset) }.getOrNull()?.let(::forEngine)
 }

@@ -6,7 +6,8 @@ package team.sopa.boar.engine.models
  * user chose "Load anyway" for it. Nothing is hard-blocked: the chat offers the choice ([Decision]).
  */
 object StartLoad {
-    data class Model(val id: String, val sizeBytes: Long)
+    /** [streamed]: runs on an engine that streams it from storage (Boar Labs' Big Boar), so it never has to fit in RAM. */
+    data class Model(val id: String, val sizeBytes: Long, val streamed: Boolean = false)
 
     sealed interface Decision {
         /** Load [modelId] (GREEN, YELLOW, unknown RAM, or RED the user already chose to load). */
@@ -53,6 +54,6 @@ object StartLoad {
         return lastLoadedId?.let { id -> ok.firstOrNull { it.id == id } } ?: ok.minByOrNull { it.sizeBytes }
     }
 
-    /** RED for this phone; unknown RAM is never risky. */
-    fun risky(model: Model, totalRamBytes: Long): Boolean = Compatibility.compute(model.sizeBytes, totalRamBytes) == Compatibility.RED
+    /** RED for this phone; unknown RAM, or a model an engine streams from storage, is never risky. */
+    fun risky(model: Model, totalRamBytes: Long): Boolean = !model.streamed && Compatibility.compute(model.sizeBytes, totalRamBytes) == Compatibility.RED
 }

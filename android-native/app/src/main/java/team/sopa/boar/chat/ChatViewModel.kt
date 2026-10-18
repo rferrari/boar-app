@@ -207,7 +207,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         // The model that really loads: the active one, or a fallback when its last load crashed the app.
         val model = services.answerModel() ?: return
-        val engine = model.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it)?.engineLabel }
+        val engine = services.engineLabelOf(model)
         _state.update { it.copy(loadingKey = "chatScreen.mountingWeights", loadingModel = model.shortName, loadingEngine = engine,
             loadingSince = android.os.SystemClock.elapsedRealtime()) }
         preloading = safeScope.launch(Dispatchers.Default) {
@@ -545,8 +545,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
                     metrics = r.metrics
-                } else if (settings.adaptiveRoutingEnabled && services.answerModel()?.engine == null) {
-                    // Skipped while a Labs engine model answers: the router only picks among BOAR's own models.
+                } else if (settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) }) {
+                    // Skipped while a Labs engine answers (its own model, or one the user routed to it): the router only
+                    // picks among models on BOAR's own engine.
                     limited = null
                     path = "adaptive"
                     val r = adaptive(q, toolPrompt, styleReminder, history, ::onPiece)
@@ -680,7 +681,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
         val s = services.settings
-        val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, it.engine == null && services.fileOf(it).isFile) }
+        val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, services.runsOnBuiltIn(it) && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
         val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.answerTokens(services.host.openedContext))
@@ -710,8 +711,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return Receipt(
             totalMs = (end - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6,
             tokPerSec = m?.decodeTokPerSec?.takeIf { it > 0 } ?: wallRate, tokens = m?.generatedTokens?.takeIf { it > 0 } ?: streamed,
-            model = services.activeModel()?.shortName, retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
+            model = services.activeModel()?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
         )
+    }
+
+    /** The receipt's model line: its name, plus the Labs engine that ran it when the name doesn't say ("· Big Boar"). */
+    private fun receiptModel(a: team.sopa.boar.engine.models.CatalogAsset): String {
+        val engine = services.engineLabelOf(a)?.takeIf { it !in a.shortName } ?: return a.shortName
+        return "${a.shortName} · $engine"
     }
 
     private fun receiptFromMeta(meta: String?): Receipt? = runCatching {

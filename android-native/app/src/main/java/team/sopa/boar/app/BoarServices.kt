@@ -153,7 +153,8 @@ class BoarServices private constructor(private val context: Context) {
         return pick?.let { p -> llms.firstOrNull { it.id == p.id } }
     }
 
-    private fun startModel(a: CatalogAsset) = team.sopa.boar.engine.models.StartLoad.Model(a.id, a.sizeBytes)
+    /** A model a Labs engine streams from storage (Big Boar) isn't held to the RAM check: it never loads whole. */
+    private fun startModel(a: CatalogAsset) = team.sopa.boar.engine.models.StartLoad.Model(a.id, a.sizeBytes, streamed = !runsOnBuiltIn(a))
 
     /** What the chat may load on its own now (StartLoad): a blocked model never, a RED one only after "Load anyway". */
     fun startDecision(): team.sopa.boar.engine.models.StartLoad.Decision =
@@ -291,9 +292,19 @@ class BoarServices private constructor(private val context: Context) {
 
     val builtInEngine = BuiltInEngine()
 
-    /** The engine that runs [asset]: BOAR's own unless a Labs engine claims it (CatalogAsset.engine). */
+    /**
+     * The engine that runs [asset]: one Boar Labs routes it to (the user's engine choice, EnginePlugins.route), else its
+     * own Labs engine (CatalogAsset.engine), else BOAR's. With Labs off nothing is routed: CatalogAsset.engine decides.
+     */
     fun providerFor(asset: CatalogAsset): team.sopa.boar.plugins.EngineProvider? =
-        asset.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: builtInEngine.takeIf { asset.engine == null }
+        team.sopa.boar.plugins.EnginePlugins.routed(asset)
+            ?: asset.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: builtInEngine.takeIf { asset.engine == null }
+
+    /** [asset] answers through BOAR's own engine (not a Labs engine, by its catalog entry or the user's choice). */
+    fun runsOnBuiltIn(asset: CatalogAsset): Boolean = providerFor(asset) === builtInEngine
+
+    /** The Labs engine that runs [asset] ("Big Boar"); null for BOAR's own. */
+    fun engineLabelOf(asset: CatalogAsset): String? = providerFor(asset)?.takeIf { it !== builtInEngine }?.engineLabel
 
     inner class SessionHost : ModelHost {
         private val lock = Mutex()
@@ -348,7 +359,7 @@ class BoarServices private constructor(private val context: Context) {
         }
 
         /** The resident model is a Labs engine's (its own process), for releasing it under memory pressure. */
-        fun residentIsExternal(): Boolean = residentId?.let(catalog::byId)?.engine != null
+        fun residentIsExternal(): Boolean = residentId?.let(catalog::byId)?.let { !runsOnBuiltIn(it) } == true
 
         /** The context window the resident model was opened with (sizes Auto answer length); null before a load. */
         @Volatile var openedContext: Int? = null

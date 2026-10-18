@@ -33,6 +33,8 @@ object LabHooks {
         CrashRestart.noteKey(context)?.let { team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(context, it)) }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
+        // A model of BOAR's own an active lab's engine runs instead (Big Boar, by the user's choice on its card).
+        team.sopa.boar.plugins.EnginePlugins.route = { a -> LabRegistry.active.firstNotNullOfOrNull { lab -> lab.engine?.takeIf { it.claims(a) }?.id } }
         // About → credits: the engines Boar Labs ships and the models its labs use (android-native/NOTICE lists them too).
         team.sopa.boar.ui.about.AboutCredits.extra = {
             listOf(

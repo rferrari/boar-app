@@ -29,6 +29,11 @@ class StartLoadTest {
         assertEquals(Decision.Load("big-12b"), decide(red, listOf(small, red), anyway = setOf("big-12b")))
     }
 
+    @Test fun `a red model an engine streams from storage loads without asking`() {
+        val streamed = red.copy(streamed = true)
+        assertEquals(Decision.Load("big-12b"), decide(streamed, listOf(small, streamed)))
+    }
+
     @Test fun `unknown RAM is never risky`() {
         assertEquals(Decision.Load("big-12b"), StartLoad.decide(red, listOf(red), none, null, 0, emptySet()))
     }
