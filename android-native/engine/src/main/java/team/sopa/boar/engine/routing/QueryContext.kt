@@ -93,9 +93,10 @@ object QueryContext {
             // A phrase to translate that carries health content stays on the health path.
             (PHRASE_ASK.containsMatchIn(query) && PHRASE_HEALTH_CONTENT.containsMatchIn(query))
 
-    // Seed phrases and wallet backups (the prompt test plan's trigger list, Oct 18): a wrong detail loses the coins.
+    // Seed phrases and wallet backups (the prompt test plan's trigger list, Oct 18; Spanish and hyphenated forms added the
+    // same day): a wrong detail loses the coins.
     private val SEED_PHRASE = re(
-        """(?<![\p{L}\p{N}])(seed ?phrases?|recovery (phrases?|words|seeds?)|mnemonic (phrases?|words|seeds?)|private keys?|wallet back ?ups?|back(ing|ed)? ?up (my|your|the|a|our) (\p{L}+ )?wallets?|frases? (semente|de recupera[çc][ãa]o)|palavras (de recupera[çc][ãa]o|semente)|chaves? privadas?|backup (da|de|das|de uma|da minha|da sua) (\p{L}+ )?carteiras?)(?![\p{L}\p{N}])""",
+        """(?<![\p{L}\p{N}])(seed[- ]?phrases?|recovery (phrases?|words|seeds?)|mnemonic (phrases?|words|seeds?)|private keys?|wallet back ?ups?|back(ing|ed)? ?up (my|your|the|a|our) (\p{L}+ )?wallets?|frases?[- ](sementes?|de recupera[çc][ãa]o)|palavras[- ](de recupera[çc][ãa]o|sementes?)|chaves? privadas?|frases?[- ](semillas?|de recuperaci[óo]n)|palabras[- ](semillas?|de recuperaci[óo]n)|claves? privadas?|copias? de seguridad (de la|de mi|de tu|del) (\p{L}+ )?(cartera|billetera|monedero)s?|backup (da|de|das|de uma|da minha|da sua) (\p{L}+ )?carteiras?)(?![\p{L}\p{N}])""",
         "iu",
     )
     // "Mnemonic" and "12/24 words" count only next to a wallet or a coin: a mnemonic for the planets is not a seed.
