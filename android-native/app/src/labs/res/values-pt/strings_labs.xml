@@ -16,6 +16,10 @@
     <string name="native_labs_crash_settingNote" formatted="false">Se o BOAR fechar por um erro no próprio código, ele abre de novo sozinho, no máximo uma vez por minuto.</string>
     <string name="native_labs_crash_restarted" formatted="false">O BOAR reiniciou depois de um erro.</string>
     <string name="native_labs_crash_closed" formatted="false">Da última vez, o BOAR fechou por um erro.</string>
+    <string name="native_labs_storage_setting" formatted="false">Limite de armazenamento do BOAR</string>
+    <string name="native_labs_storage_auto" formatted="false">Auto (50 GB)</string>
+    <string name="native_labs_storage_none" formatted="false">Sem limite</string>
+    <string name="native_labs_storage_settingNote" formatted="false">Quanto espaço os modelos e pacotes do BOAR podem ocupar. Sem limite: só conta o espaço livre do celular.</string>
     <string name="native_labs_settingsNote" formatted="false">Experimentos inacabados no menu e embaixo das respostas. Podem ser lentos, imperfeitos ou mudar sem aviso.</string>
     <string name="native_labs_enabled" formatted="false">Ativado</string>
     <string name="native_labs_enabledNote" formatted="false">Desligado: este lab some também da conversa.</string>

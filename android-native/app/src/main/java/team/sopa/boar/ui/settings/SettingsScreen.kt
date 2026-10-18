@@ -183,7 +183,10 @@ private fun TelemetrySection(services: BoarServices) {
             t("native.telemetry.features") to listOf("dotprod" to "asimddp", "i8mm" to "i8mm", "SVE" to "sve", "SME" to "sme").joinToString(" · ") { (n, f) -> (if (f in inf) "✓ " else "✗ ") + n },
             t("native.telemetry.build") to (team.sopa.boar.engine.BoarEngine.loadedVariant ?: "—"),
             t("native.telemetry.appMemory") to gb(resident),
-            t("native.telemetry.storage") to t("native.telemetry.storageValue", "used" to gb(storage), "limit" to gb(services.catalog.storageBudgetBytes)),
+            t("native.telemetry.storage") to team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes).let { limit ->
+                if (limit == team.sopa.boar.engine.models.StorageBudget.NO_LIMIT) t("native.telemetry.storageNoLimit", "used" to gb(storage))
+                else t("native.telemetry.storageValue", "used" to gb(storage), "limit" to gb(limit))
+            },
             t("native.telemetry.chats") to "${services.chats.listSessions().size}",
             t("native.telemetry.evals") to "${evals.size}",
             t("native.telemetry.lastEval") to last,

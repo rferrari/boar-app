@@ -119,7 +119,7 @@ class AssetStore(
                 downloadBytes = asset.sizeBytes,
                 alreadyDownloadedBytes = partialBytes,
                 freeDiskBytes = filesDir.usableSpace.takeIf { it > 0 },
-                budgetBytes = catalog.storageBudgetBytes,
+                budgetBytes = StorageBudget.limit(catalog.storageBudgetBytes),
             ),
         )
         if (check is StorageBudget.Check.Refused) throw DownloadException.Storage(check.message, check)

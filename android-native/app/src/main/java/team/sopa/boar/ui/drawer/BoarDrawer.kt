@@ -150,11 +150,16 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
     var phone by remember { mutableStateOf(team.sopa.boar.app.AppMemory.Phone(0L, 0L)) }
     var disk by remember { mutableLongStateOf(0L) }
     var fetching by remember { mutableLongStateOf(0L) }
+    var phoneFree by remember { mutableLongStateOf(0L) }
+    // No BOAR limit (Boar Labs): the bar is BOAR's use against what it could still take, the phone's free space.
+    val noLimit = storageBudget == team.sopa.boar.engine.models.StorageBudget.NO_LIMIT
+    val diskTotal = if (noLimit) disk + fetching + phoneFree else storageBudget
     LaunchedEffect(Unit) {
         while (true) {
             withContext(Dispatchers.IO) {
                 app = team.sopa.boar.app.AppMemory.residentBytes(); phone = team.sopa.boar.app.AppMemory.phone(ctx)
                 disk = storageUsed(); fetching = downloading()
+                phoneFree = runCatching { ctx.filesDir.usableSpace }.getOrDefault(0L)
             }
             delay(5000)
         }
@@ -164,10 +169,13 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
         Bar(t("drawerFooterStats.ram"), listOf(minOf(app, phone.usedBytes) to c.emerald400, maxOf(phone.usedBytes - app, 0L) to c.textDim), phone.totalBytes,
             usage(phone.usedBytes, phone.totalBytes))
         Caption(t("native.drawerStats.ramBoar", "app" to Units.formatBytes(app, Locale.getDefault())))
-        Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)), storageBudget, usage(disk + fetching, storageBudget))
+        Bar(t("drawerFooterStats.disk"), listOf(disk to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)), diskTotal, usage(disk + fetching, diskTotal))
         Caption(
-            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.getDefault()))
-            else t("native.drawerStats.diskLimit"),
+            when {
+                noLimit -> t("native.drawerStats.diskNoLimit")
+                fetching > 0 -> t("native.drawerStats.diskDownloading", "size" to Units.formatBytes(fetching, Locale.getDefault()))
+                else -> t("native.drawerStats.diskLimit")
+            },
         )
         if (lastTokPerSec != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
             Text("●", fontSize = 8.sp, color = c.cyan400)

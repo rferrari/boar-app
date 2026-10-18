@@ -27,6 +27,8 @@ object LabHooks {
         LabPrefs.init(context)
         LabContext.app = context.applicationContext
         CrashRestart.install(context)
+        // BOAR's storage limit, the user's pick while Labs is on (Advanced tweaks); off, the catalog's 50 GB.
+        team.sopa.boar.engine.models.StorageBudget.userLimit = { if (LabPrefs.labsOn) storageLimitBytes(LabPrefs.string(STORAGE_LIMIT)) else null }
         CrashRestart.noteKey(context)?.let { team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(context, it)) }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
@@ -76,6 +78,24 @@ object LabHooks {
             androidx.compose.material3.Switch(LabPrefs.autoRestart, { LabPrefs.autoRestart = it },
                 colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
         }
+        if (LabPrefs.labsOn) Column(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.storage.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
+            var limit by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(LabPrefs.string(STORAGE_LIMIT) ?: "auto") }
+            team.sopa.boar.ui.models.ChipRow("", listOf(
+                "auto" to team.sopa.boar.ui.t("native.labs.storage.auto"), "25" to "25 GB", "100" to "100 GB", "200" to "200 GB",
+                "none" to team.sopa.boar.ui.t("native.labs.storage.none"),
+            ), limit) { limit = it; LabPrefs.putString(STORAGE_LIMIT, it) }
+            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.storage.settingNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
+        }
+    }
+
+    private const val STORAGE_LIMIT = "storageLimit"
+
+    /** "auto" or unknown: null (the catalog's 50 GB); "none": only the phone's free space; else that many GB. */
+    fun storageLimitBytes(choice: String?): Long? = when (choice) {
+        null, "auto" -> null
+        "none" -> team.sopa.boar.engine.models.StorageBudget.NO_LIMIT
+        else -> choice.toLongOrNull()?.takeIf { it > 0 }?.let { it * 1_000_000_000L }
     }
 
     @Composable

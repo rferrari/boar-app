@@ -133,6 +133,7 @@
     <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
     <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
     <string name="native_telemetry_storageValue" formatted="false">{{used}} of BOAR\'s {{limit}} limit</string>
+    <string name="native_telemetry_storageNoLimit" formatted="false">{{used}}, no BOAR limit</string>
     <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
     <string name="native_telemetry_chats" formatted="false">Chats saved</string>
     <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
@@ -399,6 +400,7 @@
     <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: {{used}} of models, {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
     <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
     <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
+    <string name="native_drawerStats_diskNoLimit" formatted="false">No BOAR limit: up to the phone\'s free space</string>
     <string name="native_drawerStats_diskDownloading" formatted="false">BOAR\'s storage limit · {{size}} downloading</string>
     <string name="native_download_errorSizeChanged" formatted="false">The server now has a different file than this version of BOAR expects. Import the file or update the app.</string>
     <string name="native_download_errorPaused" formatted="false">The download paused (no data). Check your connection and try again.</string>

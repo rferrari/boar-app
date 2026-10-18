@@ -10,6 +10,15 @@ object StorageBudget {
     /** Free space to leave on the phone after a download. */
     const val FREE_SPACE_MARGIN_BYTES: Long = 500_000_000L
 
+    /** No BOAR limit: only the phone's free space counts. */
+    const val NO_LIMIT: Long = Long.MAX_VALUE
+
+    /** The user's own limit (Boar Labs, Advanced tweaks); null, or a null answer, keeps the catalog's 50 GB. */
+    @Volatile var userLimit: (() -> Long?)? = null
+
+    /** The limit in force: the user's, else [catalogBudget]. */
+    fun limit(catalogBudget: Long): Long = runCatching { userLimit?.invoke() }.getOrNull() ?: catalogBudget
+
     data class Input(
         val usedBytes: Long,
         val reservedBytes: Long,
