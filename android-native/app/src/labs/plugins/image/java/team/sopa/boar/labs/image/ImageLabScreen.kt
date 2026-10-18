@@ -114,12 +114,24 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))
             is Illustrator.Status.Drawing -> Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
             is Illustrator.Status.Failed -> Text(st.message, style = Boar.type.caption, color = c.crimson400)
+            // What was drawn and the style, at a glance; ⓘ opens the exact prompt, size, seed and time (Oct 18).
             is Illustrator.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)))
+                var details by remember(a.id) { mutableStateOf(false) }
+                val style = st.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } }
+                Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)).clickable { details = !details })
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🎨 " + st.subject + (st.seconds?.let { String.format(Locale.US, " · %.1f s", it) } ?: ""), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
+                    Text("🎨 " + st.subject, style = Boar.type["mono.xs"], color = c.textSecondary, modifier = Modifier.weight(1f, fill = false))
+                    if (style != null && style != ImageLab.Style.NONE) Text(t("native.labs.image.style.${style.key}"), style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = c.textAccentCyan,
+                        modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 2.dp))
+                    Text("ⓘ", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { details = !details }.padding(4.dp))
                     Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Illustrator.forget(a.id) }.padding(4.dp))
                 }
+                if (details) Text(listOfNotNull(
+                    style?.prompt(st.subject) ?: st.subject,
+                    st.size?.let { ImageLab.Canvas.of(it)?.label ?: it },
+                    st.seed?.let { t("native.labs.image.seed", "seed" to it) },
+                    st.seconds?.let { String.format(Locale.US, "%.1f s", it) },
+                ).joinToString(" · "), style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
     }

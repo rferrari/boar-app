@@ -22,7 +22,8 @@ object Illustrator {
     sealed interface Status {
         data object Choosing : Status
         data class Drawing(val subject: String) : Status
-        data class Done(val file: File, val subject: String, val seconds: Double?) : Status
+        /** [style], [size] and [seed]: what it was drawn with, for the card's details (null on drawings saved before Oct 18). */
+        data class Done(val file: File, val subject: String, val seconds: Double?, val style: String? = null, val size: String? = null, val seed: Int? = null) : Status
         data class Failed(val message: String) : Status
     }
 
@@ -64,15 +65,18 @@ object Illustrator {
             // The same subject as another answer's drawing is a stale pick: draw the question instead.
             val repeated = fromModel != null && status.any { (id, s) -> id != a.id && s is Status.Done && s.subject.equals(fromModel, ignoreCase = true) }
             val subject = fromModel?.takeIf { !repeated } ?: fallback(a)
-            android.util.Log.i("BoarLabs", "illustrate ${a.id}: question=\"${a.question.take(80)}\" model=\"$fromModel\" repeated=$repeated -> \"$subject\"")
+            // No question or answer text in the log: only whether the model picked the subject.
+            android.util.Log.i("BoarLabs", "illustrate ${a.id}: from model=${fromModel != null} repeated=$repeated")
             status[a.id] = Status.Drawing(subject)
-            runCatching { SdRunner.draw(ctx, subject, ImageLab.defaultStyle(), ImageLab.defaultCanvas()) }
+            val style = ImageLab.defaultStyle()
+            val canvas = ImageLab.defaultCanvas()
+            runCatching { SdRunner.draw(ctx, subject, style, canvas) }
                 .onSuccess { d ->
                     // Forgotten (✕) while it drew: the result has no answer to go to.
                     if (status[a.id] !is Status.Drawing) { d.file.delete(); return@onSuccess }
-                    status[a.id] = Status.Done(d.file, subject, d.seconds); save()
+                    status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
                 }
-                .onFailure { e -> if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(e.message ?: "failed") }
+                .onFailure { if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.drawFailed")) }
             jobs.remove(a.id)
         }
     }
@@ -139,7 +143,8 @@ object Illustrator {
             o.keys().forEach { id ->
                 val e = o.getJSONObject(id)
                 val img = File(e.getString("file"))
-                if (img.isFile) status[id] = Status.Done(img, e.optString("subject"), e.optDouble("seconds").takeIf { !it.isNaN() })
+                if (img.isFile) status[id] = Status.Done(img, e.optString("subject"), e.optDouble("seconds").takeIf { !it.isNaN() },
+                    e.optString("style").ifEmpty { null }, e.optString("size").ifEmpty { null }, e.optInt("seed", 0).takeIf { it != 0 })
             }
         }
     }
@@ -149,7 +154,10 @@ object Illustrator {
     private fun save() {
         val f = store ?: return
         val o = JSONObject()
-        status.toMap().forEach { (id, s) -> if (s is Status.Done) o.put(id, JSONObject().put("file", s.file.path).put("subject", s.subject).put("seconds", s.seconds ?: JSONObject.NULL)) }
+        status.toMap().forEach { (id, s) ->
+            if (s is Status.Done) o.put(id, JSONObject().put("file", s.file.path).put("subject", s.subject).put("seconds", s.seconds ?: JSONObject.NULL)
+                .put("style", s.style ?: JSONObject.NULL).put("size", s.size ?: JSONObject.NULL).put("seed", s.seed ?: JSONObject.NULL))
+        }
         runCatching { f.parentFile?.mkdirs(); f.writeText(o.toString()) }
     }
 }
