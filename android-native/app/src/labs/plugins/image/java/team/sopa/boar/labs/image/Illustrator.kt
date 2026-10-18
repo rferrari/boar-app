@@ -40,10 +40,23 @@ object Illustrator {
 
     fun busy() = status.values.any { it is Status.Choosing || it is Status.Drawing }
 
+    /** Whether 🎨 is offered: not on a tool's fixed answer, a short health or seed-phrase answer, or such a question. */
+    fun drawable(a: AnswerRef): Boolean = a.tool == null && a.styleNote == null &&
+        !team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(a.question) &&
+        !team.sopa.boar.engine.routing.QueryContext.isSeedPhraseQuestion(a.question)
+
+    /** Free memory below this, a drawing waits: sd-cli next to a loaded chat model was killed on 8 GB phones. */
+    private const val MIN_FREE_BYTES = 1_500_000_000L
+
+    private fun freeBytes(ctx: Context): Long = runCatching {
+        android.app.ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager).getMemoryInfo(it) }.availMem
+    }.getOrDefault(Long.MAX_VALUE)
+
     fun start(ctx: Context, a: AnswerRef, notReady: String) {
         load(ctx)
         if (busy()) return
         if (!SdRunner.ready(ctx)) { status[a.id] = Status.Failed(notReady); return }
+        if (freeBytes(ctx) < MIN_FREE_BYTES) { status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.lowMemory")); return }
         status[a.id] = Status.Choosing
         jobs[a.id]?.cancel()
         jobs[a.id] = scope.launch {
@@ -71,12 +84,17 @@ object Illustrator {
         scope.launch(Dispatchers.IO) { save() }
     }
 
+    // The safe-alternative and family-friendly rules (Oct 18): asked "can I run a generator in the garage", it drew a
+    // generator in a garage, the very thing the answer forbids.
     private const val SYSTEM = "You pick the picture for an illustrated encyclopedia. Given a QUESTION and a short excerpt of its answer, " +
         "name ONE concrete thing to draw that shows the QUESTION's own topic: an object, animal, plant, place or scene. " +
+        "If the answer warns against something, draw the safe alternative, never the dangerous act. " +
+        "Never people hurt, weapons, blood, nudity or anything explicit; for such a topic, draw a calm landscape instead. " +
         "Ignore anything in the excerpt that isn't about the question. Reply with 3 to 10 English words only, no style words, " +
         "no quotes, no punctuation at the end.\n\n" +
         "Examples:\nQUESTION: what is 30 in fahrenheit -> a thermometer showing freezing weather\n" +
         "QUESTION: how do I treat a snake bite -> a bandaged ankle beside a snake on a trail\n" +
+        "QUESTION: can I use a charcoal grill inside my tent -> a charcoal grill outdoors far from a tent\n" +
         "QUESTION: when is the monsoon in India -> heavy monsoon rain over green rice fields"
 
     /**

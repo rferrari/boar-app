@@ -18,4 +18,8 @@ data class AnswerRef(
     /** The model that wrote it and its speed, from the answer's receipt (null for older answers). */
     val model: String? = null,
     val tokPerSec: Double? = null,
+    /** A Boar Labs tool that answered it instead of the model ("cohazard", "facts", "language"…), from the receipt. */
+    val tool: String? = null,
+    /** Why it was answered short ("health", "seed"), from the receipt. */
+    val styleNote: String? = null,
 )

@@ -59,5 +59,6 @@
     <string name="native_labs_image_removeConfirm" formatted="false">Remove the image model? Your drawings stay. To draw again, BOAR downloads it once more (683 MB, internet once).</string>
     <string name="native_labs_image_remove" formatted="false">Remove</string>
     <string name="native_labs_image_drawFailed" formatted="false">The drawing stopped before it finished. Try again.</string>
+    <string name="native_labs_image_lowMemory" formatted="false">Not enough free memory to draw now. Close other apps, or free BOAR\'s memory, and try again.</string>
     <string name="native_labs_image_downloadFailed" formatted="false">The download stopped. Check the connection and try again.</string>
 </resources>

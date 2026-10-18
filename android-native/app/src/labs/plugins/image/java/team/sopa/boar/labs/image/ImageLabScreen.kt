@@ -92,6 +92,9 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     @Composable
     override fun answerActions(a: team.sopa.boar.plugins.AnswerRef): List<team.sopa.boar.labs.LabAction> {
         val ctx = LocalContext.current
+        // Nothing to draw for a tool's fixed answer (a carbon-monoxide warning, a fact, a distance, a language reply) or a
+        // health or seed-phrase question: a picture there could show the very thing the answer warns against (Oct 18).
+        if (!Illustrator.drawable(a)) return emptyList()
         val st = Illustrator.status(ctx, a.id)
         val running = st is Illustrator.Status.Choosing || st is Illustrator.Status.Drawing
         val notReady = t("native.labs.image.illustrateNotReady")
