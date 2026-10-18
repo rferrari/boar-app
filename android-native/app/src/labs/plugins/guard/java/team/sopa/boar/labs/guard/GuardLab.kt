@@ -11,9 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.engine.answer.AnswerText
-import team.sopa.boar.engine.routing.QueryContext
-import team.sopa.boar.engine.routing.VerdictGuard
+import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.plugins.AnswerCheck
@@ -33,11 +31,7 @@ object GuardLab : LabPlugin {
     override val emoji = "🛡️"
     override val status = LabStatus.BETA
 
-    override val answerCheck: AnswerCheck = AnswerCheck { question, answer ->
-        if (QueryContext.isPortugueseQuestion(question) || QueryContext.isSpanishQuestion(question) || QueryContext.isHealthQuestion(question)) return@AnswerCheck null
-        if (AnswerText.splitThinking(answer).let { it.thinking != null || it.thinkingInProgress }) return@AnswerCheck null
-        VerdictGuard.check(question, answer)?.let { Repair("verdict-guard-${it.kind}", it.text) }
-    }
+    override val answerCheck: AnswerCheck = AnswerCheck { question, answer -> LabTools.guard(question, answer)?.let { Repair(it.tool, it.text) } }
 
     @Composable
     override fun Content() {

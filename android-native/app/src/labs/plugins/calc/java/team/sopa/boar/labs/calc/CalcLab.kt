@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.engine.routing.CalcShortcut
+import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.plugins.AnswerTool
@@ -31,7 +31,7 @@ object CalcLab : LabPlugin {
     override val status = LabStatus.BETA
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->
-        CalcShortcut.answer(query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.code, it.text) }
+        LabTools.calc(query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.tool, it.text) }
     }
 
     @Composable

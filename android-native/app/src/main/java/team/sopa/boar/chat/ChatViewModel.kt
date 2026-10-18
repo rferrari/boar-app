@@ -459,7 +459,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val stopped = stopRequested
             // The check slot (Boar Labs): a model's finished answer on the default or adaptive path may be repaired; not one
             // that was stopped, timed out or failed part way.
-            val repair = if (instant != null || stopped || timedOut || _state.value.error != null || (path != null && path != "adaptive") || text.isBlank()) null
+            val repair = if (!team.sopa.boar.engine.routing.LabTools.checksAnswer(instant != null, stopped, timedOut, _state.value.error != null, path, text.isBlank())) null
             else AnswerChecks.run(q, text.toString())
             if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.

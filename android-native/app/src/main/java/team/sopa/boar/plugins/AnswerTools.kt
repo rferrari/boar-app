@@ -1,6 +1,7 @@
 package team.sopa.boar.plugins
 
 import team.sopa.boar.engine.rag.ConversationTurn
+import team.sopa.boar.engine.routing.LabTools
 
 /**
  * The tool slot: a Boar Labs plugin looks at the question before the model runs (a calculator, a lookup table) and
@@ -29,7 +30,7 @@ object AnswerTools {
 
     /** The first tool with something to say; one that throws is skipped, as a search stage is. */
     fun run(query: String, history: List<ConversationTurn>): ToolResult? =
-        runCatching { tools() }.getOrDefault(emptyList()).firstNotNullOfOrNull { t -> runCatching { t.run(query, history) }.getOrNull() }
+        LabTools.first(runCatching { tools() }.getOrDefault(emptyList())) { it.run(query, history) }
 
     /** The system prompt with a [ToolResult.Context]'s text after it; unchanged otherwise. */
     fun systemPrompt(base: String, r: ToolResult?): String = if (r is ToolResult.Context) "$base\n\n${r.text}" else base

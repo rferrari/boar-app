@@ -12,8 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
-import team.sopa.boar.engine.routing.NumGuard
-import team.sopa.boar.engine.routing.QueryContext
+import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.engine.routing.TravelDistance
 import team.sopa.boar.labs.LabContext
 import team.sopa.boar.labs.LabPlugin
@@ -41,9 +40,7 @@ object DistanceLab : LabPlugin {
     }
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->
-        if (QueryContext.isPortugueseQuestion(query) || QueryContext.isSpanishQuestion(query)) return@AnswerTool null
-        if ((listOf(query) + history.filter { it.role == "user" }.map { it.text }).any(NumGuard::healthLexicon)) return@AnswerTool null
-        table?.answer(query)?.let { ToolResult.Instant("calculator-travel-distance", it.text) }
+        LabTools.distance(table, query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.tool, it.text) }
     }
 
     @Composable

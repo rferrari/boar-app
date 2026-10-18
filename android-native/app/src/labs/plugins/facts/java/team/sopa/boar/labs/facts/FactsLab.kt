@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
 import team.sopa.boar.engine.rag.Facts
-import team.sopa.boar.engine.routing.QueryContext
+import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.labs.LabContext
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
@@ -41,9 +41,7 @@ object FactsLab : LabPlugin {
     }
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->
-        if (QueryContext.isPortugueseQuestion(query) || QueryContext.isSpanishQuestion(query)) return@AnswerTool null
-        if ((listOf(query) + history.filter { it.role == "user" }.map { it.text }).any(QueryContext::isHealthQuestion)) return@AnswerTool null
-        table?.answer(query)?.let { ToolResult.Instant("facts-${it.template}", it.text) }
+        LabTools.facts(table, query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.tool, it.text) }
     }
 
     @Composable

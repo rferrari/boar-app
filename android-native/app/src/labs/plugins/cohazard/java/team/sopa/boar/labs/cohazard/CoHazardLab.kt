@@ -11,8 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import team.sopa.boar.engine.routing.CoHazard
-import team.sopa.boar.engine.routing.QueryContext
+import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.plugins.AnswerTool
@@ -32,10 +31,7 @@ object CoHazardLab : LabPlugin {
     override val emoji = "⚠️"
     override val status = LabStatus.BETA
 
-    override val answerTool: AnswerTool = AnswerTool { query, _ ->
-        if (QueryContext.isPortugueseQuestion(query) || QueryContext.isSpanishQuestion(query) || !CoHazard.isCoHazardQuestion(query)) null
-        else ToolResult.Instant("safety-fact-co-hazard", CoHazard.coHazardAnswer(query))
-    }
+    override val answerTool: AnswerTool = AnswerTool { query, _ -> LabTools.coHazard(query)?.let { ToolResult.Instant(it.tool, it.text) } }
 
     @Composable
     override fun Content() {

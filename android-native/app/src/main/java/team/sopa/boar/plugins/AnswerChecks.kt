@@ -1,5 +1,7 @@
 package team.sopa.boar.plugins
 
+import team.sopa.boar.engine.routing.LabTools
+
 /**
  * The check slot: a Boar Labs plugin reads a model's finished answer with its question and may return a repaired text
  * (a verdict its own facts contradict). Only the chat's default and adaptive paths call it, after generation and before
@@ -20,5 +22,5 @@ object AnswerChecks {
 
     /** The first check with a repair; one that throws is skipped, as a tool is. */
     fun run(question: String, answer: String): Repair? =
-        runCatching { checks() }.getOrDefault(emptyList()).firstNotNullOfOrNull { c -> runCatching { c.check(question, answer) }.getOrNull() }
+        LabTools.first(runCatching { checks() }.getOrDefault(emptyList())) { it.check(question, answer) }
 }
