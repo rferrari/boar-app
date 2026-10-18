@@ -32,6 +32,7 @@ import team.sopa.boar.ui.theme.Boar
 object DistanceLab : LabPlugin {
     override val id = "distance"
     override val emoji = "🗺️"
+    override val art = team.sopa.boar.R.drawable.lab_distance
     override val status = LabStatus.BETA
 
     /** The city table, read on the first travel question (280 KB of JSON). */
