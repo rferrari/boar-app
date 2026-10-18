@@ -51,6 +51,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     val labs = LabRegistry.visible
     var note by remember { mutableStateOf<String?>(null) }
+    val taps = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
     Shell(t("native.labs.title"), onClose) {
         Hero(labs)
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
@@ -68,14 +69,30 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     row.forEach { lab ->
                         Tile(lab, Modifier.weight(1f)) {
-                            if (lab.status == LabStatus.CLASSIFIED) note = lab.id else onOpen("lab:${lab.id}")
+                            if (lab.status != LabStatus.CLASSIFIED) onOpen("lab:${lab.id}")
+                            else {
+                                // Easter egg: ten taps on a classified tile declassify it, like Android's developer options.
+                                val n = (taps[lab.id] ?: 0) + 1
+                                taps[lab.id] = n
+                                if (n == REVEAL_TAPS && !LabPrefs.revealed(lab.id)) LabPrefs.setRevealed(lab.id)
+                                note = lab.id
+                            }
                         }
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
         }
-        note?.let { Text(t("native.labs.classifiedNote", "name" to t("native.labs.$it.title")), style = Boar.type.caption, color = c.textAccentEmerald) }
+        note?.let { id ->
+            val name = t("native.labs.$id.title")
+            val left = REVEAL_TAPS - (taps[id] ?: 0)
+            val text = when {
+                LabPrefs.revealed(id) -> t("native.labs.declassifiedNote", "name" to name)
+                left in 1..5 -> t("native.labs.classifiedTaps", "count" to left)
+                else -> t("native.labs.classifiedNote", "name" to name)
+            }
+            Text(text, style = Boar.type.caption, color = c.textAccentEmerald)
+        }
     }
 }
 
@@ -176,7 +193,8 @@ private fun Console(text: String, cursorAlpha: Float, modifier: Modifier = Modif
 @Composable
 private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
     val c = Boar.colors
-    val locked = lab.status == LabStatus.CLASSIFIED
+    // A classified lab the user declassified (ten taps) shows its boar, name and description; it still can't be opened.
+    val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id)
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
@@ -233,3 +251,6 @@ fun StatusChip(status: LabStatus) {
         modifier = Modifier.background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp)).background(bg, RoundedCornerShape(4.dp))
             .padding(horizontal = if (review) 8.dp else 6.dp, vertical = if (review) 3.dp else 2.dp))
 }
+
+/** Taps on one classified tile that declassify it. */
+private const val REVEAL_TAPS = 10

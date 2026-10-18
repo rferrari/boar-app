@@ -131,6 +131,11 @@ object LabPrefs {
 
     fun enabled(id: String) = switches[id] ?: false
 
+    /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
+    private val reveals = mutableStateMapOf<String, Boolean>()
+    fun revealed(id: String) = reveals[id] ?: prefs?.getBoolean("revealed.$id", false) ?: false
+    fun setRevealed(id: String) { reveals[id] = true; prefs?.edit()?.putBoolean("revealed.$id", true)?.apply() }
+
     fun setEnabled(id: String, on: Boolean) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
         switches[id] = on
