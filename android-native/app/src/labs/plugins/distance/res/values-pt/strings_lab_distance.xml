@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_distance_title" formatted="false">Boar Distância</string>
+    <string name="native_labs_distance_body" formatted="false">A distância entre duas cidades, e quanto tempo a pé, de bicicleta ou de carro, como estimativa e sem o modelo.</string>
+    <string name="native_labs_distance_answers" formatted="false">RESPONDE SOZINHO</string>
+    <string name="native_labs_distance_answersList" formatted="false">• A distância em linha reta entre duas cidades, em km e milhas\n• Quanto dá, mais ou menos, por estrada ou trilha: a pé cerca de 30% a mais, de bicicleta e de carro cerca de 25%\n• Quantos dias a pé ou de bicicleta, ou horas de carro\n• Ida e volta, quando você pergunta pelos dois trechos</string>
+    <string name="native_labs_distance_try" formatted="false">EXPERIMENTE</string>
+    <string name="native_labs_distance_example1" formatted="false">How far is it to walk from Paris to Rome and back?</string>
+    <string name="native_labs_distance_example2" formatted="false">How long would it take to bike from Vienna to Budapest?</string>
+    <string name="native_labs_distance_example3" formatted="false">What\'s the distance between Madrid and Barcelona?</string>
+    <string name="native_labs_distance_note" formatted="false">Ele conhece as 6.000 maiores cidades (GeoNames, CC BY 4.0) e calcula pelas coordenadas, então toda resposta é uma estimativa, não uma rota no mapa: não sabe de estradas, fronteiras, balsas ou bloqueios. Um lugar que não é uma dessas cidades (um hotel, uma praia, uma cidade pequena) vai para o modelo, como sempre, e uma conversa sobre saúde, ferimento ou perigo também. Perguntas só em inglês. Portado da distância de viagem de r4to (BOAR R&amp;D).</string>
+</resources>

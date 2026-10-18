@@ -3,7 +3,7 @@ package team.sopa.boar.engine.routing
 /**
  * The calculator shortcuts of r4to's src/routing/answer.ts (PR #85, BOAR R&D, MIT), in its order: the exact calculators
  * (Calculators: battery, fuel economy, Naismith, currency, water, temperature; EN and PT), then the word problems
- * (Arithmetic: rate × quantity -> time, ceil-division; EN only). Travel distance is left out: it needs the 280 KB city table.
+ * (Arithmetic: rate × quantity -> time, ceil-division; EN only). Travel distance is its own lab, Boar Distance (TravelDistance).
  *
  * answer.ts skips them when its learned emergency detector fires, over this turn or the earlier user turns. BOAR native has
  * no such detector, so NumGuard's health lexicon stands in for it: a turn, or an earlier user turn, naming a health,
