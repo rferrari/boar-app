@@ -323,7 +323,8 @@ class BoarServices private constructor(private val context: Context) {
             val tweaks = settings.engineTweaks
             val reload = provider === builtInEngine && filename == asset.filename && builtInEngine.needsReload(asset)
             if (filename != asset.filename || session == null || reload) {
-                if (session != null) { session?.close(); DebugLog.modelUnload(residentId) }
+                // Switching models: the one going out didn't kill the app (an engine without a marker must not inherit it).
+                if (session != null) { residentId?.let(loadGuard::settled); session?.close(); DebugLog.modelUnload(residentId) }
                 session = null
                 filename = null
                 residentId = null
@@ -334,11 +335,14 @@ class BoarServices private constructor(private val context: Context) {
                     provider === builtInEngine && builtInEngine.residentRepacked)
                 if (m == null) return null
                 val engineOwn = m.onGenerated
-                m.onGenerated = { g -> DebugLog.generation(asset.id, g, params.nCtx); engineOwn?.invoke(g) }
+                // A finished answer proves the model fits: the load guard's marker can go.
+                m.onGenerated = { g -> loadGuard.settled(asset.id); DebugLog.generation(asset.id, g, params.nCtx); engineOwn?.invoke(g) }
                 session = m
                 filename = asset.filename
                 residentId = asset.id
                 openedContext = params.nCtx
+                // Or a minute loaded without being killed: Android kills an app whose model doesn't fit within seconds.
+                lifeScope.launch { kotlinx.coroutines.delay(LOAD_SETTLE_MS); if (residentId == asset.id) loadGuard.settled(asset.id) }
                 settings.lastLoadedModelId = asset.id
                 settings.stampModel(AppSettings.MODEL_LAST_USED, asset.id)
             }
@@ -371,6 +375,8 @@ class BoarServices private constructor(private val context: Context) {
         /** Frees the model; the next answer loads it again (with changed Advanced tweaks, or another model). */
         suspend fun unload() = lock.withLock {
             val id = residentId
+            // Unloaded on purpose (free memory, Close BOAR): the model didn't kill the app, so its load marker goes.
+            id?.let(loadGuard::settled)
             session?.close()
             session = null
             filename = null
@@ -441,6 +447,8 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     companion object {
+        /** How long a loaded model must stay alive before its load counts as safe (LoadGuard.settled). */
+        const val LOAD_SETTLE_MS = 60_000L
         /**
          * The Custom answer style (a prompt the user writes) is hidden from Settings and the style sheet: it could be used to
          * make BOAR say anything and post it as BOAR's own words. The setting and prompt still work if already chosen.

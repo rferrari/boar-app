@@ -28,13 +28,33 @@ class LoadGuardTest {
         return LoadGuard(store, ledger)
     }
 
-    @Test fun `a load that returns leaves no marker and nothing blocked`() {
+    @Test fun `a load that returns and settles leaves no marker and nothing blocked`() {
         val store = Mem(); val ledger = L()
         val g = LoadGuard(store, ledger)
         g.begin(big, null, repacked = true)
         g.end(big, loaded = true)
+        g.settled("qwen3-4b")
         assertNull(store.v)
         assertFalse(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
+    }
+
+    @Test fun `killed after the load returned but before it settled still counts as a load kill`() {
+        val store = Mem(); val ledger = L()
+        val g = LoadGuard(store, ledger)
+        g.begin(big, null, repacked = true)
+        g.end(big, loaded = true)
+        // The process dies here (F3, Oct 18: 4 s after the load returned).
+        val next = LoadGuard(store, ledger)
+        assertTrue(next.isBlocked("qwen3-4b"))
+        assertEquals("qwen3-4b", next.consume()!!.crashedModelId)
+    }
+
+    @Test fun `settling another model leaves the marker`() {
+        val store = Mem(); val ledger = L()
+        val g = LoadGuard(store, ledger)
+        g.begin(big, null, repacked = true); g.end(big, loaded = true)
+        g.settled("qwen2.5-1.5b")
+        assertTrue(LoadGuard(store, ledger).isBlocked("qwen3-4b"))
     }
 
     @Test fun `a killed repacked load blocks the model for automatic loads after one kill`() {
@@ -57,6 +77,7 @@ class LoadGuardTest {
         assertTrue(g.mappedNext("qwen3-4b"))
         g.begin(big, null, repacked = false)
         g.end(big, loaded = true)
+        g.settled("qwen3-4b")
         // The next start doesn't go back to the repacked load that closed the app.
         val g2 = LoadGuard(store, ledger)
         assertTrue(g2.mappedNext("qwen3-4b"))
@@ -98,7 +119,7 @@ class LoadGuardTest {
         g.confirm("qwen3-4b")
         assertFalse(g.isBlocked("qwen3-4b"))
         ledger.crashedIds = listOf("qwen3-4b")
-        g.begin(big, null, repacked = true); g.end(big, loaded = true)
+        g.begin(big, null, repacked = true); g.end(big, loaded = true); g.settled("qwen3-4b")
         assertFalse(g.isBlocked("qwen3-4b"))
     }
 

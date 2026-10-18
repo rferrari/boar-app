@@ -78,13 +78,23 @@ class LoadGuard(private val store: MarkerStore, private val ledger: Ledger, priv
     }
 
     /**
-     * After the load returned. A model that loaded is unblocked; one the user retried with the mapped file keeps it
-     * ([mappedNext]) so the next start doesn't repeat the repacked load that closed the app.
+     * After the load returned. A load that failed clears the marker. One that loaded keeps it until [settled]: Android
+     * kills the app when the model's memory fills, which can come seconds after the load returned (F3, LFM2.5 8B, Oct 18:
+     * killed 4 s after llama.cpp finished loading). A kill in that window still counts as a load kill.
      */
     fun end(meta: Meta, loaded: Boolean) {
-        store.clear()
-        val id = meta.modelId ?: return
-        if (loaded && id in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - id
+        if (!loaded) store.clear()
+    }
+
+    /**
+     * [modelId] has stayed loaded long enough (its first answer finished, or a minute passed): the marker goes, and a model
+     * blocked before is unblocked. One the user retried with the mapped file keeps it ([mappedNext]).
+     */
+    fun settled(modelId: String) {
+        val raw = runCatching { store.read() }.getOrNull()
+        val marker = raw?.let { runCatching { json.decodeFromString(Marker.serializer(), it) }.getOrNull() }
+        if (marker != null && (marker.modelId ?: marker.filename) == modelId) store.clear()
+        if (modelId in ledger.crashedIds) ledger.crashedIds = ledger.crashedIds - modelId
     }
 
     /** "Try again with less memory": the user's call to load [modelId] again now, keeping the mapped file. */
