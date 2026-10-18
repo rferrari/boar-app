@@ -86,8 +86,10 @@ object LabRegistry {
 
     private val hidden: Set<String> = BuildConfig.LABS_HIDE.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
-    /** In the grid's order: released labs first (plugin.properties order), the classified ones after. */
-    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }.sortedBy { it.status == LabStatus.CLASSIFIED }
+    /** In the grid's order: live, then beta, then under review, then classified; plugin.properties order within each. */
+    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }.sortedBy {
+        when (it.status) { LabStatus.LIVE -> 0; LabStatus.BETA -> 1; LabStatus.REVIEW -> 2; LabStatus.CLASSIFIED -> 3 }
+    }
 
     fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id && it.status != LabStatus.CLASSIFIED }
 

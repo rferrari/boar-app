@@ -53,14 +53,26 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     var note by remember { mutableStateOf<String?>(null) }
     Shell(t("native.labs.title"), onClose) {
         Hero(labs)
-        labs.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                row.forEach { lab ->
-                    Tile(lab, Modifier.weight(1f)) {
-                        if (lab.status == LabStatus.CLASSIFIED) note = lab.id else onOpen("lab:${lab.id}")
+        // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
+        // under review, and the locked ones still in testing with no release date.
+        val groups = listOf(
+            null to labs.filter { it.status == LabStatus.LIVE || it.status == LabStatus.BETA },
+            "native.labs.section.review" to labs.filter { it.status == LabStatus.REVIEW },
+            "native.labs.section.testing" to labs.filter { it.status == LabStatus.CLASSIFIED },
+        )
+        for ((title, group) in groups) {
+            if (group.isEmpty()) continue
+            if (title != null) Text(t(title), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp))
+            group.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    row.forEach { lab ->
+                        Tile(lab, Modifier.weight(1f)) {
+                            if (lab.status == LabStatus.CLASSIFIED) note = lab.id else onOpen("lab:${lab.id}")
+                        }
                     }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
         note?.let { Text(t("native.labs.classifiedNote", "name" to t("native.labs.$it.title")), style = Boar.type.caption, color = c.textAccentEmerald) }

@@ -18,4 +18,6 @@
     <string name="native_labs_disabled" formatted="false">This lab is off. Turn it on above.</string>
     <string name="native_labs_off" formatted="false">OFF</string>
     <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_section_review" formatted="false">UNDER REVIEW</string>
+    <string name="native_labs_section_testing" formatted="false">IN TESTING · NO RELEASE DATE</string>
 </resources>
