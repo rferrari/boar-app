@@ -45,6 +45,7 @@ import team.sopa.boar.engine.routing.Profiles
 import team.sopa.boar.engine.routing.RoutingPreset
 import team.sopa.boar.engine.routing.TaskType
 import team.sopa.boar.engine.settings.AnswerLimit
+import team.sopa.boar.plugins.AnswerChecks
 import team.sopa.boar.plugins.AnswerTools
 import team.sopa.boar.plugins.ToolResult
 
@@ -456,12 +457,18 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
+            // The check slot (Boar Labs): a model's finished answer on the default or adaptive path may be repaired; not one
+            // that was stopped, timed out or failed part way.
+            val repair = if (instant != null || stopped || timedOut || _state.value.error != null || (path != null && path != "adaptive") || text.isBlank()) null
+            else AnswerChecks.run(q, text.toString())
+            if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.
             val measured = if (instant != null) Receipt(totalMs = (System.nanoTime() - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0)
             else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked, tool = tool?.tool, styleNote = shortReason)
+                r.copy(style = style, path = path, task = task, checked = checked,
+                    tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null }, styleNote = shortReason)
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }

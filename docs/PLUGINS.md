@@ -87,6 +87,7 @@ object MyLab : LabPlugin {
 | `HeaderBadge(go)` | **Chat header** | A small badge at the top of the chat; `go("lab:<id>")` opens the lab |
 | `engine` | **Engine** | An `EngineProvider`: models this lab runs on its own engine (see [Engines](#engines)) |
 | `answerTool` | **Before the model** | An `AnswerTool` (`plugins/AnswerTools.kt`): sees the question and the chat's earlier turns first and returns `ToolResult.Instant` (the answer itself, shown and saved with no model call) or `ToolResult.Context` (text the model reads after the system prompt), or null to pass (example: `plugins/calc`). The chat's default and adaptive paths and the device evaluation use it, not Deep Research; the receipt keeps the tool's name. One that throws is skipped |
+| `answerCheck` | **After the model** | An `AnswerCheck` (`plugins/AnswerChecks.kt`): reads a model's finished answer with its question and returns a `Repair` (the text that replaces it, and a name for the receipt) or null to leave it (example: `plugins/guard`). Only the chat's default and adaptive paths, before the answer is saved; never a tool's instant answer, Deep Research, or a stopped, timed-out or failed answer. One that throws is skipped |
 | `searchStage` | **After search** | A `SearchStage` (`plugins/PipelineStages.kt`): reorders or filters the passages for every answer (a reranker). It gets twice the usual number to choose from and returns at most `topK`; one that throws is skipped |
 | `eraseUserData(context, scope)` | **Erase** | Delete what the lab made (see [Erase](#erase)) |
 

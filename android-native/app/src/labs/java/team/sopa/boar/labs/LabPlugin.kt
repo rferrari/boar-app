@@ -63,6 +63,9 @@ interface LabPlugin {
 
     /** The tool slot: looks at the question before the model and answers it or adds context (team.sopa.boar.plugins.AnswerTools). */
     val answerTool: team.sopa.boar.plugins.AnswerTool? get() = null
+
+    /** The check slot: reads a model's finished answer and may repair it (team.sopa.boar.plugins.AnswerChecks). */
+    val answerCheck: team.sopa.boar.plugins.AnswerCheck? get() = null
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
