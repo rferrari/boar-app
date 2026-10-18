@@ -6,13 +6,14 @@
     <string name="native_labs_classifiedNote" formatted="false">{{name}} é confidencial: ainda em teste. Volte em breve.</string>
     <string name="native_labs_classifiedTaps_one" formatted="false">Mais 1 toque para abrir este arquivo…</string>
     <string name="native_labs_classifiedTaps_other" formatted="false">Mais {{count}} toques para abrir este arquivo…</string>
-    <string name="native_labs_declassifiedNote" formatted="false">{{name}}, revelado. Ainda em testes, sem data de lançamento.</string>
+    <string name="native_labs_declassifiedNote" formatted="false">{{name}} vazou. Ainda em testes, sem data de lançamento.</string>
     <string name="native_labs_hero_count" formatted="false">{{open}} abertos · {{locked}} confidenciais</string>
     <string name="native_labs_hero_offline" formatted="false">tudo aqui roda neste celular, offline</string>
     <string name="native_labs_hero_warning" formatted="false">experimental: pode ser lento, imperfeito ou sumir amanhã</string>
     <string name="native_labs_status_live" formatted="false">ATIVO</string>
     <string name="native_labs_status_beta" formatted="false">BETA</string>
     <string name="native_labs_status_review" formatted="false">EM REVISÃO</string>
+    <string name="native_labs_status_leaked" formatted="false">VAZOU</string>
     <string name="native_labs_status_classified" formatted="false">CONFIDENCIAL</string>
     <string name="native_labs_settingsTitle" formatted="false">Boar Labs (experimental)</string>
     <string name="native_labs_crash_setting" formatted="false">Reabrir o BOAR depois de um erro</string>

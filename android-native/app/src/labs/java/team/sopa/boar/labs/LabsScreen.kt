@@ -52,6 +52,9 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     val labs = LabRegistry.visible
     var note by remember { mutableStateOf<String?>(null) }
     val taps = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
+    // The tile that just leaked flashes red once.
+    var alert by remember { mutableStateOf<String?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Shell(t("native.labs.title"), onClose) {
         Hero(labs)
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
@@ -68,13 +71,17 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
             group.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     row.forEach { lab ->
-                        Tile(lab, Modifier.weight(1f)) {
+                        Tile(lab, Modifier.weight(1f), flash = alert == lab.id) {
                             if (lab.status != LabStatus.CLASSIFIED) onOpen("lab:${lab.id}")
                             else {
                                 // Easter egg: ten taps on a classified tile declassify it, like Android's developer options.
                                 val n = (taps[lab.id] ?: 0) + 1
                                 taps[lab.id] = n
-                                if (n == REVEAL_TAPS && !LabPrefs.revealed(lab.id)) LabPrefs.setRevealed(lab.id)
+                                if (n == REVEAL_TAPS && !LabPrefs.revealed(lab.id)) {
+                                    LabPrefs.setRevealed(lab.id)
+                                    alert = lab.id
+                                    team.sopa.boar.app.Haptics.leak(ctx)
+                                }
                                 note = lab.id
                             }
                         }
@@ -191,8 +198,13 @@ private fun Console(text: String, cursorAlpha: Float, modifier: Modifier = Modif
 }
 
 @Composable
-private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
+private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
+    // Red alert: the tile that just leaked flashes red once, fading over a second.
+    val red = remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(flash) {
+        if (flash) { red.snapTo(0.7f); red.animateTo(0f, androidx.compose.animation.core.tween(1000)) }
+    }
     // A classified lab the user declassified (ten taps) shows its boar, name and description; it still can't be opened.
     val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id)
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -205,7 +217,8 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, onClick: () -> Unit) {
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
             if (locked) Text(if (lab.art != null) "?" else "🔒", style = if (lab.art != null) Boar.type.titleLg else Boar.type.body,
                 fontSize = if (lab.art != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
-            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status) }
+            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && LabPrefs.revealed(lab.id)) }
+            if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             if (!locked && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp).background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
         }
@@ -236,8 +249,11 @@ private fun redact(s: String): String {
 }
 
 @Composable
-fun StatusChip(status: LabStatus) {
+fun StatusChip(status: LabStatus, leaked: Boolean = false) {
     val c = Boar.colors
+    // A classified lab the user declassified (the ten-tap easter egg) shows LEAKED in alert red.
+    if (leaked) return Text(t("native.labs.status.leaked"), style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = Color.White, fontWeight = FontWeight.ExtraBold,
+        modifier = Modifier.background(c.crimson500, RoundedCornerShape(4.dp)).padding(horizontal = 7.dp, vertical = 2.dp))
     val (fg, bg) = when (status) {
         LabStatus.LIVE -> c.textAccentEmerald to c.emeraldBgSubtle
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
