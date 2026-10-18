@@ -302,17 +302,17 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
                         DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
-                        DrawerItem("about", t("chatScreen.drawerItems.about")) { go { screen = "about" } },
                     ).let { items ->
                         // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
                         if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
-                        else items.take(3) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(3)
+                        else items.take(2) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(2)
                     }.let { items ->
-                        // Boar Labs goes before Close BOAR and About: About is always the menu's last item (Oct 16).
+                        // Boar Labs, then Settings, then Close BOAR last (Oct 18); About opens from the BOAR mark at the top.
                         val labs = team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } }
-                        val last = setOf("close", "about")
+                        val last = setOf("settings", "close")
                         items.filter { it.key !in last } + labs + items.filter { it.key in last }
                     },
+                    onAbout = { go { screen = "about" } },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },

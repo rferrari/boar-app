@@ -71,14 +71,18 @@ fun BoarDrawer(
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
+    /** The BOAR mark and name at the top open About. */
+    onAbout: () -> Unit = {},
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxHeight().widthIn(max = 310.dp).background(c.bgCardElevated).statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp).padding(top = 16.dp)) {
         // Fixed parts at the top and bottom; the chat history takes the height left between them and scrolls inside
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 16.dp)) {
-                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.boar)), null, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
+            val aboutLabel = t("chatScreen.drawerItems.about")
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(bottom = 16.dp).clip(RoundedCornerShape(10.dp)).clickable(onClickLabel = aboutLabel, onClick = onAbout)) {
+                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.boar)), aboutLabel, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
                 Column {
                     Text("BOAR", style = Boar.type.title, color = c.textHeading)
                     Text(t("drawer.subtitle"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textAccentEmerald, modifier = Modifier.padding(top = 1.dp))
