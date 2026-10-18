@@ -105,7 +105,7 @@ object QueryContext {
         "iu",
     )
     private val CRYPTO_CONTEXT = re(
-        """(?<![\p{L}\p{N}])(wallets?|carteiras?|crypto\p{L}*|cripto\p{L}*|bitcoins?|btc|ethereum|eth|coins?|moedas?|blockchain|metamask|ledger|trezor|seed|semente|bip ?39)(?![\p{L}\p{N}])""",
+        """(?<![\p{L}\p{N}])(wallets?|carteiras?|billeteras?|carteras?|monederos?|crypto\p{L}*|cripto\p{L}*|bitcoins?|btc|ethereum|eth|coins?|moedas?|blockchain|metamask|ledger|trezor|seed|semente|bip ?39)(?![\p{L}\p{N}])""",
         "iu",
     )
 
