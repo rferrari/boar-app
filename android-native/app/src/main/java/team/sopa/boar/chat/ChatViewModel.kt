@@ -530,10 +530,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val deep = _state.value.deepResearch
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
-            // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for Deep Research or a recap.
+            // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
+            // Research only a safety answer (Boar Cohazard): the CO question went to the model there (F3, Oct 19).
             val skipTools = skipToolsOnce.also { skipToolsOnce = false }
-            val tool = if (skipTools || deep || aboutConversation(q, history, conversation)) null
+            val tool = if (skipTools || aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
+                ?.takeIf { !deep || it.tool.startsWith("safety-") }
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s
