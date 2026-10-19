@@ -394,11 +394,15 @@ private fun LoadNoteBanner(
                 Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            for ((label, action) in actions) {
-                Box(Modifier.weight(1f, fill = false).clip(RoundedCornerShape(8.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(8.dp))
-                    .clickable(onClick = action).padding(horizontal = 12.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
-                    Text(label, style = Boar.type.subtext, color = c.amber400, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        // The first action is the recommended one: filled. Both share the width and the height of the taller label.
+        Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            actions.forEachIndexed { i, (label, action) ->
+                val primary = i == 0
+                Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(8.dp))
+                    .background(if (primary) c.amber400 else Color.Transparent)
+                    .border(1.dp, if (primary) c.amber400 else c.amberBorder, RoundedCornerShape(8.dp))
+                    .clickable(onClick = action).padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                    Text(label, style = Boar.type.subtext, color = if (primary) c.textInverse else c.amber400, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                 }
             }
         }
