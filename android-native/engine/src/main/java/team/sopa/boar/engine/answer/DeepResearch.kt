@@ -204,7 +204,9 @@ class DeepResearch(
             "Keep the source numbers exactly as the perspectives cite them, like [3]; do not renumber or invent sources." +
             // A Detailed write-up ended with "Synthesis of Perspectives: Perspective 1… 2… 3…" (X6, Oct 14); the TS prompt
             // stops at the sentence above, so the golden recordings carry this one added.
-            " Do this silently: the reader never sees the perspectives, so never mention them, the sub-questions or the research steps, and add no section about them."
+            " Do this silently: the reader never sees the perspectives, so never mention them, the sub-questions or the research steps, and add no section about them." +
+            // The write-up is the answer the user reads: it gets BOAR's identity as a normal answer does, whatever the style.
+            " " + team.sopa.boar.engine.rag.RagPure.GROUNDING_INSTRUCTION
         val language = answerLanguage?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() }?.let { "\n\n($it)" } ?: ""
         val earlier = followUp?.let { (e, asked) -> "Previous question: ${e.question}\n\nPrevious answer: ${e.answer}\n\nFollow-up as asked: $asked\n\n" } ?: ""
         return stage(system, "${earlier}Original question: $query\n\n$perspectives$language", maxTokens, 0.6f, onToken, writeUpTimeoutFor(maxTokens))
