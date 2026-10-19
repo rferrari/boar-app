@@ -36,6 +36,7 @@
     <string name="native_tweaks_timeoutNote" formatted="false">Auto grows with the max output tokens, so long answers and Deep Research aren\'t cut short. A generation that hits the limit keeps what it wrote.</string>
     <string name="native_tweaks_noLimit" formatted="false">No limit</string>
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
+    <string name="native_tweaks_seconds" formatted="false">{{n}} s</string>
     <string name="native_settings_back" formatted="false">Back</string>
     <string name="native_settings_textSize" formatted="false">Text size</string>
     <string name="native_settings_orientation" formatted="false">Screen rotation</string>
@@ -339,6 +340,7 @@
     <string name="native_chat_loadingModelWith" formatted="false">Loading {{model}} with {{engine}} · {{s}} s</string>
     <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
+    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
@@ -442,7 +444,7 @@
     <string name="native_download_errorGeneric" formatted="false">The download stopped. Retry.</string>
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BOAR</string>
-    <string name="native_settings_freeMemoryNote" formatted="false">After a few minutes away, BOAR unloads the model to free memory. The next answer takes a few seconds longer to start.</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Shortly after you leave, when nothing is being answered, BOAR unloads the model, so the phone doesn\'t close BOAR to get its memory back. The next answer takes a few seconds longer to start.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Free memory after</string>
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BOAR waits in the background before it unloads the model, when Free memory when I leave BOAR is on.</string>
     <string name="native_tweaks_immediately" formatted="false">Immediately</string>

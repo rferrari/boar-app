@@ -157,7 +157,7 @@ class AppSettings(private val file: File) {
 
     /** Settings → Free memory when I leave BOAR (on by default): see [FreeMemory]. */
     var freeMemoryInBackground: Boolean get() = bool("freeMemoryInBackground") ?: true; set(v) = set("freeMemoryInBackground", JsonPrimitive(v))
-    /** Advanced tweaks → Free memory after, in minutes (0 = immediately); null is Auto ([FreeMemory.AUTO_MINUTES]). */
+    /** Advanced tweaks → Free memory after, in minutes (0 = immediately); null is Auto ([FreeMemory.AUTO_SECONDS], in seconds). */
     var freeMemoryAfterMinutes: Int? get() = int("freeMemoryAfterMinutes"); set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
 
     /** DEFAULT_MEMORY_SETTINGS when unset. */

@@ -5,15 +5,18 @@ package team.sopa.boar.engine.settings
  * The next answer loads it again. The rules are here, apart from Android, so they're tested.
  */
 object FreeMemory {
-    /** Auto's delay, in minutes. */
-    const val AUTO_MINUTES = 5
+    /**
+     * Auto's delay, in seconds. Was 5 minutes: Xiaomi's memory manager force-stopped BOAR 10-35 s after it left the screen
+     * with Qwen3 4B loaded (F3 and X6, Oct 19 chaos runs), so the model goes before that.
+     */
+    const val AUTO_SECONDS = 10
     /** Advanced tweaks → "Free memory after": Immediately, 5 min, 30 min (Auto is null). */
     val CHOICES_MINUTES = listOf(0, 5, 30)
     /** How often a timer that fired during an answer looks again. */
     const val BUSY_POLL_MS = 2_000L
 
-    /** The delay for the user's choice: Auto (null) is [AUTO_MINUTES]; a negative value counts as Immediately. */
-    fun delayMs(minutes: Int?): Long = (minutes ?: AUTO_MINUTES).coerceAtLeast(0) * 60_000L
+    /** The delay for the user's choice in minutes: Auto (null) is [AUTO_SECONDS]; a negative value counts as Immediately. */
+    fun delayMs(minutes: Int?): Long = if (minutes == null) AUTO_SECONDS * 1_000L else minutes.coerceAtLeast(0) * 60_000L
 
     enum class Decision { UNLOAD, WAIT, SKIP }
 

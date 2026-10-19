@@ -10,7 +10,7 @@ import java.nio.file.Files
 
 class FreeMemoryTest {
     @Test fun `Auto waits 5 minutes, a pick waits its own, Immediately none`() {
-        assertEquals(5 * 60_000L, FreeMemory.delayMs(null))
+        assertEquals(10_000L, FreeMemory.delayMs(null))
         assertEquals(0L, FreeMemory.delayMs(0))
         assertEquals(5 * 60_000L, FreeMemory.delayMs(5))
         assertEquals(30 * 60_000L, FreeMemory.delayMs(30))

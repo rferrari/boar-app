@@ -11,6 +11,8 @@ object UserErrors {
     const val NO_MODEL = "no-model"
     /** The answer ended without a word, without an error and without Stop (the chat offers Try again). */
     const val EMPTY_ANSWER = "empty-answer"
+    /** Stored on an answer while it's written; still there when the chat opens again means BOAR was closed mid-answer. */
+    const val INTERRUPTED_KEY = "native.chat.errorInterrupted"
 
     /** The line shown in place of a failed answer. */
     fun chatKey(error: String): String = when (error) {

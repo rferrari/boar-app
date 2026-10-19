@@ -36,6 +36,7 @@
     <string name="native_tweaks_timeoutNote" formatted="false">Auto cresce com o máximo de tokens da resposta, para respostas longas e a Pesquisa profunda não serem cortadas. Uma geração que chega ao limite mantém o que já escreveu.</string>
     <string name="native_tweaks_noLimit" formatted="false">Sem limite</string>
     <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
+    <string name="native_tweaks_seconds" formatted="false">{{n}} s</string>
     <string name="native_settings_back" formatted="false">Voltar</string>
     <string name="native_settings_textSize" formatted="false">Tamanho do texto</string>
     <string name="native_settings_orientation" formatted="false">Rotação da tela</string>
@@ -339,6 +340,7 @@
     <string name="native_chat_loadingModelWith" formatted="false">Carregando {{model}} com o {{engine}} · {{s}} s</string>
     <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
     <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
+    <string name="native_chat_errorInterrupted" formatted="false">Interrompida: o BOAR foi fechado enquanto respondia.</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
@@ -442,7 +444,7 @@
     <string name="native_download_errorGeneric" formatted="false">O download parou. Tente de novo.</string>
     <string name="native_common_ok" formatted="false">OK</string>
     <string name="native_settings_freeMemory" formatted="false">Liberar memória quando eu sair do BOAR</string>
-    <string name="native_settings_freeMemoryNote" formatted="false">Depois de alguns minutos fora, o BOAR descarrega o modelo para liberar memória. A próxima resposta demora alguns segundos a mais para começar.</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Logo depois que você sai, quando nada está sendo respondido, o BOAR descarrega o modelo, para o celular não fechar o BOAR para recuperar a memória. A próxima resposta demora alguns segundos a mais para começar.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Liberar memória depois de</string>
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado.</string>
     <string name="native_tweaks_immediately" formatted="false">Na hora</string>

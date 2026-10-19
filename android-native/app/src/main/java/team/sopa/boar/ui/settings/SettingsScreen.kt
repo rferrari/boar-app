@@ -446,7 +446,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
         var freeAfter by remember { mutableStateOf(s.freeMemoryAfterMinutes) }
         Choices(
             t("native.tweaks.freeMemoryAfter"),
-            listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.minutes", "n" to team.sopa.boar.engine.settings.FreeMemory.AUTO_MINUTES))) +
+            listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.seconds", "n" to team.sopa.boar.engine.settings.FreeMemory.AUTO_SECONDS))) +
                 team.sopa.boar.engine.settings.FreeMemory.CHOICES_MINUTES.map { it to if (it == 0) t("native.tweaks.immediately") else t("native.tweaks.minutes", "n" to it) },
             freeAfter,
         ) { freeAfter = it; s.freeMemoryAfterMinutes = it }

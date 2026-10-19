@@ -550,7 +550,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val errorKey = m.error ?: state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }?.let(UserErrors::chatKey)
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
-                if (errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) && state.answeringId == null)
+                if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
                     FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
