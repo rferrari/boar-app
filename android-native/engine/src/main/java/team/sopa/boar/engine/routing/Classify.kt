@@ -38,6 +38,9 @@ object Classify {
         TaskType.TRANSLATE to """\btranslate\b""",
         TaskType.CODE to """```|\b(write (a |some )?code|debug this|refactor|fix this function|regex for)\b""",
         TaskType.CALCULATE to """\b(calculate|compute|how much is)\b|\d+\s*[+\-*/×÷]\s*\d""",
+        // "15 percent of 240", "15% of 240", "what is 12 times 7": no library page helps (Oct 18, X6: "15 percent of 240"
+        // brought "240 (number)", Montana and Jimmy Carter as sources).
+        TaskType.CALCULATE to """\d+(?:[.,]\d+)?\s*(?:%|percent\b|per cent\b|por cento\b)\s*(?:of|de)\s+\d|\b\d+(?:[.,]\d+)?\s+(?:times|plus|minus|divided by|multiplied by|vezes|mais|menos|dividido por)\s+\d""",
         TaskType.EXTRACT to """\b(extract|list all|pull out|find every)\b""",
         // Explanation/reasoning questions: never a one-sentence lookup, even when short and opening with "what".
         TaskType.RESEARCH to """^(why|how)\b|\b(explain|caused?|causes|effects? of|impacts?|relate[sd]?|relationship|contrast|implications?)\b""",
@@ -46,7 +49,7 @@ object Classify {
 
     // ONE greeting phrase, trailing punctuation only; anchored per segment (see isGreeting), not per query.
     private val GREETING_PHRASE_RE = JsRegex.re(
-        """^(hi|hello|hey|hey there|yo|sup|wake up|good (morning|afternoon|evening|night)|how(?:'s| is| are) it going|how are you|what'?s up|thanks?( you)?|thank you|bye|goodbye|see ya|see you|ok(ay)?|cool|nice)[!.?~]*$""",
+        """^(hi|hello|hey|hey there|yo|sup|wake up|good (morning|afternoon|evening|night)|how(?:'s| is| are) it going|how are you|what'?s up|thanks?( you)?|thank you|(thanks|thank you)( (so|very) much| a lot| again)?|many thanks|much appreciated|(i )?appreciate it|that (helps|helped)|that'?s (helpful|great|perfect)|got it|perfect|great|awesome|obrigad[oa]( pela ajuda)?|valeu|merci( beaucoup)?|gracias|danke( sch(o|ö)n)?|bye|goodbye|see ya|see you|ok(ay)?|cool|nice)[!.?~]*$""",
         "i",
     )
     private val SEGMENT_SPLIT = JsRegex.re("""[,;]|\band\b""", "i")

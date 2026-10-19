@@ -531,7 +531,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 // An instant answer doesn't load the model.
                 val session = if (instant != null) null else services.activeSession()
                 // Read after the load: Auto fits the length to the context the model was opened with.
-                val budget = limit ?: settings.answerTokens(services.host.openedContext)
+                val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
+                    // A thank-you or greeting: a few sentences in any style.
+                    if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.routing.Router.GREETING_MAX_TOKENS) else it
+                }
                 limited = budget
                 if (instant != null) {
                     limited = null
@@ -599,7 +602,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
                 r.copy(style = style, path = path, task = task, checked = checked,
-                    tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null }, styleNote = shortReason)
+                    tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
+                    styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
             val nextLimit = cutAt?.let { AnswerLimit.next(it, services.personalities.maxTokensOptions, services.host.openedContext) }

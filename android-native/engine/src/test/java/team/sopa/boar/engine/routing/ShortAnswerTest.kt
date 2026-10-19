@@ -17,6 +17,13 @@ class ShortAnswerTest {
         assertNull(ShortAnswer.reason("detailed", "And for how long?", "Why is Kyoto historically important?"))
     }
 
+    @Test fun `a thank-you is small talk, even after a health question`() {
+        assertEquals(ShortAnswer.SMALL_TALK, ShortAnswer.reason("detailed", "thanks, that helps", "How do I treat a minor kitchen burn?"))
+        assertEquals(ShortAnswer.SMALL_TALK, ShortAnswer.reason("detailed", "merci beaucoup", null))
+        assertEquals(true, ShortAnswer.isSmallTalk("thank you so much!"))
+        assertEquals(false, ShortAnswer.isSmallTalk("How do I say thank you in Thai?"))
+    }
+
     @Test fun `other styles are left alone`() {
         assertNull(ShortAnswer.reason("succinct", "How do I treat a minor kitchen burn?", null))
         assertNull(ShortAnswer.reason("summary", "And for how long?", "How do I treat a minor kitchen burn?"))
