@@ -144,14 +144,16 @@ fun ChatScreen(
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { key -> LoadingBanner(state.loadingModel, state.loadingEngine, state.loadingSince, t(key)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
+            // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
+            val researchTint = if (state.deepResearch) Boar.colors.frontierText.copy(alpha = 0.06f) else Color.Transparent
             if (state.messages.isEmpty()) {
-                Box(Modifier.weight(1f).fillMaxWidth()) {
+                Box(Modifier.weight(1f).fillMaxWidth().background(researchTint)) {
                     EmptyState(state.suggestions, onAsk = { onSend(it) }, onFill = { input = it })
                 }
             } else {
                 LazyColumn(
                     // A readable line length on a wide screen (landscape, tablets), centred; a phone held upright is narrower.
-                    Modifier.weight(1f).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
+                    Modifier.weight(1f).background(researchTint).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -161,7 +163,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 onSend(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, voiceEnabled, state.toneIcon, state.stopping) { toneSheet = true }
+            }, onStop, voiceEnabled, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
         }
     }
 }
@@ -522,7 +524,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
         val maxW = maxWidth * 0.92f
         var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW).clip(shape)
             .background(if (user) c.bgCardHover else c.bgSurface)
-        if (!user) mod = mod.border(1.dp, c.borderDefault, shape)
+        // A Deep Research answer keeps its mark in the history: the border and the header in the mode's color.
+        val researched = !user && m.receipt?.path == "deep"
+        if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) c.frontierBadgeBorder else c.borderDefault, shape)
         if (user) mod = mod.combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             // A Labs plugin's instant answer speaks as that plugin (AnswerTools.speaker): its art and name, not BOAR's.
@@ -533,7 +537,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     if (speaker != null && art == null) Text(speaker.emoji, fontSize = 15.sp)
                     else Image(painterResource(art ?: team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
                 }
-                Text(if (user) t("chatScreen.roleYou") else speaker?.let { t(it.titleKey) } ?: t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
+                Text(if (user) t("chatScreen.roleYou") else speaker?.let { t(it.titleKey) } ?: if (researched) t("native.chat.roleDeepResearch") else t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
                     color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
             }
             if (user) {
@@ -728,7 +732,7 @@ private fun Badge(text: String) {
  * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, onOpenStyles: () -> Unit) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
@@ -739,11 +743,12 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
         val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
-        Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(1.dp, c.borderDefault, fieldShape)
+        // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
+        Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(if (deepResearch) 1.5.dp else 1.dp, if (deepResearch) c.frontierBadgeBorder else c.borderDefault, fieldShape)
             .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
                 val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-                if (text.isEmpty()) Text(t("chatScreen.inputPlaceholder"), style = style, color = c.textDim)
+                if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim)
                 BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
                     onTextLayout = { lines = it.lineCount })
             }

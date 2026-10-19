@@ -342,6 +342,8 @@
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
     <string name="native_chat_askBoarInstead" formatted="false">Ask BOAR instead</string>
+    <string name="native_chat_deepResearchPlaceholder" formatted="false">🔬 Deep Research question…</string>
+    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
