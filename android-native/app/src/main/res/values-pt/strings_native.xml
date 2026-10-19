@@ -342,7 +342,7 @@
     <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrompida: o BOAR foi fechado enquanto respondia.</string>
     <string name="native_chat_askBoarInstead" formatted="false">Perguntar ao BOAR</string>
-    <string name="native_chat_deepResearchPlaceholder" formatted="false">🔬 Pergunta para o Deep Research…</string>
+    <string name="native_chat_deepResearchPlaceholder" formatted="false">Pergunta para o Deep Research…</string>
     <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>

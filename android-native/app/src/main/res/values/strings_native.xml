@@ -342,7 +342,7 @@
     <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
     <string name="native_chat_askBoarInstead" formatted="false">Ask BOAR instead</string>
-    <string name="native_chat_deepResearchPlaceholder" formatted="false">🔬 Deep Research question…</string>
+    <string name="native_chat_deepResearchPlaceholder" formatted="false">Deep Research question…</string>
     <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
     <string name="native_answering_channel" formatted="false">Answering</string>
     <string name="native_answering_title" formatted="false">BOAR is answering…</string>

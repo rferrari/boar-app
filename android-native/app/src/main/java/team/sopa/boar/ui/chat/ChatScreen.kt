@@ -67,6 +67,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
@@ -748,7 +749,8 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
             .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
                 val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-                if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim)
+                if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                 BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
                     onTextLayout = { lines = it.lineCount })
             }
