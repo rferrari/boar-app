@@ -5,7 +5,7 @@
 > fiquem claras desde o início. Dúvidas ou correções: privacy@boarapp.com ou uma issue em
 > [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Versão 0.9 (prévia) · 30 de setembro de 2026 · Contato: privacy@boarapp.com
+Versão 0.9.1 (prévia) · 19 de outubro de 2026 · Contato: privacy@boarapp.com
 
 > Esta é uma tradução da [versão em inglês](../../TERMS.md). Se as duas forem diferentes, prevalece a
 > versão em inglês, exceto quando a lei local exigir o contrário. Para consumidores no Brasil, os
@@ -85,6 +85,10 @@ Trabalhamos para manter o BOAR e o serviço de compartilhamento seguros (Políti
 do seu celular, da sua rede nem desses serviços.
 
 ## 6. Compartilhar resultados de avaliação
+
+As versões atuais do app Android não incluem o compartilhamento de resultados (desde 19 de outubro de
+2026): as rodadas de avaliação ficam no celular, como arquivos. Esta seção vale para versões que o
+incluem e para rodadas já compartilhadas.
 
 Compartilhar uma rodada é opcional. Quando você compartilha uma:
 

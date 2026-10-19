@@ -5,7 +5,7 @@
 > Questions or corrections: privacy@boarapp.com or an issue at
 > [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Version 0.9 (preview) · 30 September 2026 · Contact: privacy@boarapp.com
+Version 0.9.1 (preview) · 19 October 2026 · Contact: privacy@boarapp.com
 
 These terms apply to the BOAR app and to boarapp.com. BOAR is a free, open-source project built by its
 community of contributors ("we", "us"), with no company behind it. By installing or using BOAR, or sharing results with

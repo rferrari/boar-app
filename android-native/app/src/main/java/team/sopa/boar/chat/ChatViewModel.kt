@@ -476,8 +476,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
-            // However the answer ends (done, stopped, failed, cancelled), the notification goes with it.
-            coroutineContext[kotlinx.coroutines.Job]?.invokeOnCompletion { team.sopa.boar.app.AnswerService.stop(getApplication()) }
             stopBackground()
             val chats = services.chats
             val isNewSession = _state.value.sessionId == null
@@ -671,6 +669,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey) else it })
             }
         }
+        // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
+        job?.invokeOnCompletion { team.sopa.boar.app.AnswerService.stop(getApplication()) }
     }
 
     /**

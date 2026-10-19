@@ -5,7 +5,7 @@
 > para que você saiba o que o app faz com os dados antes da versão final. Dúvidas ou correções:
 > privacy@boarapp.com ou uma issue em [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Versão 0.9 (prévia) · 30 de setembro de 2026 · Contato: privacy@boarapp.com
+Versão 0.9.1 (prévia) · 19 de outubro de 2026 · Contato: privacy@boarapp.com
 
 > Esta é uma tradução da [versão em inglês](../../PRIVACY.md). Se as duas forem diferentes, prevalece
 > a versão em inglês, exceto quando a lei local exigir o contrário. Para titulares no Brasil, os
@@ -27,8 +27,10 @@ Califórnia e leis semelhantes, e vale para todas as pessoas, onde quer que este
   com um modelo que roda no próprio celular. Não há conta, publicidade, nem analytics ou relatório de
   falhas no app.
 - **O app só usa a internet quando você pede:** para baixar modelos e pacotes, buscar um modelo no
-  Hugging Face e compartilhar uma rodada de avaliação. A versão offline não tem permissão de internet.
-- **Compartilhar uma rodada é opcional.** Você vê tudo o que será enviado antes de confirmar. O que se
+  Hugging Face e, numa versão que inclua isso, compartilhar uma rodada de avaliação (as versões atuais
+  do Android não incluem). A versão offline não tem permissão de internet.
+- **Compartilhar uma rodada é opcional, e as versões atuais do Android não incluem isso.** Numa versão
+  que inclua, você vê tudo o que será enviado antes de confirmar. O que se
   torna público é o modelo e o chip do celular com suas pontuações, nunca algo que identifique você.
 - **Proteger o seu celular cabe a você.** O BOAR guarda seus dados no celular e não os criptografa
   além do que o sistema faz para qualquer app (seção 9).
@@ -48,8 +50,8 @@ Estes dados são tratados apenas no seu aparelho e o BOAR nunca os envia para n�
   suas perguntas ou respostas e só sai do celular se você mesmo exportá-lo;
 - as rodadas de avaliação (as perguntas de teste fixas do BOAR e as respostas do modelo a elas), até
   você compartilhar ou exportar uma;
-- suas configurações e uma chave de segurança que o BOAR cria no hardware seguro do celular para o
-  compartilhamento.
+- suas configurações e, se você compartilhou uma rodada numa versão que inclui isso, uma chave de
+  segurança que o BOAR criou no hardware seguro do celular para isso.
 
 **Como apagar:** Ajustes → "Apagar todos os dados" apaga suas conversas, documentos, modelos, pacotes
 de conhecimento e configurações. Duas coisas ficam até você desinstalar o app: as rodadas de
@@ -79,8 +81,10 @@ Hugging Face, só no momento da busca. Vale a política de privacidade do Huggin
 
 A tela de Avaliação pode rodar o conjunto fixo de perguntas de teste do BOAR e, se você escolher
 **"Compartilhar resultados"**, enviar a rodada para nós, para que qualquer pessoa compare o desempenho
-dos modelos em celulares diferentes. O compartilhamento está disponível no Android; no iOS ainda não
-foi liberado. Antes de qualquer envio, o app mostra todos os campos. Recebemos:
+dos modelos em celulares diferentes. As versões atuais do app Android não incluem **"Compartilhar
+resultados"**: a rodada fica salva em arquivos no seu celular e nada é enviado. No iOS também não foi
+liberado. Numa versão que inclua o compartilhamento, o app mostra todos os campos antes de qualquer
+envio. Recebemos:
 
 - **sobre o celular:** plataforma, versão e nível de API do sistema, marca e modelo, chipset e seu
   fabricante, nome da placa, RAM total, número de núcleos da CPU, recursos da CPU e velocidades dos

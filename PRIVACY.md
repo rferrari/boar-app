@@ -5,7 +5,7 @@
 > what the app does with data before it is final. Questions or corrections: privacy@boarapp.com or
 > an issue at [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Version 0.9 (preview) · 30 September 2026 · Contact: privacy@boarapp.com
+Version 0.9.1 (preview) · 19 October 2026 · Contact: privacy@boarapp.com
 
 BOAR is an offline AI research app for Android and iOS, and boarapp.com is its website. BOAR is a
 free, open-source project built by its community of contributors ("we", "us"). There is no company
