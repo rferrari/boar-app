@@ -43,9 +43,9 @@ order=20                                         # grid position (lower first; t
 Set **either** `object=` (a working lab) **or** `classified=<emoji>` (a teaser: a locked tile, nothing runs):
 
 ```properties
-id=bigBrain
-classified=🧠
-order=50
+id=signboard
+classified=📷
+order=90
 ```
 
 The build stops with a clear error if `id` doesn't match the folder, or if both or neither of `object`/`classified` are set.
