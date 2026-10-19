@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="native_labs_bigBrain_title" formatted="false">Cérebro Grande</string>
-    <string name="native_labs_bigBrain_body" formatted="false">Um modelo dez vezes maior que carrega só as partes de que cada resposta precisa.</string>
-</resources>
