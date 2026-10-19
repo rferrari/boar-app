@@ -29,7 +29,7 @@ object CalcLab : LabPlugin {
     override val id = "calc"
     override val emoji = "🧮"
     override val art = team.sopa.boar.R.drawable.lab_calc
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->
         LabTools.calc(query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.tool, it.text) }

@@ -30,7 +30,7 @@ object GuardLab : LabPlugin {
     override val id = "guard"
     override val emoji = "🛡️"
     override val art = team.sopa.boar.R.drawable.lab_guard
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     override val answerCheck: AnswerCheck = AnswerCheck { question, answer -> LabTools.guard(question, answer)?.let { Repair(it.tool, it.text) } }
 

@@ -24,7 +24,8 @@ import team.sopa.boar.plugins.AnswerRef
  * REVIEW: works and stays open to try, but measured short of usable (too slow, unreliable). The tile shows
  * native.labs.<id>.reviewShort ("under 1 tok/s") and the lab's page opens with native.labs.<id>.review, the full reason.
  */
-enum class LabStatus { LIVE, BETA, REVIEW, CLASSIFIED }
+/** LIVE: simple and proven. BETA: tested on phones. ALPHA: works, less tested. REVIEW: frozen. CLASSIFIED: a teaser. */
+enum class LabStatus { LIVE, BETA, ALPHA, REVIEW, CLASSIFIED }
 
 /** The art a tile shows: a lab under review (frozen) shows the ice boar, whatever its own art. */
 val LabPlugin.shownArt: Int? get() = if (status == LabStatus.REVIEW) team.sopa.boar.R.drawable.lab_frozen else art
@@ -106,7 +107,7 @@ object LabRegistry {
 
     /** In the grid's order: live, then beta, then under review, then classified; plugin.properties order within each. */
     val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }.sortedBy {
-        when (it.status) { LabStatus.LIVE -> 0; LabStatus.BETA -> 1; LabStatus.REVIEW -> 2; LabStatus.CLASSIFIED -> 3 }
+        when (it.status) { LabStatus.LIVE -> 0; LabStatus.BETA -> 1; LabStatus.ALPHA -> 2; LabStatus.REVIEW -> 3; LabStatus.CLASSIFIED -> 4 }
     }
 
     fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id && it.status != LabStatus.CLASSIFIED }

@@ -60,7 +60,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
         // under review, and the locked ones still in testing with no release date.
         val groups = listOf(
-            null to labs.filter { it.status == LabStatus.LIVE || it.status == LabStatus.BETA },
+            null to labs.filter { it.status == LabStatus.LIVE || it.status == LabStatus.BETA || it.status == LabStatus.ALPHA },
             "native.labs.section.review" to labs.filter { it.status == LabStatus.REVIEW },
             "native.labs.section.testing" to labs.filter { it.status == LabStatus.CLASSIFIED },
         )
@@ -258,6 +258,7 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
     val (fg, bg) = when (status) {
         LabStatus.LIVE -> c.textAccentEmerald to c.emeraldBgSubtle
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
+        LabStatus.ALPHA -> c.amber400 to c.amberBgSubtle
         LabStatus.REVIEW -> c.crimson400 to c.crimsonBgSubtle
         LabStatus.CLASSIFIED -> c.textDim to Color.White.copy(alpha = 0.06f)
     }

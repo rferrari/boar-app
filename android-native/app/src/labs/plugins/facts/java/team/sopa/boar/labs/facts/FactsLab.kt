@@ -34,7 +34,7 @@ object FactsLab : LabPlugin {
     override val id = "facts"
     override val emoji = "📇"
     override val art = team.sopa.boar.R.drawable.lab_facts
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     /** The fact table, read on the first question (760 KB of JSON). */
     private val table: Facts? by lazy {
