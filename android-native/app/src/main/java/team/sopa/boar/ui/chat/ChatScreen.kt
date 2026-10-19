@@ -383,8 +383,9 @@ private fun LoadNoteBanner(
         }
         is team.sopa.boar.chat.LoadNote.Risky -> {
             val load = t("native.chat.loadAnyway") to { onLoadAnyway(note.modelId) }
-            if (note.onlyModel) t("native.chat.mayNotFitOnly", "model" to note.label) to listOf(load, catalog to onOpenModels)
-            else t("native.chat.mayNotFit", "model" to note.label) to listOf(load, t("native.chat.pickAnother") to onOpenModels)
+            // The safer choice first (filled): another model; loading anyway is the user's call.
+            if (note.onlyModel) t("native.chat.mayNotFitOnly", "model" to note.label) to listOf(catalog to onOpenModels, load)
+            else t("native.chat.mayNotFit", "model" to note.label) to listOf(t("native.chat.pickAnother") to onOpenModels, load)
         }
     }
     Column(Modifier.fillMaxWidth().background(c.amberBgSubtle).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
