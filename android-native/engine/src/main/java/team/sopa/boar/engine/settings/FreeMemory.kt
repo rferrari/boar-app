@@ -6,23 +6,15 @@ package team.sopa.boar.engine.settings
  */
 object FreeMemory {
     /**
-     * Auto's delay, in seconds. Was 5 minutes: Xiaomi's memory manager force-stopped BOAR 10-35 s after it left the screen
-     * with Qwen3 4B loaded (F3 and X6, Oct 19 chaos runs), so the model goes before that.
+     * Auto's delay, in seconds: none. Was 5 minutes, then 10 s. Xiaomi's memory manager freezes BOAR about 8 s after it
+     * leaves the screen and force-stops it 20-30 s later with the model still loaded (F3 and X6, Oct 19 chaos runs 6 and 7);
+     * a frozen app can't run a timer, so the model goes at once. An answer still being written finishes first.
      */
-    const val AUTO_SECONDS = 10
-    /** Advanced tweaks → "Free memory after": Immediately, 5 min, 30 min (Auto is null). */
-    val CHOICES_MINUTES = listOf(0, 5, 30)
+    const val AUTO_SECONDS = 0
+    /** Advanced tweaks → "Free memory after": 5 min, 30 min (Auto is null and immediate; a saved 0 works the same). */
+    val CHOICES_MINUTES = listOf(5, 30)
     /** How often a timer that fired during an answer looks again. */
     const val BUSY_POLL_MS = 2_000L
-    /** How often Auto looks at the phone's free memory while it waits. */
-    const val AUTO_CHECK_MS = 1_000L
-
-    /**
-     * Auto doesn't wait out its delay when the phone is short of memory: Android says memory is low, or less than a sixth
-     * of the RAM is free. X6, Oct 19 chaos run: Android closed BOAR for low memory 4 s after Home, idle with a 1.5 GB model.
-     */
-    fun shortOfMemory(availBytes: Long, totalBytes: Long, androidSaysLow: Boolean): Boolean =
-        androidSaysLow || (totalBytes > 0 && availBytes in 0 until totalBytes / 6)
 
     /** The delay for the user's choice in minutes: Auto (null) is [AUTO_SECONDS]; a negative value counts as Immediately. */
     fun delayMs(minutes: Int?): Long = if (minutes == null) AUTO_SECONDS * 1_000L else minutes.coerceAtLeast(0) * 60_000L

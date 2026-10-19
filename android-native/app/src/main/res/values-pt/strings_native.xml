@@ -453,7 +453,7 @@
     <string name="native_settings_freeMemory" formatted="false">Liberar memória quando eu sair do BOAR</string>
     <string name="native_settings_freeMemoryNote" formatted="false">Logo depois que você sai, quando nada está sendo respondido, o BOAR descarrega o modelo, para o celular não fechar o BOAR para recuperar a memória. A próxima resposta demora alguns segundos a mais para começar.</string>
     <string name="native_tweaks_freeMemoryAfter" formatted="false">Liberar memória depois de</string>
-    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado.</string>
+    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado. Auto descarrega assim que você sai, depois de terminar uma resposta em andamento; a próxima pergunta carrega de novo.</string>
     <string name="native_tweaks_immediately" formatted="false">Na hora</string>
     <string name="native_drawer_closeStillSaving" formatted="false">Ainda salvando a resposta. Tente de novo em instantes.</string>
     <string name="native_drawer_close" formatted="false">Fechar o BOAR (libera memória)</string>
