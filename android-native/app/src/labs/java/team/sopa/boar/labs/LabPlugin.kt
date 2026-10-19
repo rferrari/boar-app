@@ -26,6 +26,9 @@ import team.sopa.boar.plugins.AnswerRef
  */
 enum class LabStatus { LIVE, BETA, REVIEW, CLASSIFIED }
 
+/** The art a tile shows: a lab under review (frozen) shows the ice boar, whatever its own art. */
+val LabPlugin.shownArt: Int? get() = if (status == LabStatus.REVIEW) team.sopa.boar.R.drawable.lab_frozen else art
+
 interface LabPlugin {
     /** Stable id: the route (lab:<id>), the string keys (native.labs.<id>.*), the hide flag and the switch. */
     val id: String

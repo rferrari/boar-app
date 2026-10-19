@@ -111,7 +111,7 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     // grid, and the on/off switch, all in one block; the page below is the lab's.
     Shell(t("native.labs.${lab.id}.title"), onClose, header = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            lab.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+            lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 ?: Text(lab.emoji, fontSize = 36.sp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -211,12 +211,12 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
             // Classified: the boar in near-black with a "?", as a locked truffle in the vault (VaultScreen SILHOUETTE).
-            lab.art?.let { res ->
+            lab.shownArt?.let { res ->
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
-            if (locked) Text(if (lab.art != null) "?" else "🔒", style = if (lab.art != null) Boar.type.titleLg else Boar.type.body,
-                fontSize = if (lab.art != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
+            if (locked) Text(if (lab.shownArt != null) "?" else "🔒", style = if (lab.shownArt != null) Boar.type.titleLg else Boar.type.body,
+                fontSize = if (lab.shownArt != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && LabPrefs.revealed(lab.id)) }
             if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             // A revealed classified lab can't be switched on, so OFF would only confuse: it has LEAKED instead.
