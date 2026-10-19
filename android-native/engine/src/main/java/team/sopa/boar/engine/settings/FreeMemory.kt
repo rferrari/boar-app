@@ -14,6 +14,15 @@ object FreeMemory {
     val CHOICES_MINUTES = listOf(0, 5, 30)
     /** How often a timer that fired during an answer looks again. */
     const val BUSY_POLL_MS = 2_000L
+    /** How often Auto looks at the phone's free memory while it waits. */
+    const val AUTO_CHECK_MS = 1_000L
+
+    /**
+     * Auto doesn't wait out its delay when the phone is short of memory: Android says memory is low, or less than a sixth
+     * of the RAM is free. X6, Oct 19 chaos run: Android closed BOAR for low memory 4 s after Home, idle with a 1.5 GB model.
+     */
+    fun shortOfMemory(availBytes: Long, totalBytes: Long, androidSaysLow: Boolean): Boolean =
+        androidSaysLow || (totalBytes > 0 && availBytes in 0 until totalBytes / 6)
 
     /** The delay for the user's choice in minutes: Auto (null) is [AUTO_SECONDS]; a negative value counts as Immediately. */
     fun delayMs(minutes: Int?): Long = if (minutes == null) AUTO_SECONDS * 1_000L else minutes.coerceAtLeast(0) * 60_000L

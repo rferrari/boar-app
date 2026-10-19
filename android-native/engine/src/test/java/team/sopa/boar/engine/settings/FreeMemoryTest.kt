@@ -9,12 +9,22 @@ import team.sopa.boar.engine.settings.FreeMemory.Decision
 import java.nio.file.Files
 
 class FreeMemoryTest {
-    @Test fun `Auto waits 5 minutes, a pick waits its own, Immediately none`() {
+    @Test fun `Auto waits 10 seconds, a pick waits its own, Immediately none`() {
         assertEquals(10_000L, FreeMemory.delayMs(null))
         assertEquals(0L, FreeMemory.delayMs(0))
         assertEquals(5 * 60_000L, FreeMemory.delayMs(5))
         assertEquals(30 * 60_000L, FreeMemory.delayMs(30))
         assertEquals(0L, FreeMemory.delayMs(-3))
+    }
+
+    @Test fun `short of memory when Android says so or under a sixth of RAM is free`() {
+        val gb = 1L shl 30
+        assertTrue(FreeMemory.shortOfMemory(5 * gb, 12 * gb, androidSaysLow = true))
+        assertTrue(FreeMemory.shortOfMemory(gb, 12 * gb, androidSaysLow = false))
+        assertFalse(FreeMemory.shortOfMemory(5 * gb, 12 * gb, androidSaysLow = false))
+        assertFalse(FreeMemory.shortOfMemory(2 * gb, 12 * gb, androidSaysLow = false))
+        // Android didn't give the total: only its own low-memory flag counts.
+        assertFalse(FreeMemory.shortOfMemory(gb / 10, 0, androidSaysLow = false))
     }
 
     @Test fun `unloads only when on, away, loaded and idle`() {

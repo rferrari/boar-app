@@ -421,8 +421,8 @@ class BoarServices private constructor(private val context: Context) {
 
     /**
      * BOAR left the screen: with Settings → Free memory when I leave BOAR on, the model is unloaded after the chosen
-     * delay (Auto 5 min). An answer, title or summary still running is waited for; coming back first cancels it. The
-     * chat stays as it is and the next question loads the model again.
+     * delay (Auto 10 s, or at once when the phone runs short of memory meanwhile). An answer, title or summary still running
+     * is waited for; coming back first cancels it. The chat stays as it is and the next question loads the model again.
      */
     @Synchronized fun onBackground() {
         inForeground = false
@@ -447,9 +447,18 @@ class BoarServices private constructor(private val context: Context) {
             if (host.residentIsExternal()) host.unloadIfIdle("background ${BACKGROUND_RELEASE_MS / 60_000} min")
         }
         if (!settings.freeMemoryInBackground) return
+        val auto = settings.freeMemoryAfterMinutes == null
         val wait = team.sopa.boar.engine.settings.FreeMemory.delayMs(settings.freeMemoryAfterMinutes)
         backgroundRelease = lifeScope.launch {
-            kotlinx.coroutines.delay(wait)
+            if (!auto) kotlinx.coroutines.delay(wait)
+            else {
+                // Auto looks at free memory every second: Android closes BOAR first when it runs short, model and all.
+                var waited = 0L
+                while (waited < wait && !shortOfMemory()) {
+                    kotlinx.coroutines.delay(team.sopa.boar.engine.settings.FreeMemory.AUTO_CHECK_MS)
+                    waited += team.sopa.boar.engine.settings.FreeMemory.AUTO_CHECK_MS
+                }
+            }
             while (true) {
                 val d = team.sopa.boar.engine.settings.FreeMemory.decide(settings.freeMemoryInBackground, inForeground, host.current() != null, modelBusy())
                 when (d) {
@@ -457,13 +466,18 @@ class BoarServices private constructor(private val context: Context) {
                     team.sopa.boar.engine.settings.FreeMemory.Decision.WAIT -> kotlinx.coroutines.delay(team.sopa.boar.engine.settings.FreeMemory.BUSY_POLL_MS)
                     team.sopa.boar.engine.settings.FreeMemory.Decision.UNLOAD -> {
                         host.unload()
-                        android.util.Log.i("BOAR", "model unloaded after ${wait / 1000} s in the background")
+                        android.util.Log.i("BOAR", "model unloaded in the background (${if (auto) "Auto" else "${wait / 1000} s"})")
                         return@launch
                     }
                 }
             }
         }
     }
+
+    private fun shortOfMemory(): Boolean = runCatching {
+        val info = android.app.ActivityManager.MemoryInfo().also { context.getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it) }
+        team.sopa.boar.engine.settings.FreeMemory.shortOfMemory(info.availMem, info.totalMem, info.lowMemory)
+    }.getOrDefault(false)
 
     @Synchronized fun onForeground() {
         inForeground = true
