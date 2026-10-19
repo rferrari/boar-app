@@ -55,7 +55,7 @@ import java.util.Locale
 object BmoeLab : LabPlugin, EngineProvider {
     override val id = "bmoe"
     override val emoji = "🦣"
-    override val art = team.sopa.boar.R.drawable.truffle_moe
+    override val art = team.sopa.boar.R.drawable.lab_big_boar
     override val status = LabStatus.BETA
 
     /** Where a copy over USB goes (the experimental-engines branch's path): used when it's there, never downloaded again. */
