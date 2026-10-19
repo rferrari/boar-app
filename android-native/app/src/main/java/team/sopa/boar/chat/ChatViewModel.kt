@@ -532,8 +532,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 val session = if (instant != null) null else services.activeSession()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
-                    // A thank-you or greeting: a few sentences in any style.
-                    if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.routing.Router.GREETING_MAX_TOKENS) else it
+                    // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
+                    // (LFM2.5) would spend it all on reasoning.
+                    if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
                 }
                 limited = budget
                 if (instant != null) {

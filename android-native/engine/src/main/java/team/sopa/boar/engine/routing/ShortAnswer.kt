@@ -16,7 +16,7 @@ object ShortAnswer {
         return reasonFor(question) ?: previousQuestion?.let(::reasonFor)
     }
 
-    /** Small talk gets a few sentences in any style (Router.GREETING_MAX_TOKENS), not a Detailed essay (Oct 18, X6). */
+    /** Small talk answers in Succinct, at most its 512 tokens, not a Detailed essay (Oct 18, X6). */
     fun isSmallTalk(question: String): Boolean = Classify.classifyTask(question) == TaskType.GREETING
 
     private fun reasonFor(q: String): String? = when {
