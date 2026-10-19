@@ -19,6 +19,15 @@ object UserErrors {
         else -> "native.chat.errorGeneric"
     }
 
+    /** A failed Hugging Face search or file list: no connection, or anything else (never the exception text). */
+    fun browseKey(e: Throwable): String {
+        val offline = generateSequence(e) { it.cause }.take(5).any {
+            it is java.net.UnknownHostException || it is java.net.ConnectException || it is java.net.SocketTimeoutException ||
+                it is java.net.NoRouteToHostException
+        }
+        return if (offline) "native.browse.errorOffline" else "native.browse.errorGeneric"
+    }
+
     /** A failed download, by cause: the engine's messages are English and name the file, the row already does. */
     fun downloadKey(e: Throwable): String = when (e) {
         is DownloadException.NoSource -> "native.download.errorNoSource"

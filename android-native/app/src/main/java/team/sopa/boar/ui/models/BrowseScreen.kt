@@ -63,8 +63,9 @@ fun BrowseScreen(
     val c = Boar.colors
     val keyboard = LocalSoftwareKeyboardController.current
     var query by rememberSaveable { mutableStateOf(state.hfQuery) }
-    // Opening the page lists what's trending in the default bucket, without typing anything.
-    LaunchedEffect(Unit) { if (!state.hfSearched) vm.hfBrowse(query) }
+    // Opening the page lists what's trending in the default bucket, without typing anything. A size picked on an earlier
+    // visit goes back to Any: it hid a model searched by name (Mellum under 1–3B, Oct 18).
+    LaunchedEffect(Unit) { if (!state.hfSearched || state.hfSize != HfQuery.Size.ANY) vm.hfBrowse(query, size = HfQuery.Size.ANY) }
     fun search() { keyboard?.hide(); vm.hfBrowse(query.trim()) }
     val list = rememberLazyListState()
     val nearEnd by remember { derivedStateOf { list.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let { it >= list.layoutInfo.totalItemsCount - 3 } == true } }
@@ -100,7 +101,7 @@ fun BrowseScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(t("native.browse.ctaNote"), style = Boar.type.subtext, color = c.textMuted)
-                    state.hfError?.let { Text(it, style = Boar.type.subtext, color = c.crimson400) }
+                    state.hfError?.let { Text(t(it), style = Boar.type.subtext, color = c.crimson400) }
                     if (!state.hfSearching && state.hfError == null && state.hfSearched && state.hfResults.isEmpty() && state.hfNext == null)
                         Text(t("native.browse.empty"), style = Boar.type.body, color = c.textMuted)
                 }

@@ -162,6 +162,8 @@
     <string name="native_browse_sortDownloads" formatted="false">Mais baixados</string>
     <string name="native_browse_sortLikes" formatted="false">Mais curtidos</string>
     <string name="native_browse_sortNewest" formatted="false">Mais recentes</string>
+    <string name="native_browse_errorOffline" formatted="false">Sem conexão. A busca no Hugging Face precisa de internet; os modelos neste celular continuam funcionando.</string>
+    <string name="native_browse_errorGeneric" formatted="false">O Hugging Face não respondeu. Tente de novo em instantes.</string>
     <string name="native_browse_empty" formatted="false">Nenhum modelo de texto GGUF encontrado.</string>
     <string name="native_browse_unvetted" formatted="false">Não verificado pelo BOAR</string>
     <string name="native_browse_more" formatted="false">Carregando mais…</string>

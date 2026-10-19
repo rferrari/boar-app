@@ -11,6 +11,12 @@ class UserErrorsTest {
         assertEquals("native.chat.errorGeneric", UserErrors.chatKey("java.lang.IllegalStateException: model unloaded"))
     }
 
+    @Test fun `a Hugging Face search offline says so, anything else is generic`() {
+        assertEquals("native.browse.errorOffline", UserErrors.browseKey(java.net.UnknownHostException("Unable to resolve host \"huggingface.co\"")))
+        assertEquals("native.browse.errorOffline", UserErrors.browseKey(java.io.IOException("wrapped", java.net.ConnectException())))
+        assertEquals("native.browse.errorGeneric", UserErrors.browseKey(IllegalStateException("HTTP 500")))
+    }
+
     @Test fun `an answer that came back empty says so`() {
         assertEquals("native.chat.errorEmpty", UserErrors.chatKey(UserErrors.EMPTY_ANSWER))
     }
