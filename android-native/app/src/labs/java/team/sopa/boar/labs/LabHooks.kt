@@ -31,6 +31,19 @@ object LabHooks {
         // BOAR's storage limit, the user's pick while Labs is on (Advanced tweaks); off, the catalog's 50 GB.
         team.sopa.boar.engine.models.StorageBudget.userLimit = { if (LabPrefs.labsOn) storageLimitBytes(LabPrefs.string(STORAGE_LIMIT)) else null }
         CrashRestart.noteKey(context)?.let { team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(context, it)) }
+        // Who wrote an instant answer (AnswerTools.speaker): the plugin whose tool id it carries. The CO safety answer can't be
+        // bypassed: it exists because a model answered "yes, with ventilation".
+        team.sopa.boar.plugins.AnswerTools.speaker = { tool ->
+            val id = when {
+                tool == "safety-fact-co-hazard" -> "cohazard"
+                tool.startsWith("calculator-travel-distance") -> "distance"
+                tool.startsWith("calculator-") -> "calc"
+                tool.startsWith("facts-") -> "facts"
+                tool == team.sopa.boar.engine.routing.LanguageGate.TOOL -> "polyglot"
+                else -> null
+            }
+            id?.let(LabRegistry::byId)?.let { team.sopa.boar.plugins.AnswerTools.Speaker("native.labs.${it.id}.title", it.art, it.emoji, canBypass = it.id != "cohazard") }
+        }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
         // A model of BOAR's own an active lab's engine runs instead (Big Boar, by the user's choice on its card).

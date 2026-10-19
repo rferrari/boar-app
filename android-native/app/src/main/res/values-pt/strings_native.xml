@@ -341,6 +341,7 @@
     <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
     <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
     <string name="native_chat_errorInterrupted" formatted="false">Interrompida: o BOAR foi fechado enquanto respondia.</string>
+    <string name="native_chat_askBoarInstead" formatted="false">Perguntar ao BOAR</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>

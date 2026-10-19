@@ -433,6 +433,18 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Asks the question of [answerId] again (an answer that came back empty). */
+    /** Asks the question of [answerId] again with the Labs plugins skipped, so the model answers it ("Ask BOAR instead"). */
+    fun askModel(answerId: String) {
+        val messages = _state.value.messages
+        val i = messages.indexOfFirst { it.id == answerId }
+        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        skipToolsOnce = true
+        send(q)
+    }
+
+    /** Set by [askModel] for the next question only. */
+    @Volatile private var skipToolsOnce = false
+
     fun retry(answerId: String) {
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
@@ -519,7 +531,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for Deep Research or a recap.
-            val tool = if (deep || aboutConversation(q, history, conversation)) null
+            val skipTools = skipToolsOnce.also { skipToolsOnce = false }
+            val tool = if (skipTools || deep || aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
@@ -616,7 +629,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // that was stopped, timed out or failed part way.
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
-            val repair = if (!team.sopa.boar.engine.routing.LabTools.checksAnswer(instant != null, stopped, timedOut, _state.value.error != null, path, text.isBlank())) null
+            val repair = if (skipTools || !team.sopa.boar.engine.routing.LabTools.checksAnswer(instant != null, stopped, timedOut, _state.value.error != null, path, text.isBlank())) null
             else AnswerChecks.run(q, text.toString())
             if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.

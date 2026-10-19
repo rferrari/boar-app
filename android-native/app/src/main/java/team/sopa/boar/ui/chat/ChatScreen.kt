@@ -105,6 +105,7 @@ fun ChatScreen(
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
+    onAskModel: (String) -> Unit = {},
     /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
     onDismissLoadNote: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
@@ -154,7 +155,7 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel) }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
@@ -504,7 +505,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit) {
+private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {}) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -519,9 +520,15 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
         if (!user) mod = mod.border(1.dp, c.borderDefault, shape)
         if (user) mod = mod.combinedClickable(onClick = {}, onLongClick = { onReuse(m.text) })
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            // A Labs plugin's instant answer speaks as that plugin (AnswerTools.speaker): its art and name, not BOAR's.
+            val speaker = if (user) null else m.receipt?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
             Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!user) Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
-                Text(if (user) t("chatScreen.roleYou") else t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
+                if (!user) {
+                    val art = speaker?.art
+                    if (speaker != null && art == null) Text(speaker.emoji, fontSize = 15.sp)
+                    else Image(painterResource(art ?: team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.mascot)), null, Modifier.size(20.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Fit)
+                }
+                Text(if (user) t("chatScreen.roleYou") else speaker?.let { t(it.titleKey) } ?: t("chatScreen.roleAssistant"), style = type["mono.xs"].copy(letterSpacing = 0.5.sp),
                     color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
             }
             if (user) {
@@ -561,6 +568,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
+            // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
+            if (!streaming && speaker?.canBypass == true && state.answeringId == null)
+                FooterButton("🐗", t("native.chat.askBoarInstead"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onAskModel(m.id) }
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))

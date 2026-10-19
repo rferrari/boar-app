@@ -32,6 +32,15 @@ object AnswerTools {
     fun run(query: String, history: List<ConversationTurn>): ToolResult? =
         LabTools.first(runCatching { tools() }.getOrDefault(emptyList())) { it.run(query, history) }
 
+    /**
+     * Who wrote an instant answer, from its receipt's tool id: a Labs plugin speaks as itself in the chat (its name and art
+     * in the bubble's header) so an answer that skipped the model never looks like BOAR's. Null keeps BOAR. Set by Labs.
+     */
+    @Volatile var speaker: (tool: String) -> Speaker? = { null }
+
+    /** [titleKey]: the plugin's name (native.labs.<id>.title); [canBypass]: "Ask BOAR instead" is offered (not for safety). */
+    data class Speaker(val titleKey: String, val art: Int?, val emoji: String, val canBypass: Boolean)
+
     /** The system prompt with a [ToolResult.Context]'s text after it; unchanged otherwise. */
     fun systemPrompt(base: String, r: ToolResult?): String = if (r is ToolResult.Context) "$base\n\n${r.text}" else base
 }
