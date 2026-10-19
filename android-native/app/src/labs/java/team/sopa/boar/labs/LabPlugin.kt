@@ -93,6 +93,7 @@ class ClassifiedLab(override val id: String, override val emoji: String) : LabPl
         private val CLASSIFIED_ART = mapOf(
             "truffleHunt" to team.sopa.boar.R.drawable.lab_truffle_hunt,
             "signboard" to team.sopa.boar.R.drawable.lab_signboard,
+            "sanctuary" to team.sopa.boar.R.drawable.lab_sanctuary,
         )
     }
 }
