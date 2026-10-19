@@ -95,8 +95,15 @@ class DeviceEvalRunner(
         return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
             val f = File(files, m["filename"]!!.jsonPrimitive.content)
             if (f.isFile) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
-        }
+        } + labEngineModels()
     }
+
+    /** Models a Labs engine brings (Big Boar's 35B), when BOAR has its own copy or one copied over USB (externalPath). */
+    private fun labEngineModels(): List<Pair<ModelRef, File>> =
+        team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
+            val f = a.externalPath?.let(::File) ?: File(files, a.filename)
+            if (f.isFile) ModelRef(a.id, a.label) to f else null
+        }
 
     fun evalSets(): EvalSets = EvalSets.parse(asset("eval-set.json"))
 
