@@ -407,6 +407,13 @@ class BoarServices private constructor(private val context: Context) {
     /** A Labs engine's release after [BACKGROUND_RELEASE_MS] in the background, apart from BOAR's own free-memory timer. */
     private var labsRelease: kotlinx.coroutines.Job? = null
     @Volatile private var inForeground = true
+    /** True while BOAR is on screen. */
+    val isInForeground: Boolean get() = inForeground
+    /** Run when BOAR comes back on screen (the chat's title deferred while it was in the background). */
+    private val foregroundHooks = java.util.concurrent.CopyOnWriteArrayList<() -> Unit>()
+
+    fun addForegroundHook(hook: () -> Unit) { foregroundHooks += hook }
+    fun removeForegroundHook(hook: () -> Unit) { foregroundHooks -= hook }
     /** What uses the model besides a single generation: the chat's answer, its title or summary job, its preload. */
     private val busyChecks = java.util.concurrent.CopyOnWriteArrayList<() -> Boolean>()
 
@@ -470,6 +477,7 @@ class BoarServices private constructor(private val context: Context) {
         backgroundRelease = null
         labsRelease?.cancel()
         labsRelease = null
+        foregroundHooks.forEach { runCatching { it() } }
     }
 
     /** Loads the active model if it isn't resident; null when no model is installed or it fails to load. */

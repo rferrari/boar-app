@@ -160,6 +160,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private var ideaPool: List<String> = emptyList()
 
     private var preloading: Job? = null
+    /**
+     * A title or summary skipped because the answer ended with BOAR in the background, written when BOAR is back on
+     * screen. Run then, it would hold the model past MIUI's freeze about 8 s after the answering service stops, and MIUI
+     * force-stops a frozen BOAR still holding the model (F3, Oct 19, 17:46:30-40).
+     */
+    @Volatile private var deferredAfterAnswer: (() -> Unit)? = null
+    private val onForeground: () -> Unit = { resumeAfterAnswer() }
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
     /** Leaving the screen during a Labs engine answer stops it, as Stop does (BoarServices.onBackground). Declared before init. */
@@ -172,11 +179,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         preload()
         services.addBusyCheck(busy)
         services.addStopper(stopper)
+        services.addForegroundHook(onForeground)
     }
 
     override fun onCleared() {
         services.removeBusyCheck(busy)
         services.removeStopper(stopper)
+        services.removeForegroundHook(onForeground)
         super.onCleared()
     }
 
@@ -693,6 +702,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun afterAnswer(sessionId: String, isNewSession: Boolean, stopped: Boolean, all: List<UiMessage>, systemPrompt: String?, hadSources: Boolean) {
         if (stopped) return
+        // In the background the model is freed now; the question stays the title until BOAR is back on screen.
+        if (!services.isInForeground) {
+            deferredAfterAnswer = { afterAnswer(sessionId, isNewSession, false, all, systemPrompt, hadSources) }
+            return
+        }
         val s = services.settings
         val session = services.host.current() ?: return
         // Reads the model's info: throws once the model was unloaded (switched in Models or Settings) after the answer.
@@ -714,6 +728,19 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 runCatching { warmPrefix(session, systemPrompt, hadSources) }
             }
+        }
+    }
+
+    /**
+     * Back on screen: the title or summary skipped in the background, once the model is loaded again (as the chat's
+     * preload, only when it may load on its own). A question asked meanwhile stops it, and the question stays the title.
+     */
+    private fun resumeAfterAnswer() {
+        val pending = deferredAfterAnswer ?: return
+        deferredAfterAnswer = null
+        if (job?.isActive == true || services.startDecision() !is StartLoad.Decision.Load) return
+        background = safeScope.launch(Dispatchers.Default) {
+            if (runCatching { services.activeSession() }.getOrNull() != null) pending()
         }
     }
 
