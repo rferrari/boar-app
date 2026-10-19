@@ -83,7 +83,6 @@
     <string name="native_about_teamTitle" formatted="false">Core team</string>
     <string name="native_about_teamBody" formatted="false">On X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
-    <string name="native_eval_adaptiveLater" formatted="false">Adaptive routing isn\'t in the native build yet, so only fixed models are listed.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} closed the app while loading: not enough memory. BOAR is answering with {{fallback}} for now.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} closed the app while loading: not enough memory. Try again with less memory, or pick a smaller model in the Model Catalog.</string>

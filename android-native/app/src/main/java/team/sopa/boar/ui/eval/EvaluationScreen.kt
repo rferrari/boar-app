@@ -98,7 +98,6 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                         Text(cfg.label, style = Boar.type.subtext, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
                 }
-                item { Note(t("native.eval.adaptiveLater")) }
             }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

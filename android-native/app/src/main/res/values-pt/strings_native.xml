@@ -83,7 +83,6 @@
     <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
     <string name="native_about_teamBody" formatted="false">No X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
-    <string name="native_eval_adaptiveLater" formatted="false">O roteamento adaptativo ainda não está no app nativo; por isso só aparecem modelos fixos.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Por enquanto, o BOAR está respondendo com {{fallback}}.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Tente de novo com menos memória ou escolha um modelo menor no Catálogo de Modelos.</string>
