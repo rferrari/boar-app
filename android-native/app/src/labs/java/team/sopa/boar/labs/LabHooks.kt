@@ -140,6 +140,8 @@ object LabHooks {
     @Composable
     fun Screen(route: String, go: (String) -> Unit) {
         Init()
+        // Leaving Boar Labs (back to the chat) covers the leaked teasers again; moving between labs keeps them.
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { LabPrefs.coverAll() } }
         if (route == "labs") return LabsScreen(onOpen = go) { go("chat") }
         val lab = LabRegistry.byId(route.removePrefix("lab:"))
         if (lab == null) LabsScreen(onOpen = go) { go("chat") } else LabScaffold(lab) { go("labs") }

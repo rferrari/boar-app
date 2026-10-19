@@ -146,8 +146,10 @@ object LabPrefs {
 
     /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
     private val reveals = mutableStateMapOf<String, Boolean>()
-    fun revealed(id: String) = reveals[id] ?: prefs?.getBoolean("revealed.$id", false) ?: false
-    fun setRevealed(id: String) { reveals[id] = true; prefs?.edit()?.putBoolean("revealed.$id", true)?.apply() }
+    // A leak lasts while Boar Labs is open: leaving it covers every tile again (Oct 19), and ten taps reveal it again.
+    fun revealed(id: String) = reveals[id] ?: false
+    fun setRevealed(id: String) { reveals[id] = true }
+    fun coverAll() = reveals.clear()
 
     fun setEnabled(id: String, on: Boolean) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
