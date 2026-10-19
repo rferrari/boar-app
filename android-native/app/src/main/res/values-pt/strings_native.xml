@@ -150,7 +150,8 @@
     <string name="native_telemetry_lastEval" formatted="false">Última avaliação</string>
     <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} respondidas · mediana {{tps}} tok/s · {{date}}</string>
     <string name="native_telemetry_none" formatted="false">nenhuma ainda</string>
-    <string name="native_telemetry_note" formatted="false">Nada daqui sai do celular. Resultados só são compartilhados pela tela de Avaliação, depois de você ver o que vai.</string>
+    <string name="native_telemetry_note" formatted="false">Nada daqui sai do celular.</string>
+    <string name="native_telemetry_noteSharing" formatted="false">Nada daqui sai do celular. Resultados só são compartilhados pela tela de Avaliação, depois de você ver o que vai.</string>
     <string name="native_voice_onDevice" formatted="false">Reconhecimento de fala no aparelho (o áudio fica no celular)</string>
     <string name="native_browse_title" formatted="false">Explorar modelos</string>
     <string name="native_browse_cta" formatted="false">Explorar modelos do Hugging Face</string>

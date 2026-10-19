@@ -150,7 +150,8 @@
     <string name="native_telemetry_lastEval" formatted="false">Last evaluation</string>
     <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} answered · median {{tps}} tok/s · {{date}}</string>
     <string name="native_telemetry_none" formatted="false">none yet</string>
-    <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone. Results are shared only from the Evaluation screen, after you see what\'s sent.</string>
+    <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone.</string>
+    <string name="native_telemetry_noteSharing" formatted="false">Nothing here leaves the phone. Results are shared only from the Evaluation screen, after you see what\'s sent.</string>
     <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
     <string name="native_browse_title" formatted="false">Browse models</string>
     <string name="native_browse_cta" formatted="false">Browse Hugging Face models</string>

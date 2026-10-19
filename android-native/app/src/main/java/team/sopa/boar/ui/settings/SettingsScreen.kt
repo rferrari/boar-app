@@ -223,7 +223,8 @@ private fun TelemetrySection(services: BoarServices) {
             t("native.telemetry.evals") to "${evals.size}",
             t("native.telemetry.lastEval") to last,
         ))
-        Text(t("native.telemetry.note"), style = Boar.type.micro, color = c.textDim)
+        // The sharing half only in builds that can share (EVAL_SHARING); otherwise nothing is ever sent.
+        Text(t(if (sharing.available) "native.telemetry.noteSharing" else "native.telemetry.note"), style = Boar.type.micro, color = c.textDim)
     }
 }
 
