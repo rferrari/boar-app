@@ -259,7 +259,8 @@ private fun ScoreSection(state: EvaluationState, total: Int) {
 @Composable
 private fun ScoreRow(s: team.sopa.boar.engine.eval.EvalScore.ModelScore) {
     val c = Boar.colors
-    val tone = when { s.score >= 70 -> c.emerald400; s.score >= 40 -> c.amber400; else -> c.crimson400 }
+    // Real traffic-light colors for the ring only: the theme's "emerald" is gold in some themes, so a 96 looked like a warning.
+    val tone = when { s.score >= 70 -> Color(0xFF22C55E); s.score >= 40 -> Color(0xFFF59E0B); else -> Color(0xFFEF4444) }
     val track = c.borderDefault
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {

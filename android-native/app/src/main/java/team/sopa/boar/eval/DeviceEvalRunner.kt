@@ -200,8 +200,12 @@ class DeviceEvalRunner(
                                 else {
                                     running = s
                                     val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-                                    val (systemPrompt, styleReminder) = personalities.promptFor(personalities.defaultId, null, small)
-                                    val r = answerRow(s, retrieval, runId, config, q, personalities.defaultId, systemPrompt, styleReminder, maxTokens, residency, loadMs)
+                                    // The chat's short-answer rules too: small talk, health and seed-phrase questions answer in
+                                    // Succinct, and small talk at Succinct's length (ShortAnswer, ChatViewModel).
+                                    val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(personalities.defaultId, q.query, null) != null) "succinct" else personalities.defaultId
+                                    val (systemPrompt, styleReminder) = personalities.promptFor(style, null, small)
+                                    val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
+                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs)
                                     running = null
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
