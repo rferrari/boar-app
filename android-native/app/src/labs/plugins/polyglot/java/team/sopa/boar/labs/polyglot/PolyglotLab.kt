@@ -40,6 +40,7 @@ import team.sopa.boar.ui.theme.Boar
 object PolyglotLab : LabPlugin {
     override val id = "polyglot"
     override val emoji = "🗣️"
+    override val art = team.sopa.boar.R.drawable.lab_polyglot
     override val status = LabStatus.BETA
     override val onByDefault = true
 
