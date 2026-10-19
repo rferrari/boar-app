@@ -164,7 +164,7 @@
     <string name="native_browse_sortNewest" formatted="false">Newest</string>
     <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
     <string name="native_browse_errorOffline" formatted="false">No connection. Searching Hugging Face needs the internet; the models on this phone still work.</string>
-    <string name="native_browse_errorGeneric" formatted="false">Hugging Face didn't answer. Try again in a moment.</string>
+    <string name="native_browse_errorGeneric" formatted="false">Hugging Face didn\'t answer. Try again in a moment.</string>
     <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
     <string name="native_browse_more" formatted="false">Loading more…</string>
     <string name="native_browse_kind" formatted="false">Type</string>
