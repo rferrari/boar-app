@@ -42,16 +42,34 @@ data class EvalRequest(
      * place of the built-in set, so the app users run answers the same questions as another engine. Native only.
      */
     val questions: List<EvalQuery>? = null,
+    /** The engine every model runs on ([EvalConfig.ENGINES]); null is BOAR's own with Auto settings. Native only. */
+    val engine: String? = null,
+    /** Per model (a selector from [models] or a model id): its engine, over [engine]. Native only. */
+    val engines: Map<String, String> = emptyMap(),
 )
 
 data class ModelRef(val id: String, val label: String)
 
 sealed interface EvalConfig {
     val label: String
-    data class Model(val modelId: String, override val label: String) : EvalConfig
+    /** [engine]: one of [ENGINES]; BOAR's own engine with Auto settings unless asked otherwise. */
+    data class Model(val modelId: String, override val label: String, val engine: String = BUILTIN) : EvalConfig
     data class Adaptive(override val label: String) : EvalConfig
-    /** evalConfigId: "model:<id>" or "adaptive". */
-    val id: String get() = when (this) { is Model -> "model:$modelId"; is Adaptive -> "adaptive" }
+    /** evalConfigId: "model:<id>" (or "model:<id>@<engine>" off the default engine) or "adaptive". */
+    val id: String get() = when (this) {
+        is Model -> if (engine == BUILTIN) "model:$modelId" else "model:$modelId@$engine"
+        is Adaptive -> "adaptive"
+    }
+
+    companion object {
+        /** BOAR's engine with Auto settings (repacked weights), as the chat loads a model by default. */
+        const val BUILTIN = "builtin"
+        /** BOAR's engine reading the weights from the mapped file (the chat's "Try again with less memory"). */
+        const val MAPPED = "mapped"
+        /** Boar Labs' Big Boar, streaming a mixture of experts' weights from storage. */
+        const val BIG_BOAR = "bigboar"
+        val ENGINES = listOf(BUILTIN, MAPPED, BIG_BOAR)
+    }
 }
 
 sealed interface Resolved {
@@ -99,8 +117,19 @@ object DeviceEval {
                 throw EvalRequestException("\"evalSetVersion\" must be 1-64 letters, digits, dots, dashes or underscores")
             }
         }
+        val engine = raw["engine"]?.let { v ->
+            (v as? JsonPrimitive)?.takeIf { it.isString && it.content in EvalConfig.ENGINES }?.content
+                ?: throw EvalRequestException("\"engine\" must be one of ${EvalConfig.ENGINES.joinToString(", ")}")
+        }
+        val engines = raw["engines"]?.let { v ->
+            val bad = v !is JsonObject || v.values.any { it !is JsonPrimitive || !it.isString || it.content !in EvalConfig.ENGINES }
+            if (bad) throw EvalRequestException("\"engines\" must map models to one of ${EvalConfig.ENGINES.joinToString(", ")}")
+            (v as JsonObject).mapValues { (it.value as JsonPrimitive).content }
+        } ?: emptyMap()
         return EvalRequest(
             requestId = id,
+            engine = engine,
+            engines = engines,
             models = stringList(raw["models"], "models"),
             adaptive = (raw["adaptive"] as? JsonPrimitive)?.booleanOrNull,
             queries = stringList(raw["queries"], "queries"),
@@ -141,6 +170,7 @@ object DeviceEval {
     fun resolve(request: EvalRequest, installed: List<ModelRef>, evalSet: List<EvalQuery>, adaptiveLabel: String, extraSets: List<EvalQuery> = emptyList()): Resolved {
         val everything = request.models.isNullOrEmpty() && request.adaptive != true
         val models = if (everything) installed.toMutableList() else mutableListOf()
+        val engineOf = HashMap<String, String>()
         if (!everything) {
             for (selector in request.models.orEmpty()) {
                 val matches = matchModels(selector, installed)
@@ -149,9 +179,12 @@ object DeviceEval {
                     return Resolved.Err("model \"$selector\" $detail")
                 }
                 if (models.none { it.id == matches[0].id }) models += matches[0]
+                request.engines[selector]?.let { engineOf[matches[0].id] = it }
             }
         }
-        val configs = models.map<ModelRef, EvalConfig> { EvalConfig.Model(it.id, it.label) }.toMutableList()
+        val configs = models.map<ModelRef, EvalConfig> {
+            EvalConfig.Model(it.id, it.label, request.engines[it.id] ?: engineOf[it.id] ?: request.engine ?: EvalConfig.BUILTIN)
+        }.toMutableList()
         if (everything || request.adaptive == true) configs += EvalConfig.Adaptive(adaptiveLabel)
         // An outside question set replaces the built-in one, every question as sent.
         request.questions?.let { return Resolved.Ok(configs, it) }

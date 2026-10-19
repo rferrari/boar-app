@@ -141,7 +141,7 @@ class DeviceEvalRunner(
     }
 
     @Volatile private var stopRequested = false
-    @Volatile private var running: LlamaSession? = null
+    @Volatile private var running: team.sopa.boar.engine.TextModel? = null
 
     /** Stops after the current answer, which is cut short and recorded as cancelled; the rows so far stay saved. */
     fun stop() {
@@ -171,7 +171,7 @@ class DeviceEvalRunner(
         val retrieval = openRetrieval(topology)
         try {
             run@ for ((ci, config) in configs.withIndex()) {
-                var session: LlamaSession? = null
+                var session: team.sopa.boar.engine.TextModel? = null
                 var loadMs = 0.0
                 var residency = "cold"
                 try {
@@ -188,7 +188,7 @@ class DeviceEvalRunner(
                                 if (session == null) {
                                     val file = installed.firstOrNull { it.first.id == config.modelId }?.second
                                     val t0 = System.nanoTime()
-                                    session = file?.let { LlamaSession.load(it.absolutePath, EngineTweaks().resolve(topology, totalRam).params) }
+                                    session = file?.let { load(config, it, topology, totalRam) }
                                     loadMs = (System.nanoTime() - t0) / 1e6
                                 } else {
                                     residency = "resident"
@@ -257,8 +257,29 @@ class DeviceEvalRunner(
         return Retrieval(retriever, embedder, closeables)
     }
 
+    /**
+     * [config]'s model on the engine it asks for: BOAR's own with Auto settings (the default, as before), BOAR's own with
+     * the mapped file instead of repacked weights, or Boar Labs' Big Boar (its own process) at the same settings.
+     */
+    private suspend fun load(config: EvalConfig.Model, file: File, topology: CpuTopology, totalRam: Long): team.sopa.boar.engine.TextModel? {
+        val auto = EngineTweaks().resolve(topology, totalRam).params
+        return when (config.engine) {
+            EvalConfig.MAPPED -> LlamaSession.load(file.absolutePath, EngineTweaks(weightRepack = false).resolve(topology, totalRam).params)
+            EvalConfig.BIG_BOAR -> {
+                // Started from BenchActivity, Boar Labs wasn't set up: Big Boar needs the app context and the Labs prefs.
+                team.sopa.boar.labs.LabPrefs.init(context)
+                if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+                val engine = team.sopa.boar.labs.LabRegistry.ALL.firstNotNullOfOrNull { lab -> lab.engine?.takeIf { it.id == BIG_BOAR_ENGINE } }
+                val asset = team.sopa.boar.app.BoarServices.get(context).catalog.byId(config.modelId)
+                if (engine == null || asset == null) { log("[EVAL] Big Boar isn't in this build or ${config.modelId} isn't in the catalog"); null }
+                else runCatching { engine.load(asset, auto) }.onFailure { log("[EVAL] Big Boar load failed: $it") }.getOrNull()
+            }
+            else -> LlamaSession.load(file.absolutePath, auto)
+        }
+    }
+
     private suspend fun answerRow(
-        s: LlamaSession, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
+        s: team.sopa.boar.engine.TextModel, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
         // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
@@ -311,6 +332,8 @@ class DeviceEvalRunner(
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
             "tool" to tool?.tool,
+            // Which engine wrote it (builtin, mapped or bigboar); Big Boar runs in its own process, so peakRssBytes is the app's only.
+            "inferenceEngine" to config.engine,
         )
     }
 
@@ -325,6 +348,7 @@ class DeviceEvalRunner(
         "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to tool.text, "retrievedTitles" to emptyList<String>(),
         "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, emptyList()),
         "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion, "tool" to tool.tool,
+        "inferenceEngine" to config.engine,
     )
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
@@ -338,6 +362,8 @@ class DeviceEvalRunner(
 
     companion object {
         const val TAG = "BOAR_EVAL"
+        /** Big Boar's engine id (BmoeLab). */
+        private const val BIG_BOAR_ENGINE = "bmoe"
 
         /** evalRowsToCsv: the same columns, arrays joined with "|". */
         val CSV_COLUMNS = listOf("runId", "evalSetVersion", "configId", "configLabel", "routingPreset", "personalityId", "maxTokens",
