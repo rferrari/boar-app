@@ -60,7 +60,7 @@
                 android:value="Finishes an answer the on-device model is writing while the user is in another app; stops when the answer ends." />
         </service>
         <!-- Engine bench and the eval:device runner, started from adb (am start -n …/team.sopa.boar.bench.BenchActivity).
-             DUMP: adb's shell holds it and other apps can't, so only a computer over USB can start a run. -->
+             DUMP: adb's shell holds it and other apps can't, so only adb (USB or wireless debugging) can start a run. -->
         <activity
             android:name=".bench.BenchActivity"
             android:permission="android.permission.DUMP"
