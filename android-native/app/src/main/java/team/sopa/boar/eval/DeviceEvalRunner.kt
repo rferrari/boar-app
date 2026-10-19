@@ -124,7 +124,8 @@ class DeviceEvalRunner(
             return
         }
         resolved as Resolved.Ok
-        retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
+        // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
+        val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
             ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
         val configs = resolved.configs.map { it.id }
         val total = resolved.configs.size * resolved.queries.size
@@ -136,7 +137,7 @@ class DeviceEvalRunner(
                 override fun onProgress(p: Progress) = writeStatus(request.requestId, "state" to "running", "configs" to configs, "total" to total,
                     "completed" to completed, "current" to "${p.config.id} / ${p.query.id}", "installedModels" to installedIds)
                 override fun onRow(row: JsonObject) { completed++ }
-            })
+            }, retrievalMode)
             writeStatus(request.requestId, "state" to "done", "configs" to configs, "total" to total, "completed" to result.rows.size, "runId" to result.runId,
                 "resultPath" to "files/eval/${result.runId}.jsonl", "stopped" to result.stopped, "installedModels" to installedIds)
         } catch (e: Throwable) {
@@ -153,8 +154,6 @@ class DeviceEvalRunner(
     }
 
     @Volatile private var stopRequested = false
-    /** How search ranks for the run in progress: a device request's "retrieval", else BALANCED (today's search). */
-    @Volatile private var retrievalMode = team.sopa.boar.engine.rag.RetrievalMode.BALANCED
     @Volatile private var running: team.sopa.boar.engine.TextModel? = null
 
     /** Stops after the current answer, which is cut short and recorded as cancelled; the rows so far stay saved. */
@@ -167,7 +166,10 @@ class DeviceEvalRunner(
      * Answers every query with every configuration, one model loaded at a time, saving eval/<runId>.jsonl after each
      * row (evalHarness.runEvaluation). Used by device requests and the Evaluation screen.
      */
-    suspend fun runConfigs(configs: List<EvalConfig>, queries: List<EvalQuery>, listener: Listener): RunResult = withContext(Dispatchers.IO) {
+    suspend fun runConfigs(
+        configs: List<EvalConfig>, queries: List<EvalQuery>, listener: Listener,
+        retrievalMode: team.sopa.boar.engine.rag.RetrievalMode = team.sopa.boar.engine.rag.RetrievalMode.BALANCED,
+    ): RunResult = withContext(Dispatchers.IO) {
         stopRequested = false
         val runId = DeviceEval.newRunId()
         evalDir.mkdirs()
@@ -219,7 +221,7 @@ class DeviceEvalRunner(
                                     val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(personalities.defaultId, q.query, null) != null) "succinct" else personalities.defaultId
                                     val (systemPrompt, styleReminder) = personalities.promptFor(style, null, small)
                                     val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
-                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs)
+                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs, retrievalMode)
                                     running = null
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
@@ -303,12 +305,12 @@ class DeviceEvalRunner(
     private suspend fun answerRow(
         s: team.sopa.boar.engine.TextModel, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
+        mode: team.sopa.boar.engine.rag.RetrievalMode,
     ): JsonObject {
         // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
         val toolStart = System.nanoTime()
         val tool = AnswerTools.run(q.query, emptyList())
         if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
-        val mode = retrievalMode
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = mode.params()) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
@@ -396,7 +398,7 @@ class DeviceEvalRunner(
             "retrievedTitles", "expectedKbTitles", "expectedKbHit", "reasonCodes", "modelSwitches", "crossMessageModelSwitch",
             "modelResidency", "modelLoadMs", "ttftMs", "retrievalMs", "contextTokensBefore", "contextTokensAfter",
             "generationLatencyMs", "promptTokens", "promptMs", "cachedTokens", "predictedTokens", "predictedMs", "totalLatencyMs",
-            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion", "tool")
+            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion", "tool", "retrievalMode")
 
         fun toCsv(rows: List<JsonObject>): String =
             (listOf(CSV_COLUMNS.joinToString(",")) + rows.map { r -> CSV_COLUMNS.joinToString(",") { csvCell(r[it]) } }).joinToString("\n")
