@@ -74,6 +74,10 @@ android {
     // menu entry). Either way the screen stays reachable from Settings → Advanced tweaks, and the USB runner (eval:device)
     // never needs it.
     val showEvalInMenu = (providers.gradleProperty("boar.showEvalInMenu").orNull ?: env["SHOW_EVAL_IN_MENU"] ?: System.getenv("SHOW_EVAL_IN_MENU"))?.trim()?.toBoolean() ?: false
+    // Sharing evaluation results with BOAR's server is off unless EVAL_SHARING=true (.env, the environment, or
+    // -Pboar.evalSharing=true). Off, the server's address and key aren't built in at all: no Share button, and runs and
+    // their files stay on the phone. In two weeks after launch only the team shared a run (Oct 19).
+    val evalSharing = (providers.gradleProperty("boar.evalSharing").orNull ?: env["EVAL_SHARING"] ?: System.getenv("EVAL_SHARING"))?.trim()?.toBoolean() ?: false
     defaultConfig {
         buildConfigField("boolean", "SHOW_EVAL_IN_MENU", "$showEvalInMenu")
         buildConfigField("boolean", "ALLOW_DEBUG_LOG", "$allowDebugLog")
@@ -84,8 +88,8 @@ android {
         // Lab ids to leave out of the grid (labs/LabPlugin.kt), e.g. boar.labs.hide=bigBrain,signboard.
         val labsHide = providers.gradleProperty("boar.labs.hide").orNull ?: ""
         buildConfigField("String", "LABS_HIDE", "\"${labsHide.replace("\"", "")}\"")
-        buildConfigField("String", "SUPABASE_URL", "\"${env["EXPO_PUBLIC_SUPABASE_URL"] ?: ""}\"")
-        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: ""}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${if (evalSharing) env["EXPO_PUBLIC_SUPABASE_URL"] ?: "" else ""}\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${if (evalSharing) env["EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?: "" else ""}\"")
         // The release keeps the Expo app's id and key, so it installs over v1.1.x with its models.
         applicationId = "team.sopa.aoair"
         // A second install beside BOAR (its own data): -Pboar.appIdSuffix=.labs gives team.sopa.aoair.labs, labelled
