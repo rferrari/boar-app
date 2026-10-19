@@ -24,9 +24,10 @@ prevails, except where your local law requires otherwise.
   with a model that runs on the phone. There is no account, no advertising, and no analytics or
   crash reporting in the app.
 - **The app uses the internet only when you ask it to:** to download models and packs, to search
-  Hugging Face for a model, and to share an evaluation run. The offline build has no internet
-  permission at all.
-- **Sharing a run is optional.** You see everything that will be sent before you confirm. What becomes
+  Hugging Face for a model, and, in a build that includes it, to share an evaluation run (current
+  Android builds don't). The offline build has no internet permission at all.
+- **Sharing a run is optional, and current Android builds don't include it.** In a build that does, you
+  see everything that will be sent before you confirm. What becomes
   public is a phone's model and chip with its scores, never anything that identifies you.
 - **Your phone is yours to protect.** BOAR keeps your data on your phone and doesn't encrypt it beyond
   what the phone does for every app (section 9).
@@ -46,7 +47,8 @@ These are processed only on your device and are never sent to us or anyone else 
   questions or answers, and leaves the phone only if you export it yourself;
 - evaluation runs (BOAR's fixed test questions and the model's answers to them), until you share
   or export one;
-- your settings, and a security key that BOAR creates in the phone's secure hardware for sharing.
+- your settings, and, if you shared a run in a build that includes sharing, a security key that BOAR
+  created in the phone's secure hardware for it.
 
 **Deleting it:** Settings → Erase all data deletes your conversations, documents, models,
 knowledge packs and settings. Two things stay until you uninstall the app: saved evaluation runs and

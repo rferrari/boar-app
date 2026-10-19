@@ -80,6 +80,9 @@ breached, and we aren't responsible for the security of your phone, your network
 
 ## 6. Sharing evaluation results
 
+Current Android builds don't include result sharing (since Oct 19, 2026): evaluation runs stay on the
+phone as files. This section applies to builds that include it, and to runs already shared.
+
 Sharing a run is optional. When you share one:
 
 - **You give us permission** to store it and to publish the phone details and scores described in the
