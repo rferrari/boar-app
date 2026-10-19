@@ -449,7 +449,8 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
             t("native.tweaks.freeMemoryAfter"),
             listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.immediately"))) +
                 team.sopa.boar.engine.settings.FreeMemory.CHOICES_MINUTES.map { it to t("native.tweaks.minutes", "n" to it) },
-            freeAfter,
+            // A saved Immediately (0) is what Auto does now, so it shows as Auto.
+            freeAfter.takeIf { it != 0 },
         ) { freeAfter = it; s.freeMemoryAfterMinutes = it }
         Note(t("native.tweaks.freeMemoryAfterNote"))
         // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
