@@ -222,7 +222,6 @@ private fun ShareDialog(state: EvaluationState, vm: EvaluationViewModel) {
     )
 }
 
-@Composable
 /** A section heading that opens and closes what follows (▸ closed, ▾ open). */
 @Composable
 private fun SectionToggle(title: String, open: Boolean, onToggle: () -> Unit) {
@@ -298,6 +297,7 @@ private fun PartBar(label: String, fraction: Double, value: String, color: Color
     }
 }
 
+@Composable
 private fun Note(text: String) = Text(text, style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = Boar.colors.textDim)
 
 @Composable
