@@ -152,9 +152,10 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         // The list itself too: a hidden model drops out once it's removed.
         val items = sortedItems()
         val lastUsed = services.settings.modelTimes(AppSettings.MODEL_LAST_USED)
-        // Models from before these times were kept: the file's date stands in for when it was added.
+        // Models from before these times were kept: the file's date stands in for when it was added, once it's complete
+        // (a download in progress isn't added yet: it sorted second under Recently added, Oct 18).
         val stamped = services.settings.modelTimes(AppSettings.MODEL_ADDED)
-        val added = items.associate { a -> a.id to (stamped[a.id] ?: services.fileOf(a).takeIf { it.isFile }?.lastModified()) }
+        val added = items.associate { a -> a.id to (stamped[a.id] ?: services.fileOf(a).takeIf { store.status(a).present }?.lastModified()) }
             .mapNotNull { (k, v) -> v?.let { k to it } }.toMap()
         val mine = services.discovered().map { it.id }.toSet()
         _state.update { s ->
