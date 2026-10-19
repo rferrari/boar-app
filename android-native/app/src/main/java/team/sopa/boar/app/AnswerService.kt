@@ -24,12 +24,23 @@ class AnswerService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val n = notification(this)
+        // Always foreground first: Android closes an app whose startForegroundService() isn't followed by startForeground().
+        // An answer that ended in the meantime (a plugin's instant one) left a stop request; it's honored right after.
         runCatching {
+            val n = notification(this)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) startForeground(ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
             else startForeground(ID, n)
-        }.onFailure { stopSelf() }
+        }
+        synchronized(lock) {
+            started = true
+            if (stopPending) { stopPending = false; stopSelf() }
+        }
         return START_NOT_STICKY
+    }
+
+    override fun onDestroy() {
+        synchronized(lock) { started = false; stopPending = false }
+        super.onDestroy()
     }
 
     companion object {
@@ -37,11 +48,26 @@ class AnswerService : Service() {
         private const val CHANNEL = "answering"
 
         /** With each answer. A start Android refuses (BOAR already in the background) is skipped, never thrown. */
+        private val lock = Any()
+        /** The service has called startForeground (stopping it is safe now). */
+        private var started = false
+        /** A stop that came before that; onStartCommand honors it. */
+        private var stopPending = false
+        /** A start was requested and not yet stopped. */
+        private var requested = false
+
         fun start(ctx: Context) {
-            runCatching { ctx.startForegroundService(Intent(ctx, AnswerService::class.java)) }
+            synchronized(lock) { stopPending = false }
+            runCatching { ctx.startForegroundService(Intent(ctx, AnswerService::class.java)); synchronized(lock) { requested = true } }
         }
 
         fun stop(ctx: Context) {
+            synchronized(lock) {
+                if (!requested) return
+                requested = false
+                // Not foreground yet: stopping now would make Android close BOAR. onStartCommand stops it instead.
+                if (!started) { stopPending = true; return }
+            }
             runCatching { ctx.stopService(Intent(ctx, AnswerService::class.java)) }
         }
 
