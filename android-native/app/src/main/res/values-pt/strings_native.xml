@@ -324,6 +324,8 @@
     <string name="native_chat_loadingModel" formatted="false">Carregando {{model}} · {{s}} s</string>
     <string name="native_chat_loadingModelWith" formatted="false">Carregando {{model}} com o {{engine}} · {{s}} s</string>
     <string name="native_chat_errorGeneric" formatted="false">Algo deu errado ao responder. Tente de novo.</string>
+    <string name="native_chat_errorEmpty" formatted="false">O modelo parou sem escrever uma resposta.</string>
+    <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
     <string name="native_personalities_succinct_description" formatted="false">Mais rápido. 2 ou 3 parágrafos curtos ou tópicos, sem introdução.</string>

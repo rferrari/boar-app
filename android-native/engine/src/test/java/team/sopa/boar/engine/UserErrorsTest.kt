@@ -11,6 +11,10 @@ class UserErrorsTest {
         assertEquals("native.chat.errorGeneric", UserErrors.chatKey("java.lang.IllegalStateException: model unloaded"))
     }
 
+    @Test fun `an answer that came back empty says so`() {
+        assertEquals("native.chat.errorEmpty", UserErrors.chatKey(UserErrors.EMPTY_ANSWER))
+    }
+
     @Test fun `download failures map by cause`() {
         assertEquals("native.download.errorStorage", UserErrors.downloadKey(DownloadException.Storage("needs 2 GB")))
         assertEquals("native.download.errorOffline", UserErrors.downloadKey(DownloadException.OfflineBuild()))

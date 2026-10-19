@@ -337,6 +337,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onHideResearchBanner = vm::hideResearchBanner,
             onRate = vm::rate,
             onRedo = vm::redoWithLimit,
+            onRetry = vm::retry,
             onDismissLoadNote = vm::dismissLoadNote,
             onRetryLessMemory = vm::retryWithLessMemory,
             onLoadAnyway = vm::loadAnyway,

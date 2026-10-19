@@ -98,6 +98,8 @@ data class ChatState(
     val activity: Activity? = null,
     val liveTokPerSec: Double? = null,
     val modelLabel: String? = null,
+    /** The model writing the answer in progress when it isn't [modelLabel] (adaptive routing sent it elsewhere). */
+    val answeringModel: String? = null,
     val noModel: Boolean = false,
     val deepResearch: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
@@ -138,7 +140,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * answer it cut short is closed with the generic error line (layer 1 of the error handler, [team.sopa.boar.app.Safe]).
      */
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
-        _state.update { it.copy(answeringId = null, activity = null, stopping = false, error = "generic") }
+        _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
     }
     private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
     val state: StateFlow<ChatState> = _state
@@ -425,6 +427,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
+    /** Asks the question of [answerId] again (an answer that came back empty). */
+    fun retry(answerId: String) {
+        val messages = _state.value.messages
+        val i = messages.indexOfFirst { it.id == answerId }
+        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        send(q)
+    }
+
     fun redoWithLimit(answerId: String, limit: Int) {
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
@@ -444,6 +454,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
+        routedModelId = null
         job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
@@ -566,6 +577,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             } catch (e: Throwable) {
                 _state.update { it.copy(error = e.message ?: e.toString()) }
             }
+            // Ended without a word, no error and not stopped: say so (with Try again) instead of an empty bubble.
+            if (text.isBlank() && !stopRequested && _state.value.error == null) _state.update { it.copy(error = team.sopa.boar.engine.UserErrors.EMPTY_ANSWER) }
             val passages = sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
             // One source per article, best first; the answer's numbers follow (a reused list is already grouped).
             val grouped = SourceGroups.group(passages, { SourceGroups.articleKey(it.source, it.docId, it.title) }, { it.similarity ?: it.relevance }) { g ->
@@ -607,7 +620,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
-                s.copy(answeringId = null, activity = null, stopping = false,
+                s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
                     messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit) else it })
             }
         }
@@ -675,6 +688,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** runAdaptiveChat: plan with the installed models and the user's routing settings, then execute. */
     /** The last adaptive plan's task type and whether it had a verify step, for the receipt. */
     @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
+    /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
+    @Volatile private var routedModelId: String? = null
 
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
@@ -686,6 +701,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         lastAdaptive = plan.taskType.value to plan.plan.steps.any { it.type == team.sopa.boar.engine.routing.RoutingStepType.VERIFY }
         val r = PlanExecutor(services.host, services::search, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
             .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->
+                if (step.type == team.sopa.boar.engine.routing.RoutingStepType.GENERATE && step.modelId != null) {
+                    routedModelId = step.modelId
+                    val other = step.modelId.takeIf { it != services.answerModel()?.id }?.let(services.catalog::byId)?.let { shortLabel(it.label) }
+                    _state.update { it.copy(answeringModel = other) }
+                }
                 _state.update { it.copy(activity = if (step.type.value == "retrieve") Activity.Retrieving else Activity.Thinking) }
             }, shouldStop = { stopRequested })
         if (r.answer.isBlank() && !stopRequested) error("adaptive routing produced no answer: ${r.warnings.joinToString()}")
@@ -709,7 +729,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return Receipt(
             totalMs = (end - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6,
             tokPerSec = m?.decodeTokPerSec?.takeIf { it > 0 } ?: wallRate, tokens = m?.generatedTokens?.takeIf { it > 0 } ?: streamed,
-            model = services.activeModel()?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
+            // The model that wrote it: the one adaptive routing picked, else the active one.
+            model = (routedModelId?.let(services.catalog::byId) ?: services.activeModel())?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
         )
     }
 

@@ -9,9 +9,15 @@ import java.util.Locale
 object UserErrors {
     /** What ChatViewModel stores in ChatState.error when no answer model could be loaded. */
     const val NO_MODEL = "no-model"
+    /** The answer ended without a word, without an error and without Stop (the chat offers Try again). */
+    const val EMPTY_ANSWER = "empty-answer"
 
     /** The line shown in place of a failed answer. */
-    fun chatKey(error: String): String = if (error == NO_MODEL) "native.chat.errorNoModel" else "native.chat.errorGeneric"
+    fun chatKey(error: String): String = when (error) {
+        NO_MODEL -> "native.chat.errorNoModel"
+        EMPTY_ANSWER -> "native.chat.errorEmpty"
+        else -> "native.chat.errorGeneric"
+    }
 
     /** A failed download, by cause: the engine's messages are English and name the file, the row already does. */
     fun downloadKey(e: Throwable): String = when (e) {

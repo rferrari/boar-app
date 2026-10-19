@@ -103,6 +103,7 @@ fun ChatScreen(
     onRate: (String, String) -> Unit,
     /** The cut answer's "Allow more and redo": its id and the higher limit. */
     onRedo: (String, Int) -> Unit = { _, _ -> },
+    onRetry: (String) -> Unit = {},
     /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
     onDismissLoadNote: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
@@ -152,7 +153,7 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry) }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
@@ -231,7 +232,9 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
                         StatusPill(state.online)
                     }
-                    Text((state.modelLabel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
+                    // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
+                    val headerModel = state.answeringModel?.takeIf { state.answeringId != null }?.let { "→ $it" } ?: state.modelLabel
+                    Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -500,7 +503,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit) {
+private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -541,8 +544,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
-            if (!streaming && !m.stopped && state.error != null && state.messages.lastOrNull()?.id == m.id)
+            if (!streaming && !m.stopped && state.error != null && state.messages.lastOrNull()?.id == m.id) {
                 Text(t(UserErrors.chatKey(state.error)), style = type.bodyLg, color = c.crimson400)
+                if (state.error == UserErrors.EMPTY_ANSWER && state.answeringId == null)
+                    FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
+            }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
