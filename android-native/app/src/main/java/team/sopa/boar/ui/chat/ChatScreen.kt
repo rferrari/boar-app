@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -661,10 +662,14 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     val c = Boar.colors
     val tail = thinking.takeLast(400).let { t -> if (t.length < thinking.length) t.substringAfter(' ', t) else t }.replace(Regex("\\s+"), " ").trim()
     val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
-    Box(modifier.fillMaxWidth().height(box).clipToBounds()) {
-        // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
-        Text("💭 $tail", fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,
-            modifier = Modifier.align(Alignment.BottomStart).wrapContentHeight(Alignment.Bottom, unbounded = true))
+    // 💭 stays put at the top left while it reasons; only the text beside it scrolls.
+    Row(modifier.fillMaxWidth().height(box), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("💭", fontSize = 12.sp, lineHeight = 17.sp)
+        Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
+            // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
+            Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,
+                modifier = Modifier.align(Alignment.BottomStart).wrapContentHeight(Alignment.Bottom, unbounded = true))
+        }
     }
 }
 
