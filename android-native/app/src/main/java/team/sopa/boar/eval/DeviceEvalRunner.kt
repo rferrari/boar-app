@@ -99,11 +99,14 @@ class DeviceEvalRunner(
     }
 
     /** Models a Labs engine brings (Big Boar's 35B), when BOAR has its own copy or one copied over USB (externalPath). */
-    private fun labEngineModels(): List<Pair<ModelRef, File>> =
-        team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
+    private fun labEngineModels(): List<Pair<ModelRef, File>> {
+        // Started from BenchActivity, Boar Labs wasn't set up: without the app context Big Boar can't see its USB copy.
+        if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+        return team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
             val f = a.externalPath?.let(::File) ?: File(files, a.filename)
             if (f.isFile) ModelRef(a.id, a.label) to f else null
         }
+    }
 
     fun evalSets(): EvalSets = EvalSets.parse(asset("eval-set.json"))
 
