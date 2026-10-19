@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_calc_title" formatted="false">Boar Calculadora</string>
-    <string name="native_labs_calc_body" formatted="false">Respostas exatas para contas na sua pergunta, na hora e sem o modelo.</string>
+    <string name="native_labs_calc_body" formatted="false">Respostas exatas para algumas contas do dia a dia (bateria, consumo, trilha, câmbio, água, temperatura, quanto tempo, quantos), na hora e sem o modelo. Contas simples e porcentagens ainda vão para o modelo.</string>
     <string name="native_labs_calc_answers" formatted="false">RESPONDE SOZINHA</string>
     <string name="native_labs_calc_answersList" formatted="false">• Watt-hora de uma bateria, e se ela pode ir no avião\n• Consumo: L/100 km e milhas por galão\n• Tempo de trilha pela regra de Naismith\n• Câmbio na cotação que você der, com gorjeta\n• Água para uma viagem: pessoas × dias × litros\n• Temperatura: Celsius e Fahrenheit\n• Quanto tempo: uma quantidade a uma taxa (MB a MB/s, km a km/h, páginas por hora), em inglês\n• Quantos: recipientes, viagens ou ônibus para um total, arredondando para cima, em inglês</string>
     <string name="native_labs_calc_try" formatted="false">EXPERIMENTE</string>

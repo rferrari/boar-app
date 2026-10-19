@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_calc_title" formatted="false">Boar Calculator</string>
-    <string name="native_labs_calc_body" formatted="false">Exact answers to calculations in your question, instantly and without the model.</string>
+    <string name="native_labs_calc_body" formatted="false">Exact answers to a few everyday calculations (battery, fuel, hiking, currency, water, temperature, how long, how many), instantly and without the model. Plain sums and percentages still go to the model.</string>
     <string name="native_labs_calc_answers" formatted="false">ANSWERS ON ITS OWN</string>
     <string name="native_labs_calc_answersList" formatted="false">• A battery\'s watt-hours, and whether it can fly\n• Fuel economy: L/100 km and miles per gallon\n• Hiking time by Naismith\'s rule\n• Currency at the rate you give, with a tip\n• Water for a trip: people × days × litres\n• Temperature: Celsius and Fahrenheit\n• How long: an amount at a rate (MB at MB/s, km at km/h, pages per hour)\n• How many: containers, trips or buses for a total, rounded up</string>
     <string name="native_labs_calc_try" formatted="false">TRY</string>
