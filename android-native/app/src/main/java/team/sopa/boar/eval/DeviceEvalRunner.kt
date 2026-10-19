@@ -287,7 +287,8 @@ class DeviceEvalRunner(
                 team.sopa.boar.labs.LabPrefs.init(context)
                 if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
                 val engine = team.sopa.boar.labs.LabRegistry.ALL.firstNotNullOfOrNull { lab -> lab.engine?.takeIf { it.id == BIG_BOAR_ENGINE } }
-                val asset = team.sopa.boar.app.BoarServices.get(context).catalog.byId(config.modelId)
+                // From the engine itself: the catalog lists a lab's models only once LabHooks set up the switched-on labs.
+                val asset = engine?.models()?.firstOrNull { it.id == config.modelId }
                 if (engine == null || asset == null) { log("[EVAL] Big Boar isn't in this build or ${config.modelId} isn't in the catalog"); null }
                 else runCatching { engine.load(asset, auto) }.onFailure { log("[EVAL] Big Boar load failed: $it") }.getOrNull()
             }
