@@ -62,4 +62,5 @@
     <string name="native_labs_image_lowMemory" formatted="false">Not enough free memory to draw now. Close other apps, or free BOAR\'s memory, and try again.</string>
     <string name="native_labs_image_seed" formatted="false">seed {{seed}}</string>
     <string name="native_labs_image_downloadFailed" formatted="false">The download stopped. Check the connection and try again.</string>
+    <string name="native_labs_image_refused" formatted="false">Boar Designer doesn\'t draw that.</string>
 </resources>

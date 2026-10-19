@@ -65,7 +65,7 @@ object ImageLab {
 
     /**
      * The styles chosen on Oct 14 from 22 drawn on the X6 (same subject and seed, 384 px; docs/…image-gen-styles):
-     * 7 chips in two rows. The subject goes where {s} is. Dropped: textbook, vector, watercolor, pencil (look-alikes of
+     * 8 chips in two rows. The subject goes where {s} is. Dropped: textbook, vector, watercolor, pencil (look-alikes of
      * the ink styles with this one-step model), mecha, glitch, tactical, vaporwave, synthwave, dreamcore, cottagecore.
      */
     enum class Style(val key: String, val template: String) {
@@ -222,6 +222,11 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
 
     fun generate(subject: String) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
+        // What the user typed is checked too (ImageSafety): refused with a plain line, nothing drawn.
+        if (team.sopa.boar.engine.routing.ImageSafety.blocked(subject)) {
+            _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.refused")) }
+            return
+        }
         val s = _state.value
         val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating }
         regenerating = false

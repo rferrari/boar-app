@@ -62,4 +62,5 @@
     <string name="native_labs_image_lowMemory" formatted="false">Memória livre insuficiente para desenhar agora. Feche outros apps ou libere a memória do BOAR e tente de novo.</string>
     <string name="native_labs_image_seed" formatted="false">semente {{seed}}</string>
     <string name="native_labs_image_downloadFailed" formatted="false">O download parou. Confira a conexão e tente de novo.</string>
+    <string name="native_labs_image_refused" formatted="false">O Boar Designer não desenha isso.</string>
 </resources>

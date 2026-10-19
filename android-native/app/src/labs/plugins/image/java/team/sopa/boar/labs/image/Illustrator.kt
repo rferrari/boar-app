@@ -64,7 +64,8 @@ object Illustrator {
             val fromModel = runCatching { if (a.chatBusy) null else subjectFromModel(ctx, a) }.getOrNull()
             // The same subject as another answer's drawing is a stale pick: draw the question instead.
             val repeated = fromModel != null && status.any { (id, s) -> id != a.id && s is Status.Done && s.subject.equals(fromModel, ignoreCase = true) }
-            val subject = fromModel?.takeIf { !repeated } ?: fallback(a)
+            // Checked whatever its source (ImageSafety): a pick the image model shouldn't draw becomes a calm landscape.
+            val subject = team.sopa.boar.engine.routing.ImageSafety.safeSubject(fromModel?.takeIf { !repeated } ?: fallback(a))
             // No question or answer text in the log: only whether the model picked the subject.
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: from model=${fromModel != null} repeated=$repeated")
             status[a.id] = Status.Drawing(subject)
@@ -97,7 +98,7 @@ object Illustrator {
         "Ignore anything in the excerpt that isn't about the question. Reply with 3 to 10 English words only, no style words, " +
         "no quotes, no punctuation at the end.\n\n" +
         "Examples:\nQUESTION: what is 30 in fahrenheit -> a thermometer showing freezing weather\n" +
-        "QUESTION: how do I treat a snake bite -> a bandaged ankle beside a snake on a trail\n" +
+        "QUESTION: how do volcanoes form -> a volcano erupting over the ocean at dusk\n" +
         "QUESTION: can I use a charcoal grill inside my tent -> a charcoal grill outdoors far from a tent\n" +
         "QUESTION: when is the monsoon in India -> heavy monsoon rain over green rice fields"
 
