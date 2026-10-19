@@ -552,6 +552,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
                 if (errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) && state.answeringId == null)
                     FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
+                // Holding a question already copies it back to the input (onReuse); say so where it helps.
+                Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
