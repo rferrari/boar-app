@@ -344,6 +344,9 @@
     <string name="native_chat_askBoarInstead" formatted="false">Perguntar ao BOAR</string>
     <string name="native_chat_deepResearchPlaceholder" formatted="false">🔬 Pergunta para o Deep Research…</string>
     <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
+    <string name="native_answering_channel" formatted="false">Respondendo</string>
+    <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
+    <string name="native_answering_text" formatted="false">A resposta continua enquanto você usa outros apps.</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
