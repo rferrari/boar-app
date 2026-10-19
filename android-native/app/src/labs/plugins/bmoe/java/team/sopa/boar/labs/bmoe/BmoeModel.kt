@@ -29,7 +29,7 @@ import team.sopa.boar.labs.engines.EngineProcess
  *
  * bmoe applies the ChatML template itself and takes one prompt, so [formatChat] flattens the chat into plain text.
  */
-class BmoeModel private constructor(private val engine: EngineProcess) : TextModel {
+class BmoeModel private constructor(private val engine: EngineProcess, private val nCtx: Int) : TextModel {
     private val lock = Mutex()
     private var nextId = 1
     @Volatile private var busy = false
@@ -51,7 +51,7 @@ class BmoeModel private constructor(private val engine: EngineProcess) : TextMod
             unfinished?.let { old -> drain(old) }
             val id = nextId++
             val req = JSONObject().put("cmd", "generate").put("id", id).put("prompt", prompt)
-                .put("n_predict", sampling.nPredict).put("think", think).put("clear_kv", true)
+                .put("n_predict", team.sopa.boar.engine.models.EngineChoice.bigBoarTokens(sampling.nPredict, nCtx)).put("think", think).put("clear_kv", true)
             busy = true
             val t0 = System.nanoTime()
             var firstMs = -1.0
@@ -147,7 +147,7 @@ class BmoeModel private constructor(private val engine: EngineProcess) : TextMod
                 android.util.Log.w(EngineProcess.TAG, "bmoe didn't start: ${engine.tail()}")
                 engine.stop()
                 null
-            } else BmoeModel(engine)
+            } else BmoeModel(engine, params.nCtx)
         }
 
         private const val LOAD_TIMEOUT_MS = 5 * 60_000L

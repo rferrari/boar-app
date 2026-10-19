@@ -17,6 +17,21 @@ object EngineChoice {
 
     enum class Engine { BOAR, BIG_BOAR }
 
+    /** Tokens of reasoning Big Boar may write on top of the answer's own budget. */
+    const val REASONING_ALLOWANCE = 1024
+    /** Room left in the context for the prompt when the reasoning allowance is added. */
+    const val PROMPT_ROOM = 1536
+
+    /**
+     * Big Boar's token cap for an answer of [answerTokens]: the mixtures of experts it runs (LFM2.5 8B, Qwen3.6 35B) reason
+     * before they answer, and the reasoning counts against the cap, so a 1,024-token answer budget was spent before the
+     * answer began. They get [REASONING_ALLOWANCE] more, within an [nCtx] context that keeps [PROMPT_ROOM] for the prompt,
+     * and never less than the answer's own budget.
+     */
+    fun bigBoarTokens(answerTokens: Int, nCtx: Int): Int =
+        if (answerTokens <= 0) answerTokens  // no cap stays no cap
+        else minOf(answerTokens + REASONING_ALLOWANCE, maxOf(answerTokens, nCtx - PROMPT_ROOM))
+
     /** What [choice] picks for a model rated [fit], if Big Boar can run it; the header check can wait until this says yes. */
     fun prefersBigBoar(choice: Choice, fit: Compatibility): Boolean = when (choice) {
         Choice.BOAR -> false

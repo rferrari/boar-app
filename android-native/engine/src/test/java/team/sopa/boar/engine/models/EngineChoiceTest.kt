@@ -48,4 +48,13 @@ class EngineChoiceTest {
         assertEquals(Choice.AUTO, Choice.of(null))
         assertEquals(Choice.AUTO, Choice.of("llama"))
     }
+
+    @Test fun `big boar gets room to reason before the answer`() {
+        assertEquals(2048, EngineChoice.bigBoarTokens(1024, 4096))
+        // A small context: only what fits beside the prompt, never below the answer's own budget.
+        assertEquals(1536, EngineChoice.bigBoarTokens(1024, 3072))
+        assertEquals(1024, EngineChoice.bigBoarTokens(1024, 2048))
+        assertEquals(512, EngineChoice.bigBoarTokens(512, 1024))
+        assertEquals(-1, EngineChoice.bigBoarTokens(-1, 4096))
+    }
 }
