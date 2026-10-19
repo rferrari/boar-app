@@ -219,11 +219,14 @@ class BoarServices private constructor(private val context: Context) {
     /**
      * Search for an answer: the built-in retrieval, then the Labs search stages (team.sopa.boar.plugins.PipelineStages),
      * which get twice [topK] passages to choose from. Every answer path calls this, not the retriever directly.
+     * [params]: the retrieval's fusion weights and similarity floors, today's by default.
      */
-    fun search(query: String, topK: Int): List<team.sopa.boar.engine.rag.Chunk> {
+    fun search(
+        query: String, topK: Int, params: team.sopa.boar.engine.rag.RetrievalParams = team.sopa.boar.engine.rag.RetrievalParams.DEFAULT,
+    ): List<team.sopa.boar.engine.rag.Chunk> {
         val stages = runCatching { team.sopa.boar.plugins.PipelineStages.search() }.getOrDefault(emptyList())
-        if (stages.isEmpty()) return retriever.retrieve(query, topK)
-        var chunks = retriever.retrieve(query, topK * 2)
+        if (stages.isEmpty()) return retriever.retrieve(query, topK, params = params)
+        var chunks = retriever.retrieve(query, topK * 2, params = params)
         // A stage that fails is skipped, never fatal: the answer keeps what search found.
         for (st in stages) chunks = runCatching { st.process(query, chunks, topK) }.getOrDefault(chunks)
         return chunks.take(topK)

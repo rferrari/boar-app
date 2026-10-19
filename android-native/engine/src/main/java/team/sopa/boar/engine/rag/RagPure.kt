@@ -124,12 +124,13 @@ object RagPure {
 
     /**
      * Weighted-sum fusion of two scored result sets, each normalized to its own max; at most
-     * [MAX_CHUNKS_PER_ARTICLE] per title. A relative re-ranking, not a relevance gate.
+     * [MAX_CHUNKS_PER_ARTICLE] per title. A relative re-ranking, not a relevance gate. A set weighted 0 is left out,
+     * not added at score 0 where it would still fill the remaining places.
      */
     fun fuse(lexical: List<Chunk>, semantic: List<Chunk>, topK: Int, lexicalWeight: Double = 0.5, semanticWeight: Double = 0.5): List<Chunk> {
         val byId = LinkedHashMap<String, Chunk>()
         fun add(chunks: List<Chunk>, weight: Double) {
-            if (chunks.isEmpty()) return
+            if (chunks.isEmpty() || weight <= 0.0) return
             val max = maxOf(chunks.maxOf { it.score }, 1e-9)
             for (c in chunks) {
                 val norm = (c.score / max) * weight

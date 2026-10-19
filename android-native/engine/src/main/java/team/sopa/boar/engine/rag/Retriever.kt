@@ -22,8 +22,11 @@ class Retriever(
     private val embed: (String) -> FloatArray,
     private val lexicon: () -> Map<String, String>,
 ) {
-    fun retrieve(query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true): List<Chunk> {
-        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null)
+    /** [params]: fusion weights and similarity floors; the default is the retrieval the golden tests pin. */
+    fun retrieve(
+        query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, params: RetrievalParams = RetrievalParams.DEFAULT,
+    ): List<Chunk> {
+        val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, params)
         // A Portuguese question against English sources: search again with the English names it mentions and put
         // those results first. The English embedder and keyword index barely match Portuguese words.
         if (!PtLexicon.looksPortuguese(query)) return main
@@ -32,7 +35,7 @@ class Retriever(
         val names = ids + PtLexicon.englishNamesIn(query, lexicon()).filter { it !in ids }
         if (names.isEmpty()) return main
         val action = WikiPackText.ACTION_INTENT.containsMatchIn(query)
-        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query))
+        val found = retrieveOne(names.joinToString(" "), topK, null, includeWikiPacks, names, action, Explain.EXPLAIN_INTENT.containsMatchIn(query), params)
         val named = names.map { it.lowercase() }.toSet()
         // What-to-do sections first in an action question, then articles named exactly; disambiguation lists never.
         fun rank(c: Chunk) = if (action && c.action) 0 else if (c.title.lowercase() in named) 1 else 2
@@ -46,14 +49,17 @@ class Retriever(
 
     private fun retrieveOne(
         query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, titles: List<String>?, action: Boolean?, explain: Boolean?,
+        params: RetrievalParams,
     ): List<Chunk> {
+        // A later step could skip the embedding when params.semanticWeight is 0 (KEYWORD): lexical hits still read
+        // their similarity from it for the relevance gate, so that needs a decision first.
         val vec = queryVec ?: embed(query)
         val lexical = kb.lexicalSearch(query, vec, topK * 2)
-        val semantic = kb.semanticSearch(vec, topK * 2)
+        val semantic = kb.semanticSearch(vec, topK * 2, params.minSemanticSimilarity)
         val installed = packs()
         // A failing pack is skipped, never fatal.
         val f1 = installed.filterIsInstance<OpenPack.Format1>().mapNotNull { p ->
-            runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain) }.getOrNull()
+            runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain, params.minSemanticSimilarity) }.getOrNull()
         }
         val wiki = if (!includeWikiPacks) emptyList() else installed.filterIsInstance<OpenPack.Format2>().mapNotNull { p ->
             runCatching {
@@ -69,9 +75,11 @@ class Retriever(
         // The knowledge base and format-1 packs pass the relevance gate first; large-pack hits have their own
         // ranking and no similarity, so they aren't gated here.
         val fused = RagPure.fuse(
-            RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }) + wikiLexical,
-            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }),
+            RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }, params.answerMinSimilarity) + wikiLexical,
+            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, params.answerMinSimilarity),
             topK,
+            params.lexicalWeight,
+            params.semanticWeight,
         )
         // A what-to-do question: up to three pack sections that say what to do, right after the named articles.
         val isAction = action ?: WikiPackText.ACTION_INTENT.containsMatchIn(query)
