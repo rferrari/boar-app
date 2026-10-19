@@ -411,6 +411,11 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addBusyCheck(check: () -> Boolean) { busyChecks += check }
     fun removeBusyCheck(check: () -> Boolean) { busyChecks -= check }
+    /** The chat's Stop, for an answer a Labs engine is writing when BOAR leaves the screen. */
+    private val stoppers = java.util.concurrent.CopyOnWriteArrayList<() -> Unit>()
+
+    fun addStopper(stop: () -> Unit) { stoppers += stop }
+    fun removeStopper(stop: () -> Unit) { stoppers -= stop }
     private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
 
     /**
@@ -424,6 +429,17 @@ class BoarServices private constructor(private val context: Context) {
         backgroundRelease?.cancel()
         backgroundRelease = null
         labsRelease?.cancel()
+        // A Labs engine answering is stopped now and its process closed: Android closes the whole app within seconds
+        // when a background app's child process keeps the CPU busy (F3, Oct 19: 15 s after Home, "excessive cpu").
+        // The answer shows as stopped; the next question loads the engine again.
+        if (host.residentIsExternal() && modelBusy()) {
+            stoppers.forEach { runCatching { it() } }
+            lifeScope.launch {
+                val until = android.os.SystemClock.elapsedRealtime() + LABS_STOP_WAIT_MS
+                while (modelBusy() && android.os.SystemClock.elapsedRealtime() < until) kotlinx.coroutines.delay(250)
+                if (!inForeground && host.residentIsExternal()) host.unloadIfIdle("left the screen during a Labs engine answer")
+            }
+        }
         // A Labs engine (its own process) still idle after BACKGROUND_RELEASE_MS gives its memory back, setting or not.
         labsRelease = lifeScope.launch {
             kotlinx.coroutines.delay(BACKGROUND_RELEASE_MS)
@@ -476,6 +492,8 @@ class BoarServices private constructor(private val context: Context) {
         const val BUILT_IN_ENGINE = "llama"
         /** How long a Labs engine may sit idle with BOAR in the background before its memory goes back. */
         const val BACKGROUND_RELEASE_MS = 5 * 60_000L
+        /** How long a stopped Labs engine answer may take to end before its process is closed anyway (well under 15 s). */
+        const val LABS_STOP_WAIT_MS = 5_000L
 
         @Volatile private var instance: BoarServices? = null
 

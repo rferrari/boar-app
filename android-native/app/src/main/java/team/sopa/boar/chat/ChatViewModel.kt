@@ -160,6 +160,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private var preloading: Job? = null
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
+    /** Leaving the screen during a Labs engine answer stops it, as Stop does (BoarServices.onBackground). Declared before init. */
+    private val stopper: () -> Unit = { stop() }
 
     init {
         refreshModel()
@@ -167,10 +169,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         watchConnectivity(app)
         preload()
         services.addBusyCheck(busy)
+        services.addStopper(stopper)
     }
 
     override fun onCleared() {
         services.removeBusyCheck(busy)
+        services.removeStopper(stopper)
         super.onCleared()
     }
 
@@ -426,7 +430,6 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.host.current()?.cancel()
     }
 
-    /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
     /** Asks the question of [answerId] again (an answer that came back empty). */
     fun retry(answerId: String) {
         val messages = _state.value.messages
@@ -435,6 +438,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         send(q)
     }
 
+    /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
     fun redoWithLimit(answerId: String, limit: Int) {
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
