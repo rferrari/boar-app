@@ -545,9 +545,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
-            if (!streaming && !m.stopped && state.error != null && state.messages.lastOrNull()?.id == m.id) {
-                Text(t(UserErrors.chatKey(state.error)), style = type.bodyLg, color = c.crimson400)
-                if (state.error == UserErrors.EMPTY_ANSWER && state.answeringId == null)
+            // Kept on the message (UiMessage.error), so it stays after the next question; the live error covers a failure
+            // before the answer could be saved.
+            val errorKey = m.error ?: state.error?.takeIf { state.messages.lastOrNull()?.id == m.id }?.let(UserErrors::chatKey)
+            if (!streaming && !m.stopped && errorKey != null) {
+                Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
+                if (errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) && state.answeringId == null)
                     FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
