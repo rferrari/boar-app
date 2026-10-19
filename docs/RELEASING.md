@@ -33,7 +33,9 @@ use. Anyone who can push a branch could otherwise edit the workflow there to pri
 
 3. The repository variables `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (Settings → Secrets and
    variables → Actions → Variables) turn on "Share results" in the build. They're public
-   by design; the same values as `.env`.
+   by design; the same values as `.env`. The native Android app (`android-native/`) also needs
+   `EVAL_SHARING=true`: without it, the default since Oct 19, 2026, the two values aren't built
+   in at all, there's no Share button, and evaluation runs stay on the phone as files.
 
 Keep an offline backup of `boar-release.jks` anyway. BOAR isn't on Google Play, so a lost or
 leaked key can't be replaced: a new key means every user uninstalls and loses their models.

@@ -1,5 +1,9 @@
 # Shared results and the score
 
+> Since Oct 19, 2026 the native Android app is built without sharing by default (`EVAL_SHARING`,
+> see [DEVELOPMENT.md](DEVELOPMENT.md#testing-result-sharing)): the Evaluation screen still runs
+> and saves its files, but has no Share button. Runs shared before then stay as described below.
+
 People can share an evaluation run from the app (Evaluation › Share results) so others with
 the same chipset, CPU or memory can see which models work best on phones like theirs. This
 page explains what is sent, what is public and how the score is computed.

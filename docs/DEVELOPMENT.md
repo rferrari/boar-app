@@ -73,6 +73,11 @@ what a plain `npm install` alone will never fix, since it never touches `android
 
 ### Testing result sharing
 
+The native Android app has Evaluation › Share results only when built with `EVAL_SHARING=true`
+in `.env` (or the environment, or `-Pboar.evalSharing=true`) next to the two `EXPO_PUBLIC_SUPABASE_*`
+values. It's off by default since Oct 19, 2026: the server's address isn't built in, and runs stay
+on the phone as files.
+
 Evaluation › Share results only works from a release build signed with BOAR's release key:
 the server checks the phone's hardware-key attestation, and development builds (signed with
 Expo's public debug key) are refused. Build and install a release APK:

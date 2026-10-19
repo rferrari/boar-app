@@ -74,7 +74,9 @@ you search. Hugging Face's privacy policy applies.
 ### 2.3 Sharing an evaluation run (optional)
 
 The Evaluation screen can run BOAR's fixed set of test questions and, if you choose **Share results**,
-send the run to us so anyone can compare how models perform on different phones. Sharing is available
+send the run to us so anyone can compare how models perform on different phones. Current builds of
+the Android app don't include **Share results**: the run is saved as files on your phone and nothing
+is sent. Sharing is available
 on Android; on iOS it isn't open yet. Before anything is sent, the app shows you every field. We
 receive:
 

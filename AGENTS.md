@@ -74,7 +74,8 @@ cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
 `BOAR_UPLOAD_STORE_FILE`, `BOAR_UPLOAD_KEY_ALIAS`, `BOAR_UPLOAD_STORE_PASSWORD`
 and `BOAR_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties` (never in the
 repo). Without them the release build is debug-signed, which is fine for your own
-phone. An APK signed with a different key can't install over an existing BOAR:
+phone. Evaluation › Share results is built in only with `EVAL_SHARING=true` in `.env`
+(off by default): without it the app has no Share button and never contacts the results server. An APK signed with a different key can't install over an existing BOAR:
 Android requires uninstalling first, which deletes the app's downloaded models.
 A first release build takes about 40 minutes.
 
