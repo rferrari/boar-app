@@ -46,6 +46,8 @@ data class EvalRequest(
     val engine: String? = null,
     /** Per model (a selector from [models] or a model id): its engine, over [engine]. Native only. */
     val engines: Map<String, String> = emptyMap(),
+    /** How search ranks what it finds ([team.sopa.boar.engine.rag.RetrievalMode], lowercase); null is BALANCED. Native only. */
+    val retrieval: String? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -126,10 +128,16 @@ object DeviceEval {
             if (bad) throw EvalRequestException("\"engines\" must map models to one of ${EvalConfig.ENGINES.joinToString(", ")}")
             (v as JsonObject).mapValues { (it.value as JsonPrimitive).content }
         } ?: emptyMap()
+        val modes = team.sopa.boar.engine.rag.RetrievalMode.entries.filter { it != team.sopa.boar.engine.rag.RetrievalMode.CUSTOM }.map { it.name.lowercase() }
+        val retrieval = raw["retrieval"]?.let { v ->
+            (v as? JsonPrimitive)?.takeIf { it.isString && it.content in modes }?.content
+                ?: throw EvalRequestException("\"retrieval\" must be one of ${modes.joinToString(", ")}")
+        }
         return EvalRequest(
             requestId = id,
             engine = engine,
             engines = engines,
+            retrieval = retrieval,
             models = stringList(raw["models"], "models"),
             adaptive = (raw["adaptive"] as? JsonPrimitive)?.booleanOrNull,
             queries = stringList(raw["queries"], "queries"),

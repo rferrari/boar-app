@@ -74,11 +74,14 @@ class Retriever(
         val wikiLexical = chunks { it.via != "title" }
         // The knowledge base and format-1 packs pass the relevance gate first; large-pack hits have their own
         // ranking and no similarity, so they aren't gated here.
+        // With keyword weight 0 (MEANING) the large-pack hits still compete at the meaning weight: they are the
+        // library's only results here (the pack ranks them with the question's embedding too), not keyword-only ones.
+        val keywordOff = params.lexicalWeight <= 0.0
         val fused = RagPure.fuse(
-            RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }, params.answerMinSimilarity) + wikiLexical,
+            (if (keywordOff) emptyList() else RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }, params.answerMinSimilarity)) + wikiLexical,
             RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, params.answerMinSimilarity),
             topK,
-            params.lexicalWeight,
+            if (keywordOff) params.semanticWeight else params.lexicalWeight,
             params.semanticWeight,
         )
         // A what-to-do question: up to three pack sections that say what to do, right after the named articles.

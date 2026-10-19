@@ -124,6 +124,8 @@ class DeviceEvalRunner(
             return
         }
         resolved as Resolved.Ok
+        retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
+            ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
         val configs = resolved.configs.map { it.id }
         val total = resolved.configs.size * resolved.queries.size
         writeStatus(request.requestId, "state" to "accepted", "configs" to configs, "total" to total, "completed" to 0, "installedModels" to installedIds)
@@ -151,6 +153,8 @@ class DeviceEvalRunner(
     }
 
     @Volatile private var stopRequested = false
+    /** How search ranks for the run in progress: a device request's "retrieval", else BALANCED (today's search). */
+    @Volatile private var retrievalMode = team.sopa.boar.engine.rag.RetrievalMode.BALANCED
     @Volatile private var running: team.sopa.boar.engine.TextModel? = null
 
     /** Stops after the current answer, which is cut short and recorded as cancelled; the rows so far stay saved. */
@@ -304,7 +308,8 @@ class DeviceEvalRunner(
         val toolStart = System.nanoTime()
         val tool = AnswerTools.run(q.query, emptyList())
         if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
-        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant)
+        val mode = retrievalMode
+        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = mode.params()) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
         var genStart = 0L
@@ -352,6 +357,8 @@ class DeviceEvalRunner(
             "tool" to tool?.tool,
             // Which engine wrote it (builtin, mapped or bigboar); Big Boar runs in its own process, so peakRssBytes is the app's only.
             "inferenceEngine" to config.engine,
+            // How search ranked the passages (balanced, keyword or meaning), so runs in different modes can be compared.
+            "retrievalMode" to mode.name.lowercase(),
         )
     }
 
