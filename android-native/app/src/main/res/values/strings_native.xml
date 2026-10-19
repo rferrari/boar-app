@@ -83,6 +83,18 @@
     <string name="native_about_teamTitle" formatted="false">Core team</string>
     <string name="native_about_teamBody" formatted="false">On X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
+    <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
+    <string name="native_eval_answersTitle" formatted="false">Answers ({{count}})</string>
+    <string name="native_eval_score_title" formatted="false">Score</string>
+    <string name="native_eval_score_running" formatted="false">Running · {{done}}/{{total}} answers</string>
+    <string name="native_eval_score_finished" formatted="false">{{done}}/{{total}} answers</string>
+    <string name="native_eval_score_speed" formatted="false">Speed</string>
+    <string name="native_eval_score_reliability" formatted="false">Reliability</string>
+    <string name="native_eval_score_sources" formatted="false">Sources found</string>
+    <string name="native_eval_score_answered" formatted="false">{{done}}/{{total}} answered</string>
+    <string name="native_eval_score_found" formatted="false">{{hits}}/{{total}} found</string>
+    <string name="native_eval_score_noneExpected" formatted="false">none expected</string>
+    <string name="native_eval_score_note" formatted="false">Speed 60 %, reliability 25 %, sources found 15 %, measured on this phone. It doesn\'t say whether the answers are right.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} closed the app while loading: not enough memory. BOAR is answering with {{fallback}} for now.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} closed the app while loading: not enough memory. Try again with less memory, or pick a smaller model in the Model Catalog.</string>

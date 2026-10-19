@@ -83,6 +83,18 @@
     <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
     <string name="native_about_teamBody" formatted="false">No X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
+    <string name="native_eval_modelsTitle" formatted="false">Modelos ({{chosen}} de {{count}} escolhidos)</string>
+    <string name="native_eval_answersTitle" formatted="false">Respostas ({{count}})</string>
+    <string name="native_eval_score_title" formatted="false">Nota</string>
+    <string name="native_eval_score_running" formatted="false">Rodando · {{done}}/{{total}} respostas</string>
+    <string name="native_eval_score_finished" formatted="false">{{done}}/{{total}} respostas</string>
+    <string name="native_eval_score_speed" formatted="false">Velocidade</string>
+    <string name="native_eval_score_reliability" formatted="false">Confiabilidade</string>
+    <string name="native_eval_score_sources" formatted="false">Fontes achadas</string>
+    <string name="native_eval_score_answered" formatted="false">{{done}}/{{total}} respondidas</string>
+    <string name="native_eval_score_found" formatted="false">{{hits}}/{{total}} achadas</string>
+    <string name="native_eval_score_noneExpected" formatted="false">nenhuma esperada</string>
+    <string name="native_eval_score_note" formatted="false">Velocidade 60 %, confiabilidade 25 %, fontes achadas 15 %, medidas neste celular. Não diz se as respostas estão certas.</string>
     <string name="native_eval_keepScreenOn" formatted="false">Mantenha a tela ligada e o app aberto durante a execução. O modelo do chat é descarregado antes, para os dois não dividirem a memória.</string>
     <string name="native_chat_loadCrashed" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Por enquanto, o BOAR está respondendo com {{fallback}}.</string>
     <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} fechou o app ao carregar: memória insuficiente. Tente de novo com menos memória ou escolha um modelo menor no Catálogo de Modelos.</string>
