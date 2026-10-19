@@ -45,7 +45,7 @@
     <string name="catalogItemCard_removeModelTitle" formatted="false">Remove Model Weights?</string>
     <string name="catalogItemCard_removeCorpusMessage" formatted="false">This deletes the local dataset and frees {{size}}. Its topics will not be searchable offline until re-downloaded.</string>
     <string name="catalogItemCard_removeModelMessage" formatted="false">This deletes the local weights file and frees {{size}}.</string>
-    <string name="catalogItemCard_removeAssetButton" formatted="false">Remove Asset</string>
+    <string name="catalogItemCard_removeAssetButton" formatted="false">Remove</string>
     <string name="catalogItemCard_kind_llm" formatted="false">LLM</string>
     <string name="catalogItemCard_kind_embedding" formatted="false">EMBEDDING</string>
     <string name="catalogItemCard_kind_corpus" formatted="false">CORPUS</string>

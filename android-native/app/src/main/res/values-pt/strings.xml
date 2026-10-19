@@ -44,7 +44,7 @@
     <string name="catalogItemCard_removeModelTitle" formatted="false">Remover pesos do modelo?</string>
     <string name="catalogItemCard_removeCorpusMessage" formatted="false">Isso exclui o conjunto de dados local e libera {{size}}. Os tópicos não estarão disponíveis offline até serem baixados novamente.</string>
     <string name="catalogItemCard_removeModelMessage" formatted="false">Isso exclui o arquivo de pesos local e libera {{size}}.</string>
-    <string name="catalogItemCard_removeAssetButton" formatted="false">Remover Recurso</string>
+    <string name="catalogItemCard_removeAssetButton" formatted="false">Remover</string>
     <string name="catalogItemCard_kind_llm" formatted="false">LLM</string>
     <string name="catalogItemCard_kind_embedding" formatted="false">EMBEDDING</string>
     <string name="catalogItemCard_kind_corpus" formatted="false">CORPUS</string>
