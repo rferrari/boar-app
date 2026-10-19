@@ -11,7 +11,7 @@
     <string name="native_labs_hero_offline" formatted="false">everything here runs on this phone, offline</string>
     <string name="native_labs_hero_warning" formatted="false">experimental: may be slow, rough, or gone tomorrow</string>
     <string name="native_labs_status_live" formatted="false">LIVE</string>
-    <string name="native_labs_status_beta" formatted="false">BETA</string>
+    <string name="native_labs_status_beta" formatted="false">ALPHA</string>
     <string name="native_labs_status_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_status_leaked" formatted="false">LEAKED</string>
     <string name="native_labs_status_classified" formatted="false">CLASSIFIED</string>
