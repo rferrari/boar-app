@@ -42,7 +42,11 @@ object LabHooks {
                 tool == team.sopa.boar.engine.routing.LanguageGate.TOOL -> "polyglot"
                 else -> null
             }
-            id?.let(LabRegistry::byId)?.let { team.sopa.boar.plugins.AnswerTools.Speaker("native.labs.${it.id}.title", it.art, it.emoji, canBypass = it.id != "cohazard") }
+            // The CO answer speaks as "BOAR Safety" (a reviewed safety answer), the others by their tile's name.
+            id?.let(LabRegistry::byId)?.let {
+                val name = if (it.id == "cohazard") "native.labs.cohazard.speaker" else "native.labs.${it.id}.title"
+                team.sopa.boar.plugins.AnswerTools.Speaker(name, it.art, it.emoji, canBypass = it.id != "cohazard")
+            }
         }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
