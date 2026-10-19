@@ -311,6 +311,8 @@ class BoarServices private constructor(private val context: Context) {
         @Volatile private var session: TextModel? = null
         private var filename: String? = null
         private var residentId: String? = null
+        /** The engine the resident model runs on: a new engine choice for the same file (BOAR ↔ Big Boar) loads it again. */
+        private var residentProvider: team.sopa.boar.plugins.EngineProvider? = null
         /** The minute-later settle of the current load (LoadGuard.settled), cancelled when that load goes. */
         private var settleJob: kotlinx.coroutines.Job? = null
 
@@ -324,7 +326,7 @@ class BoarServices private constructor(private val context: Context) {
             val provider = providerFor(asset) ?: return null
             val tweaks = settings.engineTweaks
             val reload = provider === builtInEngine && filename == asset.filename && builtInEngine.needsReload(asset)
-            if (filename != asset.filename || session == null || reload) {
+            if (filename != asset.filename || session == null || reload || provider !== residentProvider) {
                 settleJob?.cancel(); settleJob = null
                 // Switching models: the one going out didn't kill the app (an engine without a marker must not inherit it).
                 if (session != null) { residentId?.let(loadGuard::settled); session?.close(); DebugLog.modelUnload(residentId) }
@@ -343,6 +345,7 @@ class BoarServices private constructor(private val context: Context) {
                 session = m
                 filename = asset.filename
                 residentId = asset.id
+                residentProvider = provider
                 openedContext = params.nCtx
                 // Or a minute loaded without being killed: Android kills an app whose model doesn't fit within seconds.
                 settleJob?.cancel()
