@@ -110,6 +110,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             VoiceSection(services)
             if (tech) TelemetrySection(services)
             TweaksSection(services, tech, { tech = it }, onOpen)
+            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) ExperimentalSection(services)
             RecoverySection(services, prefs, onSetup)
         }
     }
@@ -457,13 +458,17 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
         LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
         Note(t("native.tweaks.evaluationNote"))
         if (team.sopa.boar.app.DebugLog.available) DebugLogRows()
-        // The experiments, last on purpose and only in EXPERIMENTAL_FEATURES builds (app/build.gradle.kts): off by default.
-        if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) {
-            Text(t("native.settings.experimental"), style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp))
-            val avatarsOn by services.vault.enabled.collectAsState()
-            SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
-            team.sopa.boar.labs.LabHooks.SettingsRow()
-        }
+    }
+}
+
+/** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
+@Composable
+private fun ExperimentalSection(services: BoarServices) {
+    Section(t("native.settings.experimental")) {
+        Note(t("native.settings.experimentalNote"))
+        val avatarsOn by services.vault.enabled.collectAsState()
+        SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
+        team.sopa.boar.labs.LabHooks.SettingsRow()
     }
 }
 

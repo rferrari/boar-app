@@ -284,7 +284,8 @@
     <string name="native_vault_section" formatted="false">Boarverse</string>
     <string name="native_vault_experimental" formatted="false">Boarverse (experimental)</string>
     <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
-    <string name="native_settings_experimental" formatted="false">EXPERIMENTAL</string>
+    <string name="native_settings_experimental" formatted="false">Experimental</string>
+    <string name="native_settings_experimentalNote" formatted="false">Off by default. These features are being tested and may change or go away.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
     <string name="native_debugLog_title" formatted="false">Debug log</string>
     <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
