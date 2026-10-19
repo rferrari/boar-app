@@ -34,7 +34,7 @@
       "systemPrompt": ""
     }
   ],
-  "defaultId": "succinct",
+  "defaultId": "detailed",
   "maxTokensOptions": [
     256,
     512,

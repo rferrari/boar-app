@@ -161,8 +161,9 @@ class DeviceEvalRunner(
         val rows = ArrayList<JsonObject>()
         val installed = installedModels()
         val personalities = Personalities.parse(asset("personalities.json"))
-        val systemPrompt = personalities.get(personalities.defaultId).systemPrompt
-        val maxTokens = personalities.defaultMaxTokens
+        // As the chat answers by default: the default style's prompt and reminder (the small-model variant below 2 GB),
+        // at that style's Auto length (Detailed 1,024).
+        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(personalities.defaultId)
         val topology = CpuTopology.read()
         // The same Auto context as the chat (contextSizeForRam).
         val totalRam = runCatching {
@@ -198,7 +199,9 @@ class DeviceEvalRunner(
                                 if (s == null) failureRow(runId, config, q, personalities.defaultId, maxTokens, "model failed to load")
                                 else {
                                     running = s
-                                    val r = answerRow(s, retrieval, runId, config, q, personalities.defaultId, systemPrompt, maxTokens, residency, loadMs)
+                                    val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
+                                    val (systemPrompt, styleReminder) = personalities.promptFor(personalities.defaultId, null, small)
+                                    val r = answerRow(s, retrieval, runId, config, q, personalities.defaultId, systemPrompt, styleReminder, maxTokens, residency, loadMs)
                                     running = null
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
@@ -280,7 +283,7 @@ class DeviceEvalRunner(
 
     private suspend fun answerRow(
         s: team.sopa.boar.engine.TextModel, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
-        systemPrompt: String, maxTokens: Int, residency: String, loadMs: Double,
+        systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
     ): JsonObject {
         // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
         val toolStart = System.nanoTime()
@@ -295,7 +298,7 @@ class DeviceEvalRunner(
         var done: AnswerEvent.Done? = null
         var error: String? = null
         try {
-            pipeline.answer(AnswerRequest(q.query, AnswerTools.systemPrompt(systemPrompt, tool), null, maxTokens)).collect { e ->
+            pipeline.answer(AnswerRequest(q.query, AnswerTools.systemPrompt(systemPrompt, tool), styleReminder, maxTokens)).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }

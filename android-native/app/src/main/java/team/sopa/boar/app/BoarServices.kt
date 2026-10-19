@@ -88,7 +88,8 @@ class BoarServices private constructor(private val context: Context) {
      * The answer styles. The native app starts on Detailed (the Expo app on Succinct); a style the user picked is kept.
      * The evaluation runner keeps the shared default, so its runs compare with the Expo app's.
      */
-    val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json")).copy(defaultId = DEFAULT_PERSONALITY_ID)
+    // personalities.json's defaultId is the one source for the default style (the chat, Settings, the benchmark runner).
+    val personalities: Personalities = Personalities.parse(asset("boar-data/personalities.json"))
     val topology: CpuTopology = CpuTopology.read()
     /** Total RAM, for the Auto context size; 0 when Android doesn't say. */
     val totalRamBytes: Long = runCatching {
@@ -487,6 +488,7 @@ class BoarServices private constructor(private val context: Context) {
          * make BOAR say anything and post it as BOAR's own words. The setting and prompt still work if already chosen.
          */
         const val SHOW_CUSTOM_STYLE = false
+        /** The chat's style before settings load; the same as personalities.json's defaultId. */
         const val DEFAULT_PERSONALITY_ID = "detailed"
         /** BOAR's own engine's provider id (models with no CatalogAsset.engine). */
         const val BUILT_IN_ENGINE = "llama"
