@@ -415,8 +415,8 @@
     <string name="native_download_errorNoSource" formatted="false">Not available for download yet. Import the file instead.</string>
     <string name="native_download_errorOffline" formatted="false">This build of BOAR has no network access. Import the file instead.</string>
     <string name="native_download_errorStorage" formatted="false">This phone has only {{free}} free and the download needs {{needed}}. Free some space and retry.</string>
-    <string name="native_download_errorBudget" formatted="false">BOAR\'s {{budget}} storage limit is reached: {{used}} of models already. Remove a model first. The phone itself may still have room.</string>
-    <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: {{used}} of models, {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
+    <string name="native_download_errorBudget" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR already stores {{used}}. Remove a model first. The phone itself may still have room.</string>
+    <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR stores {{used}}, with {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
     <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
     <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
     <string name="native_drawerStats_diskNoLimit" formatted="false">No BOAR limit: up to the phone\'s free space</string>

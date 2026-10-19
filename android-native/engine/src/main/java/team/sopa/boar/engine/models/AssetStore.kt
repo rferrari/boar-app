@@ -214,9 +214,12 @@ class AssetStore(
         forgetVerified(asset)
     }
 
-    /** Bytes BOAR's assets use on disk, excluding [exclude] (partial downloads in flight). */
+    /**
+     * Bytes BOAR stores on disk, excluding [exclude] (partial downloads in flight): everything in its files folder, the
+     * same total as the menu's disk bar (it counted only models and packs, 32.5 GB against the menu's 33.9, Oct 18).
+     */
     fun usedBytes(exclude: Set<File> = emptySet()): Long =
-        STORAGE_DIRS.sumOf { dir -> File(filesDir, dir).walkTopDown().filter { it.isFile && it !in exclude }.sumOf { it.length() } }
+        filesDir.walkTopDown().filter { it.isFile && it !in exclude }.sumOf { it.length() }
 
     // integrity.json, shared with the Expo app's format.
     @Serializable
@@ -247,7 +250,6 @@ class AssetStore(
 
     companion object {
         const val INACTIVITY_TIMEOUT_MS = 60_000
-        private val STORAGE_DIRS = listOf("models/", "corpus/", "poi/", "SQLite/")
 
         /** Downloads running now, shared by every AssetStore (the Models screen makes a new one after an import). */
         private val activeDownloads = mutableMapOf<String, CatalogAsset>()
