@@ -150,7 +150,7 @@ object LabHooks {
                 androidx.compose.foundation.layout.Box(
                     androidx.compose.ui.Modifier.widthIn(max = 360.dp).fillMaxWidth().height(250.dp)
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
-                        .border(1.dp, c.emerald400.copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(18.dp)),
+                        .border(1.dp, rainColor(c).copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(18.dp)),
                 ) {
                     MatrixRain(androidx.compose.ui.Modifier.fillMaxSize())
                     Column(

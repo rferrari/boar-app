@@ -36,7 +36,7 @@ import kotlin.random.Random
 @Composable
 fun MatrixRain(modifier: Modifier = Modifier, label: String? = null) {
     val c = Boar.colors
-    val green = c.emerald400
+    val green = rainColor(c)
     val measurer = rememberTextMeasurer()
     val style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     val glyphs = remember(green) { GLYPHS.map { measurer.measure(it.toString(), style) } }
@@ -69,6 +69,9 @@ fun MatrixRain(modifier: Modifier = Modifier, label: String? = null) {
         }
     }
 }
+
+/** The rain's color: the theme's accent, but crisp blue on Moonlight, whose accent (amber) looked like Campfire's orange. */
+fun rainColor(c: team.sopa.boar.ui.theme.BoarColors): Color = if (c.id == "moonlight") Color(0xFF5CB8FF) else c.emerald400
 
 private const val TRAIL = 14
 private const val GLYPHS = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEF"

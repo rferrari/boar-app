@@ -68,6 +68,13 @@ class BenchActivity : ComponentActivity() {
         val log = mutableStateOf("${BoarEngine.systemInfo()}\ncores: ${topology.cores.joinToString { "${it.id}@${it.maxKhz / 1000}MHz" }}\nbig: ${topology.bigCores}\n")
         val models = modelFiles()
 
+        // adb only (BenchActivity needs DUMP): open every Boarverse theme on this phone, for testing them all.
+        if (savedInstanceState == null && intent.getStringExtra("run") == "themes") {
+            val vault = team.sopa.boar.app.BoarServices.get(this).vault
+            team.sopa.boar.ui.theme.Themes.extras.forEach { vault.grantTheme(it.id) }
+            log.value += "themes opened: ${team.sopa.boar.ui.theme.Themes.extras.joinToString { it.id }}\n"
+            Log.i("BOAR_BENCH", "themes opened")
+        }
         // Only on a fresh start: a recreated activity must not load a second copy of the model.
         if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
             // scripts/retrieval-parity.mjs: the app's own retrieval on the questions it sent, results for the desktop.
