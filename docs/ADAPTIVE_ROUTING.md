@@ -1,5 +1,10 @@
 # Adaptive Offline Intelligence — Phase 0 Architecture Audit
 
+> In the native app (2.0), adaptive routing is off by default and experimental (Settings → How BOAR
+> answers). It picks a model per question from the installed ones. The app has no setting for the
+> research preset, so the verify step does not run: answers are not checked against the sources. The
+> rest of this file is history.
+>
 > History: this audit describes the 1.x Expo app. Its `src/` paths are on the `expo`
 > branch; the native port of the routing is in
 > `android-native/engine/src/main/java/team/sopa/boar/engine/routing/`.
