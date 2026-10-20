@@ -145,10 +145,12 @@ private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel,
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         // Only the header opens and closes the repo; tapping a file below doesn't collapse it.
-        Column(Modifier.fillMaxWidth().clickable { vm.hfOpen(r.id) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        // A gated repo can't be downloaded without an account: it says so and doesn't open.
+        Column(Modifier.fillMaxWidth().clickable(enabled = !r.gated) { vm.hfOpen(r.id) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(r.id, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
             Text(listOfNotNull(r.params?.let(HfQuery::formatParams), r.architecture).joinToString(" · "), style = Boar.type.subtext, color = c.textSecondary)
             team.sopa.boar.labs.LabHooks.browseHint(r.id, r.architecture)?.let { Text(t(it), style = Boar.type.subtext, color = c.textAccentCyan) }
+            if (r.gated) Text(t("native.browse.gated"), style = Boar.type.subtext, color = c.textAccentAmber)
             Text(t("modelBrowser.downloadsLikes", "downloads" to (r.downloads ?: 0), "likes" to (r.likes ?: 0)) + " · " + t("native.browse.unvetted"),
                 style = Boar.type.micro, color = c.textDim)
         }

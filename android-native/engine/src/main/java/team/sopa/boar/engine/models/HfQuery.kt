@@ -57,7 +57,7 @@ object HfQuery {
         val q = query.trim().takeIf { it.isNotEmpty() }?.let { "search=${URLEncoder.encode(it, "UTF-8")}&" } ?: ""
         val max = if (moe && size == Size.ANY) MOE_MAX_PARAMS else size.max
         return "$API/models?${q}filter=gguf&pipeline_tag=text-generation&num_parameters=min:${size.min},max:$max" +
-            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags"
+            "&sort=${sort.api}&direction=-1&limit=$limit&expand[]=gguf&expand[]=downloads&expand[]=likes&expand[]=tags&expand[]=gated"
     }
 
     /** The next page from the response's Link header, only when it stays on the models listing. */
