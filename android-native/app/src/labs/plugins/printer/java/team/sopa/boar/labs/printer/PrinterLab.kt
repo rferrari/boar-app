@@ -76,7 +76,8 @@ object PrinterLab : LabPlugin {
     override val emoji = "🖨️"
     override val art = team.sopa.boar.R.drawable.truffle_steampunk
     override val status = LabStatus.BETA
-    override val onByDefault = true
+    // Off at first launch (owner, Oct 20): only the instant-answer labs start on.
+    override val onByDefault = false
 
     /** Each answer's own illustration (🎨 under it in the chat), from Image Gen's record: answer id to picture. */
     private fun illustrations(ctx: android.content.Context): Map<String, File> = runCatching {

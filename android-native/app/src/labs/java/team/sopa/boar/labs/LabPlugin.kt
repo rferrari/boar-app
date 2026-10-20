@@ -125,7 +125,7 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // Boar Designer and Boar Press start on (LIVE, Oct 17); every other lab starts off until the user switches it on.
+        // Calculator, Facts, Cohazard, Distance and Polyglot start on (owner, Oct 20); every other lab starts off.
         LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault) }
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         restart.value = p.getBoolean("autoRestart", true)

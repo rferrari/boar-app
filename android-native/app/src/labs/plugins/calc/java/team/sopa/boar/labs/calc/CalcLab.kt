@@ -27,6 +27,8 @@ import team.sopa.boar.ui.theme.Boar
  */
 object CalcLab : LabPlugin {
     override val id = "calc"
+    // On at first launch in the bounty build (owner, Oct 20): instant, offline, no download.
+    override val onByDefault = true
     override val emoji = "🧮"
     override val art = team.sopa.boar.R.drawable.lab_calc
     override val status = LabStatus.ALPHA

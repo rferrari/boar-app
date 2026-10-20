@@ -68,7 +68,8 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val emoji = "🎨"
     override val art = team.sopa.boar.R.drawable.truffle_retrowave
     override val status = team.sopa.boar.labs.LabStatus.BETA
-    override val onByDefault = true
+    // Off at first launch (owner, Oct 20): its drawing model is a download.
+    override val onByDefault = false
 
     @Composable
     override fun Content() {
