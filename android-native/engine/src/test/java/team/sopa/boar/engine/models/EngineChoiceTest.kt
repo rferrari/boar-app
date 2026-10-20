@@ -49,6 +49,17 @@ class EngineChoiceTest {
         assertEquals(Choice.AUTO, Choice.of("llama"))
     }
 
+    @Test fun `the page lists what's too big for the phone first, then by size`() {
+        val gb = 1_000_000_000L
+        val models = listOf(
+            "olmoe-7b" to (4 * gb to Compatibility.GREEN), "lfm2-24b" to (14 * gb to Compatibility.RED),
+            "qwen3-30b" to (6 * gb to Compatibility.YELLOW), "qwen3.6-35b" to (12 * gb to Compatibility.RED),
+            "unknown" to (20 * gb to Compatibility.UNKNOWN),
+        )
+        val order = EngineChoice.bigModelOrder(models, { it.second.second }, { it.second.first }).map { it.first }
+        assertEquals(listOf("lfm2-24b", "qwen3.6-35b", "qwen3-30b", "olmoe-7b", "unknown"), order)
+    }
+
     @Test fun `big boar gets room to reason before the answer`() {
         assertEquals(2048, EngineChoice.bigBoarTokens(1024, 4096))
         // A small context: only what fits beside the prompt, never below the answer's own budget.

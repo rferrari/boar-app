@@ -5,9 +5,11 @@
     <string name="native_labs_bmoe_engine" formatted="false">MOTOR</string>
     <string name="native_labs_bmoe_engineOk" formatted="false">O BigMoeOnEdge está nesta versão</string>
     <string name="native_labs_bmoe_engineMissing" formatted="false">Não está nesta versão: rode scripts/build-lab-engines.sh e compile de novo</string>
-    <string name="native_labs_bmoe_model" formatted="false">MODELO</string>
-    <string name="native_labs_bmoe_modelOk" formatted="false">Encontrado: {{size}}</string>
-    <string name="native_labs_bmoe_modelMissing" formatted="false">Ainda não está no celular. Baixe no Catálogo de Modelos ({{size}}) ou copie pelo USB para {{path}}</string>
+    <string name="native_labs_bmoe_engineName" formatted="false">BigMoeOnEdge (Helldez, Apache-2.0)</string>
+    <string name="native_labs_bmoe_models" formatted="false">MODELOS QUE O BIG BOAR RODA</string>
+    <string name="native_labs_bmoe_onPhone" formatted="false">No celular</string>
+    <string name="native_labs_bmoe_orUsb" formatted="false">Ou copie pelo USB para {{path}}</string>
+    <string name="native_labs_bmoe_noOthers" formatted="false">Nenhuma outra mistura de especialistas aqui ainda. No Catálogo de Modelos, busque no Hugging Face com o filtro Mistura de especialistas e adicione uma: ela aparece aqui.</string>
     <string name="native_labs_bmoe_use" formatted="false">Responder com este modelo</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
     <string name="native_labs_bmoe_more" formatted="false">Outros modelos de mistura de especialistas também rodam no Big Boar: baixe um no Catálogo de Modelos e escolha o motor no cartão dele. O Auto usa o Big Boar quando o modelo é grande demais para a memória deste celular.</string>

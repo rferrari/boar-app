@@ -5,9 +5,11 @@
     <string name="native_labs_bmoe_engine" formatted="false">ENGINE</string>
     <string name="native_labs_bmoe_engineOk" formatted="false">BigMoeOnEdge is in this build</string>
     <string name="native_labs_bmoe_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
-    <string name="native_labs_bmoe_model" formatted="false">MODEL</string>
-    <string name="native_labs_bmoe_modelOk" formatted="false">Found: {{size}}</string>
-    <string name="native_labs_bmoe_modelMissing" formatted="false">Not on the phone yet. Download it in the Model Catalog ({{size}}), or copy it over USB to {{path}}</string>
+    <string name="native_labs_bmoe_engineName" formatted="false">BigMoeOnEdge (Helldez, Apache-2.0)</string>
+    <string name="native_labs_bmoe_models" formatted="false">MODELS BIG BOAR CAN RUN</string>
+    <string name="native_labs_bmoe_onPhone" formatted="false">On the phone</string>
+    <string name="native_labs_bmoe_orUsb" formatted="false">Or copy it over USB to {{path}}</string>
+    <string name="native_labs_bmoe_noOthers" formatted="false">No other mixture of experts here yet. In the Model Catalog, search Hugging Face with the Mixture of experts filter and add one: it shows here.</string>
     <string name="native_labs_bmoe_use" formatted="false">Answer with this model</string>
     <string name="native_labs_bmoe_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
     <string name="native_labs_bmoe_more" formatted="false">Other mixture-of-experts models run on Big Boar too: download one in the Model Catalog and pick its engine on its card. Auto uses Big Boar when a model is too big for this phone\'s memory.</string>

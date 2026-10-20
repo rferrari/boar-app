@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -39,6 +40,8 @@ import team.sopa.boar.labs.LabStatus
 import team.sopa.boar.labs.engines.EngineProcess
 import team.sopa.boar.plugins.EngineProvider
 import team.sopa.boar.ui.models.ChipRow
+import team.sopa.boar.ui.models.RamBadge
+import team.sopa.boar.ui.models.SmallButton
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.io.File
@@ -251,44 +254,101 @@ object BmoeLab : LabPlugin, EngineProvider {
     @Composable
     private fun Hint(text: String) = Text(text, style = Boar.type.subtext, color = Boar.colors.textAccentCyan)
 
+    /** A row of this lab's page: a model Big Boar can run, its memory fit on this phone, and whether all of it is here. */
+    private class PageModel(val asset: CatalogAsset, val fit: Compatibility, val present: Boolean)
+
+    /**
+     * Every model Big Boar can run: the 35B plus each mixture of experts of a [SUPPORTED_ARCHS] architecture in the catalog
+     * (BOAR's and the ones added from Hugging Face), too big for the phone first (EngineChoice.bigModelOrder). Reads
+     * headers: call off the main thread.
+     */
+    private fun pageModels(services: BoarServices): List<PageModel> {
+        val others = services.catalog.models.filter { it.engine == null && supported(it, services) }
+        val all = (listOf(model35()) + others).map { PageModel(it, fit(it, services), complete(it, services.fileOf(it))) }
+        return EngineChoice.bigModelOrder(all, { it.fit }, { it.asset.sizeBytes })
+    }
+
     @Composable
     override fun Content() {
         val c = Boar.colors
         val ctx = LocalContext.current
         val services = remember { BoarServices.get(ctx) }
         val scope = rememberCoroutineScope()
+        // The Model Catalog's own (one per activity): a download started here shows there too, with its progress.
+        val catalogVm: team.sopa.boar.models.ModelsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        val catalogState by catalogVm.state.collectAsState()
         val engineOk = remember { EngineProcess.executable(ctx, BmoeModel.BINARY) != null }
-        val asset = remember { model35() }
-        val file = remember { services.fileOf(asset) }
-        // Over USB: there and readable. Downloaded: all of it (a download in progress isn't the model yet).
-        val present = remember { file.isFile && file.canRead() && (asset.externalPath != null || file.length() == asset.sizeBytes) }
-        var using by remember { mutableStateOf(services.settings.activeModelId("llm") == MODEL.id) }
+        // The headers are read off the main thread.
+        val list by produceState<List<PageModel>?>(null) { value = withContext(Dispatchers.IO) { runCatching { pageModels(services) }.getOrDefault(emptyList()) } }
+        var active by remember { mutableStateOf(services.settings.activeModelId("llm")) }
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.bmoe.engine")) {
                 Text(t(if (engineOk) "native.labs.bmoe.engineOk" else "native.labs.bmoe.engineMissing"), style = Boar.type.body, color = if (engineOk) c.textAccentEmerald else c.textMuted)
+                // The technical names live here, not in the Model Catalog.
+                Text(t("native.labs.bmoe.engineName"), style = Boar.type["mono.xs"], color = c.textSecondary)
+                Text(MODEL.label, style = Boar.type["mono.xs"], color = c.textSecondary)
             }
-            Card(t("native.labs.bmoe.model")) {
-                Text(MODEL.label, style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
-                Text(
-                    if (present) t("native.labs.bmoe.modelOk", "size" to String.format(Locale.US, "%.1f GB", file.length() / 1e9))
-                    else t("native.labs.bmoe.modelMissing", "size" to String.format(Locale.US, "%.1f GB", MODEL.sizeBytes / 1e9), "path" to USB_PATH),
-                    style = Boar.type["mono.xs"], color = if (present) c.textAccentEmerald else c.textMuted,
-                )
+            Text(t("native.labs.bmoe.models"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
+            val rows = list
+            if (rows == null) Text("…", style = Boar.type.body, color = c.textMuted)
+            else {
+                rows.forEach { m ->
+                    val row = catalogState.rows[m.asset.id]
+                    ModelCard(m, services, engineOk, present = m.present || row?.present == true, downloading = row?.downloading == true,
+                        progress = row?.progress ?: 0.0, error = row?.error, using = active == m.asset.id,
+                        onDownload = { catalogVm.download(m.asset) },
+                    ) {
+                        services.settings.setActiveModelId("llm", m.asset.id)
+                        active = m.asset.id
+                        scope.launch { services.host.unload() }
+                    }
+                }
+                // Only the 35B: where the others come from.
+                if (rows.none { it.asset.engine == null }) Text(t("native.labs.bmoe.noOthers"), style = Boar.type.subtext, color = c.textSecondary)
+            }
+            Text(t("native.labs.bmoe.more"), style = Boar.type.subtext, color = c.textSecondary)
+            Text(t("native.labs.bmoe.note"), style = Boar.type.subtext, color = c.textMuted)
+        }
+    }
+
+    /** One model on the page: its name, size and RAM badge, whether it's here (or Download), its Engine chips and Use. */
+    @Composable
+    private fun ModelCard(
+        m: PageModel, services: BoarServices, engineOk: Boolean, present: Boolean, downloading: Boolean, progress: Double, error: String?,
+        using: Boolean, onDownload: () -> Unit, onUse: () -> Unit,
+    ) {
+        val c = Boar.colors
+        val mono = Boar.type["mono.xs"]
+        val a = m.asset
+        Column(
+            Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, if (using) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(12.dp)).padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(a.shortName, style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
+            Text(String.format(Locale.US, "%.1f GB", a.sizeBytes / 1e9), style = mono, color = c.textDim)
+            RamBadge(a.sizeBytes, services.totalRamBytes)
+            when {
+                downloading -> Text(t("catalogItemCard.downloadingAsset") + " " + String.format(Locale.US, "%.0f%%", progress * 100), style = mono, color = c.textAccentCyan)
+                present -> Text(t("native.labs.bmoe.onPhone"), style = mono, color = c.textAccentEmerald)
+                else -> {
+                    SmallButton(t(if (error != null) "catalogItemCard.retryDownload" else "catalogItemCard.downloadAsset"), onClick = onDownload)
+                    error?.let { Text(it, style = mono, color = c.crimson400) }
+                    // The 35B can also come over USB, never downloaded again.
+                    if (a.engine == id) Text(t("native.labs.bmoe.orUsb", "path" to USB_PATH), style = mono, color = c.textMuted)
+                }
+            }
+            if (engineOk) {
+                EngineChips(a, services, m.fit)
+                FitHint(m.fit)
             }
             if (engineOk && present) {
                 if (using) Text(t("native.labs.bmoe.using"), style = Boar.type.body, color = c.textAccentEmerald)
                 else Text(
                     t("native.labs.bmoe.use"), style = Boar.type.body, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp))
-                        .clickable {
-                            services.settings.setActiveModelId("llm", MODEL.id)
-                            using = true
-                            scope.launch { services.host.unload() }
-                        }.padding(14.dp),
+                    modifier = Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp))
+                        .clickable(onClick = onUse).padding(14.dp),
                 )
             }
-            Text(t("native.labs.bmoe.more"), style = Boar.type.subtext, color = c.textSecondary)
-            Text(t("native.labs.bmoe.note"), style = Boar.type.subtext, color = c.textMuted)
         }
     }
 

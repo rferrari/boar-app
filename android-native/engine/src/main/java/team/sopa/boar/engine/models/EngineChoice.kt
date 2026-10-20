@@ -41,4 +41,18 @@ object EngineChoice {
 
     fun resolve(choice: Choice, fit: Compatibility, eligible: Boolean): Engine =
         if (eligible && prefersBigBoar(choice, fit)) Engine.BIG_BOAR else Engine.BOAR
+
+    /**
+     * The Big Boar page's order: the models too big for this phone's memory first (RED, then YELLOW, then the rest), the
+     * biggest first within each.
+     */
+    fun <T> bigModelOrder(models: List<T>, fit: (T) -> Compatibility, sizeBytes: (T) -> Long): List<T> =
+        models.sortedWith(compareBy<T> { fitRank(fit(it)) }.thenByDescending { sizeBytes(it) })
+
+    private fun fitRank(fit: Compatibility) = when (fit) {
+        Compatibility.RED -> 0
+        Compatibility.YELLOW -> 1
+        Compatibility.GREEN -> 2
+        Compatibility.UNKNOWN -> 3
+    }
 }
