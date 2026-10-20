@@ -1,15 +1,18 @@
 # Knowledge packs
 
 BOAR answers from an offline knowledge base on the phone. It always has the small
-built-in one (about 5,300 short Wikipedia-derived articles). A **knowledge pack**
+built-in one (300 short articles in the APK, plus 5,000 Wikipedia-derived ones that
+setup downloads). A **knowledge pack**
 adds many more articles in one ready-made file: text, a keyword search index and
 embeddings, all built on a computer so the phone doesn't have to index anything.
 
 ## Using the ready-made pack
 
-The setup wizard offers the Wikipedia Vital Articles pack as an optional
-download, and Settings → Offline Knowledge Base lists it too. You don't need
-anything below unless you want a bigger or custom pack.
+Setup downloads the Wikipedia Vital Articles pack (`wiki-vital5`, about 164 MB, from
+the GitHub release `knowledge-pack-v1`) as part of the Encyclopedia package, which it
+recommends when the phone has room. With the smaller Essential package, get it later in
+Settings → Offline Knowledge Base (RAG). You don't need anything below unless you want a
+bigger or custom pack.
 
 ## Building your own
 
@@ -61,8 +64,8 @@ Wikipedia text is CC BY-SA 4.0; keep the attribution if you share a pack.
 
 ## Putting a pack on your phone
 
-**For testing, over USB** (a debuggable build of BOAR with application id
-`team.sopa.aoair`, USB debugging on):
+**For testing, over USB** (a debuggable build of BOAR, USB debugging on; the debug
+build's application id is `team.sopa.aoair.native`):
 
 ```bash
 npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite --package team.sopa.aoair.native
