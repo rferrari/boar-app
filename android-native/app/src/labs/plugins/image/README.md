@@ -1,10 +1,10 @@
 # Boar Designer (image lab)
 
-Draws one illustration from a few words, on the phone, with no internet after a one-time model download. Status: **BETA**.
+Draws one illustration from a few words, on the phone, with no internet after a one-time model download. Status: **ALPHA**, off until you turn it on in Boar Labs.
 
 ## The model
 
-SDXS-512 tinySD distilled, Q8_0 (683 MB), run by stable-diffusion.cpp's `sd-cli` (MIT). Chosen because it is **small and fast**: it draws in a single step, so a picture takes 8 to 18 s on a phone CPU, and it fits next to the chat model.
+SDXS-512 tinySD distilled, Q8_0 (683 MB), run by stable-diffusion.cpp's `sd-cli` (MIT). Chosen because it is **small and fast**: it draws in a single step on the phone's CPU, and it fits next to the chat model.
 
 | | |
 |---|---|
