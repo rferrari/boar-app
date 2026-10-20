@@ -519,7 +519,7 @@ private fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress
     val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
         else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f
     val eta = (if (downloading) state.etaSeconds else state.indexEtaSeconds)?.let { " · " + t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)) } ?: ""
-    val problem = state.stalled || state.failed.isNotEmpty()
+    val problem = state.stalled || state.failed.isNotEmpty() || state.indexPhase == IndexPhase.ERROR
     val line = when {
         state.finished -> t("native.tour.lineReady")
         problem -> t("native.tour.linePaused")

@@ -527,6 +527,6 @@
     <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
-    <string name="native_tour_linePaused" formatted="false">Download pausado · toque para ver</string>
+    <string name="native_tour_linePaused" formatted="false">Configuração pausada · toque para ver</string>
     <string name="native_tour_linePreparing" formatted="false">Preparando o índice…</string>
 </resources>

@@ -527,6 +527,6 @@
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
-    <string name="native_tour_linePaused" formatted="false">Download paused · tap to see it</string>
+    <string name="native_tour_linePaused" formatted="false">Setup paused · tap to see it</string>
     <string name="native_tour_linePreparing" formatted="false">Preparing the index…</string>
 </resources>
