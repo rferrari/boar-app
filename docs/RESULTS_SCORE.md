@@ -19,11 +19,12 @@ Only after the user reads the "What will be shared" screen and presses Share:
 - **App:** BOAR version and the evaluation set version.
 - **Every answer of the run:** the question, the answer, the model and its timings, the
   sources retrieved.
-- **A random id** created in the app the first time it shares. The server keeps only its
-  SHA-256, to allow 20 runs per install per day and to refuse the same run twice.
+- **A key made in the phone's secure hardware** the first time it shares, which signs
+  each run, and on the first share its attestation certificate. The server limits each
+  key to 3 runs in 24 hours, at least 1 hour apart, and refuses the same run twice
+  ([supabase/README.md](../supabase/README.md)).
 
-Not sent: chats, documents, name, location, contacts. The offline build has no network
-access and can't share.
+Not sent: chats, documents, name, location, contacts.
 
 ## What is public
 
