@@ -136,7 +136,11 @@ object LabHooks {
         var freedBytes by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
         androidx.compose.runtime.LaunchedEffect(stage) {
             if (stage !in seen) seen += stage
-            if (stage == "freeing") freedBytes = (startBytes - team.sopa.boar.app.AppMemory.residentBytes()).coerceAtLeast(0L)
+            if (stage == "freeing") {
+                // A moment for the freed pages and a Labs engine's process to go before reading what's left.
+                kotlinx.coroutines.delay(200)
+                freedBytes = (startBytes - team.sopa.boar.app.AppMemory.residentBytes()).coerceAtLeast(0L)
+            }
         }
         androidx.compose.ui.window.Dialog(onDismissRequest = {}, properties = androidx.compose.ui.window.DialogProperties(
             dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false,
