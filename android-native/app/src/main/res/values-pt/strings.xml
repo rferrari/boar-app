@@ -501,6 +501,7 @@
     <string name="flows_onboarding_package_encyclopedia_name" formatted="false">Enciclopédia</string>
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">O Essencial mais 50 mil artigos da Wikipédia, para perguntas mais amplas.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recomendado</string>
+    <string name="flows_onboarding_recommended_fast" formatted="false">Recomendado · rápido</string>
     <string name="flows_onboarding_alreadyDownloaded" formatted="false">Já está no celular</string>
     <string name="flows_onboarding_noSpace" formatted="false">Falta espaço: são necessários mais {{size}}.</string>
     <string name="flows_onboarding_install" formatted="false">Baixar {{size}}</string>

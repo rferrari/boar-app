@@ -85,6 +85,8 @@ data class CatalogAsset(
      * for a discovered model, or set by a Labs engine for its own. Null when unknown (catalog.json, models added earlier).
      */
     val architecture: String? = null,
+    /** A second suggestion at setup, with its own badge ("fast"), on phones that run it well (SetupModel.picked). */
+    val pick: String? = null,
 ) {
     /**
      * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from

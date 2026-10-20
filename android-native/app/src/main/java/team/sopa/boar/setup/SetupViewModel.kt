@@ -203,6 +203,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun isHeavy(m: CatalogAsset) = SetupModel.heavyForPhone(m, _state.value.totalRamBytes)
+    fun isPicked(m: CatalogAsset) = SetupModel.picked(m, _state.value.totalRamBytes)
 
     /** The package's files: the required ones (search model), the chosen answer model and the tier's collections. */
     private fun assetsOf(p: SetupPackage): List<CatalogAsset> {

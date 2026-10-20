@@ -37,6 +37,14 @@ class SetupModelTest {
         assertFalse(SetupModel.heavyForPhone(other(1.0), ram(7.3)))
     }
 
+    @Test fun `the fast pick is suggested and fine from 12 GB, heavy under`() {
+        val lfm = CatalogAsset("lfm", AssetKind.LLM, "lfm", null, "models/lfm.gguf", (5.2 * gb).toLong(), "", "", "", "", false, pick = "fast")
+        assertTrue(SetupModel.picked(lfm, ram(10.7)))
+        assertFalse(SetupModel.heavyForPhone(lfm, ram(10.7)))
+        assertFalse(SetupModel.picked(lfm, ram(7.3)))
+        assertTrue(SetupModel.heavyForPhone(lfm, ram(7.3)))
+    }
+
     @Test fun `takes the user's pick over everything`() =
         assertEquals(big, SetupModel.toInstall(models, setOf(small.id), ram(10.7), big.id))
 

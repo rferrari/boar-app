@@ -262,7 +262,11 @@ private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Uni
         StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
         for (m in state.models) {
             OptionCard(m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes),
-                if (m.id == state.recommendedId) t("flows.onboarding.recommended") else null, { vm.choose(m.id) }) {
+                when {
+                    m.id == state.recommendedId -> t("flows.onboarding.recommended")
+                    vm.isPicked(m) -> t("flows.onboarding.recommended.${m.pick}")
+                    else -> null
+                }, { vm.choose(m.id) }) {
                 // The two answer tiers have translated lines; the other catalog models carry their manifest description.
                 if (m.answerTier != null) {
                     val tier = vm.tierOf(m)

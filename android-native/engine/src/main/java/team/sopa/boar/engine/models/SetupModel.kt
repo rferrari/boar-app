@@ -24,9 +24,15 @@ object SetupModel {
      */
     fun heavyForPhone(model: CatalogAsset, totalRamBytes: Long): Boolean = when {
         model.answerTier == AnswerTier.COMPACT || totalRamBytes <= 0 -> false
-        model.answerTier == AnswerTier.DEFAULT -> totalRamBytes < RECOMMEND_DEFAULT_MIN_RAM_BYTES
+        model.answerTier == AnswerTier.DEFAULT || model.pick != null -> totalRamBytes < RECOMMEND_DEFAULT_MIN_RAM_BYTES
         else -> model.sizeBytes > totalRamBytes / 4
     }
+
+    /**
+     * A second suggestion (the catalog's [CatalogAsset.pick]) on phones of 12 GB and up: LFM2.5 8B answered at about
+     * 13 tok/s on a 12 GB phone (Oct 18), while an 8 GB phone closed the app after switching to it (chaos run 13, Oct 20).
+     */
+    fun picked(model: CatalogAsset, totalRamBytes: Long): Boolean = model.pick != null && totalRamBytes >= RECOMMEND_DEFAULT_MIN_RAM_BYTES
 
     /** The model to download: the user's pick, else one already on the phone, else the recommended one. */
     fun toInstall(models: List<CatalogAsset>, present: Set<String>, totalRamBytes: Long, chosenId: String? = null): CatalogAsset? =

@@ -502,6 +502,7 @@
     <string name="flows_onboarding_package_encyclopedia_name" formatted="false">Encyclopedia</string>
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">Essential plus 50,000 Wikipedia articles, for broader questions.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recommended</string>
+    <string name="flows_onboarding_recommended_fast" formatted="false">Recommended · fast</string>
     <string name="flows_onboarding_alreadyDownloaded" formatted="false">Already on the phone</string>
     <string name="flows_onboarding_noSpace" formatted="false">Not enough space: {{size}} more is needed.</string>
     <string name="flows_onboarding_install" formatted="false">Download {{size}}</string>
