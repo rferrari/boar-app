@@ -43,6 +43,9 @@ node scripts/eval-summary.mjs --answers eval-results/eval-out/<runId>.jsonl   # 
 - `models` matches part of an installed model's id or label (adaptive routing isn't
   supported by the native runner yet). Leave out `queries` for the full question set
   ([EVAL_QUERIES.md](EVAL_QUERIES.md)); `queries` takes ids or categories.
+- `"labs": [ids]` names the Boar Labs plugins that answer and check in this run, as in
+  the chat with only those labs on, e.g. `"labs":["calc","facts"]`. Without it, the labs
+  switched on in the app answer. Run the same questions with and without a lab to compare.
 - `--ei waitmin 10` is how long the runner waits for the request.
 - For a debug build use `team.sopa.aoair.native`, for a Labs build `team.sopa.aoair.labs`,
   in both the component and the pull path.
@@ -66,9 +69,9 @@ questions and every result field are described in [EVAL_QUERIES.md](EVAL_QUERIES
   Some phones, such as Xiaomi/HyperOS, block changing "Stay awake" over adb. If the screen
   would time out during a long run, send a keypress now and then:
   `while true; do adb shell input keyevent KEYCODE_WAKEUP; sleep 30; done`.
-- **Heat matters.** Tokens/sec dropped about a third over a 66-minute run as the phone
-  warmed up. Compare models from runs in similar conditions, and note the battery
-  temperature (`adb shell dumpsys battery`).
+- **Heat matters.** Tokens/sec drops as the phone warms up during a long run. Compare
+  models from runs in similar conditions, and note the battery temperature
+  (`adb shell dumpsys battery`).
 - **A model that fails to load isn't skipped silently.** Every question is recorded as a
   failure with the reason, and the run moves on to the next model.
 - **Answers vary slightly between runs** (temperature 0.7). Timings compare well; for
