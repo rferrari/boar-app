@@ -254,7 +254,9 @@ class Facts(json: String) {
                     e.volt?.takeIf { it.isNotEmpty() }?.let { v -> "mains voltage ${v.joinToString(" / ") { "${JsNumber.toString(it)} V" }}" } ?: "",
                     e.hz?.takeIf { it.isNotEmpty() }?.joinToString(" / ") { "${JsNumber.toString(it)} Hz" } ?: "",
                 ).filter { it.isNotEmpty() }
-                "$name: ${parts.joinToString(", ")}. Where two voltages are listed, it differs by region: check the socket or ask locally.${source(null)}"
+                val regional = (e.volt?.size ?: 0) > 1 || (e.hz?.size ?: 0) > 1
+                val note = if (regional) " Where two values are listed, it differs by region: check the socket or ask locally." else ""
+                "$name: ${parts.joinToString(", ")}.$note${source(null)}"
             }
             "host" -> e.loc?.takeIf { it.isNotEmpty() }?.let { "$name: held in ${list(it)}.${source(null)}" }
             "winner" -> {
