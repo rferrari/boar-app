@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Checks a release APK before it is uploaded to a GitHub Release. Exit 1 unless:
 # - the application id is BOAR's (team.sopa.aoair, or team.sopa.aoair.offline for the offline variant),
-# - versionCode equals app.json's expo.android.versionCode (an APK with the same or a lower code
+# - versionCode equals the one in android-native/app/build.gradle.kts (an APK with the same or a lower code
 #   won't install over the previous release),
 # - the APK is signed with v1.0.0's key: a different signer can't update an installed BOAR.
 #
 #   scripts/check-release-apk.sh dist/boar-downloader-1.1.0-arm64.apk
 #   RELEASE_VARIANT=offline scripts/check-release-apk.sh dist/boar-offline-1.1.0-arm64.apk
-#   make check-release-apk APK=dist/boar-downloader-1.1.0-arm64.apk   (RELEASE_VARIANT=offline for the other)
 #
 # Needs the Android SDK build-tools (aapt2, apksigner) and a Java runtime for apksigner.
 set -euo pipefail
@@ -26,8 +25,8 @@ case "$variant" in
   offline) want_package=team.sopa.aoair.offline ;;
   *) echo "RELEASE_VARIANT must be downloader or offline" >&2; exit 2 ;;
 esac
-want_code=$(node -p "require('$ROOT/app.json').expo.android.versionCode ?? ''")
-[[ -n "$want_code" ]] || { echo "app.json has no expo.android.versionCode" >&2; exit 2; }
+want_code=$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$ROOT/android-native/app/build.gradle.kts" | head -1)
+[[ -n "$want_code" ]] || { echo "android-native/app/build.gradle.kts has no versionCode = N" >&2; exit 2; }
 
 sdk=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}
 tools=$(ls -d "$sdk"/build-tools/* 2>/dev/null | sort -V | tail -1 || true)
@@ -41,7 +40,7 @@ package=$(sed -n "s/.*package: name='\([^']*\)'.*/\1/p" <<<"$badging")
 code=$(sed -n "s/.*versionCode='\([^']*\)'.*/\1/p" <<<"$badging")
 name=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$badging")
 [[ "$package" == "$want_package" ]] || bad "package is '$package', expected '$want_package'"
-[[ "$code" == "$want_code" ]] || bad "versionCode is '$code', app.json says '$want_code'"
+[[ "$code" == "$want_code" ]] || bad "versionCode is '$code', build.gradle.kts says '$want_code'"
 
 signers=$("$tools/apksigner" verify --print-certs "$apk" 2>&1) || bad "apksigner verify failed: $signers"
 signer=$(grep -m1 "certificate SHA-256 digest" <<<"$signers" | awk '{print $NF}' || true)

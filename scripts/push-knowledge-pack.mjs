@@ -2,14 +2,14 @@
 // Copies a knowledge pack built by scripts/build-knowledge-pack.mjs onto a
 // USB-connected phone running a development build of BOAR, and verifies it.
 //
-//   npm run pack:push -- build/knowledge-pack/wiki-vital5.sqlite [--serial SERIAL]
+//   npm --prefix scripts run pack:push -- build/knowledge-pack/wiki-vital5.sqlite [--serial SERIAL]
 //
 // The app picks up any valid pack in its corpus/ folder on the next question.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { DEFAULT_PACKAGE, isDebuggable, isPackageListed, parseAdbDevices, selectDevice } from "./lib/eval-device-lib.mjs";
+import { DEFAULT_PACKAGE, isDebuggable, isPackageListed, parseAdbDevices, selectDevice } from "./lib/adb-lib.mjs";
 
 const fail = (msg) => {
   console.error(`✗ ${msg}`);
@@ -20,7 +20,7 @@ const adb = (serial, ...args) => execFileSync("adb", ["-s", serial, ...args], { 
 const args = process.argv.slice(2);
 const file = args.find((a) => !a.startsWith("--"));
 const serialIdx = args.indexOf("--serial");
-if (!file || args.includes("--help")) fail("usage: npm run pack:push -- <pack.sqlite> [--serial SERIAL]");
+if (!file || args.includes("--help")) fail("usage: npm --prefix scripts run pack:push -- <pack.sqlite> [--serial SERIAL]");
 if (!existsSync(file)) fail(`${file} not found`);
 const name = basename(file);
 if (!/^[a-z0-9][a-z0-9-]*\.sqlite$/.test(name)) fail("pack file names must be lowercase letters, digits or dashes, ending in .sqlite");

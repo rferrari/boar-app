@@ -3,7 +3,8 @@
 // "standard"/"full" setup tiers, using MediaWiki's batched random-article
 // generator (20 articles/request) instead of one-by-one REST summary calls
 // (much faster, still rate-limited politely). Output is committed to git and
-// referenced via a raw.githubusercontent.com URL in src/models/manifest.ts
+// referenced via a raw.githubusercontent.com URL in the app's model catalog
+// (android-native/app/src/main/assets/boar-data/catalog.json)
 // so the app can download it like any other catalog asset. The app itself
 // never runs this script or makes network calls beyond that one download.
 //
