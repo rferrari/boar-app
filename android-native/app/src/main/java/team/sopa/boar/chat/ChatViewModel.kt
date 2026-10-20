@@ -583,13 +583,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)) minOf(it, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else it
                 }
                 limited = budget
+                // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
+                val way = team.sopa.boar.engine.routing.AnswerPath.of(deep, aboutConversation(q, history, conversation),
+                    settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) },
+                    team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
                 if (instant != null) {
                     limited = null
                     onPiece(instant.text)
                 } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
-                } else if (deep || aboutConversation(q, history, conversation)) {
-                    val research = deep
+                } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
+                    val research = way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH
                     path = if (research) "deep" else "chat"
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
@@ -604,7 +608,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     if (r.fromPreviousAnswer) reusedSources = lastAnswer?.sources
                     timedOut = r.timedOut
                     metrics = r.metrics
-                } else if (settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) }) {
+                } else if (way == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE) {
                     // Skipped while a Labs engine answers (its own model, or one the user routed to it): the router only
                     // picks among models on BOAR's own engine.
                     limited = null
