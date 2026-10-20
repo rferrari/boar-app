@@ -503,7 +503,7 @@
     <string name="native_tour_welcome_body" formatted="false">BOAR answers on your phone, from its own offline library, and shows where each answer came from. Here\'s a quick look around while it gets ready.</string>
     <string name="native_tour_theme_title" formatted="false">Make it yours</string>
     <string name="native_tour_theme_body" formatted="false">Pick a theme. It changes right away, and you can change it again any time.</string>
-    <string name="native_tour_theme_where" formatted="false">Settings → Display &amp; Theme</string>
+    <string name="native_tour_theme_where" formatted="false">Settings → Display &amp; theme</string>
     <string name="native_tour_styles_title" formatted="false">Pick how BOAR answers</string>
     <string name="native_tour_styles_body" formatted="false">Succinct &amp; Direct for quick replies, Thorough &amp; Detailed for full explanations (the default), Executive Summary for one takeaway and three bullets.</string>
     <string name="native_tour_styles_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
@@ -511,20 +511,22 @@
     <string name="native_tour_deep_body" formatted="false">For big questions: BOAR searches in several steps and writes a longer answer. It takes more time.</string>
     <string name="native_tour_deep_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
     <string name="native_tour_sources_title" formatted="false">Sources and receipts</string>
-    <string name="native_tour_sources_body" formatted="false">Every answer lists the articles it used: tap one to read it. A receipt shows the model, the speed and the time.</string>
+    <string name="native_tour_sources_body" formatted="false">An answer from the library lists the articles it used: tap one to read it. A receipt shows the model, the speed and the time.</string>
     <string name="native_tour_sources_where" formatted="false">Under every answer</string>
     <string name="native_tour_knowledge_title" formatted="false">Your library and your documents</string>
     <string name="native_tour_knowledge_body" formatted="false">BOAR reads from the Vital Articles library on your phone. Import a PDF and ask about it too.</string>
-    <string name="native_tour_knowledge_where" formatted="false">Settings → Offline Knowledge Base</string>
+    <string name="native_tour_knowledge_where" formatted="false">Settings → Knowledge</string>
     <string name="native_tour_models_title" formatted="false">Models</string>
     <string name="native_tour_models_body" formatted="false">Swap the answer model, find more on Hugging Face, and let BOAR free the memory when you leave it.</string>
-    <string name="native_tour_models_where" formatted="false">Settings → Reasoning Models</string>
+    <string name="native_tour_models_where" formatted="false">Settings → Models</string>
     <string name="native_tour_pin_title" formatted="false">PIN lock</string>
     <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
     <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experiments that answer some questions without the model. Calculator, Facts, Cohazard, Distance and Polyglot start on, with Boar Vitals; the others start off. If one misbehaves, switch it off.</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments: some answer questions without the model, and Boar Vitals shows the phone at work. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on; the others start off. If one misbehaves, switch it off.</string>
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
+    <string name="native_tour_linePaused" formatted="false">Download paused · tap to see it</string>
+    <string name="native_tour_linePreparing" formatted="false">Preparing the index…</string>
 </resources>

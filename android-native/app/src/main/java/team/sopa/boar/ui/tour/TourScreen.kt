@@ -40,7 +40,7 @@ import team.sopa.boar.ui.t
 data class TourCard(val key: String, val emoji: String, val where: Boolean = true)
 
 /** The setup download under the tour: its line ("Downloading · 42% · 6 min"), its fraction, and whether BOAR is ready. */
-data class TourProgress(val line: String, val fraction: Float, val ready: Boolean)
+data class TourProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean = false)
 
 /** The tour's cards in order; the Boar Labs card only in builds with the Experimental section. */
 fun tourCards(experimental: Boolean): List<TourCard> = listOfNotNull(
@@ -50,8 +50,8 @@ fun tourCards(experimental: Boolean): List<TourCard> = listOfNotNull(
     TourCard("deep", "🔬"),
     TourCard("sources", "📚"),
     TourCard("knowledge", "📄"),
-    TourCard("models", "🧠"),
-    TourCard("pin", "🔒"),
+    TourCard("models", "⚙️"),
+    TourCard("pin", "🔑"),
     if (experimental) TourCard("labs", "🧪") else null,
     TourCard("end", "🏁", where = false),
 )
@@ -72,7 +72,7 @@ fun TourScreen(
     val card = cards[i]
     var picked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(themeId) }
     var bannerHidden by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnBackPress = false)) {
         // Back goes to the previous card, and closes the tour on the first.
         BackHandler { if (i > 0) onIndex(i - 1) else onClose() }
         val c = Boar.colors
@@ -87,7 +87,10 @@ fun TourScreen(
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     LinearProgressIndicator(progress = { p.fraction.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                         color = c.emerald500, trackColor = c.bgSubtle)
-                    Text(p.line, style = Boar.type.subtext, color = c.textSecondary)
+                    // A stalled or failed download: the line says so, and a tap goes back to its retry.
+                    if (p.problem) Text(p.line, style = Boar.type.subtext, color = c.textAccentAmber, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onClose).padding(vertical = 2.dp))
+                    else Text(p.line, style = Boar.type.subtext, color = c.textSecondary)
                 }
                 if (p.ready && !bannerHidden && onReady != null) Column(
                     Modifier.padding(16.dp).fillMaxWidth().background(c.emeraldBgSubtle, RoundedCornerShape(14.dp)).border(1.dp, c.emerald500, RoundedCornerShape(14.dp)).padding(14.dp),

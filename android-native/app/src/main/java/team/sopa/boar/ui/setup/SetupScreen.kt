@@ -385,7 +385,7 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Uni
         }
 
         // While it downloads or indexes: BOAR's tour, full screen, with the download live on top.
-        if (!state.finished && (state.transferring || state.indexPhase == IndexPhase.BUILDING)) Card {
+        if (!state.finished) Card {
             Text(t("native.tour.whileYouWait").uppercase(), style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
             Text(t("native.tour.cardTitle"), style = Boar.type.title, color = c.textHeading)
             Meta(t("native.tour.cardSub"), c.textSecondary)
@@ -519,10 +519,13 @@ private fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress
     val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
         else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f
     val eta = (if (downloading) state.etaSeconds else state.indexEtaSeconds)?.let { " · " + t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)) } ?: ""
+    val problem = state.stalled || state.failed.isNotEmpty()
     val line = when {
         state.finished -> t("native.tour.lineReady")
+        problem -> t("native.tour.linePaused")
+        !downloading && state.indexTotal == 0 -> t("native.tour.linePreparing")
         downloading -> t("native.tour.lineDownloading", "pct" to (fraction * 100).toInt()) + eta
         else -> t("native.tour.lineIndexing", "done" to state.indexDone, "total" to state.indexTotal) + eta
     }
-    return team.sopa.boar.ui.tour.TourProgress(line, fraction, state.finished)
+    return team.sopa.boar.ui.tour.TourProgress(line, fraction, state.finished, problem)
 }

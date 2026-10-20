@@ -281,8 +281,8 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
         // The setup tour on its own: no download under it, Done comes back here.
-        var tour by remember { mutableStateOf(false) }
-        var tourIndex by remember { mutableStateOf(0) }
+        var tour by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+        var tourIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
         LinkButton(t("native.tour.seeTour")) { tourIndex = 0; tour = true }
         if (tour) team.sopa.boar.ui.tour.TourScreen(null, tourIndex, { tourIndex = it }, services.settings.themeId,
             { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
