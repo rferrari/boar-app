@@ -93,15 +93,21 @@ class ColibriModel private constructor(private val engine: EngineProcess) : Text
         suspend fun start(context: Context, snap: String, params: EngineParams): ColibriModel? = withContext(Dispatchers.IO) {
             val engine = EngineProcess.start(context, BINARY, listOf("$CACHE_PER_LAYER", "8"),
                 mapOf("SERVE" to "1", "SNAP" to snap, "CTX" to "${params.nCtx}", "OMP_NUM_THREADS" to "${params.threads}"))
-            val ready = withTimeoutOrNull(3 * 60_000L) {
-                var ok = false
-                while (true) {
-                    val out = engine.output.receive()
-                    if (out is EngineProcess.Output.Line && out.text.contains("READY")) { ok = true; break }
-                    if (out is EngineProcess.Output.Exit) break
-                }
-                ok
-            } ?: false
+            // Cancelled while it loads, the process is stopped too, not left running.
+            val ready = try {
+                withTimeoutOrNull(3 * 60_000L) {
+                    var ok = false
+                    while (true) {
+                        val out = engine.output.receive()
+                        if (out is EngineProcess.Output.Line && out.text.contains("READY")) { ok = true; break }
+                        if (out is EngineProcess.Output.Exit) break
+                    }
+                    ok
+                } ?: false
+            } catch (e: Throwable) {
+                engine.stop()
+                throw e
+            }
             if (!ready) {
                 android.util.Log.w(EngineProcess.TAG, "colibri didn't start: ${engine.tail()}")
                 engine.stop()

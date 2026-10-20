@@ -133,16 +133,22 @@ class BmoeModel private constructor(private val engine: EngineProcess, private v
                 "-m", modelPath, "-t", "${params.threads}", "-c", "${params.nCtx}", "--ubatch", "${minOf(512, params.nCtx)}",
                 "--chatml", "--session", "--moe-stream", "--cache-mb", "auto",
             ))
-            val ready = withTimeoutOrNull(LOAD_TIMEOUT_MS) {
-                while (true) {
-                    when (val out = engine.output.receive()) {
-                        is EngineProcess.Output.Line -> if (out.text.startsWith("BMOE_READY")) return@withTimeoutOrNull true
-                        is EngineProcess.Output.Exit -> return@withTimeoutOrNull false
-                        else -> {}
+            // Cancelled while it loads (Close BOAR, a model switch), the process is stopped too, not left running.
+            val ready = try {
+                withTimeoutOrNull(LOAD_TIMEOUT_MS) {
+                    while (true) {
+                        when (val out = engine.output.receive()) {
+                            is EngineProcess.Output.Line -> if (out.text.startsWith("BMOE_READY")) return@withTimeoutOrNull true
+                            is EngineProcess.Output.Exit -> return@withTimeoutOrNull false
+                            else -> {}
+                        }
                     }
-                }
-                @Suppress("UNREACHABLE_CODE") false
-            } ?: false
+                    @Suppress("UNREACHABLE_CODE") false
+                } ?: false
+            } catch (e: Throwable) {
+                engine.stop()
+                throw e
+            }
             if (!ready) {
                 android.util.Log.w(EngineProcess.TAG, "bmoe didn't start: ${engine.tail()}")
                 engine.stop()
