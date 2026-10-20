@@ -51,7 +51,7 @@ object Classify {
     private val GREETING_PHRASE_RE = JsRegex.re(
         """^(hi|hiya|hello|hey+|hey there|howdy|g'?day|yo|sup|wake up|good (morning|afternoon|evening|night)|how(?:'s| is| are) it going|how goes it|how are you|what'?s (up|good)|thanks?( you)?|thank you|(thanks|thank you)( (so|very) much| a lot| again)?|many thanks|much appreciated|(i )?appreciate it|thx|ty|tysm|cheers|you'?re welcome|you bet|no problem|np|that (helps|helped)|that'?s (helpful|great|perfect)|sounds (good|great)|makes sense|got it|perfect|great|awesome|bye|goodbye|see ya|see you|cya|ttyl|talk (to you )?later|ok(ay)?|cool|nice""" +
             // Portuguese and Spanish greetings, thanks and goodbyes (owner's list, Oct 20); each still the whole segment.
-            """|oi+e?|ol[aá]|e a[ií]|eai|fala a[ií]|fala chefe|bom dia|boa (tarde|noite)|tudo (bem|bom|certo)|beleza|blz|obrigad[oa]( pela ajuda)?|obrigad[aã]o|valeu( demais)?|de nada|tmj|tchau|flw|falou|at[eé] (mais|logo)""" +
+            """|oi+e?|ol[aá]|e a[ií]|eai|fala a[ií]|fala chefe|bom dia|boa (tarde|noite)|tudo (bem|bom|certo)|beleza|blz|obrigad[oa]( pela ajuda)?|obrigad[aã]o|valeu( demais)?|de nada|tmj|tchau|flw|at[eé] (mais|logo)""" +
             """|hola|buenas|qu[eé] (tal|onda)|buenos d[ií]as|buenas (tardes|noches)|todo bien|por nada|de acuerdo|gracias|chao|hasta luego|nos vemos|adi[oó]s""" +
             """|merci( beaucoup)?|salut|coucou|[cç]a va|bonjour|bonsoir|de rien|[aà] plus|danke( sch(o|ö)n)?|hallo|guten (morgen|tag|abend)|tsch[üu]ss)[!.?~]*$""",
         "i",
