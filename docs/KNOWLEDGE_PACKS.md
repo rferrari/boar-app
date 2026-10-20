@@ -65,7 +65,7 @@ Wikipedia text is CC BY-SA 4.0; keep the attribution if you share a pack.
 `team.sopa.aoair`, USB debugging on):
 
 ```bash
-npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite
+npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite --package team.sopa.aoair.native
 ```
 
 It copies the file into the app's storage and verifies it. BOAR uses any valid

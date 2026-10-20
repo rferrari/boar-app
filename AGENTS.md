@@ -223,7 +223,7 @@ tooling in `scripts/`, separate from the app build. Run it from the repo root.
 npm --prefix scripts install                                      # once
 npm --prefix scripts run pack:build -- --limit 200 --id test-pack # quick check that the pipeline works
 npm --prefix scripts run pack:build                               # the full Vital Articles level 5 pack
-npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite  # copy onto a USB-connected debuggable build
+npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite --package team.sopa.aoair.native  # a USB-connected debug build
 npm --prefix scripts test                                         # the tools' unit tests
 ```
 

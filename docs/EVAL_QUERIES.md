@@ -84,7 +84,7 @@ reloaded, so chat carries on as before.
 
 Over adb, with no tapping: see [DEVICE_EVALUATION.md](DEVICE_EVALUATION.md). The
 results land in `eval-results/`; print a report with
-`node scripts/eval-summary.mjs --report <runId>.jsonl`.
+`node scripts/eval-summary.mjs --report eval-results/eval-out/<runId>.jsonl` (the path the pull step writes).
 
 ## Running it on the device by hand
 
