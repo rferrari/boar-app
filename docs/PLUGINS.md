@@ -4,16 +4,35 @@ Boar Labs is the native app's room for experiments. Each experiment ("lab") is a
 finds by itself. Adding a lab is adding a folder; removing it is deleting the folder. Nothing outside the folder changes.
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
-`-Pboar.experimentalFeatures=true`). In those builds they stay off until the user turns on **Settings → Advanced
-tweaks → Boar Labs** (bottom, under EXPERIMENTAL), and each lab has its own **Enabled** switch on its page. The bounty
-build has none of this.
+`-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
+**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. A lab with
+`onByDefault = true` starts enabled: Calculator, Facts, Cohazard, Distance, Polyglot (beta) and Boar Vitals (live).
+The others start off. A build without the flag has none of this.
 
 ## The rules every lab follows
-- Runs on the phone, offline. No network calls, no uploads, no share buttons: anything that leaves the phone goes
-  through Android's Save-as, where the user picks the place.
+- Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
+  Designer). No uploads, no share buttons: anything that leaves the phone goes through Android's Save-as, where the
+  user picks the place.
 - Never touches the chat's model while it's answering (`AnswerRef.chatBusy`).
 - Erases what it made when the user erases their data (see [Erase](#erase)).
 - English and Portuguese strings for everything it shows.
+
+## How a question flows
+
+The order in `ChatViewModel.send` (`android-native/app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt`) and
+`AnswerPath` (`engine/…/routing/AnswerPath.kt`):
+
+1. **The tool slot.** Skipped for a recap or summary of this chat, and once after "Ask BOAR instead". Otherwise the
+   enabled labs' `answerTool`s run in order: Cohazard first, then Polyglot, then the rest in grid order. The first
+   that answers wins. With Deep Research on, only a safety answer (`safety-*`) is kept.
+   - `ToolResult.Instant`: shown as the answer. No model loads, and the rest is skipped.
+   - `ToolResult.Context`: the model reads it after the system prompt (on the default and adaptive paths).
+2. **The path.** Small talk ("hi", "thanks") takes the plain pipeline, even with Deep Research or adaptive routing on.
+   Then Deep Research if it is on; then a recap of the chat; then adaptive routing if it is on (and the active model
+   runs on BOAR's own engine); else the default path (the plain pipeline: search, then the model).
+3. **The check slot.** After the model, on the default and adaptive paths only, the enabled labs' `answerCheck`s
+   (Boar Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
+   stopped, timed-out, failed or empty answer.
 
 ## A lab's folder
 
@@ -66,7 +85,7 @@ escape apostrophes (`\'`). Read them in code with `t("native.labs.<id>.<name>")`
 ## The LabPlugin interface
 
 `android-native/app/src/labs/java/team/sopa/boar/labs/LabPlugin.kt`. Everything except `id`, `emoji` and `status` has a
-do-nothing default, so a lab only overrides what it uses.
+do-nothing default (`onByDefault` is false), so a lab only overrides what it uses.
 
 ```kotlin
 object MyLab : LabPlugin {
@@ -86,7 +105,7 @@ object MyLab : LabPlugin {
 | `AnswerExtra(a: AnswerRef)` | **Under an answer** | Something shown under a finished answer, above its footer (e.g. an illustration) |
 | `HeaderBadge(go)` | **Chat header** | A small badge at the top of the chat; `go("lab:<id>")` opens the lab |
 | `engine` | **Engine** | An `EngineProvider`: models this lab runs on its own engine (see [Engines](#engines)) |
-| `answerTool` | **Before the model** | An `AnswerTool` (`plugins/AnswerTools.kt`): sees the question and the chat's earlier turns first and returns `ToolResult.Instant` (the answer itself, shown and saved with no model call) or `ToolResult.Context` (text the model reads after the system prompt), or null to pass (example: `plugins/calc`). The chat's default and adaptive paths and the device evaluation use it, not Deep Research; the receipt keeps the tool's name. One that throws is skipped |
+| `answerTool` | **Before the model** | An `AnswerTool` (`plugins/AnswerTools.kt`): sees the question and the chat's earlier turns first and returns `ToolResult.Instant` (the answer itself, shown and saved with no model call) or `ToolResult.Context` (text the model reads after the system prompt), or null to pass (example: `plugins/calc`). The chat and the device evaluation use it, not Deep Research, except safety tools (`safety-*`, e.g. Cohazard); never for a recap of the chat or after "Ask BOAR instead". The receipt keeps the tool's name. One that throws is skipped |
 | `answerCheck` | **After the model** | An `AnswerCheck` (`plugins/AnswerChecks.kt`): reads a model's finished answer with its question and returns a `Repair` (the text that replaces it, and a name for the receipt) or null to leave it (example: `plugins/guard`). Only the chat's default and adaptive paths, before the answer is saved; never a tool's instant answer, Deep Research, or a stopped, timed-out or failed answer. One that throws is skipped |
 | `searchStage` | **After search** | A `SearchStage` (`plugins/PipelineStages.kt`): reorders or filters the passages for every answer (a reranker). It gets twice the usual number to choose from and returns at most `topK`; one that throws is skipped |
 | `eraseUserData(context, scope)` | **Erase** | Delete what the lab made (see [Erase](#erase)) |
@@ -114,22 +133,23 @@ file.
 | `LabStatus` | Tile | Use when |
 |---|---|---|
 | `LIVE` | green | It works well |
-| `BETA` | cyan | It works, still rough |
+| `BETA` | cyan | It works, still rough. The labs that start on |
+| `ALPHA` | amber | Early; starts off |
 | `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 
-The grid shows released labs first (plugin.properties order), then the classified ones.
+The grid shows live, then beta, alpha, under review and classified labs, in plugin.properties order within each.
 
 ## Executables
 
-Some labs run a program of their own (Image Gen's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
+Some labs run a program of their own (Boar Designer's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
 files it extracted from its native library folder, so they ship as `lib<name>.so` in the lab's
 `jniLibs/arm64-v8a/`, which is gitignored and built by a script:
 
 | Script | Builds |
 |---|---|
-| `scripts/build-sd-cli.sh` | Image Gen's `libsdcli.so`, `libsdcli_i8mm.so` |
-| `scripts/build-lab-engines.sh` | `libbmoe_cli.so` (Big Boar), `libcolibri_olmoe.so` (Hummingbird) |
+| `scripts/build-sd-cli.sh` | Boar Designer's `libsdcli.so`, `libsdcli_i8mm.so` |
+| `scripts/build-lab-engines.sh` | `libbmoe_cli.so` (Big Boar), `libcolibri_olmoe.so` (Boar Wisp) |
 
 Rules:
 - **Link statically,** or at least never ship a library named like the app's own (`libllama.so`, `libggml*.so`,
@@ -176,8 +196,8 @@ object MyEngineLab : LabPlugin, EngineProvider {
 
 | Scope | When | Delete |
 |---|---|---|
-| `CHATS` | Settings → Clear all chats | What came from chats (illustrations, the Printer basket) |
-| `EVERYTHING` | Forgot the PIN → Erase | Everything the lab made for the user (Image Gen's gallery too) |
+| `CHATS` | Settings → Clear All Chat History | What came from chats (illustrations, the Press basket) |
+| `EVERYTHING` | Forgot the PIN → Erase | Everything the lab made for the user (Designer's gallery too) |
 
 Delete files even if they can't be read, and reset any state the lab keeps in memory. Downloaded models stay.
 
@@ -189,7 +209,7 @@ cd android-native
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-On the phone, turn on Settings → Advanced tweaks → Boar Labs, open the menu → Boar Labs ⚛️ → your lab.
+On the phone, check that Settings → Experimental → Boar Labs is on, then open the menu → Boar Labs ⚛️ → your lab.
 
 To leave a lab out of one build without deleting it, use `-Pboar.labs.hide=<id>,<id>`. To park it, rename its folder to
 start with `_`.
