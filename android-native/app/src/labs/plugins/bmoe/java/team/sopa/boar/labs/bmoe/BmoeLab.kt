@@ -65,8 +65,10 @@ object BmoeLab : LabPlugin, EngineProvider {
         id = "qwen3.6-35b-a3b-bmoe", kind = AssetKind.LLM,
         label = "Qwen3.6-35B-A3B · BigMoeOnEdge (experimental)", displayName = "Qwen3.6 35B · Big Boar",
         filename = "models/qwen3.6-35b-a3b-ud-q2-k-xl.gguf", engine = "bmoe",
-        sizeBytes = 12_290_628_576, sha256 = "",
-        sourceUrl = "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/resolve/main/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf",
+        // Pinned to one commit, checked against its LFS sha256 (both from the Hugging Face API, Oct 19 2026): a file
+        // replaced on main later isn't downloaded, and a damaged download is caught.
+        sizeBytes = 12_290_628_576, sha256 = "96b9c0af5c77a4ecaabe3983175112b5ece763261c1ece12b2494b692a70dad7",
+        sourceUrl = "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/resolve/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf",
         license = "Apache-2.0",
         description = "A 35B mixture of experts (about 3B used per word), bigger than the phone's RAM: BigMoeOnEdge keeps the always-used weights in memory and reads each word's experts from storage. Slow, but a real 35B. Download it here (12.3 GB) or copy it over USB (Boar Labs → Big Boar).",
         required = false,
