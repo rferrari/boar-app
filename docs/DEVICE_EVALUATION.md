@@ -1,127 +1,75 @@
 # Benchmark models on a real phone
 
-BOAR can benchmark any installed model on a real Android phone, driven from
-your computer with one command. The phone runs the questions and shows live
-progress on its Evaluation screen, and the computer collects the results.
-
-```bash
-npm run eval:device -- --models lfm2.5
-```
-
-```
-✓ device SSYLAQFILNBEKBEQ
-✓ team.sopa.aoair installed (debuggable)
-✓ Metro running, adb reverse tcp:8081 set
-✓ request req-20260924t054219-safr written: {"requestId":"req-20260924t054219-safr","models":["lfm2.5"]}
-✓ app reloading from Metro
-  [00:00] waiting for the app to pick up the request…
-  [00:20] 0/17 — model:hf-liquidai-lfm2-5-8b-a1b-… / greeting-1
-  [01:52] 3/17 — model:hf-liquidai-lfm2-5-8b-a1b-… / explanation-1
-  …
-BOAR Device Evaluation — eval-2026-09-24T… (set v1, 17 queries)
-  Queries:         17 ok · 0 failed · 0 cancelled (of 17)
-  TTFT:            avg … · p50 …
-  Tokens/sec:      avg … · p50 …
-  Peak RSS:        … GB
-  …
-Raw results (authoritative): eval-results/2026-09-24/eval-….jsonl
-Answers for grading:         eval-results/2026-09-24/eval-….answers.md
-```
-
-Every answer gets the same measurements, straight from the phone: model load
-time, cold/switched/resident, time to first token, generation time,
-tokens/sec, total time, peak memory, which articles were retrieved, and which
-prompt format the model got (its own chat template, or the plain fallback).
+BOAR can benchmark any installed model on a real Android phone, started from your
+computer over adb. The phone runs the questions and shows live progress on its
+Evaluation screen; the computer pulls the results.
 
 ## Two ways to run it
 
-**From the computer (recommended).** `npm run eval:device` checks the phone,
-sends the request, reloads the app so it runs your current code, waits, pulls
-the results and prints the report. Nothing to tap.
+**From the computer.** The evaluation runner is `BenchActivity`. It is exported with
+`android.permission.DUMP`, which adb's shell holds and other apps don't, so only adb
+(USB or wireless debugging) can start it. It works on release builds.
 
-**On the phone.** Drawer → Execution Telemetry → 🧪 Evaluate. Tick the models
-and adaptive routing, tap ▶ Run, and export JSONL or CSV through the share
-sheet when it's done.
+**On the phone.** Settings › Advanced tweaks › Evaluation (or the side menu in builds with
+`SHOW_EVAL_IN_MENU`). Tick the models, tap Run, and export JSONL or
+CSV through the share sheet when it's done.
 
-Both run the same evaluation code (`src/eval/`), so results are identical in
-shape and comparable.
+Both run the same evaluation code (`android-native/app/src/main/java/team/sopa/boar/eval/`
+and `android-native/engine/src/main/java/team/sopa/boar/engine/eval/`), so results are
+identical in shape and comparable.
 
 ## Setup, once
 
-1. **On the computer:** Node/npm with `npm install` done, and `adb` (Android SDK
-   platform-tools) on your `PATH`.
-2. **On the phone:** Developer options → USB debugging on. Connect the cable
-   and accept "Allow USB debugging". `adb devices` must show it as `device`.
-3. **A development build of BOAR** installed (`npx expo run:android`, or
-   `npm run eval:device -- --install` builds and installs one). Release builds
-   can't be driven this way on purpose: request pickup only exists in
-   development builds, and reading results needs a debuggable app.
-4. **Metro running** in another terminal: `make start` (or
-   `npx expo start --localhost`).
-5. **Models downloaded** in the app (Settings → Models). The tool never
-   downloads models.
+1. **On the computer:** `adb` (Android SDK platform-tools) on your `PATH`, and Node for
+   the report (`scripts/eval-summary.mjs` needs no `npm install`).
+2. **On the phone:** Developer options › USB debugging on. Connect the cable and accept
+   "Allow USB debugging". `adb devices` must show it as `device`.
+3. **BOAR installed** ([AGENTS.md](../AGENTS.md)), first-run setup finished, and every
+   model you want to compare downloaded. The runner never downloads models.
 
 ## Commands
 
 ```bash
-npm run eval:device                                   # every installed model + adaptive routing, all 17 questions
-npm run eval:device -- --models qwen2.5-1.5b,phi-3.5  # specific models (id or a fragment of it)
-npm run eval:device -- --adaptive                     # adaptive routing only
-npm run eval:device -- --queries greeting-1,reasoning # some questions, by id or category
-npm run eval:device -- --dry-run                      # print every adb command, run nothing
-npm run eval:device -- --help                         # all options (--serial, --timeout-min, --no-reload, …)
-npm run eval:summary -- --report <file.jsonl>         # re-print a report
-npm run eval:summary -- --answers <file.jsonl>        # answers side by side, for grading
+adb devices                                        # exactly one device, state "device"
+req=$(printf '%s' '{"requestId":"req-1","models":["qwen2.5"],"queries":["greeting-1"]}' | base64 -w0)
+adb shell am start -n team.sopa.aoair/team.sopa.boar.bench.BenchActivity \
+  --es run eval --es request64 "$req"
+adb logcat | grep -i eval                          # progress
+adb pull /sdcard/Android/data/team.sopa.aoair/files/eval-out eval-results/
+node scripts/eval-summary.mjs --report eval-results/eval-out/<runId>.jsonl
+node scripts/eval-summary.mjs --answers eval-results/eval-out/<runId>.jsonl   # answers side by side, for grading
 ```
 
-A model name must match exactly one installed model. A typo or an ambiguous
-name (`qwen2.5` with two Qwen models installed) stops the run and lists what's
-installed.
+- `models` matches part of an installed model's id or label (adaptive routing isn't
+  supported by the native runner yet). Leave out `queries` for the full question set
+  ([EVAL_QUERIES.md](EVAL_QUERIES.md)); `queries` takes ids or categories.
+- `--ei waitmin 10` is how long the runner waits for the request.
+- For a debug build use `team.sopa.aoair.native`, for a Labs build `team.sopa.aoair.labs`,
+  in both the component and the pull path.
 
 ## Results
 
-Saved under `eval-results/<date>/` (gitignored; commit a run on purpose when
-you want it on record):
+Copied to `files/eval-out` (under `/sdcard/Android/data/<package>/`) when the run ends:
 
-- `<runId>.jsonl` — one row per answer, the authoritative result
-- `<runId>.answers.md` — every model's answer to each question, side by side
-- `<runId>.status.json` — the final status reported by the phone
+- `<runId>.jsonl`: one row per answer, the source of truth
+- `<runId>.run.json`: the run's settings
+- `requests/<requestId>.status.json`: the final status reported by the phone
 
-The questions and every result field are described in
-[EVAL_QUERIES.md](EVAL_QUERIES.md).
-
-## How it works
-
-The computer never talks to the model. It only writes a small request file
-into the app's private storage (through `adb run-as`) and reads results back
-the same way. Inside the app, a development-only watcher picks up the request,
-opens the Evaluation screen and runs it; the app never calls adb.
-
-```
-computer                                    phone (BOAR, development build)
-─────────                                   ───────────────────────────────
-adb devices, checks install and Metro
-write files/eval/requests/pending.json ───▶ picks up the request once models are loaded
-reload the app from Metro                   runs every question on the selected models
-poll …/<requestId>.status.json ◀─────────── writes progress after each answer
-pull files/eval/<runId>.jsonl ◀──────────── saves the results
-print the report
-```
+`eval-results/` is gitignored; commit a run on purpose when you want it on record. The
+questions and every result field are described in [EVAL_QUERIES.md](EVAL_QUERIES.md).
 
 ## Tips
 
-- **Keep the screen on and the app open.** Locking the phone moves BOAR to the
-  background, and some phones cut its connection or throttle it. Some phones,
-  such as Xiaomi/HyperOS, block changing "Stay awake" over adb. If the screen
+- **Check the phone isn't busy.** Starting the runner brings BOAR to the front. Don't start
+  a run during a model download.
+- **Keep the screen on and the app open.** Locking the phone moves BOAR to the background.
+  Some phones, such as Xiaomi/HyperOS, block changing "Stay awake" over adb. If the screen
   would time out during a long run, send a keypress now and then:
   `while true; do adb shell input keyevent KEYCODE_WAKEUP; sleep 30; done`.
-- **Heat matters.** Tokens/sec dropped about a third over a 66-minute run as
-  the phone warmed up. Compare models from runs in similar conditions, and
-  note the battery temperature (`adb shell dumpsys battery`).
-- **Don't start a run during a model download.** The run reloads the app, and
-  a download can't resume after a reload.
-- **A model that fails to load isn't skipped silently.** Every question is
-  recorded as a failure with the reason, and the run moves on to the next
-  model.
-- **Answers vary slightly between runs** (temperature 0.7). Timings compare
-  well; for quality, look at more than one run.
+- **Heat matters.** Tokens/sec dropped about a third over a 66-minute run as the phone
+  warmed up. Compare models from runs in similar conditions, and note the battery
+  temperature (`adb shell dumpsys battery`).
+- **A model that fails to load isn't skipped silently.** Every question is recorded as a
+  failure with the reason, and the run moves on to the next model.
+- **Answers vary slightly between runs** (temperature 0.7). Timings compare well; for
+  quality, look at more than one run.

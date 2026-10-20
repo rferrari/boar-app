@@ -8,7 +8,7 @@ measured result.
 
 ## Before filming
 
-1. Install the exact release build you'll submit (see `SUBMISSION_CHECKLIST.md`).
+1. Install the exact release build you'll submit (see `docs/RELEASING.md`).
 2. Have **Qwen2.5-1.5B** and **LFM2.5-8B-A1B** downloaded (Settings → Reasoning Models).
 3. Settings → Assistant Tone & Response Style:
    - **Max Output Tokens: 1024.** LFM2.5 reasons before answering, and at 512

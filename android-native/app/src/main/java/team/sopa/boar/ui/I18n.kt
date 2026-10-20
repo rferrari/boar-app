@@ -7,7 +7,7 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The Expo app's i18next texts (res/values/strings.xml and values-pt, from scripts/export-native-strings.mjs), by their TS keys:
+ * BOAR's texts (res/values/strings.xml and values-pt, the source), by their i18next-style keys:
  * t("chatScreen.roleYou"), t("chatScreen.reasoningElapsed", "seconds" to 4). "{{var}}" placeholders are filled here,
  * and count-based keys pick key_one / key_other by the language's rule, as i18next does.
  */

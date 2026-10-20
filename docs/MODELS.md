@@ -19,7 +19,7 @@ file `Phi-3.5-mini-instruct-Q4_K_M.gguf` (~2.23GB, sha256 below).
 - Strong reasoning-per-parameter for its size (outperforms most 1–3B dense models on
   MMLU/GSM8K-style benchmarks per its model card), directly targeting the bounty's
   ">1B dense model" reasoning bar.
-- Runs via `llama.cpp`/`llama.rn` on Android CPU, mmap-streamable so weights aren't
+- Runs via `llama.cpp` (BOAR's own JNI build) on Android CPU, mmap-streamable so weights aren't
   fully pinned in RAM.
 - **Upgrade path (not yet implemented)**: a proper MoE model (e.g. an Apache/MIT
   licensed variant in the Qwen1.5-MoE / OLMoE family, ~2–3B active params) for more
@@ -39,7 +39,7 @@ file `bge-small-en-v1.5-q8_0.gguf` (~35MB, sha256 below).
 ## Local knowledge base / retrieval index
 
 - **Lexical**: SQLite FTS5 virtual table (`chunks_fts`), built from the same source
-  corpus as the vector index. See `src/rag/db.ts`.
+  corpus as the vector index. See `android-native/engine/src/main/java/team/sopa/boar/engine/rag/KnowledgeBase.kt`.
 - **Semantic**: brute-force cosine search over stored float32 embeddings
   (`chunk_embeddings` table). Fine at the corpus scale a phone can hold within the
   storage budget; revisit with a proper ANN index (e.g. quantized HNSW) only if
@@ -52,7 +52,7 @@ file `bge-small-en-v1.5-q8_0.gguf` (~35MB, sha256 below).
   `scripts/build-corpus.mjs` + `scripts/build-corpus-tier.mjs` (dev-machine-only,
   online, run once to curate/update the corpus — not run by the shipped app).
   ~188KB of text; embeddings are computed on-device at first launch via
-  `src/rag/seedCorpus.ts`, not precomputed, so they always match whatever
+  `android-native/engine/src/main/java/team/sopa/boar/engine/rag/SeedCorpus.kt`, not precomputed, so they always match whatever
   embedding model ships.
 - **Attribution**: per Wikipedia's CC BY-SA 4.0 license, each stored chunk keeps a
   `source` field linking back to its origin article
@@ -80,16 +80,16 @@ work, not in this version.
 **[Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)**
 (Alibaba, **Apache-2.0 license**), quantized GGUF from
 **[bartowski/Qwen2.5-1.5B-Instruct-GGUF](https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF)**,
-file `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~0.92GB, sha256 in `src/models/manifest.ts`).
+file `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~0.92GB, sha256 in `android-native/app/src/main/assets/boar-data/catalog.json`).
 
 Downloaded alongside Phi-3.5-mini and the embedding model during mandatory
 first-run setup — `required: true`, same as the other two — rather than left
 as an optional Settings-screen download. This is deliberate: the adaptive
-routing work (`src/routing/`, see `docs/ADAPTIVE_ROUTING.md`) needs at least
+routing work (`android-native/engine/src/main/java/team/sopa/boar/engine/routing/`, see `docs/ADAPTIVE_ROUTING.md`) needs at least
 two real, actually-different-sized models to route between (a `fast` role and
 a `general`/`reasoning` role) from the moment the app is usable, not only
 after a user manually fetches a second model later. Curated as `fast` in
-`ModelCapabilities` (`src/models/manifest.ts`) — smallest/quickest of the
+the catalog (`android-native/app/src/main/assets/boar-data/catalog.json`) — smallest/quickest of the
 three catalog LLMs.
 
 ## Optional LLM catalog (choose your model)
@@ -105,19 +105,18 @@ phone (Xiaomi 2311DRK48G, Dimensity 8300, 11.6 GB RAM; see
 | LFM2.5-8B-A1B | 8B MoE, ~1.5B active | Q4_K_M | 5.16GB | LFM Open License v1.0 | ~15 tok/s; best reasoning, but it thinks first and needs a larger answer budget |
 | Gemma 4 E4B | ~4B effective | QAT Q4_0 | 5.15GB | Apache-2.0 | loads and answers; not benchmarked yet |
 
-Sizes and SHA-256 checksums are in `src/models/manifest.ts`. Switching models re-loads the
-inference engine (`LlamaEngine`/`EmbeddingEngine` now release their previous
-context before loading a new one, avoiding a native memory leak on switch).
+Sizes and SHA-256 checksums are in `android-native/app/src/main/assets/boar-data/catalog.json`. Switching models re-loads the
+inference engine, which releases the previous context before loading a new one.
 
 ## Setup tiers and corpus packs
 
-First run offers three tiers (`src/models/manifest.ts` `TIERS`, picked in
-`ModelSetupScreen`'s wizard) — all download the same required models, only
+First run offers the tiers in `android-native/app/src/main/assets/boar-data/catalog.json` (`tiers`, picked in the setup
+wizard) — all download the same required models, only
 the knowledge base differs, and higher tiers are strict supersets:
 
 | Tier | Knowledge base | Extra download |
 |---|---|---|
-| Minimum | 300 bundled topics (in the JS bundle, no download) | none |
+| Minimum | 300 bundled topics (in the APK, no download) | none |
 | Standard | + 1,000 more Wikipedia-derived topics | ~600KB |
 | Full | + 4,000 more on top of Standard (5,300 total) | ~3MB total |
 
@@ -126,160 +125,88 @@ Corpus packs (`corpus-standard`, `corpus-full`) are built by
 `generator=random` API (20 articles/request) rather than one-by-one summary
 calls — far fewer HTTP round-trips for a given count. They're committed to
 this repo and downloaded via a `raw.githubusercontent.com` URL (no separate
-hosting needed) through the same `ModelManager.downloadCatalogModel` path as
-everything else, verified by sha256.
+hosting needed) through the same download path as everything else
+(`AssetStore` in the engine), verified by sha256.
 
 **Honest scope note**: "Full" is not literally the entire English Wikipedia —
 that's a different scale of engineering (dump processing, compression, a real
 ANN index) not attempted here. The architecture is designed so more packs can
 be added later within the 50GB storage budget without changing how any of
-this works — `MODEL_CATALOG`/`TIERS` are meant to grow.
+this works — the catalog's `models` and `tiers` are meant to grow.
 
 ## "Deep Research Mode" — honest scope note
 
-Settings has a "🔬 Deep Research Mode" toggle (`src/services/orchestrator.ts`)
+Settings has a "🔬 Deep Research Mode" toggle (`android-native/engine/src/main/java/team/sopa/boar/engine/answer/DeepResearch.kt`)
 that decomposes a question into 2-3 sub-questions, retrieves + answers each
 separately, then synthesizes one final answer. This is **not** multiple AI
 models/agents running concurrently — running 3 models at once, or a
 dedicated planner/critic model, genuinely doesn't fit in the 12GB RAM budget
-alongside everything else. It's several sequential `llamaEngine.generate()`
+alongside everything else. It's several sequential generation
 calls on the *same* single loaded model, playing different roles in turn.
 Noticeably slower than a normal reply (multiple LLM passes instead of one) —
 the UI badge says "Deep Research", not "multi-agent", and the in-app
 description spells this out, to avoid overclaiming what's actually
 happening.
 
-`modules/ram-monitor` also exposes `getDeviceTotalRamBytes()` (device
-physical RAM, not just this app's usage) so the model catalog can show a
+The app reads the device's physical RAM (not just its own usage) so the model catalog
+(`android-native/engine/src/main/java/team/sopa/boar/engine/models/Compatibility.kt`) can show a
 rough 🟢/🟡/🔴 compatibility hint before downloading a large model —
 estimated from file size (×1.15 for KV-cache/context overhead), which is an
-approximation, not a guarantee. A live Hugging Face model browser (search,
-arbitrary GGUF repos) was considered and deliberately not built — real
-scope beyond the curated, sha256-verified static catalog already in place,
-for uncertain payoff.
+approximation, not a guarantee. Models beyond the catalog can be found on Hugging
+Face from the app (docs/USING.md, "Finding more models").
 
 ## Multi-session chat history & conversation memory
 
 Chat sessions/messages persist locally in the same SQLite database as the
-knowledge base (`src/rag/db.ts`'s `chat_sessions`/`chat_messages` tables) —
-`src/services/chatHistory.ts` is the CRUD layer, surfaced as a "Recent
+knowledge base — `android-native/engine/src/main/java/team/sopa/boar/engine/chat/ChatStore.kt` is the CRUD layer, surfaced as a "Recent
 Chats" list in the drawer with auto-generated titles and per-session
 delete.
 
-For long conversations, `src/services/summarize.ts` condenses older turns
-into a running summary (prepended to the prompt alongside the last 3
-exchanges kept verbatim — see `assemblePrompt`'s `history` param in
-`src/rag/pure.ts`), instead of sending the whole transcript every time.
+For long conversations, `android-native/engine/src/main/java/team/sopa/boar/engine/answer/Summarize.kt` condenses older turns
+into a running summary, and `HistoryBudget.kt` keeps the latest exchanges within the
+prompt budget, instead of sending the whole transcript every time.
 
 **Concurrency constraint worth being explicit about**: title generation and
 summarization are themselves LLM calls through the *same* `llamaEngine`
 context as the main chat — `llama.cpp` contexts only run one completion at
-a time. These run as fire-and-forget background tasks after a response
-finishes (not literally blocking the UI thread), but if the user sends a
-new message while one is still in flight, `ChatScreen` calls
-`llamaEngine.stop()` and awaits it before starting the next generation
-(`cancelBackgroundTask`) — otherwise the new message would silently queue
-behind the background task on the same context.
-
-## UI dependency choices
-
-The chat UI's animations (mic pulse/aura rings, processing indicator, drawer
-slide) all use React Native's built-in `Animated` API rather than
-`react-native-reanimated`, and the side drawer is hand-rolled rather than
-`@react-navigation/drawer`. Both would work, but both are heavier native
-dependency chains (worklets + Babel plugin; gesture-handler + screens + a
-full navigator) for effects `Animated` and a simple slide-panel component
-already deliver here — given this app is a single-screen state machine, not
-a multi-route navigator, pulling in a routing library felt like solving a
-problem this app doesn't have. `expo-linear-gradient` is the one new native
-dependency added for the gradient background/glassmorphism look.
+a time. They run in the background after a response finishes; a new message
+stops one still in flight before its own generation starts, so it never queues
+behind it.
 
 ## Voice input (offline speech-to-text)
 
-`modules/voice-input` wraps Android's built-in `SpeechRecognizer` with
-`EXTRA_PREFER_OFFLINE`, exposed via `src/voice/VoiceInput.ts` and the mic
-button in `ChatScreen`. No cloud STT API is called.
+`android-native/app/src/main/java/team/sopa/boar/voice/VoiceInput.kt` wraps Android's built-in `SpeechRecognizer` with
+`EXTRA_PREFER_OFFLINE`, behind the mic button in the chat. No cloud STT API is called.
 
 **Honest scope note**: this depends on a system-provided recognition service
 (Google's, or an OEM's) being installed on the device. Most stock
 Android/OEM builds ship one; **GrapheneOS and other de-Googled builds
 typically do not**, so voice input won't work there out of the box —
-`isAvailable()` detects this and the UI shows a clear "unavailable" message
+the app detects this and the UI shows a clear "unavailable" message
 rather than pretending to listen. A true cross-device guarantee would mean
 bundling a `whisper.cpp` model with a custom binding, which is a project on
-the scale of the `llama.rn` integration itself — documented as future work,
+the scale of the llama.cpp integration itself — documented as future work,
 not attempted in this version. Typing always works everywhere regardless.
 
 ## Delivery: one-time first-run download
 
-The two required assets (Qwen2.5-1.5B and the embedding model) are declared with
-`required: true` in `src/models/manifest.ts` (about 1 GB total). Phi-3.5-mini,
-Qwen2.5-7B, LFM2.5-8B-A1B and Gemma 4 E4B are optional suggestions in the same
-catalog. The
-app itself ships small (no multi-GB assets baked in, for fast builds/installs);
-on first launch it shows a mandatory setup screen that downloads them — see
-`ARCHITECTURE.md` "First-run model setup". Once done, the app works completely
-offline from then on, matching "work completely offline once installed."
+All models are in the in-app catalog (`android-native/app/src/main/assets/boar-data/catalog.json`). The app ships small (no
+multi-GB assets in the APK); on first launch a mandatory setup screen downloads the
+answer model (Qwen3 4B on phones with 10 GB of RAM or more, Qwen2.5-1.5B below that;
+`android-native/engine/src/main/java/team/sopa/boar/engine/models/SetupModel.kt`) and the embedding model. Phi-3.5-mini, Qwen2.5-7B,
+LFM2.5-8B-A1B and Gemma 4 E4B are optional entries in the same catalog. Once setup is
+done, answering, retrieval and your documents work without a network connection.
 
-Each download has a 60-second *inactivity* timeout (`ModelManager.
-downloadCatalogModel`, not a flat deadline — a slow-but-progressing download
-isn't penalized, only zero progress for 60s is treated as stalled) and, in the
-setup wizard, a visible error + Retry button per failed asset. Before this, a
-stalled download (e.g. a host rate-limiting the connection) just sat at 0%
-forever with no error and no way to retry — the mandatory first-run screen had
-no escape hatch at all.
-
-The same screen, reached later via the chat UI's "Models" button, additionally
-lets a user fetch **optional, non-default** models over the network — only when
-they explicitly tap "Download" on a specific entry. `ModelManager.downloadCatalogModel`
-is the only code path in the shipped app that performs a network request;
-`android.permission.INTERNET` is present in the build for that reason, but is
-otherwise unused (in particular, never during chat/inference/retrieval).
-
-An alternate build path (`modules/bundled-assets` + `plugins/withBundledModels.js`,
-verified working but not used by default) can bake the default models directly
-into the APK instead, for a build that needs zero network ever — see
-`ARCHITECTURE.md`.
-
-### Pre-seeding models you already have locally
-
-Two different situations, two different mechanisms:
-
-- **Building your own APK** and you already have the GGUF files on your dev
-  machine: drop them into `assets/models/` with the exact filenames
-  `scripts/setup-models.sh` expects (`primary-llm.gguf`,
-  `qwen2.5-1.5b-instruct-q4km.gguf`, `embedding.gguf`) before running the
-  script — it sha256-verifies whatever's already there and skips
-  re-downloading anything that already matches, before `expo prebuild`
-  bundles them into the APK (see previous paragraph). Does nothing for an
-  app already installed on a device.
-- **An already-installed dev-client build**, skipping the in-app download
-  entirely: push the files straight into the app's private storage with
-  `adb`. The app's storage isn't directly writable by `adb push`, so stage
-  on `/sdcard` first and use `run-as` (only works on a **debuggable**
-  build, e.g. `expo-dev-client` — a signed release build will refuse this):
-
-  ```bash
-  adb push primary-llm.gguf /sdcard/Download/
-  adb shell run-as team.sopa.aoair mkdir -p files/models
-  adb shell run-as team.sopa.aoair cp /sdcard/Download/primary-llm.gguf files/models/primary-llm.gguf
-  ```
-
-  Repeat per asset. Two things must match exactly or `ModelManager.statusOf`
-  treats the file as corrupt/absent and deletes it: the **filename**
-  (`models/<name>.gguf`, per `src/models/manifest.ts`'s `filename` field)
-  and the **byte size** (`sizeBytes` in the same file — this is the only
-  check the app makes at runtime; sha256 is only checked on demand, nothing
-  calls it automatically). Worth confirming with `ls -la` against the
-  manifest before pushing, since a re-uploaded or differently-quantized
-  file from Hugging Face can silently differ in size.
+Downloads resume after an interruption.
+Optional models are fetched only when the user taps Download on an entry, or adds one
+from a Hugging Face search.
 
 ## Verification
 
-Every catalog entry is declared in `src/models/manifest.ts` with a `sha256` and
-`sizeBytes`. `ModelManager` verifies bundled installs by exact byte size (cheap,
-safe for multi-GB files) and can verify full sha256 on demand (used for the
-small embedding model; a multi-GB full-file JS-side sha256 is a known,
-documented limitation — see `ARCHITECTURE.md` Status). `scripts/setup-models.sh`
-does the authoritative sha256 verification, once, on the dev machine, before
-`expo prebuild` bundles the files into the build.
+Every catalog entry has a `sha256` and `sizeBytes`. `AssetStore`
+(`android-native/engine/src/main/java/team/sopa/boar/engine/models/AssetStore.kt`) checks the size, verifies the sha256 after a download, and
+records verified files in `files/integrity.json` so they aren't hashed again. Files live
+in the app's `files/` folder under the catalog's `filename`.
+
+The 1.x Expo app's other delivery paths (models bundled into the APK, pre-seeding with
+`scripts/setup-models.sh`) are on the `expo` branch only.

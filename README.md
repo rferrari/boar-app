@@ -82,8 +82,8 @@ tweaks. The normal build has none of this. How a lab is made: [docs/PLUGINS.md](
 Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline AI
 Research App".
 
-The earlier Expo / React Native app (BOAR 1.x) is kept as history at the git tag
-`expo-final`.
+The earlier Expo / React Native app (BOAR 1.x) is kept as history on the `expo` branch
+and the git tag `expo-final`.
 
 ## License
 

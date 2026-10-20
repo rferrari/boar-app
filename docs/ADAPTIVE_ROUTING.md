@@ -1,5 +1,9 @@
 # Adaptive Offline Intelligence — Phase 0 Architecture Audit
 
+> History: this audit describes the 1.x Expo app. Its `src/` paths are on the `expo`
+> branch; the native port of the routing is in
+> `android-native/engine/src/main/java/team/sopa/boar/engine/routing/`.
+
 Branch: `adaptive-offline-ai`. This audit is the required Phase 0 deliverable
 before any routing/execution-engine code is written, per the build plan.
 Everything below reflects the actual current code (checked directly, not

@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The model and corpus catalog, read from assets/boar-data/catalog.json, which
- * scripts/export-native-data.mjs writes from src/models/manifest.ts (one source of truth).
+ * The model and corpus catalog, read from assets/boar-data/catalog.json. That file is the source: edit it there
+ * (it was first exported from the Expo app's manifest).
  */
 @Serializable
 data class Catalog(

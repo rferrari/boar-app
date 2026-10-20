@@ -58,7 +58,7 @@ commits `scores.csv`, `scores.jsonl` and a dataset card to the Hugging Face data
 Setup, once: create the dataset on Hugging Face, make a fine-grained token with write access to
 it only, then in the GitHub repository set the `HF_TOKEN` secret and the `HF_DATASET`,
 `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` variables. The job does nothing until `HF_DATASET` is
-set. Try it locally with `npm run scores:mirror -- --dry-run` (writes the files to
+set. Try it locally with `npm --prefix scripts run scores:mirror -- --dry-run` (writes the files to
 `build/hf-mirror/`).
 
 ## Deletion requests

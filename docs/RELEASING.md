@@ -1,7 +1,9 @@
 # Releasing the Android APK
 
-Release APKs are built and signed by GitHub Actions (`.github/workflows/release-apk.yml`), so the
-signing key doesn't have to be on anyone's laptop. The workflow builds the APK, checks it with
+Release APKs of the native app (`android-native/`) are built and signed by GitHub Actions
+(`.github/workflows/release-apk.yml`), so the signing key doesn't have to be on anyone's laptop. The
+workflow builds the APK (`./gradlew :app:assembleRelease -Pboar.experimentalFeatures=true
+-Pboar.versionName=<tag without the v>`), checks it with
 `scripts/check-release-apk.sh` (package, versionCode, signed with v1.0.0's key) and, given a tag,
 creates a draft release with it.
 
@@ -31,19 +33,20 @@ use. Anyone who can push a branch could otherwise edit the workflow there to pri
    done
    ```
 
-3. The repository variables `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (Settings → Secrets and
-   variables → Actions → Variables) turn on "Share results" in the build. They're public
-   by design; the same values as `.env`. The native Android app (`android-native/`) also needs
-   `EVAL_SHARING=true`: without it, the default since Oct 19, 2026, the two values aren't built
-   in at all, there's no Share button, and evaluation runs stay on the phone as files.
+3. Nothing else. The workflow has no `.env`, so the release is built with `EVAL_SHARING` off: no
+   Share button, and evaluation runs stay on the phone as files. The repository variables
+   `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are used only by the score mirror
+   (`mirror-scores.yml`).
 
 Keep an offline backup of `boar-release.jks` anyway. BOAR isn't on Google Play, so a lost or
 leaked key can't be replaced: a new key means every user uninstalls and loses their models.
 
 ## Each release
 
-1. Bump `expo.version` and `expo.android.versionCode` in `app.json` and merge to `main`.
-2. Actions → Release APK → Run workflow, on `main`, with the tag (`v1.1.0`). About 40 minutes.
-   Without a tag it only builds; the APK is the run's artifact.
+1. Bump `versionCode` in `android-native/app/build.gradle.kts` (higher than the last release, or
+   it won't install over it) and merge to `main`. The version name comes from the tag.
+2. Actions → Release APK → Run workflow, on `main`, with the tag (`v2.0.0`). The APK is
+   `boar-<tag>-arm64.apk` with its `.sha256`. Without a tag it only builds (version `2.0.0-dev`);
+   the APK is the run's artifact.
 3. On the draft release: write the notes, install the APK over the previous release on a phone
    (no uninstall), then publish.

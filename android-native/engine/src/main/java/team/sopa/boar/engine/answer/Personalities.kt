@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * Answer styles (port of src/constants/personalities.ts). The texts come from the TypeScript source through
- * scripts/export-native-data.mjs (assets/boar-data/personalities.json), so both apps send the same prompts.
+ * Answer styles. The texts are in assets/boar-data/personalities.json, which is the source (first exported from
+ * the Expo app's personalities).
  */
 @Serializable
 data class Personality(

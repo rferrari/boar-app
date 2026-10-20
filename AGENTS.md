@@ -14,12 +14,19 @@ BOAR 2.x is a native Android app:
 - `android-native/app/src/labs/plugins/<id>/`: Boar Labs plugins, one folder each
   (`docs/PLUGINS.md`).
 
-The rest of the repo root (`src/`, `App.tsx`, `app.json`, `package.json`, `modules/`,
-`plugins/`, `eas.json`, the Expo targets in the `Makefile`) belongs to the old Expo /
-React Native app. It is not part of the native build. Don't use `npm install`,
-`expo prebuild`, Metro or EAS to build BOAR 2.x. The last Expo code is at the tag
-`expo-final`. The native build still reads two things from the repo root: `.env` and
-`assets/` (the Portuguese lexicon and the bundled corpus, copied in at build time).
+The rest of the repo root:
+
+- `assets/`: the Portuguese lexicon and the bundled corpus, copied into the app at build
+  time (and read by the engine tests).
+- `.env`: build flags (below). Not committed; see `.env.example`.
+- `scripts/`: Node and shell build tools (knowledge packs, evaluation reports, release
+  checks, the labs' engines). They have their own `scripts/package.json`; run them from the
+  repo root (`node scripts/<name>.mjs`) after `npm --prefix scripts install`. The app build
+  doesn't need them.
+- `supabase/`: the results server. `docs/`: the guides.
+
+The old Expo / React Native app (1.x) is not in this branch. Its last code is on the `expo`
+branch and the tag `expo-final`.
 
 ## Prerequisites
 
@@ -154,7 +161,7 @@ cr review --agent --base main      # this branch against main, structured findin
 cr review --agent --uncommitted    # or only what isn't committed yet
 ```
 
-`make review` runs the same review with readable output. A review can take several
+`cr review --base main` gives the same review with readable output. A review can take several
 minutes, so run it in the background. Check each finding against the current code before
 acting on it: fix the ones that hold up, and note in one line why you skipped the others.
 Re-run once after fixing, not in a loop.
@@ -210,11 +217,14 @@ supported by the llama.cpp submodule at its pinned commit.
 ## Building a knowledge pack
 
 Full guide: [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md). The pack builder is Node
-tooling at the repo root (`npm install` first; it is separate from the app build).
+tooling in `scripts/`, separate from the app build. Run it from the repo root.
 
 ```bash
-npm run pack:build -- --limit 200 --id test-pack   # quick check that the pipeline works
-npm run pack:build                                 # the full Vital Articles level 5 pack
+npm --prefix scripts install                                      # once
+npm --prefix scripts run pack:build -- --limit 200 --id test-pack # quick check that the pipeline works
+npm --prefix scripts run pack:build                               # the full Vital Articles level 5 pack
+npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite  # copy onto a USB-connected debuggable build
+npm --prefix scripts test                                         # the tools' unit tests
 ```
 
 - A full level 5 build takes hours (downloading about 50k introductions, then embedding).

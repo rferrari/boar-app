@@ -13,18 +13,20 @@ anything below unless you want a bigger or custom pack.
 
 ## Building your own
 
-You need a computer with Node.js and this repository (`npm install` done), and an
-internet connection for the build (the phone stays offline).
+You need a computer with Node.js and this repository, and an internet connection for
+the build (the phone stays offline). The builder is in `scripts/`, with its own
+`scripts/package.json`. Run everything from the repo root:
 
 ```bash
-npm run pack:build                        # Wikipedia Vital Articles level 5 (~50k articles, ~2-3 hours)
-npm run pack:build -- --level 4           # level 4 (~10k articles, ~30 minutes)
-npm run pack:build -- --titles my.txt     # your own list: one Wikipedia article title per line
-npm run pack:build -- --limit 200         # a quick test build
-npm run pack:build -- --help              # all options
+npm --prefix scripts install                                  # once
+npm --prefix scripts run pack:build                           # Wikipedia Vital Articles level 5 (~50k articles, ~2-3 hours)
+npm --prefix scripts run pack:build -- --level 4              # level 4 (~10k articles, ~30 minutes)
+npm --prefix scripts run pack:build -- --titles my.txt        # your own list: one Wikipedia article title per line
+npm --prefix scripts run pack:build -- --limit 200            # a quick test build
+npm --prefix scripts run pack:build -- --help                 # all options
 ```
 
-Or with make: `make knowledge-pack` (level 5) or `make knowledge-pack-small` (level 4).
+`node scripts/build-knowledge-pack.mjs <options>` from the repo root does the same.
 
 What the builder does:
 
@@ -59,10 +61,11 @@ Wikipedia text is CC BY-SA 4.0; keep the attribution if you share a pack.
 
 ## Putting a pack on your phone
 
-**For testing, over USB** (a development build of BOAR, USB debugging on):
+**For testing, over USB** (a debuggable build of BOAR with application id
+`team.sopa.aoair`, USB debugging on):
 
 ```bash
-npm run pack:push -- build/knowledge-pack/<id>.sqlite
+npm --prefix scripts run pack:push -- build/knowledge-pack/<id>.sqlite
 ```
 
 It copies the file into the app's storage and verifies it. BOAR uses any valid
@@ -73,11 +76,11 @@ download it:
 
 1. Upload the `.sqlite` file somewhere public, for example as a GitHub Release
    asset (files over 100 MB can't go in the git repository itself).
-2. Add an entry to `CORPUS_CATALOG` in `src/models/manifest.ts` with
-   `kind: "corpus"`, `format: "sqlite-pack"`, `filename: "corpus/<id>.sqlite"`,
-   and the size and SHA-256 from the `.json` summary.
-3. To offer it in the setup wizard, add its id to a tier's `corpusPackIds`
-   (`TIERS` in the same file).
+2. Add an entry to `models` in `android-native/app/src/main/assets/boar-data/catalog.json` with
+   `"kind": "corpus"`, `"format": "sqlite-pack"`, `"filename": "corpus/<id>.sqlite"`,
+   the `sourceUrl`, and the size and SHA-256 from the `.json` summary (the
+   `wiki-vital5` entry is an example).
+3. To offer it in the setup wizard, add its id to a tier's `corpusPackIds` (`tiers` in the same file).
 
 ## How the app searches a pack
 

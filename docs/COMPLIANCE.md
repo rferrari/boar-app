@@ -11,7 +11,8 @@ every status. Statuses are only what has been checked:
 Raw benchmark files (JSONL, answers, reports) are in [evidence/](evidence/);
 the demo videos and screenshots are in [demo/](demo/README.md).
 
-Last reviewed: 2026-09-25. Test device: Xiaomi 2311DRK48G, MediaTek MT6897
+Last reviewed: 2026-09-25, on the 1.x Expo app; the measurements below are from that
+review. Code references point to the native app (`android-native/`). Test device: Xiaomi 2311DRK48G, MediaTek MT6897
 (Dimensity 8300), 11.6 GB RAM, Android 16.
 
 | # | Requirement | Status |
@@ -49,11 +50,10 @@ Last reviewed: 2026-09-25. Test device: Xiaomi 2311DRK48G, MediaTek MT6897
 - Highest measured process peak in the benchmark: 5.07 GB (Qwen2.5-7B Q4_K_M).
   Qwen2.5-1.5B steady state is about 1.6 GB, Phi-3.5-mini about 3.1–3.8 GB.
 - Only one generation model is loaded at a time. Loads and unloads are
-  serialized so rapid model switching can't leave a second model in memory
-  (`src/inference/LlamaEngine.ts`, tested in `LlamaEngine.test.ts`).
+  serialized so rapid model switching can't leave a second model in memory.
 - Before loading, the app checks the model's estimated working set against free
   RAM and refuses with a clear message rather than crashing
-  (`LlamaEngine.estimateFit`).
+  (`android-native/engine/src/main/java/team/sopa/boar/engine/models/LoadGuard.kt`).
 
 ### 3. 50 GB storage — PASS
 - Default install: about 1 GB of models (Qwen2.5-1.5B 0.99 GB, bge-small
@@ -61,33 +61,34 @@ Last reviewed: 2026-09-25. Test device: Xiaomi 2311DRK48G, MediaTek MT6897
 - Every optional catalog model (Phi-3.5-mini, Qwen2.5-7B, LFM2.5-8B-A1B,
   Gemma 4 E4B) adds about 17.4 GB, and the Wikipedia Vital Articles knowledge
   pack 0.16 GB, for about 18.6 GB in total.
-- Enforced before every download (`checkStorageForDownload`,
-  `src/models/storageBudget.ts`, called from `ModelManager.downloadCatalogModel`):
+- Enforced before every download (`android-native/engine/src/main/java/team/sopa/boar/engine/models/StorageBudget.kt`):
   what BOAR already stores (models, knowledge packs, database) plus downloads in
   progress, a 1 GB reserve for the app itself and the new file must stay within
-  `STORAGE_BUDGET_BYTES` (50 GB), and the phone must have the space free.
+  the catalog's `storageBudgetBytes` (50 GB), and the phone must have the space free.
   Otherwise the download is refused with a message before any data is fetched.
 
 ### 4. Works offline once installed — PASS
 - After the one-time first-run download, answering questions uses only the
-  on-device model (llama.rn / llama.cpp) and the local SQLite knowledge base
+  on-device model (llama.cpp) and the local SQLite knowledge base
   and packs.
 - Recorded on the test phone with airplane mode on and Wi-Fi off: four queries,
   a follow-up and the knowledge pack answering
   ([demo/](demo/README.md), 2026-09-24).
 
 ### 5. No network requests during use — PASS
-The only network code in the app (`src/`):
-- `ModelManager.downloadCatalogModel` — model and knowledge-pack downloads,
+The only network code in the app:
+- `android-native/engine/src/main/java/team/sopa/boar/engine/models/AssetStore.kt` — model and knowledge-pack downloads,
   started by the setup wizard or an explicit Download tap.
-- `src/services/modelBrowser.ts` — Hugging Face model search, only when the user
+- `android-native/app/src/main/java/team/sopa/boar/models/HfBrowser.kt` — Hugging Face model search, only when the user
   searches.
+- `android-native/app/src/main/java/team/sopa/boar/share/ResultsSharing.kt` — Evaluation › Share results, built in only with
+  `EVAL_SHARING=true` (off by default) and only when the user taps Share.
 
 Inference, retrieval, chat history, telemetry and evaluation make no network
 calls. The APK holds `INTERNET` and `ACCESS_NETWORK_STATE` for those downloads
 only.
 
-Optional voice input (`modules/voice-input`) uses Android's system speech
+Optional voice input (`android-native/app/src/main/java/team/sopa/boar/voice/VoiceInput.kt`) uses Android's system speech
 recognizer with offline preferred (`EXTRA_PREFER_OFFLINE`). Whether it
 recognizes offline depends on the phone's installed speech service; typing
 always works.
@@ -95,9 +96,6 @@ always works.
 ### 6. No Google Play Services — PASS
 - The release build's runtime dependencies contain no Play Services or Firebase
   (`./gradlew :app:dependencies --configuration releaseRuntimeClasspath`).
-- The development build does include `play-services-code-scanner`, pulled in
-  by `expo-dev-launcher` (the dev client's QR scanner). That's development
-  tooling only and absent from release builds.
 - The app code never calls Google services.
 
 ### 7. Research beyond recall — PARTIAL
@@ -140,18 +138,18 @@ it's public at claim time (18).
 
 ### 10. Code, assets, dependencies, instructions — PASS
 - Build and install: [README.md](../README.md) Quickstart,
-  [AGENTS.md](../AGENTS.md), `Makefile`, `eas.json`.
+  [AGENTS.md](../AGENTS.md) (Gradle build in `android-native/`).
 - Knowledge base: `assets/corpus/*.json`, committed. The Wikipedia Vital
   Articles pack is a [release asset](https://github.com/rferrari/boar-app/releases/tag/knowledge-pack-v1),
-  built reproducibly with `npm run pack:build`
+  built reproducibly with `npm --prefix scripts run pack:build`
   ([docs/KNOWLEDGE_PACKS.md](KNOWLEDGE_PACKS.md)).
 - Models: downloaded by the in-app setup wizard from the URLs in
-  `src/models/manifest.ts`, which also records each file's size and SHA-256.
-  Downloads are verified by size on the device; the URLs point to each
-  repository's `main` branch rather than a pinned revision.
+  `android-native/app/src/main/assets/boar-data/catalog.json`, which also records each file's size and SHA-256.
+  Downloads are verified by SHA-256 on the device, and the Hugging Face URLs are
+  pinned to a commit.
 
 ### 11. Models and datasets documented — PASS
-[docs/MODELS.md](MODELS.md) and `src/models/manifest.ts`: every model and
+[docs/MODELS.md](MODELS.md) and `android-native/app/src/main/assets/boar-data/catalog.json`: every model and
 knowledge pack with source, size, checksum and license. The knowledge base and
 packs are Wikipedia-derived, CC BY-SA 4.0.
 
@@ -163,16 +161,13 @@ then a correct answer at about 7 tok/s with Qwen2.5-1.5B.
 ### 13. Running within a few minutes — PARTIAL
 - No build needed: download the APK from the
   [release](https://github.com/rferrari/boar-app/releases/tag/v1.0.0), check its
-  checksum and install it (the README's "Download the app"), or let
-  `make setup` do all three over USB.
+  checksum and install it (the README's "Download the app").
 - The first run downloads about 1 GB, so total time depends on the connection;
   the install-to-first-answer time hasn't been measured with a stopwatch.
 
 ### 14. Assets or download instructions — PASS
 The first-run setup wizard downloads every required model and optional
-knowledge pack in the app. `scripts/setup-models.sh` plus
-`plugins/withBundledModels.js` is an alternative that bundles models into the
-APK (see [docs/MODELS.md](MODELS.md)).
+knowledge pack in the app, from the catalog (see [docs/MODELS.md](MODELS.md)).
 
 ### 15–17. Public demo and poidh submission — PASS / PARTIAL / OPEN
 - Posted on X: [x.com/arferrari/status/2103677576380387484](https://x.com/arferrari/status/2103677576380387484), with the demo clips from
@@ -191,8 +186,8 @@ and its `.sha256` file, built from the tagged commit `8ae9d44`.
   CC BY-SA 4.0) and credited in [docs/MODELS.md](MODELS.md).
 
 ### 20. ">50% as good as internet + frontier models" — OPEN
-Not measured yet. The on-device evaluation harness and device CLI
-(`npm run eval:device`, [docs/EVAL_QUERIES.md](EVAL_QUERIES.md)) produce the
+Not measured yet. The on-device evaluation harness and its adb runner
+([docs/DEVICE_EVALUATION.md](DEVICE_EVALUATION.md), [docs/EVAL_QUERIES.md](EVAL_QUERIES.md)) produce the
 BOAR side. Still needed: reference answers from a frontier model with web
 search, rubric scoring against them, and blind human spot checks, with every
 raw file committed.
@@ -206,4 +201,4 @@ raw file committed.
 | `eval-2026-09-24T20-41-45-071Z` | Qwen2.5-1.5B with the Vital Articles pack, 6 queries | [evidence/2026-09-24-vital-articles-pack](evidence/2026-09-24-vital-articles-pack/) |
 
 The `.jsonl` files are the raw per-answer records written on the phone; the
-reports and answer sheets are generated from them (`npm run eval:summary`).
+reports and answer sheets are generated from them (`node scripts/eval-summary.mjs`).

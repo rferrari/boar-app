@@ -65,6 +65,7 @@ peak RAM, completed and sources found), so people can sort by what matters to th
 
 - `supabase/migrations/*_eval_scores.sql`, `compute_eval_scores`: the stored score. The server
   always computes it from the answers; a score sent by the app would be ignored.
-- `src/eval/score.pure.ts`: the same formula in the app, for the preview before sending.
+- `android-native/engine/src/main/java/team/sopa/boar/engine/eval/EvalScore.kt`: the same formula in
+  the app, for the preview before sending.
 
 Change both together, bump `SCORE_VERSION` and `score_version`, and update this page.

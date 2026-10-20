@@ -3,11 +3,8 @@
 # dependencies
 node_modules/
 
-# Expo
-.expo/
+# release APKs (scripts/check-release-apk.sh examples)
 dist/
-web-build/
-expo-env.d.ts
 
 # Native
 .kotlin/
@@ -17,9 +14,6 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
 
 # debug
 npm-debug.*
@@ -37,20 +31,16 @@ yarn-error.*
 # MCP servers point at our own projects; each developer adds theirs
 .mcp.json
 
-# typescript
-*.tsbuildinfo
-
-# generated native folders
+# leftovers of the 1.x Expo app's prebuild in older checkouts
 /ios
 /android
-modules/*/android/build/
-modules/*/android/.cxx/
+.expo/
 
-# model weights and generated indexes (fetched via scripts/setup-models.sh)
+# model weights (the knowledge-pack builder downloads the embedding model here)
 assets/models/
 *.gguf
 
-# device evaluation results (npm run eval:device)
+# device evaluation results (docs/DEVICE_EVALUATION.md)
 eval-results/
 
 # knowledge pack builds (scripts/build-knowledge-pack.mjs)
