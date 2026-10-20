@@ -67,18 +67,22 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
+        // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
+        // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
+        val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
+        val facts = ModelOrder.Facts(
+            active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
+            downloading = state.rows.filterValues { it.downloading }.keys, mine = state.mine, lastUsed = state.lastUsed, added = state.added,
+        )
+        val sorted = ModelOrder.apply(all, state.sort, state.filter, facts)
+        // The order holds while the catalog is open: a download that starts, fails or ends doesn't move its card away
+        // from the user's finger (Oct 20). It's sorted again when the sort, the filter or the set of models changes.
+        val order = remember(state.sort, state.filter, all.size) { sorted.map { it.id } }
+        val models = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
-            // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
-            // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
-            // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
-            val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
-            val facts = ModelOrder.Facts(
-                active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
-                downloading = state.rows.filterValues { it.downloading }.keys, mine = state.mine, lastUsed = state.lastUsed, added = state.added,
-            )
-            val models = ModelOrder.apply(all, state.sort, state.filter, facts)
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     ChipRow(t("native.models.sort"), listOf(
