@@ -465,7 +465,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
 /** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
 @Composable
 private fun ExperimentalSection(services: BoarServices) {
-    Section(t("native.settings.experimental")) {
+    Section(t("native.settings.experimental"), collapsible = true) {
         Note(t("native.settings.experimentalNote"))
         val avatarsOn by services.vault.enabled.collectAsState()
         SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }

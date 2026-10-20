@@ -16,7 +16,7 @@
     <string name="native_labs_status_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_status_leaked" formatted="false">LEAKED</string>
     <string name="native_labs_status_classified" formatted="false">CLASSIFIED</string>
-    <string name="native_labs_settingsTitle" formatted="false">Boar Labs (experimental)</string>
+    <string name="native_labs_settingsTitle" formatted="false">Boar Labs</string>
     <string name="native_labs_crash_setting" formatted="false">Restart BOAR after a crash</string>
     <string name="native_labs_crash_settingNote" formatted="false">If BOAR closes because of an error in its own code, it opens again by itself, at most once a minute.</string>
     <string name="native_labs_crash_restarted" formatted="false">BOAR restarted after an error.</string>
