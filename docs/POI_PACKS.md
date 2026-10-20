@@ -7,8 +7,9 @@ phone by distance and diet. A world gazetteer (GeoNames) resolves city names.
 Nothing is generated: every place in an answer is a record with a link to its
 source.
 
-> The native app (2.x) doesn't search places packs yet. The search below was in the
-> 1.x Expo app (the `expo` branch). The builders in `scripts/` still make the packs.
+> Future work, not shipped: the native app (2.0) doesn't search places packs, and no
+> places pack is offered in the app. The search below was in the 1.x Expo app (the `expo`
+> branch). The builders in `scripts/` still make the packs.
 
 ```bash
 # 1. food and drink POIs of a bounding box (one Overpass query, a few MB)
