@@ -34,6 +34,14 @@ class StartLoadTest {
         assertEquals(Decision.Load("big-12b"), decide(streamed, listOf(small, streamed)))
     }
 
+    @Test fun `a red model of a streaming engine the user moved to BOAR's engine asks first`() {
+        // BoarServices.startModel: streamed follows the engine that runs it now, not the model's engine tag.
+        val onBoar = red.copy(streamed = false)
+        assertEquals(Decision.AskRisky("big-12b", onlyModel = false), decide(onBoar, listOf(small, onBoar)))
+        assertEquals(true, StartLoad.risky(onBoar, ram))
+        assertEquals(false, StartLoad.risky(onBoar.copy(streamed = true), ram))
+    }
+
     @Test fun `unknown RAM is never risky`() {
         assertEquals(Decision.Load("big-12b"), StartLoad.decide(red, listOf(red), none, null, 0, emptySet()))
     }

@@ -297,11 +297,13 @@ class BoarServices private constructor(private val context: Context) {
     val builtInEngine = BuiltInEngine()
 
     /**
-     * The engine that runs [asset]: one Boar Labs routes it to (the user's engine choice, EnginePlugins.route), else its
-     * own Labs engine (CatalogAsset.engine), else BOAR's. With Labs off nothing is routed: CatalogAsset.engine decides.
+     * The engine that runs [asset]: one Boar Labs routes it to (the user's engine choice, EnginePlugins.route), else BOAR's
+     * for a Labs engine's model the user moved to BOAR (EnginePlugins.prefersBuiltIn), else its own Labs engine
+     * (CatalogAsset.engine), else BOAR's. With Labs off nothing is routed: CatalogAsset.engine decides.
      */
     fun providerFor(asset: CatalogAsset): team.sopa.boar.plugins.EngineProvider? =
         team.sopa.boar.plugins.EnginePlugins.routed(asset)
+            ?: builtInEngine.takeIf { asset.engine != null && team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(asset) }
             ?: asset.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: builtInEngine.takeIf { asset.engine == null }
 
     /** [asset] answers through BOAR's own engine (not a Labs engine, by its catalog entry or the user's choice). */

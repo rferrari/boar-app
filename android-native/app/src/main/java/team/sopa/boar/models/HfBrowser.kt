@@ -78,8 +78,11 @@ object HfBrowser {
 
     private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
 
-    /** toCatalogModel: the same id and file name as the Expo app, so a model added in either is the same file. */
-    fun toAsset(repoId: String, f: GgufFile): CatalogAsset {
+    /**
+     * toCatalogModel: the same id and file name as the Expo app, so a model added in either is the same file. [architecture]:
+     * the repo's, from its listing (Repo.architecture), kept so Boar Labs knows a mixture of experts before it's downloaded.
+     */
+    fun toAsset(repoId: String, f: GgufFile, architecture: String? = null): CatalogAsset {
         require(".." !in f.filename && !f.filename.startsWith("/")) { "Unsafe file name: ${f.filename}" }
         // The Expo app's id (cut at 120 characters); a longer one gets a short hash so two long names can't collide.
         val full = "hf-${slug(repoId)}-${slug(f.filename)}"
@@ -89,7 +92,7 @@ object HfBrowser {
             filename = "models/$id.gguf", sizeBytes = f.sizeBytes, sha256 = f.sha256 ?: "",
             sourceUrl = "https://huggingface.co/${repoPath(repoId)}/resolve/${enc(f.revision ?: "main")}/${f.filename.split("/").joinToString("/") { enc(it) }}",
             license = "Unknown — check the model's Hugging Face page",
-            description = "$repoId — added via model search, not vetted by BOAR", required = false,
+            description = "$repoId — added via model search, not vetted by BOAR", required = false, architecture = architecture,
         )
     }
 

@@ -39,6 +39,15 @@ class CatalogTest {
         catalog.tiers.forEach { t -> t.corpusPackIds.forEach { assertTrue("${t.id}: $it", it in corpus) } }
     }
 
+    @Test fun `architecture is optional, so older catalogs and saved models still parse`() {
+        assertTrue(catalog.models.all { it.architecture == null })
+        val asset = """{"id":"hf-a-b","kind":"llm","label":"b","filename":"models/hf-a-b.gguf","sizeBytes":1,"sha256":"","sourceUrl":"u","license":"l","description":"d","required":false}"""
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+        assertEquals(null, json.decodeFromString(CatalogAsset.serializer(), asset).architecture)
+        val withArch = asset.dropLast(1) + ""","architecture":"lfm2moe"}"""
+        assertEquals("lfm2moe", json.decodeFromString(CatalogAsset.serializer(), withArch).architecture)
+    }
+
     @Test fun `Phi-3_5-mini is no longer suggested, and nothing setup needs is hidden`() {
         assertEquals(listOf("phi-3.5-mini-instruct-q4km"), catalog.models.filter { it.hidden }.map { it.id })
         (catalog.requiredModels + catalog.answerModels).forEach { assertTrue(it.id, !it.hidden) }

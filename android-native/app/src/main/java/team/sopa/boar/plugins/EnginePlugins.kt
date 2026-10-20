@@ -27,6 +27,11 @@ interface EngineProvider {
      * for a mixture of experts too big for the phone's memory). Asked through [EnginePlugins.route]; false by default.
      */
     fun claims(asset: CatalogAsset): Boolean = false
+    /**
+     * One of this engine's own models ([CatalogAsset.engine] = [id]) the user moved to BOAR's engine (the BOAR choice on
+     * its card). Asked through [EnginePlugins.prefersBuiltIn]; false by default.
+     */
+    fun prefersBuiltIn(asset: CatalogAsset): Boolean = false
 }
 
 object EnginePlugins {
@@ -45,4 +50,13 @@ object EnginePlugins {
 
     /** The engine [route] picks for [asset], if any; a failing route is today's rule. */
     fun routed(asset: CatalogAsset): EngineProvider? = runCatching { route(asset) }.getOrNull()?.let(::forEngine)
+
+    /**
+     * Set by Boar Labs at start: a Labs engine's own model ([CatalogAsset.engine] set) that runs on BOAR's engine instead,
+     * by the user's choice. False, the default and always with Labs off, keeps [CatalogAsset.engine]'s rule.
+     */
+    @Volatile var builtIn: (CatalogAsset) -> Boolean = { false }
+
+    /** [builtIn] for [asset]; a failing hook is today's rule. */
+    fun prefersBuiltIn(asset: CatalogAsset): Boolean = runCatching { builtIn(asset) }.getOrDefault(false)
 }

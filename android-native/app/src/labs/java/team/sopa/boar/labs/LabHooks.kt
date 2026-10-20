@@ -49,6 +49,8 @@ object LabHooks {
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }
         // A model of BOAR's own an active lab's engine runs instead (Big Boar, by the user's choice on its card).
         team.sopa.boar.plugins.EnginePlugins.route = { a -> LabRegistry.active.firstNotNullOfOrNull { lab -> lab.engine?.takeIf { it.claims(a) }?.id } }
+        // A model of an active lab's engine the user moved to BOAR's own (the BOAR chip on the 35B's card).
+        team.sopa.boar.plugins.EnginePlugins.builtIn = { a -> LabRegistry.active.any { lab -> lab.engine?.let { it.id == a.engine && it.prefersBuiltIn(a) } == true } }
         // About → credits: the engines Boar Labs ships and the models its labs use (android-native/NOTICE lists them too).
         team.sopa.boar.ui.about.AboutCredits.extra = {
             listOf(

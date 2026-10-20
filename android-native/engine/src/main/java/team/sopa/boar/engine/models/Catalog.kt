@@ -80,6 +80,11 @@ data class CatalogAsset(
      * or an engine's model folder). Never downloaded, size-checked or deleted by the app.
      */
     val externalPath: String? = null,
+    /**
+     * The GGUF general.architecture ("qwen3moe") when known before the file is on the phone: from the Hugging Face listing
+     * for a discovered model, or set by a Labs engine for its own. Null when unknown (catalog.json, models added earlier).
+     */
+    val architecture: String? = null,
 ) {
     /**
      * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from

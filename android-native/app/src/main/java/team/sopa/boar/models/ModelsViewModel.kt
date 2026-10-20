@@ -138,8 +138,10 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Adds the file to the list above as a downloadable model (not downloaded yet). */
     fun hfAdd(repo: String, f: HfBrowser.GgufFile) {
+        // The architecture the search listed for this repo, when it's in the results.
+        val arch = _state.value.hfResults.firstOrNull { it.id == repo }?.architecture
         safeScope.launch(Dispatchers.IO) {
-            val asset = runCatching { HfBrowser.toAsset(repo, f) }.getOrElse { e -> _state.update { it.copy(hfError = team.sopa.boar.engine.UserErrors.browseKey(e)) }; return@launch }
+            val asset = runCatching { HfBrowser.toAsset(repo, f, arch) }.getOrElse { e -> _state.update { it.copy(hfError = team.sopa.boar.engine.UserErrors.browseKey(e)) }; return@launch }
             services.addDiscovered(asset)
             services.vault.record { f -> f.copy(hfModels = maxOf(f.hfModels, services.discovered().size)) }
             store = AssetStore(getApplication<Application>().filesDir, services.catalog)

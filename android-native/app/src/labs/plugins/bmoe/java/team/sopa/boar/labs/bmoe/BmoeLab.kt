@@ -64,7 +64,7 @@ object BmoeLab : LabPlugin, EngineProvider {
     val MODEL = CatalogAsset(
         id = "qwen3.6-35b-a3b-bmoe", kind = AssetKind.LLM,
         label = "Qwen3.6-35B-A3B · BigMoeOnEdge (experimental)", displayName = "Qwen3.6 35B · Big Boar",
-        filename = "models/qwen3.6-35b-a3b-ud-q2-k-xl.gguf", engine = "bmoe",
+        filename = "models/qwen3.6-35b-a3b-ud-q2-k-xl.gguf", engine = "bmoe", architecture = "qwen35moe",
         // Pinned to one commit, checked against its LFS sha256 (both from the Hugging Face API, Oct 19 2026): a file
         // replaced on main later isn't downloaded, and a damaged download is caught.
         sizeBytes = 12_290_628_576, sha256 = "96b9c0af5c77a4ecaabe3983175112b5ece763261c1ece12b2494b692a70dad7",
@@ -150,6 +150,9 @@ object BmoeLab : LabPlugin, EngineProvider {
         val services = LabContext.app?.let { BoarServices.get(it) } ?: return false
         return runCatching { resolve(asset, services) == EngineChoice.Engine.BIG_BOAR }.getOrDefault(false)
     }
+
+    /** The 35B with the BOAR chip picked: BOAR's own engine loads it whole (the chat asks first when it's too big). */
+    override fun prefersBuiltIn(asset: CatalogAsset): Boolean = asset.engine == id && choice(asset.id) == EngineChoice.Choice.BOAR
 
     // --- Model Catalog and Hugging Face search --------------------------------------------------------------------
 
