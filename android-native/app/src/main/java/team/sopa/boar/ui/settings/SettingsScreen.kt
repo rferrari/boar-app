@@ -280,6 +280,13 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         Text(t("modelSetupScreen.recovery.wizardTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
+        // The setup tour on its own: no download under it, Done comes back here.
+        var tour by remember { mutableStateOf(false) }
+        var tourIndex by remember { mutableStateOf(0) }
+        LinkButton(t("native.tour.seeTour")) { tourIndex = 0; tour = true }
+        if (tour) team.sopa.boar.ui.tour.TourScreen(null, tourIndex, { tourIndex = it }, services.settings.themeId,
+            { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
+            onReady = null, onClose = { tour = false })
         // Defaults back without the multi-GB re-download "Clear all data" costs.
         Text(t("native.settings.resetTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
         Text(t("native.settings.resetDesc"), style = Boar.type.subtext, color = c.textSecondary)

@@ -480,4 +480,51 @@
     <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Exibição e tema</string>
     <string name="native_voiceSettings_unavailable" formatted="false">Indisponível neste celular</string>
     <string name="native_personalities_detailed_description" formatted="false">Respostas estruturadas e aprofundadas sobre o que conhece bem.</string>
+    <string name="native_tour_title" formatted="false">Tour do BOAR</string>
+    <string name="native_tour_skip" formatted="false">Pular</string>
+    <string name="native_tour_back" formatted="false">Voltar</string>
+    <string name="native_tour_next" formatted="false">Próximo</string>
+    <string name="native_tour_done" formatted="false">Pronto</string>
+    <string name="native_tour_launch" formatted="false">Abrir o BOAR</string>
+    <string name="native_tour_toDownload" formatted="false">Voltar ao download</string>
+    <string name="native_tour_openBoar" formatted="false">Abrir o BOAR</string>
+    <string name="native_tour_keepTouring" formatted="false">Continuar o tour</string>
+    <string name="native_tour_ready" formatted="false">O BOAR está pronto 🐗</string>
+    <string name="native_tour_again" formatted="false">Dá para ver este tour de novo nas Configurações.</string>
+    <string name="native_tour_whileYouWait" formatted="false">Enquanto espera</string>
+    <string name="native_tour_cardTitle" formatted="false">🐗 Faça o tour de 2 minutos</string>
+    <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Labs</string>
+    <string name="native_tour_start" formatted="false">Começar o tour</string>
+    <string name="native_tour_seeTour" formatted="false">Ver o tour</string>
+    <string name="native_tour_lineDownloading" formatted="false">Baixando · {{pct}}%</string>
+    <string name="native_tour_lineIndexing" formatted="false">Montando o índice · {{done}} de {{total}}</string>
+    <string name="native_tour_lineReady" formatted="false">Pronto</string>
+    <string name="native_tour_welcome_title" formatted="false">Conheça o BOAR</string>
+    <string name="native_tour_welcome_body" formatted="false">O BOAR responde no seu celular, a partir da própria biblioteca offline, e mostra de onde veio cada resposta. Uma volta rápida enquanto ele se prepara.</string>
+    <string name="native_tour_theme_title" formatted="false">Deixe do seu jeito</string>
+    <string name="native_tour_theme_body" formatted="false">Escolha um tema. Ele muda na hora, e dá para trocar de novo quando quiser.</string>
+    <string name="native_tour_theme_where" formatted="false">Configurações → Exibição &amp; Tema</string>
+    <string name="native_tour_styles_title" formatted="false">Escolha como o BOAR responde</string>
+    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Resumo Executivo para uma conclusão e três pontos.</string>
+    <string name="native_tour_styles_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
+    <string name="native_tour_deep_title" formatted="false">Pesquisa Profunda</string>
+    <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo.</string>
+    <string name="native_tour_deep_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
+    <string name="native_tour_sources_title" formatted="false">Fontes e recibos</string>
+    <string name="native_tour_sources_body" formatted="false">Cada resposta lista os artigos que usou: toque em um para ler. Um recibo mostra o modelo, a velocidade e o tempo.</string>
+    <string name="native_tour_sources_where" formatted="false">Embaixo de cada resposta</string>
+    <string name="native_tour_knowledge_title" formatted="false">Sua biblioteca e seus documentos</string>
+    <string name="native_tour_knowledge_body" formatted="false">O BOAR lê da biblioteca Vital Articles no seu celular. Importe um PDF e pergunte sobre ele também.</string>
+    <string name="native_tour_knowledge_where" formatted="false">Configurações → Base de Conhecimento Offline</string>
+    <string name="native_tour_models_title" formatted="false">Modelos</string>
+    <string name="native_tour_models_body" formatted="false">Troque o modelo de resposta, encontre outros no Hugging Face e deixe o BOAR liberar a memória quando você sair dele.</string>
+    <string name="native_tour_models_where" formatted="false">Configurações → Modelos de Raciocínio</string>
+    <string name="native_tour_pin_title" formatted="false">PIN</string>
+    <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
+    <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
+    <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos que respondem algumas perguntas sem o modelo. Calculator, Facts, Cohazard, Distance e Polyglot já vêm ligados, com o Boar Vitals; os outros vêm desligados. Se algum der problema, desligue.</string>
+    <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
+    <string name="native_tour_end_title" formatted="false">Fim do tour</string>
+    <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
 </resources>

@@ -208,6 +208,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); screen = "chat" }) else null,
             // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
             onBrowse = { setupModels.clearAdded(); browsing = true },
+            // The tour's theme card: the same write as Settings → Display & Theme.
+            themeId = services.settings.themeId,
+            onTheme = { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
         ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
         return
     }
