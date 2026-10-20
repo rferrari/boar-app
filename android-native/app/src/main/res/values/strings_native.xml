@@ -409,7 +409,7 @@
     <string name="native_chat_suggestions_b21" formatted="false">Is dengue worse the second time?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from the menu, Evaluation, to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from Settings → Advanced tweaks → Evaluation to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
@@ -469,7 +469,7 @@
     <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
     <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Erase everything</string>
-    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes every downloaded model and pack, your documents and all chats from this phone. It can\'t be undone.</string>
+    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes everything BOAR keeps on this phone: downloaded models and packs, your documents, all chats, your settings and the PIN. It can\'t be undone.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
     <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Erase everything?</string>
     <string name="native_modelSetupScreen_dangerModal_subtitle" formatted="false">This happens at once and can\'t be undone.</string>

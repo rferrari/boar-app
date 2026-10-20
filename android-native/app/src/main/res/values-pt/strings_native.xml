@@ -409,7 +409,7 @@
     <string name="native_chat_suggestions_b21" formatted="false">A dengue é pior na segunda vez?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida no menu, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Configurações → Ajustes avançados → Avaliação para comparar os modelos instalados nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
@@ -469,7 +469,7 @@
     <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Rode a configuração inicial de novo para escolher outro modelo.</string>
     <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Rodar a configuração de novo</string>
     <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Apagar tudo</string>
-    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Apaga do celular todos os modelos e pacotes baixados, seus documentos e todas as conversas. Não dá para desfazer.</string>
+    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Apaga tudo o que o BOAR guarda no celular: modelos e pacotes baixados, seus documentos, todas as conversas, suas configurações e o PIN. Não dá para desfazer.</string>
     <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Apagar tudo</string>
     <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Apagar tudo?</string>
     <string name="native_modelSetupScreen_dangerModal_subtitle" formatted="false">Acontece na hora e não dá para desfazer.</string>
