@@ -502,6 +502,10 @@
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">O Essencial mais 50 mil artigos da Wikipédia, para perguntas mais amplas.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recomendado</string>
     <string name="flows_onboarding_recommended_fast" formatted="false">Recomendado · rápido</string>
+    <string name="flows_onboarding_recommended_default" formatted="false">Recomendado · melhores respostas</string>
+    <string name="flows_onboarding_recommended_compact" formatted="false">Recomendado · leve</string>
+    <string name="flows_onboarding_tierLine_default" formatted="false">Deu as melhores respostas nos testes do BOAR.</string>
+    <string name="flows_onboarding_tierLine_compact" formatted="false">Cabe em celulares com menos memória.</string>
     <string name="flows_onboarding_alreadyDownloaded" formatted="false">Já está no celular</string>
     <string name="flows_onboarding_noSpace" formatted="false">Falta espaço: são necessários mais {{size}}.</string>
     <string name="flows_onboarding_install" formatted="false">Baixar {{size}}</string>
@@ -589,7 +593,7 @@
     <string name="flows_onboarding_linkCopied" formatted="false">Link copiado</string>
     <string name="flows_onboarding_toImport" formatted="false">Ainda não importado</string>
     <string name="flows_onboarding_importPlacesNote" formatted="false">Os pacotes de lugares ainda não estão publicados para download: escolha os arquivos aqui (a região e o arquivo de lugares do mundo).</string>
-    <string name="flows_onboarding_compactWhy" formatted="false">O Mais preciso pode não rodar bem neste celular, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.</string>
+    <string name="flows_onboarding_compactWhy" formatted="false">O modelo de melhores respostas pode não rodar bem neste celular, por isso o leve está selecionado. Você ainda pode escolhê-lo.</string>
     <string name="flows_onboarding_answerTier_default" formatted="false">Mais preciso</string>
     <string name="flows_onboarding_answerTier_compact" formatted="false">Rápido</string>
     <string name="flows_onboarding_compactLowRam" formatted="false">Este celular tem {{ram}} de memória ou menos, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.</string>

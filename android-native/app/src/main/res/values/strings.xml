@@ -503,6 +503,10 @@
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">Essential plus 50,000 Wikipedia articles, for broader questions.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recommended</string>
     <string name="flows_onboarding_recommended_fast" formatted="false">Recommended · fast</string>
+    <string name="flows_onboarding_recommended_default" formatted="false">Recommended · best answers</string>
+    <string name="flows_onboarding_recommended_compact" formatted="false">Recommended · light</string>
+    <string name="flows_onboarding_tierLine_default" formatted="false">Gave the best answers in BOAR\'s tests.</string>
+    <string name="flows_onboarding_tierLine_compact" formatted="false">Fits phones with less memory.</string>
     <string name="flows_onboarding_alreadyDownloaded" formatted="false">Already on the phone</string>
     <string name="flows_onboarding_noSpace" formatted="false">Not enough space: {{size}} more is needed.</string>
     <string name="flows_onboarding_install" formatted="false">Download {{size}}</string>
@@ -590,7 +594,7 @@
     <string name="flows_onboarding_linkCopied" formatted="false">Link copied</string>
     <string name="flows_onboarding_toImport" formatted="false">Not imported yet</string>
     <string name="flows_onboarding_importPlacesNote" formatted="false">Place packs aren\'t published for download yet: choose their files here (the region and the world places file).</string>
-    <string name="flows_onboarding_compactWhy" formatted="false">More accurate may not run well on this phone, so Fast is selected. You can still choose More accurate.</string>
+    <string name="flows_onboarding_compactWhy" formatted="false">The best-answers model may not run well on this phone, so the light one is selected. You can still choose it.</string>
     <string name="flows_onboarding_answerTier_default" formatted="false">More accurate</string>
     <string name="flows_onboarding_answerTier_compact" formatted="false">Fast</string>
     <string name="flows_onboarding_compactLowRam" formatted="false">This phone has {{ram}} of memory or less, so Fast is selected. You can still choose More accurate.</string>
