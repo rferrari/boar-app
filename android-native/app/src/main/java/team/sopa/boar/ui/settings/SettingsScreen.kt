@@ -85,10 +85,12 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
                 ClearChats(services)
             }
+            val avatarsOn by services.vault.enabled.collectAsState()
             Section(t("modelSetupScreen.sections.displayTheme")) {
                 var theme by remember { mutableStateOf(s.themeId) }
                 team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
                     onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
+                if (avatarsOn) team.sopa.boar.ui.appearance.AvatarPicker(services.vault)
                 var scale by remember { mutableStateOf(s.fontScale) }
                 Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                 var orientation by remember { mutableStateOf(s.screenOrientation) }
@@ -98,9 +100,10 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var haptics by remember { mutableStateOf(s.hapticsEnabled) }
                 SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
             }
-            val avatarsOn by services.vault.enabled.collectAsState()
-            if (avatarsOn) Section(t("native.vault.section")) {
-                team.sopa.boar.ui.appearance.AvatarPicker(services.vault) { onOpen("vault") }
+            // Boarverse on: the Vault gets its own section, a teaser and the way in (the avatar is chosen above, with the theme).
+            if (avatarsOn) Section(t("native.vault.title")) {
+                Note(t("native.vault.teaser"))
+                team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
             }
             Section(t("modelSetupScreen.sections.language")) {
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }

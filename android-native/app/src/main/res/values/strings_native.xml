@@ -226,8 +226,8 @@
     <string name="native_truffle_snow" formatted="false">Snow Boar</string>
     <string name="native_truffle_hacker_ii" formatted="false">Kernel Boar</string>
     <string name="native_vault_title" formatted="false">Truffle Vault</string>
-    <string name="native_vault_intro" formatted="false">Truffles are unearthed by using BOAR. Everything is counted on this phone and never leaves it.</string>
-    <string name="native_vault_card" formatted="false">🍄 Unearthed {{n}} / {{total}}</string>
+    <string name="native_vault_intro" formatted="false">You find truffles by using BOAR. Everything is counted on this phone and never leaves it.</string>
+    <string name="native_vault_card" formatted="false">🍄 Found {{n}} of {{total}}</string>
     <string name="native_vault_open" formatted="false">Open vault →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
@@ -235,8 +235,8 @@
     <string name="native_vault_iconNoteLauncher" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Equipped</string>
     <string name="native_vault_equip" formatted="false">Equip</string>
-    <string name="native_vault_unlockedOn" formatted="false">Unearthed {{date}}</string>
-    <string name="native_vault_fresh" formatted="false">🍄 Truffle unearthed: {{name}}</string>
+    <string name="native_vault_unlockedOn" formatted="false">Found {{date}}</string>
+    <string name="native_vault_fresh" formatted="false">🍄 Truffle found: {{name}}</string>
     <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs.</string>
     <string name="native_vault_themes" formatted="false">Themes</string>
     <string name="native_vault_labClue" formatted="false">Unlocked by a Lab</string>
@@ -543,4 +543,5 @@
     <string name="native_models_compat_streamed" formatted="false">Bigger than RAM · {{engine}} streams it</string>
     <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
     <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
+    <string name="native_vault_teaser" formatted="false">Keep using BOAR and you\'ll keep finding truffles: each one is a boar to wear, and some unlock new themes. Which questions dig them up is part of the fun.</string>
 </resources>

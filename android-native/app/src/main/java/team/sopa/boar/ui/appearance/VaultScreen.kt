@@ -76,9 +76,9 @@ fun ThemePicker(vault: TruffleVault, themeId: String?, onTheme: (String) -> Unit
     }
 }
 
-/** Settings → Boar Avatars (while the experiment is on): the equipped boar and the way into the Truffle Vault. */
+/** Settings → Display & Theme (while Boarverse is on): the equipped boar, BOAR's own or one found in the Vault. */
 @Composable
-fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
+fun AvatarPicker(vault: TruffleVault) {
     val c = Boar.colors
     val state by vault.state.collectAsState()
     val icon by vault.icon.collectAsState()
@@ -89,14 +89,6 @@ fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
             for (id in TruffleArt.byId.keys.filter { it in state.unlocked }) Avatar(TruffleArt.byId.getValue(id).avatar, t("native.truffle.$id"), icon == id) { vault.equip(id) }
         }
         Text(t(if (TruffleVault.LAUNCHER_ICONS) "native.vault.iconNoteLauncher" else "native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).clickable(onClick = onOpenVault).padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            // The count lives in the Vault itself; here, only the way in.
-            Text(t("native.vault.title"), style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f).padding(end = 8.dp))
-            // One line: the arrow was left alone on a second line at Large text.
-            Text(t("native.vault.open"), style = Boar.type.body, color = c.textAccentEmerald, maxLines = 1, softWrap = false)
-        }
     }
 }
 
@@ -172,5 +164,19 @@ fun FreshTruffle(vault: TruffleVault) {
                 team.sopa.boar.ui.I18n.t(ctx, "native.vault.fresh", "name" to team.sopa.boar.ui.I18n.t(ctx, "native.truffle.$id")),
                 image = art.avatar, action = team.sopa.boar.ui.I18n.t(ctx, "native.vault.equip"), onAction = { vault.equip(id) }))
         }
+    }
+}
+
+/** Settings → Truffle Vault (while Boarverse is on): the way into the Vault; the count and the clues are inside. */
+@Composable
+fun VaultEntry(onOpenVault: () -> Unit) {
+    val c = Boar.colors
+    Row(Modifier.fillMaxWidth().background(c.bgCardElevated, RoundedCornerShape(10.dp)).clickable(onClick = onOpenVault).padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        // The count lives in the Vault itself; here, only the way in.
+        Text(t("native.vault.title"), style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f).padding(end = 8.dp))
+        // One line: the arrow was left alone on a second line at Large text.
+        Text(t("native.vault.open"), style = Boar.type.body, color = c.textAccentEmerald, maxLines = 1, softWrap = false)
     }
 }
