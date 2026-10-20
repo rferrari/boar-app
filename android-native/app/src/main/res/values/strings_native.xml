@@ -541,4 +541,5 @@
     <string name="native_tour_adaptive_body" formatted="false">Off by default. Switch it on and BOAR picks which of your installed models answers each question, and how. Worth it when you have more than one model.</string>
     <string name="native_tour_adaptive_where" formatted="false">Settings → How BOAR answers</string>
     <string name="native_models_compat_streamed" formatted="false">Bigger than RAM · {{engine}} streams it</string>
+    <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
 </resources>

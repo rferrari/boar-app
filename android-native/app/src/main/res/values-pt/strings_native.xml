@@ -541,4 +541,5 @@
     <string name="native_tour_adaptive_body" formatted="false">Vem desligado. Ligue e o BOAR escolhe qual dos seus modelos instalados responde cada pergunta, e como. Vale a pena quando você tem mais de um modelo.</string>
     <string name="native_tour_adaptive_where" formatted="false">Configurações → Como o BOAR responde</string>
     <string name="native_models_compat_streamed" formatted="false">Maior que a RAM · o {{engine}} lê do armazenamento</string>
+    <string name="native_download_errorGated" formatted="false">Este modelo exige uma conta no Hugging Face e aceitar a licença. O BOAR baixa sem conta, então não consegue baixar este.</string>
 </resources>
