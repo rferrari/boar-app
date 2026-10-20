@@ -1,137 +1,152 @@
-# AGENTS.md — compiling & installing BOAR from source
+# AGENTS.md: building and installing BOAR from source
 
-This file is for an AI coding agent (or anyone scripting a build) that needs
-to go from a clean checkout to a running app on a real Android device — the
-exact commands, and the non-obvious constraints that make the naive path
-fail. For what the app *is* and how it's designed, read `README.md` and
-`ARCHITECTURE.md` first; this file only covers build/install mechanics.
+For an AI coding agent, or anyone scripting a build. It covers exact commands and the
+constraints that make the naive path fail. What the app is: `README.md`.
 
-## The one fact that changes everything: this is NOT an Expo Go app
+## The app is native Kotlin in `android-native/`
 
-`app.json`'s `plugins` includes `expo-dev-client`, and this repo has three
-**custom native modules** (`modules/bundled-assets`, `modules/ram-monitor`,
-`modules/voice-input`) plus `llama.rn` (native LLM inference). None of that
-runs inside the generic Expo Go app from the Play Store. Every build must go
-through `expo prebuild` to generate a real native Android project, then a
-real native build (`expo run:android` or an EAS cloud build) — there is no
-`expo start` + "scan QR code with Expo Go" path for this app. If you're
-tempted to just run `npx expo start` and expect it to work standalone: it
-won't — it only starts the Metro bundler, which a dev-client build (built
-via one of the two paths below) then connects to.
+BOAR 2.x is a native Android app:
+
+- `android-native/app`: the app (Kotlin, Jetpack Compose). Package `team.sopa.boar`,
+  application id `team.sopa.aoair` (kept from 1.x so a release installs over it).
+- `android-native/engine`: llama.cpp, SQLite and zstd through JNI (`libboar_engine.so`),
+  plus the retrieval, routing, model and evaluation code. Most unit tests live here.
+- `android-native/app/src/labs/plugins/<id>/`: Boar Labs plugins, one folder each
+  (`docs/PLUGINS.md`).
+
+The rest of the repo root (`src/`, `App.tsx`, `app.json`, `package.json`, `modules/`,
+`plugins/`, `eas.json`, the Expo targets in the `Makefile`) belongs to the old Expo /
+React Native app. It is not part of the native build. Don't use `npm install`,
+`expo prebuild`, Metro or EAS to build BOAR 2.x. The last Expo code is at the tag
+`expo-final`. The native build still reads two things from the repo root: `.env` and
+`assets/` (the Portuguese lexicon and the bundled corpus, copied in at build time).
 
 ## Prerequisites
 
-- Node.js (any recent LTS; developed against Node 24) and npm.
-- One of:
-  - **A local Android SDK + NDK + JDK** (Android Studio installs all three) —
-    needed for `expo run:android` (builds and installs directly on a
-    connected device/emulator over USB).
-  - **No local Android SDK at all** — use the EAS cloud build path instead
-    (`eas.json` is already configured; needs an Expo account,
-    `npx eas-cli login`, no local toolchain).
-- A physical Android device with USB debugging enabled and `adb` able to see
-  it (`adb devices` lists it), if installing locally rather than via EAS. The
-  bounty/project this app targets explicitly requires a real device, not
-  just an emulator, for final verification — but an emulator works fine for
-  iterating during development.
+- JDK 17.
+- Android SDK with platform 36, NDK `27.1.12297006` and CMake `3.22.1` (versions from
+  `android-native/app/build.gradle.kts` and `engine/build.gradle.kts`). `ANDROID_HOME`
+  set, or `sdk.dir` in `android-native/local.properties`.
+- The git submodules: llama.cpp and zstd under `android-native/engine/src/main/cpp`.
+  Without them the CMake step fails.
+- For installing: a 64-bit ARM phone (only `arm64-v8a` is built) with USB debugging on
+  and `adb devices` showing it as `device`.
 
-## Compile from source and install (local Android SDK path)
+## Build a release APK
 
 ```bash
-git clone <repo-url>
-cd aoair_app
-npm install
-npx expo prebuild -p android --clean   # generates ./android from app.json + plugins — gitignored, regenerate any time
-npx expo run:android --device          # builds the native app AND installs it on the connected device
+git clone --recursive https://github.com/rferrari/boar-app.git
+cd boar-app
+git submodule update --init          # only if you cloned without --recursive
+cd android-native
+./gradlew assembleRelease -Pboar.versionName=2.0.0
+# -> app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
+./gradlew --stop                     # don't leave the Gradle daemon running
 ```
 
-Or via the `Makefile` (`make help` lists everything):
+Without `-Pboar.versionName` the version is `2.0.0-dev`. Use it for release candidates
+too, e.g. `-Pboar.versionName=2.0.0-rc1`. About shows the version, the git commit and the
+build date.
+
+Other build types:
+
+- `./gradlew assembleDebug`: id `team.sopa.aoair.native`. It installs beside a release
+  BOAR, never over it.
+- `devtest`: id `team.sopa.aoair.devtest`, a throwaway install for instrumented tests that
+  wipe data (`./gradlew :app:assembleDevtestAndroidTest`).
+
+## Signing
+
+The release build is signed with the key named in `~/.gradle/gradle.properties`, never in
+the repo:
+
+```properties
+BOAR_UPLOAD_STORE_FILE=/path/to/boar-release.jks
+BOAR_UPLOAD_KEY_ALIAS=...
+BOAR_UPLOAD_STORE_PASSWORD=...
+BOAR_UPLOAD_KEY_PASSWORD=...
+```
+
+Without them the release is debug-signed. That is fine for your own phone, but Android
+won't install it over a BOAR signed with another key. You have to uninstall first, and
+uninstalling deletes the downloaded models. Published releases are built and signed by
+GitHub Actions (`docs/RELEASING.md`).
+
+## Build flags
+
+Each flag can be set in `.env` at the repo root (not committed; see `.env.example`), in the
+environment, or as a Gradle property with `-P`.
+
+| `.env` / environment | Gradle property | Default | Effect |
+|---|---|---|---|
+| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs and Boar Avatars exist (off until turned on in Settings › Advanced tweaks) |
+| `EVAL_SHARING` | `boar.evalSharing` | false | Builds in the results server (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `.env`). Off: no Share button, runs stay on the phone as files |
+| `SHOW_EVAL_IN_MENU` | `boar.showEvalInMenu` | false | Evaluation in the side menu (always reachable from Advanced tweaks) |
+| `ALLOW_DEBUG_LOG` | `boar.allowDebugLog` | false | Settings › Advanced tweaks › Debug log exists |
+| `ALLOW_DRAWER_STATS` | `boar.allowDrawerStats` | true | The menu's memory and storage bars can be turned on |
+| `ALLOW_UNCENSORED_MODELS` | `boar.allowUncensoredModels` | false | Uncensored models show in Discover GGUF models |
+| `BOAR_TRUFFLE_LAUNCHER_ICONS` | `boar.truffleLauncherIcons` | false | Truffle Vault boars as launcher icons |
+| | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
+| | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
+| | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
+
+A Labs build that installs beside the normal BOAR:
 
 ```bash
-make install        # npm install (+ tells you whether you have the Android SDK)
-make run-android    # prebuild + run:android
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.versionName=2.0.0
 ```
 
-**`--clean` on prebuild is not optional after touching `app.json` or its
-plugins** (icon, name, any native config). Without it, `expo prebuild` can
-leave a stale `android/` project with old values baked in, and a plain
-`npm install` will never fix that — it never touches `android/` at all.
-When in doubt, `--clean`.
+## Boar Labs engines
 
-`make setup` is the interactive wizard for humans (`scripts/setup.mjs`); an agent
-should use the explicit commands above instead. It reads answers from stdin, so it
-can be scripted if needed (e.g. `printf '2\n1\n' | node scripts/setup.mjs`).
+Big Boar (`libbmoe_cli.so`), Boar Wisp (`libcolibri_olmoe.so`) and Boar Designer
+(`libsdcli.so`, `libsdcli_i8mm.so`) run their own executables. They are prebuilt into
+`android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a/`, which is gitignored, so a
+fresh clone doesn't have them. They are packed into the APK only in experimental builds.
 
-## Release APK (no Metro needed)
+To build them, clone the upstream repos yourself at the commits pinned in
+`scripts/engine-pins.env`, then:
 
 ```bash
-npx expo prebuild -p android --clean
-cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
-# -> android/app/build/outputs/apk/release/app-release.apk
+scripts/build-lab-engines.sh ../colibri ../BigMoeOnEdge   # bmoe and colibri; needs ANDROID_HOME with NDK and CMake
+scripts/build-sd-cli.sh ../stable-diffusion.cpp           # Designer's sd-cli
 ```
 
-`plugins/withReleaseSigning.js` signs it with the key named by
-`BOAR_UPLOAD_STORE_FILE`, `BOAR_UPLOAD_KEY_ALIAS`, `BOAR_UPLOAD_STORE_PASSWORD`
-and `BOAR_UPLOAD_KEY_PASSWORD` in `~/.gradle/gradle.properties` (never in the
-repo). Without them the release build is debug-signed, which is fine for your own
-phone. Evaluation › Share results is built in only with `EVAL_SHARING=true` in `.env`
-(off by default): without it the app has no Share button and never contacts the results server. An APK signed with a different key can't install over an existing BOAR:
-Android requires uninstalling first, which deletes the app's downloaded models.
-A first release build takes about 40 minutes.
+The scripts stop when a checkout isn't at its pinned commit (`ALLOW_UNPINNED=1` to build
+anyway). Big Boar is tested with BOAR's patch series on BigMoeOnEdge; the script warns
+when it's missing.
 
-## No local Android SDK: build via EAS instead
+Without these files the experimental build still succeeds. The labs that need them still
+show in the grid, and their page says the engine is missing.
+
+## Tests
 
 ```bash
-npm install
-npx eas-cli login                                      # one-time, needs an Expo account
-npx eas-cli build --platform android --profile preview # builds an installable .apk in the cloud
+cd android-native
+./gradlew :engine:testDebugUnitTest   # JVM unit tests, about 380; no device needed
+./gradlew :app:compileDebugKotlin     # the app compiles
+./gradlew --stop
 ```
 
-or `make build-eas`. This produces a downloadable `.apk` (see `eas.json`'s
-`preview` profile) — download it and `adb install <file>.apk`, or transfer it
-to the device directly.
+CI runs the same two on pull requests (`.github/workflows/ci.yml`). They don't prove the
+APK installs or runs. Don't claim a build or install works without a real device.
 
-## After install: the app is not immediately usable — one more step
+## After install: first-launch setup
 
-First launch shows a **mandatory, one-time setup screen** that downloads the
-default model (Qwen2.5-1.5B + an embedding model, about 1 GB total) — this is the app's only required network access, and the app is
-gated behind it (`ModelManager.requiredModelsPresent()` in
-`src/models/ModelManager.ts` decides whether the chat screen or the setup
-wizard shows). If you're scripting an unattended install-and-verify flow,
-this download has to complete (or you pre-seed the files — see next
-section) before the app is otherwise usable. After that first setup, the
-app works fully offline.
+First launch shows a one-time setup that downloads:
 
-### Skipping the in-app download (pre-seeding models)
+- the answer model: Qwen3 4B (about 2.5 GB) on phones with 10 GB of RAM or more, Qwen2.5
+  1.5B (about 1 GB) below that (`SetupModel.recommended` in the engine). The user can pick
+  the other one.
+- BGE Small, the search (embedding) model.
+- knowledge packs, optional.
 
-If you already have the GGUF weight files on the machine running the build,
-you can bake them into the APK itself instead of downloading them at
-first-run — see `docs/MODELS.md`'s "Pre-seeding models you already have
-locally" section for the exact filenames/checksums and the
-`scripts/setup-models.sh` + `assets/models/` + `withBundledModels.js` flow.
-This is a genuinely different build path (bundles ~3.2GB into the APK, no
-runtime network needed at all), not the default — only use it if avoiding
-the in-app download matters for your scenario.
-
-## Verifying the build without a device (what an agent without device access can actually check)
-
-```bash
-npm run typecheck   # tsc --noEmit — must be clean
-npm test            # vitest run — the full unit suite, native-module-dependent
-                     # code (expo-sqlite/llama.rn/expo-file-system) is deliberately
-                     # untested here; see src/rag/pure.ts and its siblings for
-                     # what IS unit-tested and why
-```
-
-Neither of these proves the native build/install actually works — they only
-prove the JS/TS layer is internally consistent. There is no way to verify a
-real device install without a real device; don't claim success from
-typecheck/tests alone if the task was specifically about building/installing.
+The app is gated behind this download. After it, BOAR works without a network connection.
+Models are stored in the app's `files/` folder.
 
 ## Before pushing: CodeRabbit review
 
-Run a local CodeRabbit review before every `git push`, in addition to
-typecheck and tests:
+Run a local CodeRabbit review before every `git push`, in addition to the tests:
 
 ```bash
 cr doctor                          # once: CLI installed and signed in
@@ -139,84 +154,87 @@ cr review --agent --base main      # this branch against main, structured findin
 cr review --agent --uncommitted    # or only what isn't committed yet
 ```
 
-`make review` runs the same review with readable output. A review can take
-several minutes, so run it in the background. Check each finding against the
-current code before acting on it: fix the ones that hold up, and note in one
-line why you skipped the others. Re-run once after fixing, not in a loop.
+`make review` runs the same review with readable output. A review can take several
+minutes, so run it in the background. Check each finding against the current code before
+acting on it: fix the ones that hold up, and note in one line why you skipped the others.
+Re-run once after fixing, not in a loop.
 
-If `cr doctor` says you are signed out, ask the person you're working with to
-run `cr auth login` (a browser sign-in) before you push. If they choose to push
-without the review, say so in the PR.
+If `cr doctor` says you are signed out, ask the person you're working with to run
+`cr auth login` (a browser sign-in) before you push. If they choose to push without the
+review, say so in the PR.
 
 ## Benchmarking models on a connected phone
 
-With a phone on USB, an agent can run the evaluation end to end without anyone
-tapping the screen. Full guide: [docs/DEVICE_EVALUATION.md](docs/DEVICE_EVALUATION.md).
+The evaluation runner is `BenchActivity`. It is exported with
+`android.permission.DUMP`, which adb's shell holds and other apps don't, so only adb (USB
+or wireless debugging) can start it. It works on release builds.
 
 ```bash
-adb devices                                  # exactly one device, state "device"
-curl -s http://localhost:8081/status         # "packager-status:running" (Metro)
-npm run eval:device -- --dry-run             # see every adb command first
-npm run eval:device -- --models <name>       # run; results in eval-results/<date>/
-npm run eval:summary -- --report <jsonl>     # report from a saved run
+adb devices                                        # exactly one device, state "device"
+req=$(printf '%s' '{"requestId":"req-1","models":["qwen2.5"],"queries":["greeting-1"]}' | base64 -w0)
+adb shell am start -n team.sopa.aoair/team.sopa.boar.bench.BenchActivity \
+  --es run eval --es request64 "$req"
+adb logcat | grep -i eval                          # progress
+adb pull /sdcard/Android/data/team.sopa.aoair/files/eval-out eval-results/
+node scripts/eval-summary.mjs --report eval-results/eval-out/<runId>.jsonl
 ```
+
+- `models` matches part of an installed model's id or label. Leave out `queries` for
+  the full question set (`docs/EVAL_QUERIES.md`). `--ei waitmin 10` is how long the runner
+  waits for the request.
+- For a debug build use `team.sopa.aoair.native`, for a Labs build `team.sopa.aoair.labs`,
+  in both the component and the pull path.
+- Results: `<runId>.jsonl` (one row per answer, the source of truth), `<runId>.run.json`
+  and `requests/<requestId>.status.json`, copied to `files/eval-out` when the run ends.
+- `scripts/eval-summary.mjs` needs only Node, no `npm install`.
 
 Before and during a run:
 
-- **Check the phone isn't busy.** `eval:device` reloads the app. Don't run it,
-  reinstall, force-stop or reload while a model download is in progress
-  (`adb shell dumpsys power | grep BOAR:ModelDownload`, or a growing file in
-  `adb exec-out run-as team.sopa.aoair ls -l files/models`); downloads can't
-  resume after a restart. The phone's owner may be using it: ask first.
-- **Don't edit app source files while a run is going.** Metro hot-reloads them
-  into the running app, which can interrupt the evaluation. Docs and scripts are
-  fine.
-- **Keep the screen on.** Locking the phone backgrounds the app. If the phone
-  won't accept `settings put global stay_on_while_plugged_in`, send
-  `adb shell input keyevent KEYCODE_WAKEUP` every 30 seconds for the length of
-  the run, then stop.
-- **Use `--queries greeting-1` for a quick probe** of a new model (does it load,
-  what prompt format does it get) before a full 17-question run.
-- **Report only what the phone measured.** The JSONL is the source of truth;
-  a model that fails to load is recorded as failures, not skipped.
+- **Check the phone isn't busy.** Starting the runner brings BOAR to the front. Don't run
+  it, reinstall, force-stop or uninstall while a model download is in progress. A stopped
+  download has to be restarted from the app, and an uninstall deletes everything already
+  downloaded. The phone's owner may be using it: ask first.
+- **Keep the screen on.** Locking the phone backgrounds the app. If the phone won't accept
+  `settings put global stay_on_while_plugged_in`, send
+  `adb shell input keyevent KEYCODE_WAKEUP` every 30 seconds for the length of the run,
+  then stop.
+- **Use `"queries":["greeting-1"]` for a quick probe** of a new model (does it load, what
+  prompt format does it get) before a full run.
+- **Report only what the phone measured.** The JSONL is the source of truth. A model that
+  fails to load is recorded as failures, not skipped.
 
-To check a Hugging Face GGUF before anyone downloads it, read its header (the
-first few MB) for `general.architecture` and `tokenizer.chat_template`: the
-architecture must be supported by the llama.rn build in `node_modules`.
+To check a Hugging Face GGUF before anyone downloads it, read its header (the first few MB)
+for `general.architecture` and `tokenizer.chat_template`. The architecture must be
+supported by the llama.cpp submodule at its pinned commit.
 
 ## Building a knowledge pack
 
-Full guide: [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md).
+Full guide: [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md). The pack builder is Node
+tooling at the repo root (`npm install` first; it is separate from the app build).
 
 ```bash
 npm run pack:build -- --limit 200 --id test-pack   # quick check that the pipeline works
 npm run pack:build                                 # the full Vital Articles level 5 pack
-npm run pack:push -- build/knowledge-pack/<id>.sqlite  # copy onto a USB-connected dev build
 ```
 
-- A full level 5 build takes hours (downloading ~50k introductions, then
-  embedding); run it in the background and let it resume if interrupted, since
-  every step is cached under `build/knowledge-pack/<id>/`.
-- Packs must be embedded with the app's model (`assets/models/embedding.gguf`,
-  checked by SHA-256); the app ignores packs built with another one.
-- Don't commit `.sqlite` packs to git; they go to a release asset (see the guide).
+- A full level 5 build takes hours (downloading about 50k introductions, then embedding).
+  Run it in the background and let it resume if interrupted: every step is cached under
+  `build/knowledge-pack/<id>/`.
+- Packs must be embedded with the app's search model (`assets/models/embedding.gguf`,
+  checked by SHA-256). The app ignores packs built with another one.
+- Don't commit `.sqlite` packs to git. They go to a release asset (see the guide).
 
 ## Common pitfalls
 
-- **Blank/white screen, or "Failed to connect to `<LAN IP>`" after starting
-  Metro**: almost always Wi-Fi client/AP isolation (common on phone hotspots
-  and many routers) blocking the phone and dev machine from reaching each
-  other, even on the same network. USB debugging isn't affected. Fix: force
-  Metro onto the USB `adb reverse` tunnel instead of Wi-Fi —
-  `npx expo start --localhost` (or `make start`, which already does this).
-- **`ClassNotFoundException: expo.modules.splashscreen.SplashScreenManager`
-  in logs**: a red herring — a caught, harmless, expected exception from a
-  soft-dependency check inside `expo-dev-launcher`, not a real build
-  problem. Don't spend time chasing it.
-- **A stale `android/` directory causing weird build errors after editing
-  `app.json`**: see the `--clean` note above.
-- **Don't run destructive git/native-reset commands to "fix" a build
-  problem** (`rm -rf android`, force-pushes, etc.) without checking
-  `git status` first and understanding why the build actually failed —
-  most build failures here are the two points above, not something that
-  needs nuking the repo state.
+- **CMake can't find `llama.cpp` or `zstd`**: the submodules are missing. Run
+  `git submodule update --init`.
+- **NDK or CMake not found**: install exactly NDK `27.1.12297006` and CMake `3.22.1` with
+  the SDK manager.
+- **`INSTALL_FAILED_UPDATE_INCOMPATIBLE`**: the APK is signed with a different key than
+  the installed BOAR. Uninstalling deletes the models; ask first, or build with the right
+  key, or install as a separate app (`assembleDebug`, or `-Pboar.appIdSuffix=.labs`).
+- **A Labs page says the engine is missing**: the `jniLibs` weren't built, or the build
+  wasn't experimental. See "Boar Labs engines".
+- **Don't run destructive git commands to fix a build** (`git clean -fdx`, force-pushes,
+  deleting submodules) without checking `git status` first and understanding why the
+  build failed.
