@@ -116,20 +116,45 @@ object BmoeLab : LabPlugin, EngineProvider {
 
     private fun engineInBuild(ctx: android.content.Context) = EngineProcess.executable(ctx, BmoeModel.BINARY) != null
 
+    /** All of [asset]'s file is on the phone: over USB, there; downloaded, every byte (a download still running isn't the model yet). */
+    private fun complete(asset: CatalogAsset, file: File): Boolean =
+        file.isFile && (asset.externalPath != null || asset.sizeBytes <= 0 || file.length() == asset.sizeBytes)
+
     /**
-     * A model of BOAR's own Big Boar can run: an LLM fully on the phone whose GGUF header says it's a mixture of
-     * experts of a [SUPPORTED_ARCHS] architecture (read once per file, GgufHeader). Reads the file: call off the main thread
-     * the first time.
+     * [asset]'s architecture when it's a mixture of experts: from its GGUF header once the whole file is on the phone (read
+     * once per file, GgufHeader), else from its catalog entry (CatalogAsset.architecture, from the Hugging Face listing).
+     * Null when it isn't one or nobody knows yet. Reads the file: call off the main thread.
+     */
+    fun moeArch(asset: CatalogAsset, services: BoarServices): String? {
+        if (asset.kind != AssetKind.LLM) return null
+        val file = services.fileOf(asset)
+        if (!complete(asset, file)) return asset.architecture
+        val moe = GgufHeader.moe(file) ?: return null
+        return moe.arch.takeIf { moe.experts > 0 }
+    }
+
+    private fun supported(asset: CatalogAsset, services: BoarServices) = moeArch(asset, services)?.let { it in SUPPORTED_ARCHS } == true
+
+    /**
+     * A model of BOAR's own Big Boar can run now: an LLM fully on the phone of a [SUPPORTED_ARCHS] mixture of experts
+     * ([moeArch]). Reads the file: call off the main thread the first time.
      */
     fun eligible(asset: CatalogAsset, services: BoarServices): Boolean {
         if (asset.kind != AssetKind.LLM || asset.engine != null) return false
         val ctx = LabContext.app ?: return false
         if (!engineInBuild(ctx)) return false
-        val file = services.fileOf(asset)
-        // A download still running isn't the model yet.
-        if (!file.isFile || (asset.sizeBytes > 0 && file.length() != asset.sizeBytes)) return false
-        val moe = GgufHeader.moe(file) ?: return false
-        return moe.experts > 0 && moe.arch in SUPPORTED_ARCHS
+        if (!complete(asset, services.fileOf(asset))) return false
+        return supported(asset, services)
+    }
+
+    /**
+     * A model the Engine chips show for: an LLM of BOAR's own or Big Boar's (the 35B), of a [SUPPORTED_ARCHS] mixture of
+     * experts, downloaded or not, while the engine is in this build. Reads the file: call off the main thread.
+     */
+    fun runsHere(asset: CatalogAsset, services: BoarServices): Boolean {
+        if (asset.kind != AssetKind.LLM || (asset.engine != null && asset.engine != id)) return false
+        val ctx = LabContext.app ?: return false
+        return engineInBuild(ctx) && supported(asset, services)
     }
 
     /** The memory fit the catalog shows for [asset] on this phone. */
@@ -165,29 +190,46 @@ object BmoeLab : LabPlugin, EngineProvider {
     }
 
     /**
-     * On an eligible model's card: the Engine chips (Auto, showing what it picks; BOAR; Big Boar) and why Big Boar
-     * helps on this phone. The 35B runs only on Big Boar (its engine tag says so), so it shows just the reason.
+     * On a big mixture of experts' card, the 35B's too: the Engine chips (Auto, showing what it picks; BOAR, marked when
+     * it's too big for the phone but still the user's pick; Big Boar) and why Big Boar helps on this phone.
      */
     @Composable
     override fun CatalogCardExtra(asset: CatalogAsset) {
         if (asset.kind != AssetKind.LLM) return
         val ctx = LocalContext.current
         val services = remember { BoarServices.get(ctx) }
-        val scope = rememberCoroutineScope()
         val memFit = remember(asset.id, asset.sizeBytes) { fit(asset, services) }
-        if (asset.engine == id) {
-            if (memFit == Compatibility.RED) Hint(t("native.labs.bmoe.card.red"))
-            return
-        }
-        if (asset.engine != null) return
         // The header is read off the main thread, once per file.
-        val canRun by produceState(false, asset.id) { value = withContext(Dispatchers.IO) { runCatching { eligible(asset, services) }.getOrDefault(false) } }
+        val canRun by produceState(false, asset.id) { value = withContext(Dispatchers.IO) { runCatching { runsHere(asset, services) }.getOrDefault(false) } }
         if (!canRun) return
+        EngineChips(asset, services, memFit)
+        FitHint(memFit)
+    }
+
+    /** Big Boar switched off: a mixture of experts too big for this phone it could run says where to turn it on. */
+    @Composable
+    override fun CatalogCardHint(asset: CatalogAsset) {
+        if (asset.kind != AssetKind.LLM || asset.engine != null) return
+        val ctx = LocalContext.current
+        val services = remember { BoarServices.get(ctx) }
+        if (remember(asset.id, asset.sizeBytes) { fit(asset, services) } != Compatibility.RED) return
+        val canRun by produceState(false, asset.id) { value = withContext(Dispatchers.IO) { runCatching { runsHere(asset, services) }.getOrDefault(false) } }
+        if (canRun) Hint(t("native.labs.bmoe.card.off"))
+    }
+
+    /** The Engine chips for [asset], stored per model (LabPrefs): the same on its catalog card and on this lab's page. */
+    @Composable
+    private fun EngineChips(asset: CatalogAsset, services: BoarServices, memFit: Compatibility) {
+        val scope = rememberCoroutineScope()
         var current by remember(asset.id) { mutableStateOf(choice(asset.id)) }
-        val auto = if (EngineChoice.resolve(EngineChoice.Choice.AUTO, memFit, eligible = true) == EngineChoice.Engine.BIG_BOAR) engineLabel else "BOAR"
+        // Auto on the 35B is Big Boar (its own model); on one of BOAR's, Big Boar only when it's too big for the phone.
+        val autoBig = asset.engine == id || EngineChoice.resolve(EngineChoice.Choice.AUTO, memFit, eligible = true) == EngineChoice.Engine.BIG_BOAR
+        val auto = if (autoBig) engineLabel else "BOAR"
+        // Too big: BOAR stays a choice, marked; the chat asks before it loads (StartLoad).
+        val boar = if (memFit == Compatibility.RED) t("native.labs.bmoe.card.boarTooBig") else "BOAR"
         ChipRow(t("native.labs.bmoe.card.engine"), listOf(
             EngineChoice.Choice.AUTO to t("native.labs.bmoe.card.auto", "engine" to auto),
-            EngineChoice.Choice.BOAR to "BOAR",
+            EngineChoice.Choice.BOAR to boar,
             EngineChoice.Choice.BIG_BOAR to engineLabel,
         ), current) { picked ->
             if (picked != current) {
@@ -197,11 +239,13 @@ object BmoeLab : LabPlugin, EngineProvider {
                 if (services.host.residentId() == asset.id) scope.launch { services.host.unload() }
             }
         }
-        when (memFit) {
-            Compatibility.RED -> Hint(t("native.labs.bmoe.card.red"))
-            Compatibility.YELLOW -> Hint(t("native.labs.bmoe.card.yellow"))
-            else -> {}
-        }
+    }
+
+    @Composable
+    private fun FitHint(memFit: Compatibility) = when (memFit) {
+        Compatibility.RED -> Hint(t("native.labs.bmoe.card.red"))
+        Compatibility.YELLOW -> Hint(t("native.labs.bmoe.card.yellow"))
+        else -> {}
     }
 
     @Composable

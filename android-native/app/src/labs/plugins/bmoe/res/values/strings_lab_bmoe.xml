@@ -16,5 +16,7 @@
     <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>
     <string name="native_labs_bmoe_card_red" formatted="false">🦣 Too big for this phone\'s memory: Big Boar can run it, slower.</string>
     <string name="native_labs_bmoe_card_yellow" formatted="false">Big Boar uses less memory.</string>
+    <string name="native_labs_bmoe_card_boarTooBig" formatted="false">BOAR · too big</string>
+    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Boar Labs → Big Boar can run it, slower.</string>
     <string name="native_labs_bmoe_browseHint" formatted="false">🦣 Big Boar can run this</string>
 </resources>

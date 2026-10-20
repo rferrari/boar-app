@@ -148,8 +148,9 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // A Hugging Face file name reads as a name ("Meta Llama 3.1 8B Instruct · Q4_K_M").
-                Text(if (item.id.startsWith("hf-")) item.shortName else item.label, style = Boar.type.titleSm, color = c.textHeading)
+                // The short name for every model: a Hugging Face file name reads as a name ("Meta Llama 3.1 8B Instruct · Q4_K_M"),
+                // a Labs engine's model as "Qwen3.6 35B · Big Boar" (its engine's technical name is on its lab's page).
+                Text(item.shortName, style = Boar.type.titleSm, color = c.textHeading)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(t("catalogItemCard.kind.${item.kind.name.lowercase()}"), style = mono.copy(fontSize = 9.sp), fontWeight = FontWeight.Bold, color = c.textSecondary,
                         modifier = Modifier.background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
@@ -161,33 +162,22 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             }
             StatusBadge(present, active, row?.downloading == true)
         }
-        // A Labs engine model: it never loads whole into RAM (the engine streams it), so the RAM check doesn't apply.
+        // The memory badge for every LLM, a Labs engine's model too: the user sees it's bigger than the phone's RAM.
+        if (item.kind == AssetKind.LLM) RamBadge(item.sizeBytes, ramBytes)
+        // A Labs engine's model, while that engine runs it (not moved to BOAR's own by the user): it streams from storage.
         val engine = item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) }
-        if (engine != null) Row(
+        val onEngine = engine?.takeIf { !team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(item) }
+        if (onEngine != null) Row(
             Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            engine.engineArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-                ?: Text(engine.engineEmoji, fontSize = 10.sp)
-            Text(t("native.models.engineTag", "engine" to engine.engineLabel), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
-        } else if (item.kind == AssetKind.LLM && ramBytes > 0) {
-            val comp = Compatibility.compute(item.sizeBytes, ramBytes)
-            val (icon, fg, bg, border) = when (comp.value) {
-                "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
-                "yellow" -> listOf("🟡", c.textAccentAmber, c.amberBgSubtle, c.amberBorder)
-                "red" -> listOf("🔴", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder)
-                else -> listOf(null, null, null, null)
-            }
-            if (icon != null) Row(
-                Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Text(icon as String, fontSize = 10.sp)
-                Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
-            }
+            onEngine.engineArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: Text(onEngine.engineEmoji, fontSize = 10.sp)
+            Text(t("native.models.engineTag", "engine" to onEngine.engineLabel), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
         }
-        // Boar Labs' rows for this model (Big Boar's engine choice); nothing while Labs is off.
+        // Boar Labs' rows for this model (Big Boar's engine choice), or a line from a lab that's off; nothing while Labs is off.
         team.sopa.boar.labs.LabHooks.CatalogCardExtra(item)
+        team.sopa.boar.labs.LabHooks.CatalogCardHint(item)
         // Line height follows the text size (a fixed 18 sp packed the lines at Large).
         // Models added before the rename keep the old name in their saved description.
         Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
@@ -230,7 +220,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 corpus -> Check(t("catalogItemCard.indexedNote"))
                 active -> Check(t("catalogItemCard.activeNote"))
                 activating -> Busy(t("catalogItemCard.loadingModel"))
-                engine != null -> SmallButton(t("native.models.selectUseEngine", "engine" to engine.engineLabel), enabled = !busy) { vm.use(item) }
+                onEngine != null -> SmallButton(t("native.models.selectUseEngine", "engine" to onEngine.engineLabel), enabled = !busy) { vm.use(item) }
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             } }
             // A Labs engine's model was copied over USB: BOAR never deletes it.
@@ -254,6 +244,28 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         dismissButton = { TextButton({ confirmUnlist = false }) { Text(t("common.cancel")) } },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
     )
+}
+
+/** 🟢/🟡/🔴: how a model of [sizeBytes] fits this phone's [ramBytes] (Compatibility); nothing when the RAM is unknown. */
+@Composable
+internal fun RamBadge(sizeBytes: Long, ramBytes: Long) {
+    if (ramBytes <= 0) return
+    val c = Boar.colors
+    val mono = Boar.type["mono.xs"]
+    val comp = Compatibility.compute(sizeBytes, ramBytes)
+    val (icon, fg, bg, border) = when (comp.value) {
+        "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
+        "yellow" -> listOf("🟡", c.textAccentAmber, c.amberBgSubtle, c.amberBorder)
+        "red" -> listOf("🔴", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder)
+        else -> listOf(null, null, null, null)
+    }
+    if (icon != null) Row(
+        Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text(icon as String, fontSize = 10.sp)
+        Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
+    }
 }
 
 /**

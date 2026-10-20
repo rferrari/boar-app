@@ -191,6 +191,14 @@ object LabHooks {
         LabRegistry.active.forEach { it.CatalogCardExtra(asset) }
     }
 
+    /** A model's card in the Model Catalog: a line from each lab switched off that could help with it; nothing while Labs is off. */
+    @Composable
+    fun CatalogCardHint(asset: team.sopa.boar.engine.models.CatalogAsset) {
+        Init()
+        if (!LabPrefs.labsOn) return
+        LabRegistry.visible.filter { it.status != LabStatus.CLASSIFIED && !LabPrefs.enabled(it.id) }.forEach { it.CatalogCardHint(asset) }
+    }
+
     /** The Hugging Face search's Mixture of experts filter: offered while a lab that runs them is on. */
     fun moeFilter(): Boolean = LabRegistry.active.any { it.browseMoeFilter }
 

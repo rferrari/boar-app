@@ -56,6 +56,9 @@ interface LabPlugin {
     /** Rows on a model's card in the Model Catalog, under its memory badge (Big Boar's engine choice). */
     @Composable fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {}
 
+    /** A line on a model's card while this lab is switched off (and Boar Labs on): what it would do for that model. */
+    @Composable fun CatalogCardHint(asset: team.sopa.boar.engine.models.CatalogAsset) {}
+
     /** The Hugging Face search offers its Mixture of experts filter while this lab is on. */
     val browseMoeFilter: Boolean get() = false
 

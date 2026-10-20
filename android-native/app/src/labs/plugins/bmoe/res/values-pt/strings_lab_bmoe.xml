@@ -16,5 +16,7 @@
     <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>
     <string name="native_labs_bmoe_card_red" formatted="false">🦣 Grande demais para a memória deste celular: o Big Boar consegue rodar, mais devagar.</string>
     <string name="native_labs_bmoe_card_yellow" formatted="false">O Big Boar usa menos memória.</string>
+    <string name="native_labs_bmoe_card_boarTooBig" formatted="false">BOAR · grande demais</string>
+    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Boar Labs → Big Boar consegue rodar, mais devagar.</string>
     <string name="native_labs_bmoe_browseHint" formatted="false">🦣 O Big Boar consegue rodar este</string>
 </resources>
