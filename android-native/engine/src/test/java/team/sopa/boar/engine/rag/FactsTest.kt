@@ -276,4 +276,46 @@ class FactsTest {
         none("which is taller, everest base camp or k2") // a side that is not one whole name
         none("Which is taller, K2 or Everest?") // "Everest" alone is not a label or alias
     }
+
+    // ---- r9: travel fields (driving side, calling code, mains frequency), 2026-10-19 ----
+
+    @Test fun `r9 answers plug and voltage questions in travel wording, with the mains frequency`() {
+        matches("""^Japan: plug types Type A \(NEMA 1-15\) and Type B \(NEMA 5-15\), mains voltage 100 V, 50 Hz / 60 Hz\. Where two values are listed""", "What plug do I need in Japan?")
+        matches("""^India: .*mains voltage 230 V, 50 Hz\.\n""", "voltage in India")
+        matches("""Type I \(AS/NZS 3112\), mains voltage 230 V, 50 Hz""", "Do I need a plug adapter for Australia?")
+        matches("""mains voltage 120 V, 60 Hz\.""", "What voltage is used in the United States?")
+        matches("""mains voltage 230 V, 50 Hz\.\n""", "What is the voltage in Indonesia?") // obsolete 127 V dropped
+        assertTrue(text("What plug type is used in Afghanistan?")!!.let { "British" !in it }) // umbrella item dropped
+    }
+
+    @Test fun `r9 answers the driving side, with Yes or No when the question names one side`() {
+        matches("""^Yes\. In Japan, traffic drives on the left\.""", "Do they drive on the left in Japan?")
+        matches("""^No\. In Ireland, traffic drives on the left\.""", "Do they drive on the right in Ireland?")
+        matches("""^In Sweden, traffic drives on the right\.""", "Which side of the road do they drive on in Sweden?")
+        matches("""^In Samoa, traffic drives on the left\.""", "Do they drive on the left or the right in Samoa?")
+        matches("""drives on the right""", "driving side in Argentina")
+    }
+
+    @Test fun `r9 answers the international calling code`() {
+        matches("""^The international calling code for Brazil is \+55\.""", "What is the country code for Brazil?")
+        matches("""is \+91\.""", "country code for India")
+        matches("""\+1 876 \(country code \+1, then area code 876\)""", "What's the calling code for Jamaica?")
+        matches("""Denmark \+45, Faroe Islands \+298 and Greenland \+299""", "What is the dialling code for Denmark?")
+        matches("""is \+90\.""", "What is the country code for Turkey?") // ended +36 dropped
+        none("What is the country code for Vatican City?") // +379 unused: the model answers
+    }
+
+    @Test fun `r9 stays out of other driving and code questions`() {
+        none("Can I drive in Japan with a US license?")
+        none("Do I need an international driving permit for Italy?")
+        none("Is it safe to drive in Mexico?")
+        none("How do I drive to Paris?")
+        none("Which side of the road should I walk on in Japan?")
+        none("What is the ISO country code for France?")
+        none("What is the internet country code for Germany?")
+        none("What is the area code for London?")
+        none("What is the country code for Tokyo?") // a city has no calling code in the table
+        none("What time zone is Japan in?")
+        assertEquals("capital", facts.answer("What is the capital of Japan?")?.template)
+    }
 }

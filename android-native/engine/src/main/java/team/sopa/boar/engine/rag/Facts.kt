@@ -39,6 +39,8 @@ class Facts(json: String) {
         val cap: List<String>?, val cur: List<String>?, val lang: List<String>?, val cont: List<String>?, val bord: List<String>?,
         val plug: List<String>?, val volt: List<Double>?, val hz: List<Double>?, val inc: String?, val end: String?,
         val loc: List<String>?, val win: Map<String, List<String>>?, val ctry: List<String>?, val t: List<String>?,
+        /** r9: driving side ("left" / "right") and international calling codes with the part each covers ("" = the whole country). */
+        val drive: String? = null, val call: List<Pair<String, String>>? = null,
     )
 
     /** [template]: "population", "area", "capital"…; [entities]: their Wikidata ids. */
@@ -65,6 +67,7 @@ class Facts(json: String) {
                 o.strs("cap"), o.strs("cur"), o.strs("lang"), o.strs("cont"), o.strs("bord"), o.strs("plug"), o.nums("volt"), o.nums("hz"),
                 o.str("inc"), o.str("end"), o.strs("loc"),
                 (o["win"] as? JsonObject)?.mapValues { (_, v) -> v.jsonArray.map { it.jsonPrimitive.content } }, o.strs("ctry"), o.strs("t"),
+                o.str("drive"), (o["call"] as? JsonArray)?.map { c -> c.jsonArray.let { it[0].jsonPrimitive.content to it[1].jsonPrimitive.content } },
             )
         }
         fun add(key: String, e: Entity) {
@@ -258,6 +261,20 @@ class Facts(json: String) {
                 val note = if (regional) " Where two values are listed, it differs by region: check the socket or ask locally." else ""
                 "$name: ${parts.joinToString(", ")}.$note${source(null)}"
             }
+            "driving" -> {
+                val side = e.drive?.takeIf { !DRIVE_VETO.containsMatchIn(query) } ?: return null
+                val low = query.lowercase()
+                val left = Regex("\\bleft\\b").containsMatchIn(low)
+                val right = Regex("\\bright\\b").containsMatchIn(low)
+                val lead = if (YES_NO.containsMatchIn(Js.trim(query)) && left != right) (if ((if (left) "left" else "right") == side) "Yes. " else "No. ") else ""
+                "${lead}In $name, traffic drives on the $side.${source(null)}"
+            }
+            "calling" -> {
+                val codes = e.call?.takeIf { it.isNotEmpty() && !CALL_VETO.containsMatchIn(query) } ?: return null
+                fun nanp(c: String) = if (NANP.matches(c)) "$c (country code +1, then area code ${c.substring(3)})" else c
+                if (codes.size == 1 && codes[0].second.isEmpty()) "The international calling code for $name is ${nanp(codes[0].first)}.${source(null)}"
+                else "International calling codes for $name: ${list(codes.map { (c, part) -> if (part.isNotEmpty()) "$part $c" else c })}.${source(null)}"
+            }
             "host" -> e.loc?.takeIf { it.isNotEmpty() }?.let { "$name: held in ${list(it)}.${source(null)}" }
             "winner" -> {
                 val y = WINNER_YEAR.find(query)?.groupValues?.get(1)
@@ -332,7 +349,7 @@ class Facts(json: String) {
         for ((re, w) in OPENER_TYPOS) q = re.replaceFirst(q, w)
         // r6 fix 4: "what country surrounds X" is read as "what country borders X".
         q = R6_SURROUND.replaceFirst(q, "$1 $2 border")
-        if (q.isEmpty() || !(QUESTION.containsMatchIn(q) || QUESTION_OPENERS.containsMatchIn(q) || R6_OPENERS.containsMatchIn(q))) return null
+        if (q.isEmpty() || !(QUESTION.containsMatchIn(q) || QUESTION_OPENERS.containsMatchIn(q) || R6_OPENERS.containsMatchIn(q) || R9_OPENERS.containsMatchIn(q))) return null
         val low = APOSTROPHES.replace(q.lowercase(), "'")
         if (VETO.any { has(low, it) }) return null
         val templates = templates(q)
@@ -346,7 +363,8 @@ class Facts(json: String) {
         val comparing = COMPARE.any { has(low, it) }
         // r6 fix 3: "what continent is <place> in/on" -> the continent of the place's one country.
         if (ents.size == 1 && t == "continent" && ents[0].cont == null && R6_CONTINENT.containsMatchIn(q)) return done(placeContinent(ents[0]))
-        if (ents.size == 1) return if (comparing) null else done(single(t, ents[0], q))
+        // r9: "do they drive on the left or the right in X" is not a comparison
+        if (ents.size == 1) return if (comparing && t != "driving") null else done(single(t, ents[0], q))
         // Two entities: a comparison of one numeric value, or a height against a lake's depth.
         if (t == "depth") {
             val lake = ents.firstOrNull { it.depth != null && it.depth != 0.0 }
@@ -370,14 +388,16 @@ class Facts(json: String) {
             "length" to listOf("how long is", "how long are", "length", "longer", "longest", "km long", "miles long"),
             "depth" to listOf("how deep", "depth", "deepest", "deeper", "deep"),
             "dates" to listOf("built", "founded", "established", "constructed", "erected", "inception", "came down", "come down", "fell", "fall of", "torn down", "demolished", "dissolved"),
-            "electricity" to listOf("plug", "plugs", "plug type", "socket", "sockets", "outlet", "outlets", "voltage", "volts", "mains", "adapter", "adaptor"),
+            "electricity" to listOf("plug", "plugs", "plug type", "socket", "sockets", "outlet", "outlets", "voltage", "volts", "mains", "adapter", "adaptor", "power adapter", "travel adapter", "plug adapter", "power plug", "power socket", "wall socket", "power outlet", "electrical outlet", "hz", "hertz", "mains frequency"),
+            "driving" to listOf("drive on the left", "drive on the right", "drives on the left", "drives on the right", "driving on the left", "driving on the right", "drive on which side", "drive on what side", "driving side", "side of the road", "left-hand traffic", "right-hand traffic"),
+            "calling" to listOf("country code", "calling code", "country calling code", "international calling code", "dialing code", "dialling code", "international dialing code", "international dialling code", "international code", "phone code", "telephone code", "dial code"),
             "host" to listOf("host", "hosted", "hosting", "held"),
             "winner" to listOf("won", "win", "winner", "winners", "received", "awarded", "laureate"),
         )
 
         /** Slots the table cannot answer, and explanation wording: any of these -> no fire (the model answers). */
         private val VETO = listOf(
-            "density", "densely", "gdp", "economy", "time zone", "timezone", "driving side", "drive on", "climate", "weather", "religion",
+            "density", "densely", "gdp", "economy", "time zone", "timezone", "climate", "weather", "religion",
             "president", "prime minister", "leader", "government", "history", "historically", "known for", "why", "explain", "describe",
             "overview", "tell me about", "essentials", "key facts", "how did", "independent", "independence", "safe", "sick", "sickness",
             "danger", "dangerous", "visa", "flight", "take", "stay", "per capita",
@@ -404,6 +424,13 @@ class Facts(json: String) {
         )
         /** r6 fix 2: property-first openers typed without "?" ("official language of iran", "continent of kenya"). */
         private val R6_OPENERS = JsRegex.re("""^(official languages?|continent) of\b""", "iu")
+        /** r9: travel property-first openers typed without "?" ("voltage in india", "country code for brazil"). */
+        private val R9_OPENERS = JsRegex.re("""^(voltage|mains voltage|plug types?|plugs?|socket types?|sockets?|driving side|calling code|country code|dialing code|dialling code|emergency numbers?) (in|of|for)\b""", "iu")
+        /** r9: a driving question about something else than the side of the road (licence, rental, speed, tolls): no answer. */
+        private val DRIVE_VETO = JsRegex.re("""\b(licen[cs]es?|permits?|rent|rental|renting|hire|speed|tolls?|insurance|age)\b""", "i")
+        /** r9: a code that is not the telephone calling code (ISO letters, internet domain, postal, airport, plates): no answer. */
+        private val CALL_VETO = JsRegex.re("""\b(iso|alpha|letters?|domain|internet|tld|postal|postcode|zip|airport|iata|plates?|currency code)\b""", "i")
+        private val NANP = Regex("""^\+1 \d{3}$""")
         /** r6 fix 3: "what continent is X in/on" (a place: answered with its country's continent). */
         private val R6_CONTINENT = JsRegex.re("""^(what|which) continent (is|are)\b.*\b(in|on)\s*\??\s*$""", "iu")
         /** r6 fix 4: "what country/countries border(s)/surround(s) X" asks for borders. */
@@ -455,6 +482,8 @@ class Facts(json: String) {
             "more", "most", "less", "fewer", "then", "compare", "above", "below", "over", "under", "up", "down",
             "use", "uses", "used", "using", "speak", "speaks", "spoken", "speaking", "live", "lives", "living", "located",
             "stand", "stands", "stood", "put", "placed",
+            "need", "needs", "bring", "pack", "buy", // r9: "what plug do I need in Japan", "which adapter should I bring for Brazil"
+            "drive", "drives", "driving", "side", "road", "traffic", "left", "right", "dial", "call", "calling", "electricity", "power", // r9: "which side of the road do they drive on in X"
         )
         /** Property lexicon: every one-word cue of LEXICON, their superlatives and feature points. */
         private val R5_PROPERTY = setOf(
