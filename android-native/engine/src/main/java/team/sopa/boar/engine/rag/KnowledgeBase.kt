@@ -122,8 +122,8 @@ class KnowledgeBase(private val db: SqlDatabase) {
         return RagPure.filterByTermCoverage(rows, lq.terms).take(limit)
     }
 
-    /** Brute-force cosine search over the stored embeddings, with the MIN_SEMANTIC_SIMILARITY floor. */
-    fun semanticSearch(queryVec: FloatArray, limit: Int): List<Chunk> {
+    /** Brute-force cosine search over the stored embeddings, with a similarity floor (MIN_SEMANTIC_SIMILARITY by default). */
+    fun semanticSearch(queryVec: FloatArray, limit: Int, minSimilarity: Double = RagPure.MIN_SEMANTIC_SIMILARITY): List<Chunk> {
         val scored = db.query(
             """SELECT c.chunk_id, c.doc_id, c.title, c.body, e.embedding
                FROM chunk_embeddings e
@@ -134,7 +134,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
             val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
             Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
         }
-        return scored.sortedByDescending { it.score }.filter { it.score >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
+        return scored.sortedByDescending { it.score }.filter { it.score >= minSimilarity }.take(limit)
     }
 
     companion object {
