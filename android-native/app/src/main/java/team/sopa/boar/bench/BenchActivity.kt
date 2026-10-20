@@ -74,9 +74,8 @@ class BenchActivity : ComponentActivity() {
             team.sopa.boar.ui.theme.Themes.extras.forEach { vault.grantTheme(it.id) }
             log.value += "themes opened: ${team.sopa.boar.ui.theme.Themes.extras.joinToString { it.id }}\n"
             Log.i("BOAR_BENCH", "themes opened")
-        }
-        // Only on a fresh start: a recreated activity must not load a second copy of the model.
-        if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
+        // Only on a fresh start: a recreated activity must not load a second copy of the model. Not after "themes".
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
             // scripts/retrieval-parity.mjs: the app's own retrieval on the questions it sent, results for the desktop.
             val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_PARITY", line) }
             lifecycleScope.launch {
