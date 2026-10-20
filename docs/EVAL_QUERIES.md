@@ -39,25 +39,26 @@ so a correct retrieval should surface it (recorded as `expectedKbHit`). The
 | no-kb-1 | no-kb-content | Who was Napoleon Bonaparte? | — (the corpus only has "Randy Napoleon", which must not be cited) |
 | no-kb-2 | no-kb-content | How do antibiotics work, and why does antibiotic resistance develop? | — |
 
-Each query's `gradingNotes` in `evalSet.ts` says what a good answer contains.
+Each query's `gradingNotes` in `eval-set.json` says what a good answer contains.
 
 ## Configurations
 
 The harness runs the whole set once per selected configuration:
 
 - **One per installed LLM** (`model:<id>`), including models added through the
-  Hugging Face search. Every query goes to that model. Retrieval follows the same
-  rule as the fixed-model chat path: skipped for greetings, calculation,
-  translation and code, otherwise run. Generation goes through the routing
-  executor in the model's own instruction format: the chat template embedded
+  Hugging Face search. Every query goes to that model, on the chat's default path
+  (the plain answer pipeline). The Boar Labs tools switched on in the app (or the
+  ones the request names with `"labs"`) answer first, as in the chat; a tool's
+  answer is recorded with `reasonCodes` `answer:<tool>`. Retrieval follows the
+  same rule as the chat: skipped for greetings, calculation, translation and
+  code, otherwise run. Generation uses the model's own instruction format: the chat template embedded
   in its GGUF (`tokenizer.chat_template`, applied by llama.cpp), so Qwen gets
   ChatML, Phi gets `<|system|>…<|end|>`, and any other model gets whatever
   its file defines. Only a file with no embedded template falls back to the
   app's plain `Question:/Answer:` prompt. Every row records which one was used
   (`promptFormat`). Generation settings are otherwise identical in both cases
-  (512 tokens, temperature 0.7); a template ends on the model's own
-  end-of-turn token, the plain prompt on the app's stop strings. All three
-  curated GGUFs (Phi-3.5-mini, Qwen2.5-1.5B, Qwen2.5-7B) ship a template.
+  (temperature 0.7); a template ends on the model's own end-of-turn token, the
+  plain prompt on the app's stop strings.
 - **Adaptive routing** (`adaptive`; the native runner reports it as not supported
   yet, so this describes the 1.x app). Every query goes through `runAdaptiveChat`,
   exactly as in chat with Adaptive Routing on, using the routing preset
@@ -69,8 +70,9 @@ The harness runs the whole set once per selected configuration:
   measures the product as users get it; `promptFormat` shows the difference.
 
 Held constant for every run and recorded on every row: the system prompt (the
-default `succinct` personality), `maxTokens` = 512, no conversation history
-(every query is answered on its own). Sampling temperature is the app's normal
+default `detailed` style, Thorough & Detailed; small talk and health questions
+answer in `succinct`, as in the chat), `maxTokens` = 1024 (512 for small talk),
+no conversation history (every query is answered on its own). Sampling temperature is the app's normal
 0.7, so answers vary a little between runs; compare several runs before drawing
 conclusions from small differences.
 
@@ -90,17 +92,19 @@ results land in `eval-results/`; print a report with
 
 1. Build and install the app as described in [AGENTS.md](../AGENTS.md), finish
    first-run setup, and download any extra models you want to compare
-   (Settings → Models).
+   (Settings → Reasoning Models → Open the model catalog).
 2. Keep the phone plugged in with the screen on (for example, Developer options
    → Stay awake). Backgrounding or locking the phone can interrupt a run.
-3. Open the drawer → **Execution Telemetry** → **🧪 Evaluate**.
-4. Tick the configurations to compare (by default, every installed model plus
-   adaptive routing) and tap **▶ Run**. Progress shows the current config and
+3. Open Settings → Advanced tweaks → **Evaluation (for builders)** (or the menu,
+   in builds with `SHOW_EVAL_IN_MENU`).
+4. Tick the models to compare and tap **▶ Run**. Progress shows the current config and
    query. **■ Stop** ends the run after the current answer and keeps partial
    results.
 5. When it finishes, the results are saved on the device as
    `files/eval/<runId>.jsonl`. **⬇ JSONL** and **⬇ CSV** open the share
-   sheet to send them to your computer.
+   sheet to send them to your computer. Builds with `EVAL_SHARING=true` also
+   have **Share results**; the default build has no Share button and sends
+   nothing.
 
 Expect roughly 17 answers × (seconds to a minute each) per config, depending
 on the model and phone.
@@ -116,9 +120,6 @@ Any of these works:
   adb exec-out run-as team.sopa.aoair.native ls files/eval
   adb exec-out run-as team.sopa.aoair.native cat files/eval/<runId>.jsonl > <runId>.jsonl
   ```
-
-Every row is also written to the regular execution telemetry, so eval runs show
-up in the Execution Telemetry screen and its exports like any other message.
 
 ## Comparing results
 
@@ -152,7 +153,7 @@ Each JSONL row (and CSV line) contains:
   `totalLatencyMs` (whole query), `tokensGenerated`, `tokPerSec`,
   `peakRssBytes`.
 
-The metric fields mean exactly what they mean in the execution telemetry.
+Times are in milliseconds, measured on the phone.
 
 ## The Vitalik battery (`vitalik-1`)
 
