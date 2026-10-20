@@ -64,7 +64,7 @@ fun MatrixRain(modifier: Modifier = Modifier, label: String? = null) {
             }
         }
         label?.let {
-            Text(it, style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+            Text(it, style = Boar.type["mono.xs"], color = green, fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(6.dp)).padding(horizontal = 10.dp, vertical = 5.dp))
         }
     }
