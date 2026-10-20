@@ -1,5 +1,7 @@
 package team.sopa.boar.chat
 
+import kotlinx.coroutines.cancelAndJoin
+
 import kotlinx.coroutines.plus
 
 import android.app.Application
@@ -204,7 +206,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             return false
         }
         stopBackground()
-        preloading?.cancel()
+        // Waits for a load in progress: cancelled, it closes the model itself (LlamaSession.load); not waited for, unload
+        // found nothing and the model stayed in memory.
+        preloading?.cancelAndJoin()
         onStage("freeing")
         services.host.unload()
         return true
@@ -587,7 +591,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 val way = team.sopa.boar.engine.routing.AnswerPath.of(deep, aboutConversation(q, history, conversation),
                     settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) },
                     team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
-                if (instant != null) {
+                if (stopRequested) {
+                    // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
+                } else if (instant != null) {
                     limited = null
                     onPiece(instant.text)
                 } else if (session == null) {
@@ -611,9 +617,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.ADAPTIVE) {
                     // Skipped while a Labs engine answers (its own model, or one the user routed to it): the router only
                     // picks among models on BOAR's own engine.
-                    limited = null
+                    // The router answers within the same budget, so a cut answer gets its note and "Allow more".
                     path = "adaptive"
-                    val r = adaptive(q, toolPrompt, styleReminder, history, ::onPiece)
+                    val r = adaptive(q, toolPrompt, styleReminder, history, budget, ::onPiece)
                     sources = r.first
                     timedOut = r.second
                     metrics = r.third
@@ -769,13 +775,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
     @Volatile private var routedModelId: String? = null
 
-    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
+    private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, budget: Int, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
         val s = services.settings
         val statuses = services.catalog.models.filter { it.kind == AssetKind.LLM }.map { Profiles.AvailableModel(it, services.runsOnBuiltIn(it) && services.fileOf(it).isFile) }
         val preset = s.routingPreset?.let { runCatching { RoutingPreset.of(it) }.getOrNull() } ?: RoutingPreset.DEFAULT
         val overrides = s.modelRoleAssignments().mapNotNull { (k, v) -> runCatching { ModelRole.of(k) to v }.getOrNull() }.toMap()
-        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, s.activeModelId("llm"), totalRamBytes(), s.answerTokens(services.host.openedContext))
+        val plan = AdaptivePlan.plan(q, statuses, preset, overrides, services.answerModel()?.id ?: s.activeModelId("llm"), totalRamBytes(), budget)
         lastAdaptive = plan.taskType.value to plan.plan.steps.any { it.type == team.sopa.boar.engine.routing.RoutingStepType.VERIFY }
         val r = PlanExecutor(services.host, services::search, { Classify.classifyTask(it).value }, timeoutFor = s.engineTweaks::stageTimeoutMs)
             .execute(plan.plan, PipelineInput(q, systemPrompt, styleReminder, history), onToken = onPiece, onStepStart = { step ->

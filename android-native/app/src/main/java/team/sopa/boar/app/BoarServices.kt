@@ -282,7 +282,8 @@ class BoarServices private constructor(private val context: Context) {
             val meta = LoadGuard.Meta(asset.filename, asset.id, asset.label)
             val repack = tweaks.weightRepack ?: !(loadGuard.mappedNext(asset.id) || asset.id in keepMapped)
             loadGuard.begin(meta, previous, repack)
-            val s = LlamaSession.load(fileOf(asset).path, params.copy(repack = repack))
+            // A cancelled load clears its marker: it didn't kill the app, and must not block the model next time.
+            val s = try { LlamaSession.load(fileOf(asset).path, params.copy(repack = repack)) } catch (e: kotlinx.coroutines.CancellationException) { loadGuard.end(meta, false); throw e }
             loadGuard.end(meta, s != null)
             if (s == null) return null
             residentRepacked = repack
@@ -341,7 +342,7 @@ class BoarServices private constructor(private val context: Context) {
                 residentId = null
                 val params = tweaks.resolve(topology, totalRamBytes).params
                 val t0 = android.os.SystemClock.elapsedRealtime()
-                val m = runCatching { provider.load(asset, params) }.onFailure { android.util.Log.w("BOAR", "${provider.id} load failed", it) }.getOrNull()
+                val m = runCatching { provider.load(asset, params) }.onFailure { if (it is kotlinx.coroutines.CancellationException) throw it; android.util.Log.w("BOAR", "${provider.id} load failed", it) }.getOrNull()
                 DebugLog.modelLoad(asset.id, android.os.SystemClock.elapsedRealtime() - t0, m != null, params.threads, params.nCtx,
                     provider === builtInEngine && builtInEngine.residentRepacked)
                 if (m == null) return null
