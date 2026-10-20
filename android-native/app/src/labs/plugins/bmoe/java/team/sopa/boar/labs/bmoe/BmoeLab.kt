@@ -299,6 +299,8 @@ object BmoeLab : LabPlugin, EngineProvider {
                         onDownload = { catalogVm.download(m.asset) },
                     ) {
                         services.settings.setActiveModelId("llm", m.asset.id)
+                        // Picked by hand, as in the Model Catalog (ModelsViewModel.use): a load that crashed before may try again.
+                        services.loadGuard.confirm(m.asset.id)
                         active = m.asset.id
                         scope.launch { services.host.unload() }
                     }
