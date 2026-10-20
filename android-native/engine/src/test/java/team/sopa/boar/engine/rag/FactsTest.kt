@@ -317,5 +317,14 @@ class FactsTest {
         none("What is the country code for Tokyo?") // a city has no calling code in the table
         none("What time zone is Japan in?")
         assertEquals("capital", facts.answer("What is the capital of Japan?")?.template)
+        assertEquals("emergency", facts.answer("What is the emergency number in Thailand?")?.template)
+    }
+
+    // ---- r8: emergency numbers, 2026-10-19 ----
+
+    @Test fun `r8 answers a country's emergency numbers with their service`() {
+        matches("""^Emergency numbers in Thailand: police 191, fire department 199 and emergency medical services 1669\.""", "What is the emergency number in Thailand?")
+        matches("""police 110""", "What is the police number in Japan?")
+        none("Is there an emergency exit in the Burj Khalifa?")
     }
 }

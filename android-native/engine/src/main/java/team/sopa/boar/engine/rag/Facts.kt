@@ -41,6 +41,8 @@ class Facts(json: String) {
         val loc: List<String>?, val win: Map<String, List<String>>?, val ctry: List<String>?, val t: List<String>?,
         /** r9: driving side ("left" / "right") and international calling codes with the part each covers ("" = the whole country). */
         val drive: String? = null, val call: List<Pair<String, String>>? = null,
+        /** r8: emergency phone numbers and their service ("" when the table names none), countries only. */
+        val emerg: List<Pair<String, String>>? = null,
     )
 
     /** [template]: "population", "area", "capital"…; [entities]: their Wikidata ids. */
@@ -68,6 +70,7 @@ class Facts(json: String) {
                 o.str("inc"), o.str("end"), o.strs("loc"),
                 (o["win"] as? JsonObject)?.mapValues { (_, v) -> v.jsonArray.map { it.jsonPrimitive.content } }, o.strs("ctry"), o.strs("t"),
                 o.str("drive"), (o["call"] as? JsonArray)?.map { c -> c.jsonArray.let { it[0].jsonPrimitive.content to it[1].jsonPrimitive.content } },
+                (o["emerg"] as? JsonArray)?.map { c -> c.jsonArray.let { it[0].jsonPrimitive.content to it[1].jsonPrimitive.content } },
             )
         }
         fun add(key: String, e: Entity) {
@@ -261,6 +264,9 @@ class Facts(json: String) {
                 val note = if (regional) " Where two values are listed, it differs by region: check the socket or ask locally." else ""
                 "$name: ${parts.joinToString(", ")}.$note${source(null)}"
             }
+            "emergency" -> e.emerg?.takeIf { it.isNotEmpty() }?.let { nums ->
+                "Emergency numbers in $name: ${list(nums.map { (n, use) -> if (use.isNotEmpty()) "$use $n" else n })}. In a life-threatening emergency, call now.${source(null)}"
+            }
             "driving" -> {
                 val side = e.drive?.takeIf { !DRIVE_VETO.containsMatchIn(query) } ?: return null
                 val low = query.lowercase()
@@ -388,6 +394,7 @@ class Facts(json: String) {
             "length" to listOf("how long is", "how long are", "length", "longer", "longest", "km long", "miles long"),
             "depth" to listOf("how deep", "depth", "deepest", "deeper", "deep"),
             "dates" to listOf("built", "founded", "established", "constructed", "erected", "inception", "came down", "come down", "fell", "fall of", "torn down", "demolished", "dissolved"),
+            "emergency" to listOf("emergency number", "emergency numbers", "emergency phone number", "emergency telephone number", "emergency services number", "ambulance number", "police number", "fire brigade number", "fire department number", "number for an ambulance", "number for the police", "number for emergencies", "number to call in an emergency"),
             "electricity" to listOf("plug", "plugs", "plug type", "socket", "sockets", "outlet", "outlets", "voltage", "volts", "mains", "adapter", "adaptor", "power adapter", "travel adapter", "plug adapter", "power plug", "power socket", "wall socket", "power outlet", "electrical outlet", "hz", "hertz", "mains frequency"),
             "driving" to listOf("drive on the left", "drive on the right", "drives on the left", "drives on the right", "driving on the left", "driving on the right", "drive on which side", "drive on what side", "driving side", "side of the road", "left-hand traffic", "right-hand traffic"),
             "calling" to listOf("country code", "calling code", "country calling code", "international calling code", "dialing code", "dialling code", "international dialing code", "international dialling code", "international code", "phone code", "telephone code", "dial code"),
