@@ -75,6 +75,19 @@ class BenchActivity : ComponentActivity() {
             log.value += "themes opened: ${team.sopa.boar.ui.theme.Themes.extras.joinToString { it.id }}\n"
             Log.i("BOAR_BENCH", "themes opened")
         // Only on a fresh start: a recreated activity must not load a second copy of the model. Not after "themes".
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "labtest") {
+            // adb only: a lab's self-test without its screen (--es lab image|printer --es args "all=1;seed=7"), logged as BOAR_LABTEST.
+            val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_LABTEST", line) }
+            val id = intent.getStringExtra("lab").orEmpty()
+            val args = intent.getStringExtra("args").orEmpty().split(';').mapNotNull { kv -> kv.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0].trim() to it[1].trim() } }.toMap()
+            lifecycleScope.launch {
+                team.sopa.boar.labs.LabPrefs.init(this@BenchActivity)
+                if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = applicationContext
+                val lab = team.sopa.boar.labs.LabRegistry.ALL.firstOrNull { it.id == id }
+                val ran = runCatching { lab?.selfTest(this@BenchActivity, args, say) == true }.onFailure { say("FAIL labtest $id: $it") }.getOrDefault(true)
+                if (!ran) say("FAIL labtest: no self-test for lab \"$id\"")
+                say("labtest end")
+            }
         } else if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
             // scripts/retrieval-parity.mjs: the app's own retrieval on the questions it sent, results for the desktop.
             val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_PARITY", line) }

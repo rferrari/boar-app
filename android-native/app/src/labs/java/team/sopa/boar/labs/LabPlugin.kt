@@ -82,6 +82,12 @@ interface LabPlugin {
 
     /** The check slot: reads a model's finished answer and may repair it (team.sopa.boar.plugins.AnswerChecks). */
     val answerCheck: team.sopa.boar.plugins.AnswerCheck? get() = null
+
+    /**
+     * adb only (BenchActivity run=labtest): exercises this lab without its screen, reporting each check through [say] as
+     * "ok …" or "FAIL …". False when the lab has no self-test.
+     */
+    suspend fun selfTest(context: Context, args: Map<String, String>, say: (String) -> Unit): Boolean = false
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */

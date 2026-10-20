@@ -69,6 +69,10 @@ import java.io.File
 object PrinterLab : LabPlugin {
     override val id = "printer"
 
+    override suspend fun selfTest(context: android.content.Context, args: Map<String, String>, say: (String) -> Unit): Boolean {
+        PressSelfTest.run(context, args, say); return true
+    }
+
     /** The basket holds answers' text: it goes with the chats. */
     override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
         Basket.eraseAll(context)

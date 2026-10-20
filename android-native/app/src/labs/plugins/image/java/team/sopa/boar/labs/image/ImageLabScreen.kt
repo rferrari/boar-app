@@ -60,6 +60,10 @@ import java.util.Locale
 object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val id = "image"
 
+    override suspend fun selfTest(context: android.content.Context, args: Map<String, String>, say: (String) -> Unit): Boolean {
+        DesignerSelfTest.run(context, args, say); return true
+    }
+
     /** Chats erased: their illustrations go. Everything: every picture made here too (the model stays). */
     override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
         Illustrator.eraseAll(context)
