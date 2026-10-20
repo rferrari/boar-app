@@ -36,24 +36,28 @@ import androidx.compose.ui.window.DialogProperties
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.t
 
-/** One card of the tour: its strings are native.tour.<key>.title / .body / .where (no where line for welcome and end). */
-data class TourCard(val key: String, val emoji: String, val where: Boolean = true)
+/**
+ * One card of the tour: its strings are native.tour.<key>.title / .body / .where (no where line for welcome and end).
+ * [art]: a picture on top (the brand avatar, the mascot); [emoji]: a small one where there's no preview; else neither.
+ */
+data class TourCard(val key: String, val emoji: String? = null, val where: Boolean = true, val art: Int? = null)
 
 /** The setup download under the tour: its line ("Downloading · 42% · 6 min"), its fraction, and whether BOAR is ready. */
 data class TourProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean = false)
 
 /** The tour's cards in order; the Boar Labs card only in builds with the Experimental section. */
 fun tourCards(experimental: Boolean): List<TourCard> = listOfNotNull(
-    TourCard("welcome", "🐗", where = false),
-    TourCard("theme", "🎨"),
-    TourCard("styles", "💬"),
-    TourCard("deep", "🔬"),
-    TourCard("sources", "📚"),
-    TourCard("knowledge", "📄"),
-    TourCard("models", "⚙️"),
+    TourCard("welcome", where = false, art = team.sopa.boar.R.drawable.brand_pfp),
+    TourCard("theme"),
+    TourCard("styles"),
+    TourCard("deep"),
+    TourCard("sources"),
+    TourCard("knowledge"),
+    TourCard("models"),
+    TourCard("adaptive"),
     TourCard("pin", "🔑"),
     if (experimental) TourCard("labs", "🧪") else null,
-    TourCard("end", "🏁", where = false),
+    TourCard("end", where = false, art = team.sopa.boar.R.drawable.mascot),
 )
 
 /**
@@ -77,14 +81,17 @@ fun TourScreen(
         BackHandler { if (i > 0) onIndex(i - 1) else onClose() }
         val c = Boar.colors
         Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(t("native.tour.title").uppercase(), style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                if (card.key != "end") Text(t("native.tour.skip"), style = Boar.type.body, color = c.textMuted,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClose).padding(8.dp))
+            // The app's page header (as Boar Labs' pages): the title, and Done to leave the tour.
+            Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(t("native.tour.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
+                Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.08f))
+                        .clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
             }
+            Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
             // The download never hides: the same numbers as the setup screen, live.
             progress?.let { p ->
-                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     LinearProgressIndicator(progress = { p.fraction.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                         color = c.emerald500, trackColor = c.bgSubtle)
                     // A stalled or failed download: the line says so, and a tap goes back to its retry.
@@ -96,7 +103,10 @@ fun TourScreen(
                     Modifier.padding(16.dp).fillMaxWidth().background(c.emeraldBgSubtle, RoundedCornerShape(14.dp)).border(1.dp, c.emerald500, RoundedCornerShape(14.dp)).padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(t("native.tour.ready"), style = Boar.type.title, color = c.textHeading)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.mascot), null, Modifier.size(22.dp).clip(RoundedCornerShape(4.dp)))
+                        Text(t("native.tour.ready"), style = Boar.type.title, color = c.textHeading)
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(t("native.tour.openBoar"), primary = true, modifier = Modifier.weight(1f), onClick = onReady)
                         Button(t("native.tour.keepTouring"), primary = false, modifier = Modifier.weight(1f)) { bannerHidden = true }
@@ -105,13 +115,20 @@ fun TourScreen(
                 }
             }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(card.emoji, fontSize = 44.sp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                card.art?.let { r ->
+                    androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(96.dp).clip(RoundedCornerShape(20.dp)),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                }
+                card.emoji?.let { Text(it, fontSize = 32.sp) }
                 Text(t("native.tour.${card.key}.title"), style = Boar.type.headline, color = c.textHeading)
                 Text(t("native.tour.${card.key}.body"), style = Boar.type.body, color = c.textPrimary)
+                if (card.key != "theme") TourPreview(card.key)
                 if (card.key == "theme") team.sopa.boar.ui.appearance.ThemePicker(team.sopa.boar.app.BoarServices.get(androidx.compose.ui.platform.LocalContext.current).vault, picked) {
                     picked = it; onTheme(it)
                 }
+                // Below the chips, so a tap repaints the example right under the finger.
+                if (card.key == "theme") TourPreview("theme")
                 if (card.where) Text(t("native.tour.${card.key}.where"), style = Boar.type.subtext, color = c.textAccentCyan,
                     modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 6.dp))
             }

@@ -47,7 +47,7 @@
     <string name="native_settings_standard" formatted="false">Standard</string>
     <string name="native_settings_large" formatted="false">Large</string>
     <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
-    <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed, and can check the answer against its sources.</string>
+    <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed.</string>
     <string name="native_drawer_settings" formatted="false">Settings</string>
     <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
@@ -489,10 +489,10 @@
     <string name="native_tour_toDownload" formatted="false">Back to the download</string>
     <string name="native_tour_openBoar" formatted="false">Open BOAR</string>
     <string name="native_tour_keepTouring" formatted="false">Keep touring</string>
-    <string name="native_tour_ready" formatted="false">BOAR is ready 🐗</string>
+    <string name="native_tour_ready" formatted="false">BOAR is ready</string>
     <string name="native_tour_again" formatted="false">You can see this tour again in Settings.</string>
     <string name="native_tour_whileYouWait" formatted="false">While you wait</string>
-    <string name="native_tour_cardTitle" formatted="false">🐗 Take the 2-minute tour</string>
+    <string name="native_tour_cardTitle" formatted="false">Take the 2-minute tour</string>
     <string name="native_tour_cardSub" formatted="false">Styles, Deep Research, sources, Labs</string>
     <string name="native_tour_start" formatted="false">Start the tour</string>
     <string name="native_tour_seeTour" formatted="false">See the tour</string>
@@ -508,7 +508,7 @@
     <string name="native_tour_styles_body" formatted="false">Succinct &amp; Direct for quick replies, Thorough &amp; Detailed for full explanations (the default), Executive Summary for one takeaway and three bullets.</string>
     <string name="native_tour_styles_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
     <string name="native_tour_deep_title" formatted="false">Deep Research</string>
-    <string name="native_tour_deep_body" formatted="false">For big questions: BOAR searches in several steps and writes a longer answer. It takes more time.</string>
+    <string name="native_tour_deep_body" formatted="false">For big questions: BOAR searches in several steps and writes a longer answer. It takes more time. When it\'s on, the chat glows and the 🔬 lights up, so you always know.</string>
     <string name="native_tour_deep_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
     <string name="native_tour_sources_title" formatted="false">Sources and receipts</string>
     <string name="native_tour_sources_body" formatted="false">An answer from the library lists the articles it used: tap one to read it. A receipt shows the model, the speed and the time.</string>
@@ -523,10 +523,22 @@
     <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
     <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experiments: some answer questions without the model, and Boar Vitals shows the phone at work. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on; the others start off. If one misbehaves, switch it off.</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on. Also try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage. Labs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run. If one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
     <string name="native_tour_linePaused" formatted="false">Setup paused · tap to see it</string>
     <string name="native_tour_linePreparing" formatted="false">Preparing the index…</string>
+    <string name="native_tour_example" formatted="false">Example</string>
+    <string name="native_tour_sample_question" formatted="false">How do I make water safe to drink?</string>
+    <string name="native_tour_sample_answer" formatted="false">Boil it for at least one minute [1], then let it cool covered [2].</string>
+    <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
+    <string name="native_tour_sample_styleButton" formatted="false">The style button, next to where you type</string>
+    <string name="native_tour_sample_doc" formatted="false">field-manual.pdf</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 pages · in My Documents</string>
+    <string name="native_tour_sample_ask" formatted="false">Ask about it</string>
+    <string name="native_tour_adaptive_title" formatted="false">Adaptive routing</string>
+    <string name="native_tour_adaptive_body" formatted="false">Off by default. Switch it on and BOAR picks which of your installed models answers each question, and how. Worth it when you have more than one model.</string>
+    <string name="native_tour_adaptive_where" formatted="false">Settings → How BOAR answers</string>
+    <string name="native_models_compat_streamed" formatted="false">Bigger than RAM · {{engine}} streams it</string>
 </resources>

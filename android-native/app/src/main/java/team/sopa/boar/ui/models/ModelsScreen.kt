@@ -163,7 +163,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             StatusBadge(present, active, row?.downloading == true)
         }
         // The memory badge for every LLM, a Labs engine's model too: the user sees it's bigger than the phone's RAM.
-        if (item.kind == AssetKind.LLM) RamBadge(item.sizeBytes, ramBytes)
+        if (item.kind == AssetKind.LLM) RamBadge(item.sizeBytes, ramBytes, streamedBy(item))
         // A Labs engine's model, while that engine runs it (not moved to BOAR's own by the user): it streams from storage.
         val engine = item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) }
         val onEngine = engine?.takeIf { !team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(item) }
@@ -246,13 +246,30 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     )
 }
 
-/** 🟢/🟡/🔴: how a model of [sizeBytes] fits this phone's [ramBytes] (Compatibility); nothing when the RAM is unknown. */
+/**
+ * The Labs engine that runs [item] from storage (Big Boar for its 35B, or for a mixture of experts the user's chip sends
+ * there), by its label; null when BOAR's own engine loads it into RAM.
+ */
+internal fun streamedBy(item: team.sopa.boar.engine.models.CatalogAsset): String? {
+    if (team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(item)) return null
+    return (item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: team.sopa.boar.plugins.EnginePlugins.routed(item))?.engineLabel
+}
+
+/**
+ * 🟢/🟡/🔴: how a model of [sizeBytes] fits this phone's [ramBytes] (Compatibility); nothing when the RAM is unknown.
+ * A model too big for RAM that a Labs engine [streamedBy] reads from storage isn't "incompatible": it says so instead.
+ */
 @Composable
-internal fun RamBadge(sizeBytes: Long, ramBytes: Long) {
+internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = null) {
     if (ramBytes <= 0) return
     val c = Boar.colors
     val mono = Boar.type["mono.xs"]
     val comp = Compatibility.compute(sizeBytes, ramBytes)
+    if (streamedBy != null && comp.value != "green") {
+        Text("🌊 " + t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+            modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        return
+    }
     val (icon, fg, bg, border) = when (comp.value) {
         "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
         "yellow" -> listOf("🟡", c.textAccentAmber, c.amberBgSubtle, c.amberBorder)

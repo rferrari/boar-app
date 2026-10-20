@@ -579,8 +579,15 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
-            if (!streaming && speaker?.canBypass == true && state.answeringId == null)
-                FooterButton("🐗", t("native.chat.askBoarInstead"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onAskModel(m.id) }
+            // Its own row on the right, bigger, with BOAR's mascot: a way out of the plugin's answer, not one of its controls.
+            if (!streaming && speaker?.canBypass == true && state.answeringId == null) Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterEnd) {
+                Row(Modifier.clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
+                    .clickable { onAskModel(m.id) }.padding(horizontal = 14.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Image(painterResource(R.drawable.mascot), null, Modifier.size(18.dp).clip(RoundedCornerShape(4.dp)))
+                    Text(t("native.chat.askBoarInstead"), style = Boar.type.titleSm, color = c.textAccentEmerald)
+                }
+            }
             m.cutAt?.let { limit ->
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))

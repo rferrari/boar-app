@@ -393,7 +393,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
             val lowRam = services.totalRamBytes in 1 until 8_000_000_000L
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { runCard = false },
-                title = { Text("🐗 " + t("native.tweaks.preset.run")) },
+                title = { Text(t("native.tweaks.preset.run")) },
                 text = { Text(t("native.tweaks.runWarning") + if (lowRam) "\n\n" + t("native.tweaks.runWarningLowRam") else "") },
                 confirmButton = {
                     androidx.compose.material3.TextButton({

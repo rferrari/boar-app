@@ -328,7 +328,7 @@ object BmoeLab : LabPlugin, EngineProvider {
         ) {
             Text(a.shortName, style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
             Text(String.format(Locale.US, "%.1f GB", a.sizeBytes / 1e9), style = mono, color = c.textDim)
-            RamBadge(a.sizeBytes, services.totalRamBytes)
+            RamBadge(a.sizeBytes, services.totalRamBytes, team.sopa.boar.ui.models.streamedBy(a))
             when {
                 downloading -> Text(t("catalogItemCard.downloadingAsset") + " " + String.format(Locale.US, "%.0f%%", progress * 100), style = mono, color = c.textAccentCyan)
                 present -> Text(t("native.labs.bmoe.onPhone"), style = mono, color = c.textAccentEmerald)

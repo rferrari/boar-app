@@ -385,11 +385,11 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Uni
         }
 
         // While it downloads or indexes: BOAR's tour, full screen, with the download live on top.
-        if (!state.finished) Card {
+        if (!state.finished) Card(background = c.emeraldBgSubtle, border = c.emerald500) {
             Text(t("native.tour.whileYouWait").uppercase(), style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
             Text(t("native.tour.cardTitle"), style = Boar.type.title, color = c.textHeading)
             Meta(t("native.tour.cardSub"), c.textSecondary)
-            SecondaryButton(t("native.tour.start") + "  →", onTour)
+            PrimaryButton(t("native.tour.start") + "  →", onClick = onTour)
         }
 
         // One row per category; a tap shows its files and, for a failed one, Try again.

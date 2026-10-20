@@ -266,6 +266,7 @@ class BoarServices private constructor(private val context: Context) {
         override val id = BUILT_IN_ENGINE
         override val engineLabel = "BOAR"
         override val engineEmoji = "🐗"
+        override val engineArt: Int get() = team.sopa.boar.R.drawable.mascot
         override fun models() = ownCatalog.models.filter { it.kind == AssetKind.LLM }
 
         /** Models that stalled with repacked weights in this process: mapped from storage until the app restarts (#73). */

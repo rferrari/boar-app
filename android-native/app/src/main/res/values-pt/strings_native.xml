@@ -47,7 +47,7 @@
     <string name="native_settings_standard" formatted="false">Padrão</string>
     <string name="native_settings_large" formatted="false">Grande</string>
     <string name="native_settings_adaptiveTitle" formatted="false">Roteamento adaptativo</string>
-    <string name="native_settings_adaptiveNote" formatted="false">Escolhe um modelo por pergunta entre os instalados e pode conferir a resposta com as fontes.</string>
+    <string name="native_settings_adaptiveNote" formatted="false">Escolhe um modelo por pergunta entre os instalados.</string>
     <string name="native_drawer_settings" formatted="false">Configurações</string>
     <string name="native_about_airGappedBody" formatted="false">BOAR é um sistema de IA móvel que funciona offline, explorando roteamento adaptativo de modelos, busca local e inferência consciente dos recursos. Roda os modelos com o llama.cpp, embutido no app, e a busca híbrida local (SQLite FTS5 + embeddings no aparelho), sem nenhuma dependência de nuvem.</string>
     <string name="native_about_siteTitle" formatted="false">Site oficial</string>
@@ -489,10 +489,10 @@
     <string name="native_tour_toDownload" formatted="false">Voltar ao download</string>
     <string name="native_tour_openBoar" formatted="false">Abrir o BOAR</string>
     <string name="native_tour_keepTouring" formatted="false">Continuar o tour</string>
-    <string name="native_tour_ready" formatted="false">O BOAR está pronto 🐗</string>
+    <string name="native_tour_ready" formatted="false">O BOAR está pronto</string>
     <string name="native_tour_again" formatted="false">Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_whileYouWait" formatted="false">Enquanto espera</string>
-    <string name="native_tour_cardTitle" formatted="false">🐗 Faça o tour de 2 minutos</string>
+    <string name="native_tour_cardTitle" formatted="false">Faça o tour de 2 minutos</string>
     <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Labs</string>
     <string name="native_tour_start" formatted="false">Começar o tour</string>
     <string name="native_tour_seeTour" formatted="false">Ver o tour</string>
@@ -508,7 +508,7 @@
     <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Resumo Executivo para uma conclusão e três pontos.</string>
     <string name="native_tour_styles_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
     <string name="native_tour_deep_title" formatted="false">Pesquisa Profunda</string>
-    <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo.</string>
+    <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo. Quando está ligada, o chat brilha e o 🔬 acende, então você sempre sabe.</string>
     <string name="native_tour_deep_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
     <string name="native_tour_sources_title" formatted="false">Fontes e recibos</string>
     <string name="native_tour_sources_body" formatted="false">Uma resposta da biblioteca lista os artigos que usou: toque em um para ler. Um recibo mostra o modelo, a velocidade e o tempo.</string>
@@ -523,10 +523,22 @@
     <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
     <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experimentos: alguns respondem perguntas sem o modelo, e o Boar Vitals mostra o celular trabalhando. Calculator, Facts, Cohazard, Distance, Polyglot e Vitals já vêm ligados; os outros vêm desligados. Se algum der problema, desligue.</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Calculator, Facts, Cohazard, Distance, Polyglot e Vitals já vêm ligados. Experimente também o Boar Designer, que desenha uma imagem a partir da resposta; o Boar Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento. Os labs não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Se algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_linePaused" formatted="false">Configuração pausada · toque para ver</string>
     <string name="native_tour_linePreparing" formatted="false">Preparando o índice…</string>
+    <string name="native_tour_example" formatted="false">Exemplo</string>
+    <string name="native_tour_sample_question" formatted="false">Como deixo a água segura para beber?</string>
+    <string name="native_tour_sample_answer" formatted="false">Ferva por pelo menos um minuto [1] e deixe esfriar tampada [2].</string>
+    <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
+    <string name="native_tour_sample_styleButton" formatted="false">O botão de estilo, ao lado de onde você digita</string>
+    <string name="native_tour_sample_doc" formatted="false">manual-de-campo.pdf</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Meus Documentos</string>
+    <string name="native_tour_sample_ask" formatted="false">Perguntar sobre ele</string>
+    <string name="native_tour_adaptive_title" formatted="false">Roteamento adaptativo</string>
+    <string name="native_tour_adaptive_body" formatted="false">Vem desligado. Ligue e o BOAR escolhe qual dos seus modelos instalados responde cada pergunta, e como. Vale a pena quando você tem mais de um modelo.</string>
+    <string name="native_tour_adaptive_where" formatted="false">Configurações → Como o BOAR responde</string>
+    <string name="native_models_compat_streamed" formatted="false">Maior que a RAM · o {{engine}} lê do armazenamento</string>
 </resources>
