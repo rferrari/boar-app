@@ -58,6 +58,8 @@ class DeviceEvalRunner(
     private val requestsDir = File(evalDir, "requests")
     private val json = Json { prettyPrint = false }
     /** The app version on every row, so a saved or exported run says which build answered. */
+    /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
+    @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
     private val appVersion: String = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?" 
 
     private fun asset(name: String) = context.assets.open("boar-data/$name").bufferedReader().readText()
@@ -133,6 +135,15 @@ class DeviceEvalRunner(
             return
         }
         resolved as Resolved.Ok
+        // The request's labs: their tools and checks for this run only, whatever is switched on in the app.
+        if (request.labs != null) {
+            team.sopa.boar.labs.LabPrefs.init(context)
+            if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+        }
+        val labs = request.labs?.map { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
+            writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
+        } }
+        runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
         // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
         val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
             ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
@@ -318,7 +329,8 @@ class DeviceEvalRunner(
     ): JsonObject {
         // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
         val toolStart = System.nanoTime()
-        val tool = AnswerTools.run(q.query, emptyList())
+        val labs = runLabs
+        val tool = if (labs != null) team.sopa.boar.engine.routing.LabTools.first(labs.first) { it.run(q.query, emptyList()) } else AnswerTools.run(q.query, emptyList())
         if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = mode.params()) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
@@ -343,7 +355,11 @@ class DeviceEvalRunner(
         val end = System.nanoTime()
         val peakRss = peak.stop()
         val d = done
-        val answer = d?.text ?: ""
+        // The check slot, as in the chat: a finished answer may be repaired (Boar Guard).
+        val repair = d?.text?.takeIf { error == null && it.isNotBlank() }?.let { text ->
+            if (labs != null) team.sopa.boar.engine.routing.LabTools.first(labs.second) { it.check(q.query, text) } else team.sopa.boar.plugins.AnswerChecks.run(q.query, text)
+        }
+        val answer = repair?.text ?: d?.text ?: ""
         val ttftMs = if (genStart > 0) ((if (firstToken > 0) firstToken else end) - genStart) / 1e6 else null
         val genLatency = if (genStart > 0 && ttftMs != null) (end - genStart) / 1e6 - ttftMs else null
         val outcome = if (error != null) "failure" else if (answer.isNotBlank()) "success" else "failure"
@@ -365,7 +381,7 @@ class DeviceEvalRunner(
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
-            "tool" to tool?.tool,
+            "tool" to listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
             // Which engine wrote it (builtin, mapped or bigboar); Big Boar runs in its own process, so peakRssBytes is the app's only.
             "inferenceEngine" to config.engine,
             // How search ranked the passages (balanced, keyword or meaning), so runs in different modes can be compared.

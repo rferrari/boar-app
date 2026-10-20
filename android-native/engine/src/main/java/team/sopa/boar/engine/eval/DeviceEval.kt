@@ -48,6 +48,8 @@ data class EvalRequest(
     val engines: Map<String, String> = emptyMap(),
     /** How search ranks what it finds ([team.sopa.boar.engine.rag.RetrievalMode], lowercase); null is BALANCED. Native only. */
     val retrieval: String? = null,
+    /** The Boar Labs plugins (lab ids) that answer or check, as in the chat with only those on; null is none. Native only. */
+    val labs: List<String>? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -138,6 +140,7 @@ object DeviceEval {
             engine = engine,
             engines = engines,
             retrieval = retrieval,
+            labs = stringList(raw["labs"], "labs"),
             models = stringList(raw["models"], "models"),
             adaptive = (raw["adaptive"] as? JsonPrimitive)?.booleanOrNull,
             queries = stringList(raw["queries"], "queries"),
