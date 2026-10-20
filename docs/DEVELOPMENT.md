@@ -14,6 +14,34 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Needs JDK 17 and an Android SDK with NDK `27.1.12297006` and CMake `3.22.1`.
 
+Add `-Pboar.experimentalFeatures=true` to build Boar Labs in, as the 2.0.0 releases are
+(`EXPERIMENTAL_FEATURES=true` in `.env` does the same). How labs work:
+[PLUGINS.md](PLUGINS.md).
+
+## Package names
+
+Scripts that talk to a phone over adb need the application id of the build you
+installed:
+
+| Build | Application id |
+|---|---|
+| Release (`assembleRelease`) | `team.sopa.aoair` |
+| Debug (`assembleDebug`) | `team.sopa.aoair.native` |
+| Labs beside BOAR (`-Pboar.appIdSuffix=.labs`) | `team.sopa.aoair.labs` |
+| Instrumented tests (`devtest`) | `team.sopa.aoair.devtest` |
+
+For example `npm --prefix scripts run pack:push -- <pack.sqlite> --package team.sopa.aoair.native`
+(pack:push needs a debuggable build), and the evaluation runner's component
+`team.sopa.aoair/team.sopa.boar.bench.BenchActivity` for a release build
+([DEVICE_EVALUATION.md](DEVICE_EVALUATION.md)).
+
+## Checking an APK's network surface
+
+`RELEASE_VARIANT=downloader scripts/offline-proof.sh <apk>` audits an APK with
+`scripts/audit-apk.py`: its permissions, and whether it holds Play Services or tracker
+classes. `scripts/netstats-uid.sh team.sopa.aoair` prints the traffic Android counted for
+the installed app.
+
 The build tools in `scripts/` (knowledge packs, evaluation reports) are Node scripts with
 their own `scripts/package.json`: `npm --prefix scripts install`, then run them from the repo
 root.
@@ -36,7 +64,7 @@ the key in `~/.gradle/gradle.properties` (AGENTS.md › Signing):
 
 ```bash
 cd android-native
-./gradlew assembleRelease -Pboar.evalSharing=true -Pboar.versionName=2.0.0
+./gradlew assembleRelease -Pboar.evalSharing=true -Pboar.versionName=2.0.0-rc1
 adb install -r app/build/outputs/apk/release/app-release.apk   # application id team.sopa.aoair
 ```
 
