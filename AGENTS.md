@@ -46,15 +46,15 @@ git clone --recursive https://github.com/rferrari/boar-app.git
 cd boar-app
 git submodule update --init          # only if you cloned without --recursive
 cd android-native
-./gradlew assembleRelease -Pboar.versionName=2.0.0
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
 # -> app/build/outputs/apk/release/app-release.apk
 adb install -r app/build/outputs/apk/release/app-release.apk
 ./gradlew --stop                     # don't leave the Gradle daemon running
 ```
 
-Without `-Pboar.versionName` the version is `2.0.0-dev`. Use it for release candidates
-too, e.g. `-Pboar.versionName=2.0.0-rc1`. About shows the version, the git commit and the
-build date.
+Without `-Pboar.versionName` the version is `2.0.0-dev`. The 2.0.0 releases are built with
+`-Pboar.experimentalFeatures=true` (Boar Labs included); 2.0.0-rc1 has `versionCode` 4. About
+shows the version, the git commit and the build date.
 
 Other build types:
 
@@ -77,8 +77,9 @@ BOAR_UPLOAD_KEY_PASSWORD=...
 
 Without them the release is debug-signed. That is fine for your own phone, but Android
 won't install it over a BOAR signed with another key. You have to uninstall first, and
-uninstalling deletes the downloaded models. Published releases are built and signed by
-GitHub Actions (`docs/RELEASING.md`).
+uninstalling deletes the downloaded models. Published releases are built locally, and
+before upload `apksigner verify --print-certs` must show the release signer `7cf514f9…`
+(`docs/RELEASING.md`).
 
 ## Build flags
 
@@ -87,7 +88,7 @@ environment, or as a Gradle property with `-P`.
 
 | `.env` / environment | Gradle property | Default | Effect |
 |---|---|---|---|
-| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs and Boar Avatars exist (off until turned on in Settings › Advanced tweaks) |
+| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs and the Boarverse exist, in Settings → Experimental. Boar Labs starts on, with the beta labs and Boar Vitals on; the Boarverse starts off |
 | `EVAL_SHARING` | `boar.evalSharing` | false | Builds in the results server (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `.env`). Off: no Share button, runs stay on the phone as files |
 | `SHOW_EVAL_IN_MENU` | `boar.showEvalInMenu` | false | Evaluation in the side menu (always reachable from Advanced tweaks) |
 | `ALLOW_DEBUG_LOG` | `boar.allowDebugLog` | false | Settings › Advanced tweaks › Debug log exists |
@@ -101,7 +102,7 @@ environment, or as a Gradle property with `-P`.
 A Labs build that installs beside the normal BOAR:
 
 ```bash
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.versionName=2.0.0
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.versionName=2.0.0-rc1
 ```
 
 ## Boar Labs engines
@@ -130,7 +131,7 @@ show in the grid, and their page says the engine is missing.
 
 ```bash
 cd android-native
-./gradlew :engine:testDebugUnitTest   # JVM unit tests, about 380; no device needed
+./gradlew :engine:testDebugUnitTest   # JVM unit tests, about 390; no device needed
 ./gradlew :app:compileDebugKotlin     # the app compiles
 ./gradlew --stop
 ```
@@ -142,14 +143,16 @@ APK installs or runs. Don't claim a build or install works without a real device
 
 First launch shows a one-time setup that downloads:
 
-- the answer model: Qwen3 4B (about 2.5 GB) on phones with 10 GB of RAM or more, Qwen2.5
-  1.5B (about 1 GB) below that (`SetupModel.recommended` in the engine). The user can pick
-  the other one.
+- the answer model: Qwen3 4B (about 2.5 GB) when Android reports 10 GiB of RAM or more (12 GB
+  phones), Qwen3 1.7B (about 1.1 GB) below that (`SetupModel.recommended` in the engine). The
+  user can pick another one. On 12 GB phones LFM2.5 8B is also badged, as the fast pick.
 - BGE Small, the search (embedding) model.
-- knowledge packs, optional.
+- a knowledge package: Encyclopedia (with the Wikipedia Vital Articles pack, about 164 MB,
+  from the GitHub release `knowledge-pack-v1`) when it fits in the free space, else Essential.
 
-The app is gated behind this download. After it, BOAR works without a network connection.
-Models are stored in the app's `files/` folder.
+While it downloads, a "While you wait" card opens a BOAR tour (also in Settings → System
+Recovery & Danger Zone → See the tour). The app is gated behind this download. After it, BOAR
+works without a network connection. Models are stored in the app's `files/` folder.
 
 ## Before pushing: CodeRabbit review
 
@@ -213,6 +216,10 @@ Before and during a run:
 To check a Hugging Face GGUF before anyone downloads it, read its header (the first few MB)
 for `general.architecture` and `tokenizer.chat_template`. The architecture must be
 supported by the llama.cpp submodule at its pinned commit.
+
+A request can also name the Boar Labs plugins that answer and check, with `"labs": [ids]`
+(for example `"labs":["calc","facts"]`), as in the chat with only those labs on. Without it,
+the labs switched on in the app answer.
 
 ## Building a knowledge pack
 
