@@ -202,8 +202,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         onStage("saving")
         // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
         if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
-            showToast("native.drawer.closeStillSaving")
-            return false
+            // Nothing written yet: a model still loading (a big one takes over 20 s), with nothing to save. Its answer is
+            // skipped once it loads, so wait for that instead of leaving BOAR open with the model (X6, LFM2.5 8B, Oct 20).
+            val writing = _state.value.answeringId?.let { id -> _state.value.messages.firstOrNull { it.id == id }?.text?.isNotBlank() } == true
+            if (writing || kotlinx.coroutines.withTimeoutOrNull(CLOSE_LOAD_WAIT_MS) { job?.join() } == null) {
+                showToast("native.drawer.closeStillSaving")
+                return false
+            }
         }
         stopBackground()
         // Waits for a load in progress: cancelled, it closes the model itself (LlamaSession.load); not waited for, unload
@@ -857,6 +862,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         const val PARTIAL_SAVE_NS = 3_000_000_000L
         /** Close BOAR waits this long for a stopped answer to save what it wrote. */
         const val CLOSE_WAIT_MS = 15_000L
+        /** More time for a model still loading when Close BOAR came (nothing written yet). */
+        const val CLOSE_LOAD_WAIT_MS = 60_000L
 
         /**
          * A message about the conversation itself, answered from it without a search: "summarize our conversation", or

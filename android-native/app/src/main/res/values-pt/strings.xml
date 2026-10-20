@@ -292,7 +292,7 @@
     <string name="aboutScreen_hardwareTitle" formatted="false">Arquitetura de hardware e orçamento</string>
     <string name="aboutScreen_hardwareBody" formatted="false">Atende a restrições rígidas de uso em campo: a memória residente permanece limitada a 12GB de RAM usando pesos mapeados em memória (mmap), e o armazenamento total é auditado contra um limite de 50GB.</string>
     <string name="aboutScreen_benchmarkTitle" formatted="false">Teste você mesmo</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo de carregamento do modelo, tempo até o primeiro token, tokens/s, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Telemetria de Execução → 🧪 Avaliar para comparar qualquer modelo instalado nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
+    <string name="aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo de carregamento do modelo, tempo até o primeiro token, tokens/s, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Telemetria de Execução → 🧪 Avaliar para comparar qualquer modelo instalado nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
     <string name="aboutScreen_repoTitle" formatted="false">Repositório de código aberto</string>
     <string name="aboutScreen_repoBody" formatted="false">O código-fonte, os manifestos de modelos quantizados e os scripts de indexação offline estão disponíveis em:</string>
     <string name="sourceFootnotes_title" formatted="false">Fontes consultadas</string>

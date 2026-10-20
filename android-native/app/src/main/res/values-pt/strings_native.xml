@@ -409,7 +409,7 @@
     <string name="native_chat_suggestions_b21" formatted="false">A dengue é pior na segunda vez?</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida no menu, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou comande pelo computador com npm run eval:device.</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida no menu, Avaliação, para comparar os modelos instalados nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
