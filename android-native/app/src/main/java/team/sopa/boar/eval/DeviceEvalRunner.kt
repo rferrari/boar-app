@@ -95,8 +95,17 @@ class DeviceEvalRunner(
         return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
             val f = File(files, m["filename"]!!.jsonPrimitive.content)
             if (f.isFile) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
-        } + labEngineModels()
+        } + discoveredModels() + labEngineModels()
     }
+
+    /** Models the user added from Hugging Face (Discover GGUF models) and downloaded: evaluated like the catalog's. */
+    private fun discoveredModels(): List<Pair<ModelRef, File>> = runCatching {
+        val services = team.sopa.boar.app.BoarServices.get(context)
+        services.catalog.models.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && it.id.startsWith("hf-") }.mapNotNull { a ->
+            val f = services.fileOf(a)
+            if (f.isFile && f.length() == a.sizeBytes) ModelRef(a.id, a.shortName) to f else null
+        }
+    }.getOrDefault(emptyList())
 
     /** Models a Labs engine brings (Big Boar's 35B), when BOAR has its own copy or one copied over USB (externalPath). */
     private fun labEngineModels(): List<Pair<ModelRef, File>> {
