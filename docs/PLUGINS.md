@@ -217,5 +217,5 @@ start with `_`.
 ## Shared pieces
 - `LabsScreen.kt`: the grid, the console, `LabScaffold` (each lab's header and Enabled switch), `StatusChip`.
 - `LabHooks.kt`: what the app calls (menu entry, routes, Settings row, the slots, the engine and erase hooks).
-- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Image Gen uses it while drawing).
+- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Boar Designer uses it while drawing).
 - Framework strings: `src/labs/res/values{,-pt}/strings_labs.xml`.
