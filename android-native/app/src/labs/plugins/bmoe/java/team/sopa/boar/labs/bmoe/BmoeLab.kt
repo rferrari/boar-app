@@ -59,7 +59,7 @@ object BmoeLab : LabPlugin, EngineProvider {
     override val id = "bmoe"
     override val emoji = "🦣"
     override val art = team.sopa.boar.R.drawable.lab_big_boar
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     /** Where a copy over USB goes (the experimental-engines branch's path): used when it's there, never downloaded again. */
     private const val USB_PATH = "/data/local/tmp/bmoe/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"

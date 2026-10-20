@@ -33,7 +33,7 @@ object CoHazardLab : LabPlugin {
     override val onByDefault = true
     override val emoji = "⚠️"
     override val art = team.sopa.boar.R.drawable.lab_cohazard
-    override val status = LabStatus.ALPHA
+    override val status = LabStatus.BETA
 
     override val answerTool: AnswerTool = AnswerTool { query, _ -> LabTools.coHazard(query)?.let { ToolResult.Instant(it.tool, it.text) } }
 

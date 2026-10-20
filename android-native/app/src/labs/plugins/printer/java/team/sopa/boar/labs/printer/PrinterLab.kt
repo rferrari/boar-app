@@ -75,7 +75,7 @@ object PrinterLab : LabPlugin {
     }
     override val emoji = "🖨️"
     override val art = team.sopa.boar.R.drawable.truffle_steampunk
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
     // Off at first launch (owner, Oct 20): only the instant-answer labs start on.
     override val onByDefault = false
 

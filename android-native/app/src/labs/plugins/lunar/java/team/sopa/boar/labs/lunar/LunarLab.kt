@@ -46,7 +46,7 @@ object LunarLab : LabPlugin {
     override val id = "lunar"
     override val emoji = "🌕"
     override val art = team.sopa.boar.R.drawable.truffle_lunar
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     /**
      * Time zones south of the equator: the default hemisphere until the user picks one. The time zone, not the language:

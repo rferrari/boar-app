@@ -285,7 +285,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Desenterre javalis enquanto usa o BOAR e use-os como avatar; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com os labs de resposta rápida; o resto vem desligado. Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com os labs de resposta rápida (beta) e o Boar Vitals; o resto (alpha) vem desligado. Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
     <string name="native_debugLog_title" formatted="false">Log de depuração</string>
     <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>

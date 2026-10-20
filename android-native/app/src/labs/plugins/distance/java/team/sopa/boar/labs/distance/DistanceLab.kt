@@ -35,7 +35,7 @@ object DistanceLab : LabPlugin {
     override val onByDefault = true
     override val emoji = "🗺️"
     override val art = team.sopa.boar.R.drawable.lab_distance
-    override val status = LabStatus.ALPHA
+    override val status = LabStatus.BETA
 
     /** The city table, read on the first travel question (280 KB of JSON). */
     private val table: TravelDistance? by lazy {

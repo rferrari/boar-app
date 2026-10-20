@@ -52,7 +52,7 @@ object CompassLab : LabPlugin {
     override val id = "compass"
     override val emoji = "🧭"
     override val art = team.sopa.boar.R.drawable.truffle_nomad
-    override val status = LabStatus.BETA
+    override val status = LabStatus.ALPHA
 
     /** How much of each new reading goes into the shown heading: smooth enough to read, quick enough to follow. */
     private const val SMOOTHING = 0.15f
