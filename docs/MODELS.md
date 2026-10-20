@@ -1,212 +1,166 @@
 # Models, indexes, and datasets
 
-This file documents every offline asset the app ships with or depends on, per the
-bounty's "clearly document the models, datasets, indexes, and other resources used"
-requirement.
+This file documents every offline asset BOAR 2.0 (the native Android app in
+`android-native/`) ships with or downloads, per the bounty's "clearly document the
+models, datasets, indexes, and other resources used" requirement.
 
-## Phi-3.5-mini — optional (the default until 2026-09-24)
+Every model and pack is an entry in
+`android-native/app/src/main/assets/boar-data/catalog.json`, with its source URL (Hugging
+Face URLs pinned to a commit), size, SHA-256 and license.
 
-**[Phi-3.5-mini-instruct](https://huggingface.co/microsoft/Phi-3.5-mini-instruct)**
-(Microsoft, **MIT license**), quantized GGUF from
-**[bartowski/Phi-3.5-mini-instruct-GGUF](https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF)**,
-file `Phi-3.5-mini-instruct-Q4_K_M.gguf` (~2.23GB, sha256 below).
+## Answer models
 
-- 3.8B params, dense, Q4_K_M quantization
-- Chosen over Qwen2.5-3B-Instruct because Qwen's 3B GGUF ships under the restrictive
-  `qwen-research` license (non-commercial/research-only), which is a poor fit for a
-  public open-source bounty submission; Phi-3.5-mini's MIT license has no such
-  restriction.
-- Strong reasoning-per-parameter for its size (outperforms most 1–3B dense models on
-  MMLU/GSM8K-style benchmarks per its model card), directly targeting the bounty's
-  ">1B dense model" reasoning bar.
-- Runs via `llama.cpp` (BOAR's own JNI build) on Android CPU, mmap-streamable so weights aren't
-  fully pinned in RAM.
-- **Upgrade path (not yet implemented)**: a proper MoE model (e.g. an Apache/MIT
-  licensed variant in the Qwen1.5-MoE / OLMoE family, ~2–3B active params) for more
-  world knowledge at similar active-param RAM/speed cost, once benchmarked on-device
-  against this baseline.
-
-## Embedding model — chosen
-
-**[bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)** (BAAI, **MIT
-license**), quantized GGUF from
-**[CompendiumLabs/bge-small-en-v1.5-gguf](https://huggingface.co/CompendiumLabs/bge-small-en-v1.5-gguf)**,
-file `bge-small-en-v1.5-q8_0.gguf` (~35MB, sha256 below).
-
-- 33M params, well under the 300MB sub-budget, fast enough to stay resident alongside
-  the primary LLM without meaningfully affecting the 12GB RAM budget.
-
-## Local knowledge base / retrieval index
-
-- **Lexical**: SQLite FTS5 virtual table (`chunks_fts`), built from the same source
-  corpus as the vector index. See `android-native/engine/src/main/java/team/sopa/boar/engine/rag/KnowledgeBase.kt`.
-- **Semantic**: brute-force cosine search over stored float32 embeddings
-  (`chunk_embeddings` table). Fine at the corpus scale a phone can hold within the
-  storage budget; revisit with a proper ANN index (e.g. quantized HNSW) only if
-  corpus size makes brute-force too slow on-device.
-- **Corpus source**: `assets/corpus/corpus.json` — 300 docs: ~58 curated article
-  summaries covering AI/systems topics relevant to the bounty's own eval questions
-  (MoE, quantization, RAG, BM25, mmap, transformers) plus general research topics
-  across science, history, geography, biology, and economics, topped up with
-  random **Wikipedia** (CC BY-SA 4.0) articles to reach 300. Built by
-  `scripts/build-corpus.mjs` + `scripts/build-corpus-tier.mjs` (dev-machine-only,
-  online, run once to curate/update the corpus — not run by the shipped app).
-  ~188KB of text; embeddings are computed on-device at first launch via
-  `android-native/engine/src/main/java/team/sopa/boar/engine/rag/SeedCorpus.kt`, not precomputed, so they always match whatever
-  embedding model ships.
-- **Attribution**: per Wikipedia's CC BY-SA 4.0 license, each stored chunk keeps a
-  `source` field linking back to its origin article
-  (`https://en.wikipedia.org/wiki/<Title>`), surfaced to the user as a citation.
-- **Known limitation**: still just Wikipedia lead-paragraph summaries, not full
-  article text or non-Wikipedia sources — sufficient to demonstrate the RAG
-  pipeline and answer the eval questions in `docs/EVAL_QUERIES.md`, but growing
-  it further (fuller article text, other sources) would meaningfully improve
-  real-world usefulness.
-
-## Language scope: English-only for this version
-
-bge-small-en-v1.5 is an English-only embedding model, and the bootstrap corpus is
-English-only. This was a deliberate choice, not an oversight: swapping in a
-per-locale embedding model would also require a per-locale knowledge base and
-separate retrieval-quality testing per language, and the primary LLM
-(Phi-3.5-mini-instruct) is itself primarily English-tuned — a multilingual
-embedding model wouldn't meaningfully help without a multilingual LLM and corpus
-to match. Worth revisiting (e.g. a multilingual embedding model matched to the
-device's locale, paired with a multilingual LLM candidate and corpus) as future
-work, not in this version.
-
-## Default generation model: Qwen2.5-1.5B (required, downloaded at first-run setup)
-
-**[Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct)**
-(Alibaba, **Apache-2.0 license**), quantized GGUF from
-**[bartowski/Qwen2.5-1.5B-Instruct-GGUF](https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF)**,
-file `Qwen2.5-1.5B-Instruct-Q4_K_M.gguf` (~0.92GB, sha256 in `android-native/app/src/main/assets/boar-data/catalog.json`).
-
-Downloaded alongside Phi-3.5-mini and the embedding model during mandatory
-first-run setup — `required: true`, same as the other two — rather than left
-as an optional Settings-screen download. This is deliberate: the adaptive
-routing work (`android-native/engine/src/main/java/team/sopa/boar/engine/routing/`, see `docs/ADAPTIVE_ROUTING.md`) needs at least
-two real, actually-different-sized models to route between (a `fast` role and
-a `general`/`reasoning` role) from the moment the app is usable, not only
-after a user manually fetches a second model later. Curated as `fast` in
-the catalog (`android-native/app/src/main/assets/boar-data/catalog.json`) — smallest/quickest of the
-three catalog LLMs.
-
-## Optional LLM catalog (choose your model)
-
-Beyond the required default, Settings offers these models, each tested on a real
-phone (Xiaomi 2311DRK48G, Dimensity 8300, 11.6 GB RAM; see
-[DEVICE_EVALUATION.md](DEVICE_EVALUATION.md)):
-
-| Candidate | Params | Quant | Size | License | Measured on the phone |
+| Model | Params | Quant | Size | License | In the app |
 |---|---|---|---|---|---|
-| Phi-3.5-mini-instruct | 3.8B dense | Q4_K_M | 2.39GB | MIT | ~4 tok/s; most complete comparisons and syntheses |
-| Qwen2.5-7B-Instruct | 7B dense | Q4_K_M | 4.68GB | Apache-2.0 | ~2.7 tok/s; accurate, often too slow for the 120s step limit |
-| LFM2.5-8B-A1B | 8B MoE, ~1.5B active | Q4_K_M | 5.16GB | LFM Open License v1.0 | ~15 tok/s; best reasoning, but it thinks first and needs a larger answer budget |
-| Gemma 4 E4B | ~4B effective | QAT Q4_0 | 5.15GB | Apache-2.0 | loads and answers; not benchmarked yet |
+| [Qwen3-4B-Instruct-2507](https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) | 4B dense | Q4_K_M | 2.50 GB | Apache-2.0 | Setup default on 12 GB phones: "Recommended · best answers" |
+| [LFM2.5-8B-A1B](https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF) | 8B mixture of experts, about 1B active | Q4_K_M | 5.16 GB | LFM Open License v1.0 | On 12 GB phones: "Recommended · fast" |
+| [Qwen3-1.7B](https://huggingface.co/unsloth/Qwen3-1.7B-GGUF) | 1.7B dense, thinking off | Q4_K_M | 1.11 GB | Apache-2.0 | Setup default on phones under 12 GB: "Recommended · light" |
+| [Qwen2.5-1.5B-Instruct](https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF) | 1.5B dense | Q4_K_M | 0.99 GB | Apache-2.0 | Listed; the earlier compact model |
+| [Gemma 4 E4B](https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf) | about 4B effective | QAT Q4_0 | 5.15 GB | Apache-2.0 | Listed, no badge |
+| [Qwen2.5-7B-Instruct](https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF) | 7B dense | Q4_K_M | 4.68 GB | Apache-2.0 | Listed, no badge |
+| [Phi-3.5-mini-instruct](https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF) | 3.8B dense | Q4_K_M | 2.39 GB | MIT | Hidden from the catalog |
 
-Sizes and SHA-256 checksums are in `android-native/app/src/main/assets/boar-data/catalog.json`. Switching models re-loads the
-inference engine, which releases the previous context before loading a new one.
+The 12 GB line is a RAM reading: Android reports about 10.7 GB on a 12 GB phone and
+about 7.3 GB on an 8 GB phone, so setup recommends the 4B when it reads 10 GiB or more
+(`SetupModel.recommended` in
+`android-native/engine/src/main/java/team/sopa/boar/engine/models/SetupModel.kt`). The
+user can pick another model in setup or later in the Model Catalog.
 
-## Setup tiers and corpus packs
+All answer models run through llama.cpp (BOAR's own JNI build, `libboar_engine.so`) on
+the phone's CPU. Only one answer model is loaded at a time. Switching models releases the
+previous one before the next loads.
 
-First run offers the tiers in `android-native/app/src/main/assets/boar-data/catalog.json` (`tiers`, picked in the setup
-wizard) — all download the same required models, only
-the knowledge base differs, and higher tiers are strict supersets:
+The catalog descriptions carry no speeds or dates. Measured numbers live in the
+evaluation files, with their phone and date (see the history section at the end).
 
-| Tier | Knowledge base | Extra download |
-|---|---|---|
-| Minimum | 300 bundled topics (in the APK, no download) | none |
-| Standard | + 1,000 more Wikipedia-derived topics | ~600KB |
-| Full | + 4,000 more on top of Standard (5,300 total) | ~3MB total |
+### Boar Labs models
 
-Corpus packs (`corpus-standard`, `corpus-full`) are built by
-`scripts/build-corpus-tier.mjs`, which uses MediaWiki's batched
-`generator=random` API (20 articles/request) rather than one-by-one summary
-calls — far fewer HTTP round-trips for a given count. They're committed to
-this repo and downloaded via a `raw.githubusercontent.com` URL (no separate
-hosting needed) through the same download path as everything else
-(`AssetStore` in the engine), verified by sha256.
+Builds with `EXPERIMENTAL_FEATURES=true` add the models of some labs. They download only
+when the user asks:
 
-**Honest scope note**: "Full" is not literally the entire English Wikipedia —
-that's a different scale of engineering (dump processing, compression, a real
-ANN index) not attempted here. The architecture is designed so more packs can
-be added later within the 50GB storage budget without changing how any of
-this works — the catalog's `models` and `tiers` are meant to grow.
+| Lab | Model | Size | Notes |
+|---|---|---|---|
+| Big Boar | Qwen3.6-35B-A3B, UD-Q2_K_XL | 12.3 GB | Runs on BigMoeOnEdge, which keeps the always-used weights in memory and reads each word's experts from storage. Download it in the app or copy it over USB. |
+| Boar Designer | stable-diffusion.cpp image model | 0.68 GB | Draws a picture from an answer. |
+| Boar Wisp | OLMoE-1B-7B on colibri | not in the catalog | In review. |
 
-## "Deep Research Mode" — honest scope note
+## Search (embedding) model
 
-Settings has a "🔬 Deep Research Mode" toggle (`android-native/engine/src/main/java/team/sopa/boar/engine/answer/DeepResearch.kt`)
-that decomposes a question into 2-3 sub-questions, retrieves + answers each
-separately, then synthesizes one final answer. This is **not** multiple AI
-models/agents running concurrently — running 3 models at once, or a
-dedicated planner/critic model, genuinely doesn't fit in the 12GB RAM budget
-alongside everything else. It's several sequential generation
-calls on the *same* single loaded model, playing different roles in turn.
-Noticeably slower than a normal reply (multiple LLM passes instead of one) —
-the UI badge says "Deep Research", not "multi-agent", and the in-app
-description spells this out, to avoid overclaiming what's actually
-happening.
+**[bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5)** (BAAI, MIT
+license), GGUF from
+[CompendiumLabs/bge-small-en-v1.5-gguf](https://huggingface.co/CompendiumLabs/bge-small-en-v1.5-gguf),
+file `bge-small-en-v1.5-q8_0.gguf` (37 MB). 33M parameters. Setup always downloads it.
+Knowledge packs must be embedded with this exact file (checked by SHA-256), or the app
+ignores them.
 
-The app reads the device's physical RAM (not just its own usage) so the model catalog
-(`android-native/engine/src/main/java/team/sopa/boar/engine/models/Compatibility.kt`) can show a
-rough 🟢/🟡/🔴 compatibility hint before downloading a large model —
-estimated from file size (×1.15 for KV-cache/context overhead), which is an
-approximation, not a guarantee. Models beyond the catalog can be found on Hugging
-Face from the app (docs/USING.md, "Finding more models").
+## Local knowledge base and retrieval index
 
-## Multi-session chat history & conversation memory
+- **Lexical**: SQLite FTS5 (`chunks_fts`). See
+  `android-native/engine/src/main/java/team/sopa/boar/engine/rag/KnowledgeBase.kt`.
+- **Semantic**: brute-force cosine search over stored float32 embeddings
+  (`chunk_embeddings`). This is fast enough at the scale a phone holds. An ANN index
+  (for example quantized HNSW) is future work, only if corpus size makes brute force
+  too slow.
+- **Built-in corpus**: `assets/corpus/corpus.json`, 300 short articles: about 58 curated
+  summaries on AI and systems topics (MoE, quantization, RAG, BM25, mmap, transformers)
+  plus Wikipedia (CC BY-SA 4.0) articles across science, history, geography, biology
+  and economics. Built by `scripts/build-corpus.mjs` and
+  `scripts/build-corpus-tier.mjs` on a dev machine. Its embeddings are computed on the
+  phone at first launch (`SeedCorpus.kt`), so they always match the shipped search model.
+- **Attribution**: each stored chunk keeps a `source` link to its origin article
+  (`https://en.wikipedia.org/wiki/<Title>`), shown as a citation under the answer.
 
-Chat sessions/messages persist locally in the same SQLite database as the
-knowledge base — `android-native/engine/src/main/java/team/sopa/boar/engine/chat/ChatStore.kt` is the CRUD layer, surfaced as a "Recent
-Chats" list in the drawer with auto-generated titles and per-session
-delete.
+## Knowledge packages in setup
 
-For long conversations, `android-native/engine/src/main/java/team/sopa/boar/engine/answer/Summarize.kt` condenses older turns
-into a running summary, and `HistoryBudget.kt` keeps the latest exchanges within the
-prompt budget, instead of sending the whole transcript every time.
+Setup offers two packages (`SetupViewModel.kt`). Both download the search model and the
+chosen answer model. They differ in the knowledge they add:
 
-**Concurrency constraint worth being explicit about**: title generation and
-summarization are themselves LLM calls through the *same* `llamaEngine`
-context as the main chat — `llama.cpp` contexts only run one completion at
-a time. They run in the background after a response finishes; a new message
-stops one still in flight before its own generation starts, so it never queues
-behind it.
+| Package | Catalog tier | Knowledge | Extra download |
+|---|---|---|---|
+| Essential | `full` | the 300 built-in topics + `corpus-standard` (1,000) + `corpus-full` (4,000) | about 3 MB |
+| Encyclopedia | `encyclopedia` | Essential + the Wikipedia Vital Articles pack (`wiki-vital5`, about 50,000 article introductions) | about 167 MB |
 
-## Voice input (offline speech-to-text)
+Setup recommends the biggest package that fits in the free space, so most phones get
+the Vital Articles pack at setup. The pack is a release asset,
+[`knowledge-pack-v1`](https://github.com/rferrari/boar-app/releases/tag/knowledge-pack-v1).
+How it is built: [KNOWLEDGE_PACKS.md](KNOWLEDGE_PACKS.md).
 
-`android-native/app/src/main/java/team/sopa/boar/voice/VoiceInput.kt` wraps Android's built-in `SpeechRecognizer` with
-`EXTRA_PREFER_OFFLINE`, behind the mic button in the chat. No cloud STT API is called.
+The corpus packs (`corpus-standard`, `corpus-full`) are committed to this repo and
+downloaded from a `raw.githubusercontent.com` URL pinned to a commit.
 
-**Honest scope note**: this depends on a system-provided recognition service
-(Google's, or an OEM's) being installed on the device. Most stock
-Android/OEM builds ship one; **GrapheneOS and other de-Googled builds
-typically do not**, so voice input won't work there out of the box —
-the app detects this and the UI shows a clear "unavailable" message
-rather than pretending to listen. A true cross-device guarantee would mean
-bundling a `whisper.cpp` model with a custom binding, which is a project on
-the scale of the llama.cpp integration itself — documented as future work,
-not attempted in this version. Typing always works everywhere regardless.
+**Scope note**: this is not the whole English Wikipedia. That needs dump processing,
+compression and a real ANN index, which BOAR does not attempt. More packs can be added
+within the 50 GB storage budget without changing how retrieval works.
+
+## Language scope
+
+The app's interface is in English and Portuguese. The search model (bge-small-en-v1.5)
+and the knowledge packs are English. Questions in other languages reach an English
+library, and their retrieval quality has not been evaluated.
+
+## Deep Research: scope note
+
+Deep Research (Settings → How BOAR answers, or the style button in the chat;
+`android-native/engine/src/main/java/team/sopa/boar/engine/answer/DeepResearch.kt`)
+breaks a question into at most 3 sub-questions, searches and reads sources for each,
+then writes one answer. These are several sequential calls on the same loaded model,
+not several models running at once. It is slower than a normal reply.
+
+## Memory hints in the catalog
+
+The app reads the phone's total RAM, and the Model Catalog
+(`android-native/engine/src/main/java/team/sopa/boar/engine/models/Compatibility.kt`)
+shows a rough compatibility hint before a download, estimated as the file size × 1.15
+for context overhead. It is an approximation, not a guarantee. A model whose load closes
+the app is not loaded again on its own the next time (`LoadGuard.kt`); the chat offers to
+try again with less memory. Models beyond the catalog can be found on Hugging Face from
+the app ([USING.md](USING.md), "Finding more models").
+
+## Chat history and conversation memory
+
+Chats are stored locally in SQLite
+(`android-native/engine/src/main/java/team/sopa/boar/engine/chat/ChatStore.kt`) and listed
+in the menu. With a PIN set, they are sealed with it. For long conversations,
+`Summarize.kt` condenses older turns into a running summary and `HistoryBudget.kt` keeps
+the latest exchanges within the prompt budget. Title generation and summaries are calls
+on the same loaded model, after an answer finishes.
+
+## Voice input
+
+`android-native/app/src/main/java/team/sopa/boar/voice/VoiceInput.kt` uses only Android's
+on-device speech recognizer (`createOnDeviceSpeechRecognizer`, Android 12 or later), so
+the audio is recognized on the phone. Phones without an on-device recognizer (for
+example GrapheneOS without a recognition service) get no microphone button. Typing
+always works.
 
 ## Delivery: one-time first-run download
 
-All models are in the in-app catalog (`android-native/app/src/main/assets/boar-data/catalog.json`). The app ships small (no
-multi-GB assets in the APK); on first launch a mandatory setup screen downloads the
-answer model (Qwen3 4B on phones with 10 GB of RAM or more, Qwen2.5-1.5B below that;
-`android-native/engine/src/main/java/team/sopa/boar/engine/models/SetupModel.kt`) and the embedding model. Phi-3.5-mini, Qwen2.5-7B,
-LFM2.5-8B-A1B and Gemma 4 E4B are optional entries in the same catalog. Once setup is
-done, answering, retrieval and your documents work without a network connection.
+The APK carries no multi-GB assets. On first launch a mandatory setup downloads the
+answer model, the search model and the chosen knowledge package. After setup, answering,
+retrieval and your documents work without a network connection. A download that stops
+resumes from where it stopped (HTTP Range). Other models download only when the user
+taps Download in the Model Catalog, or adds one from a Hugging Face search.
 
-Downloads resume after an interruption.
-Optional models are fetched only when the user taps Download on an entry, or adds one
-from a Hugging Face search.
+An offline APK that carries the models and the pack inside it is in testing and not
+released.
 
 ## Verification
 
 Every catalog entry has a `sha256` and `sizeBytes`. `AssetStore`
-(`android-native/engine/src/main/java/team/sopa/boar/engine/models/AssetStore.kt`) checks the size, verifies the sha256 after a download, and
-records verified files in `files/integrity.json` so they aren't hashed again. Files live
-in the app's `files/` folder under the catalog's `filename`.
+(`android-native/engine/src/main/java/team/sopa/boar/engine/models/AssetStore.kt`) checks
+the size, verifies the SHA-256 after a download and records verified files in
+`files/integrity.json`. Files live in the app's `files/` folder under the catalog's
+`filename`, the same layout as the 1.x app, so an upgrade keeps them.
 
-The 1.x Expo app's other delivery paths (models bundled into the APK, pre-seeding with
-`scripts/setup-models.sh`) are on the `expo` branch only.
+## History: measurements from the 1.x app
+
+These numbers are from the 1.x Expo app, on the Lab device 12 GB (X6), 2026-09-24
+([evidence/](evidence/)). They are kept as history and are not numbers for the native
+app.
+
+| Model | Median tok/s | Notes |
+|---|---|---|
+| Qwen2.5-1.5B | 11.4 | 17 questions; the phone was thermally throttled |
+| Phi-3.5-mini | 4.0 | most complete comparisons and syntheses |
+| Qwen2.5-7B | 2.7 | accurate, often too slow for the 120 s step limit |
+| LFM2.5-8B-A1B | 14.8 | thinks first; 4 of 17 answers lost to reasoning that used the whole budget |
