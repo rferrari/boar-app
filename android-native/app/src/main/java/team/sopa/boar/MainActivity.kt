@@ -374,4 +374,4 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
 }
 
 /** How long each closing step shows in the Boar Labs animation: about 1.6 s for the four. */
-private const val STAGE_MS = 400L
+private const val STAGE_MS = 350L

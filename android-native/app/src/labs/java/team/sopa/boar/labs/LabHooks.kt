@@ -1,6 +1,10 @@
 package team.sopa.boar.labs
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -125,12 +129,50 @@ object LabHooks {
     /** Full screen, over everything: the green rain with the closing step in the middle. */
     @Composable
     fun ClosingOverlay(stage: String) {
+        val c = team.sopa.boar.ui.theme.Boar.colors
+        // Each step as it happens, ticked off below the current one; the memory given back is measured, not guessed.
+        val seen = remember { androidx.compose.runtime.mutableStateListOf<String>() }
+        val startBytes = remember { team.sopa.boar.app.AppMemory.residentBytes() }
+        var freedBytes by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+        androidx.compose.runtime.LaunchedEffect(stage) {
+            if (stage !in seen) seen += stage
+            if (stage == "freeing") freedBytes = (startBytes - team.sopa.boar.app.AppMemory.residentBytes()).coerceAtLeast(0L)
+        }
         androidx.compose.ui.window.Dialog(onDismissRequest = {}, properties = androidx.compose.ui.window.DialogProperties(
-            dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows = false,
+            dismissOnBackPress = false, dismissOnClickOutside = false, usePlatformDefaultWidth = false,
         )) {
-            MatrixRain(androidx.compose.ui.Modifier.fillMaxWidth().fillMaxSize(), label = team.sopa.boar.ui.t("native.labs.close.$stage"))
+            // A window over the chat, not the whole screen: the rain runs inside it.
+            androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().padding(horizontal = 32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.widthIn(max = 360.dp).fillMaxWidth().height(250.dp)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
+                        .border(1.dp, c.emerald400.copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(18.dp)),
+                ) {
+                    MatrixRain(androidx.compose.ui.Modifier.fillMaxSize())
+                    Column(
+                        androidx.compose.ui.Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f)).padding(horizontal = 20.dp, vertical = 18.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.close.title"), style = team.sopa.boar.ui.theme.Boar.type.title,
+                            color = c.textHeading, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        seen.forEachIndexed { i, s ->
+                            val done = i < seen.lastIndex || s == "closing"
+                            val line = if (s == "freeing" && freedBytes > 100L * 1024 * 1024)
+                                team.sopa.boar.ui.t("native.labs.close.freed", "gb" to String.format(java.util.Locale.US, "%.1f", freedBytes / 1_073_741_824.0))
+                            else team.sopa.boar.ui.t("native.labs.close.$s")
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                androidx.compose.material3.Text(if (done) "✓" else "›", style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
+                                    color = if (done) c.textAccentEmerald else c.textPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                androidx.compose.material3.Text(line, style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
+                                    color = if (done) c.textSecondary else c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+
 
     /** "auto" or unknown: null (the catalog's 50 GB); "none": only the phone's free space; else that many GB. */
     fun storageLimitBytes(choice: String?): Long? = when (choice) {

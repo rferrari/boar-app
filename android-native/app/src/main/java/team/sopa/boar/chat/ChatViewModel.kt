@@ -209,8 +209,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Waits for a load in progress: cancelled, it closes the model itself (LlamaSession.load); not waited for, unload
         // found nothing and the model stayed in memory.
         preloading?.cancelAndJoin()
-        onStage("freeing")
+        onStage("unloading")
         services.host.unload()
+        onStage("freeing")
         return true
     }
 

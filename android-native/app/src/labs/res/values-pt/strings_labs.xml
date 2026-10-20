@@ -25,10 +25,13 @@
     <string name="native_labs_storage_auto" formatted="false">Auto (50 GB)</string>
     <string name="native_labs_storage_none" formatted="false">Sem limite</string>
     <string name="native_labs_storage_settingNote" formatted="false">Quanto espaço os modelos e pacotes do BOAR podem ocupar. Sem limite: só conta o espaço livre do celular.</string>
+    <string name="native_labs_close_title" formatted="false">O BOAR está voltando para a toca</string>
+    <string name="native_labs_close_unloading" formatted="false">Pondo o modelo para dormir…</string>
+    <string name="native_labs_close_freed" formatted="false">{{gb}} GB de volta ao celular</string>
     <string name="native_labs_close_stopping" formatted="false">Parando a resposta…</string>
-    <string name="native_labs_close_saving" formatted="false">Salvando suas conversas…</string>
-    <string name="native_labs_close_freeing" formatted="false">Liberando a memória do modelo…</string>
-    <string name="native_labs_close_closing" formatted="false">Fechando o BOAR…</string>
+    <string name="native_labs_close_saving" formatted="false">Guardando suas conversas…</string>
+    <string name="native_labs_close_freeing" formatted="false">Devolvendo a memória ao celular…</string>
+    <string name="native_labs_close_closing" formatted="false">Rumo à toca</string>
     <string name="native_labs_settingsNote" formatted="false">Experimentos inacabados no menu e embaixo das respostas. Podem ser lentos, imperfeitos ou mudar sem aviso.</string>
     <string name="native_labs_enabled" formatted="false">Ativado</string>
     <string name="native_labs_enabledNote" formatted="false">Desligado: este lab some também da conversa.</string>
