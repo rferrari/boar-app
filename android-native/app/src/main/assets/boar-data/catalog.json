@@ -12,7 +12,7 @@
       "sha256": "e4165e3a71af97f1b4820da61079826d8752a2088e313af0c7d346796c38eff5",
       "sourceUrl": "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/6d70da17e749a471ccb62ade694486011a75cda3/Phi-3.5-mini-instruct-Q4_K_M.gguf",
       "license": "MIT",
-      "description": "3.8B dense. Most complete comparisons and syntheses in our device benchmark, but slow (~4 tok/s).",
+      "description": "3.8B dense. The most complete comparisons and syntheses in our device tests, but slow.",
       "required": false,
       "hidden": true,
       "capabilities": {
@@ -71,7 +71,7 @@
       "sha256": "1adf0b11065d8ad2e8123ea110d1ec956dab4ab038eab665614adba04b6c3370",
       "sourceUrl": "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/9eadc66189c7641e1ddd226b8267a9119b2ce2d4/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf",
       "license": "Apache-2.0",
-      "description": "1.5B dense, fast (~11-18 tok/s) and light. Compact answer model for phones with little RAM.",
+      "description": "1.5B dense, fast and light. The compact answer model for phones with little RAM.",
       "required": false,
       "answerTier": "compact",
       "capabilities": {
@@ -110,7 +110,7 @@
       "sha256": "4923ec14f06b968b74d663e5949867d2d9c3bf13a20b8be1a9f9af39989b2bb0",
       "sourceUrl": "https://huggingface.co/LiquidAI/LFM2.5-8B-A1B-GGUF/resolve/49c14831707011e64d70b2ebd8462ba08d608434/LFM2.5-8B-A1B-Q4_K_M.gguf",
       "license": "LFM Open License v1.0",
-      "description": "Mixture of experts: 8B in total, but only about 1B wakes up for each word, so it's quick: about 13 tok/s on a 12 GB phone (Oct 18). Not the sharpest boar in the sounder, but a cheerful one: double-check what it tells you. It thinks before answering, so give it a bigger answer budget.",
+      "description": "Mixture of experts: 8B in total, but only about 1B wakes up for each word, so it's quick. Not the sharpest boar in the sounder, but a cheerful one: double-check what it tells you. It thinks before answering, so give it a bigger answer budget.",
       "pick": "fast",
       "required": false
     },
