@@ -5,7 +5,7 @@
 > fiquem claras desde o início. Dúvidas ou correções: privacy@boarapp.com ou uma issue em
 > [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Versão 0.9.1 (prévia) · 19 de outubro de 2026 · Contato: privacy@boarapp.com
+Versão 0.9.1 (prévia) · 20 de outubro de 2026 · Contato: privacy@boarapp.com
 
 > Esta é uma tradução da [versão em inglês](../../TERMS.md). Se as duas forem diferentes, prevalece a
 > versão em inglês, exceto quando a lei local exigir o contrário. Para consumidores no Brasil, os
@@ -32,11 +32,10 @@ O app baixa e usa conteúdo de terceiros, que mantém a própria licença:
 
 - **Modelos de IA**, cada um sob a licença de quem o criou (por exemplo, Apache 2.0 para o Qwen, MIT
   para o Phi, a LFM Open License, os termos do Gemma). O BOAR mostra a licença de cada modelo em
-  Ajustes → Sobre e em [docs/MODELS.md](../MODELS.md). Usar um modelo significa aceitar a licença dele.
+  Sobre (toque na marca do BOAR no menu) e em [docs/MODELS.md](../MODELS.md). Usar um modelo significa aceitar a licença dele.
 - **Pacotes de conhecimento:** conteúdo da Wikipédia e do Wikivoyage sob CC BY-SA 4.0, e outras fontes
   conforme os créditos no app.
-- **Lugares:** dados do OpenStreetMap, © colaboradores do OpenStreetMap, sob a Open Database License
-  (ODbL).
+- **Cidades:** o Boar Distância (Boar Labs) usa uma lista de cidades do GeoNames, sob CC BY 4.0.
 - **Fontes tipográficas:** Baloo 2 e Lexend, sob a SIL Open Font License 1.1.
 
 ## 3. O que o BOAR é, e o que não é
@@ -51,9 +50,9 @@ O BOAR roda modelos de IA no seu celular para responder perguntas a partir de um
 - **Não é para emergências.** O BOAR não substitui os serviços de emergência. Em uma emergência, ligue
   para o número de emergência local. O conteúdo de primeiros socorros é informação geral das fontes
   creditadas, não instrução para a sua situação.
-- **Os lugares podem estar desatualizados.** Horários, endereços e o que um lugar oferece vêm do
-  OpenStreetMap e podem estar errados. Confira antes de confiar neles, principalmente para dietas,
-  alergias ou segurança.
+- **As respostas rápidas também podem estar erradas.** As ferramentas do Boar Labs (Calculadora,
+  Facts, Distância e outras) respondem algumas perguntas a partir de tabelas e fórmulas fixas, sem o
+  modelo. Elas são experimentos. Confira tudo o que for importante.
 
 Você é responsável por como usa as respostas do BOAR e pelas decisões que toma com elas.
 
@@ -61,15 +60,16 @@ Você é responsável por como usa as respostas do BOAR e pelas decisões que to
 
 O BOAR guarda seus dados no seu celular, então protegê-los está nas suas mãos:
 
-- **Mantenha o seu celular seguro:** bloqueio de tela, atualizações do sistema e cuidado com quem
-  pode usá-lo. O BOAR não acrescenta criptografia própria; quem conseguir desbloquear o seu celular ou
-  ler os backups dele consegue ler o que o BOAR guardou.
+- **Proteja o seu celular:** bloqueio de tela, atualizações do sistema e cuidado com quem pode
+  usá-lo. Um PIN do BOAR lacra suas conversas, mas os documentos importados e o resto dos dados do
+  BOAR não são criptografados além do que o celular faz; quem conseguir desbloquear o seu celular
+  consegue lê-los.
 - **O que você importa é escolha sua.** Importe só documentos e arquivos de modelo que você tem o
   direito de usar e em que confia. Um modelo ou arquivo de origem desconhecida pode ser nocivo ou
   enganoso.
 - **O que você exporta ou compartilha sai das nossas mãos.** Arquivos exportados, e a parte pública de
   uma rodada compartilhada, podem ser copiados por qualquer pessoa que tenha acesso a eles.
-- **Faça os seus próprios backups** de tudo o que importa. Desinstalar, "Apagar todos os dados", uma
+- **Faça os seus próprios backups** de tudo o que importa. Desinstalar, "Apagar Todos os Dados & Redefinir App", uma
   atualização que falhe ou a perda do celular apagam os dados do BOAR, e não conseguimos recuperá-los.
 - **Instale o BOAR só pelas versões oficiais** (github.com/rferrari/boar-app) ou por uma fonte de
   confiança. Uma cópia modificada não é nossa, e estes termos não a cobrem.
