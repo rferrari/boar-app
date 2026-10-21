@@ -13,6 +13,11 @@ data class RetrievalParams(
     val minSemanticSimilarity: Double = RagPure.MIN_SEMANTIC_SIMILARITY,
     /** Real similarity a knowledge-base or format-1 hit needs before it can reach the model. */
     val answerMinSimilarity: Double = RagPure.ANSWER_MIN_SIMILARITY,
+    /**
+     * The user's own files only (the Personal Files style): no library, no packs, and a meaning hit passes at
+     * [minSemanticSimilarity] instead of [answerMinSimilarity], since nothing else can come back.
+     */
+    val ownOnly: Boolean = false,
 ) {
     companion object {
         val DEFAULT = RetrievalParams()

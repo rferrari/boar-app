@@ -98,9 +98,10 @@ class KnowledgeBase(private val db: SqlDatabase) {
 
     /**
      * BM25 keyword search over the question's content words, gated by term coverage (no numeric bm25 floor:
-     * its scale depends on the corpus). Hits carry their real similarity when they have an embedding.
+     * its scale depends on the corpus). Hits carry their real similarity when they have an embedding. [ownOnly]: the
+     * user's collections only.
      */
-    fun lexicalSearch(query: String, queryVec: FloatArray, limit: Int): List<Chunk> {
+    fun lexicalSearch(query: String, queryVec: FloatArray, limit: Int, ownOnly: Boolean = false): List<Chunk> {
         val lq = RagPure.buildLexicalQuery(query) ?: return emptyList()
         val rows = db.query(
             """SELECT f.chunk_id, f.doc_id, f.title, f.body, bm25(chunks_fts) AS rank, e.embedding, c.collection_id
@@ -108,7 +109,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
                JOIN chunks c ON c.chunk_id = f.chunk_id
                LEFT JOIN chunk_embeddings e ON e.chunk_id = f.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)
+               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}
                ORDER BY rank LIMIT ?""",
             listOf(lq.match, limit * LEXICAL_CANDIDATE_MULTIPLIER),
         ) {
@@ -122,14 +123,17 @@ class KnowledgeBase(private val db: SqlDatabase) {
         return RagPure.filterByTermCoverage(rows, lq.terms).take(limit)
     }
 
-    /** Brute-force cosine search over the stored embeddings, with a similarity floor (MIN_SEMANTIC_SIMILARITY by default). */
-    fun semanticSearch(queryVec: FloatArray, limit: Int, minSimilarity: Double = RagPure.MIN_SEMANTIC_SIMILARITY): List<Chunk> {
+    /**
+     * Brute-force cosine search over the stored embeddings, with a similarity floor (MIN_SEMANTIC_SIMILARITY by default).
+     * [ownOnly]: the user's collections only.
+     */
+    fun semanticSearch(queryVec: FloatArray, limit: Int, minSimilarity: Double = RagPure.MIN_SEMANTIC_SIMILARITY, ownOnly: Boolean = false): List<Chunk> {
         val scored = db.query(
             """SELECT c.chunk_id, c.doc_id, c.title, c.body, e.embedding
                FROM chunk_embeddings e
                JOIN chunks c ON c.chunk_id = e.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE c.collection_id IS NULL OR cc.active = 1""",
+               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}""",
         ) {
             val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
             Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
@@ -141,6 +145,8 @@ class KnowledgeBase(private val db: SqlDatabase) {
         /** Extra BM25 candidates so the coverage gate has something to choose from. */
         const val LEXICAL_CANDIDATE_MULTIPLIER = 4
         const val FILE = "SQLite/aoair_knowledge.db"
+        /** Keeps a search to the user's own collections (the active ones, as the rest of the WHERE says). */
+        private const val OWN_ONLY = " AND c.collection_id IS NOT NULL"
 
         fun toBlob(v: FloatArray): ByteArray = ByteBuffer.allocate(v.size * 4).order(ByteOrder.LITTLE_ENDIAN).apply { asFloatBuffer().put(v) }.array()
         fun fromBlob(b: ByteArray): FloatArray = FloatArray(b.size / 4).also { ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(it) }

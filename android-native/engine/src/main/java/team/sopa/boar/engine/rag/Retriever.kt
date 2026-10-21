@@ -54,9 +54,10 @@ class Retriever(
         // A later step could skip the embedding when params.semanticWeight is 0 (KEYWORD): lexical hits still read
         // their similarity from it for the relevance gate, so that needs a decision first.
         val vec = queryVec ?: embed(query)
-        val lexical = kb.lexicalSearch(query, vec, topK * 2)
-        val semantic = kb.semanticSearch(vec, topK * 2, params.minSemanticSimilarity)
-        val installed = packs()
+        val lexical = kb.lexicalSearch(query, vec, topK * 2, params.ownOnly)
+        val semantic = kb.semanticSearch(vec, topK * 2, params.minSemanticSimilarity, params.ownOnly)
+        // Personal Files: the user's own files only, never the packs.
+        val installed = if (params.ownOnly) emptyList() else packs()
         // A failing pack is skipped, never fatal.
         val f1 = installed.filterIsInstance<OpenPack.Format1>().mapNotNull { p ->
             runCatching { Packs.searchFormat1(p.db, p.id, query, vec, topK * 2, explain, params.minSemanticSimilarity) }.getOrNull()
@@ -83,7 +84,9 @@ class Retriever(
         val (own, shared) = lexical.partition { it.collectionId != null }
         val fused = RagPure.fuse(
             (if (keywordOff) emptyList() else own + RagPure.gateByRelevance(shared + f1.flatMap { it.lexical }, params.answerMinSimilarity)) + wikiLexical,
-            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, params.answerMinSimilarity),
+            // Only the user's files can come back in Personal Files, so their meaning hits pass at the search floor
+            // (0.55): a lower floor can't pull in the library there.
+            RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, if (params.ownOnly) params.minSemanticSimilarity else params.answerMinSimilarity),
             topK,
             if (keywordOff) params.semanticWeight else params.lexicalWeight,
             params.semanticWeight,
