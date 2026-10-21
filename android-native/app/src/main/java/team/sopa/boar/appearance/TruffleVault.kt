@@ -28,8 +28,9 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     val fresh: kotlinx.coroutines.flow.Flow<String> = _fresh.receiveAsFlow()
 
     private val prefs = context.getSharedPreferences("vault", Context.MODE_PRIVATE)
-    // Only builds with EXPERIMENTAL_FEATURES=true (app/build.gradle.kts) show the switch; others keep it off.
-    private val _enabled = MutableStateFlow(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && prefs.getBoolean("experimental.on", false))
+    // Only builds with EXPERIMENTAL_FEATURES=true (app/build.gradle.kts) show the switch; others keep it off. While the
+    // switch is hidden (Oct 21) it's off for everyone, even a phone that had turned it on; the saved choice stays.
+    private val _enabled = MutableStateFlow(SWITCH_SHOWN && team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && prefs.getBoolean("experimental.on", false))
     /**
      * Settings → Advanced tweaks → Boar Avatars (experimental), off by default. Off: BOAR's own avatar and launcher
      * icon, only the open themes, no "Truffle unearthed" messages. Truffles are still counted, so turning it on later
@@ -39,7 +40,7 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
 
     fun setEnabled(on: Boolean) {
         team.sopa.boar.app.DebugLog.settingChanged("vault.experimental", _enabled.value, on)
-        _enabled.value = on && team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES
+        _enabled.value = on && SWITCH_SHOWN && team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES
         prefs.edit().putBoolean("experimental.on", on).apply()
     }
 
@@ -146,6 +147,8 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     companion object {
+        /** Settings shows the Boarverse switch (hidden since Oct 21, SettingsScreen.ExperimentalSection); false keeps it off. */
+        const val SWITCH_SHOWN = false
         /** FLAG: the equipped boar also becomes the launcher icon (boar.truffleLauncherIcons). */
         val LAUNCHER_ICONS: Boolean = team.sopa.boar.BuildConfig.TRUFFLE_LAUNCHER_ICONS
 

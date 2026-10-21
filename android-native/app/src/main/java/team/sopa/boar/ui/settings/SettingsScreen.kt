@@ -475,7 +475,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
 private fun ExperimentalSection(services: BoarServices) {
     Section(t("native.settings.experimental"), collapsible = true) {
         Note(t("native.settings.experimentalNote"))
-        // Boarverse's switch is hidden for now (Oct 21); its code stays.
+        // Boarverse's switch is hidden for now (Oct 21), and TruffleVault.SWITCH_SHOWN keeps it off; its code stays.
         team.sopa.boar.labs.LabHooks.SettingsRow()
         // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default.
         val s = services.settings
