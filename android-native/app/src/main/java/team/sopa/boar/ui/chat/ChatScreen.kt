@@ -600,8 +600,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    FooterButton("▲", if (m.feedback == "up") t("chatScreen.rateHelpful") else null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
-                    FooterButton("▼", if (m.feedback == "down") t("chatScreen.rateUnhelpful") else null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
+                    FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
+                    FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
                     // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
