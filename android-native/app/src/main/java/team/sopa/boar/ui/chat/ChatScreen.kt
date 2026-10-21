@@ -568,7 +568,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
-                    FooterButton("↻", t("native.chat.tryAgain"), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRetry(m.id) }
+                    ActionButton("↻", t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
@@ -581,22 +581,14 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
             // Its own row on the right, bigger, with BOAR's mascot: a way out of the plugin's answer, not one of its controls.
             if (!streaming && speaker?.canBypass == true && state.answeringId == null) Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterEnd) {
-                Row(Modifier.clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
-                    .clickable { onAskModel(m.id) }.padding(horizontal = 14.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Image(painterResource(R.drawable.mascot), null, Modifier.size(18.dp).clip(RoundedCornerShape(4.dp)))
-                    Text(t("native.chat.askBoarInstead"), style = Boar.type.titleSm, color = c.textAccentEmerald)
-                }
+                ActionButton(null, t("native.chat.askBoarInstead"), art = R.drawable.mascot) { onAskModel(m.id) }
             }
             // The cut is a note; the way to run it again with more tokens is its own button on the next line, in the
             // accent, so the two never squeeze into one row.
             m.cutAt?.let { limit ->
                 Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null)
-                        Text("↻  " + t("native.chat.allowMore", "limit" to m.nextLimit), style = Boar.type.titleSm, color = c.textAccentEmerald,
-                            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
-                                .clickable { onRedo(m.id, m.nextLimit) }.padding(horizontal = 14.dp, vertical = 9.dp))
+                    if (m.nextLimit != null && state.answeringId == null) ActionButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
@@ -717,6 +709,22 @@ private fun ProcessingIndicator(label: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
         Text(label, style = Boar.type.body, color = c.textMuted)
+    }
+}
+
+/**
+ * Something to do about an answer (Try again, Allow more, Ask BOAR instead): on its own line, full size, in the accent,
+ * never squeezed next to a note. The footer's small chips ([FooterButton]) are for its icons only.
+ */
+@Composable
+internal fun ActionButton(glyph: String?, label: String, art: Int? = null, onClick: () -> Unit) {
+    val c = Boar.colors
+    Row(Modifier.clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
+        .clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        art?.let { Image(painterResource(it), null, Modifier.size(18.dp).clip(RoundedCornerShape(4.dp))) }
+        glyph?.let { Text(it, style = Boar.type.titleSm, color = c.textAccentEmerald) }
+        Text(label, style = Boar.type.titleSm, color = c.textAccentEmerald)
     }
 }
 
