@@ -588,10 +588,15 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     Text(t("native.chat.askBoarInstead"), style = Boar.type.titleSm, color = c.textAccentEmerald)
                 }
             }
+            // The cut is a note; the way to run it again with more tokens is its own button on the next line, in the
+            // accent, so the two never squeeze into one row.
             m.cutAt?.let { limit ->
-                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) FooterButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit), true, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRedo(m.id, m.nextLimit) }
+                    if (m.nextLimit != null && state.answeringId == null)
+                        Text("↻  " + t("native.chat.allowMore", "limit" to m.nextLimit), style = Boar.type.titleSm, color = c.textAccentEmerald,
+                            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
+                                .clickable { onRedo(m.id, m.nextLimit) }.padding(horizontal = 14.dp, vertical = 9.dp))
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
