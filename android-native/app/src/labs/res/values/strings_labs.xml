@@ -4,8 +4,6 @@
     <string name="native_labs_drawer" formatted="false">Boar Labs ⚛️</string>
     <string name="native_labs_title" formatted="false">Boar Labs</string>
     <string name="native_labs_classifiedNote" formatted="false">{{name}} is classified: still in testing. Check back soon.</string>
-    <string name="native_labs_classifiedTaps_one" formatted="false">1 more tap to open this file…</string>
-    <string name="native_labs_classifiedTaps_other" formatted="false">{{count}} more taps to open this file…</string>
     <string name="native_labs_declassifiedNote" formatted="false">{{name}} leaked. Still in testing, with no release date.</string>
     <string name="native_labs_hero_count" formatted="false">{{open}} open · {{locked}} classified</string>
     <string name="native_labs_hero_offline" formatted="false">everything here runs on this phone, offline</string>

@@ -45,6 +45,9 @@ import kotlinx.coroutines.delay
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
+/** The grid's scroll position while a lab's page is open (this process only). */
+private var gridScroll = 0
+
 /** Boar Labs: a terminal-style hero, then the experiments two per row, each with what it is underneath. */
 @Composable
 fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
@@ -55,7 +58,10 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     // The tile that just leaked flashes red once.
     var alert by remember { mutableStateOf<String?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    Shell(t("native.labs.title"), onClose) {
+    // Back from a lab's page (Done) to the grid where it was: the grid leaves the screen while a lab is open.
+    val scroll = rememberScrollState(gridScroll)
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { gridScroll = scroll.value } }
+    Shell(t("native.labs.title"), onClose, scroll = scroll) {
         Hero(labs)
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
         // under review, and the locked ones still in testing with no release date.
@@ -92,10 +98,9 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
         }
         note?.let { id ->
             val name = t("native.labs.$id.title")
-            val left = REVEAL_TAPS - (taps[id] ?: 0)
             val text = when {
                 LabPrefs.revealed(id) -> t("native.labs.declassifiedNote", "name" to name)
-                left in 1..5 -> t("native.labs.classifiedTaps", "count" to left)
+                // The taps count in silence: no countdown gives the easter egg away.
                 else -> t("native.labs.classifiedNote", "name" to name)
             }
             Text(text, style = Boar.type.caption, color = c.textAccentEmerald)
@@ -143,6 +148,7 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
 private fun Shell(
     title: String, onClose: () -> Unit,
     header: (@Composable ColumnScope.() -> Unit)? = null,
+    scroll: androidx.compose.foundation.ScrollState? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
@@ -153,7 +159,7 @@ private fun Shell(
             DoneButton(onClose)
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+        Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
 }
 
