@@ -50,6 +50,11 @@ data class EvalRequest(
     val retrieval: String? = null,
     /** The Boar Labs plugins (lab ids) that answer or check, as in the chat with only those on; null is none. Native only. */
     val labs: List<String>? = null,
+    /**
+     * The answer style for the whole run (a personality id, "personal" for Personal Files), checked against the app's
+     * styles by the runner; null is the default style. Native only.
+     */
+    val style: String? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -135,8 +140,13 @@ object DeviceEval {
             (v as? JsonPrimitive)?.takeIf { it.isString && it.content in modes }?.content
                 ?: throw EvalRequestException("\"retrieval\" must be one of ${modes.joinToString(", ")}")
         }
+        val style = raw["style"]?.let { v ->
+            (v as? JsonPrimitive)?.takeIf { it.isString && !it.content.isBlankJs() }?.content?.let(::jsTrim)
+                ?: throw EvalRequestException("\"style\" must be a style id")
+        }
         return EvalRequest(
             requestId = id,
+            style = style,
             engine = engine,
             engines = engines,
             retrieval = retrieval,
