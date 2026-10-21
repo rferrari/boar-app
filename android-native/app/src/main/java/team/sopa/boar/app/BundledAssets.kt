@@ -26,8 +26,14 @@ class BundledAssets(private val services: BoarServices, private val context: Con
     private fun inApk(a: CatalogAsset): Boolean =
         runCatching { context.assets.openFd("$DIR/${a.filename}").use { it.length == a.sizeBytes } }.getOrDefault(false)
 
-    /** Copies every pending asset, verifying each one; [onProgress] gets bytes done and total. */
-    fun unpack(onProgress: (Long, Long) -> Unit) {
+    /**
+     * Copies every pending asset, verifying each one; [onProgress] gets bytes done and total. One run at a time in the
+     * process: a rotation rebuilds the screen and starts another while the first copy is still writing, and both would
+     * write the same .part file. The second waits, then finds nothing left to do.
+     */
+    fun unpack(onProgress: (Long, Long) -> Unit) = synchronized(LOCK) { unpackLocked(onProgress) }
+
+    private fun unpackLocked(onProgress: (Long, Long) -> Unit) {
         val todo = pending()
         val total = todo.sumOf { it.sizeBytes }
         val free = StatFs(context.filesDir.path).availableBytes
@@ -39,20 +45,25 @@ class BundledAssets(private val services: BoarServices, private val context: Con
             dest.parentFile?.mkdirs()
             val part = File(dest.path + ".part")
             val sha = MessageDigest.getInstance("SHA-256")
-            context.assets.openFd("$DIR/${a.filename}").use { fd ->
-                fd.createInputStream().use { input ->
-                    part.outputStream().use { out ->
-                        var lastReport = 0L
-                        while (true) {
-                            val n = input.read(buf)
-                            if (n < 0) break
-                            out.write(buf, 0, n)
-                            sha.update(buf, 0, n)
-                            done += n
-                            if (done - lastReport >= REPORT_EVERY_BYTES) { onProgress(done, total); lastReport = done }
+            try {
+                context.assets.openFd("$DIR/${a.filename}").use { fd ->
+                    fd.createInputStream().use { input ->
+                        part.outputStream().use { out ->
+                            var lastReport = 0L
+                            while (true) {
+                                val n = input.read(buf)
+                                if (n < 0) break
+                                out.write(buf, 0, n)
+                                sha.update(buf, 0, n)
+                                done += n
+                                if (done - lastReport >= REPORT_EVERY_BYTES) { onProgress(done, total); lastReport = done }
+                            }
                         }
                     }
                 }
+            } catch (e: Throwable) {
+                part.delete()
+                throw e
             }
             val hex = sha.digest().joinToString("") { "%02x".format(it) }
             if (!hex.equals(a.sha256, ignoreCase = true)) { part.delete(); throw Corrupt(a) }
@@ -64,6 +75,7 @@ class BundledAssets(private val services: BoarServices, private val context: Con
 
     companion object {
         const val DIR = "bundled"
+        private val LOCK = Any()
         /** Room left after unpacking, for chats, the index and Android itself. */
         const val SPACE_MARGIN_BYTES = 500L * 1024 * 1024
         private const val REPORT_EVERY_BYTES = 16L * 1024 * 1024
