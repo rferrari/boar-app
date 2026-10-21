@@ -355,8 +355,6 @@ private fun ToneSection(services: BoarServices) {
             tokens) { tokens = it; s.maxTokensChoice = it }
         Note(t("personalitySettings.maxOutputTokensNote"))
         SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
     }
 }
 
@@ -479,6 +477,10 @@ private fun ExperimentalSection(services: BoarServices) {
         Note(t("native.settings.experimentalNote"))
         // Boarverse's switch is hidden for now (Oct 21); its code stays.
         team.sopa.boar.labs.LabHooks.SettingsRow()
+        // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default.
+        val s = services.settings
+        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
+        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
     }
 }
 

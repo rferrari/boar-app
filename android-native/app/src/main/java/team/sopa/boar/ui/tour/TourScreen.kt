@@ -54,7 +54,7 @@ fun tourCards(experimental: Boolean): List<TourCard> = listOfNotNull(
     TourCard("sources"),
     TourCard("knowledge"),
     TourCard("models"),
-    TourCard("adaptive"),
+    if (experimental) TourCard("adaptive") else null,
     TourCard("pin", "🔑"),
     if (experimental) TourCard("labs", "🧪") else null,
     TourCard("end", where = false, art = team.sopa.boar.R.drawable.mascot),
