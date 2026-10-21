@@ -515,7 +515,7 @@
     <string name="native_tour_sources_where" formatted="false">Under every answer</string>
     <string name="native_tour_knowledge_title" formatted="false">BOAR Knowledge and your Personal Files</string>
     <string name="native_tour_knowledge_body" formatted="false">BOAR Knowledge is the Vital Articles library on your phone. Import your notes, PDFs and spreadsheets into Personal Files, then ask about them with the Personal Files style.</string>
-    <string name="native_tour_knowledge_where" formatted="false">Settings → Knowledge</string>
+    <string name="native_tour_knowledge_where" formatted="false">Menu → Knowledge</string>
     <string name="native_tour_models_title" formatted="false">Models</string>
     <string name="native_tour_models_body" formatted="false">Swap the answer model, find more on Hugging Face, and let BOAR free the memory when you leave it.</string>
     <string name="native_tour_models_where" formatted="false">Settings → Models</string>
@@ -535,8 +535,8 @@
     <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
     <string name="native_tour_sample_styleButton" formatted="false">The style button, next to where you type</string>
     <string name="native_tour_sample_doc" formatted="false">field-manual.pdf</string>
-    <string name="native_tour_sample_docMeta" formatted="false">42 pages · in My Documents</string>
-    <string name="native_tour_sample_ask" formatted="false">Ask about it</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 pages · in Personal Files</string>
+    <string name="native_tour_sample_ask" formatted="false">Ask with 🗂️ Personal Files</string>
     <string name="native_tour_adaptive_title" formatted="false">Adaptive routing</string>
     <string name="native_tour_adaptive_body" formatted="false">Off by default. Switch it on and BOAR picks which of your installed models answers each question, and how. Worth it when you have more than one model.</string>
     <string name="native_tour_adaptive_where" formatted="false">Settings → Experimental</string>

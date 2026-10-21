@@ -515,7 +515,7 @@
     <string name="native_tour_sources_where" formatted="false">Embaixo de cada resposta</string>
     <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos pessoais</string>
     <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos pessoais e pergunte sobre eles com o estilo Arquivos pessoais.</string>
-    <string name="native_tour_knowledge_where" formatted="false">Configurações → Conhecimento</string>
+    <string name="native_tour_knowledge_where" formatted="false">Menu → Conhecimento</string>
     <string name="native_tour_models_title" formatted="false">Modelos</string>
     <string name="native_tour_models_body" formatted="false">Troque o modelo de resposta, encontre outros no Hugging Face e deixe o BOAR liberar a memória quando você sair dele.</string>
     <string name="native_tour_models_where" formatted="false">Configurações → Modelos</string>
@@ -535,8 +535,8 @@
     <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
     <string name="native_tour_sample_styleButton" formatted="false">O botão de estilo, ao lado de onde você digita</string>
     <string name="native_tour_sample_doc" formatted="false">manual-de-campo.pdf</string>
-    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Meus Documentos</string>
-    <string name="native_tour_sample_ask" formatted="false">Perguntar sobre ele</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Arquivos pessoais</string>
+    <string name="native_tour_sample_ask" formatted="false">Pergunte com 🗂️ Arquivos pessoais</string>
     <string name="native_tour_adaptive_title" formatted="false">Roteamento adaptativo</string>
     <string name="native_tour_adaptive_body" formatted="false">Vem desligado. Ligue e o BOAR escolhe qual dos seus modelos instalados responde cada pergunta, e como. Vale a pena quando você tem mais de um modelo.</string>
     <string name="native_tour_adaptive_where" formatted="false">Configurações → Experimental</string>
