@@ -111,8 +111,8 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
 fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel) {
     val c = Boar.colors
     val packs = state.items.filter { it.kind == AssetKind.CORPUS }
-    // Open by default, like Personal Files above it; folded stays folded while the app runs.
-    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(true) }
+    // Folded by default: the packs rarely change, and Personal Files above is what people come here for (Oct 21).
+    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (packs.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         team.sopa.boar.ui.documents.FoldTitle(t("flows.knowledge.topicPacksTitle"), open) { open = !open }
