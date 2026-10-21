@@ -90,7 +90,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
         state.finished -> Done(state, onDone)
-        else -> InstallStep(state, vm, onTour = { tourOpen = true }) { backOpen = true }
+        else -> InstallStep(state, vm, onTour = { tourIndex = 0; tourOpen = true }) { backOpen = true }
     }
     if (tourOpen) team.sopa.boar.ui.tour.TourScreen(tourProgress(state), tourIndex, { tourIndex = it }, themeId, onTheme,
         onReady = { tourOpen = false; onDone() }, onClose = { tourOpen = false })
