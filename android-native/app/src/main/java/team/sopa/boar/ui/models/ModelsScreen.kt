@@ -114,9 +114,7 @@ fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel) {
     // Folded by default: the packs rarely change, and Personal Files above is what people come here for (Oct 21).
     var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (packs.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        team.sopa.boar.ui.documents.FoldTitle(t("flows.knowledge.topicPacksTitle"), open) { open = !open }
-        if (!open) return@Column
+    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }) {
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)
         for (a in packs) CatalogCard(a, state.rows[a.id], state.rows[a.id]?.present == true, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
     }

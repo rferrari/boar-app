@@ -68,8 +68,8 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
             // Personal Files: the user's own collections, what the Personal Files style answers from. Folded, its title
             // still says how many there are.
             val count = state.collections.size
-            FoldTitle(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count), personalOpen) { personalOpen = !personalOpen }
-            if (personalOpen) {
+            team.sopa.boar.ui.BoarSection(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count),
+                personalOpen, { personalOpen = !personalOpen }) {
                 Text(t("native.documents.personalNote"), style = Boar.type.subtext, color = c.textSecondary)
                 Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {
@@ -133,15 +133,3 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
     }
 }
 
-/**
- * A Knowledge section's title (Personal Files, BOAR Knowledge): tap to fold or unfold it, with the chevron of Settings'
- * collapsible sections.
- */
-@Composable
-fun FoldTitle(title: String, open: Boolean, onToggle: () -> Unit) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().clickable(onClickLabel = title, onClick = onToggle).padding(top = 8.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
-        Text(if (open) "▴" else "▾", style = Boar.type.title, color = c.textMuted)
-    }
-}

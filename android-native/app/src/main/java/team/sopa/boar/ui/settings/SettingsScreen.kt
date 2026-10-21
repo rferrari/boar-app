@@ -520,16 +520,7 @@ private fun Section(title: String, collapsible: Boolean = false, content: @Compo
     val c = Boar.colors
     // A collapsible section starts closed: Advanced tweaks are for people who go looking for them.
     var open by remember { mutableStateOf(!collapsible) }
-    Column(
-        Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        if (collapsible) Row(Modifier.fillMaxWidth().clickable(onClickLabel = title) { open = !open }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
-            Text(if (open) "▴" else "▾", style = Boar.type.title, color = c.textMuted)
-        } else Text(title, style = Boar.type.title, color = c.textHeading)
-        if (open) content()
-    }
+    team.sopa.boar.ui.BoarSection(title, open, if (collapsible) ({ open = !open }) else null) { content() }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
