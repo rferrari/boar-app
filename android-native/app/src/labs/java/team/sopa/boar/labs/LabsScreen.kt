@@ -55,6 +55,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     val labs = LabRegistry.visible
     var note by remember { mutableStateOf<String?>(null) }
     val taps = remember { androidx.compose.runtime.mutableStateMapOf<String, Int>() }
+    val revealAt = remember { HashMap<String, Int>() }
     // The tile that just leaked flashes red once.
     var alert by remember { mutableStateOf<String?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -80,10 +81,10 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
                         Tile(lab, Modifier.weight(1f), flash = alert == lab.id) {
                             if (lab.status != LabStatus.CLASSIFIED) onOpen("lab:${lab.id}")
                             else {
-                                // Easter egg: ten taps on a classified tile declassify it, like Android's developer options.
+                                // Easter egg: 11 to 20 taps (a new count per tile each visit) declassify it, like Android's developer options.
                                 val n = (taps[lab.id] ?: 0) + 1
                                 taps[lab.id] = n
-                                if (n == REVEAL_TAPS && !LabPrefs.revealed(lab.id)) {
+                                if (n == revealAt.getOrPut(lab.id) { REVEAL_TAPS.random() } && !LabPrefs.revealed(lab.id)) {
                                     LabPrefs.setRevealed(lab.id)
                                     alert = lab.id
                                     team.sopa.boar.app.Haptics.leak(ctx)
@@ -276,5 +277,5 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
             .padding(horizontal = if (review) 8.dp else 6.dp, vertical = if (review) 3.dp else 2.dp))
 }
 
-/** Taps on one classified tile that declassify it. */
-private const val REVEAL_TAPS = 10
+/** Taps on one classified tile that declassify it: drawn again each time Boar Labs opens, so no number gets passed around. */
+private val REVEAL_TAPS = 11..20
