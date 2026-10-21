@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-/** suggestionsFor on every model, language and installed set, against the TS (golden/suggestions.txt). */
+/** suggestionsFor on every model, language and installed set, against the TS (golden/suggestions.txt; q3, the Fahrenheit one, dropped Oct 21). */
 class SuggestionsTest {
     @Test fun `same suggestions as the TS`() {
         val s = Suggestions.parse(File("../app/src/main/assets/boar-data/suggestions.json").readText())
