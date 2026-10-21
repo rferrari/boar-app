@@ -101,7 +101,7 @@ class AppSettings(private val file: File) {
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
-            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
+            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
         )
         const val MODEL_LAST_USED = "modelLastUsedAt"
@@ -178,6 +178,8 @@ class AppSettings(private val file: File) {
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
     var historyTurnThreshold: Int get() = int("historyTurnThreshold") ?: 6; set(v) = set("historyTurnThreshold", JsonPrimitive(v))
     var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
+    /** The menu's 🗑️ asks before deleting a chat (issue #92); off deletes in one tap. The user's call, on by default. */
+    var confirmChatDelete: Boolean get() = bool("confirmChatDelete") ?: true; set(v) = set("confirmChatDelete", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
 
     /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */

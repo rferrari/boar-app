@@ -458,6 +458,10 @@
     <string name="native_drawer_closeStillSaving" formatted="false">Still saving the answer. Try again in a moment.</string>
     <string name="native_drawer_close" formatted="false">Close BOAR (frees memory)</string>
     <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
+    <string name="native_drawer_deleteConfirm" formatted="false">Delete this chat?</string>
+    <string name="native_drawer_deleteButton" formatted="false">Delete</string>
+    <string name="native_settings_confirmChatDelete" formatted="false">Ask before deleting a chat</string>
+    <string name="native_settings_confirmChatDeleteNote" formatted="false">The 🗑️ in the menu asks first. Off: one tap deletes the chat.</string>
     <string name="native_drawer_closeButton" formatted="false">Close</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
     <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>

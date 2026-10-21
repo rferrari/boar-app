@@ -83,6 +83,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
                 Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
+                var confirmDelete by remember { mutableStateOf(s.confirmChatDelete) }
+                SwitchRow(t("native.settings.confirmChatDelete"), t("native.settings.confirmChatDeleteNote"), confirmDelete) { confirmDelete = it; s.confirmChatDelete = it }
                 ClearChats(services)
             }
             val avatarsOn by services.vault.enabled.collectAsState()

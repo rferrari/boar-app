@@ -458,6 +458,10 @@
     <string name="native_drawer_closeStillSaving" formatted="false">Ainda salvando a resposta. Tente de novo em instantes.</string>
     <string name="native_drawer_close" formatted="false">Fechar o BOAR (libera memória)</string>
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
+    <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
+    <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
+    <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
+    <string name="native_settings_confirmChatDeleteNote" formatted="false">O 🗑️ do menu pergunta antes. Desligado: um toque apaga o chat.</string>
     <string name="native_drawer_closeButton" formatted="false">Fechar</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">Este celular</string>
     <string name="native_modelSetupScreen_sections_memory" formatted="false">Conversas e histórico</string>
