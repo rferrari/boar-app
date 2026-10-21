@@ -485,7 +485,6 @@
     <string name="native_tour_back" formatted="false">Voltar</string>
     <string name="native_tour_next" formatted="false">Próximo</string>
     <string name="native_tour_done" formatted="false">Pronto</string>
-    <string name="native_tour_launch" formatted="false">Abrir o BOAR</string>
     <string name="native_tour_openBoar" formatted="false">Abrir o BOAR</string>
     <string name="native_tour_keepTouring" formatted="false">Continuar o tour</string>
     <string name="native_tour_ready" formatted="false">O BOAR está pronto</string>

@@ -146,7 +146,7 @@ fun TourScreen(
                     val label = when {
                         !last -> t("native.tour.next") + " →"
                         progress == null -> t("native.tour.done")
-                        progress.ready && onReady != null -> t("native.tour.launch")
+                        progress.ready && onReady != null -> t("native.tour.openBoar")
                         else -> t("native.tour.done")
                     }
                     Button(label, primary = true) {
