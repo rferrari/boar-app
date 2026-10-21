@@ -77,8 +77,12 @@ class Retriever(
         // With keyword weight 0 (MEANING) the large-pack hits still compete at the meaning weight: they are the
         // library's only results here (the pack ranks them with the question's embedding too), not keyword-only ones.
         val keywordOff = params.lexicalWeight <= 0.0
+        // The user's own documents (a collection they imported): a keyword hit that already covers the question's key
+        // words reaches the model without the similarity floor. Their parts are long and mixed, so a short question
+        // scored under the floor against the very post it names (X6, Oct 21). The library and the packs keep the floor.
+        val (own, shared) = lexical.partition { it.collectionId != null }
         val fused = RagPure.fuse(
-            (if (keywordOff) emptyList() else RagPure.gateByRelevance(lexical + f1.flatMap { it.lexical }, params.answerMinSimilarity)) + wikiLexical,
+            (if (keywordOff) emptyList() else own + RagPure.gateByRelevance(shared + f1.flatMap { it.lexical }, params.answerMinSimilarity)) + wikiLexical,
             RagPure.gateByRelevance(semantic + f1.flatMap { it.semantic }, params.answerMinSimilarity),
             topK,
             if (keywordOff) params.semanticWeight else params.lexicalWeight,
