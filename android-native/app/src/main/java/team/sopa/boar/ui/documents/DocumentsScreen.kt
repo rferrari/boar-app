@@ -53,9 +53,6 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
     var name by remember { mutableStateOf("") }
     var nameMissing by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf<KnowledgeBase.Collection?>(null) }
-    var exporting by remember { mutableStateOf<String?>(null) }
-    var exportError by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.import(uris, name.trim()); name = "" }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
@@ -102,15 +99,6 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                     Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(if (exporting == col.id) t("personalDocumentsManager.exporting") else "📤 " + t("personalDocumentsManager.exportButton"),
-                        fontSize = 12.sp, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.cyanBgSubtle).clickable(enabled = exporting == null) {
-                            exporting = col.id
-                            scope.launch {
-                                try { ctx.startActivity(vm.exportIntent(col)) } catch (e: Exception) { exportError = e.message ?: e.toString() }
-                                exporting = null
-                            }
-                        }.padding(horizontal = 12.dp, vertical = 6.dp))
                     Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
                 }
             }
@@ -118,8 +106,6 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
             packs()
         }
     }
-    exportError?.let { msg -> AlertDialog({ exportError = null }, confirmButton = { TextButton({ exportError = null }) { Text(t("native.common.ok")) } },
-        title = { Text(t("personalDocumentsManager.exportFailedTitle")) }, text = { Text(msg) }) }
     if (nameMissing) AlertDialog({ nameMissing = false }, confirmButton = { TextButton({ nameMissing = false }) { Text(t("native.common.ok")) } },
         title = { Text(t("personalDocumentsManager.nameRequiredTitle")) }, text = { Text(t("personalDocumentsManager.nameRequiredMessage")) },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary)
