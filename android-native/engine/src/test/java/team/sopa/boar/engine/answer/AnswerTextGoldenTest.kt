@@ -41,7 +41,7 @@ class AnswerTextGoldenTest {
 
     @Test fun `personalities from the exported data`() {
         val p = Personalities.parse(File("../app/src/main/assets/boar-data/personalities.json").readText())
-        assertEquals(listOf("succinct", "detailed", "summary", "custom"), p.personalities.map { it.id })
+        assertEquals(listOf("succinct", "detailed", "personal", "custom"), p.personalities.map { it.id })
         assertEquals("detailed", p.defaultId)
         assertEquals(512, p.defaultMaxTokens)
         assertEquals(p.get("detailed").systemPrompt, p.promptFor(null, null).first)

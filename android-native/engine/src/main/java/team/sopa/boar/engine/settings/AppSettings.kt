@@ -28,6 +28,12 @@ class AppSettings(private val file: File) {
     /** Told after each saved change: the key, its old and new value (null when unset). The app's debug log listens. */
     @Volatile var onChange: ((key: String, old: JsonElement?, new: JsonElement?) -> Unit)? = null
 
+    init {
+        // Executive Summary became Personal Files (rc1): a saved Summary opens in Detailed, the default, not in a style
+        // that answers only from the user's files.
+        if (str("personalityId") == RETIRED_SUMMARY_STYLE) update { put("personalityId", JsonPrimitive("detailed")) }
+    }
+
     /** Every key as stored, for the debug log's header. */
     fun snapshot(): Map<String, JsonElement> = data
 
@@ -105,6 +111,10 @@ class AppSettings(private val file: File) {
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
+        /** Personal Files: the fact first, then two to four sentences; between Succinct's and Detailed's lengths. */
+        const val AUTO_MAX_TOKENS_PERSONAL = 768
+        /** The retired Executive Summary style's id, moved to Detailed when settings load. */
+        const val RETIRED_SUMMARY_STYLE = "summary"
         /**
          * A Deep Research write-up, any style: a Detailed one ran past 1024 tokens and stopped mid-sentence inside its own
          * conclusion (X6, Oct 14). The largest choice in Settings; the style still sets how long it really is.
@@ -123,8 +133,12 @@ class AppSettings(private val file: File) {
         fun fitToContext(cap: Int, openedContext: Int?): Int =
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
 
-        /** No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). */
+        /**
+         * No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). Personal Files
+         * comes first: Deep Research steps aside in that style.
+         */
         fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
+            personalityId == "personal" -> AUTO_MAX_TOKENS_PERSONAL
             deepResearch -> AUTO_MAX_TOKENS_RESEARCH
             (personalityId ?: "detailed") == "detailed" -> AUTO_MAX_TOKENS_DETAILED
             else -> AUTO_MAX_TOKENS

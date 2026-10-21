@@ -26,6 +26,6 @@ class ShortAnswerTest {
 
     @Test fun `other styles are left alone`() {
         assertNull(ShortAnswer.reason("succinct", "How do I treat a minor kitchen burn?", null))
-        assertNull(ShortAnswer.reason("summary", "And for how long?", "How do I treat a minor kitchen burn?"))
+        assertNull(ShortAnswer.reason("personal", "And for how long?", "How do I treat a minor kitchen burn?"))
     }
 }
