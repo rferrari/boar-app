@@ -32,6 +32,7 @@ import team.sopa.boar.engine.answer.SourceGroups
 import team.sopa.boar.engine.answer.DeepResearch
 import team.sopa.boar.engine.answer.HistoryBudget
 import team.sopa.boar.engine.answer.PipelineInput
+import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.answer.PlanExecutor
 import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.engine.answer.SessionEngine
@@ -519,6 +520,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
             val chosenStyle = settings.personalityId ?: services.personalities.defaultId
+            // Personal Files: only the user's own files, whole; no Deep Research, router, answer check or Labs tools
+            // but the safety cards (PersonalFiles). ShortAnswer already leaves it alone (Detailed only).
+            val personal = PersonalFiles.isOn(chosenStyle)
             // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
             // A follow-up in such a chat too ("and for how long?" after a burn question).
             val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
@@ -547,8 +551,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var timedOut = false
             var firstAt = 0L
             var tokens = 0
-            // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers.
-            val deep = _state.value.deepResearch
+            // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers. It
+            // steps aside in Personal Files.
+            val deep = _state.value.deepResearch && !personal
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
@@ -556,7 +561,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val skipTools = skipToolsOnce.also { skipToolsOnce = false }
             val tool = if (skipTools || aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
-                ?.takeIf { !deep || it.tool.startsWith("safety-") }
+                ?.takeIf { !(deep || personal) || PersonalFiles.keepsTool(it.tool) }
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s
@@ -595,7 +600,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 limited = budget
                 // Small talk never starts a Deep Research or the router (AnswerPath): "hi" took minutes on a big model.
                 val way = team.sopa.boar.engine.routing.AnswerPath.of(deep, aboutConversation(q, history, conversation),
-                    settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) },
+                    !personal && settings.adaptiveRoutingEnabled && services.answerModel().let { it == null || services.runsOnBuiltIn(it) },
                     team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q))
                 if (stopRequested) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
@@ -630,8 +635,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.second
                     metrics = r.third
                 } else {
-                    val pipeline = AnswerPipeline(session, services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
-                    pipeline.answer(AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)).collect { e ->
+                    val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
+                    val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
+                    val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
+                    // Nothing found in the files: the fixed line in the user's language, and where to switch a collection on.
+                    val request = if (!personal) base else PersonalFiles.request(base,
+                        services.host.openedContext ?: team.sopa.boar.engine.EngineTweaks.contextSizeForRam(totalRamBytes()),
+                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFoundHint"))
+                    pipeline.answer(request).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
                             is AnswerEvent.Sources -> sources = e.chunks
@@ -658,7 +669,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // that was stopped, timed out or failed part way.
             // The failure line goes with this answer, so it's still there after the next question and when the chat opens again.
             val errorKey = _state.value.error?.takeIf { !stopped }?.let(team.sopa.boar.engine.UserErrors::chatKey)
-            val repair = if (skipTools || !team.sopa.boar.engine.routing.LabTools.checksAnswer(instant != null, stopped, timedOut, _state.value.error != null, path, text.isBlank())) null
+            val repair = if (skipTools || personal || !team.sopa.boar.engine.routing.LabTools.checksAnswer(instant != null, stopped, timedOut, _state.value.error != null, path, text.isBlank())) null
             else AnswerChecks.run(q, text.toString())
             if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.
@@ -768,7 +779,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Only BOAR's own engine keeps a prompt cache to refill; a Labs engine process manages its own.
         val session = model as? team.sopa.boar.engine.LlamaSession ?: return
         // The variant the last answer used (with or without sources): a follow-up in the same chat most often matches it.
-        val (head, plain) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(systemPrompt, withSources)
+        // Personal Files answers from the files-only prompt, with its sources.
+        val filesOnly = PersonalFiles.isOn(services.settings.personalityId)
+        val (head, plain) = team.sopa.boar.engine.rag.RagPure.answerPromptPrefix(systemPrompt, withSources || filesOnly, filesOnly)
         val prompt = if (session.info.optBoolean("hasChatTemplate", false))
             session.formatChat(listOf(team.sopa.boar.engine.ChatMessage("system", head)), services.settings.engineTweaks.thinkingEnabled).prompt
         else plain
