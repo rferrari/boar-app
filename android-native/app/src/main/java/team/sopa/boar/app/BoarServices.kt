@@ -140,7 +140,7 @@ class BoarServices private constructor(private val context: Context) {
         override fun read() = f.takeIf { it.isFile }?.readText()
         override fun write(json: String) = f.writeText(json)
         override fun clear() { f.delete() }
-    }, settings.loadLedger)
+    }, settings.loadLedger).apply { exitWasNotLoadKill = { at -> ExitReason.notALoadKill(context, at) } }
 
     /**
      * The model the chat answers with: the active one, unless its last load killed the app (CR-2). Then the model loaded
