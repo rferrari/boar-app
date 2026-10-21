@@ -8,6 +8,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -248,7 +250,8 @@ private fun BenchScreen(
     )
 
     Column(
-        Modifier.fillMaxSize().background(Color(0xFF17110D)).padding(16.dp).verticalScroll(rememberScrollState()),
+        // Inside the system bars: the title sat under the clock (Oct 21).
+        Modifier.fillMaxSize().background(Color(0xFF17110D)).statusBarsPadding().navigationBarsPadding().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("BOAR engine bench", color = Color(0xFFFFF4E8), fontSize = 22.sp)
