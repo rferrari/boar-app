@@ -142,12 +142,12 @@ fun TourScreen(
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                     val last = i == cards.lastIndex
-                    // Last card: into BOAR when it's ready, back to the download while it isn't, back to Settings from there.
+                    // Last card: into BOAR when it's ready; otherwise Done, back to the download or to Settings.
                     val label = when {
                         !last -> t("native.tour.next") + " →"
                         progress == null -> t("native.tour.done")
                         progress.ready && onReady != null -> t("native.tour.launch")
-                        else -> t("native.tour.toDownload")
+                        else -> t("native.tour.done")
                     }
                     Button(label, primary = true) {
                         when {
