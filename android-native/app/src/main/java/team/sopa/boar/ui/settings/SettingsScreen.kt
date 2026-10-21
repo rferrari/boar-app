@@ -328,7 +328,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
 }
 
 @Composable
-private fun LinkButton(label: String, danger: Boolean = false, onClick: () -> Unit) {
+internal fun LinkButton(label: String, danger: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
     Text(label, style = Boar.type.body, fontWeight = FontWeight.SemiBold, color = if (danger) c.crimson400 else c.textAccentCyan,
         modifier = Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
@@ -525,7 +525,7 @@ private fun Section(title: String, collapsible: Boolean = false, content: @Compo
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+internal fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val c = Boar.colors
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         label?.let { Text(it, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold) }
