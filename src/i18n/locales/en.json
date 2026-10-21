@@ -254,7 +254,9 @@
     "deepResearchTitle": "Deep Research Mode",
     "deepResearchNote": "Breaks your question into sub-questions, researches each separately, then synthesizes one answer. Several sequential model calls on the same model — noticeably slower than a normal reply, not multiple AI models running at once. Independent from the response style above: it changes how much research goes into an answer, not its tone — the two combine (e.g. Deep Research + Succinct still synthesizes a short final answer).",
     "adaptiveRoutingTitle": "Adaptive Routing",
-    "adaptiveRoutingNote": "Classifies each message and picks which downloaded model answers it (e.g. a lightweight model for small talk, a stronger one for research/comparison questions), switching between them as needed. On by default and independent from Deep Research — if it fails for any reason, chat falls back to your normal active model automatically, it never leaves you without a response."
+    "adaptiveRoutingNote": "Classifies each message and picks which downloaded model answers it (e.g. a lightweight model for small talk, a stronger one for research/comparison questions), switching between them as needed. On by default and independent from Deep Research — if it fails for any reason, chat falls back to your normal active model automatically, it never leaves you without a response. With the Measured answer path on (the default), this switch only turns the instant source snippets on or off; it picks the model only when that path is off.",
+    "measuredPathTitle": "Measured answer path",
+    "measuredPathNote": "Answers through the same engine the benchmarks measure: offline sources first, cited [n] answers, safety guards for health questions. On by default. Turn off to use the older chat pipeline. Deep Research is not affected."
   },
   "corpusSettingsTab": {
     "downloadablePacks": "Downloadable knowledge packs",

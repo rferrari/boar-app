@@ -15,6 +15,8 @@ import {
   setDeepResearchMode,
   getAdaptiveRoutingEnabled,
   setAdaptiveRoutingEnabled,
+  getMeasuredAnswerPathEnabled,
+  setMeasuredAnswerPathEnabled,
 } from "../models/settings";
 
 /**
@@ -30,6 +32,7 @@ export function PersonalitySettings() {
   const [maxTokens, setMaxTokensState] = useState(512);
   const [deepResearch, setDeepResearchState] = useState(false);
   const [adaptiveRouting, setAdaptiveRoutingState] = useState(false);
+  const [measuredPath, setMeasuredPathState] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -38,6 +41,7 @@ export function PersonalitySettings() {
       setMaxTokensState(await getMaxTokens());
       setDeepResearchState(await getDeepResearchMode());
       setAdaptiveRoutingState(await getAdaptiveRoutingEnabled());
+      setMeasuredPathState(await getMeasuredAnswerPathEnabled());
     })();
   }, []);
 
@@ -49,6 +53,11 @@ export function PersonalitySettings() {
   const toggleAdaptiveRouting = async (value: boolean) => {
     setAdaptiveRoutingState(value);
     await setAdaptiveRoutingEnabled(value);
+  };
+
+  const toggleMeasuredPath = async (value: boolean) => {
+    setMeasuredPathState(value);
+    await setMeasuredAnswerPathEnabled(value);
   };
 
   const selectPersonality = async (id: PersonalityId) => {
@@ -144,6 +153,20 @@ export function PersonalitySettings() {
           />
         </View>
     </View>
+
+      <View style={styles.card}>
+        <View style={styles.deepResearchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>🎯 {t("personalitySettings.measuredPathTitle")}</Text>
+            <Text style={styles.note}>{t("personalitySettings.measuredPathNote")}</Text>
+          </View>
+          <Switch
+            value={measuredPath}
+            onValueChange={toggleMeasuredPath}
+            trackColor={{ false: colors.border.default, true: colors.emerald[500] }}
+          />
+        </View>
+      </View>
     </>
   );
 }

@@ -24,6 +24,7 @@ import { getActiveModelId, getAnswerSettings, getCustomSystemPrompt, getPersonal
 import { getPersonality } from "../constants/personalities";
 import { runDeepResearch } from "../services/orchestrator";
 import { createAnswerer, InstalledLlm } from "./answer";
+import { deviceEmergencyScore } from "./emergencyDetector";
 import { measuredSpeeds } from "./depth";
 import { listRecentExecutions, recordExecution } from "../services/executionTelemetry";
 import type { GeoProviders } from "./geo";
@@ -94,6 +95,8 @@ export const { answer, deepen, effectiveModel: effectiveAnswerModel } = createAn
     }
   },
   getGeoProviders: () => geoProviders,
+  // The learned emergency detector (health13 config), when its files are installed; else the lexical predicate.
+  emergencyScore: deviceEmergencyScore,
   getModelSpeeds: async () => measuredSpeeds(await listRecentExecutions(500)),
   recordExecution,
   // iOS: the footprint (jetsam's figure; RSS counts clean mmap'd weights); the native module names it totalPssBytes.

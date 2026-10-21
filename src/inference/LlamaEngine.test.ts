@@ -73,9 +73,18 @@ vi.mock("llama.rn", () => ({
     return ctx;
   },
 }));
+/** In-memory cache dir: like Android, a file can only be written into a directory that exists. */
+const kvFs = { dirs: new Set<string>(), files: new Set<string>() };
 vi.mock("expo-file-system/legacy", () => ({
   documentDirectory: "file:///docs/",
-  getInfoAsync: async () => ({ exists: true, size: fileSize }),
+  cacheDirectory: "file:///cache/",
+  getInfoAsync: async (uri: string) => (uri.startsWith("file:///cache/") ? { exists: kvFs.files.has(uri) || kvFs.dirs.has(uri) } : { exists: true, size: fileSize }),
+  makeDirectoryAsync: async (uri: string) => {
+    kvFs.dirs.add(uri);
+  },
+  deleteAsync: async (uri: string) => {
+    kvFs.files.delete(uri);
+  },
 }));
 vi.mock("ram-monitor", () => ({
   getDeviceTotalRamBytes: () => ram.total,
@@ -98,6 +107,8 @@ beforeEach(() => {
   initFailures.length = 0;
   platform.OS = "android";
   stopReturnsNothing = false;
+  kvFs.dirs.clear();
+  kvFs.files.clear();
 });
 
 describe("LlamaEngine Metal fallback (iPhone 13)", () => {
@@ -449,7 +460,7 @@ describe("answer prefix kept in the KV cache (iPhone 13: 4-5 s to the first toke
       (created[0] as any).isJinjaSupported = () => false;
       await engine.generate({ prompt: "Title: q" });
       await vi.advanceTimersByTimeAsync(PREFIX_WARM_IDLE_MS + 20);
-      expect(warms(seen)[2]).toEqual({ prompt: PREFIX.prompt, n_predict: 0 });
+      expect(warms(seen)[2]).toEqual({ prompt: PREFIX.prompt, n_predict: 0, n_probs: 0 });
     } finally {
       vi.useRealTimers();
     }
@@ -494,5 +505,272 @@ describe("answer prefix kept in the KV cache (iPhone 13: 4-5 s to the first toke
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("route gate: reads the last probabilities entry (rc.4 never clears them) and resets n_probs for the answer", async () => {
+    try {
+      const { engine, seen } = await loadedEngine();
+      Object.assign(created[0] as any, {
+        completion: (p: any) => {
+          seen.push(p);
+          // rc.4: completion_probabilities keeps every earlier gate's token; this call's is the last one.
+          const stale = { probs: [{ tok_str: "SEARCH", prob: 1 }] };
+          const fresh = { probs: [{ tok_str: "ANS", prob: 0.8 }, { tok_str: "SEARCH", prob: 0.2 }] };
+          return Promise.resolve({ text: "", completion_probabilities: p.n_probs ? [stale, fresh] : undefined, timings: { prompt_n: 9 } });
+        },
+        saveSession: vi.fn(async () => 1),
+        loadSession: vi.fn(async () => ({})),
+      });
+      const gateMsgs = [{ role: "system", content: "router" }, { role: "user", content: "oi" }];
+      const probs = await engine.nextTokenProbs(gateMsgs, { modelFilename: "models/a.gguf", nProbs: 20 });
+      expect(probs).toEqual([{ token: "ANS", prob: 0.8 }, { token: "SEARCH", prob: 0.2 }]);
+      expect(seen.at(-1)).toEqual({ messages: gateMsgs, jinja: true, n_predict: 1, n_probs: 20, temperature: 1 });
+      // Another model than the loaded one: no gate (the answer path keeps the rules).
+      expect(await engine.nextTokenProbs(gateMsgs, { modelFilename: "models/other.gguf", nProbs: 20 })).toBeNull();
+      await engine.generate({ messages: answerMsgs });
+      expect(seen.at(-1)).toMatchObject({ n_probs: 0, temperature: 0.7 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("KV session files (A15 smoke: models/ in the key left saveSession without a directory)", () => {
+  const PREFIX = { system: "You are Boar. Use the context below.", prompt: "You are Boar. Use the context below.\n\n" };
+  const gateMsgs = [{ role: "system", content: "router" }, { role: "user", content: "oi" }];
+
+  /** A context that records warm-ups and session calls, and fails a save when its directory is missing (ENOENT). */
+  async function engineWithSessions(model = "models/Qwen3-4B-Q4_K_M.gguf") {
+    const engine = new LlamaEngine();
+    await engine.load(model);
+    const ctx = created.at(-1) as any;
+    const log = { saved: [] as string[], loaded: [] as string[], warms: 0 };
+    Object.assign(ctx, {
+      isJinjaSupported: () => true,
+      completion: (p: any) => {
+        if (p.n_predict === 0) log.warms++;
+        return Promise.resolve({
+          text: p.n_predict === 0 ? "" : "ok",
+          completion_probabilities: p.n_probs ? [{ probs: [{ tok_str: "SEARCH", prob: 1 }] }] : undefined,
+          timings: { prompt_n: 60, prompt_ms: 600 },
+        });
+      },
+      saveSession: async (path: string) => {
+        const dir = "file://" + path.slice(0, path.lastIndexOf("/") + 1);
+        if (!kvFs.dirs.has(dir)) throw new Error("Failed to save session");
+        kvFs.files.add("file://" + path);
+        log.saved.push(path);
+        return 1;
+      },
+      loadSession: async (path: string) => {
+        if (!kvFs.files.has("file://" + path)) throw new Error("Failed to load session");
+        log.loaded.push(path);
+        return {};
+      },
+    });
+    return { engine, log, model };
+  }
+
+  it("a key with '/' (the model path) is flattened into cache/kv/ and round-trips save -> load", async () => {
+    const { engine, log, model } = await engineWithSessions();
+    await engine.nextTokenProbs(gateMsgs, { modelFilename: model, nProbs: 20 });
+    expect(log.warms).toBe(1);
+    expect(log.saved).toHaveLength(1);
+    expect(log.saved[0]).toMatch(/^\/cache\/kv\/[^/]+\.bin$/);
+    expect(log.saved[0]).toContain("Qwen3-4B-Q4_K_M.gguf");
+    // A new process (fresh engine, same cache dir) restores the file instead of prefilling again.
+    const again = await engineWithSessions();
+    await again.engine.nextTokenProbs(gateMsgs, { modelFilename: again.model, nProbs: 20 });
+    expect(again.log.loaded).toEqual(log.saved);
+    expect(again.log.warms).toBe(0);
+    expect(again.log.saved).toHaveLength(0);
+  });
+
+  it("the gate prefix is saved once and reused on the next questions", async () => {
+    const { engine, log, model } = await engineWithSessions();
+    for (let i = 0; i < 3; i++) await engine.nextTokenProbs(gateMsgs, { modelFilename: model, nProbs: 20 });
+    expect(log.warms).toBe(1);
+    expect(log.saved).toHaveLength(1);
+  });
+
+  it("the answer prefix is saved once, and a later engine restores it instead of prefilling", async () => {
+    const a = await engineWithSessions();
+    vi.useFakeTimers();
+    try {
+      a.engine.setAnswerPrefix(PREFIX);
+      await vi.advanceTimersByTimeAsync(20);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(a.log.warms).toBe(1);
+    expect(a.log.saved).toHaveLength(1);
+    const b = await engineWithSessions();
+    b.engine.setAnswerPrefix(PREFIX);
+    await b.engine.generate({ messages: [{ role: "system", content: `${PREFIX.system}\n\nContext:\nx` }, { role: "user", content: "q" }] });
+    expect(b.log.loaded).toEqual(a.log.saved);
+    expect(b.log.warms).toBe(0);
+  });
+
+  it("gate and answer files differ and neither contains a path separator beyond cache/kv/", async () => {
+    const { engine, log, model } = await engineWithSessions();
+    await engine.nextTokenProbs(gateMsgs, { modelFilename: model, nProbs: 20 });
+    vi.useFakeTimers();
+    try {
+      engine.setAnswerPrefix(PREFIX);
+      await vi.advanceTimersByTimeAsync(20);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(new Set(log.saved).size).toBe(2);
+    for (const p of log.saved) expect(p.replace("/cache/kv/", "")).not.toContain("/");
+  });
+  it("CUT5-SPEED: the no-source system message gets its own flattened .nosrc session file, saved once and restored by a later engine", async () => {
+    const SYS = "You are Boar. Answer from your library only.";
+    const msgs = [{ role: "system", content: SYS }, { role: "user", content: "q" }];
+    const a = await engineWithSessions();
+    await a.engine.generate({ messages: msgs, staticSystem: true });
+    await a.engine.generate({ messages: msgs, staticSystem: true });
+    expect(a.log.warms).toBe(1); // prefilled once, the second question finds it in the KV cache
+    expect(a.log.saved).toHaveLength(1);
+    expect(a.log.saved[0]).toMatch(/^\/cache\/kv\/[^/]+\.nosrc\.bin$/);
+    expect(a.log.saved[0]).toContain("Qwen3-4B-Q4_K_M.gguf");
+    expect(kvFs.dirs.has("file:///cache/kv/")).toBe(true); // mkdir before the save (ENOENT otherwise)
+    const key = a.engine.noSourceKvKey(SYS);
+    expect(key).toMatch(/\.nosrc$/);
+    expect(a.engine.noSourceKvKey(SYS + "x")).not.toBe(key);
+    const b = await engineWithSessions();
+    await b.engine.generate({ messages: msgs, staticSystem: true });
+    expect(b.log.loaded).toEqual(a.log.saved);
+    expect(b.log.warms).toBe(0);
+    expect(b.log.saved).toHaveLength(0);
+  });
+
+  it("CUT5-SPEED: without staticSystem nothing is saved or restored, and the generation prompt is unchanged", async () => {
+    const { engine, log } = await engineWithSessions();
+    const seen: any[] = [];
+    const ctx = created.at(-1) as any;
+    const orig = ctx.completion;
+    ctx.completion = (p: any) => (seen.push(p), orig(p));
+    const msgs = [{ role: "system", content: "sys" }, { role: "user", content: "q" }];
+    await engine.generate({ messages: msgs });
+    expect(log.saved).toHaveLength(0);
+    expect(log.warms).toBe(0);
+    await engine.generate({ messages: msgs, staticSystem: true });
+    const gens = seen.filter((p) => p.n_predict !== 0);
+    expect(gens).toHaveLength(2);
+    expect(gens[1].messages).toEqual(gens[0].messages); // token-identical prompt
+  });
+
+  it("CUT5-SPEED: the no-source prefix is restored again after the gate took the KV cache", async () => {
+    const { engine, log, model } = await engineWithSessions();
+    const msgs = [{ role: "system", content: "sys" }, { role: "user", content: "q" }];
+    await engine.generate({ messages: msgs, staticSystem: true });
+    await engine.nextTokenProbs(gateMsgs, { modelFilename: model, nProbs: 20 });
+    await engine.generate({ messages: msgs, staticSystem: true });
+    expect(log.loaded.filter((p) => p.endsWith(".nosrc.bin"))).toHaveLength(1);
+  });
+});
+
+describe("unload during KV session I/O (CodeRabbit: queue and genQueue are independent)", () => {
+  const PREFIX = { system: "You are Boar. Use the context below.", prompt: "You are Boar. Use the context below.\n\n" };
+  const gateMsgs = [{ role: "system", content: "router" }, { role: "user", content: "oi" }];
+
+  /** A loaded engine whose session calls wait for `resolveIo()`; records native calls made after release. */
+  async function slowSessions() {
+    const engine = new LlamaEngine();
+    await engine.load("models/a.gguf");
+    const ctx = created.at(-1) as any;
+    const log = { afterRelease: [] as string[], completions: 0, loads: 0, saves: 0 };
+    let pending: (() => void)[] = [];
+    const io = (name: string) => {
+      if (ctx.released) log.afterRelease.push(name);
+      return new Promise<number>((r) => pending.push(() => r(1)));
+    };
+    Object.assign(ctx, {
+      isJinjaSupported: () => true,
+      completion: (p: any) => {
+        if (ctx.released) log.afterRelease.push("completion");
+        log.completions++;
+        return Promise.resolve({ text: "ok", completion_probabilities: p.n_probs ? [{ probs: [{ tok_str: "SEARCH", prob: 1 }] }] : undefined });
+      },
+      loadSession: (path: string) => (log.loads++, kvFs.files.add("file://" + path), io("loadSession")),
+      saveSession: (path: string) => (log.saves++, kvFs.files.add("file://" + path), io("saveSession")),
+    });
+    const resolveIo = () => {
+      const p = pending;
+      pending = [];
+      p.forEach((f) => f());
+    };
+    const ioPending = () => pending.length;
+    return { engine, ctx, log, resolveIo, ioPending };
+  }
+  const tick = () => new Promise((r) => setTimeout(r, 1));
+
+  it("an answer restoring its prefix: unload waits for loadSession, then the answer fails instead of running on the released context", async () => {
+    const { engine, ctx, log, resolveIo, ioPending } = await slowSessions();
+    engine.setAnswerPrefix(PREFIX);
+    // The saved prefix file exists, so generate() restores it with loadSession before its completion.
+    const key = (engine as any).answerKvKey(PREFIX) as string;
+    kvFs.files.add((engine as any).kvPath(key).uri);
+    const answer = engine.generate({ messages: [{ role: "system", content: `${PREFIX.system}\n\nContext:\nx` }, { role: "user", content: "q" }] });
+    while (!ioPending()) await tick();
+    let unloaded = false;
+    const unload = engine.unload().then(() => (unloaded = true));
+    await tick();
+    expect(unloaded).toBe(false); // waits for the session load instead of releasing under it
+    expect(ctx.released).toBe(false);
+    resolveIo();
+    await unload;
+    await expect(answer).rejects.toThrow("model unloaded");
+    expect(ctx.released).toBe(true);
+    expect(log.afterRelease).toEqual([]);
+    expect(log.completions).toBe(0);
+  });
+
+  it("an answer that fails with 'model unloaded' leaves no timeout armed (a stale timer would stop a later answer)", async () => {
+    const { engine, resolveIo, ioPending } = await slowSessions();
+    engine.setAnswerPrefix(PREFIX);
+    const key = (engine as any).answerKvKey(PREFIX) as string;
+    kvFs.files.add((engine as any).kvPath(key).uri);
+    const onTimeout = vi.fn();
+    const answer = engine.generate({ messages: [{ role: "system", content: `${PREFIX.system}\n\nContext:\nx` }, { role: "user", content: "q" }], timeoutMs: 30, onTimeout });
+    while (!ioPending()) await tick();
+    const unload = engine.unload();
+    await tick(); // unloadNow is waiting on the session load
+    resolveIo();
+    await unload;
+    await expect(answer).rejects.toThrow("model unloaded");
+    await new Promise((r) => setTimeout(r, 60));
+    expect(onTimeout).not.toHaveBeenCalled();
+  });
+
+  it("the route gate's first prefill: unload during saveSession waits for it, and the gate returns null without a completion", async () => {
+    const { engine, ctx, log, resolveIo, ioPending } = await slowSessions();
+    const probs = engine.nextTokenProbs(gateMsgs, { modelFilename: "models/a.gguf", nProbs: 20 });
+    while (!ioPending()) await tick(); // the prefill ran; saveSession is pending
+    expect(log.saves).toBe(1);
+    const unload = engine.unload();
+    await tick();
+    expect(ctx.released).toBe(false);
+    resolveIo();
+    await unload;
+    expect(await probs).toBeNull();
+    expect(ctx.released).toBe(true);
+    expect(log.afterRelease).toEqual([]);
+    expect(log.completions).toBe(1); // the prefill only, no gate completion after the unload
+  });
+
+  it("no session call starts after an unload that ran during the directory check", async () => {
+    const { engine, ctx, log } = await slowSessions();
+    engine.setAnswerPrefix(PREFIX);
+    const key = (engine as any).answerKvKey(PREFIX) as string;
+    kvFs.files.add((engine as any).kvPath(key).uri);
+    const answer = engine.generate({ messages: [{ role: "system", content: `${PREFIX.system}\n\nContext:\nx` }, { role: "user", content: "q" }] });
+    await engine.unload(); // runs while generateNow awaits getInfoAsync, before loadSession
+    await expect(answer).rejects.toThrow(/model unloaded|not loaded/);
+    expect(ctx.released).toBe(true);
+    expect(log.afterRelease).toEqual([]);
+    expect(log.loads).toBe(0);
+    expect(kvFs.files.has((engine as any).kvPath(key).uri)).toBe(true); // the saved prefix is not deleted
   });
 });

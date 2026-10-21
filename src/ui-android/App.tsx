@@ -11,6 +11,27 @@ import { ModelManager } from "../models/ModelManager";
 import { ThemeProvider, useTheme } from "./theme";
 import { initHaptics } from "../services/haptics";
 import { FONT_FILES } from "./theme/fontFiles";
+import { registerGeoProviders } from "../routing/answerService";
+import { geoProvidersFrom } from "../routing/geoWiring";
+import { getCurrentPoint, getLocationFix } from "../services/location";
+import { installedPoiPacks, resolvePlace, searchPois } from "../rag/pois";
+import { POI_REGIONS } from "../rag/poiRegions";
+
+// Offline places for the chat's answer() (and the in-app evaluation): without this every places question
+// answers "places pack not installed", even with a pack installed. Same wiring as BOAR Bench's runner, but with
+// the app's location service, which never asks for permission: the Android UI has no permission flow yet, so
+// until the user grants location elsewhere, "near me" gets the engine's no-location answer and a named city
+// ("vegan food in Lisbon") works from the installed pack without GPS.
+registerGeoProviders(
+  geoProvidersFrom({
+    installedPoiPacks,
+    getCurrentPoint,
+    getLocationFix,
+    resolvePlace,
+    searchPois,
+    cities: () => POI_REGIONS.flatMap((r) => r.cities ?? []),
+  })
+);
 
 const modelManager = new ModelManager();
 

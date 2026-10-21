@@ -279,6 +279,24 @@ export function cleanPlaceName(name: string): { name: string; country?: string }
   return { name: s };
 }
 
+/**
+ * The city a point is in, from the world gazetteer, for "near you in Tokyo" (Compass V-exact: a GPS venue answer
+ * must name the city). The most populous place of 100k+ within 25 km, so a fix in Shibuya says Tokyo, not the ward;
+ * else the nearest place within 15 km; null when none.
+ */
+export async function nearestPlaceIn(db: PackSql, p: { lat: number; lon: number }): Promise<{ name: string; country?: string } | null> {
+  const dLat = 0.25;
+  const dLon = 0.25 / Math.max(0.2, Math.cos((p.lat * Math.PI) / 180));
+  const rows = await db.getAllAsync<{ name: string; country: string | null; lat: number; lon: number; population: number }>(
+    "SELECT name, country, lat, lon, population FROM places WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?",
+    [p.lat - dLat, p.lat + dLat, p.lon - dLon, p.lon + dLon]
+  );
+  const near = rows.map((r) => ({ ...r, d: distanceM(p, r) }));
+  const city = near.filter((r) => r.population >= 100000 && r.d <= 25000).sort((a, b) => b.population - a.population)[0];
+  const best = city ?? near.filter((r) => r.d <= 15000).sort((a, b) => a.d - b.d)[0];
+  return best ? { name: best.name, ...(best.country ? { country: best.country } : {}) } : null;
+}
+
 export async function resolvePlaceIn(db: PackSql, name: string): Promise<PlaceMatch | null> {
   const { name: clean, country } = cleanPlaceName(name);
   if (!clean) return null;

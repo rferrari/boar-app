@@ -2,10 +2,14 @@ import { describe, it, expect, beforeEach } from "vitest";
 import type { RetrievedChunk } from "../rag/retrieve.types";
 import { answerPromptPrefix, assemblePrompt, assembleChatMessages } from "../rag/pure";
 import { AnswerDeps, createAnswerer, InstalledLlm } from "./answer";
+import { classifyTask } from "./classify";
 import type { AnswerEvent } from "./events";
 import type { AnswerSettings } from "../models/settings";
 import type { GenerateOptions } from "../inference/LlamaEngine";
-import { approxTokens, HEALTH_GROUNDING_INSTRUCTION, NO_SOURCE_INSTRUCTION, PT_ANSWER_LANGUAGE } from "./context";
+import { approxTokens, HEALTH_GROUNDING_INSTRUCTION, NO_SOURCE_INSTRUCTION, noHealthSourceAnswer, PT_ANSWER_LANGUAGE } from "./context";
+import { conditionCardText } from "./conditionCards";
+import { withReviewedSnakebiteText } from "./snakebiteCardText";
+import { noDoseAnswer } from "./healthGap";
 import { ModelLoadError } from "../inference/loadError";
 import { answerReducer, initialAnswer } from "./answerReducer";
 
@@ -17,6 +21,15 @@ const chunk = (chunkId: string, title: string, body: string): RetrievedChunk => 
   score: 1,
   matchType: "hybrid",
 });
+/** The no-source health answer: the condition's first-aid card when the question names exactly one, else the generic card
+ * (Sonar exp-29 arm instcards). Returns the card's condition, or null for the generic card. */
+function expectNoSourceCard(result: { text: string; receipt: { reasonCodes: string[] } }, query: string, pt = false): string | null {
+  const code = result.receipt.reasonCodes.find((c) => c.startsWith("grounding:fa-card-") && c !== "grounding:fa-card-multi" && c !== "grounding:fa-card-from-history");
+  expect(result.receipt.reasonCodes, query).toContain("grounding:health-no-source");
+  // SBt: the snakebite card carries the reviewed EN text (answer.ts wraps cut 2's card).
+  expect(result.text, query).toBe(code ? withReviewedSnakebiteText(conditionCardText(code.slice("grounding:fa-card-".length), query, pt)) : noHealthSourceAnswer(pt));
+  return code ? code.slice("grounding:fa-card-".length) : null;
+}
 const WALIPINI_KB = chunk("wk", "Walipini", "A Walipini is an earth-sheltered cold frame. A greenhouse can be built by digging a hole in the ground. It uses the heat stored in the earth during the cold season.");
 const CANBERRA = chunk(
   "c1",
@@ -82,6 +95,8 @@ function makeFake(): Fake {
     deps: null as unknown as AnswerDeps,
   };
   f.deps = {
+    // These fixtures ask fact questions ("capital of Australia") to exercise the model path; FACTS has its own tests.
+    facts: false,
     now: () => (clock += 5),
     engine: {
       async load(filename) {
@@ -148,10 +163,10 @@ beforeEach(() => {
   f = makeFake();
 });
 
-async function collect(query: string, tier?: "auto" | "fast" | "deep") {
+async function collect(query: string, tier?: "auto" | "fast" | "deep", c: Record<string, unknown> = ctx) {
   const events: AnswerEvent[] = [];
   const { answer } = createAnswerer(f.deps);
-  const h = answer({ query, tier }, (e) => events.push(e), ctx);
+  const h = answer({ query, tier }, (e) => events.push(e), c as typeof ctx);
   const result = await h.done;
   return { events, result, h };
 }
@@ -184,6 +199,26 @@ describe("answer(): instant tier", () => {
     expect(result.receipt.reasonCodes).not.toContain("instant:final");
     expect(types(events)).not.toContain("instant");
     expect(f.generations).toHaveLength(1);
+  });
+
+  it("INSTANT-FRAG (A15 warm-up): 'capital of France' is not answered by Wikivoyage's Lyon line; the model path runs", async () => {
+    f.retrieved = [
+      chunk("wv", "Wikivoyage: France", "- \u2014 France's gastronomic capital with a history from Roman times to the Resistance. Paris is the capital and largest city of France, a global centre of art and fashion."),
+    ];
+    const { events, result } = await collect("What is the capital of France?");
+    expect(result.receipt.reasonCodes).not.toContain("instant:final");
+    expect(result.receipt.reasonCodes.join(" ")).toMatch(/instant:not-final-(fragment|figurative)/);
+    expect(result.tier).not.toBe("instant");
+    expect(types(events)).toContain("done");
+    expect(f.generations.length).toBeGreaterThan(0);
+  });
+
+  it("INSTANT-FRAG: a correct capital sentence next to a figurative one still finishes instant", async () => {
+    f.retrieved = [chunk("wv", "France", "Paris is the capital and largest city of France. Lyon is its gastronomic capital, a city with a long history from Roman times to the Resistance.")];
+    const { result } = await collect("What is the capital of France?");
+    expect(result.tier).toBe("instant");
+    expect(result.text).toMatch(/^Paris is the capital/);
+    expect(f.loads).toHaveLength(0);
   });
 
   it("keeps generating when the confident snippet can't answer the question alone", async () => {
@@ -228,9 +263,22 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
     expect(events.filter((e) => e.type === "warning")).toEqual([expect.objectContaining({ code: "weak_sources" })]);
     expect(f.generations).toHaveLength(1);
     expect(f.generations[0].messages!.at(-1)!.content).toContain(NO_SOURCE_INSTRUCTION);
+    expect(f.generations[0].staticSystem).toBe(true); // CUT5-SPEED: static no-source system message -> its own KV session
     expect(f.generations[0].messages!.map((m) => m.content).join("\n")).not.toContain("Dean Lee");
     expect(result.sources).toEqual([]);
     expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["grounding:off-topic-dropped-2", "grounding:no-good-source", "grounding:no-source-memory"]));
+  });
+
+  it("CUT5-SPEED: an answer with sources, or with a conversation summary, is not marked staticSystem", async () => {
+    f.installed = [lfm];
+    f.activeId = "lfm8";
+    f.retrieved = [CANBERRA];
+    await collect("Why was Canberra chosen as the capital of Australia?");
+    expect(f.generations[0].staticSystem).toBeUndefined();
+    f.generations.length = 0;
+    f.retrieved = [DEAN_LEE, PUBLIC_KEY];
+    await collect("Which signature algorithms are quantum resistant?", undefined, { ...ctx, history: { turns: [], summary: "Earlier we talked about wallets." } });
+    expect(f.generations[0].staticSystem).toBeUndefined();
   });
 
   it("drops an off-topic source when an on-topic one exists", async () => {
@@ -302,12 +350,12 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
     const contamination = { ...chunk("wc", "Wikivoyage: Water", "Water contamination: boil water for one minute at a rolling boil before you drink it."), action: true };
     const stayHealthy = { ...chunk("sh", "Wikivoyage: Stay healthy", "During your trip > Precautions against disease > Water contamination: After a flood, boil water for one minute at a rolling boil before you drink it."), action: true };
     f.retrieved = [stayHealthy, quality] as any;
-    const first = await collect("After a flood the tap water might be contaminated. How do I make water safe to drink?");
+    const first = await collect("After a flood the tap water might be contaminated. What should I do about drinking water?");
     // Topic named by the section heading, not the article title (gate 5e70bbd, safety-005).
     expect(first.result.text).toMatch(/Water contamination: After a flood, boil water .* \[\d\]\n\nIn an emergency/);
     f = makeFake();
     f.retrieved = [quality, contamination] as any;
-    const { result } = await collect("After a flood the tap water might be contaminated. How do I make water safe to drink?");
+    const { result } = await collect("After a flood the tap water might be contaminated. What should I do about drinking water?");
     expect(result.text).toMatch(/^(?:The offline library has no guidance specific to a flood; the passage below is general advice on the subject\.\n\n)?From the offline source:\nWater contamination: boil water for one minute .* \[\d\]\n\nIn an emergency/);
   });
 
@@ -342,14 +390,14 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
       ["My friend was bitten by a snake on a hike. How do we treat the bite?", chunk("r", "Renealmia cernua", "Renealmia cernua is a plant. Its leaves are used against snakebite in folk medicine.")],
       ["My hiking partner is shivering, confused and slurring words in the cold. What should I do?", chunk("s", "Schroeder Pants Cave", "Schroeder Pants Cave is a cave. Cavers risk hypothermia when shivering in the cold water.")],
       ["An earthquake starts while I'm inside a hotel room. What should I do?", chunk("h", "Hotel Impossible", "Hotel Impossible is a TV show. One episode covered a hotel after an earthquake.")],
-      ["After a flood the tap water might be contaminated. How do I make water safe to drink?", chunk("a", "After-rust", "After-rust is a plant disease. Contaminated water after a flood spreads it; it is not safe to drink.")],
+      ["After a flood the tap water might be contaminated. What should I do about drinking water?", chunk("a", "After-rust", "After-rust is a plant disease. Contaminated water after a flood spreads it; it is not safe to drink.")],
       ["My child spilled boiling water on their arm. What do I do?", chunk("b", "Ethereum EIPs/ERCs: EIP-7775: BURN opcode", "Abstract: This EIP adds a BURN opcode that burns ether.")],
     ];
     for (const [q, off] of cases) {
       f = makeFake();
       f.retrieved = [off];
       const { result } = await collect(q);
-      expect(result.text, q).toMatch(/don't have a reliable offline source/);
+      expectNoSourceCard(result, q);
       expect(result.sources, q).toEqual([]);
       expect(f.generations).toHaveLength(0);
     }
@@ -358,7 +406,7 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
   it("…and still quotes the on-topic ones", async () => {
     for (const [q, on] of [
       ["My friend was bitten by a snake on a hike. How do we treat the bite?", chunk("sb", "Snakebite", "Treatment > First aid: Keep the person calm and still, remove rings and watches, and get to a hospital for antivenom.")],
-      ["After a flood the tap water might be contaminated. How do I make water safe to drink?", chunk("w", "Wikivoyage: Stay healthy", "During your trip > Water contamination: After a flood, boil water for one minute at a rolling boil before you drink it.")],
+      ["After a flood the tap water might be contaminated. What should I do about drinking water?", chunk("w", "Wikivoyage: Stay healthy", "During your trip > Water contamination: After a flood, boil water for one minute at a rolling boil before you drink it.")],
       ["An earthquake starts while I'm inside a hotel room. What should I do?", chunk("e", "Earthquakes (Ready.gov)", "During an Earthquake: Drop, cover, and hold on. Stay inside until the shaking stops.")],
     ] as const) {
       f = makeFake();
@@ -409,7 +457,7 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
     expect(events.some((e) => e.type === "sources")).toBe(false);
     expect(events.some((e) => e.type === "instant")).toBe(false);
     expect(result.sources).toEqual([]);
-    expect(result.text).toMatch(/don't have a reliable offline source/);
+    expect(expectNoSourceCard(result, "How do I stop a nosebleed?")).toBe("nosebleed");
     expect(f.generations).toHaveLength(0);
 
     f = makeFake();
@@ -538,6 +586,46 @@ describe("answer(): grounding guard (Prism Q-1, E-1)", () => {
     }
   });
 
+  it("CO hazard (EN): a generator in an attached garage gets the fixed safety fact, no model", async () => {
+    f = makeFake();
+    const { result } = await collect("Can I run my portable generator in the attached garage if I keep the door open?");
+    expect(f.generations).toHaveLength(0);
+    expect(result.receipt.reasonCodes).toContain("answer:safety-fact-co-hazard");
+    expect(result.text).toMatch(/^No\. Carbon monoxide/);
+    expect(result.text).toMatch(/even with the doors or windows open/);
+    expect(result.text).toMatch(/20 feet \(6 metres\)/);
+    f = makeFake();
+    const pt = await collect("Posso ligar o gerador na garagem com a porta aberta?");
+    expect(pt.result.receipt.reasonCodes).not.toContain("answer:safety-fact-co-hazard");
+  });
+
+  it("drinking water in an emergency (EN) gets the CDC/EPA card, no model and no pack passage", async () => {
+    f = makeFake();
+    f.retrieved = [chunk("wq", "Wikivoyage: Water", "Quality by country or region: Tap water is not safe to drink in many countries.")];
+    const { result } = await collect("After a flood the tap water might be contaminated. How do I make water safe to drink?");
+    expect(f.generations).toHaveLength(0);
+    expect(result.receipt.reasonCodes).toContain("answer:safety-fact-water");
+    expect(result.receipt.modelLabel).toBe("Safety facts (CDC, EPA)");
+    expect(result.sources).toEqual([]);
+    expect(result.text).toMatch(/^Use bottled water, or water you stored safely/);
+    expect(result.text).toMatch(/rolling boil for 1 minute/);
+    f = makeFake();
+    const pt = await collect("Depois de uma enchente, a água da torneira pode estar contaminada. Como deixo a água segura para beber?");
+    expect(pt.result.receipt.reasonCodes).not.toContain("answer:safety-fact-water");
+    f = makeFake();
+    const travel = await collect("Is it safe to drink tap water in Mexico City?");
+    expect(travel.result.receipt.reasonCodes).not.toContain("answer:safety-fact-water");
+  });
+
+  it("CO exposure with symptoms (generator in the garage + dizzy, no 'carbon monoxide') gets the CO card, not the generic line", async () => {
+    f = makeFake();
+    f.retrieved = [];
+    const { result } = await collect("Since we started the generator in the garage my head hurts and I feel dizzy and sick. What should I do?");
+    expect(f.generations).toHaveLength(0);
+    expect(result.receipt.reasonCodes).not.toContain("answer:safety-fact-co-hazard");
+    expect(result.text).toMatch(/Possible carbon monoxide poisoning: get everyone out into fresh air now/);
+  });
+
   it("leaves Portuguese questions alone (English sources can't be matched word for word)", async () => {
     f.retrieved = [CANBERRA];
     const { result } = await collect("Por que Canberra virou a capital da Austrália?");
@@ -644,8 +732,9 @@ describe("answer(): topic guard for every snippet (Prism RT-1)", () => {
       expect(sources.map((c) => c.title), q).toEqual(["Season"]);
       expect(queries, q).toEqual([q]); // retrieve() translates a PT question itself
       expect(result.receipt.reasonCodes).toContain("match:pt-en-names");
-      const instant = events.find((e) => e.type === "instant") as any;
-      expect(instant && sources[instant.snippet.sourceIndex].title, q).toBe("Season");
+      // Sonar exp-29 knob (a): sources matched against a translation (lexicon names) never give an instant snippet.
+      expect(events.some((e) => e.type === "instant"), q).toBe(false);
+      expect(result.receipt.reasonCodes).toContain("instant:off-translated");
     }
     // Without the names, no English title is named by the PT words: the guard keeps nothing.
     f = makeFake();
@@ -1076,10 +1165,12 @@ describe("answer(): the instant snippet says when the source is in another langu
     f.retrieved = [MONSOON];
     f.deps.englishNames = () => ["Monsoon"];
     const pt = await collect("O que é uma monção?");
+    // Sonar exp-29: a one-subject PT definition question keeps its instant snippet when the sentence defines the name.
     const inst = pt.events.find((e) => e.type === "instant") as any;
     expect(inst.snippet.text).toMatch(/^Da fonte offline \(em inglês\):\nA monsoon is/);
     expect(pt.result.tier).toBe("instant");
     expect(pt.result.text).toMatch(/^Da fonte offline \(em inglês\):/);
+    expect(pt.result.receipt.reasonCodes).toContain("instant:pt-definitional");
     f = makeFake();
     f.retrieved = [MONSOON];
     const en = await collect("What is a monsoon?");
@@ -1244,9 +1335,11 @@ describe("answer(): cry-004-pt, EIP-4844 (gate a11d730)", () => {
     ];
     f.deps.englishNames = () => ["Ethereum"];
     const { events, result } = await collect("O que é a EIP-4844 e o que são blobs no Ethereum?");
-    const inst = events.find((e) => e.type === "instant") as any;
-    expect(inst.snippet.text).toMatch(/Shard Blob Transactions scale data-availability/);
-    expect(result.receipt.reasonCodes).not.toContain("instant:off-topic");
+    // Sonar exp-29 knob (a): matched through a translation (names + identifier) → no instant snippet; the page still
+    // reaches the sources.
+    expect(events.some((e) => e.type === "instant")).toBe(false);
+    expect(result.receipt.reasonCodes).toContain("instant:off-translated");
+    expect((((events.find((e) => e.type === "sources") as any)?.sources ?? []) as RetrievedChunk[]).map((c) => c.title)).toContain(T);
   });
 });
 
@@ -1288,10 +1381,12 @@ describe("answer(): dng-001 snakebite, never a contested or dangerous procedure 
   const CONTESTED_FIRST_AID = chunk("s1", "Snakebite", "Treatment > First aid: Some have little local effect, but life-threatening systemic effects, in which case containing the venom in the region of the bite by pressure immobilization is desirable. Other venoms instigate localized tissue damage, and immobilization may increase the severity of the damage; whether this trade-off is desirable remains a point of controversy.");
   const OLD_MANUAL = chunk("fm", "US government: US Army Survival Manual FM 21-76: CHAPTER 4 - BASIC SURVIVAL MEDICINE", "Snakebite: Keep the victim still. Put a constricting band 5 to 10 centimeters above the bite. Make an incision over the bite and suck out the venom.");
   const SAFE_LAY = chunk("wb", "Wikibooks: First Aid/Snake Bites", "Treatment: Call emergency services. Keep the person still and calm, with the bitten limb below the heart. Do not cut the wound or suck out the venom. Do not apply a tourniquet or ice.");
-  it("only a contested section and an outdated manual: the emergency number and 'get care', no steps", async () => {
+  it("only a contested section and an outdated manual: no steps from them; the condition's card (Sonar exp-29), else the emergency number", async () => {
     f.retrieved = [CONTESTED_FIRST_AID, OLD_MANUAL];
     const { result } = await collect(q);
-    expect(result.text).toMatch(/^Não encontrei no acervo offline instruções de primeiros socorros seguras para isso\. Ligue agora/);
+    // The snakebite question names one condition with a card (the WHO snakebite card), shown instead of the fixed line.
+    expect(result.receipt.reasonCodes).toContain("grounding:fa-card-snakebite");
+    expect(result.text).toMatch(/emergência|emergency|SAMU|192/i);
     expect(result.text).not.toMatch(/immobiliz|constricting|incision|suck/i);
     expect(result.receipt.reasonCodes).toContain("grounding:health-no-safe-excerpt");
   });
@@ -1326,6 +1421,15 @@ describe("answer(): a snakebite first-aid question gets the WHO card (SAFETY, af
       expect(result.text, q).not.toMatch(/controversy|immobiliz/);
       expect(result.receipt.reasonCodes, q).toContain("answer:first-aid-card-snakebite");
       expect(events.find((e) => e.type === "done"), q).toMatchObject({ safety: true });
+    }
+    expect(f.generations).toHaveLength(0);
+  });
+  it("a Portuguese question with 'está', 'se' and 'grave' gets the PT card, a Spanish one the ES card", async () => {
+    const pt = await collect("Uma cobra me picou e está inchando, se piorar é grave? O que faço?");
+    expect(pt.result.text).toMatch(/^Picada de cobra, primeiros socorros: /);
+    for (const q of ["Una serpiente mordió a mi hijo, qué hago?", "Me picó una culebra, que hago?"]) {
+      const es = await collect(q);
+      expect(es.result.text, q).toMatch(/^Mordedura de serpiente, primeros auxilios: /);
     }
     expect(f.generations).toHaveLength(0);
   });
@@ -1949,5 +2053,710 @@ describe("answer(): multi-pass answer language", () => {
     await deepen("Compare Canberra e Sydney: qual é a capital da Austrália?", [CANBERRA], () => {}, ctx).done;
     await deepen("Compare Canberra and Sydney", [CANBERRA], () => {}, ctx).done;
     expect(seen).toEqual([PT_ANSWER_LANGUAGE, undefined]);
+  });
+});
+
+describe("answer(): travel distance calculator (Anvil, EN)", () => {
+  it("answers 'how far … from X to Y' instantly from the city table, as an estimate", async () => {
+    const { result } = await collect("How far is it to walk from Paris to Rome and back?");
+    expect(result.receipt.reasonCodes).toEqual(["answer:calculator-travel-distance"]);
+    expect(result.text).toMatch(/estimate/);
+    expect(f.generations).toHaveLength(0);
+  });
+  it("leaves PT and unknown places to the normal path", async () => {
+    expect((await collect("Qual a distância de Paris a Roma?")).result.receipt.reasonCodes).not.toContain("answer:calculator-travel-distance");
+    expect((await collect("how far is it from my hotel to the beach?")).result.receipt.reasonCodes).not.toContain("answer:calculator-travel-distance");
+  });
+});
+
+describe("answer(): route gate (Anvil B4 arm)", () => {
+  const qwen4: InstalledLlm = { id: "qwen3-4b-instruct-2507-q4km", label: "Qwen3 4B", filename: "models/q4b.gguf", sizeBytes: 2.5 * GB, roles: ["general", "fast"], isDefault: true };
+  const gate = (probs: { token: string; prob: number }[] | null) => {
+    const calls: { messages: { role: string; content: string }[]; opts: { modelFilename: string; nProbs: number } }[] = [];
+    f.deps.engine.nextTokenProbs = async (messages, opts) => {
+      calls.push({ messages, opts });
+      return probs;
+    };
+    return calls;
+  };
+  const codes = (r: { receipt: { reasonCodes: string[] } }) => r.receipt.reasonCodes.filter((c) => c.startsWith("route-gate") || c.startsWith("task:"));
+
+  it("ANSWER on the 4B: no retrieval, the model answers", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    let retrieved = 0;
+    f.deps.retrieve = async () => (retrieved++, f.retrieved);
+    const calls = gate([{ token: "ANS", prob: 0.97 }, { token: "SEARCH", prob: 0.02 }]);
+    const { result } = await collect("tell me something fun about yourself");
+    expect(calls).toHaveLength(1);
+    expect(calls[0].opts).toEqual({ modelFilename: "models/q4b.gguf", nProbs: 20 });
+    expect(calls[0].messages[1].content).toBe("tell me something fun about yourself");
+    expect(retrieved).toBe(0);
+    expect(f.generations).toHaveLength(1);
+    expect(codes(result)).toEqual(["task:conversation", "route-gate:cold-load", "route-gate:answer", "route-gate:score-0.020", "route-gate:chat->conversation"]);
+  });
+
+  it("SEARCH on the 4B keeps the rule's route", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    gate([{ token: "SEARCH", prob: 0.99 }]);
+    // A lookup the rules decide skips the gate (CUT5-SPEED); with an earlier turn the gate runs as before.
+    const { result } = await collect("What is the capital of Australia?", undefined, { ...ctx, history: { turns: [{ role: "user", text: "hi" }, { role: "assistant", text: "Hello." }] } });
+    expect(codes(result)).toEqual(["task:lookup", "route-gate:cold-load", "route-gate:search", "route-gate:score-1.000"]);
+  });
+
+  it("CUT5-SPEED: no gate pass (and no gate load) for a lookup/research the rules decide; the gate still runs for BOAR questions", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    const calls = gate([{ token: "SEARCH", prob: 0.99 }]);
+    const { result } = await collect("What is the capital of Australia?");
+    expect(calls).toHaveLength(0);
+    expect(codes(result)).toEqual(["task:lookup", "route-gate:skip-rules"]);
+    const res = await collect("Explain Mozi's views on universal love.");
+    expect(calls).toHaveLength(0);
+    expect(codes(res.result)).toEqual(["task:research", "route-gate:skip-rules"]);
+    await collect("Where do your answers come from?");
+    expect(calls).toHaveLength(1);
+  });
+
+  it("a health question searches even when the gate says ANSWER", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    gate([{ token: "ANS", prob: 0.9 }, { token: "SEARCH", prob: 0.1 }]);
+    const { result } = await collect("what should I do for a burn on my hand?");
+    expect(codes(result)).toContain("route-gate:health-guard");
+    expect(codes(result)).toContain("route-gate:search");
+    expect(codes(result)).not.toContain("task:conversation");
+  });
+
+  it("cold start: the first message loads the 4B before the gate (once), so it gets a gate verdict, not the rules", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    const order: string[] = [];
+    const load0 = f.deps.engine.load.bind(f.deps.engine);
+    f.deps.engine.load = async (fn, o) => (order.push(`load:${fn}`), load0(fn, o));
+    f.deps.engine.nextTokenProbs = async (_m, o) => (order.push(`gate:${f.loaded === o.modelFilename ? "resident" : "cold"}`), [{ token: "ANS", prob: 0.97 }, { token: "SEARCH", prob: 0.03 }]);
+    const { result } = await collect("tell me something fun about yourself");
+    expect(order).toEqual([`load:${qwen4.filename}`, "gate:resident"]);
+    expect(f.loads).toEqual([qwen4.filename]);
+    expect(codes(result)).toContain("route-gate:answer");
+    expect(codes(result)).not.toContain("route-gate:unavailable");
+    // Warm (second message): no second load, no cold-load code.
+    const second = await collect("and another fun fact?");
+    expect(f.loads).toEqual([qwen4.filename]);
+    expect(codes(second.result)).not.toContain("route-gate:cold-load");
+  });
+
+  it("cold start: the gate's load reports a storage-streaming warning and a CPU fallback (the answer's load is skipped)", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    const load0 = f.deps.engine.load.bind(f.deps.engine);
+    f.deps.engine.load = async (fn, o) => ({ ...(await load0(fn, o)), warning: "streams from storage", backend: { kind: "cpu-fallback", reason: "failed to initialize MTL0 backend" } });
+    gate([{ token: "ANS", prob: 0.97 }, { token: "SEARCH", prob: 0.03 }]);
+    const { events, result } = await collect("tell me something fun about yourself");
+    expect(f.loads).toEqual([qwen4.filename]);
+    expect(result.receipt.reasonCodes).toContain("backend:cpu-fallback");
+    expect(events.find((e) => e.type === "warning" && (e as any).code === "model_streams_from_storage")).toMatchObject({ message: "streams from storage" });
+  });
+
+  it("rules when the engine can't run it, and never on the 1.5B", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    gate(null);
+    expect(codes((await collect("tell me something fun about yourself")).result)).toEqual(["task:chat", "route-gate:cold-load", "route-gate:unavailable"]);
+    f = makeFake();
+    const calls = gate([{ token: "ANS", prob: 1 }]);
+    expect(codes((await collect("tell me something fun about yourself")).result)).toEqual(["task:chat"]);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("answer(): verdict guard (VG, cut 3 dev)", () => {
+  it("rewrites a model verdict its own facts contradict; the done event carries the final text", async () => {
+    f.installed = [lfm];
+    f.activeId = "lfm8";
+    f.retrieved = [];
+    f.deps.engine.generate = async () =>
+      "No, astronauts did not walk on the Moon before 1970. The first human moonwalk occurred on July 20, 1969, during NASA's Apollo 11 mission.";
+    const { events, result } = await collect("Did astronauts walk on the Moon before 1970?");
+    expect(result.receipt.reasonCodes).toContain("verdict-guard:date");
+    expect(result.text).toMatch(/Yes, astronauts did walk on the Moon before 1970\. The first human moonwalk occurred on July 20, 1969/);
+    expect((events.find((e) => e.type === "done") as any).finalText).toBe(result.text);
+  });
+  it("leaves a consistent answer and a PT question alone", async () => {
+    f.installed = [lfm];
+    f.activeId = "lfm8";
+    f.retrieved = [];
+    f.deps.engine.generate = async () => "Yes, astronauts walked on the Moon before 1970. The first moonwalk was on July 20, 1969.";
+    expect((await collect("Did astronauts walk on the Moon before 1970?")).result.receipt.reasonCodes.some((c) => c.startsWith("verdict-guard"))).toBe(false);
+    f.deps.engine.generate = async () => "Não, os astronautas não andaram na Lua antes de 1970. A primeira vez foi em 1969.";
+    expect((await collect("Os astronautas andaram na Lua antes de 1970?")).result.receipt.reasonCodes.some((c) => c.startsWith("verdict-guard"))).toBe(false);
+  });
+});
+
+describe("answer(): arithmetic tools + detector numeric guard (AR, cut 3 dev)", () => {
+  const Q = "My phone generates 10 tokens per second and processes the prompt at 30 tokens per second. With 1,300 tokens of sources and a 400-token answer, how long until the answer is finished?";
+  it("the learned detector fired on a word problem: the calculator answers, no model, no health line", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.291, fire: true });
+    const { result } = await collect(Q);
+    expect(result.receipt.reasonCodes).toEqual(["detector:p=0.291", "detector:fire", "detector:numeric-guard", "answer:calculator-rate-time"]);
+    expect(result.text).toMatch(/^About 83\.3 seconds/);
+    expect(f.generations).toHaveLength(0);
+  });
+  it("a health message with numbers keeps the health route", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.9, fire: true });
+    const { result } = await collect("IV drip at 125 ml per hour for my dad, the bag is 1000 ml, how long until it's empty?");
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("answer:calculator"))).toBe(false);
+  });
+});
+
+describe("answer(): NUMGUARD, only a calculator may answer a detector-fired numeric question", () => {
+  const Q = "My tyre pressure gauge says 2.2 bar. What is that in psi?";
+  const countRetrieve = () => {
+    const calls = { n: 0 };
+    f.deps.retrieve = async () => {
+      calls.n++;
+      return f.retrieved;
+    };
+    return calls;
+  };
+  it("deps.numguard on, no calculator for the conversion: the refusal stands (numguard:no-calculator), no model answer", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.664, fire: true });
+    f.deps.numguard = true;
+    f.retrieved = [];
+    const { result } = await collect(Q);
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.664", "detector:fire", "numguard:no-calculator"]));
+    expect(result.receipt.reasonCodes).not.toContain("numguard:fired");
+    expect(result.receipt.reasonCodes).toContain("grounding:health-no-source");
+    expect(result.receipt.modelId).not.toBe("calculator");
+    expect(f.generations.length).toBe(0);
+  });
+  it("deps.numguard on: a numeric health message keeps the refusal", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.9, fire: true });
+    f.deps.numguard = true;
+    f.retrieved = [];
+    const { result } = await collect("3 days no urine");
+    expect(result.receipt.reasonCodes).toContain("detector:fire");
+    expect(result.receipt.reasonCodes).not.toContain("numguard:fired");
+    expect(result.receipt.reasonCodes).not.toContain("numguard:no-calculator");
+    expect(result.receipt.reasonCodes).toContain("grounding:health-no-source");
+  });
+  it("the history window fired: never overridden; deps.numguard unset: off", async () => {
+    const bank = "My power bank is 20,000 mAh at 3.7 V. How many watt-hours is that?";
+    f.deps.emergencyScore = async (_q: string, turns: string[]) => (turns.length ? { p: 0.7, fire: true } : { p: 0.624, fire: true });
+    f.deps.numguard = true;
+    f.retrieved = [];
+    const a = await collect(bank, undefined, { ...ctx, history: { turns: [{ role: "user", text: "We are packing for a long flight." }] } });
+    expect(a.result.receipt.reasonCodes).not.toContain("numguard:fired");
+    expect(a.result.receipt.modelId).not.toBe("calculator");
+    f.deps.numguard = undefined;
+    const b = await collect(bank);
+    expect(b.result.receipt.reasonCodes).not.toContain("numguard:fired");
+    expect(b.result.receipt.reasonCodes).not.toContain("numguard:no-calculator");
+    expect(b.result.receipt.modelId).not.toBe("calculator");
+  });
+  it("deps.numguard on: the calculator answers a guarded conversion (numguard:fired), no model, no retrieval", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.624, fire: true });
+    f.deps.numguard = true;
+    const calls = countRetrieve();
+    const { result } = await collect("My power bank is 20,000 mAh at 3.7 V. How many watt-hours is that?");
+    expect(result.receipt.modelId).toBe("calculator");
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.624", "detector:fire", "numguard:fired", "answer:calculator-battery"]));
+    expect(result.receipt.reasonCodes).not.toContain("numguard:no-calculator");
+    expect(f.generations.length).toBe(0);
+    expect(calls.n).toBe(0);
+  });
+  it("deps.numguard on, a clock sum with no calculator: the refusal stands, no model answer", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.985, fire: true });
+    f.deps.numguard = true;
+    f.retrieved = [];
+    const { result } = await collect("A bus leaves at 9:40 and the trip takes 2 hours 35 minutes. What time does it arrive?");
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:fire", "numguard:no-calculator"]));
+    expect(result.receipt.reasonCodes).toContain("grounding:health-no-source");
+    expect(f.generations.length).toBe(0);
+  });
+});
+
+describe("answer(): SBt reviewed snakebite text (cut-3 final candidate)", () => {
+  it("dng-001-style question: cut 2's trigger, the reviewed EN text", async () => {
+    const { result } = await collect("I just got bitten by a snake while hiking, two hours from the nearest road. What do I do right now?");
+    expect(result.receipt.reasonCodes).toContain("answer:first-aid-card-snakebite");
+    expect(result.text).toMatch(/^Snakebite, first aid: move away from the snake and don't try to catch or kill it\. Call emergency services now/);
+    expect(result.text).toMatch(/Sources: WHO, questions and answers on snakebite envenoming \(2019\); CDC NIOSH, Venomous Snakes at Work; NHS, Snake bites; healthdirect Australia, Snake bites\./);
+  });
+});
+
+describe("answer(): DETMAX detector max over the window and the turn alone", () => {
+  const Q = "my daughter was bitten by a street dog two days ago, the skin broke a little";
+  const hist = (...u: string[]) => ({ ...ctx, history: { turns: u.map((text) => ({ role: "user", text })) } });
+  // A diluted window: any call carrying earlier turns scores low, the turn alone scores high.
+  const scorer = (calls: string[][]) => async (_q: string, turns: string[]) => {
+    calls.push(turns);
+    return turns.length ? { p: 0.049, fire: false } : { p: 0.554, fire: true };
+  };
+  it("with history: two calls (window, then the turn alone); fires when the turn alone fires", async () => {
+    const calls: string[][] = [];
+    f.deps.emergencyScore = scorer(calls);
+    const { result } = await collect(Q, undefined, hist("Hi, quick question."));
+    expect(calls).toEqual([["Hi, quick question."], []]);
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.554", "detector:fire"]));
+  });
+  it("without history: one call, unchanged", async () => {
+    const calls: string[][] = [];
+    f.deps.emergencyScore = scorer(calls);
+    const { result } = await collect(Q);
+    expect(calls).toEqual([[]]);
+    expect(result.receipt.reasonCodes).toContain("detector:fire");
+  });
+  it("the larger score wins and fire is either; a failing second call keeps the window's verdict", async () => {
+    f.deps.emergencyScore = async (_q: string, turns: string[]) => (turns.length ? { p: 0.6, fire: true } : { p: 0.1, fire: false });
+    const a = await collect(Q, undefined, hist("earlier"));
+    expect(a.result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.600", "detector:fire"]));
+    let n = 0;
+    f.deps.emergencyScore = async (_q: string, turns: string[]) => {
+      if (n++ === 1) throw new Error("boom");
+      return { p: 0.3, fire: true };
+    };
+    const b = await collect(Q, undefined, hist("earlier"));
+    expect(b.result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.300", "detector:fire"]));
+  });
+  it("a window that does not fire and a turn alone that does not fire: no fire (nothing added)", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.001, fire: false });
+    const { result } = await collect("What is the capital of Australia?", undefined, hist("hi"));
+    expect(result.receipt.reasonCodes).not.toContain("detector:fire");
+  });
+});
+
+describe("answer(): FACTS instant tier (offline Wikidata table)", () => {
+  it("a one-property fact question is answered from the table: no retrieval, no model load", async () => {
+    f.deps.facts = undefined; // default: on
+    const { events, result } = await collect("Does Brazil have more people than Russia?");
+    expect(types(events)).toEqual(["token", "done"]);
+    expect(result.tier).toBe("instant");
+    expect(result.receipt.modelId).toBe("grounding-guard");
+    expect(result.receipt.reasonCodes).toEqual(["answer:facts-population"]);
+    expect(result.text).toMatch(/^Yes\. Brazil has more people than Russia/);
+    expect(f.loads).toEqual([]);
+  });
+  it("never on a health message or when the emergency detector fires; off → the normal path", async () => {
+    f.deps.facts = undefined;
+    f.deps.emergencyScore = async () => ({ p: 0.9, fire: true });
+    expect((await collect("What is the capital of Australia?")).result.receipt.reasonCodes).not.toContain("answer:facts-capital");
+    f.deps.emergencyScore = undefined;
+    f.deps.facts = false;
+    expect((await collect("What is the capital of Australia?")).result.receipt.reasonCodes).not.toContain("answer:facts-capital");
+    f.deps.facts = undefined;
+    expect((await collect("What is the capital of Australia?")).result.receipt.reasonCodes).toEqual(["answer:facts-capital"]);
+  });
+});
+
+describe("answer(): HEALTHGAP dose / poisoning / CO / survival forms (deps.healthgap, rule v1.1)", () => {
+  it("a dose question the detector scores 0, no source: the dose line, no model; off: no dose line, no healthgap code", async () => {
+    const Q = "How many mg of ibuprofen for a 20 kg child?";
+    f.deps.emergencyScore = async () => ({ p: 0, fire: false });
+    f.deps.healthgap = true;
+    const { result } = await collect(Q);
+    expect(result.text).toBe(noDoseAnswer(false));
+    expect(result.receipt.modelId).toBe("grounding-guard");
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["detector:p=0.000", "healthgap:dose", "grounding:health-no-source", "grounding:health-no-dose"]));
+    expect(result.receipt.reasonCodes).not.toContain("detector:fire");
+    expect(f.generations).toHaveLength(0);
+    f.deps.healthgap = undefined;
+    const off = await collect(Q);
+    expect(off.result.receipt.reasonCodes.some((c) => c.startsWith("healthgap:") || c === "grounding:health-no-dose")).toBe(false);
+    expect(off.result.text).not.toBe(noDoseAnswer(false));
+  });
+  it("a poisoning event with no specific card: the poisoning card, no model", async () => {
+    const Q = "Ate 30 g of death cap mushroom, how many ounces is that?";
+    f.deps.emergencyScore = async () => ({ p: 0.092, fire: false });
+    f.deps.healthgap = true;
+    const { result } = await collect(Q);
+    expect(result.text).toBe(conditionCardText("poisoning", Q, "en"));
+    expect(result.text).toMatch(/^Possible poisoning \(swallowed or breathed in a chemical, a plant, a mushroom, alcohol or too much medicine\)/);
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["healthgap:poison", "healthgap:event", "grounding:fa-card-poisoning"]));
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("answer:calculator"))).toBe(false);
+    expect(f.generations).toHaveLength(0);
+  });
+  it("a specific card wins over the poisoning card (a swallowed button battery gets the battery card)", async () => {
+    const Q = "My son swallowed a button battery";
+    f.deps.emergencyScore = async () => ({ p: 0, fire: false });
+    f.deps.healthgap = true;
+    const { result } = await collect(Q);
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["healthgap:poison", "healthgap:event", "grounding:fa-card-battery"]));
+    expect(result.receipt.reasonCodes).not.toContain("grounding:fa-card-poisoning");
+    expect(result.text).toBe(conditionCardText("battery", Q, "en"));
+    expect(f.generations).toHaveLength(0);
+  });
+});
+
+describe("answer(): HEALTHGAP survival with a kept source (rule v1.2 §2.6)", () => {
+  it("a source titled by the condition: the model answers from it under the health grounding; none on topic: the no-source line", async () => {
+    const Q = "How many hours can someone survive in 5 °C water?";
+    f.deps.emergencyScore = async () => ({ p: 0.012, fire: false });
+    f.deps.healthgap = true;
+    f.retrieved = [chunk("cw", "Wikivoyage: Cold weather", "Cold water: in water below 10 °C a person can lose consciousness within an hour.")];
+    const sourced = await collect(Q);
+    expect(sourced.result.receipt.reasonCodes).toEqual(expect.arrayContaining(["healthgap:survival", "grounding:health-survival-sourced"]));
+    expect(f.generations).toHaveLength(1);
+    f.generations.length = 0;
+    f.retrieved = [chunk("wv", "Wikivoyage: Vientiane", "Vientiane is the capital of Laos, on the Mekong.")];
+    const none = await collect(Q);
+    expect(none.result.text).toBe(noHealthSourceAnswer(false));
+    expect(f.generations).toHaveLength(0);
+    f.deps.healthgap = undefined;
+  });
+});
+
+describe("answer(): HEALTHGAP dose with a kept source (rule v1.2 §2.5)", () => {
+  const Q = "How many international units of vitamin D per day are recommended for adults, and who needs more?";
+  it("a source titled by the medicine with an amount: its own sentence, cited, then the dose line's label and overdose text; no model", async () => {
+    f.retrieved = [chunk("vd", "Vitamin D", "Vitamin D helps your body absorb calcium. The recommended amounts, in international units (IU), are: - Adults 19-70 years: 600 IU - Adults 71 years and older: 800 IU")];
+    f.deps.emergencyScore = async () => ({ p: 0, fire: false });
+    f.deps.healthgap = true;
+    const { result } = await collect(Q);
+    expect(result.receipt.modelId).toBe("extractive");
+    expect(result.text).toMatch(/^From the offline source:\nThe recommended amounts, in international units \(IU\), are: .*800 IU \[1\]\n\nUse the dose and the time between doses printed on the package/);
+    expect(result.text).toContain("even if they seem fine.");
+    expect(result.receipt.reasonCodes).toEqual(expect.arrayContaining(["healthgap:dose", "grounding:health-dose-excerpt"]));
+    expect(f.generations).toHaveLength(0);
+    f.deps.healthgap = undefined;
+  });
+  it("a kept source with no amount, or not titled by the medicine: the dose line, never a first-aid excerpt", async () => {
+    f.retrieved = [chunk("bf", "Bone fracture", "Treatment: Give ibuprofen for pain and keep the limb still. Call for help.")];
+    f.deps.emergencyScore = async () => ({ p: 0, fire: false });
+    f.deps.healthgap = true;
+    const { result } = await collect("How many mg of ibuprofen for a 20 kg child?");
+    expect(result.text).toBe(noDoseAnswer(false));
+    expect(f.generations).toHaveLength(0);
+    f.deps.healthgap = undefined;
+  });
+});
+
+describe("WARN (deps.warn): the health caution", () => {
+  type Done = Extract<AnswerEvent, { type: "done" }>;
+  const ask = async (query: string, req: Record<string, unknown> = {}, onEvent?: (e: AnswerEvent, h: { stop(): Promise<void> }) => void) => {
+    const events: AnswerEvent[] = [];
+    f.deps.warnRendered ??= true; // these cases model a client that renders the caution
+    const a = createAnswerer(f.deps);
+    let h: ReturnType<typeof a.answer>;
+    h = a.answer({ query, ...req }, (e) => {
+      events.push(e);
+      onEvent?.(e, h);
+    }, ctx);
+    const result = await h.done;
+    return { events, result, done: events.find((e) => e.type === "done") as Done, state: events.reduce(answerReducer, initialAnswer(result.answerId)) };
+  };
+  /** The model streams this text, word by word, and stops when asked. */
+  const say = (text: string) => {
+    let stopped = false;
+    f.deps.engine.stop = async () => {
+      stopped = true;
+    };
+    f.deps.engine.generate = async (o) => {
+      stopped = false;
+      const out: string[] = [];
+      for (const piece of text.split(/(?<= )/)) {
+        if (stopped) break;
+        o.onToken?.(piece);
+        out.push(piece);
+        await new Promise((r) => setTimeout(r, 1));
+      }
+      return out.join("");
+    };
+  };
+  const warnEvents = (es: AnswerEvent[]) => es.filter((e) => e.type === "warn") as Extract<AnswerEvent, { type: "warn" }>[];
+  const weak = (es: AnswerEvent[]) => es.filter((e) => e.type === "warning" && e.code === "weak_sources");
+  /** Detector p 0.08: below the fire threshold and the floor (no health route), at or above WARN's 0.05. */
+  const lowP = () => (f.deps.emergencyScore = async () => ({ p: 0.08, fire: false }));
+
+  it("sourced: beyond-source before the first token, settled to sourced at done; off, no caution", async () => {
+    lowP();
+    f.deps.warn = true;
+    const { events, result, done, state } = await ask("What is the capital of Australia?", { answerAnyway: true });
+    expect(result.receipt.modelId).toBe("qwen1.5");
+    const w = events.findIndex((e) => e.type === "warn");
+    expect(w).toBeGreaterThanOrEqual(0);
+    expect(w).toBeLessThan(events.findIndex((e) => e.type === "token"));
+    expect(events[w]).toMatchObject({ type: "warn", tier: "beyond-source" });
+    expect(done.warn).toEqual({ tier: "sourced", rendered: true, message: expect.stringMatching(/^Health caution: AI answer drawn from an offline source/) });
+    expect(result.receipt.reasonCodes).toContain("warn:sourced");
+    expect(state.warn?.tier).toBe("sourced");
+    f = makeFake();
+    lowP();
+    f.deps.warn = false;
+    const off = await ask("What is the capital of Australia?", { answerAnyway: true });
+    expect(warnEvents(off.events)).toEqual([]);
+    expect(off.done.warn).toBeUndefined();
+    expect(off.result.receipt.reasonCodes.filter((c) => c.startsWith("warn:"))).toEqual([]);
+  });
+
+  it("no source: the no-source caution replaces weak_sources; off, the turn is byte for byte unchanged", async () => {
+    const run = async (warn: boolean) => {
+      f = makeFake();
+      f.retrieved = [];
+      f.deps.emergencyScore = async () => ({ p: 0.001, fire: false });
+      f.deps.warn = warn;
+      // "symptoms": a WARN_LEX word that is no health route (no detector evidence), so the model answers from memory.
+      return ask("Which symptoms did the Roman historians describe for the plague of Athens?", { answerAnyway: true });
+    };
+    const on = await run(true);
+    const off = await run(false);
+    expect(on.result.receipt.reasonCodes).toContain("grounding:no-source-memory");
+    expect(warnEvents(on.events).map((e) => e.tier)).toEqual(["no-source"]);
+    expect(on.done.warn?.tier).toBe("no-source");
+    expect(weak(on.events)).toEqual([]);
+    expect(weak(off.events)).toHaveLength(1);
+    expect(on.state.weakSources).toBeFalsy();
+    expect(off.state.weakSources).toBe(true);
+    expect(on.result.receipt.reasonCodes.filter((c) => c !== "warn:no-source")).toEqual(off.result.receipt.reasonCodes);
+    // The one difference in the text: off, the uncited preface; on, the caution says it instead.
+    const PREFACE = /^This answer is not from an offline source[^\n]*\n\n/;
+    expect(off.result.text).toMatch(PREFACE);
+    expect(on.result.text).toBe(off.result.text.replace(PREFACE, ""));
+    const strip = (es: AnswerEvent[]) =>
+      es
+        .filter((e) => e.type !== "warn" && !(e.type === "warning" && e.code === "weak_sources"))
+        .map(({ answerId: _a, ...e }: any) =>
+          e.type === "done"
+            ? { ...e, warn: undefined, finalText: e.finalText?.replace(PREFACE, ""), receipt: { ...e.receipt, reasonCodes: e.receipt.reasonCodes.filter((c: string) => !c.startsWith("warn:")) } }
+            : e
+        );
+    expect(JSON.stringify(strip(on.events))).toBe(JSON.stringify(strip(off.events)));
+  });
+
+  it("beyond-source: a kept source the answer does not cite", async () => {
+    lowP();
+    f.deps.warn = true;
+    f.installed = [{ ...qwen15, sizeBytes: 3 * GB }]; // not the compact model: it keeps an uncited answer
+    say("The city was picked as a compromise between two rivals.");
+    const { done, result, state } = await ask("Why was Canberra chosen as the capital of Australia?", { answerAnyway: true });
+    expect(result.sources.length).toBeGreaterThan(0);
+    expect(done.warn?.tier).toBe("beyond-source");
+    expect(result.receipt.reasonCodes).toContain("warn:beyond-source");
+    expect(state.warn?.tier).toBe("beyond-source");
+    expect(state.weakSources).toBeFalsy();
+  });
+
+  it("default: with deps.warn unset the caution is on", async () => {
+    lowP();
+    expect(f.deps.warn).toBeUndefined();
+    const { events, done, result } = await ask("What is the capital of Australia?", { answerAnyway: true });
+    expect(warnEvents(events)).toHaveLength(1);
+    expect(done.warn?.tier).toBeDefined();
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("warn:"))).toBe(true);
+  });
+
+  it("no renderer (warnRendered unset/false): warn events still go out, weak_sources and the preface stay as before", async () => {
+    const run = async (warn: boolean) => {
+      f = makeFake();
+      f.retrieved = [];
+      f.deps.emergencyScore = async () => ({ p: 0.001, fire: false });
+      f.deps.warn = warn;
+      f.deps.warnRendered = false;
+      return ask("Which symptoms did the Roman historians describe for the plague of Athens?", { answerAnyway: true });
+    };
+    const on = await run(true);
+    const off = await run(false);
+    expect(warnEvents(on.events).map((e) => e.tier)).toEqual(["no-source"]);
+    expect(on.done.warn?.tier).toBe("no-source");
+    expect(weak(on.events)).toHaveLength(1);
+    expect(on.result.text).toMatch(/^This answer is not from an offline source/);
+    expect(on.result.text).toBe(off.result.text);
+    expect(warnEvents(on.events)[0].rendered).toBe(false);
+    expect(on.done.warn?.rendered).toBe(false);
+    expect(on.state.weakSources).toBe(true); // the reducer keeps the notice: the caution is not shown
+    expect(on.state.warn?.tier).toBe("no-source");
+  });
+
+  it("reducer: weakSources is cleared by a rendered caution only", () => {
+    const base = (): any => events0.reduce(answerReducer, initialAnswer("a"));
+    const events0: AnswerEvent[] = [{ type: "warning", answerId: "a", code: "weak_sources", message: "x" } as AnswerEvent];
+    const warn = (rendered?: boolean): AnswerEvent => ({ type: "warn", answerId: "a", tier: "no-source", message: "m", ...(rendered === undefined ? {} : { rendered }) }) as AnswerEvent;
+    expect(answerReducer(base(), warn(true)).weakSources).toBeUndefined();
+    expect(answerReducer(base(), warn()).weakSources).toBeUndefined();
+    expect(answerReducer(base(), warn(false)).weakSources).toBe(true);
+    expect(answerReducer(base(), warn(false)).warn).toMatchObject({ tier: "no-source", rendered: false });
+  });
+
+  it("off: deps.warn = false keeps weak_sources and gets no warn event, field or code", async () => {
+    lowP();
+    f.deps.warn = false;
+    f.installed = [{ ...qwen15, sizeBytes: 3 * GB }];
+    say("The city was picked as a compromise between two rivals.");
+    const { events, done, result } = await ask("Why was Canberra chosen as the capital of Australia?", { answerAnyway: true });
+    expect(warnEvents(events)).toEqual([]);
+    expect("warn" in done).toBe(false);
+    expect(weak(events)).toHaveLength(1);
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("warn:"))).toBe(false);
+  });
+
+  it("a decline after the caution was shown clears it; the decline's notice stays", async () => {
+    lowP();
+    f.deps.warn = true;
+    say("Purple elephants dance at noon in the quiet valley today.");
+    const { events, done, state } = await ask("Why was Canberra chosen as the capital of Australia?");
+    expect(warnEvents(events).map((e) => e.tier)).toEqual(["beyond-source"]);
+    expect(done.receipt.reasonCodes.some((c) => c.includes("declined"))).toBe(true);
+    expect(done.warn).toBeUndefined();
+    expect(state.warn).toBeUndefined();
+    expect(state.weakDeclined).toBe(true);
+  });
+
+  it("deterministic answers are never warned (HEALTHGAP dose line)", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.0, fire: false });
+    f.deps.healthgap = true;
+    f.deps.warn = true;
+    f.retrieved = [];
+    const { events, done, result } = await ask("How many mg of ibuprofen for a 20 kg child?");
+    expect(result.receipt.modelId).toBe("grounding-guard");
+    expect(result.text).toBe(noDoseAnswer(false));
+    expect(warnEvents(events)).toEqual([]);
+    expect(done.warn).toBeUndefined();
+  });
+
+  it("MUST-FIX 1: a stopped model answer keeps the caution it showed", async () => {
+    lowP();
+    f.deps.warn = true;
+    f.installed = [{ ...qwen15, sizeBytes: 3 * GB }];
+    say("The city was picked as a compromise between two rivals.");
+    let stopped = false;
+    const { done, state } = await ask("Why was Canberra chosen as the capital of Australia?", { answerAnyway: true }, (e, h) => {
+      if (e.type === "token" && !stopped) {
+        stopped = true;
+        void h.stop();
+      }
+    });
+    expect(done.outcome).toBe("stopped");
+    expect(done.warn?.tier).toBe("beyond-source");
+    expect(state.warn?.tier).toBe("beyond-source");
+  });
+
+  it("MUST-FIX 1: a stopped answer from memory keeps a notice (the no-source caution)", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.001, fire: false });
+    f.deps.warn = true;
+    f.retrieved = [];
+    say("Thucydides described fever, redness of the eyes and a cough in detail.");
+    let stopped = false;
+    const { done, state, events } = await ask("Which symptoms did the Roman historians describe for the plague of Athens?", { answerAnyway: true }, (e, h) => {
+      if (e.type === "token" && !stopped) {
+        stopped = true;
+        void h.stop();
+      }
+    });
+    expect(done.outcome).toBe("stopped");
+    expect(done.warn?.tier).toBe("no-source");
+    expect(state.warn?.tier ?? (state.weakSources ? "weak" : null)).not.toBeNull();
+    expect(weak(events)).toEqual([]);
+  });
+
+  it("MUST-FIX 2: a health source that arrives only with the deeper answer gives one notice, the caution", async () => {
+    const MLP = chunk("pack:boar-medlineplus-en:7", "Dehydration", "Dehydration happens when the body loses more water than it takes in. Drink fluids often.");
+    f.deps.emergencyScore = async () => ({ p: 0.0, fire: false });
+    f.deps.warn = true;
+    f.deps.warnRendered = true;
+    f.deps.runMultipass = async (_q, _s, _h, _m, onProgress, onToken, _stop, options) => {
+      options.onSources?.([MLP]);
+      onProgress({ stage: "synthesizing" });
+      onToken("Sip water often and rest in a cool place for a while.");
+      return { answer: "Sip water often and rest in a cool place for a while.", subQuestions: ["a"], citations: [MLP] };
+    };
+    const events: AnswerEvent[] = [];
+    const result = await createAnswerer(f.deps).deepen("Compare the effects of a long run and a long hike on the body", [CANBERRA], (e) => events.push(e), ctx).done;
+    expect(f.multipassCalls).toBe(0);
+    const done = events.find((e) => e.type === "done") as Done;
+    expect(done.warn?.tier).toBe("beyond-source");
+    expect(weak(events)).toEqual([]);
+    const state = events.reduce(answerReducer, initialAnswer(result.answerId));
+    expect(state.weakSources).toBeFalsy();
+    expect(state.warn?.tier).toBe("beyond-source");
+  });
+
+  it("MUST-FIX 3: the source excerpt that replaced a risky model line is not warned", async () => {
+    f.installed = [qwen15, moe];
+    f.retrieved = [
+      chunk("nb", "Nosebleed", "A nosebleed is bleeding from the nose. Pinch the soft part of the nose and lean forward for ten minutes. At home, the head should not be tilted back."),
+    ];
+    f.deps.warn = true;
+    f.deps.engine.generate = async () => "Pinch the soft part of your nose and blow your nose gently [1].";
+    const { events, done, result } = await ask("How do I stop a nosebleed?", { tier: "deep" });
+    expect(result.receipt.reasonCodes).toContain("grounding:health-unsafe-blow-nose");
+    expect(result.text).toMatch(/^From the offline source:/);
+    expect(warnEvents(events).length).toBe(1); // shown while the model ran
+    expect(done.warn).toBeUndefined();
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("warn:"))).toBe(false);
+  });
+
+  it("the deeper answer keeps the detector's evidence", async () => {
+    lowP();
+    f.deps.warn = true;
+    const events: AnswerEvent[] = [];
+    const result = await createAnswerer(f.deps).deepen("Why was Canberra chosen as the capital of Australia?", [CANBERRA], (e) => events.push(e), ctx).done;
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("warn:"))).toBe(true);
+    // The evidence is for the caution only: the receipt gets no detector code from it.
+    expect(result.receipt.reasonCodes.some((c) => c.startsWith("detector:"))).toBe(false);
+  });
+
+  it("multi-pass: starts at no-source and may move to the tier its citations earn", async () => {
+    f.deps.emergencyScore = async () => ({ p: 0.0, fire: false });
+    f.deps.warn = true;
+    const { events, done } = await ask("Compare the caffeine in coffee and tea", { tier: "deep" });
+    expect(f.multipassCalls).toBe(1);
+    expect(warnEvents(events).map((e) => e.tier)).toEqual(["no-source"]);
+    expect(done.cited?.length).toBeGreaterThan(0);
+    expect(done.warn?.tier).not.toBe("no-source");
+  });
+});
+
+describe("answer(): CHATFAIL code requests in a chat (L2) and the follow-up anchor (L3)", () => {
+  const qwen4: InstalledLlm = { id: "qwen3-4b-instruct-2507-q4km", label: "Qwen3 4B", filename: "models/q4b.gguf", sizeBytes: 2.5 * GB, roles: ["general", "fast"], isDefault: true };
+  const chat = (...u: string[]) => ({ ...ctx, history: { turns: u.flatMap((text) => [{ role: "user", text }, { role: "assistant", text: "An answer." }]) } });
+  const searched = () => {
+    const q: string[] = [];
+    f.deps.retrieve = async (text: string) => (q.push(text), f.retrieved);
+    return q;
+  };
+  const task = (r: { receipt: { reasonCodes: string[] } }) => r.receipt.reasonCodes.find((c) => c.startsWith("task:"));
+
+  it("'can you write it?' after a smart-contract question is a code request: no search, no gate, the model answers", async () => {
+    f.installed = [qwen4];
+    f.activeId = qwen4.id;
+    let gateCalls = 0;
+    f.deps.engine.nextTokenProbs = async () => (gateCalls++, [{ token: "SEARCH", prob: 0.99 }]);
+    const q = searched();
+    const { result } = await collect("can you write it?", undefined, chat("What can a smart contract do?", "what it look like?"));
+    expect(task(result)).toBe("task:code");
+    expect(result.receipt.reasonCodes).toContain("route-gate:skip-code-request");
+    expect(gateCalls).toBe(0);
+    expect(q).toEqual([]);
+    expect(f.generations).toHaveLength(1);
+  });
+
+  it("'show me the code' and 'write it in Python' after a technical turn are code; with no earlier turn 'can you write it?' is unchanged", async () => {
+    expect(task((await collect("i want to see the code", undefined, chat("What can a smart contract do?"))).result)).toBe("task:code");
+    expect(task((await collect("write it in Python", undefined, chat("How does gradient descent work in a neural network?"))).result)).toBe("task:code");
+    expect(task((await collect("can you write it?")).result)).toBe("task:lookup");
+  });
+
+  it("a follow-up that points back is searched with the conversation's subject, not the subjectless turn before it", async () => {
+    const q = searched();
+    const { result } = await collect("how hot does it get?", undefined, chat("How long is a day on Venus?", "and the year?"));
+    expect(q[0]).toBe("How long is a day on Venus? how hot does it get?");
+    expect(result.receipt.reasonCodes).toContain("retrieve:follow-up-direct");
+  });
+
+  it("a first-aid chat keeps its route: no code rule, no follow-up search", async () => {
+    for (const [first, next] of [
+      ["How do I help a choking adult?", "what about a baby?"],
+      ["How do I help a choking adult?", "compare the two in a table"],
+      ["What should I do for a minor burn?", "how long should I cool it?"],
+      ["What do I do if someone has a nosebleed?", "should I tilt their head back?"],
+      ["How do I do CPR on an adult?", "can you write it as a simple program?"],
+    ]) {
+      const q = searched();
+      const { result } = await collect(next, undefined, chat(first));
+      expect(task(result), next).toBe(`task:${classifyTask(next)}`);
+      expect(result.receipt.reasonCodes.filter((c) => c.startsWith("retrieve:follow-up")), next).toEqual([]);
+      expect(q.some((t) => t.startsWith(first)), next).toBe(false);
+    }
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classifyTask, isRetrievalIrrelevant } from "./classify";
+import { classifyTask, classifyTaskInContext, isRetrievalIrrelevant } from "./classify";
 
 describe("classifyTask", () => {
   it("returns unknown for empty input", () => {
@@ -208,5 +208,27 @@ describe("classifyTask yes/no questions (Sextant trv-009)", () => {
     expect(classifyTask("Obrigado pela ajuda")).toBe("chat");
     // A question to the assistant, answered without the library (the "conversation" type above).
     expect(classifyTask("Can you help me")).toBe("conversation");
+  });
+});
+
+describe("classifyTaskInContext (CHATFAIL L2)", () => {
+  const sc = ["What can a smart contract do?", "what it look like?"];
+  it("a code follow-up after a technical turn is a code request", () => {
+    expect(classifyTask("can you write it?")).toBe("lookup");
+    expect(classifyTaskInContext("can you write it?", sc)).toBe("code");
+    expect(classifyTaskInContext("not even an example?", sc)).toBe("code");
+    expect(classifyTaskInContext("what does it look like?", ["What is a Merkle tree?"])).toBe("code");
+    expect(classifyTaskInContext("write it in Python", ["How does gradient descent work in a neural network?"])).toBe("code");
+  });
+  it("an explicit code noun needs no context", () => {
+    expect(classifyTaskInContext("i want to see the code", [])).toBe("code");
+    expect(classifyTaskInContext("show me what the deposit call looks like in code", [])).toBe("code");
+  });
+  it("leaves non-technical follow-ups and format asks alone", () => {
+    expect(classifyTaskInContext("can you give me an example of a supervolcano?", ["How do volcanoes form?"])).toBe(classifyTask("can you give me an example of a supervolcano?"));
+    expect(classifyTaskInContext("what does the road look like in January?", ["Is the Ring Road in Iceland paved?"])).toBe(classifyTask("what does the road look like in January?"));
+    expect(classifyTaskInContext("write it down for me", sc)).toBe(classifyTask("write it down for me"));
+    expect(classifyTaskInContext("can you put that in a table?", sc)).toBe(classifyTask("can you put that in a table?"));
+    expect(classifyTaskInContext("translate that to Portuguese", sc)).toBe("translate");
   });
 });

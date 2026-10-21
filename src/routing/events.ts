@@ -20,6 +20,12 @@ import type { RetrievedChunk } from "../rag/retrieve.types";
 
 export type AnswerTier = "instant" | "fast" | "deep";
 
+/**
+ * WARN (src/routing/warn.ts, deps.warn): the health caution's tier. no-source = the model answered from memory;
+ * beyond-source = it had sources but the answer goes past what it cites; sourced = cited, still not clinically reviewed.
+ */
+export type WarnTier = "no-source" | "beyond-source" | "sourced";
+
 export type AnswerStageName =
   | "loading_model"
   | "retrieving"
@@ -199,6 +205,14 @@ export type AnswerEvent =
        * shows the "Not a substitute for emergency services" line.
        */
       safety?: boolean;
+      /**
+       * WARN (deps.warn): the health caution as the turn ends, one tier, and its text in the question's language. It may only
+       * move beyond-source -> sourced from the warn event (multi-pass: also away from no-source); a stopped turn with text keeps
+       * the tier it showed. Absent = no caution: the final text is not a model's (a decline, a source excerpt) or the turn ended
+       * empty; any weak_sources the caution held back is sent before this done.
+       * The chat stores it with the message and never recomputes it.
+       */
+      warn?: { tier: WarnTier; message: string; /** deps.warnRendered: false = the client does not render it, the old notices stay. */ rendered?: boolean };
     })
   | (Base & {
       /** Emitted only after a fast-tier done: a deeper answer is possible for this question. */
@@ -244,6 +258,18 @@ export type AnswerEvent =
       truncated?: boolean;
       /** Required attribution (ODbL for OpenStreetMap, CC BY-SA for Wikivoyage). */
       attribution: { source: "osm" | "wikivoyage"; date?: string; license: string }[];
+    })
+  | (Base & {
+      /**
+       * WARN (deps.warn): a model is about to answer a health-shaped question. The chat shows the caution above the answer
+       * from here (no-source with no source kept, else beyond-source); the done event's warn settles it. On such a turn the
+       * caution is the one notice: no weak_sources warning (non-declined) is sent and no uncited preface is added.
+       */
+      type: "warn";
+      tier: WarnTier;
+      message: string;
+      /** deps.warnRendered: false = the client does not render the caution, so weak_sources and the preface were not held back. */
+      rendered?: boolean;
     })
   | (Base & {
       /** A model loaded but its weights stream from storage (see src/inference/memoryFit.ts). */

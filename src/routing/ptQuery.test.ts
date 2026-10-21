@@ -52,6 +52,9 @@ describe("canonicalHealthTerms", () => {
     expect(englishSearchTerms("Quanta água devo beber por dia?") ?? "").not.toContain("child");
     expect(englishSearchTerms("Meu bebê está com febre, o que fazer?")).toContain("child");
     expect(englishSearchTerms("Meu bebe está com febre")).toContain("child");
-    expect(englishSearchTerms("Os bebês podem tomar sol?")).toContain("child");
+    // The plural matches too. With cut 7's modifier-only rule (Sonar exp-30) a question whose only translated term is
+    // "child" falls back to its own words (null), so the plural is checked next to a subject term.
+    expect(englishSearchTerms("Os bebês estão com febre")).toContain("child");
+    expect(englishSearchTerms("Os bebês podem tomar sol?")).toBeNull();
   });
 });

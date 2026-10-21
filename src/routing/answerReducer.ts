@@ -7,6 +7,7 @@ import {
   type AnswerReceipt as Receipt,
   type AnswerStageName as Stage,
   type StageDetail,
+  type WarnTier,
 } from "./events";
 
 type PlacesEvent = Extract<AnswerEvent, { type: "places" }>;
@@ -62,6 +63,8 @@ export interface AnswerState {
   cited?: number[];
   /** The engine classified the question as health/safety (done.safety): literal passage, emergency note. */
   safety?: boolean;
+  /** WARN (deps.warn): the health caution shown above the answer, from the warn event, settled by done.warn. */
+  warn?: { tier: WarnTier; message: string; rendered?: boolean };
 }
 
 export function initialAnswer(answerId: string): AnswerState {
@@ -122,6 +125,11 @@ export function answerReducer(state: AnswerState, event: AnswerEvent): AnswerSta
       if (event.code === "weak_sources") return { ...state, weakSources: true, weakDeclined: event.declined === true || undefined };
       return state;
 
+    case "warn":
+      // One notice: the caution wins over an earlier weak-sources notice on this message (a decline still shows).
+      // Only when the caution is rendered (rendered: false = the old notice stays).
+      return { ...state, warn: { tier: event.tier, message: event.message, rendered: event.rendered }, ...(state.weakDeclined || event.rendered === false ? {} : { weakSources: undefined }) };
+
     case "stage":
       if (event.tier === "instant" || state[event.tier]?.outcome) return state;
       return updateTier(state, event.tier, (t) => ({ ...t, stage: event.stage, detail: event.detail }));
@@ -133,6 +141,8 @@ export function answerReducer(state: AnswerState, event: AnswerEvent): AnswerSta
 
     case "done":
       if (event.safety) state = { ...state, safety: true };
+      // WARN: done settles the caution (absent = the model did not write this text: no caution).
+      if (state.warn || event.warn) state = { ...state, warn: event.warn, ...(event.warn && !state.weakDeclined && event.warn.rendered !== false ? { weakSources: undefined } : {}) };
       if (event.tier === "instant") {
         if (state.instantDone) return state;
         state = withCited(state, (event as { cited?: unknown }).cited);

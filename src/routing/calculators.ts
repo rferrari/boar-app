@@ -11,7 +11,7 @@ export interface Calculation {
   text: string;
 }
 
-const NUM = String.raw`(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)`;
+const NUM = String.raw`(?<!\d)(\d{1,3}(?:[.\s]\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)`;
 
 /** "7,5" / "7.5" / "2.450" (PT thousands) / "1,200.5" / "18" -> number. */
 export function parseNumber(raw: string, pt: boolean): number {

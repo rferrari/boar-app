@@ -16,7 +16,7 @@ const PATTERNS: Array<{ type: TaskType; test: RegExp }> = [
   { type: "summarize", test: /\b(summarize|summarise|summary of|tl;?dr)\b/i },
   { type: "translate", test: /\btranslate\b/i },
   { type: "code", test: /```|\b(write (a |some )?code|debug this|refactor|fix this function|regex for)\b/i },
-  { type: "calculate", test: /\b(calculate|compute|how much is)\b|\d+\s*[+\-*/×÷]\s*\d/i },
+  { type: "calculate", test: /\b(calculate|compute|how much is)\b|(?<!\d)\d+\s*[+\-*/×÷]\s*\d/i },
   { type: "extract", test: /\b(extract|list all|pull out|find every)\b/i },
   // Explanation/reasoning questions: never a one-sentence lookup, even when
   // short and opening with "what" ("What caused the French Revolution?").
@@ -63,6 +63,42 @@ const CONVERSATION_RE =
 
 const YES_NO =
   /^(is|are|was|were|do|does|did|can|could|should|will|would|has|have|é|e|são|sao|era|foi|posso|pode|podem|devo|deve|precisa|preciso|tem|há|ha|existe|vale)(?![\p{L}])[^?]*\?\s*$/iu;
+
+// CHATFAIL L2: intent for follow-ups that ask for code or an example. The base regex only knew "write (a|some) code", so
+// "write it", "show me the code", "not even an example?" and "what does it look like?" (after a technical turn) fell to lookup/chat,
+// with retrieval and the Succinct 2-3 sentence cap. Explicit code nouns need no context; the ambiguous words ("it", "an example",
+// "look like") need a technical word in this message or an earlier user turn, so "an example of a supervolcano" and "what does the
+// road look like in January" stay lookups.
+const CODE_CONTEXT =
+  /\b(smart contracts?|solidity|erc-?\d+|merkle|hash(?:es|ing)?|algorithms?|programs?|programming|code|coding|scripts?|software|functions?|apis?|compiler|sql|database|python|javascript|typescript|rust|numpy|neural networks?|backpropagation|simulations?|data structures?)\b/i;
+const CODE_EXPLICIT = [
+  // show/see/give/paste + (the|some|a) code|program|script|snippet
+  /\b(?:show|see|view|give|get|have|paste|print|display|read)\b(?:\s+(?:me|us))?(?:\s+(?:the|its|that|this|some|a|an|your|full))?\s+(?:source\s+)?(?:code|program|script|snippet)\b/i,
+  // "in code", "in Python", "as code"
+  /\b(?:in|as|using|with)\s+(?:code|python|javascript|js|typescript|solidity|rust|c\+\+|numpy|sql|bash)\b/i,
+];
+const CODE_NEEDS_CONTEXT = [
+  // write it / write one for me (not "write it down")
+  /\bwrite\s+(?:me\s+)?(?:it|that|this|one|them)\b(?!\s+down)/i,
+  // an example / not even an example (not "an example of ...")
+  /\b(?:an?|one|some|another|any)\s+(?:(?:small|short|simple|quick|minimal|tiny|code)\s+)*examples?\b(?!\s+of\b)/i,
+  // what/how does it look like
+  /\b(?:what|how)\b[^?]*\blooks?\s+like\b/i,
+];
+
+/**
+ * Like classifyTask, with the user's earlier turns (oldest first) as context for the code-intent rule. Only a lookup, research,
+ * chat or unknown message can become code; every other type is returned as classifyTask gives it. The answer path never calls
+ * this for a health or emergency message (answer.ts), so a first-aid chat keeps its health route.
+ */
+export function classifyTaskInContext(query: string, priorUserTurns: string[] = []): TaskType {
+  const base = classifyTask(query);
+  if (base !== "lookup" && base !== "research" && base !== "chat" && base !== "unknown") return base;
+  const q = query.trim();
+  if (CODE_EXPLICIT.some((re) => re.test(q))) return "code";
+  if (CODE_NEEDS_CONTEXT.some((re) => re.test(q)) && (CODE_CONTEXT.test(q) || priorUserTurns.some((t) => CODE_CONTEXT.test(t)))) return "code";
+  return base;
+}
 
 export function classifyTask(query: string): TaskType {
   const trimmed = query.trim();
