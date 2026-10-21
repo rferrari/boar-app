@@ -545,4 +545,5 @@
     <string name="native_browse_gated" formatted="false">Exige uma conta no Hugging Face: o BOAR não consegue baixar.</string>
     <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai encontrar trufas: cada uma é um javali para usar, e algumas liberam novos temas. Descobrir quais perguntas as desenterram faz parte da graça.</string>
     <string name="native_documents_moreFiles" formatted="false">+{{count}} outros</string>
+    <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
 </resources>
