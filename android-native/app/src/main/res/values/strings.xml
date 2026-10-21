@@ -502,8 +502,8 @@
     <string name="flows_onboarding_package_encyclopedia_name" formatted="false">Encyclopedia</string>
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">Essential plus 50,000 Wikipedia articles, for broader questions.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recommended</string>
-    <string name="flows_onboarding_recommended_fast" formatted="false">Recommended · fast</string>
-    <string name="flows_onboarding_recommended_default" formatted="false">Recommended · best answers</string>
+    <string name="flows_onboarding_recommended_fast" formatted="false">Fast</string>
+    <string name="flows_onboarding_recommended_default" formatted="false">Recommended</string>
     <string name="flows_onboarding_recommended_compact" formatted="false">Recommended · light</string>
     <string name="flows_onboarding_tierLine_default" formatted="false">Gave the best answers in BOAR\'s tests.</string>
     <string name="flows_onboarding_tierLine_compact" formatted="false">Fits phones with less memory.</string>

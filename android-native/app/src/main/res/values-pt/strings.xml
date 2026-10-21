@@ -501,8 +501,8 @@
     <string name="flows_onboarding_package_encyclopedia_name" formatted="false">Enciclopédia</string>
     <string name="flows_onboarding_package_encyclopedia_body" formatted="false">O Essencial mais 50 mil artigos da Wikipédia, para perguntas mais amplas.</string>
     <string name="flows_onboarding_recommended" formatted="false">Recomendado</string>
-    <string name="flows_onboarding_recommended_fast" formatted="false">Recomendado · rápido</string>
-    <string name="flows_onboarding_recommended_default" formatted="false">Recomendado · melhores respostas</string>
+    <string name="flows_onboarding_recommended_fast" formatted="false">Rápido</string>
+    <string name="flows_onboarding_recommended_default" formatted="false">Recomendado</string>
     <string name="flows_onboarding_recommended_compact" formatted="false">Recomendado · leve</string>
     <string name="flows_onboarding_tierLine_default" formatted="false">Deu as melhores respostas nos testes do BOAR.</string>
     <string name="flows_onboarding_tierLine_compact" formatted="false">Cabe em celulares com menos memória.</string>
