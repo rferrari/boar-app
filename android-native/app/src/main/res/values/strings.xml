@@ -201,7 +201,7 @@
     <string name="personalDocumentsManager_importFailedTitle" formatted="false">Import failed</string>
     <string name="personalDocumentsManager_exportFailedTitle" formatted="false">Export failed</string>
     <string name="personalDocumentsManager_removeConfirmTitle" formatted="false">Remove this collection?</string>
-    <string name="personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone — export it first if you want to keep a copy.</string>
+    <string name="personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone.</string>
     <string name="personalDocumentsManager_namePlaceholder" formatted="false">Collection name (e.g. Project Specs)</string>
     <string name="personalDocumentsManager_pickButton" formatted="false">Pick Files &amp; Import</string>
     <string name="personalDocumentsManager_stageReading" formatted="false">Reading files…</string>

@@ -315,8 +315,11 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         confirmButton = { androidx.compose.material3.TextButton({ confirmClose = false; closeBoar() }) { Text(t("native.drawer.closeButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ confirmClose = false }) { Text(t("common.cancel")) } })
     confirmDelete?.let { id ->
+        val c = Boar.colors
         androidx.compose.material3.AlertDialog({ confirmDelete = null },
-            text = { Text(t("native.drawer.deleteConfirm")) },
+            title = { Text(t("native.drawer.deleteConfirm")) },
+            text = { Text(t("native.drawer.deleteConfirmMessage", "title" to (sessions.firstOrNull { it.id == id }?.title ?: ""))) },
+            containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
             confirmButton = { androidx.compose.material3.TextButton({ vm.deleteSession(id); sessions = sessions.filter { it.id != id }; confirmDelete = null }) { Text(t("native.drawer.deleteButton"), color = Boar.colors.crimson400) } },
             dismissButton = { androidx.compose.material3.TextButton({ confirmDelete = null }) { Text(t("common.cancel")) } })
     }

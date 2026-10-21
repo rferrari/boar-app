@@ -120,6 +120,8 @@ fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: 
         primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
         onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,
         onSurfaceVariant = c.textSecondary, outline = c.borderDefault, error = c.crimson500,
+        // Dialogs sit on this: the theme's card, not Android's default gray, so every dialog matches the theme.
+        surfaceContainerHigh = c.bgCard,
     )
     CompositionLocalProvider(LocalColors provides c, LocalType provides BoarType(fontScale)) {
         MaterialTheme(colorScheme = scheme, content = content)

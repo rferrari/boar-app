@@ -416,7 +416,7 @@
     <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep Boar\'s Path</string>
     <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Caps how long a single answer can be. Lower is faster and easier on the battery.</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
-    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone. Export it first if you want to keep a copy.</string>
+    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
     <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above. Download it from there.</string>
@@ -460,6 +460,7 @@
     <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Delete this chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Delete</string>
+    <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" and its answers go. This can\'t be undone.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Ask before deleting a chat</string>
     <string name="native_settings_confirmChatDeleteNote" formatted="false">The 🗑️ in the menu asks first. Off: one tap deletes the chat.</string>
     <string name="native_drawer_closeButton" formatted="false">Close</string>

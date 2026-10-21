@@ -416,7 +416,7 @@
     <string name="native_tweaks_runWarningKeepPath" formatted="false">Manter Trilha do Javali</string>
     <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Limita o tamanho de uma resposta. Menor é mais rápido e gasta menos bateria.</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Importe suas notas em .txt, .md, .csv, .json ou .pdf. Elas são indexadas só neste aparelho e nunca enviadas. PDFs precisam de texto selecionável: páginas digitalizadas ou só com imagem não são lidas (não há OCR), e PDFs com senha não são suportados.</string>
-    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito. Exporte antes se quiser guardar uma cópia.</string>
+    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito.</string>
     <string name="native_voiceSettings_unavailableNote" formatted="false">Nenhum serviço de reconhecimento de voz foi encontrado neste celular. Isso é comum no GrapheneOS e em outros sistemas sem Google. Digitar funciona normalmente.</string>
     <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrar ao enviar uma pergunta e quando a resposta termina.</string>
     <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" foi adicionado à lista de modelos acima. Baixe-o por lá.</string>
@@ -460,6 +460,7 @@
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
+    <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" e as respostas dele somem. Não dá para desfazer.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
     <string name="native_settings_confirmChatDeleteNote" formatted="false">O 🗑️ do menu pergunta antes. Desligado: um toque apaga o chat.</string>
     <string name="native_drawer_closeButton" formatted="false">Fechar</string>

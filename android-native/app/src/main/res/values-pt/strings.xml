@@ -200,7 +200,7 @@
     <string name="personalDocumentsManager_importFailedTitle" formatted="false">Falha na importação</string>
     <string name="personalDocumentsManager_exportFailedTitle" formatted="false">Falha na exportação</string>
     <string name="personalDocumentsManager_removeConfirmTitle" formatted="false">Remover esta coleção?</string>
-    <string name="personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito — exporte antes se quiser guardar uma cópia.</string>
+    <string name="personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito.</string>
     <string name="personalDocumentsManager_namePlaceholder" formatted="false">Nome da coleção (ex.: Especificações do Projeto)</string>
     <string name="personalDocumentsManager_pickButton" formatted="false">Selecionar Arquivos e Importar</string>
     <string name="personalDocumentsManager_stageReading" formatted="false">Lendo arquivos…</string>
