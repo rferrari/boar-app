@@ -23,9 +23,13 @@ mkdir -p "$OUT"
 build() { # <build dir> <arch flags> <output name>
   PATH=$CMAKE_BIN:$PATH cmake -S "$SD" -B "$SD/$1" -G Ninja -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-28 \
-    -DANDROID_STL=c++_static -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF -DGGML_OPENMP=OFF -DGGML_CPU_ARM_ARCH="$2" >/dev/null
+    -DANDROID_STL=c++_static -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF -DGGML_OPENMP=OFF -DGGML_CPU_ARM_ARCH="$2" >/dev/null
   PATH=$CMAKE_BIN:$PATH cmake --build "$SD/$1" --target sd-cli -j"$(nproc)" >/dev/null
   "$NDK"/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip -o "$OUT/$3" "$SD/$1/bin/sd-cli"
+  # 16 KB pages (issue #88): every LOAD segment aligned to 0x4000.
+  if "$NDK"/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf -lW "$OUT/$3" | awk '/LOAD/{print $NF}' | grep -qv 0x4000; then
+    echo "$OUT/$3 is not 16 KB-aligned" >&2; exit 1
+  fi
   echo "$OUT/$3 $(du -h "$OUT/$3" | cut -f1)"
 }
 build build-android-v82 armv8.2-a+dotprod+fp16 libsdcli.so

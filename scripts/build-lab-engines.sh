@@ -47,7 +47,7 @@ echo "== colibri ($(git -C "$COLIBRI" rev-parse --short HEAD))"
 OUT=$PLUGINS/colibri/jniLibs/arm64-v8a
 mkdir -p "$OUT"
 nice -n 15 "$TC/aarch64-linux-android$API-clang" -O3 -march="$ARM_ARCH" -fopenmp -static-openmp -pthread -w \
-  "$COLIBRI/c/olmoe.c" -o "$OUT/libcolibri_olmoe.so" -lm -fopenmp -static-openmp
+  "$COLIBRI/c/olmoe.c" -o "$OUT/libcolibri_olmoe.so" -lm -fopenmp -static-openmp -Wl,-z,max-page-size=16384
 "$TC/llvm-strip" "$OUT/libcolibri_olmoe.so"
 
 echo "== BigMoeOnEdge ($(git -C "$BMOE" rev-parse --short HEAD)), static"
@@ -58,6 +58,7 @@ mkdir -p "$OUT"
   -DCMAKE_MAKE_PROGRAM="$CMAKE_BIN/ninja" \
   -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
   -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-$API -DANDROID_STL=c++_static -DCMAKE_BUILD_TYPE=Release \
+  -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON \
   -DBUILD_SHARED_LIBS=OFF -DBMOE_BUILD_TESTS=OFF -DGGML_NATIVE=OFF -DGGML_OPENCL=OFF -DGGML_OPENMP=OFF \
   -DGGML_CPU_ARM_ARCH="$ARM_ARCH" -DLLAMA_CURL=OFF >/dev/null
 nice -n 15 "$CMAKE_BIN/cmake" --build "$BUILD" -j "$JOBS" --target bmoe-cli
@@ -68,3 +69,7 @@ if "$TC/llvm-readelf" -d "$OUT/libbmoe_cli.so" | grep -E "NEEDED.*(ggml|llama|c\
   echo "bmoe still links shared llama.cpp libraries; check BUILD_SHARED_LIBS in its CMake" >&2; exit 1
 fi
 ls -la "$PLUGINS"/colibri/jniLibs/arm64-v8a "$PLUGINS"/bmoe/jniLibs/arm64-v8a
+# 16 KB pages (issue #88): every LOAD segment aligned to 0x4000.
+for f in "$PLUGINS"/colibri/jniLibs/arm64-v8a/*.so "$PLUGINS"/bmoe/jniLibs/arm64-v8a/*.so; do
+  "$TC/llvm-readelf" -lW "$f" | awk '/LOAD/{print $NF}' | grep -qv 0x4000 && { echo "$f is not 16 KB-aligned" >&2; exit 1; }
+done

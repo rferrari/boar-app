@@ -14,7 +14,9 @@ android {
         ndk { abiFilters += listOf("arm64-v8a") }
         externalNativeBuild {
             cmake {
-                arguments += listOf("-DCMAKE_BUILD_TYPE=Release", "-DANDROID_STL=c++_shared")
+                // 16 KB pages (r4to, issue #88): NDK r27 needs the flag, or every library comes out 4 KB-aligned; a
+                // 16 KB-page phone can't load them, and Android 15+ warns at launch in its 4 KB compatibility mode.
+                arguments += listOf("-DCMAKE_BUILD_TYPE=Release", "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
                 cppFlags += "-O3"
             }
         }
