@@ -366,47 +366,47 @@
     <string name="native_chat_deepResearchOff" formatted="false">OFF · normal answers</string>
     <string name="native_chat_deepResearchExplain" formatted="false">Splits your question into 2 or 3 parts, searches your knowledge for each, then writes one answer with sources. Deeper, but slower. Expect a few minutes per answer on a phone.</string>
     <string name="native_personalitySettings_deepResearchNote" formatted="false">Breaks your question into smaller questions, researches each one, then writes one answer. It runs several steps on the same model, so it is slower than a normal reply. It works with any style, which sets the tone. Deep Research with Succinct still gives a short answer.</string>
-    <string name="native_chat_suggestions_b1" formatted="false">Who came up with natural selection?</string>
+    <string name="native_chat_suggestions_b1" formatted="false">Darwin, Wallace and the discovery of natural selection</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">History of science</string>
-    <string name="native_chat_suggestions_b2" formatted="false">How do vaccines work?</string>
+    <string name="native_chat_suggestions_b2" formatted="false">How vaccines train the immune system, from smallpox to mRNA</string>
     <string name="native_chat_suggestionTopics_b2" formatted="false">Health</string>
-    <string name="native_chat_suggestions_b3" formatted="false">Explain photosynthesis simply.</string>
+    <string name="native_chat_suggestions_b3" formatted="false">Photosynthesis step by step: from sunlight to sugar</string>
     <string name="native_chat_suggestionTopics_b3" formatted="false">Biology</string>
-    <string name="native_chat_suggestions_b4" formatted="false">French vs Industrial Revolution?</string>
+    <string name="native_chat_suggestions_b4" formatted="false">The French and Industrial Revolutions compared: causes and lasting effects</string>
     <string name="native_chat_suggestionTopics_b4" formatted="false">History</string>
-    <string name="native_chat_suggestions_b5" formatted="false">Why did the Western Roman Empire fall?</string>
+    <string name="native_chat_suggestions_b5" formatted="false">Why the Western Roman Empire fell: the main theories</string>
     <string name="native_chat_suggestionTopics_b5" formatted="false">History</string>
-    <string name="native_chat_suggestions_b6" formatted="false">How does a black hole form?</string>
+    <string name="native_chat_suggestions_b6" formatted="false">How black holes form, and what happens at the event horizon</string>
     <string name="native_chat_suggestionTopics_b6" formatted="false">Space</string>
-    <string name="native_chat_suggestions_b7" formatted="false">Who was Napoleon Bonaparte?</string>
+    <string name="native_chat_suggestions_b7" formatted="false">Napoleon Bonaparte: his rise, his wars and his legacy in Europe</string>
     <string name="native_chat_suggestionTopics_b7" formatted="false">People</string>
-    <string name="native_chat_suggestions_b8" formatted="false">Why do antibiotics stop working?</string>
+    <string name="native_chat_suggestions_b8" formatted="false">Antibiotic resistance: why bacteria adapt, and what slows it</string>
     <string name="native_chat_suggestionTopics_b8" formatted="false">Medicine</string>
-    <string name="native_chat_suggestions_b9" formatted="false">What is the capital of Australia?</string>
+    <string name="native_chat_suggestions_b9" formatted="false">Canberra: why Australia built a new capital</string>
     <string name="native_chat_suggestionTopics_b9" formatted="false">Geography</string>
-    <string name="native_chat_suggestions_b10" formatted="false">Can you see the Great Wall from the Moon?</string>
+    <string name="native_chat_suggestions_b10" formatted="false">The Great Wall of China: its history, its length and the Moon myth</string>
     <string name="native_chat_suggestionTopics_b10" formatted="false">Myths</string>
-    <string name="native_chat_suggestions_b11" formatted="false">Is a polar bear bigger than a grizzly?</string>
+    <string name="native_chat_suggestions_b11" formatted="false">Polar bears and grizzlies compared: size, diet and habitat</string>
     <string name="native_chat_suggestionTopics_b11" formatted="false">Animals</string>
-    <string name="native_chat_suggestions_b12" formatted="false">Does Brazil have more people than Russia?</string>
+    <string name="native_chat_suggestions_b12" formatted="false">Brazil and Russia compared: population, area and economy</string>
     <string name="native_chat_suggestionTopics_b12" formatted="false">Geography</string>
-    <string name="native_chat_suggestions_b13" formatted="false">Can mosquitoes spread HIV?</string>
+    <string name="native_chat_suggestions_b13" formatted="false">How mosquitoes spread disease, and why HIV isn\'t one of them</string>
     <string name="native_chat_suggestionTopics_b13" formatted="false">Health</string>
-    <string name="native_chat_suggestions_b14" formatted="false">How much exercise should adults get a week?</string>
+    <string name="native_chat_suggestions_b14" formatted="false">Exercise and health: how much adults need, and why</string>
     <string name="native_chat_suggestionTopics_b14" formatted="false">Health</string>
-    <string name="native_chat_suggestions_b15" formatted="false">Why is Kyoto historically important?</string>
+    <string name="native_chat_suggestions_b15" formatted="false">Kyoto\'s role in Japanese history and culture</string>
     <string name="native_chat_suggestionTopics_b15" formatted="false">Travel</string>
-    <string name="native_chat_suggestions_b16" formatted="false">Is Kilimanjaro a volcano?</string>
+    <string name="native_chat_suggestions_b16" formatted="false">Mount Kilimanjaro: how a volcano became Africa\'s highest peak</string>
     <string name="native_chat_suggestionTopics_b16" formatted="false">Earth science</string>
-    <string name="native_chat_suggestions_b17" formatted="false">When was the Berlin Wall built and torn down?</string>
+    <string name="native_chat_suggestions_b17" formatted="false">The Berlin Wall: why it was built and how it fell</string>
     <string name="native_chat_suggestionTopics_b17" formatted="false">History</string>
-    <string name="native_chat_suggestions_b18" formatted="false">How long can a cheetah run at top speed?</string>
+    <string name="native_chat_suggestions_b18" formatted="false">How cheetahs reach top speed, and how long they can keep it</string>
     <string name="native_chat_suggestionTopics_b18" formatted="false">Animals</string>
-    <string name="native_chat_suggestions_b19" formatted="false">What plugs and voltage does Brazil use?</string>
+    <string name="native_chat_suggestions_b19" formatted="false">Travelling in Brazil: plugs, voltage and emergency numbers</string>
     <string name="native_chat_suggestionTopics_b19" formatted="false">Travel</string>
-    <string name="native_chat_suggestions_b20" formatted="false">Is Japan more crowded than Germany?</string>
+    <string name="native_chat_suggestions_b20" formatted="false">Japan and Germany compared: population density and an aging society</string>
     <string name="native_chat_suggestionTopics_b20" formatted="false">Geography</string>
-    <string name="native_chat_suggestions_b21" formatted="false">Is dengue worse the second time?</string>
+    <string name="native_chat_suggestions_b21" formatted="false">Dengue fever: symptoms, how it spreads, and why a second infection is riskier</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
     <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from Settings → Advanced tweaks → Evaluation to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>

@@ -8,7 +8,6 @@
         "en": [
           "q1",
           "q2",
-          "q3",
           "q4",
           "q7",
           "q8"
@@ -16,7 +15,6 @@
         "pt": [
           "q1",
           "q2",
-          "q3",
           "q4",
           "q7",
           "q8"
@@ -26,7 +24,6 @@
         "en": [
           "q1",
           "q2",
-          "q3",
           "q4",
           "q7",
           "q8"
@@ -39,7 +36,6 @@
         "en": [
           "q1",
           "q2",
-          "q3",
           "q4",
           "q7",
           "q8"
@@ -74,20 +70,6 @@
       "expect": [
         "Pandemic",
         "Epidemic"
-      ],
-      "langs": [
-        "en"
-      ]
-    },
-    {
-      "key": "q3",
-      "corpus": [
-        "wiki-vital5"
-      ],
-      "expect": [
-        "Fahrenheit",
-        "Celsius",
-        "Temperature"
       ],
       "langs": [
         "en"

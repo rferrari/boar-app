@@ -366,47 +366,47 @@
     <string name="native_chat_deepResearchOff" formatted="false">DESLIGADA · respostas normais</string>
     <string name="native_chat_deepResearchExplain" formatted="false">Divide sua pergunta em 2 ou 3 partes, pesquisa seu conhecimento para cada uma e escreve uma resposta com fontes. Mais profunda, porém mais lenta. Espere alguns minutos por resposta no celular.</string>
     <string name="native_personalitySettings_deepResearchNote" formatted="false">Divide sua pergunta em subperguntas, pesquisa cada uma e escreve uma resposta. Roda várias etapas no mesmo modelo, por isso é mais lenta que uma resposta normal. Funciona com qualquer estilo, que define o tom. Pesquisa Profunda com Sucinto ainda dá uma resposta curta.</string>
-    <string name="native_chat_suggestions_b1" formatted="false">Quem criou a ideia de seleção natural?</string>
+    <string name="native_chat_suggestions_b1" formatted="false">Darwin, Wallace e a descoberta da seleção natural</string>
     <string name="native_chat_suggestionTopics_b1" formatted="false">História da ciência</string>
-    <string name="native_chat_suggestions_b2" formatted="false">Como as vacinas funcionam?</string>
+    <string name="native_chat_suggestions_b2" formatted="false">Como as vacinas treinam o sistema imune, da varíola ao mRNA</string>
     <string name="native_chat_suggestionTopics_b2" formatted="false">Saúde</string>
-    <string name="native_chat_suggestions_b3" formatted="false">Explique a fotossíntese de forma simples.</string>
+    <string name="native_chat_suggestions_b3" formatted="false">Fotossíntese passo a passo: da luz do sol ao açúcar</string>
     <string name="native_chat_suggestionTopics_b3" formatted="false">Biologia</string>
-    <string name="native_chat_suggestions_b4" formatted="false">Revolução Francesa vs Industrial?</string>
+    <string name="native_chat_suggestions_b4" formatted="false">As Revoluções Francesa e Industrial comparadas: causas e efeitos duradouros</string>
     <string name="native_chat_suggestionTopics_b4" formatted="false">História</string>
-    <string name="native_chat_suggestions_b5" formatted="false">Por que o Império Romano do Ocidente caiu?</string>
+    <string name="native_chat_suggestions_b5" formatted="false">Por que o Império Romano do Ocidente caiu: as principais teorias</string>
     <string name="native_chat_suggestionTopics_b5" formatted="false">História</string>
-    <string name="native_chat_suggestions_b6" formatted="false">Como se forma um buraco negro?</string>
+    <string name="native_chat_suggestions_b6" formatted="false">Como os buracos negros se formam, e o que acontece no horizonte de eventos</string>
     <string name="native_chat_suggestionTopics_b6" formatted="false">Espaço</string>
-    <string name="native_chat_suggestions_b7" formatted="false">Quem foi Napoleão Bonaparte?</string>
+    <string name="native_chat_suggestions_b7" formatted="false">Napoleão Bonaparte: sua ascensão, suas guerras e seu legado na Europa</string>
     <string name="native_chat_suggestionTopics_b7" formatted="false">Pessoas</string>
-    <string name="native_chat_suggestions_b8" formatted="false">Por que os antibióticos param de funcionar?</string>
+    <string name="native_chat_suggestions_b8" formatted="false">Resistência a antibióticos: por que as bactérias se adaptam, e o que freia isso</string>
     <string name="native_chat_suggestionTopics_b8" formatted="false">Medicina</string>
-    <string name="native_chat_suggestions_b9" formatted="false">Qual é a capital da Austrália?</string>
+    <string name="native_chat_suggestions_b9" formatted="false">Canberra: por que a Austrália construiu uma nova capital</string>
     <string name="native_chat_suggestionTopics_b9" formatted="false">Geografia</string>
-    <string name="native_chat_suggestions_b10" formatted="false">Dá para ver a Muralha da China da Lua?</string>
+    <string name="native_chat_suggestions_b10" formatted="false">A Muralha da China: sua história, seu tamanho e o mito da Lua</string>
     <string name="native_chat_suggestionTopics_b10" formatted="false">Mitos</string>
-    <string name="native_chat_suggestions_b11" formatted="false">O urso-polar é maior que o urso-pardo?</string>
+    <string name="native_chat_suggestions_b11" formatted="false">Ursos-polares e ursos-pardos comparados: tamanho, dieta e habitat</string>
     <string name="native_chat_suggestionTopics_b11" formatted="false">Animais</string>
-    <string name="native_chat_suggestions_b12" formatted="false">O Brasil tem mais gente que a Rússia?</string>
+    <string name="native_chat_suggestions_b12" formatted="false">Brasil e Rússia comparados: população, área e economia</string>
     <string name="native_chat_suggestionTopics_b12" formatted="false">Geografia</string>
-    <string name="native_chat_suggestions_b13" formatted="false">Mosquitos podem transmitir HIV?</string>
+    <string name="native_chat_suggestions_b13" formatted="false">Como os mosquitos transmitem doenças, e por que o HIV não é uma delas</string>
     <string name="native_chat_suggestionTopics_b13" formatted="false">Saúde</string>
-    <string name="native_chat_suggestions_b14" formatted="false">Quanto exercício um adulto deve fazer por semana?</string>
+    <string name="native_chat_suggestions_b14" formatted="false">Exercício e saúde: quanto um adulto precisa, e por quê</string>
     <string name="native_chat_suggestionTopics_b14" formatted="false">Saúde</string>
-    <string name="native_chat_suggestions_b15" formatted="false">Por que Kyoto é importante na história?</string>
+    <string name="native_chat_suggestions_b15" formatted="false">O papel de Kyoto na história e na cultura do Japão</string>
     <string name="native_chat_suggestionTopics_b15" formatted="false">Viagem</string>
-    <string name="native_chat_suggestions_b16" formatted="false">O Kilimanjaro é um vulcão?</string>
+    <string name="native_chat_suggestions_b16" formatted="false">Monte Kilimanjaro: como um vulcão virou o pico mais alto da África</string>
     <string name="native_chat_suggestionTopics_b16" formatted="false">Ciências da Terra</string>
-    <string name="native_chat_suggestions_b17" formatted="false">Quando o Muro de Berlim foi erguido e derrubado?</string>
+    <string name="native_chat_suggestions_b17" formatted="false">O Muro de Berlim: por que foi erguido e como caiu</string>
     <string name="native_chat_suggestionTopics_b17" formatted="false">História</string>
-    <string name="native_chat_suggestions_b18" formatted="false">Por quanto tempo um guepardo corre no máximo?</string>
+    <string name="native_chat_suggestions_b18" formatted="false">Como os guepardos chegam à velocidade máxima, e por quanto tempo a mantêm</string>
     <string name="native_chat_suggestionTopics_b18" formatted="false">Animais</string>
-    <string name="native_chat_suggestions_b19" formatted="false">Que tomada e voltagem o Brasil usa?</string>
+    <string name="native_chat_suggestions_b19" formatted="false">Viajar pelo Brasil: tomadas, voltagem e números de emergência</string>
     <string name="native_chat_suggestionTopics_b19" formatted="false">Viagem</string>
-    <string name="native_chat_suggestions_b20" formatted="false">O Japão é mais povoado que a Alemanha?</string>
+    <string name="native_chat_suggestions_b20" formatted="false">Japão e Alemanha comparados: densidade populacional e envelhecimento</string>
     <string name="native_chat_suggestionTopics_b20" formatted="false">Geografia</string>
-    <string name="native_chat_suggestions_b21" formatted="false">A dengue é pior na segunda vez?</string>
+    <string name="native_chat_suggestions_b21" formatted="false">Dengue: sintomas, transmissão e por que a segunda infecção é mais arriscada</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
     <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Configurações → Ajustes avançados → Avaliação para comparar os modelos instalados nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>

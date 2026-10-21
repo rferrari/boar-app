@@ -432,13 +432,13 @@
     <string name="evaluation_shareProgress_retry" formatted="false">Try again</string>
     <string name="evaluation_shareProgress_exportTitle" formatted="false">Keep a copy</string>
     <string name="evaluation_shareProgress_exportFooter" formatted="false">Save the whole run as a file, whatever happened: JSONL for tools, CSV for spreadsheets.</string>
-    <string name="chat_suggestions_q1" formatted="false">Why do we have seasons on Earth?</string>
-    <string name="chat_suggestions_q2" formatted="false">What is the difference between a pandemic and an epidemic?</string>
+    <string name="chat_suggestions_q1" formatted="false">How Earth\'s tilt creates the seasons, and why they flip between hemispheres</string>
+    <string name="chat_suggestions_q2" formatted="false">Pandemics and epidemics: how outbreaks spread and how they\'re classified</string>
     <string name="chat_suggestions_q3" formatted="false">What is 30 °C in Fahrenheit?</string>
-    <string name="chat_suggestions_q4" formatted="false">How do I stop a nosebleed?</string>
-    <string name="chat_suggestions_q7" formatted="false">What causes the greenhouse effect?</string>
-    <string name="chat_suggestions_q8" formatted="false">What is a monsoon?</string>
-    <string name="chat_suggestions_q9" formatted="false">What is plate tectonics?</string>
+    <string name="chat_suggestions_q4" formatted="false">First aid for nosebleeds: what works and what to avoid</string>
+    <string name="chat_suggestions_q7" formatted="false">The greenhouse effect: which gases trap heat, and how</string>
+    <string name="chat_suggestions_q8" formatted="false">How monsoons form, and why they matter for farming in South Asia</string>
+    <string name="chat_suggestions_q9" formatted="false">Plate tectonics: how moving plates build mountains and cause earthquakes</string>
     <string name="chat_suggestionTopics_q1" formatted="false">Science</string>
     <string name="chat_suggestionTopics_q2" formatted="false">Health</string>
     <string name="chat_suggestionTopics_q3" formatted="false">Quick math</string>
@@ -446,7 +446,7 @@
     <string name="chat_suggestionTopics_q7" formatted="false">Climate</string>
     <string name="chat_suggestionTopics_q8" formatted="false">Weather</string>
     <string name="chat_suggestionTopics_q9" formatted="false">Earth science</string>
-    <string name="chat_empty_suggestionsLabel" formatted="false">Try asking</string>
+    <string name="chat_empty_suggestionsLabel" formatted="false">Research Topics</string>
     <string name="chat_empty_tagline" formatted="false">Answers from this phone, with sources</string>
     <string name="chat_empty_fill" formatted="false">Put in the input to edit</string>
     <string name="chat_empty_ask" formatted="false">Ask: {{question}}</string>

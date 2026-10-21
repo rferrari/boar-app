@@ -489,8 +489,8 @@ private fun EmptyState(suggestions: List<String>, onAsk: (String) -> Unit, onFil
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(t("chat.suggestionTopics.$k"), style = type.caption.copy(fontFamily = BrandType.familyFor(null, 600).first), color = c.textAccentEmerald)
-                    // Two lines at most, so five ideas don't crowd the empty chat.
-                    Text(q, style = type.body, color = c.textPrimary, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    // Three research topics, three lines each at most: a whole topic, even in Portuguese at Large text.
+                    Text(q, style = type.body, color = c.textPrimary, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
             }
         }

@@ -875,7 +875,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 (DeepResearch.isSummaryFollowUp(query) && DeepResearch.lastAnswered(query, history) != null)
 
         /** Prompt ideas shown in an empty chat, drawn again for each new chat. */
-        const val IDEAS_SHOWN = 5
+        const val IDEAS_SHOWN = 3
 
         /**
          * Short questions (two lines at most) from the evaluations: b1…b9 from BOAR's 17-question set (eval-set.json),

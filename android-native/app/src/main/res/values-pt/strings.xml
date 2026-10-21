@@ -431,13 +431,13 @@
     <string name="evaluation_shareProgress_retry" formatted="false">Tentar de novo</string>
     <string name="evaluation_shareProgress_exportTitle" formatted="false">Guardar uma cópia</string>
     <string name="evaluation_shareProgress_exportFooter" formatted="false">Salve a avaliação inteira em um arquivo, aconteça o que acontecer: JSONL para ferramentas, CSV para planilhas.</string>
-    <string name="chat_suggestions_q1" formatted="false">Por que existem estações do ano na Terra?</string>
-    <string name="chat_suggestions_q2" formatted="false">Qual a diferença entre pandemia e epidemia?</string>
+    <string name="chat_suggestions_q1" formatted="false">Como a inclinação da Terra cria as estações, e por que elas se invertem entre os hemisférios</string>
+    <string name="chat_suggestions_q2" formatted="false">Pandemias e epidemias: como os surtos se espalham e como são classificados</string>
     <string name="chat_suggestions_q3" formatted="false">Quanto é 30 °C em Fahrenheit?</string>
-    <string name="chat_suggestions_q4" formatted="false">Como estancar um sangramento nasal?</string>
-    <string name="chat_suggestions_q7" formatted="false">O que causa o efeito estufa?</string>
-    <string name="chat_suggestions_q8" formatted="false">O que é uma monção?</string>
-    <string name="chat_suggestions_q9" formatted="false">O que é tectônica de placas?</string>
+    <string name="chat_suggestions_q4" formatted="false">Primeiros socorros para sangramento nasal: o que funciona e o que evitar</string>
+    <string name="chat_suggestions_q7" formatted="false">O efeito estufa: quais gases retêm calor, e como</string>
+    <string name="chat_suggestions_q8" formatted="false">Como as monções se formam, e por que importam para a agricultura no sul da Ásia</string>
+    <string name="chat_suggestions_q9" formatted="false">Tectônica de placas: como as placas em movimento formam montanhas e causam terremotos</string>
     <string name="chat_suggestionTopics_q1" formatted="false">Ciência</string>
     <string name="chat_suggestionTopics_q2" formatted="false">Saúde</string>
     <string name="chat_suggestionTopics_q3" formatted="false">Conta rápida</string>
@@ -445,7 +445,7 @@
     <string name="chat_suggestionTopics_q7" formatted="false">Clima</string>
     <string name="chat_suggestionTopics_q8" formatted="false">Tempo</string>
     <string name="chat_suggestionTopics_q9" formatted="false">Ciências da Terra</string>
-    <string name="chat_empty_suggestionsLabel" formatted="false">Experimente perguntar</string>
+    <string name="chat_empty_suggestionsLabel" formatted="false">Temas de pesquisa</string>
     <string name="chat_empty_tagline" formatted="false">Respostas deste celular, com fontes</string>
     <string name="chat_empty_fill" formatted="false">Colocar no campo para editar</string>
     <string name="chat_empty_ask" formatted="false">Perguntar: {{question}}</string>
