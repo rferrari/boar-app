@@ -61,10 +61,9 @@ reachable from the app's screens. Logs go to logcat under the tag shown.
 | `retrieval` | Runs the app's own search on a list of questions and writes `files/retrieval/results.json` (passages, scores, similarity) | `--es q64 <base64 JSON array of questions>`, `--ez copyPacks true` | `BOAR_PARITY` |
 | `bench` | llama-bench style speed test of one model file | `--es model <file.gguf>`, `--ei threads`, `--es cpus big`, `--ei nctx`, `--ei batch`, `--es kv F16\|Q8_0\|Q4_0`, `--es fa AUTO\|ON\|OFF`, `--ei pp/tg/reps` | `BOAR_BENCH` |
 | `ask` | One question to one model with the same settings | as `bench`, plus `--es prompt "…"`, `--ei npredict` | `BOAR_BENCH` |
-| `themes` | Unlocks every Boarverse theme on this phone, for testing them | none | `BOAR_BENCH` |
 | `labtest` | A Boar Labs self-test without its screen: `image` (Designer: every size, a cancel check), `printer` (Press: made-up baskets to PDF and Markdown) | `--es lab image\|printer`, `--es args "all=1;seed=7"` | `BOAR_LABTEST` |
 
-Example: `adb shell am start -n team.sopa.aoair/team.sopa.boar.bench.BenchActivity --es run themes`.
+Example: `adb shell am start -n team.sopa.aoair/team.sopa.boar.bench.BenchActivity --es run labtest --es lab printer`.
 
 ## Results
 

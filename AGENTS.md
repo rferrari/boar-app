@@ -88,13 +88,12 @@ environment, or as a Gradle property with `-P`.
 
 | `.env` / environment | Gradle property | Default | Effect |
 |---|---|---|---|
-| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs and the Boarverse exist, in Settings → Experimental. Boar Labs starts on, with the beta labs and Boar Vitals on; the Boarverse starts off |
+| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs exists, in Settings → Experimental. It starts on, with the beta labs and Boar Vitals on |
 | `EVAL_SHARING` | `boar.evalSharing` | false | Builds in the results server (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `.env`). Off: no Share button, runs stay on the phone as files |
 | `SHOW_EVAL_IN_MENU` | `boar.showEvalInMenu` | false | Evaluation in the side menu (always reachable from Advanced tweaks) |
 | `ALLOW_DEBUG_LOG` | `boar.allowDebugLog` | false | Settings › Advanced tweaks › Debug log exists |
 | `ALLOW_DRAWER_STATS` | `boar.allowDrawerStats` | true | The menu's memory and storage bars can be turned on |
 | `ALLOW_UNCENSORED_MODELS` | `boar.allowUncensoredModels` | false | Uncensored models show in Discover GGUF models |
-| `BOAR_TRUFFLE_LAUNCHER_ICONS` | `boar.truffleLauncherIcons` | false | Truffle Vault boars as launcher icons |
 | | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
 | | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
 | | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
