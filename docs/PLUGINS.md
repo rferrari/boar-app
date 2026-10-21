@@ -34,6 +34,13 @@ The order in `ChatViewModel.send` (`android-native/app/src/main/java/team/sopa/b
    (Boar Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
    stopped, timed-out, failed or empty answer.
 
+**Personal Files** (the answer style `personal`, `engine/…/answer/PersonalFiles.kt`) changes all three: in the tool slot
+only a safety answer (`safety-*`) is kept, as under Deep Research; Deep Research and adaptive routing are off, so a
+question takes the default path (a recap of the chat still works); and the check slot is skipped. Search covers only
+the user's own collections (`RetrievalParams.ownOnly`: no library, no packs), and the parts it finds go to the model
+whole while they fit the context. When nothing is found, the chat writes "I couldn't find this in your Personal Files."
+without calling the model. Search stages (`PipelineStages`) still run; they only see the user's parts.
+
 ## A lab's folder
 
 ```

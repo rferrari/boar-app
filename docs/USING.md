@@ -20,7 +20,11 @@ answers:
 
 - **Thorough & Detailed**, the default: full explanations.
 - **Succinct & Direct**: quick replies.
-- **Executive Summary**: one takeaway and three bullets.
+- **Personal Files**: answers only from your own files (notes, PDFs, spreadsheets), the
+  exact fact first, quoted as the file writes it, then a few sentences. If your files don't
+  hold the answer, it says "I couldn't find this in your Personal Files." instead of
+  answering from memory. Deep Research, adaptive routing and Boar Labs tools step aside in
+  this style; the safety cards still answer.
 
 Under every answer from the library, BOAR lists the articles it used. Tap one to read
 the passage. The receipt shows the model, the speed and the time.
@@ -83,14 +87,17 @@ PIN?" erases them and removes the PIN, and keeps models, packs and documents.
 
 ## Your own documents
 
-Settings → Offline Knowledge Base (RAG) → Open My Documents. Import your own files into
-the same local search the app uses everywhere:
+Settings → Knowledge → Personal Files (BOAR Knowledge, the packs, is the section below it;
+tap a section's title to fold it). Import your own files into the same local search the
+app uses everywhere, and ask about them with the Personal Files style:
 
 - **Formats:** `.txt`, `.md`, `.csv` (a plain comma split, no quoted fields), `.json`
   (a list of `{title, source, body}` documents, or any other JSON imported as text) and
   `.pdf` (selectable text only, read on the phone with PDFBox: no OCR, so a scanned PDF
   gives no text, and password-protected PDFs are refused).
-- Each import is cut into chunks of about 500 tokens with a 50-token overlap, embedded on
+- A `.md` file is cut at its `#` and `##` headings, one part per section (a section longer
+  than a part is sliced as below). Files imported before this keep their old parts.
+- Each other import is cut into chunks of about 500 tokens with a 50-token overlap, embedded on
   the phone with the search model, and saved as a named collection. Turn a collection
   off without deleting it, or delete it.
 - **Export** writes a collection as `{title, source, body}` JSON and hands it to the
