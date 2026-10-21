@@ -58,7 +58,7 @@
     <string name="native_receipt_mode" formatted="false">Modo</string>
     <string name="native_receipt_style_succinct" formatted="false">Sucinto e direto</string>
     <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
-    <string name="native_receipt_style_summary" formatted="false">Resumo executivo</string>
+    <string name="native_receipt_style_personal" formatted="false">Arquivos pessoais</string>
     <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
     <string name="native_receipt_path_deep" formatted="false">Pesquisa Profunda</string>
     <string name="native_receipt_path_chat" formatted="false">Desta conversa</string>
@@ -505,7 +505,7 @@
     <string name="native_tour_theme_body" formatted="false">Escolha um tema. Ele muda na hora, e dá para trocar de novo quando quiser.</string>
     <string name="native_tour_theme_where" formatted="false">Configurações → Exibição e tema</string>
     <string name="native_tour_styles_title" formatted="false">Escolha como o BOAR responde</string>
-    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Resumo Executivo para uma conclusão e três pontos.</string>
+    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Arquivos pessoais para responder só a partir dos seus documentos.</string>
     <string name="native_tour_styles_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
     <string name="native_tour_deep_title" formatted="false">Pesquisa Profunda</string>
     <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo. Quando está ligada, o chat brilha e o 🔬 acende, então você sempre sabe.</string>
@@ -513,8 +513,8 @@
     <string name="native_tour_sources_title" formatted="false">Fontes e recibos</string>
     <string name="native_tour_sources_body" formatted="false">Uma resposta da biblioteca lista os artigos que usou: toque em um para ler. Um recibo mostra o modelo, a velocidade e o tempo.</string>
     <string name="native_tour_sources_where" formatted="false">Embaixo de cada resposta</string>
-    <string name="native_tour_knowledge_title" formatted="false">Sua biblioteca e seus documentos</string>
-    <string name="native_tour_knowledge_body" formatted="false">O BOAR lê da biblioteca Vital Articles no seu celular. Importe um PDF e pergunte sobre ele também.</string>
+    <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos pessoais</string>
+    <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos pessoais e pergunte sobre eles com o estilo Arquivos pessoais.</string>
     <string name="native_tour_knowledge_where" formatted="false">Configurações → Conhecimento</string>
     <string name="native_tour_models_title" formatted="false">Modelos</string>
     <string name="native_tour_models_body" formatted="false">Troque o modelo de resposta, encontre outros no Hugging Face e deixe o BOAR liberar a memória quando você sair dele.</string>
@@ -548,4 +548,8 @@
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
     <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos pessoais.</string>
     <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos pessoais.</string>
+    <string name="native_documents_personalTitle" formatted="false">Arquivos pessoais</string>
+    <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
+    <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
+    <string name="native_documents_personalFolded_other" formatted="false">Arquivos pessoais · {{count}} coleções</string>
 </resources>

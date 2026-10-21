@@ -308,8 +308,8 @@
     <string name="personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução. Padrão para celular.</string>
     <string name="personalities_detailed_label" formatted="false">Completo e Detalhado</string>
     <string name="personalities_detailed_description" formatted="false">Explicações estruturadas e completas, com comparações e raciocínio.</string>
-    <string name="personalities_summary_label" formatted="false">Resumo Executivo</string>
-    <string name="personalities_summary_description" formatted="false">Uma conclusão principal, seguida de 3 tópicos-chave.</string>
+    <string name="personalities_personal_label" formatted="false">Arquivos pessoais</string>
+    <string name="personalities_personal_description" formatted="false">Responde só a partir dos seus arquivos: notas, PDFs, planilhas.</string>
     <string name="personalities_custom_label" formatted="false">Personalizado</string>
     <string name="personalities_custom_description" formatted="false">Escreva seu próprio prompt de sistema.</string>
     <string name="executionTelemetry_title" formatted="false">Telemetria de Execução</string>
@@ -690,7 +690,7 @@
     <string name="flows_row_fitWhy_insufficient" formatted="false">Falta memória livre neste celular</string>
     <string name="flows_assistant_sub_compact" formatted="false">Respostas mais rápidas, menos memória</string>
     <string name="flows_assistant_sub_default" formatted="false">Respostas melhores, um pouco mais lento</string>
-    <string name="flows_knowledge_topicPacksTitle" formatted="false">Pacotes temáticos</string>
+    <string name="flows_knowledge_topicPacksTitle" formatted="false">Conhecimento BOAR</string>
     <string name="flows_knowledge_topicPacksFooter" formatted="false">Coleções sobre um assunto, para ler sem internet. Cada arquivo é conferido antes do uso.</string>
     <string name="nav_knowledge" formatted="false">Conhecimento</string>
 </resources>

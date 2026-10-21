@@ -58,7 +58,7 @@
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
-    <string name="native_receipt_style_summary" formatted="false">Executive Summary</string>
+    <string name="native_receipt_style_personal" formatted="false">Personal Files</string>
     <string name="native_receipt_style_custom" formatted="false">Custom</string>
     <string name="native_receipt_path_deep" formatted="false">Deep Research</string>
     <string name="native_receipt_path_chat" formatted="false">From this chat</string>
@@ -505,7 +505,7 @@
     <string name="native_tour_theme_body" formatted="false">Pick a theme. It changes right away, and you can change it again any time.</string>
     <string name="native_tour_theme_where" formatted="false">Settings → Display &amp; theme</string>
     <string name="native_tour_styles_title" formatted="false">Pick how BOAR answers</string>
-    <string name="native_tour_styles_body" formatted="false">Succinct &amp; Direct for quick replies, Thorough &amp; Detailed for full explanations (the default), Executive Summary for one takeaway and three bullets.</string>
+    <string name="native_tour_styles_body" formatted="false">Succinct &amp; Direct for quick replies, Thorough &amp; Detailed for full explanations (the default), Personal Files to answer only from your own documents.</string>
     <string name="native_tour_styles_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
     <string name="native_tour_deep_title" formatted="false">Deep Research</string>
     <string name="native_tour_deep_body" formatted="false">For big questions: BOAR searches in several steps and writes a longer answer. It takes more time. When it\'s on, the chat glows and the 🔬 lights up, so you always know.</string>
@@ -513,8 +513,8 @@
     <string name="native_tour_sources_title" formatted="false">Sources and receipts</string>
     <string name="native_tour_sources_body" formatted="false">An answer from the library lists the articles it used: tap one to read it. A receipt shows the model, the speed and the time.</string>
     <string name="native_tour_sources_where" formatted="false">Under every answer</string>
-    <string name="native_tour_knowledge_title" formatted="false">Your library and your documents</string>
-    <string name="native_tour_knowledge_body" formatted="false">BOAR reads from the Vital Articles library on your phone. Import a PDF and ask about it too.</string>
+    <string name="native_tour_knowledge_title" formatted="false">BOAR Knowledge and your Personal Files</string>
+    <string name="native_tour_knowledge_body" formatted="false">BOAR Knowledge is the Vital Articles library on your phone. Import your notes, PDFs and spreadsheets into Personal Files, then ask about them with the Personal Files style.</string>
     <string name="native_tour_knowledge_where" formatted="false">Settings → Knowledge</string>
     <string name="native_tour_models_title" formatted="false">Models</string>
     <string name="native_tour_models_body" formatted="false">Swap the answer model, find more on Hugging Face, and let BOAR free the memory when you leave it.</string>
@@ -548,4 +548,8 @@
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
     <string name="native_personal_notFound" formatted="false">I couldn\'t find this in your Personal Files.</string>
     <string name="native_personal_notFoundHint" formatted="false">Check that the collection is switched on in Knowledge → Personal Files.</string>
+    <string name="native_documents_personalTitle" formatted="false">Personal Files</string>
+    <string name="native_documents_personalNote" formatted="false">Ask about them with the Personal Files style.</string>
+    <string name="native_documents_personalFolded_one" formatted="false">Personal Files · {{count}} collection</string>
+    <string name="native_documents_personalFolded_other" formatted="false">Personal Files · {{count}} collections</string>
 </resources>

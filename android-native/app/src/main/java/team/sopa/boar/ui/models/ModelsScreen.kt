@@ -106,14 +106,17 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
     }
 }
 
-/** The knowledge packs (KnowledgeScreen.tsx "Topic packs"): download, verify and remove, on the Knowledge screen. */
+/** The knowledge packs, "BOAR Knowledge" (KnowledgeScreen.tsx "Topic packs"): download, verify and remove, on the Knowledge screen. */
 @Composable
 fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel) {
     val c = Boar.colors
     val packs = state.items.filter { it.kind == AssetKind.CORPUS }
+    // Open by default, like Personal Files above it; folded stays folded while the app runs.
+    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(true) }
     if (packs.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(t("flows.knowledge.topicPacksTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
+        team.sopa.boar.ui.documents.FoldTitle(t("flows.knowledge.topicPacksTitle"), open) { open = !open }
+        if (!open) return@Column
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)
         for (a in packs) CatalogCard(a, state.rows[a.id], state.rows[a.id]?.present == true, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
     }

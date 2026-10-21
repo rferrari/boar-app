@@ -309,8 +309,8 @@
     <string name="personalities_succinct_description" formatted="false">Fastest — 2–3 brief paragraphs or bullets, no preamble. Default for mobile.</string>
     <string name="personalities_detailed_label" formatted="false">Thorough &amp; Detailed</string>
     <string name="personalities_detailed_description" formatted="false">Structured, thorough explanations with comparisons and reasoning.</string>
-    <string name="personalities_summary_label" formatted="false">Executive Summary</string>
-    <string name="personalities_summary_description" formatted="false">One top-line takeaway, then 3 key bullet points.</string>
+    <string name="personalities_personal_label" formatted="false">Personal Files</string>
+    <string name="personalities_personal_description" formatted="false">Answers only from your own files: notes, PDFs, spreadsheets.</string>
     <string name="personalities_custom_label" formatted="false">Custom</string>
     <string name="personalities_custom_description" formatted="false">Write your own system prompt.</string>
     <string name="executionTelemetry_title" formatted="false">Execution Telemetry</string>
@@ -691,7 +691,7 @@
     <string name="flows_row_fitWhy_insufficient" formatted="false">Not enough free memory on this phone</string>
     <string name="flows_assistant_sub_compact" formatted="false">Quicker answers, less memory</string>
     <string name="flows_assistant_sub_default" formatted="false">Better answers, a bit slower</string>
-    <string name="flows_knowledge_topicPacksTitle" formatted="false">Topic packs</string>
+    <string name="flows_knowledge_topicPacksTitle" formatted="false">BOAR Knowledge</string>
     <string name="flows_knowledge_topicPacksFooter" formatted="false">Collections on one subject, readable without internet. Each file is checked before use.</string>
     <string name="nav_knowledge" formatted="false">Knowledge</string>
 </resources>
