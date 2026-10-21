@@ -544,4 +544,5 @@
     <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
     <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
     <string name="native_vault_teaser" formatted="false">Keep using BOAR and you\'ll keep finding truffles: each one is a boar to wear, and some unlock new themes. Which questions dig them up is part of the fun.</string>
+    <string name="native_documents_moreFiles" formatted="false">+{{count}} more</string>
 </resources>

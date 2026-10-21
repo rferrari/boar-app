@@ -94,11 +94,15 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                         Text(col.name, style = Boar.type.titleSm, color = c.textHeading)
                         Text(t("personalDocumentsManager.docCount", "count" to col.docCount) + " · " + t("personalDocumentsManager.chunkCount", "count" to col.chunkCount),
                             style = Boar.type["mono.xs"], color = c.textDim)
-                        col.sourceFilename?.let { Text(it, style = Boar.type.micro, color = c.textDim, maxLines = 1) }
+                        // Its files, up to three (DocumentImport joins them with ", "), then how many more.
+                        col.sourceFilename?.split(", ")?.filter { it.isNotBlank() }?.let { names ->
+                            names.take(3).forEach { Text(it, style = Boar.type.micro, color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+                            if (names.size > 3) Text(t("native.documents.moreFiles", "count" to names.size - 3), style = Boar.type.micro, color = c.textDim)
+                        }
                     }
                     Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
                     Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
                 }
             }
