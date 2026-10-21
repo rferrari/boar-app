@@ -477,8 +477,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
 private fun ExperimentalSection(services: BoarServices) {
     Section(t("native.settings.experimental"), collapsible = true) {
         Note(t("native.settings.experimentalNote"))
-        val avatarsOn by services.vault.enabled.collectAsState()
-        SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
+        // Boarverse's switch is hidden for now (Oct 21); its code stays.
         team.sopa.boar.labs.LabHooks.SettingsRow()
     }
 }
