@@ -78,17 +78,47 @@ class MainActivity : ComponentActivity() {
     private val locked = mutableStateOf(false)
     private var stoppedAt = 0L
 
+    /**
+     * With a PIN, the screen is secure: blank in recent apps, screenshots and screen recordings, so chats can't be seen
+     * there without the PIN. Without one, screenshots work as usual. Checked on every resume and pause, so a PIN set or
+     * removed in Settings applies before the recent-apps picture is taken.
+     */
+    private fun applySecure() {
+        val flag = android.view.WindowManager.LayoutParams.FLAG_SECURE
+        if (BoarServices.get(this).pinLock.isSet) window.addFlags(flag) else window.clearFlags(flag)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applySecure()
+    }
+
+    override fun onPause() {
+        applySecure()
+        super.onPause()
+    }
+
     override fun onStop() {
         super.onStop()
+        team.sopa.boar.app.DebugLog.foreground(false)
         // A rotation or font change stops and starts the activity: that isn't leaving BOAR.
         if (!isChangingConfigurations) BoarServices.get(this).onBackground()
         stoppedAt = android.os.SystemClock.elapsedRealtime() // not the wall clock: changing the time can't skip the lock
+        // The equipped boar goes on the launcher now that BOAR is off screen (switching it while open closes the app).
+        if (!isChangingConfigurations) BoarServices.get(this).vault.applyIcon()
     }
 
     override fun onStart() {
         super.onStart()
+        team.sopa.boar.app.DebugLog.foreground(true)
         BoarServices.get(this).onForeground()
         if (stoppedAt > 0 && BoarServices.get(this).pinLock.isSet && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        team.sopa.boar.app.DebugLog.trimMemory(level)
+        BoarServices.get(this).onTrimMemory(level)
     }
 
     /** Settings → Screen rotation: Auto follows the phone's own rotation lock; Portrait and Landscape hold it. */
@@ -104,10 +134,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val services = BoarServices.get(this)
+        // A PIN set or removed in Settings protects the screen now, not only after BOAR next pauses.
+        services.pinLock.onChange = { runOnUiThread { applySecure() } }
+        team.sopa.boar.labs.LabHooks.init(this)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
+        kotlin.concurrent.thread(name = "vault") { services.checkVault() }
         applyOrientation(services.settings.screenOrientation)
         setContent {
+            val equipped by services.vault.icon.collectAsState()
+            val avatarsOn by services.vault.enabled.collectAsState()
+            val truffle = equipped.takeIf { avatarsOn }
             var theme by remember { mutableStateOf(services.settings.themeId) }
             var fontScale by remember { mutableStateOf(services.settings.fontScale) }
             val prefs = object : DisplayPrefs {
@@ -116,9 +153,17 @@ class MainActivity : ComponentActivity() {
                 override fun setOrientation(mode: String) { applyOrientation(mode) }
                 override fun setLanguage(id: String?) { recreate() }
             }
-            BoarTheme(theme, fontScale) {
-                if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
-                else App(services, prefs)
+            androidx.compose.runtime.CompositionLocalProvider(team.sopa.boar.appearance.LocalTruffle provides truffle) {
+                // A theme unlocked by Boar Avatars applies only while that experiment is on.
+                BoarTheme(theme.takeIf { avatarsOn || it == null || it in team.sopa.boar.ui.theme.Themes.open }, fontScale) {
+                    if (locked.value) team.sopa.boar.ui.security.LockScreen(services.pinLock) { locked.value = false }
+                    else androidx.compose.foundation.layout.Box {
+                        App(services, prefs)
+                        team.sopa.boar.ui.appearance.FreshTruffle(services.vault)
+                        // The one toast, over every screen (Toasts).
+                        team.sopa.boar.ui.ToastHost(Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                    }
+                }
             }
         }
     }
@@ -163,6 +208,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onSkip = if (wasReady) ({ setup.forget(); vm.refreshSettings(); screen = "chat" }) else null,
             // Cleared first: a model added earlier from Models must not be picked the moment the page opens.
             onBrowse = { setupModels.clearAdded(); browsing = true },
+            // The tour's theme card: the same write as Settings → Display & Theme.
+            themeId = services.settings.themeId,
+            onTheme = { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
         ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
         return
     }
@@ -175,14 +223,14 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val (_, flow, back) = screen.split(":")
         BackHandler { screen = back }
         team.sopa.boar.ui.security.PinSetup(services.pinLock, team.sopa.boar.ui.security.PinFlow.valueOf(flow),
-            onDone = { vm.refreshSettings(); screen = back }, onCancel = { screen = back })
+            onDone = { vm.refreshSettings(); services.checkVault(); screen = back }, onCancel = { screen = back })
         return
     }
     if (screen == "models") {
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
-        BackHandler { vm.refreshModel(); screen = "chat" }
-        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }) { vm.refreshModel(); screen = "chat" }
+        BackHandler { vm.refreshModel(); services.checkVault(); screen = "chat" }
+        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }) { vm.refreshModel(); services.checkVault(); screen = "chat" }
         return
     }
     if (screen == "browse") {
@@ -198,7 +246,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
         BackHandler { screen = "chat" }
-        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) }) { screen = "chat" }
+        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) },
+            // "Ask about them": a new chat in Personal Files, the style that answers from the user's files.
+            onAskFiles = { vm.setTone("personal"); vm.newChat(); screen = "chat" }) { screen = "chat" }
         return
     }
     if (screen == "evaluation") {
@@ -209,6 +259,17 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         DisposableEffect(evalState.running) { view.keepScreenOn = evalState.running; onDispose { view.keepScreenOn = false } }
         BackHandler { if (!evalState.running) { vm.refreshModel(); screen = "chat" } }
         EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null) { vm.refreshModel(); screen = "chat" }
+        return
+    }
+    if (screen == "vault") {
+        BackHandler { screen = "settings" }
+        team.sopa.boar.ui.appearance.VaultScreen(services.vault) { screen = "settings" }
+        return
+    }
+    if (team.sopa.boar.labs.LabHooks.handles(screen)) {
+        // Back in the chat from Labs: a lab may have changed the answer model (Big Boar's "Answer with this model").
+        BackHandler { if (screen == "labs") { vm.refreshSettings(); screen = "chat" } else screen = "labs" }
+        team.sopa.boar.labs.LabHooks.Screen(screen) { if (it == "chat") vm.refreshSettings(); screen = it }
         return
     }
     if (screen == "about") {
@@ -234,16 +295,36 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     // Menu → Close BOAR: the answer stops (what it wrote is saved), the model is freed, the app closes. Chats are saved.
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     var confirmClose by remember { mutableStateOf(false) }
+    // The chat the menu's 🗑️ is about to delete, while Settings asks to confirm first.
+    var confirmDelete by remember { mutableStateOf<String?>(null) }
     var closing by remember { mutableStateOf(false) }
+    // Boar Labs: green rain with each closing step for a moment, so closing reads as BOAR putting things away.
+    var closeStage by remember { mutableStateOf<String?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     fun closeBoar() {
         if (closing) return
         closing = true
-        scope.launch { if (runCatching { vm.closeAndFreeMemory() }.getOrDefault(true)) activity?.finishAndRemoveTask() else closing = false }
+        val rain = team.sopa.boar.labs.LabHooks.closeAnimation(ctx)
+        scope.launch {
+            suspend fun stage(s: String) { closeStage = s; if (rain) kotlinx.coroutines.delay(STAGE_MS) }
+            if (runCatching { vm.closeAndFreeMemory(::stage) }.getOrDefault(true)) { stage("closing"); activity?.finishAndRemoveTask() }
+            else { closing = false; closeStage = null }
+        }
     }
+    if (closing && closeStage != null && team.sopa.boar.labs.LabHooks.closeAnimation(ctx)) team.sopa.boar.labs.LabHooks.ClosingOverlay(closeStage!!)
     if (confirmClose) androidx.compose.material3.AlertDialog({ confirmClose = false },
         text = { Text(t("native.drawer.closeConfirm")) },
         confirmButton = { androidx.compose.material3.TextButton({ confirmClose = false; closeBoar() }) { Text(t("native.drawer.closeButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ confirmClose = false }) { Text(t("common.cancel")) } })
+    confirmDelete?.let { id ->
+        val c = Boar.colors
+        androidx.compose.material3.AlertDialog({ confirmDelete = null },
+            title = { Text(t("native.drawer.deleteConfirm")) },
+            text = { Text(t("native.drawer.deleteConfirmMessage", "title" to (sessions.firstOrNull { it.id == id }?.title ?: ""))) },
+            containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
+            confirmButton = { androidx.compose.material3.TextButton({ vm.deleteSession(id); sessions = sessions.filter { it.id != id }; confirmDelete = null }) { Text(t("native.drawer.deleteButton"), color = Boar.colors.crimson400) } },
+            dismissButton = { androidx.compose.material3.TextButton({ confirmDelete = null }) { Text(t("common.cancel")) } })
+    }
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {
@@ -257,21 +338,28 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                     items = listOf(
                         DrawerItem("knowledge", t("nav.knowledge")) { go { screen = "documents" } },
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
-                        DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } },
-                        // Settings, then Close BOAR last (Oct 18); About opens from the BOAR mark at the top.
                         DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
                         DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
-                    ),
+                    ).let { items ->
+                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
+                        if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
+                        else items.take(2) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(2)
+                    }.let { items ->
+                        // Boar Labs, then Settings, then Close BOAR last (Oct 18); About opens from the BOAR mark at the top.
+                        val labs = team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } }
+                        val last = setOf("settings", "close")
+                        items.filter { it.key !in last } + labs + items.filter { it.key in last }
+                    },
                     onAbout = { go { screen = "about" } },
                     lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
-                    storageBudgetBytes = services.catalog.storageBudgetBytes,
+                    storageBudgetBytes = team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes),
                     showStats = state.technicalDetails,
                     answering = state.answeringId != null,
                     onNewChat = { go { vm.newChat() } },
                     onSelect = { id -> go { vm.openSession(id) } },
-                    onDelete = { id -> vm.deleteSession(id); sessions = sessions.filter { it.id != id } },
+                    onDelete = { id -> if (services.settings.confirmChatDelete) confirmDelete = id else { vm.deleteSession(id); sessions = sessions.filter { it.id != id } } },
                 )
             }
         },
@@ -288,6 +376,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onRate = vm::rate,
             onRedo = vm::redoWithLimit,
             onRetry = vm::retry,
+            onAskModel = vm::askModel,
             onDismissLoadNote = vm::dismissLoadNote,
             onRetryLessMemory = vm::retryWithLessMemory,
             onLoadAnyway = vm::loadAnyway,
@@ -295,6 +384,10 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
             voiceEnabled = services.settings.voiceInputEnabled,
+            onOpenRoute = { screen = it },
         )
     }
 }
+
+/** How long each closing step shows in the Boar Labs animation: about 1.6 s for the four. */
+private const val STAGE_MS = 350L

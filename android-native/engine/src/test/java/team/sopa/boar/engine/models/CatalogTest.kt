@@ -11,7 +11,7 @@ class CatalogTest {
 
     @Test fun `answer models are the default then the compact tier`() {
         assertEquals("qwen3-4b-instruct-2507-q4km", catalog.defaultAnswerModel.id)
-        assertEquals("qwen2.5-1.5b-instruct-q4km", catalog.compactAnswerModel.id)
+        assertEquals("qwen3-1.7b-q4km", catalog.compactAnswerModel.id)
         assertEquals(listOf(AnswerTier.DEFAULT, AnswerTier.COMPACT), catalog.answerModels.map { it.answerTier })
     }
 
@@ -37,6 +37,15 @@ class CatalogTest {
     @Test fun `every tier points at corpus assets that exist`() {
         val corpus = catalog.corpusCatalog.map { it.id }.toSet()
         catalog.tiers.forEach { t -> t.corpusPackIds.forEach { assertTrue("${t.id}: $it", it in corpus) } }
+    }
+
+    @Test fun `architecture is optional, so older catalogs and saved models still parse`() {
+        assertTrue(catalog.models.all { it.architecture == null })
+        val asset = """{"id":"hf-a-b","kind":"llm","label":"b","filename":"models/hf-a-b.gguf","sizeBytes":1,"sha256":"","sourceUrl":"u","license":"l","description":"d","required":false}"""
+        val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+        assertEquals(null, json.decodeFromString(CatalogAsset.serializer(), asset).architecture)
+        val withArch = asset.dropLast(1) + ""","architecture":"lfm2moe"}"""
+        assertEquals("lfm2moe", json.decodeFromString(CatalogAsset.serializer(), withArch).architecture)
     }
 
     @Test fun `Phi-3_5-mini is no longer suggested, and nothing setup needs is hidden`() {

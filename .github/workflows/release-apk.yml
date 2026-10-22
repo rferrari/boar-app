@@ -1,8 +1,9 @@
 name: Release APK
 
-# Builds the Android APK signed with BOAR's release key, checks it
+# Builds the native Android app (android-native/) signed with BOAR's release key, checks it
 # (scripts/check-release-apk.sh: package, versionCode, signer) and, when a tag is
-# given, creates a draft GitHub Release with it. Nobody's laptop needs the key.
+# given, creates a draft GitHub Release with it. The version name is the tag without its v; the
+# versionCode is the one in android-native/app/build.gradle.kts. Nobody's laptop needs the key.
 #
 # The key lives only in the "release" environment's secrets (docs/RELEASING.md),
 # which can only be used from main, so a branch with an edited workflow can't
@@ -11,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to create as a draft (e.g. v1.1.0). Leave empty to only build."
+        description: "Release tag to create as a draft (e.g. v2.0.0); also the version name. Leave empty to only build."
         required: false
         default: ""
 
@@ -31,16 +32,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          submodules: recursive
           persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - run: npm ci
+      - uses: android-actions/setup-android@v3
+        with:
+          # The default list includes "tools", which sdkmanager no longer has.
+          packages: platform-tools
+      # The NDK and CMake the engine module pins, read from its build file so they can't drift.
+      - name: Install NDK and CMake
+        run: |
+          ndk=$(sed -n 's/.*ndkVersion = "\(.*\)".*/\1/p' android-native/engine/build.gradle.kts)
+          cmake=$(sed -n 's/.*version = "\([0-9.]*\)".*/\1/p' android-native/engine/build.gradle.kts | head -1)
+          echo "NDK $ndk, CMake $cmake"
+          sdkmanager "ndk;$ndk" "cmake;$cmake"
+      - uses: gradle/actions/setup-gradle@v4
+
+      # The version comes from the tag (v2.0.0 -> 2.0.0); without a tag the build keeps build.gradle.kts's dev name.
+      - name: Version
+        id: version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [ -z "$TAG" ] && [ "$GITHUB_REF_TYPE" = tag ]; then TAG=$GITHUB_REF_NAME; fi
+          if [ -n "$TAG" ]; then
+            [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "tag must look like v1.2.3"; exit 1; }
+            echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
+            echo "apk=boar-$TAG-arm64.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "apk=boar-dev-${GITHUB_SHA::8}-arm64.apk" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install the release key
         env:
@@ -62,25 +86,25 @@ jobs:
             echo "BOAR_UPLOAD_KEY_PASSWORD=$KEY_PASSWORD"
           } >> ~/.gradle/gradle.properties
 
+      # No .env here, so the build has no Share results button (EVAL_SHARING off). The Labs switches are built in;
+      # the labs' own executables (scripts/build-sd-cli.sh, scripts/build-lab-engines.sh) are not built here.
       - name: Build
+        working-directory: android-native
         env:
-          # Public by design (the publishable key); empty means no "Share results" button.
-          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
         run: |
-          npx expo prebuild -p android --clean --no-install
-          (cd android && ./gradlew --no-daemon :app:assembleRelease -PreactNativeArchitectures=arm64-v8a)
+          ./gradlew --no-daemon :app:assembleRelease -Pboar.experimentalFeatures=true ${VERSION_NAME:+-Pboar.versionName=$VERSION_NAME}
 
       - name: Check package, versionCode and signer
-        run: scripts/check-release-apk.sh android/app/build/outputs/apk/release/app-release.apk
+        run: scripts/check-release-apk.sh android-native/app/build/outputs/apk/release/app-release.apk
 
       - name: Name it as the release does
+        env:
+          APK: ${{ steps.version.outputs.apk }}
         run: |
-          version=$(node -p "require('./app.json').expo.version")
-          name="boar-v${version}-arm64.apk"
           mkdir -p out
-          mv android/app/build/outputs/apk/release/app-release.apk "out/$name"
-          (cd out && sha256sum "$name" > "$name.sha256" && cat "$name.sha256")
+          mv android-native/app/build/outputs/apk/release/app-release.apk "out/$APK"
+          (cd out && sha256sum "$APK" > "$APK.sha256" && cat "$APK.sha256")
 
       - name: Remove the key
         if: always()
@@ -112,9 +136,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
-          version=$(node -p "require('./app.json').expo.version")
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "tag must look like v1.2.3"; exit 1; }
-          [ "$TAG" = "v$version" ] || { echo "tag $TAG doesn't match app.json's version $version"; exit 1; }
           # An existing tag must be this commit: --target is ignored for a tag that's already there.
           # (git ls-remote prints nothing for a missing tag; gh api printed its error JSON instead.)
           refs=$(git ls-remote --tags "https://github.com/$GITHUB_REPOSITORY.git" "refs/tags/$TAG" "refs/tags/$TAG^{}")

@@ -19,12 +19,12 @@
       "styleReminderSmall": "Be thorough: 3-5 paragraphs that cover the key points in depth. Leave out examples, figures and names you are not sure of. Don't repeat yourself."
     },
     {
-      "id": "summary",
-      "label": "Executive Summary",
-      "icon": "📋",
-      "description": "One top-line takeaway, then 3 key bullet points.",
-      "systemPrompt": "You are Boar. Provide a 1-sentence top-line key takeaway followed by 3 short bullet points summarizing the answer.",
-      "styleReminder": "Use exactly this format and nothing else:\n<one-sentence key takeaway>\n- <point 1>\n- <point 2>\n- <point 3>"
+      "id": "personal",
+      "label": "Personal Files",
+      "icon": "🗂️",
+      "description": "Answers only from your own files: notes, PDFs, spreadsheets.",
+      "systemPrompt": "Answer only from the user's files in the context. Start with the exact fact the question asks for, with numbers, names and dates as the file writes them. Then add two to four sentences from the files that help. Never add anything the files don't say.",
+      "styleReminder": "Exact fact first, as written in the file; then two to four sentences, only from the files."
     },
     {
       "id": "custom",

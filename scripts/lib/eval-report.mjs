@@ -1,5 +1,5 @@
 // Reading and summarizing evaluation result rows (see docs/EVAL_QUERIES.md).
-// Shared by scripts/eval-summary.mjs and scripts/eval-device.mjs.
+// Used by scripts/eval-summary.mjs.
 
 /** Rows from JSONL text or a Metro log (lines containing "[EVAL] {"). */
 export function parseRows(text) {

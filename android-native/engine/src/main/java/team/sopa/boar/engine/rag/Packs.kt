@@ -66,8 +66,11 @@ object Packs {
 
     data class Found(val lexical: List<Chunk>, val semantic: List<Chunk>)
 
-    /** Lexical and semantic candidates from one format-1 pack, scored like the built-in knowledge base's. */
-    fun searchFormat1(db: SqlDatabase, packId: String, query: String, queryVec: FloatArray, limit: Int, explain: Boolean? = null): Found {
+    /** Lexical and semantic candidates from one format-1 pack, scored like the built-in knowledge base's; [minSimilarity] floors the semantic ones. */
+    fun searchFormat1(
+        db: SqlDatabase, packId: String, query: String, queryVec: FloatArray, limit: Int, explain: Boolean? = null,
+        minSimilarity: Double = RagPure.MIN_SEMANTIC_SIMILARITY,
+    ): Found {
         val lq = RagPure.buildLexicalQuery(query) ?: return Found(emptyList(), emptyList())
         data class Row(val id: Long, val title: String, val body: String, val vec: ByteArray, val rank: Double, val source: String?)
         val rows = db.query(
@@ -83,7 +86,7 @@ object Packs {
         )
         var lex = RagPure.filterByTermCoverage(rows.map { chunk(it, -it.rank, MatchType.LEXICAL) }, lq.terms).take(limit)
         var sem = rows.map { chunk(it, RagPure.cosineInt8(queryVec, it.vec), MatchType.SEMANTIC) }
-            .sortedByDescending { it.score }.filter { it.score >= RagPure.MIN_SEMANTIC_SIMILARITY }.take(limit)
+            .sortedByDescending { it.score }.filter { it.score >= minSimilarity }.take(limit)
         if (explain ?: Explain.EXPLAIN_INTENT.containsMatchIn(query)) {
             lex = Explain.explainingFirst(lex, lq.terms)
             sem = Explain.explainingFirst(sem, lq.terms)

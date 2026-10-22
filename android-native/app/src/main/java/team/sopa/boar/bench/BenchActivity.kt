@@ -1,5 +1,11 @@
 package team.sopa.boar.bench
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.SliderDefaults
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Bundle
@@ -8,6 +14,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -68,8 +76,36 @@ class BenchActivity : ComponentActivity() {
         val log = mutableStateOf("${BoarEngine.systemInfo()}\ncores: ${topology.cores.joinToString { "${it.id}@${it.maxKhz / 1000}MHz" }}\nbig: ${topology.bigCores}\n")
         val models = modelFiles()
 
-        // Only on a fresh start: a recreated activity must not load a second copy of the model.
-        if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
+        // adb only (BenchActivity needs DUMP): open every Boarverse theme on this phone, for testing them all.
+        if (savedInstanceState == null && intent.getStringExtra("run") == "themes") {
+            val vault = team.sopa.boar.app.BoarServices.get(this).vault
+            team.sopa.boar.ui.theme.Themes.extras.forEach { vault.grantTheme(it.id) }
+            log.value += "themes opened: ${team.sopa.boar.ui.theme.Themes.extras.joinToString { it.id }}\n"
+            Log.i("BOAR_BENCH", "themes opened")
+        // Only on a fresh start: a recreated activity must not load a second copy of the model. Not after "themes".
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "labtest") {
+            // adb only: a lab's self-test without its screen (--es lab image|printer --es args "all=1;seed=7"), logged as BOAR_LABTEST.
+            val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_LABTEST", line) }
+            val id = intent.getStringExtra("lab").orEmpty()
+            val args = intent.getStringExtra("args").orEmpty().split(';').mapNotNull { kv -> kv.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0].trim() to it[1].trim() } }.toMap()
+            lifecycleScope.launch {
+                team.sopa.boar.labs.LabPrefs.init(this@BenchActivity)
+                if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = applicationContext
+                val lab = team.sopa.boar.labs.LabRegistry.ALL.firstOrNull { it.id == id }
+                val ran = runCatching { lab?.selfTest(this@BenchActivity, args, say) == true }.onFailure { say("FAIL labtest $id: $it") }.getOrDefault(true)
+                if (!ran) say("FAIL labtest: no self-test for lab \"$id\"")
+                say("labtest end")
+            }
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "retrieval") {
+            // scripts/retrieval-parity.mjs: the app's own retrieval on the questions it sent, results for the desktop.
+            val say: (String) -> Unit = { line -> log.value += line + "\n"; Log.i("BOAR_PARITY", line) }
+            lifecycleScope.launch {
+                runCatching { team.sopa.boar.eval.RetrievalParityRunner.run(
+                    this@BenchActivity, String(android.util.Base64.decode(intent.getStringExtra("q64") ?: "", android.util.Base64.DEFAULT), Charsets.UTF_8),
+                    intent.getBooleanExtra("copyPacks", false), say,
+                ) }.onFailure { say("retrieval parity failed: $it") }
+            }
+        } else if (savedInstanceState == null && intent.getStringExtra("run") == "eval") {
             // scripts/eval-device.mjs --package team.sopa.aoair.native --no-reload: wait for its request, answer it.
             val runner = team.sopa.boar.eval.DeviceEvalRunner(
                 this,
@@ -100,8 +136,11 @@ class BenchActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFFFF7A3D), background = Color(0xFF17110D))) {
-                BenchScreen(models, topology, log.value, onLog = { log.value += it + "\n" }, onRun = { run, model, params -> lifecycleScope.launch { runHeadless(run, model, params, log) } })
+            // The phone's own BOAR theme and text size.
+            val st = team.sopa.boar.app.BoarServices.get(this).settings
+            team.sopa.boar.ui.theme.BoarTheme(st.themeId, st.fontScale) {
+                BenchScreen(models, topology, log.value, onLog = { log.value += it + "\n" }, onRun = { run, model, params -> lifecycleScope.launch { runHeadless(run, model, params, log) } },
+                    onBack = { finish() })
             }
         }
     }
@@ -200,6 +239,7 @@ private fun BenchScreen(
     log: String,
     onLog: (String) -> Unit,
     onRun: (String, File?, EngineParams) -> Unit,
+    onBack: () -> Unit,
 ) {
     var model by remember { mutableStateOf(models.firstOrNull()) }
     var threads by remember { mutableStateOf(4f) }
@@ -219,35 +259,53 @@ private fun BenchScreen(
         typeK = kv, typeV = kv, flashAttn = fa,
     )
 
-    Column(
-        Modifier.fillMaxSize().background(Color(0xFF17110D)).padding(16.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text("BOAR engine bench", color = Color(0xFFFFF4E8), fontSize = 22.sp)
-        if (models.isEmpty()) Text("Push a .gguf to Android/data/team.sopa.aoair.native/files/models", color = Color(0xFFF2C14E))
-        models.forEach { f ->
-            FilterChip(selected = model == f, onClick = { model = f }, label = { Text("${f.name} · ${f.length() / 1_000_000} MB") })
+    val c = team.sopa.boar.ui.theme.Boar.colors
+    val type = team.sopa.boar.ui.theme.Boar.type
+    // Settings' layout (header, section cards, chips, link buttons), so the bench reads as part of BOAR. adb only.
+    Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
+        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("←", style = type.titleLg, color = c.textPrimary, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
+            Text("Engine bench", style = type.titleLg, color = c.textHeading, modifier = Modifier.weight(1f))
+            Text("ADB ONLY", style = type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
         }
-        Text("Threads: ${threads.toInt()}", color = Color(0xFFD8CABA))
-        Slider(value = threads, onValueChange = { threads = it }, valueRange = 1f..topology.cores.size.coerceAtLeast(1).toFloat(), steps = (topology.cores.size - 2).coerceAtLeast(0))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = !bigOnly, onClick = { bigOnly = false }, label = { Text("Any core") })
-            FilterChip(selected = bigOnly, onClick = { bigOnly = true }, label = { Text("Big cores ${topology.bigCores}") })
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            team.sopa.boar.ui.BoarSection("Model") {
+                if (models.isEmpty()) Text("Push a .gguf to Android/data/<package>/files/models", style = type.subtext, color = c.textAccentAmber)
+                else team.sopa.boar.ui.settings.Choices(null, models.map { it to "${it.name} · ${it.length() / 1_000_000} MB" }, model) { model = it }
+            }
+            team.sopa.boar.ui.BoarSection("Engine") {
+                Text("Threads: ${threads.toInt()}", style = type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
+                Slider(value = threads, onValueChange = { threads = it }, valueRange = 1f..topology.cores.size.coerceAtLeast(1).toFloat(),
+                    steps = (topology.cores.size - 2).coerceAtLeast(0), colors = SliderDefaults.colors(thumbColor = c.emerald500, activeTrackColor = c.emerald500, inactiveTrackColor = c.bgSubtle))
+                team.sopa.boar.ui.settings.Choices("Cores", listOf(false to "Any core", true to "Big cores ${topology.bigCores}"), bigOnly) { bigOnly = it }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    BenchField("n_ctx", nCtx, Modifier.weight(1f)) { nCtx = it }
+                    BenchField("n_batch", batch, Modifier.weight(1f)) { batch = it }
+                }
+                team.sopa.boar.ui.settings.Choices("KV cache", KvType.entries.map { it to it.name }, kv) { kv = it }
+                team.sopa.boar.ui.settings.Choices("Flash attention", FlashAttn.entries.map { it to it.name }, fa) { fa = it }
+            }
+            team.sopa.boar.ui.BoarSection("Run") {
+                team.sopa.boar.ui.settings.LinkButton("Bench pp512 / tg128") { onRun("bench", model, params()) }
+                team.sopa.boar.ui.settings.LinkButton("Ask") { onRun("ask", model, params()) }
+            }
+            team.sopa.boar.ui.BoarSection("Log") {
+                Text(log, style = type["mono.xs"], color = c.textSecondary, modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(8.dp)).padding(10.dp))
+            }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(nCtx, { nCtx = it }, label = { Text("n_ctx") }, modifier = Modifier.weight(1f))
-            OutlinedTextField(batch, { batch = it }, label = { Text("n_batch") }, modifier = Modifier.weight(1f))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            KvType.entries.forEach { k -> FilterChip(selected = kv == k, onClick = { kv = k }, label = { Text("KV $k") }) }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FlashAttn.entries.forEach { f -> FilterChip(selected = fa == f, onClick = { fa = f }, label = { Text("FA $f") }) }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { onRun("bench", model, params()) }, modifier = Modifier.weight(1f)) { Text("Bench pp512/tg128") }
-            Button(onClick = { onRun("ask", model, params()) }, modifier = Modifier.weight(1f)) { Text("Ask") }
-        }
-        Text(log, color = Color(0xFFD8CABA), fontFamily = FontFamily.Monospace, fontSize = 11.sp, modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/** A number field as Settings would draw it: its label above, the input box below. */
+@Composable
+private fun BenchField(label: String, value: String, modifier: Modifier, onValue: (String) -> Unit) {
+    val c = team.sopa.boar.ui.theme.Boar.colors
+    val type = team.sopa.boar.ui.theme.Boar.type
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
+        androidx.compose.foundation.text.BasicTextField(value, onValue, singleLine = true, textStyle = type.body.copy(color = c.textPrimary),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(c.emerald500),
+            modifier = Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp))
     }
 }

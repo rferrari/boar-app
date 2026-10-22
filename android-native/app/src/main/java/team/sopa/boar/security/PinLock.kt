@@ -33,6 +33,9 @@ class PinLock(
 
     val isSet: Boolean get() = settings.pinWrapped != null
 
+    /** Called after a PIN is set, changed or removed: the screen's protection follows it at once (MainActivity). */
+    @Volatile var onChange: (() -> Unit)? = null
+
     /** Seconds before another try is allowed (after too many wrong PINs). */
     fun waitSeconds(now: Long = System.currentTimeMillis()): Long = ((settings.pinLockedUntil - now) / 1000).coerceAtLeast(0)
 
@@ -89,6 +92,8 @@ class PinLock(
     /** Forgot the PIN: the chats can't be opened any more, so they're erased with the key. */
     fun forget() {
         chats.clearAll()
+        // What the labs made goes too: pictures and illustrations can show what the chats were about.
+        runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
         chats.cipher = PlainCipher
         clear()
     }
@@ -108,6 +113,7 @@ class PinLock(
         settings.pinWrapped = Base64.encodeToString(keystoreSeal(pinSealed), Base64.NO_WRAP)
         settings.pinFailures = 0
         settings.pinLockedUntil = 0
+        onChange?.invoke()
     }
 
     private fun clear() {
@@ -116,6 +122,7 @@ class PinLock(
         settings.pinFailures = 0
         settings.pinLockedUntil = 0
         runCatching { keyStore().deleteEntry(alias) }
+        onChange?.invoke()
     }
 
     private fun keyStore() = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }

@@ -91,6 +91,10 @@ fun BrowseScreen(
                 HfQuery.Sort.TRENDING to t("native.browse.sortTrending"), HfQuery.Sort.DOWNLOADS to t("native.browse.sortDownloads"),
                 HfQuery.Sort.LIKES to t("native.browse.sortLikes"), HfQuery.Sort.NEWEST to t("native.browse.sortNewest"),
             ), state.hfSort) { vm.hfBrowse(query.trim(), sort = it) }
+            // Boar Labs' Big Boar runs a mixture of experts bigger than the phone's memory: only while it's on.
+            if (team.sopa.boar.labs.LabHooks.moeFilter()) ChipRow(t("native.browse.kind"), listOf(
+                false to t("native.browse.kindAll"), true to t("native.browse.kindMoe"),
+            ), state.hfMoe) { vm.hfBrowse(query.trim(), moe = it) }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         LazyColumn(state = list, contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
@@ -106,7 +110,7 @@ fun BrowseScreen(
             if (state.hfSearching) item { Busy(if (state.hfResults.isEmpty()) "…" else t("native.browse.more")) }
         }
     }
-    if (rowActions) state.toast?.let { team.sopa.boar.ui.chat.Toast(it, vm::toastShown) }
+    if (rowActions) state.toast?.let { androidx.compose.runtime.LaunchedEffect(it) { team.sopa.boar.ui.Toasts.show(it); vm.toastShown() } }
     }
 }
 
@@ -122,8 +126,10 @@ private fun sizeLabel(s: HfQuery.Size): String = when (s) {
 @Composable
 internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val c = Boar.colors
-    Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
+    // Wraps: scrolling sideways cut the first and last chips at the edges (Large text, Oct 15).
+    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.CenterVertically))
         for ((value, text) in options) {
             val on = value == selected
             Text(text, style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary,
@@ -139,9 +145,12 @@ private fun RepoCard(r: HfBrowser.Repo, state: ModelsState, vm: ModelsViewModel,
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         // Only the header opens and closes the repo; tapping a file below doesn't collapse it.
-        Column(Modifier.fillMaxWidth().clickable { vm.hfOpen(r.id) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        // A gated repo can't be downloaded without an account: it says so and doesn't open.
+        Column(Modifier.fillMaxWidth().clickable(enabled = !r.gated) { vm.hfOpen(r.id) }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(r.id, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
             Text(listOfNotNull(r.params?.let(HfQuery::formatParams), r.architecture).joinToString(" · "), style = Boar.type.subtext, color = c.textSecondary)
+            team.sopa.boar.labs.LabHooks.browseHint(r.id, r.architecture)?.let { Text(t(it), style = Boar.type.subtext, color = c.textAccentCyan) }
+            if (r.gated) Text(t("native.browse.gated"), style = Boar.type.subtext, color = c.textAccentAmber)
             Text(t("modelBrowser.downloadsLikes", "downloads" to (r.downloads ?: 0), "likes" to (r.likes ?: 0)) + " · " + t("native.browse.unvetted"),
                 style = Boar.type.micro, color = c.textDim)
         }

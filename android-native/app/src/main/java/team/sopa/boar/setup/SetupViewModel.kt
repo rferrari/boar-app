@@ -114,9 +114,10 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     init {
         val ram = runCatching { ActivityManager.MemoryInfo().also { app.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }.totalMem }.getOrDefault(0L)
         // Only the built-in suggested models: models added from Hugging Face come in through "Discover GGUF models"
-        // (pickDiscovered), one at a time, as the user picks them.
+        // (pickDiscovered), one at a time, as the user picks them; a Labs engine's model (Big Boar, Hummingbird) is
+        // copied over USB and never set up here.
         val added = services.discovered().map { it.id }.toSet()
-        val answer = services.catalog.setupModels.filter { it.id !in added }
+        val answer = services.catalog.setupModels.filter { it.engine == null && it.id !in added }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
         _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id) }
         restore()
@@ -202,6 +203,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun isHeavy(m: CatalogAsset) = SetupModel.heavyForPhone(m, _state.value.totalRamBytes)
+    fun isPicked(m: CatalogAsset) = SetupModel.picked(m, _state.value.totalRamBytes)
 
     /** The package's files: the required ones (search model), the chosen answer model and the tier's collections. */
     private fun assetsOf(p: SetupPackage): List<CatalogAsset> {
@@ -252,7 +254,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         while (true) {
             try {
                 var shownAt = 0L
-                store.download(a) { p ->
+                team.sopa.boar.app.DebugLog.download(a.id, a.sizeBytes) { store.download(a) { p ->
                     // At most 4 screen updates a second: one per downloaded chunk swamped the UI thread.
                     val now = System.currentTimeMillis()
                     val verifying = p.phase == AssetStore.Progress.Phase.VERIFYING
@@ -261,7 +263,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
                         update(a) { it.copy(bytesDone = p.bytesDone, verifying = verifying) }
                         moved()
                     }
-                }
+                } }
                 update(a) { it.copy(done = true, bytesDone = a.sizeBytes, verifying = false) }
                 moved()
                 refreshPlans()

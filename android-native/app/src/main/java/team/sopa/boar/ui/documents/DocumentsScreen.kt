@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -48,14 +49,13 @@ import team.sopa.boar.ui.theme.Boar
 
 /** My Documents (PersonalDocumentsManager.tsx). */
 @Composable
-fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onBack: () -> Unit) {
+fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onAskFiles: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     var name by remember { mutableStateOf("") }
     var nameMissing by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf<KnowledgeBase.Collection?>(null) }
-    var exporting by remember { mutableStateOf<String?>(null) }
-    var exportError by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    // Both Knowledge sections start open; folded stays folded while the app runs.
+    var personalOpen by rememberSaveable { mutableStateOf(true) }
     val ctx = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.import(uris, name.trim()); name = "" }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
@@ -65,61 +65,69 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
-            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {
-                if (name.isEmpty()) Text(t("personalDocumentsManager.namePlaceholder"), style = Boar.type.body, color = c.textDim)
-                BasicTextField(name, { name = it }, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), singleLine = true, modifier = Modifier.fillMaxWidth())
-            }
-            val busy = state.stage != null
-            Text(t("personalDocumentsManager.pickButton"), style = Boar.type.title, color = if (busy) c.textDim else c.textInverse,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (busy) c.bgCard else c.emerald600)
-                    .clickable(enabled = !busy) {
-                        if (name.isBlank()) nameMissing = true
-                        else picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*"))
-                    }.padding(14.dp))
-            state.stage?.let { stage ->
-                val label = when (stage) {
-                    "reading" -> t("personalDocumentsManager.stageReading")
-                    "chunking" -> t("personalDocumentsManager.stageChunking")
-                    else -> t("personalDocumentsManager.stageEmbedding", "current" to state.done, "total" to state.total)
+            // Personal Files: the user's own collections, what the Personal Files style answers from. Folded, its title
+            // still says how many there are.
+            val count = state.collections.size
+            team.sopa.boar.ui.BoarSection(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count),
+                personalOpen, { personalOpen = !personalOpen }) {
+                Text(t("native.documents.personalNote"), style = Boar.type.subtext, color = c.textSecondary)
+                Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {
+                    if (name.isEmpty()) Text(t("personalDocumentsManager.namePlaceholder"), style = Boar.type.body, color = c.textDim)
+                    BasicTextField(name, { name = it }, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
-                Text(label, style = Boar.type["mono.xs"], color = c.textAccentCyan)
-                LinearProgressIndicator(progress = { if (state.total > 0) state.done.toFloat() / state.total else 0f }, modifier = Modifier.fillMaxWidth(), color = c.emerald500, trackColor = c.bgSubtle)
-            }
-            state.error?.let { Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = Boar.type.subtext, color = c.crimson400) }
-            if (state.collections.isEmpty()) Text(t("personalDocumentsManager.empty"), style = Boar.type.body, color = c.textMuted)
-            for (col in state.collections) Column(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCardElevated).border(1.dp, if (col.active) c.emeraldBorder else c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(col.name, style = Boar.type.titleSm, color = c.textHeading)
-                        Text(t("personalDocumentsManager.docCount", "count" to col.docCount) + " · " + t("personalDocumentsManager.chunkCount", "count" to col.chunkCount),
-                            style = Boar.type["mono.xs"], color = c.textDim)
-                        col.sourceFilename?.let { Text(it, style = Boar.type.micro, color = c.textDim, maxLines = 1) }
+                val busy = state.stage != null
+                Text(t("personalDocumentsManager.pickButton"), style = Boar.type.title, color = if (busy) c.textDim else c.textInverse,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (busy) c.bgCard else c.emerald600)
+                        .clickable(enabled = !busy) {
+                            if (name.isBlank()) nameMissing = true
+                            else picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*"))
+                        }.padding(14.dp))
+                state.stage?.let { stage ->
+                    val label = when (stage) {
+                        "reading" -> t("personalDocumentsManager.stageReading")
+                        "chunking" -> t("personalDocumentsManager.stageChunking")
+                        else -> t("personalDocumentsManager.stageEmbedding", "current" to state.done, "total" to state.total)
                     }
-                    Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+                    Text(label, style = Boar.type["mono.xs"], color = c.textAccentCyan)
+                    LinearProgressIndicator(progress = { if (state.total > 0) state.done.toFloat() / state.total else 0f }, modifier = Modifier.fillMaxWidth(), color = c.emerald500, trackColor = c.bgSubtle)
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(if (exporting == col.id) t("personalDocumentsManager.exporting") else "📤 " + t("personalDocumentsManager.exportButton"),
-                        fontSize = 12.sp, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(c.cyanBgSubtle).clickable(enabled = exporting == null) {
-                            exporting = col.id
-                            scope.launch {
-                                try { ctx.startActivity(vm.exportIntent(col)) } catch (e: Exception) { exportError = e.message ?: e.toString() }
-                                exporting = null
+                state.error?.let { Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = Boar.type.subtext, color = c.crimson400) }
+                // After an import: the default styles answer from everything, so point to the style that answers from the files.
+                if (state.stage == null) state.imported?.let { col ->
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCardElevated).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp)).padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(t("native.documents.importedHint", "name" to col), style = Boar.type.subtext, color = c.textSecondary)
+                        team.sopa.boar.ui.chat.ActionButton(null, t("native.documents.askAboutThem")) { vm.dismissImported(); onAskFiles() }
+                    }
+                }
+                if (state.collections.isEmpty()) Text(t("personalDocumentsManager.empty"), style = Boar.type.body, color = c.textMuted)
+                for (col in state.collections) Column(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCardElevated).border(1.dp, if (col.active) c.emeraldBorder else c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(col.name, style = Boar.type.titleSm, color = c.textHeading)
+                            Text(t("personalDocumentsManager.docCount", "count" to col.docCount) + " · " + t("personalDocumentsManager.chunkCount", "count" to col.chunkCount),
+                                style = Boar.type["mono.xs"], color = c.textDim)
+                            // Its files, up to three (DocumentImport joins them with ", "), then how many more.
+                            col.sourceFilename?.split(", ")?.filter { it.isNotBlank() }?.let { names ->
+                                names.take(3).forEach { Text(it, style = Boar.type.micro, color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+                                if (names.size > 3) Text(t("native.documents.moreFiles", "count" to names.size - 3), style = Boar.type.micro, color = c.textDim)
                             }
-                        }.padding(horizontal = 12.dp, vertical = 6.dp))
-                    Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
+                        }
+                        Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+                    }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
+                        Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
+                    }
                 }
             }
             // Your documents first, then the knowledge packs (KnowledgeScreen.tsx's order).
             packs()
         }
     }
-    exportError?.let { msg -> AlertDialog({ exportError = null }, confirmButton = { TextButton({ exportError = null }) { Text(t("native.common.ok")) } },
-        title = { Text(t("personalDocumentsManager.exportFailedTitle")) }, text = { Text(msg) }) }
     if (nameMissing) AlertDialog({ nameMissing = false }, confirmButton = { TextButton({ nameMissing = false }) { Text(t("native.common.ok")) } },
         title = { Text(t("personalDocumentsManager.nameRequiredTitle")) }, text = { Text(t("personalDocumentsManager.nameRequiredMessage")) },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary)
@@ -132,3 +140,4 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
             containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary)
     }
 }
+

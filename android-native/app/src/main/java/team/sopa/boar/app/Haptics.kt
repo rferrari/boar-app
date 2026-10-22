@@ -16,6 +16,9 @@ object Haptics {
 
     fun finished(ctx: Context) = play(ctx, VibrationEffect.EFFECT_CLICK, 30)
 
+    /** A double buzz when a classified Boar Labs tile leaks (the ten-tap easter egg). */
+    fun leak(ctx: Context) = play(ctx, VibrationEffect.EFFECT_DOUBLE_CLICK, 60)
+
     private fun play(ctx: Context, effect: Int, fallbackMs: Long) {
         if (!BoarServices.get(ctx).settings.hapticsEnabled) return
         val v = if (Build.VERSION.SDK_INT >= 31) (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager)?.defaultVibrator

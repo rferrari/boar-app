@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * The model and corpus catalog, read from assets/boar-data/catalog.json, which
- * scripts/export-native-data.mjs writes from src/models/manifest.ts (one source of truth).
+ * The model and corpus catalog, read from assets/boar-data/catalog.json. That file is the source: edit it there
+ * (it was first exported from the Expo app's manifest).
  */
 @Serializable
 data class Catalog(
@@ -73,6 +73,20 @@ data class CatalogAsset(
     val requires: List<String> = emptyList(),
     /** Curated capabilities (manifest.ts); null = not yet assessed, never an assumed capability set. */
     val capabilities: ModelCapabilities? = null,
+    /** The engine that runs it: null for BOAR's own; otherwise a Boar Labs engine plugin's id ("bmoe", "colibri"). */
+    val engine: String? = null,
+    /**
+     * An absolute path outside the app's files, for a model copied to the phone over USB instead of downloaded (a file,
+     * or an engine's model folder). Never downloaded, size-checked or deleted by the app.
+     */
+    val externalPath: String? = null,
+    /**
+     * The GGUF general.architecture ("qwen3moe") when known before the file is on the phone: from the Hugging Face listing
+     * for a discovered model, or set by a Labs engine for its own. Null when unknown (catalog.json, models added earlier).
+     */
+    val architecture: String? = null,
+    /** A second suggestion at setup, with its own badge ("fast"), on phones that run it well (SetupModel.picked). */
+    val pick: String? = null,
 ) {
     /**
      * Short UI name ("Qwen3 4B"), falling back to the technical label (manifest.ts displayNameOf); a model added from

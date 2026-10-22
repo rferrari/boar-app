@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_lunar_title" formatted="false">Boar Lunar</string>
+    <string name="native_labs_lunar_body" formatted="false">The moon tonight and this month, offline: phase, lit share, the next full and new moon.</string>
+    <string name="native_labs_lunar_lit" formatted="false">{{pct}}% lit · day {{age}} of the cycle</string>
+    <string name="native_labs_lunar_nextFull" formatted="false">NEXT FULL MOON</string>
+    <string name="native_labs_lunar_nextNew" formatted="false">NEXT NEW MOON</string>
+    <string name="native_labs_lunar_north" formatted="false">Northern hemisphere</string>
+    <string name="native_labs_lunar_south" formatted="false">Southern hemisphere</string>
+    <string name="native_labs_lunar_note" formatted="false">Worked out from the date on this phone, no internet and no location. The hemisphere only changes which side of the moon is lit. Moonrise and moonset need your location, so they are not shown.</string>
+    <string name="native_labs_lunar_phase_new" formatted="false">New moon</string>
+    <string name="native_labs_lunar_phase_waxingCrescent" formatted="false">Waxing crescent</string>
+    <string name="native_labs_lunar_phase_firstQuarter" formatted="false">First quarter</string>
+    <string name="native_labs_lunar_phase_waxingGibbous" formatted="false">Waxing gibbous</string>
+    <string name="native_labs_lunar_phase_full" formatted="false">Full moon</string>
+    <string name="native_labs_lunar_phase_waningGibbous" formatted="false">Waning gibbous</string>
+    <string name="native_labs_lunar_phase_lastQuarter" formatted="false">Last quarter</string>
+    <string name="native_labs_lunar_phase_waningCrescent" formatted="false">Waning crescent</string>
+</resources>

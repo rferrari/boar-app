@@ -67,18 +67,22 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
+        // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
+        // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
+        val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
+        val facts = ModelOrder.Facts(
+            active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
+            downloading = state.rows.filterValues { it.downloading }.keys, mine = state.mine, lastUsed = state.lastUsed, added = state.added,
+        )
+        val sorted = ModelOrder.apply(all, state.sort, state.filter, facts)
+        // The order holds while the catalog is open: a download that starts, fails or ends doesn't move its card away
+        // from the user's finger (Oct 20). It's sorted again when the sort, the filter or the set of models changes.
+        val order = remember(state.sort, state.filter, all.size) { sorted.map { it.id } }
+        val models = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
-            // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
-            // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
-            // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
-            val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
-            val facts = ModelOrder.Facts(
-                active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
-                downloading = state.rows.filterValues { it.downloading }.keys, mine = state.mine, lastUsed = state.lastUsed, added = state.added,
-            )
-            val models = ModelOrder.apply(all, state.sort, state.filter, facts)
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     ChipRow(t("native.models.sort"), listOf(
@@ -98,18 +102,19 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
             }
         }
     }
-    state.toast?.let { team.sopa.boar.ui.chat.Toast(it, vm::toastShown) }
+    state.toast?.let { androidx.compose.runtime.LaunchedEffect(it) { team.sopa.boar.ui.Toasts.show(it); vm.toastShown() } }
     }
 }
 
-/** The knowledge packs (KnowledgeScreen.tsx "Topic packs"): download, verify and remove, on the Knowledge screen. */
+/** The knowledge packs, "BOAR Knowledge" (KnowledgeScreen.tsx "Topic packs"): download, verify and remove, on the Knowledge screen. */
 @Composable
 fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel) {
     val c = Boar.colors
     val packs = state.items.filter { it.kind == AssetKind.CORPUS }
+    // Folded by default: the packs rarely change, and Personal Files above is what people come here for (Oct 21).
+    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     if (packs.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(t("flows.knowledge.topicPacksTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
+    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }) {
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)
         for (a in packs) CatalogCard(a, state.rows[a.id], state.rows[a.id]?.present == true, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
     }
@@ -148,8 +153,9 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
     ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // A Hugging Face file name reads as a name ("Meta Llama 3.1 8B Instruct · Q4_K_M").
-                Text(if (item.id.startsWith("hf-")) item.shortName else item.label, style = Boar.type.titleSm, color = c.textHeading)
+                // The short name for every model: a Hugging Face file name reads as a name ("Meta Llama 3.1 8B Instruct · Q4_K_M"),
+                // a Labs engine's model as "Qwen3.6 35B · Big Boar" (its engine's technical name is on its lab's page).
+                Text(item.shortName, style = Boar.type.titleSm, color = c.textHeading)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(t("catalogItemCard.kind.${item.kind.name.lowercase()}"), style = mono.copy(fontSize = 9.sp), fontWeight = FontWeight.Bold, color = c.textSecondary,
                         modifier = Modifier.background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
@@ -161,22 +167,22 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
             }
             StatusBadge(present, active, row?.downloading == true)
         }
-        if (item.kind == AssetKind.LLM && ramBytes > 0) {
-            val comp = Compatibility.compute(item.sizeBytes, ramBytes)
-            val (icon, fg, bg, border) = when (comp.value) {
-                "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
-                "yellow" -> listOf("🟡", c.textAccentAmber, c.amberBgSubtle, c.amberBorder)
-                "red" -> listOf("🔴", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder)
-                else -> listOf(null, null, null, null)
-            }
-            if (icon != null) Row(
-                Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Text(icon as String, fontSize = 10.sp)
-                Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
-            }
+        // The memory badge for every LLM, a Labs engine's model too: the user sees it's bigger than the phone's RAM.
+        if (item.kind == AssetKind.LLM) RamBadge(item.sizeBytes, ramBytes, streamedBy(item))
+        // A Labs engine's model, while that engine runs it (not moved to BOAR's own by the user): it streams from storage.
+        val engine = item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) }
+        val onEngine = engine?.takeIf { !team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(item) }
+        if (onEngine != null) Row(
+            Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            onEngine.engineArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: Text(onEngine.engineEmoji, fontSize = 10.sp)
+            Text(t("native.models.engineTag", "engine" to onEngine.engineLabel), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
         }
+        // Boar Labs' rows for this model (Big Boar's engine choice), or a line from a lab that's off; nothing while Labs is off.
+        team.sopa.boar.labs.LabHooks.CatalogCardExtra(item)
+        team.sopa.boar.labs.LabHooks.CatalogCardHint(item)
         // Line height follows the text size (a fixed 18 sp packed the lines at Large).
         // Models added before the rename keep the old name in their saved description.
         Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
@@ -212,14 +218,18 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             // The status takes the room left and wraps, so 🗑️ is never pushed off the card (Large text, Oct 15).
             Box(Modifier.weight(1f)) { when {
+                // Copied over USB, never downloaded: say where it goes instead of offering a download.
+                !present && item.externalPath != null -> Text(t("native.models.placeOverUsb", "engine" to (engine?.engineLabel ?: "")), style = mono, color = c.textMuted)
                 !present -> SmallButton(if (row?.error != null) t("catalogItemCard.retryDownload") else t("catalogItemCard.downloadAsset")) { vm.download(item) }
                 row?.indexing == true -> Busy(t("setupWizard.step3.buildingIndex"))
                 corpus -> Check(t("catalogItemCard.indexedNote"))
                 active -> Check(t("catalogItemCard.activeNote"))
                 activating -> Busy(t("catalogItemCard.loadingModel"))
+                onEngine != null -> SmallButton(t("native.models.selectUseEngine", "engine" to onEngine.engineLabel), enabled = !busy) { vm.use(item) }
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             } }
-            if (present && !item.required) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
+            // A Labs engine's model was copied over USB: BOAR never deletes it.
+            if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
             else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))
         }
     }
@@ -239,6 +249,45 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         dismissButton = { TextButton({ confirmUnlist = false }) { Text(t("common.cancel")) } },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
     )
+}
+
+/**
+ * The Labs engine that runs [item] from storage (Big Boar for its 35B, or for a mixture of experts the user's chip sends
+ * there), by its label; null when BOAR's own engine loads it into RAM.
+ */
+internal fun streamedBy(item: team.sopa.boar.engine.models.CatalogAsset): String? {
+    if (team.sopa.boar.plugins.EnginePlugins.prefersBuiltIn(item)) return null
+    return (item.engine?.let { team.sopa.boar.plugins.EnginePlugins.forEngine(it) } ?: team.sopa.boar.plugins.EnginePlugins.routed(item))?.engineLabel
+}
+
+/**
+ * 🟢/🟡/🔴: how a model of [sizeBytes] fits this phone's [ramBytes] (Compatibility); nothing when the RAM is unknown.
+ * A model too big for RAM that a Labs engine [streamedBy] reads from storage isn't "incompatible": it says so instead.
+ */
+@Composable
+internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = null) {
+    if (ramBytes <= 0) return
+    val c = Boar.colors
+    val mono = Boar.type["mono.xs"]
+    val comp = Compatibility.compute(sizeBytes, ramBytes)
+    if (streamedBy != null && comp.value != "green") {
+        Text("🌊 " + t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+            modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        return
+    }
+    val (icon, fg, bg, border) = when (comp.value) {
+        "green" -> listOf("🟢", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
+        "yellow" -> listOf("🟡", c.textAccentAmber, c.amberBgSubtle, c.amberBorder)
+        "red" -> listOf("🔴", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder)
+        else -> listOf(null, null, null, null)
+    }
+    if (icon != null) Row(
+        Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text(icon as String, fontSize = 10.sp)
+        Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
+    }
 }
 
 /**

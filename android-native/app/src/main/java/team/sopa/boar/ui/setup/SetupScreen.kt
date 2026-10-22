@@ -30,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,8 +69,12 @@ private val STAGES = listOf("start", "model", "knowledge", "download", "index")
  * then a summary. [onSkip] is set when setup was reopened from Settings and the app already works.
  */
 @Composable
-fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {}, onDone: () -> Unit) {
+fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {},
+    themeId: String? = null, onTheme: (String) -> Unit = {}, onDone: () -> Unit) {
     var backOpen by remember { mutableStateOf(false) }
+    // The tour lives above the steps: setup moves from download to index to done under it, and it stays on its card.
+    var tourOpen by rememberSaveable { mutableStateOf(false) }
+    var tourIndex by rememberSaveable { mutableIntStateOf(0) }
     BackHandler(state.step > 1 || onSkip != null) {
         when {
             state.step == 4 && state.indexPhase == IndexPhase.BUILDING -> Unit // the index keeps going: leaving would hide it
@@ -84,8 +90,10 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
         state.finished -> Done(state, onDone)
-        else -> InstallStep(state, vm) { backOpen = true }
+        else -> InstallStep(state, vm, onTour = { tourIndex = 0; tourOpen = true }) { backOpen = true }
     }
+    if (tourOpen) team.sopa.boar.ui.tour.TourScreen(tourProgress(state), tourIndex, { tourIndex = it }, themeId, onTheme,
+        onReady = { tourOpen = false; onDone() }, onClose = { tourOpen = false })
     if (backOpen) {
         AlertDialog(
             onDismissRequest = { backOpen = false },
@@ -262,11 +270,15 @@ private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Uni
         StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
         for (m in state.models) {
             OptionCard(m.shortName, m.id == state.chosenId, Units.formatBytes(m.sizeBytes),
-                if (m.id == state.recommendedId) t("flows.onboarding.recommended") else null, { vm.choose(m.id) }) {
+                when {
+                    m.id == state.recommendedId -> t("flows.onboarding.recommended.${vm.tierOf(m)}")
+                    vm.isPicked(m) -> t("flows.onboarding.recommended.${m.pick}")
+                    else -> null
+                }, { vm.choose(m.id) }) {
                 // The two answer tiers have translated lines; the other catalog models carry their manifest description.
                 if (m.answerTier != null) {
                     val tier = vm.tierOf(m)
-                    Meta("${t("flows.onboarding.answerTier.$tier")} · ${t("flows.assistant.sub.$tier")}", c.textSecondary)
+                    Meta(t("flows.onboarding.tierLine.$tier"), c.textSecondary)
                 } else Meta(m.description, c.textSecondary)
                 if (vm.isHeavy(m)) Meta(t("flows.row.fit.thrashing"), c.textAccentAmber)
             }
@@ -324,7 +336,7 @@ private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
 }
 
 @Composable
-private fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Unit) {
+private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Unit, onBack: () -> Unit) {
     val c = Boar.colors
     val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
     StepScreen(footer = {
@@ -370,6 +382,14 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onBack: () -> Uni
                     eta?.let { Meta(t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)), c.textSecondary) }
                 }
             }
+        }
+
+        // While it downloads or indexes: BOAR's tour, full screen, with the download live on top.
+        if (!state.finished) Card(background = c.emeraldBgSubtle, border = c.emerald500) {
+            Text(t("native.tour.whileYouWait").uppercase(), style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+            Text(t("native.tour.cardTitle"), style = Boar.type.title, color = c.textHeading)
+            Meta(t("native.tour.cardSub"), c.textSecondary)
+            PrimaryButton(t("native.tour.start") + "  →", onClick = onTour)
         }
 
         // One row per category; a tap shows its files and, for a failed one, Try again.
@@ -491,3 +511,21 @@ private fun Done(state: SetupState, onDone: () -> Unit) {
 
 @Composable
 fun currentLanguage(saved: String?): String = saved ?: LocalConfiguration.current.locales[0].language.let { if (it == "pt") "pt" else "en" }
+
+/** The tour's top line, from the same numbers as the download screen: bytes while files arrive, then the index. */
+@Composable
+private fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress {
+    val downloading = !state.allPresent
+    val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
+        else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f
+    val eta = (if (downloading) state.etaSeconds else state.indexEtaSeconds)?.let { " · " + t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)) } ?: ""
+    val problem = state.stalled || state.failed.isNotEmpty() || state.indexPhase == IndexPhase.ERROR
+    val line = when {
+        state.finished -> t("native.tour.lineReady")
+        problem -> t("native.tour.linePaused")
+        !downloading && state.indexTotal == 0 -> t("native.tour.linePreparing")
+        downloading -> t("native.tour.lineDownloading", "pct" to (fraction * 100).toInt()) + eta
+        else -> t("native.tour.lineIndexing", "done" to state.indexDone, "total" to state.indexTotal) + eta
+    }
+    return team.sopa.boar.ui.tour.TourProgress(line, fraction, state.finished, problem)
+}

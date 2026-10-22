@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_cohazard_title" formatted="false">Boar Cohazard</string>
+    <string name="native_labs_cohazard_body" formatted="false">Uma resposta fixa de segurança sobre monóxido de carbono quando você planeja usar um aparelho a combustível em lugar fechado, sem o modelo.</string>
+    <string name="native_labs_cohazard_answers" formatted="false">RESPONDE SOZINHO</string>
+    <string name="native_labs_cohazard_answersList" formatted="false">• Gerador, churrasqueira a carvão ou a gás, fogareiro ou lampião de camping, ou aquecedor a combustível dentro de casa, garagem, porão, depósito, barraca ou trailer\n• Carro ou outro motor ligado na garagem\n• Aquecer a casa com o forno ou o fogão a gás\n• A distância que um gerador precisa ficar de portas, janelas e respiros</string>
+    <string name="native_labs_cohazard_try" formatted="false">EXPERIMENTE</string>
+    <string name="native_labs_cohazard_example1" formatted="false">Can I run my portable generator in the attached garage if I keep the door open?</string>
+    <string name="native_labs_cohazard_example2" formatted="false">Is it safe to use a camping stove inside the tent to cook?</string>
+    <string name="native_labs_cohazard_example3" formatted="false">Can we bring the propane heater into the camper overnight?</string>
+    <string name="native_labs_cohazard_note" formatted="false">A resposta é sempre o mesmo texto revisado, com as fontes (CDC, US CPSC, NHS) e uma linha com o número de emergência; começa com No. só quando você pergunta se pode fazer. Modelos pequenos disseram que um gerador na garagem estava ok com a porta aberta. Aquecedores elétricos, aparelhos instalados com saída para fora e um fogão a gás na cozinha ficam com o modelo. Uma mensagem sobre dor de cabeça, tontura ou um alarme tocando é uma pergunta de saúde e vai para o modelo como tal. Portado da verificação de monóxido de carbono de r4to (BOAR R&amp;D).</string>
+</resources>

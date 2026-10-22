@@ -20,6 +20,23 @@ class HfQueryTest {
         assertTrue("num_parameters=min:0,max:20B" in url)
     }
 
+    @Test fun `the mixture of experts filter widens Any to 40B and leaves a picked bucket alone`() {
+        assertTrue("num_parameters=min:0,max:40B" in HfQuery.searchUrl("", HfQuery.Size.ANY, HfQuery.Sort.TRENDING, moe = true))
+        assertTrue("num_parameters=min:3B,max:6B" in HfQuery.searchUrl("", HfQuery.Size.B3_6, HfQuery.Sort.TRENDING, moe = true))
+    }
+
+    @Test fun `a mixture of experts is told by its architecture or its name`() {
+        assertTrue(HfQuery.moeHint("unsloth/Qwen3-30B-A3B-GGUF", null))
+        assertTrue(HfQuery.moeHint("LiquidAI/LFM2-8B-A1B-GGUF", null))
+        assertTrue(HfQuery.moeHint("someone/model-gguf", "qwen3moe"))
+        assertTrue(HfQuery.moeHint("TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF", "llama"))
+        assertTrue(HfQuery.moeHint("someone/Tiny-MoE-GGUF", null))
+        assertFalse(HfQuery.moeHint("Qwen/Qwen3-4B-GGUF", "qwen3"))
+        assertFalse(HfQuery.moeHint("bartowski/Llama-3.2-3B-Instruct-GGUF", "llama"))
+        // "a3b" inside a word isn't active parameters.
+        assertFalse(HfQuery.moeHint("someone/Gamma3b-GGUF", null))
+    }
+
     @Test fun `the next page comes from the Link header and stays on the listing`() {
         val next = "https://huggingface.co/api/models?filter=gguf&cursor=abc"
         assertEquals(next, HfQuery.nextUrl("<$next>; rel=\"next\""))

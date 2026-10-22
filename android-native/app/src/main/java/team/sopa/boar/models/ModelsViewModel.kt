@@ -55,6 +55,8 @@ data class ModelsState(
     val hfQuery: String = "",
     val hfSize: HfQuery.Size = HfQuery.Size.ANY,
     val hfSort: HfQuery.Sort = HfQuery.Sort.TRENDING,
+    /** The Mixture of experts filter, offered while Boar Labs' Big Boar is on. */
+    val hfMoe: Boolean = false,
     val hfSearching: Boolean = false,
     val hfNext: String? = null,
     val hfSearched: Boolean = false,
@@ -90,12 +92,14 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     private val hfSearch = java.util.concurrent.atomic.AtomicInteger()
 
     /** A new search with these filters (the browse page): replaces the results; an older answer still running is dropped. */
-    fun hfBrowse(query: String = _state.value.hfQuery, size: HfQuery.Size = _state.value.hfSize, sort: HfQuery.Sort = _state.value.hfSort) {
+    fun hfBrowse(query: String = _state.value.hfQuery, size: HfQuery.Size = _state.value.hfSize, sort: HfQuery.Sort = _state.value.hfSort, moe: Boolean = _state.value.hfMoe) {
         val request = hfSearch.incrementAndGet()
         hfRequest.incrementAndGet() // a repo's files still loading belong to the old results
-        _state.update { it.copy(hfQuery = query, hfSize = size, hfSort = sort, hfSearching = true, hfSearched = true, hfError = null,
+        // Only while Boar Labs offers the filter; off, the search is exactly the usual one.
+        val moeOnly = moe && team.sopa.boar.labs.LabHooks.moeFilter()
+        _state.update { it.copy(hfQuery = query, hfSize = size, hfSort = sort, hfMoe = moeOnly, hfSearching = true, hfSearched = true, hfError = null,
             hfResults = emptyList(), hfNext = null, hfOpenRepo = null, hfFiles = emptyList(), hfBusy = false, hfAdded = null, hfAddedId = null) }
-        fetchPage(request, HfQuery.searchUrl(query, size, sort), append = false)
+        fetchPage(request, HfQuery.searchUrl(query, size, sort, moe = moeOnly), append = false, moeOnly = moeOnly)
     }
 
     /** The next page of the same search, at the end of the list. */
@@ -104,12 +108,12 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         val next = s.hfNext ?: return
         if (s.hfSearching) return
         _state.update { it.copy(hfSearching = true, hfError = null) }
-        fetchPage(hfSearch.get(), next, append = true)
+        fetchPage(hfSearch.get(), next, append = true, moeOnly = s.hfMoe)
     }
 
-    private fun fetchPage(request: Int, url: String, append: Boolean) {
+    private fun fetchPage(request: Int, url: String, append: Boolean, moeOnly: Boolean) {
         safeScope.launch(Dispatchers.IO) {
-            runCatching { HfBrowser.browse(url) }
+            runCatching { HfBrowser.browse(url, moeOnly) }
                 .onSuccess { p -> _state.update { if (hfSearch.get() != request) it else it.copy(hfResults = ((if (append) it.hfResults else emptyList()) + p.repos).distinctBy { r -> r.id }, hfNext = p.next, hfSearching = false) } }
                 .onFailure { e -> _state.update { if (hfSearch.get() != request) it else it.copy(hfError = team.sopa.boar.engine.UserErrors.browseKey(e), hfSearching = false) } }
         }
@@ -134,9 +138,12 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Adds the file to the list above as a downloadable model (not downloaded yet). */
     fun hfAdd(repo: String, f: HfBrowser.GgufFile) {
+        // The architecture the search listed for this repo, when it's in the results.
+        val arch = _state.value.hfResults.firstOrNull { it.id == repo }?.architecture
         safeScope.launch(Dispatchers.IO) {
-            val asset = runCatching { HfBrowser.toAsset(repo, f) }.getOrElse { e -> _state.update { it.copy(hfError = team.sopa.boar.engine.UserErrors.browseKey(e)) }; return@launch }
+            val asset = runCatching { HfBrowser.toAsset(repo, f, arch) }.getOrElse { e -> _state.update { it.copy(hfError = team.sopa.boar.engine.UserErrors.browseKey(e)) }; return@launch }
             services.addDiscovered(asset)
+            services.vault.record { f -> f.copy(hfModels = maxOf(f.hfModels, services.discovered().size)) }
             store = AssetStore(getApplication<Application>().filesDir, services.catalog)
             _state.update { it.copy(items = sortedItems(), hfAdded = asset.label, hfAddedId = asset.id, toast = text("native.models.addedToast")) }
             refresh()
@@ -156,7 +163,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { s ->
             s.copy(items = items, activeLlm = services.activeModel()?.id, lastUsed = lastUsed, added = added, mine = mine, rows = items.associate { a ->
                 val prev = s.rows[a.id] ?: Row()
-                a.id to prev.copy(present = store.status(a).present)
+                // A Labs engine model placed over USB: present when its file or folder is there; the store never touches it.
+                a.id to prev.copy(present = if (a.externalPath != null) services.isInstalled(a) else store.status(a).present)
             })
         }
     }
@@ -166,6 +174,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     private val downloads = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
 
     fun download(a: CatalogAsset) {
+        if (a.externalPath != null) return // copied over USB, never downloaded
         if (_state.value.rows[a.id]?.downloading == true) return
         row(a.id) { Row(downloading = true) }
         downloads[a.id] = safeScope.launch(Dispatchers.IO) {
@@ -173,7 +182,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
             var lastB = 0L
             var speed: Double? = null
             try {
-                store.download(a) { p ->
+                team.sopa.boar.app.DebugLog.download(a.id, a.sizeBytes) { store.download(a) { p ->
                     val now = System.nanoTime()
                     val dt = (now - lastT) / 1e9
                     if (dt >= 1.0) {
@@ -184,7 +193,7 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
                     }
                     val eta = speed?.takeIf { it > 0 }?.let { (p.bytesTotal - p.bytesDone) / it }
                     row(a.id) { it.copy(progress = if (p.bytesTotal > 0) p.bytesDone.toDouble() / p.bytesTotal else 0.0, bytesWritten = p.bytesDone, speedBytesPerSec = speed, etaSeconds = eta) }
-                }
+                } }
                 row(a.id) { Row(present = true) }
                 services.settings.stampModel(AppSettings.MODEL_ADDED, a.id)
                 if (a.kind == AssetKind.CORPUS && a.format != "sqlite-pack") index(a)
@@ -253,7 +262,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
             // Picked although it may not fit this phone: the user's call, so the chat doesn't ask again at start.
             if (a.kind == AssetKind.LLM && services.isRisky(a)) services.rememberLoadAnyway(a.id)
             if (a.kind == AssetKind.LLM) runCatching { services.host.unload(); services.activeSession() }
-            _state.update { it.copy(activating = null, toast = text("native.models.nowUsing", "model" to a.shortName)) }
+            _state.update { it.copy(activating = null) }
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.models.nowUsing", "model" to a.shortName))
             refresh()
         }
     }
@@ -261,6 +271,8 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
     fun remove(a: CatalogAsset) {
         safeScope.launch(Dispatchers.IO) {
             if (a.id == _state.value.activeLlm) services.host.unload()
+            // Placed over USB by hand: the app never deletes it.
+            if (a.externalPath != null) { refresh(); return@launch }
             if (a.kind == AssetKind.CORPUS && a.format != "sqlite-pack") services.knowledgeBase.deleteSeedChunksWithPrefix(SeedCorpus.chunkIdPrefix(a.id))
             if (a.kind == AssetKind.CORPUS) services.reloadPacks()
             store.delete(a)

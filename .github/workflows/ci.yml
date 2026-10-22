@@ -6,21 +6,24 @@ on:
   pull_request:
 
 jobs:
-  typecheck-and-test:
+  scripts:
+    # The build tools' unit tests (scripts/lib). scripts/ has no lockfile, so npm install, not npm ci;
+    # --ignore-scripts skips node-llama-cpp's binary download, which the tests don't use.
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
+      - run: npm --prefix scripts install --no-audit --no-fund --ignore-scripts
+      - run: npm --prefix scripts test
 
   native-engine:
-    # The native app (android-native/) on pull requests into fullnative-dev: engine unit tests, app compiles.
-    if: github.base_ref == 'fullnative-dev'
+    # The native app (android-native/): engine unit tests, app compiles.
     runs-on: ubuntu-latest
     # It runs the pull request's Gradle build: a read-only token, not kept in the checkout.
     permissions:

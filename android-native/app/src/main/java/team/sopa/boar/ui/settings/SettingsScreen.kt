@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.settings
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +45,6 @@ import team.sopa.boar.engine.LoadMode
 import team.sopa.boar.engine.settings.AppSettings
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
-import team.sopa.boar.ui.theme.ThemeTokens
 
 /** Display settings the app applies live (theme, text size) or by recreating (language). */
 interface DisplayPrefs {
@@ -83,11 +83,16 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
                 Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
+                var confirmDelete by remember { mutableStateOf(s.confirmChatDelete) }
+                SwitchRow(t("native.settings.confirmChatDelete"), t("native.settings.confirmChatDeleteNote"), confirmDelete) { confirmDelete = it; s.confirmChatDelete = it }
                 ClearChats(services)
             }
+            val avatarsOn by services.vault.enabled.collectAsState()
             Section(t("modelSetupScreen.sections.displayTheme")) {
-                var theme by remember { mutableStateOf(ThemeTokens.byId(s.themeId).id) }
-                Choices(null, ThemeTokens.all.map { it.id to "${it.icon} ${it.name}" }, theme) { theme = it; s.themeId = it; prefs.setTheme(it) }
+                var theme by remember { mutableStateOf(s.themeId) }
+                team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
+                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
+                if (avatarsOn) team.sopa.boar.ui.appearance.AvatarPicker(services.vault)
                 var scale by remember { mutableStateOf(s.fontScale) }
                 Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                 var orientation by remember { mutableStateOf(s.screenOrientation) }
@@ -97,6 +102,11 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var haptics by remember { mutableStateOf(s.hapticsEnabled) }
                 SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
             }
+            // Boarverse on: the Vault gets its own section, a teaser and the way in (the avatar is chosen above, with the theme).
+            if (avatarsOn) Section(t("native.vault.title")) {
+                Note(t("native.vault.teaser"))
+                team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
+            }
             Section(t("modelSetupScreen.sections.language")) {
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }
                 Choices(null, listOf("system" to "System", "en" to "English", "pt" to "Português"), lang) { lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id) }
@@ -104,7 +114,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             SecuritySection(services, onPin)
             VoiceSection(services)
             if (tech) TelemetrySection(services)
-            TweaksSection(services, tech) { tech = it }
+            TweaksSection(services, tech, { tech = it }, onOpen)
+            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) ExperimentalSection(services)
             RecoverySection(services, prefs, onSetup)
         }
     }
@@ -181,7 +192,10 @@ private fun TelemetrySection(services: BoarServices) {
     fun gb(b: Long) = String.format(java.util.Locale.US, "%.1f GB", b / 1e9)
     Section(t("modelSetupScreen.sections.telemetry")) {
         // For anyone first: memory and storage as bars, the phone and the chats. Then the technical rows (Oct 18).
-        val budget = services.catalog.storageBudgetBytes
+        // Boar Labs can set another limit, or none: then the bar runs to what the phone still has free.
+        val limit = team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes)
+        val noLimit = limit == team.sopa.boar.engine.models.StorageBudget.NO_LIMIT
+        val budget = if (noLimit) storage + fetching + ctx.filesDir.usableSpace else limit
         val others = maxOf(phone.usedBytes - app, 0L)
         team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.memory"), listOf(minOf(app, phone.usedBytes) to c.emerald400, others to c.textDim),
             phone.totalBytes, team.sopa.boar.ui.drawer.usage(phone.usedBytes, phone.totalBytes), large = true)
@@ -189,7 +203,11 @@ private fun TelemetrySection(services: BoarServices) {
         team.sopa.boar.ui.drawer.UsageBar(t("native.telemetry.disk"), listOf(storage to c.cyan400, fetching to c.cyan400.copy(alpha = 0.35f)),
             budget, team.sopa.boar.ui.drawer.usage(storage + fetching, budget), large = true)
         team.sopa.boar.ui.drawer.UsageCaption(
-            if (fetching > 0) t("native.drawerStats.diskDownloading", "size" to gb(fetching)) else t("native.drawerStats.diskLimit"), large = true,
+            when {
+                noLimit -> t("native.drawerStats.diskNoLimit")
+                fetching > 0 -> t("native.drawerStats.diskDownloading", "size" to gb(fetching))
+                else -> t("native.drawerStats.diskLimit")
+            }, large = true,
         )
         @Composable fun rows(list: List<Pair<String, String>>) = list.forEach { (k, v) ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -252,7 +270,7 @@ private fun ClearChats(services: BoarServices) {
     LinkButton(if (done) t("native.settings.clearChatsDone") else t("memorySettings.clearAllChatHistory"), danger = !done) { if (!done) asking = true }
     if (asking) androidx.compose.material3.AlertDialog({ asking = false },
         title = { Text(t("memorySettings.clearAllConfirmTitle")) },
-        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
+        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.CHATS) }; asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 
@@ -267,6 +285,13 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         Text(t("modelSetupScreen.recovery.wizardTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
+        // The setup tour on its own: no download under it, Done comes back here.
+        var tour by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+        var tourIndex by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
+        LinkButton(t("native.tour.seeTour")) { tourIndex = 0; tour = true }
+        if (tour) team.sopa.boar.ui.tour.TourScreen(null, tourIndex, { tourIndex = it }, services.settings.themeId,
+            { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
+            onReady = null, onClose = { tour = false })
         // Defaults back without the multi-GB re-download "Clear all data" costs.
         Text(t("native.settings.resetTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
         Text(t("native.settings.resetDesc"), style = Boar.type.subtext, color = c.textSecondary)
@@ -281,6 +306,8 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         confirmButton = { androidx.compose.material3.TextButton({
             resetting = false
             services.settings.resetPreferences()
+            // BOAR's own avatar again; the boars unlocked in the vault stay unlocked.
+            services.vault.equip(null)
             prefs.setTheme(team.sopa.boar.ui.theme.ThemeTokens.DEFAULT_ID)
             prefs.setFontScale("standard")
             prefs.setOrientation(team.sopa.boar.engine.settings.AppSettings.DEFAULT_ORIENTATION)
@@ -303,7 +330,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
 }
 
 @Composable
-private fun LinkButton(label: String, danger: Boolean = false, onClick: () -> Unit) {
+internal fun LinkButton(label: String, danger: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
     Text(label, style = Boar.type.body, fontWeight = FontWeight.SemiBold, color = if (danger) c.crimson400 else c.textAccentCyan,
         modifier = Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
@@ -330,13 +357,11 @@ private fun ToneSection(services: BoarServices) {
             tokens) { tokens = it; s.maxTokensChoice = it }
         Note(t("personalitySettings.maxOutputTokensNote"))
         SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
     }
 }
 
 @Composable
-private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnical: (Boolean) -> Unit) {
+private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnical: (Boolean) -> Unit, onOpen: (String) -> Unit) {
     val s = services.settings
     val scope = rememberCoroutineScope()
     var tw by remember { mutableStateOf(s.engineTweaks) }
@@ -347,6 +372,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
     fun save(next: EngineTweaks) {
         tw = next
         s.engineTweaks = next
+        if (!next.isAuto) services.vault.record { f -> f.copy(tweaksChanged = true) }
         // The model reloads with the new settings on the next answer.
         scope.launch { services.host.unload() }
     }
@@ -370,7 +396,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
             val lowRam = services.totalRamBytes in 1 until 8_000_000_000L
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { runCard = false },
-                title = { Text("🐗 " + t("native.tweaks.preset.run")) },
+                title = { Text(t("native.tweaks.preset.run")) },
                 text = { Text(t("native.tweaks.runWarning") + if (lowRam) "\n\n" + t("native.tweaks.runWarningLowRam") else "") },
                 confirmButton = {
                     androidx.compose.material3.TextButton({
@@ -439,6 +465,55 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
         Note(t("native.tweaks.freeMemoryAfterNote"))
         // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
         SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
+        // Always here for builders, menu or not: run the evaluation set and submit a report.
+        LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
+        Note(t("native.tweaks.evaluationNote"))
+        if (team.sopa.boar.app.DebugLog.available) DebugLogRows()
+    }
+}
+
+/** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
+@Composable
+private fun ExperimentalSection(services: BoarServices) {
+    Section(t("native.settings.experimental"), collapsible = true) {
+        Note(t("native.settings.experimentalNote"))
+        // Boarverse's switch is hidden for now (Oct 21), and TruffleVault.SWITCH_SHOWN keeps it off; its code stays.
+        team.sopa.boar.labs.LabHooks.SettingsRow()
+        // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default.
+        val s = services.settings
+        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
+        SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
+    }
+}
+
+/** The Debug log switch (builds with ALLOW_DEBUG_LOG only); while it's on, the log's size, Save-as and Clear. */
+@Composable
+private fun DebugLogRows() {
+    val log = team.sopa.boar.app.DebugLog
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var on by remember { mutableStateOf(log.enabled) }
+    var size by remember { mutableStateOf(log.sizeBytes()) }
+    var status by remember { mutableStateOf<String?>(null) }
+    val saveAs = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val ok = runCatching { ctx.contentResolver.openOutputStream(uri)!!.use { log.copyTo(it) } }.isSuccess
+            status = team.sopa.boar.ui.I18n.t(ctx, if (ok) "native.debugLog.saved" else "native.debugLog.saveFailed")
+        }
+    }
+    SwitchRow(t("native.debugLog.title"), t("native.debugLog.note"), on) { log.setEnabled(it); on = it; status = null }
+    if (on || size > 0) {
+        androidx.compose.runtime.LaunchedEffect(on) { while (true) { size = log.sizeBytes(); kotlinx.coroutines.delay(5_000) } }
+        Note(t("native.debugLog.size", "size" to String.format(java.util.Locale.US, "%.1f MB", size / 1048576.0)))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            LinkButton(t("native.debugLog.save")) {
+                saveAs.launch("boar-debug-" + java.text.SimpleDateFormat("yyyy-MM-dd-HHmm", java.util.Locale.US).format(java.util.Date()) + ".log")
+            }
+            LinkButton(t("native.debugLog.clear"), danger = true) {
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) { log.clear(); size = log.sizeBytes(); status = null }
+            }
+        }
+        status?.let { Note(it) }
     }
 }
 
@@ -447,21 +522,12 @@ private fun Section(title: String, collapsible: Boolean = false, content: @Compo
     val c = Boar.colors
     // A collapsible section starts closed: Advanced tweaks are for people who go looking for them.
     var open by remember { mutableStateOf(!collapsible) }
-    Column(
-        Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        if (collapsible) Row(Modifier.fillMaxWidth().clickable(onClickLabel = title) { open = !open }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
-            Text(if (open) "▴" else "▾", style = Boar.type.title, color = c.textMuted)
-        } else Text(title, style = Boar.type.title, color = c.textHeading)
-        if (open) content()
-    }
+    team.sopa.boar.ui.BoarSection(title, open, if (collapsible) ({ open = !open }) else null) { content() }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+internal fun <T> Choices(label: String?, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     val c = Boar.colors
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         label?.let { Text(it, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold) }

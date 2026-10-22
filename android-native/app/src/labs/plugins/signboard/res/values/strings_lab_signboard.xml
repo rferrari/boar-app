@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_signboard_title" formatted="false">Signboard</string>
+    <string name="native_labs_signboard_body" formatted="false">Point the camera at a sign or a menu: read and translated, offline.</string>
+</resources>

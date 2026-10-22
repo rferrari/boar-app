@@ -21,6 +21,7 @@ import team.sopa.boar.engine.answer.AnswerEvent
 import team.sopa.boar.engine.answer.AnswerPipeline
 import team.sopa.boar.engine.answer.AnswerRequest
 import team.sopa.boar.engine.answer.Personalities
+import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.db.NativeSqlite
 import team.sopa.boar.engine.eval.DeviceEval
 import team.sopa.boar.engine.eval.EvalConfig
@@ -35,6 +36,8 @@ import team.sopa.boar.engine.rag.OpenPack
 import team.sopa.boar.engine.rag.Packs
 import team.sopa.boar.engine.rag.Retriever
 import team.sopa.boar.engine.rag.WikiPack
+import team.sopa.boar.plugins.AnswerTools
+import team.sopa.boar.plugins.ToolResult
 import java.io.File
 
 /**
@@ -56,6 +59,8 @@ class DeviceEvalRunner(
     private val requestsDir = File(evalDir, "requests")
     private val json = Json { prettyPrint = false }
     /** The app version on every row, so a saved or exported run says which build answered. */
+    /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
+    @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
     private val appVersion: String = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?" 
 
     private fun asset(name: String) = context.assets.open("boar-data/$name").bufferedReader().readText()
@@ -93,6 +98,25 @@ class DeviceEvalRunner(
         return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
             val f = File(files, m["filename"]!!.jsonPrimitive.content)
             if (f.isFile) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
+        } + discoveredModels() + labEngineModels()
+    }
+
+    /** Models the user added from Hugging Face (Discover GGUF models) and downloaded: evaluated like the catalog's. */
+    private fun discoveredModels(): List<Pair<ModelRef, File>> = runCatching {
+        val services = team.sopa.boar.app.BoarServices.get(context)
+        services.catalog.models.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && it.id.startsWith("hf-") }.mapNotNull { a ->
+            val f = services.fileOf(a)
+            if (f.isFile && f.length() == a.sizeBytes) ModelRef(a.id, a.shortName) to f else null
+        }
+    }.getOrDefault(emptyList())
+
+    /** Models a Labs engine brings (Big Boar's 35B), when BOAR has its own copy or one copied over USB (externalPath). */
+    private fun labEngineModels(): List<Pair<ModelRef, File>> {
+        // Started from BenchActivity, Boar Labs wasn't set up: without the app context Big Boar can't see its USB copy.
+        if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+        return team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
+            val f = a.externalPath?.let(::File) ?: File(files, a.filename)
+            if (f.isFile) ModelRef(a.id, a.label) to f else null
         }
     }
 
@@ -112,6 +136,23 @@ class DeviceEvalRunner(
             return
         }
         resolved as Resolved.Ok
+        // The request's labs: their tools and checks for this run only, whatever is switched on in the app.
+        if (request.labs != null) {
+            team.sopa.boar.labs.LabPrefs.init(context)
+            if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+        }
+        val labs = request.labs?.map { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
+            writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
+        } }
+        runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
+        val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
+            ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
+        // The request's answer style ("personal" for Personal Files), else the default; an unknown id fails the run.
+        if (request.style != null && Personalities.parse(asset("personalities.json")).personalities.none { it.id == request.style }) {
+            writeStatus(request.requestId, "state" to "failed", "error" to "unknown style \"${request.style}\"", "installedModels" to installedIds)
+            return
+        }
         val configs = resolved.configs.map { it.id }
         val total = resolved.configs.size * resolved.queries.size
         writeStatus(request.requestId, "state" to "accepted", "configs" to configs, "total" to total, "completed" to 0, "installedModels" to installedIds)
@@ -122,7 +163,7 @@ class DeviceEvalRunner(
                 override fun onProgress(p: Progress) = writeStatus(request.requestId, "state" to "running", "configs" to configs, "total" to total,
                     "completed" to completed, "current" to "${p.config.id} / ${p.query.id}", "installedModels" to installedIds)
                 override fun onRow(row: JsonObject) { completed++ }
-            })
+            }, retrievalMode, request.style)
             writeStatus(request.requestId, "state" to "done", "configs" to configs, "total" to total, "completed" to result.rows.size, "runId" to result.runId,
                 "resultPath" to "files/eval/${result.runId}.jsonl", "stopped" to result.stopped, "installedModels" to installedIds)
         } catch (e: Throwable) {
@@ -139,7 +180,7 @@ class DeviceEvalRunner(
     }
 
     @Volatile private var stopRequested = false
-    @Volatile private var running: LlamaSession? = null
+    @Volatile private var running: team.sopa.boar.engine.TextModel? = null
 
     /** Stops after the current answer, which is cut short and recorded as cancelled; the rows so far stay saved. */
     fun stop() {
@@ -151,7 +192,12 @@ class DeviceEvalRunner(
      * Answers every query with every configuration, one model loaded at a time, saving eval/<runId>.jsonl after each
      * row (evalHarness.runEvaluation). Used by device requests and the Evaluation screen.
      */
-    suspend fun runConfigs(configs: List<EvalConfig>, queries: List<EvalQuery>, listener: Listener): RunResult = withContext(Dispatchers.IO) {
+    suspend fun runConfigs(
+        configs: List<EvalConfig>, queries: List<EvalQuery>, listener: Listener,
+        retrievalMode: team.sopa.boar.engine.rag.RetrievalMode = team.sopa.boar.engine.rag.RetrievalMode.BALANCED,
+        /** The answer style for every row; null is the default style, as before. */
+        style: String? = null,
+    ): RunResult = withContext(Dispatchers.IO) {
         stopRequested = false
         val runId = DeviceEval.newRunId()
         evalDir.mkdirs()
@@ -160,17 +206,21 @@ class DeviceEvalRunner(
         val installed = installedModels()
         val personalities = Personalities.parse(asset("personalities.json"))
         // As the chat answers by default: the default style's prompt and reminder (the small-model variant below 2 GB),
-        // at that style's Auto length (Detailed 1,024).
-        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(personalities.defaultId)
+        // at that style's Auto length (Detailed 1,024); or the run's style, at its own (Personal Files 768).
+        val runStyle = style ?: personalities.defaultId
+        val personal = PersonalFiles.isOn(runStyle)
+        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(runStyle)
         val topology = CpuTopology.read()
         // The same Auto context as the chat (contextSizeForRam).
         val totalRam = runCatching {
             android.app.ActivityManager.MemoryInfo().also { context.getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(it) }.totalMem
         }.getOrDefault(0L)
         val retrieval = openRetrieval(topology)
+        // The context every model is opened with here (Auto), which Personal Files' whole parts must fit.
+        val contextSize = EngineTweaks().resolve(topology, totalRam).params.nCtx
         try {
             run@ for ((ci, config) in configs.withIndex()) {
-                var session: LlamaSession? = null
+                var session: team.sopa.boar.engine.TextModel? = null
                 var loadMs = 0.0
                 var residency = "cold"
                 try {
@@ -182,37 +232,40 @@ class DeviceEvalRunner(
                             "runId" to runId, "configs" to configs.map { it.id }, "queries" to queries.map { it.id }, "current" to current,
                         ).toString())
                         val row = when (config) {
-                            is EvalConfig.Adaptive -> failureRow(runId, config, q, personalities.defaultId, maxTokens, "adaptive routing is not in the native build yet")
+                            is EvalConfig.Adaptive -> failureRow(runId, config, q, runStyle, maxTokens, "adaptive routing is not in the native build yet")
                             is EvalConfig.Model -> {
                                 if (session == null) {
                                     val file = installed.firstOrNull { it.first.id == config.modelId }?.second
                                     val t0 = System.nanoTime()
-                                    session = file?.let { LlamaSession.load(it.absolutePath, EngineTweaks().resolve(topology, totalRam).params) }
+                                    session = file?.let { load(config, it, topology, totalRam) }
                                     loadMs = (System.nanoTime() - t0) / 1e6
                                 } else {
                                     residency = "resident"
                                     loadMs = 0.0
                                 }
                                 val s = session
-                                if (s == null) failureRow(runId, config, q, personalities.defaultId, maxTokens, "model failed to load")
+                                if (s == null) failureRow(runId, config, q, runStyle, maxTokens, "model failed to load")
                                 else {
                                     running = s
                                     val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
                                     // The chat's short-answer rules too: small talk, health and seed-phrase questions answer in
                                     // Succinct, and small talk at Succinct's length (ShortAnswer, ChatViewModel).
-                                    val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(personalities.defaultId, q.query, null) != null) "succinct" else personalities.defaultId
+                                    val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(runStyle, q.query, null) != null) "succinct" else runStyle
                                     val (systemPrompt, styleReminder) = personalities.promptFor(style, null, small)
                                     val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
-                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs)
+                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs, retrievalMode,
+                                        if (personal) contextSize else null)
                                     running = null
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
                             }
                         }
-                        rows += row
+                        // Every row says the run's style, whatever the question answered in (personalityId).
+                        val styled = JsonObject(row + ("style" to JsonPrimitive(runStyle)))
+                        rows += styled
                         atomicWrite(rowsFile, rows.joinToString("") { it.toString() + "\n" })
-                        listener.onRow(row)
-                        log("[EVAL] ${q.id}: ${row["outcome"]} ${row["tokPerSec"] ?: ""}")
+                        listener.onRow(styled)
+                        log("[EVAL] ${q.id}: ${styled["outcome"]} ${styled["tokPerSec"] ?: ""}")
                     }
                 } finally {
                     running = null
@@ -262,11 +315,45 @@ class DeviceEvalRunner(
         return Retrieval(retriever, embedder, closeables)
     }
 
+    /**
+     * [config]'s model on the engine it asks for: BOAR's own with Auto settings (the default, as before), BOAR's own with
+     * the mapped file instead of repacked weights, or Boar Labs' Big Boar (its own process) at the same settings.
+     */
+    private suspend fun load(config: EvalConfig.Model, file: File, topology: CpuTopology, totalRam: Long): team.sopa.boar.engine.TextModel? {
+        val auto = EngineTweaks().resolve(topology, totalRam).params
+        return when (config.engine) {
+            EvalConfig.MAPPED -> LlamaSession.load(file.absolutePath, EngineTweaks(weightRepack = false).resolve(topology, totalRam).params)
+            EvalConfig.BIG_BOAR -> {
+                // Started from BenchActivity, Boar Labs wasn't set up: Big Boar needs the app context and the Labs prefs.
+                team.sopa.boar.labs.LabPrefs.init(context)
+                if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+                val engine = team.sopa.boar.labs.LabRegistry.ALL.firstNotNullOfOrNull { lab -> lab.engine?.takeIf { it.id == BIG_BOAR_ENGINE } }
+                // From the engine itself: the catalog lists a lab's models only once LabHooks set up the switched-on labs.
+                val asset = engine?.models()?.firstOrNull { it.id == config.modelId }
+                if (engine == null || asset == null) { log("[EVAL] Big Boar isn't in this build or ${config.modelId} isn't in the catalog"); null }
+                else runCatching { engine.load(asset, auto) }.onFailure { log("[EVAL] Big Boar load failed: $it") }.getOrNull()
+            }
+            else -> LlamaSession.load(file.absolutePath, auto)
+        }
+    }
+
     private suspend fun answerRow(
-        s: LlamaSession, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
+        s: team.sopa.boar.engine.TextModel, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
         systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
+        mode: team.sopa.boar.engine.rag.RetrievalMode,
+        /** Set in the Personal Files style: the context its whole parts must fit; the chat's decisions follow (PersonalFiles). */
+        filesContext: Int? = null,
     ): JsonObject {
-        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k) ?: emptyList() }, classify, retrievalIrrelevant)
+        val personal = filesContext != null
+        // The tool slot (Boar Labs), as in the chat: a tool's instant answer is the row, no generation; a context is read by the model.
+        // In Personal Files only a safety card answers.
+        val toolStart = System.nanoTime()
+        val labs = runLabs
+        val tool = (if (labs != null) team.sopa.boar.engine.routing.LabTools.first(labs.first) { it.run(q.query, emptyList()) } else AnswerTools.run(q.query, emptyList()))
+            ?.takeIf { !personal || PersonalFiles.keepsTool(it.tool) }
+        if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
+        val params = if (personal) PersonalFiles.retrieval(mode.params()) else mode.params()
+        val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
         var genStart = 0L
@@ -275,7 +362,8 @@ class DeviceEvalRunner(
         var done: AnswerEvent.Done? = null
         var error: String? = null
         try {
-            pipeline.answer(AnswerRequest(q.query, systemPrompt, styleReminder, maxTokens)).collect { e ->
+            val base = AnswerRequest(q.query, AnswerTools.systemPrompt(systemPrompt, tool), styleReminder, maxTokens)
+            pipeline.answer(if (filesContext != null) PersonalFiles.request(base, filesContext) else base).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }
@@ -289,7 +377,11 @@ class DeviceEvalRunner(
         val end = System.nanoTime()
         val peakRss = peak.stop()
         val d = done
-        val answer = d?.text ?: ""
+        // The check slot, as in the chat: a finished answer may be repaired (Boar Guard). Not in Personal Files.
+        val repair = d?.text?.takeIf { error == null && it.isNotBlank() && !personal }?.let { text ->
+            if (labs != null) team.sopa.boar.engine.routing.LabTools.first(labs.second) { it.check(q.query, text) } else team.sopa.boar.plugins.AnswerChecks.run(q.query, text)
+        }
+        val answer = (repair?.text ?: d?.text ?: "").let { if (personal) PersonalFiles.dropHedge(it) else it }
         val ttftMs = if (genStart > 0) ((if (firstToken > 0) firstToken else end) - genStart) / 1e6 else null
         val genLatency = if (genStart > 0 && ttftMs != null) (end - genStart) / 1e6 - ttftMs else null
         val outcome = if (error != null) "failure" else if (answer.isNotBlank()) "success" else "failure"
@@ -311,8 +403,29 @@ class DeviceEvalRunner(
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "tool" to listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
+            // Which engine wrote it (builtin, mapped or bigboar); Big Boar runs in its own process, so peakRssBytes is the app's only.
+            "inferenceEngine" to config.engine,
+            // How search ranked the passages (balanced, keyword or meaning), so runs in different modes can be compared.
+            "retrievalMode" to mode.name.lowercase(),
+            // Personal Files: the user's files held nothing for this question (the fixed line, no model).
+            "notFound" to d?.notFound,
         )
     }
+
+    /** A row a tool answered: its text, reason code answer:<tool> (as answer.ts's receipts), nothing generated or retrieved. */
+    private fun toolRow(
+        runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String, maxTokens: Int, residency: String, loadMs: Double, tool: ToolResult.Instant, ms: Double,
+    ) = json(
+        "modelId" to config.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to false, "reasonCodes" to listOf("answer:${tool.tool}"),
+        "retrievalUsed" to false, "modelSwitches" to 0, "crossMessageModelSwitch" to false, "modelResidency" to residency, "modelLoadMs" to loadMs,
+        "ttftMs" to ms, "totalLatencyMs" to ms, "tokensGenerated" to 0, "outcome" to "success", "runId" to runId, "evalSetVersion" to q.setVersion,
+        "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+        "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to tool.text, "retrievedTitles" to emptyList<String>(),
+        "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, emptyList()),
+        "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion, "tool" to tool.tool,
+        "inferenceEngine" to config.engine,
+    )
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),
@@ -325,6 +438,8 @@ class DeviceEvalRunner(
 
     companion object {
         const val TAG = "BOAR_EVAL"
+        /** Big Boar's engine id (BmoeLab). */
+        private const val BIG_BOAR_ENGINE = "bmoe"
 
         /** evalRowsToCsv: the same columns, arrays joined with "|". */
         val CSV_COLUMNS = listOf("runId", "evalSetVersion", "configId", "configLabel", "routingPreset", "personalityId", "maxTokens",
@@ -332,7 +447,7 @@ class DeviceEvalRunner(
             "retrievedTitles", "expectedKbTitles", "expectedKbHit", "reasonCodes", "modelSwitches", "crossMessageModelSwitch",
             "modelResidency", "modelLoadMs", "ttftMs", "retrievalMs", "contextTokensBefore", "contextTokensAfter",
             "generationLatencyMs", "promptTokens", "promptMs", "cachedTokens", "predictedTokens", "predictedMs", "totalLatencyMs",
-            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion")
+            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion", "tool", "retrievalMode", "style", "notFound")
 
         fun toCsv(rows: List<JsonObject>): String =
             (listOf(CSV_COLUMNS.joinToString(",")) + rows.map { r -> CSV_COLUMNS.joinToString(",") { csvCell(r[it]) } }).joinToString("\n")

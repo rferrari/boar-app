@@ -39,3 +39,28 @@ each keeps its own license, shown in the app's catalog and in About):
   bge-small-en-v1.5 (BAAI) — MIT License
   Wikipedia text in the knowledge base and packs — CC BY-SA 4.0
 
+Boar Labs (built only with EXPERIMENTAL_FEATURES=true, installed as its own app):
+  stable-diffusion.cpp — https://github.com/leejet/stable-diffusion.cpp
+    MIT License. Built as the sd-cli executable Boar Designer runs (scripts/engine-pins.env, SD_PIN).
+  BigMoeOnEdge — https://github.com/Helldez/BigMoeOnEdge
+    Apache License 2.0. Built as the bmoe-cli executable Big Boar runs (BMOE_PIN).
+  colibri — https://github.com/JustVugg/colibri
+    Apache License 2.0. Built as the executable Boar Wisp runs (COLIBRI_PIN).
+  Boar Calculator — ported from r4to's (BOAR R&D) src/routing/arithmetic.ts, numguard.ts and the
+    calculator shortcuts in answer.ts (PR #85). MIT License.
+  Boar Distance — ported from r4to's (BOAR R&D) src/routing/travelDistance.ts (PR #85). MIT License.
+    Its city table (app/src/labs/plugins/distance/res/raw, bundled in the APK) is GeoNames (geonames.org),
+    cities15000, the 6,000 most populous cities, CC BY 4.0.
+  Boar Facts — ported from r4to's (BOAR R&D) src/rag/facts.ts (PR #85). MIT License. Its fact table
+    (app/src/labs/plugins/facts/res/raw, bundled in the APK) is from Wikidata (wikidata.org), snapshot 2026-10-06,
+    CC0 1.0.
+  Boar Guard — ported from r4to's (BOAR R&D) src/routing/verdictGuard.ts (PR #85). MIT License.
+  Boar Cohazard — ported from r4to's (BOAR R&D) src/routing/coHazard.ts (PR #85). MIT License. Its fixed
+    carbon monoxide answer follows public guidance: CDC, "What to Do to Protect Yourself During a Power Outage"
+    and Carbon Monoxide guidance; US CPSC, "Portable Generator Hazards" and "Generators and Engine-Driven Tools";
+    NHS, "Carbon monoxide poisoning".
+  Models the labs use, never bundled: SDXS-512 tinySD distilled (CreativeML Open RAIL++-M, with
+  use restrictions: https://huggingface.co/IDKiro/sdxs-512-0.9/blob/main/LICENSE; downloaded from
+  huggingface.co/concedo/sdxs-512-tinySDdistilled-GGUF, from akleine/sdxs-512 and IDKiro/sdxs-512-dreamshaper), Qwen3.6-35B-A3B
+  (Apache License 2.0), OLMoE-1B-7B (Apache License 2.0).
+

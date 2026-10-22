@@ -1,34 +1,109 @@
 # Using BOAR
 
-TL;DR: import your own documents, add models from Hugging Face, and recover from a bad model load or reset the app.
+How to use BOAR 2.0 (the native Android app): the tour, answer styles, Deep Research,
+sources, Boar Labs, the PIN, your own documents, more models, and recovering from a
+bad model load.
 
-## Custom knowledge base
+## The tour
 
+Setup downloads the answer model, the search model and, when there is room, the
+Wikipedia Vital Articles pack. While it downloads, a "While you wait" card opens a
+short BOAR tour: themes, answer styles, Deep Research, sources, your library and
+documents, models, the PIN, Boar Labs and adaptive routing. Each page says where the
+feature lives. See it again any time in Settings → System Recovery & Danger Zone → See
+the tour.
 
-Settings > Knowledge Base has an "Import" card alongside the built-in
-downloadable corpus packs. It lets you index your own notes into the same
-local FTS5 + vector search used everywhere else in the app:
+## How BOAR answers
 
-- **Supported formats:** `.txt`, `.md`, `.csv` (naive comma-split, no quoted-field
-  escaping), `.json` (either the app's own `{title, source, body}[]` corpus-pack
-  shape, or any other JSON — imported as raw text otherwise), and `.pdf`
-  (embedded/selectable text only, via [`expo-pdf-text-extract`](https://www.npmjs.com/package/expo-pdf-text-extract) —
-  Apache PDFBox-Android on-device, no network, no OCR — so a scanned/image-only
-  PDF extracts to empty text, and password-protected PDFs are rejected with a
-  clear error rather than attempted).
-- Each import is chunked (~500 tokens, 50-token overlap, heuristic
-  char-based split) and embedded on-device with the same embedding model used
-  for the rest of the knowledge base, then saved as a named, toggleable
-  collection — turn one off without deleting it, or delete it outright.
-- **Export** re-serializes a collection as `{title, source, body}[]` JSON (the
-  same shape as the bundled corpus packs) and hands it to the Android share
-  sheet — send it over Bluetooth, Nearby Share, a file manager, whatever the
-  recipient's device offers. This is deliberately *not* a raw `.sqlite`
-  export: that would bake in this device's specific embedding vectors, which
-  are meaningless (or the wrong dimension) on a phone running a different
-  embedding model. A recipient re-embeds the JSON locally by importing it the
-  same way.
-- Everything happens on-device; nothing is uploaded anywhere.
+Pick a style with the style button next to where you type, or in Settings → How BOAR
+answers:
+
+- **Thorough & Detailed**, the default: full explanations.
+- **Succinct & Direct**: quick replies.
+- **Personal Files**: answers only from your own files (notes, PDFs, spreadsheets), the
+  exact fact first, quoted as the file writes it, then a few sentences. If your files don't
+  hold the answer, it says "I couldn't find this in your Personal Files." instead of
+  answering from memory. Deep Research, adaptive routing and Boar Labs tools step aside in
+  this style; the safety cards still answer.
+
+Under every answer from the library, BOAR lists the articles it used. Tap one to read
+the passage. The receipt shows the model, the speed and the time.
+
+## Deep Research
+
+Deep Research is for big questions. Turn it on in Settings → How BOAR answers, or from
+the style button in the chat. When it is on, the chat glows and the 🔬 lights up.
+
+- BOAR breaks the question into at most 3 smaller questions, searches the library for
+  each, then writes one answer. These steps run one after another on the same model, so
+  it is slower than a normal reply.
+- It works with any style. The style sets the tone: Deep Research with Succinct & Direct
+  still gives a short answer.
+- With Deep Research on, the quick-answer tools of Boar Labs (Calculator, Facts,
+  Distance and others) step aside and the question goes to Deep Research. Only the safety
+  tools (`safety-*`, for example Boar Cohazard) still answer at once.
+- Small talk ("hi", "thanks") never starts a Deep Research.
+
+## Ask BOAR instead
+
+When a Boar Labs tool answers a question without the model, the answer shows "Ask BOAR
+instead". Tap it to ask the same question again with the tools skipped, so the model
+answers. It applies to that question only. A safety answer (Boar Cohazard) has no such
+button.
+
+## Boar Labs
+
+Boar Labs is a set of experiments, in builds made with the experimental flag (the 2.0.0
+releases are). Find it in Settings → Experimental → Boar Labs, and in the menu.
+
+- Boar Labs starts on. If one lab misbehaves, switch it off there. If you can, open an
+  issue on GitHub.
+- On from the start, labelled beta: Calculator, Facts, Cohazard, Distance and Polyglot.
+  They answer some questions at once, from fixed formulas and tables, without the model.
+  Facts holds driving side, calling codes, mains frequency and emergency numbers for 195
+  countries (table r9.1).
+- Boar Vitals is live and on from the start.
+- Off from the start, labelled alpha: Guard, Press (answers into a PDF), Designer (draws
+  a picture from an answer), Big Boar, Nomad and Lunar. Boar Wisp is in review.
+- Big Boar runs Qwen3.6 35B (12.3 GB) from storage. Download it in the app, or copy it
+  over USB. It is slow.
+- Labs that load a model (Designer, Big Boar, Wisp) use extra memory while they run.
+
+How a lab is made, and the order in which BOAR asks tools, checks and models:
+[PLUGINS.md](PLUGINS.md).
+
+## Adaptive routing
+
+Settings → How BOAR answers → Adaptive routing. It is off by default and experimental.
+When on, BOAR picks which of your installed models answers each question. It helps only
+when you have more than one model. It does not check answers against the sources.
+
+## PIN lock
+
+Settings → PIN lock. A PIN seals your chats: they can't be read until the PIN is
+entered. It also blanks BOAR's screen in recent apps and screenshots. Imported documents
+are not encrypted yet. Without the PIN, the sealed chats can't be opened: "Forgot the
+PIN?" erases them and removes the PIN, and keeps models, packs and documents.
+
+## Your own documents
+
+Settings → Knowledge → Personal Files (BOAR Knowledge, the packs, is the section below it;
+tap a section's title to fold it). Import your own files into the same local search the
+app uses everywhere, and ask about them with the Personal Files style:
+
+- **Formats:** `.txt`, `.md`, `.csv` (a plain comma split, no quoted fields), `.json`
+  (a list of `{title, source, body}` documents, or any other JSON imported as text) and
+  `.pdf` (selectable text only, read on the phone with PDFBox: no OCR, so a scanned PDF
+  gives no text, and password-protected PDFs are refused).
+- A `.md` file is cut at its `#` and `##` headings, one part per section (a section longer
+  than a part is sliced as below). Files imported before this keep their old parts.
+- Each other import is cut into chunks of about 500 tokens with a 50-token overlap, embedded on
+  the phone with the search model, and saved as a named collection. Turn a collection
+  off without deleting it, or delete it.
+- **Export** writes a collection as `{title, source, body}` JSON and hands it to the
+  Android share sheet. It is not a `.sqlite` file, because the stored vectors only match
+  this phone's search model. The recipient imports the JSON and embeds it again.
+- Import and search happen on the phone. Nothing is uploaded.
 
 ## The ONLINE / OFFLINE pill
 
@@ -47,43 +122,33 @@ When the header is tight (large text), the pill shows only its dot, in the same 
 
 ## Finding more models
 
+Settings → Reasoning Models → Open the model catalog lists the curated models
+([MODELS.md](MODELS.md)). From the catalog, "Discover GGUF models" searches Hugging Face
+for other GGUF models. `android-native/app/src/main/java/team/sopa/boar/models/HfBrowser.kt`
+calls Hugging Face's public API only when you search. Tapping a result's file adds it to
+the model list, where you download it like any catalog model.
 
-Settings > Tone & Model has a "Find more models" search box (below the
-curated model list) that searches Hugging Face for other GGUF models —
-`src/services/modelBrowser.ts` calls Hugging Face's public API, this is the
-app's only other network access besides the model-setup downloads, and only
-happens when you explicitly search. Tapping a result's file adds it to the
-model list above, where you download it through the normal flow (same
-progress tracking and post-download size check as every built-in model).
-
-This is deliberately separate from the curated `MODEL_CATALOG` in
-`src/models/manifest.ts`: nobody has run these models to confirm they fit
-typical phone RAM or work cleanly in `llama.rn`, so check a model's Hugging
-Face page yourself (size, license, quantization) before downloading. When
-Hugging Face's metadata includes a git-lfs checksum it's kept on the
-resulting catalog entry, but — like the rest of the app — only file size is
-verified automatically after download, not a full sha256 (reading a
-multi-gigabyte file into memory for a hash isn't worth doing on every
-download; see `ModelManager.verifyChecksum`'s doc comment).
+Nobody has checked these models on a phone the way the curated catalog was checked. Look
+at a model's Hugging Face page yourself (size, license, quantization) before
+downloading. The download is pinned to the commit that was listed, and checked against
+Hugging Face's SHA-256 when it gives one; the result says when there is no checksum.
 
 ## Recovering from a bad model load, or starting over
 
+If a model fails to load (a damaged download, a missing file), the chat shows a readable
+message instead of a raw error. If loading a model closed the app, BOAR doesn't load it
+again on its own: the chat says so and offers to try again with less memory.
 
-If a model fails to load (corrupted/truncated download, the file went
-missing, etc.) the chat screen shows a readable diagnosis instead of a raw
-error, with shortcuts to Settings or straight back into the setup wizard —
-see `src/ui/ModelLoadErrorCard.tsx`.
+Settings → System Recovery & Danger Zone has:
 
-Settings > App also has:
+- **Relaunch Setup Wizard**: back into first-run setup to change the model or the
+  knowledge package, without losing anything else.
+- **See the tour**: the BOAR tour again.
+- **Purge All Data & Reset App**: clears all of BOAR's data on the phone (models, the
+  knowledge base, your documents, chats and settings), the same as Android's "Clear
+  storage", then setup starts again.
 
-- **Re-run Setup Wizard** — jump back into first-run setup any time to
-  switch model tiers or re-download the defaults, without losing anything
-  else.
-- **Danger Zone > Clear All Data & Reset App** — a double-confirmed full
-  wipe (`src/services/appReset.ts`): deletes every downloaded model, the
-  whole local knowledge base (bundled + downloaded corpus packs + your own
-  imported collections), and all chat history/settings, then sends you back
-  to the setup wizard. This app doesn't use MMKV/AsyncStorage — persisted
-  state is either the SQLite knowledge base or small JSON files under the
-  app's document directory, and this is what actually gets cleared.
+## The offline APK (in testing)
 
+An offline APK that carries the models and the knowledge pack inside it, so first launch
+needs no download, is in testing. It is not released.

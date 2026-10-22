@@ -24,7 +24,9 @@ object HfBrowser {
     private const val API = HfQuery.API
 
     /** A repo as listed, with the facts from its GGUF header: parameter count, architecture, context length. */
-    data class Repo(val id: String, val downloads: Long?, val likes: Long?, val params: Long? = null, val architecture: String? = null, val contextLength: Long? = null, val tags: List<String> = emptyList())
+    /** [gated]: the repo needs a Hugging Face account and its license accepted ("manual"/"auto"), which BOAR can't download. */
+    data class Repo(val id: String, val downloads: Long?, val likes: Long?, val params: Long? = null, val architecture: String? = null, val contextLength: Long? = null, val tags: List<String> = emptyList(),
+        val gated: Boolean = false)
     data class GgufFile(val filename: String, val sizeBytes: Long, val sha256: String?, val revision: String?)
     data class Page(val repos: List<Repo>, val next: String?)
 
@@ -41,17 +43,20 @@ object HfBrowser {
     /**
      * One page of the search ([HfQuery.searchUrl], or the `next` of the previous page): text-generation GGUF repos
      * whose architecture BOAR can chat with, without uncensored ones unless the build allows them. A page can come back shorter than asked, or empty with a next page.
+     * [moeOnly]: the Mixture of experts filter (Boar Labs), kept by HfQuery.moeHint.
      */
-    fun browse(url: String): Page {
+    fun browse(url: String, moeOnly: Boolean = false): Page {
         require(url.startsWith("$API/models?")) { "Not a Hugging Face model listing: $url" }
         val (body, link) = get(url)
         val repos = Json.parseToJsonElement(body).jsonArray.map { it.jsonObject }.map { o ->
             val g = o["gguf"] as? JsonObject
             val tags = (o["tags"] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
-            Repo(o.str("id") ?: "", o.num("downloads"), o.num("likes"), g?.num("total"), g?.str("architecture"), g?.num("context_length"), tags)
+            Repo(o.str("id") ?: "", o.num("downloads"), o.num("likes"), g?.num("total"), g?.str("architecture"), g?.num("context_length"), tags,
+                gated = (o["gated"] as? JsonPrimitive)?.contentOrNull.let { it != null && it != "false" })
         }.filter { it.id.isNotEmpty() && HfQuery.chatArchitecture(it.architecture) }
             // Uncensored and adult models only in builds with ALLOW_UNCENSORED_MODELS=true (app/build.gradle.kts).
             .filter { team.sopa.boar.BuildConfig.ALLOW_UNCENSORED_MODELS || !HfQuery.uncensored(it.id, it.tags) }
+            .filter { !moeOnly || HfQuery.moeHint(it.id, it.architecture) }
         return Page(repos, HfQuery.nextUrl(link))
     }
 
@@ -76,8 +81,11 @@ object HfBrowser {
 
     private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
 
-    /** toCatalogModel: the same id and file name as the Expo app, so a model added in either is the same file. */
-    fun toAsset(repoId: String, f: GgufFile): CatalogAsset {
+    /**
+     * toCatalogModel: the same id and file name as the Expo app, so a model added in either is the same file. [architecture]:
+     * the repo's, from its listing (Repo.architecture), kept so Boar Labs knows a mixture of experts before it's downloaded.
+     */
+    fun toAsset(repoId: String, f: GgufFile, architecture: String? = null): CatalogAsset {
         require(".." !in f.filename && !f.filename.startsWith("/")) { "Unsafe file name: ${f.filename}" }
         // The Expo app's id (cut at 120 characters); a longer one gets a short hash so two long names can't collide.
         val full = "hf-${slug(repoId)}-${slug(f.filename)}"
@@ -87,7 +95,7 @@ object HfBrowser {
             filename = "models/$id.gguf", sizeBytes = f.sizeBytes, sha256 = f.sha256 ?: "",
             sourceUrl = "https://huggingface.co/${repoPath(repoId)}/resolve/${enc(f.revision ?: "main")}/${f.filename.split("/").joinToString("/") { enc(it) }}",
             license = "Unknown — check the model's Hugging Face page",
-            description = "$repoId — added via model search, not vetted by BOAR", required = false,
+            description = "$repoId — added via model search, not vetted by BOAR", required = false, architecture = architecture,
         )
     }
 

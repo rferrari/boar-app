@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_bmoe_title" formatted="false">Big Boar</string>
+    <string name="native_labs_bmoe_body" formatted="false">A 35B model on your phone: BigMoeOnEdge keeps the always-used weights in memory and reads each word\'s experts from storage. Slow, but a real 35B.</string>
+    <string name="native_labs_bmoe_engine" formatted="false">ENGINE</string>
+    <string name="native_labs_bmoe_engineOk" formatted="false">BigMoeOnEdge is in this build</string>
+    <string name="native_labs_bmoe_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
+    <string name="native_labs_bmoe_engineName" formatted="false">BigMoeOnEdge (Helldez, Apache-2.0)</string>
+    <string name="native_labs_bmoe_models" formatted="false">MODELS BIG BOAR CAN RUN</string>
+    <string name="native_labs_bmoe_onPhone" formatted="false">On the phone</string>
+    <string name="native_labs_bmoe_orUsb" formatted="false">Or copy it over USB to {{path}}</string>
+    <string name="native_labs_bmoe_noOthers" formatted="false">No other mixture of experts here yet. In the Model Catalog, search Hugging Face with the Mixture of experts filter and add one: it shows here.</string>
+    <string name="native_labs_bmoe_use" formatted="false">Answer with this model</string>
+    <string name="native_labs_bmoe_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
+    <string name="native_labs_bmoe_more" formatted="false">Other mixture-of-experts models run on Big Boar too: download one in the Model Catalog and pick its engine on its card. Auto uses Big Boar when a model is too big for this phone\'s memory.</string>
+    <string name="native_labs_bmoe_note" formatted="false">The first answer loads the model (a minute or more). Each answer then takes minutes, and the phone gets warm: turn on the Debug log to see speed and heat. Adaptive routing is skipped while it\'s selected.</string>
+    <string name="native_labs_bmoe_card_engine" formatted="false">Engine</string>
+    <string name="native_labs_bmoe_card_auto" formatted="false">Auto · {{engine}}</string>
+    <string name="native_labs_bmoe_card_red" formatted="false">🦣 Too big for this phone\'s memory: Big Boar can run it, slower.</string>
+    <string name="native_labs_bmoe_card_yellow" formatted="false">Big Boar uses less memory.</string>
+    <string name="native_labs_bmoe_card_boarTooBig" formatted="false">BOAR · too big</string>
+    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Boar Labs → Big Boar can run it, slower.</string>
+    <string name="native_labs_bmoe_browseHint" formatted="false">🦣 Big Boar can run this</string>
+</resources>

@@ -10,7 +10,7 @@
 //     --redirects enwiki-latest-redirect.sql.gz --index enwiki-latest-pages-articles-multistream-index.txt.bz2 \
 //     --wikivoyage enwikivoyage-latest-pages-articles.xml.bz2
 //
-// Pack layout (one SQLite file, opened read-only by src/rag/wikiPack.ts):
+// Pack layout (one SQLite file, opened read-only by android-native/engine/src/main/java/team/sopa/boar/engine/rag/WikiPack.kt):
 //   meta(key, value)                       format, sources, build parameters, embedding model
 //   blocks(id, zdata)                      zstd-compressed runs of article text (UTF-8)
 //   articles(id, source, page_id, title, views, block_id, off, len)   off/len: bytes in the block
@@ -70,7 +70,7 @@ const USAGE = `usage: node scripts/build-wiki-pack.mjs --out FILE --shards A.par
   --zlevel N              zstd level, default 12`;
 
 const log = (msg) => console.log(`[${new Date().toISOString().slice(11, 19)}] ${msg}`);
-// Source codes stored in articles.source (the app maps them back in src/rag/wikiPack.ts).
+// Source codes stored in articles.source (the app maps them back in android-native/engine/src/main/java/team/sopa/boar/engine/rag/WikiPack.kt).
 const SOURCE = { enwiki: 0, enwikivoyage: 1, enwikibooks: 2, appropedia: 3, usgov: 4, eips: 5, ethspecs: 6, ethereumorg: 7, bips: 8 };
 const DF_MIN = 2000; // terms in fewer chunks are counted from their (short) posting lists at query time
 

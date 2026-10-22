@@ -11,9 +11,9 @@ There is no automated judge. The harness produces structured results
 
 ## The evaluation set (v1)
 
-Source of truth: [`src/eval/evalSet.ts`](../src/eval/evalSet.ts). Bump
-`EVAL_SET_VERSION` there whenever a query changes; every result row records
-the version it was produced with.
+Source of truth: `android-native/app/src/main/assets/boar-data/eval-set.json` (`evalSet`; extra sets in `extraSets`). Bump the
+`setVersion` of the queries whenever one changes; every result row records the
+version it was produced with.
 
 "Expected KB article" means the bundled corpus has an article on the topic,
 so a correct retrieval should surface it (recorded as `expectedKbHit`). The
@@ -39,26 +39,28 @@ so a correct retrieval should surface it (recorded as `expectedKbHit`). The
 | no-kb-1 | no-kb-content | Who was Napoleon Bonaparte? | — (the corpus only has "Randy Napoleon", which must not be cited) |
 | no-kb-2 | no-kb-content | How do antibiotics work, and why does antibiotic resistance develop? | — |
 
-Each query's `gradingNotes` in `evalSet.ts` says what a good answer contains.
+Each query's `gradingNotes` in `eval-set.json` says what a good answer contains.
 
 ## Configurations
 
 The harness runs the whole set once per selected configuration:
 
 - **One per installed LLM** (`model:<id>`), including models added through the
-  Hugging Face search. Every query goes to that model. Retrieval follows the same
-  rule as the fixed-model chat path: skipped for greetings, calculation,
-  translation and code, otherwise run. Generation goes through the routing
-  executor in the model's own instruction format: the chat template embedded
+  Hugging Face search. Every query goes to that model, on the chat's default path
+  (the plain answer pipeline). The Boar Labs tools switched on in the app (or the
+  ones the request names with `"labs"`) answer first, as in the chat; a tool's
+  answer is recorded with `reasonCodes` `answer:<tool>`. Retrieval follows the
+  same rule as the chat: skipped for greetings, calculation, translation and
+  code, otherwise run. Generation uses the model's own instruction format: the chat template embedded
   in its GGUF (`tokenizer.chat_template`, applied by llama.cpp), so Qwen gets
   ChatML, Phi gets `<|system|>…<|end|>`, and any other model gets whatever
   its file defines. Only a file with no embedded template falls back to the
   app's plain `Question:/Answer:` prompt. Every row records which one was used
   (`promptFormat`). Generation settings are otherwise identical in both cases
-  (512 tokens, temperature 0.7); a template ends on the model's own
-  end-of-turn token, the plain prompt on the app's stop strings. All three
-  curated GGUFs (Phi-3.5-mini, Qwen2.5-1.5B, Qwen2.5-7B) ship a template.
-- **Adaptive routing** (`adaptive`). Every query goes through `runAdaptiveChat`,
+  (temperature 0.7); a template ends on the model's own end-of-turn token, the
+  plain prompt on the app's stop strings.
+- **Adaptive routing** (`adaptive`; the native runner reports it as not supported
+  yet, so this describes the 1.x app). Every query goes through `runAdaptiveChat`,
   exactly as in chat with Adaptive Routing on, using the routing preset
   currently stored in settings (default `balanced`; there's no picker in the UI
   yet). This runs whether or not the Adaptive Routing toggle is on.
@@ -68,8 +70,9 @@ The harness runs the whole set once per selected configuration:
   measures the product as users get it; `promptFormat` shows the difference.
 
 Held constant for every run and recorded on every row: the system prompt (the
-default `succinct` personality), `maxTokens` = 512, no conversation history
-(every query is answered on its own). Sampling temperature is the app's normal
+default `detailed` style, Thorough & Detailed; small talk and health questions
+answer in `succinct`, as in the chat), `maxTokens` = 1024 (512 for small talk),
+no conversation history (every query is answered on its own). Sampling temperature is the app's normal
 0.7, so answers vary a little between runs; compare several runs before drawing
 conclusions from small differences.
 
@@ -79,96 +82,29 @@ cost (`modelResidency: "cold"` or `"switched"`, `modelLoadMs` > 0) and the rest
 are `"resident"`. When the run ends, the model that was loaded before it is
 reloaded, so chat carries on as before.
 
-## Running it from the computer (recommended)
+## Running it from the computer
 
-A walkthrough with example output, how it works and tips is in
-[DEVICE_EVALUATION.md](DEVICE_EVALUATION.md).
-
-`npm run eval:device` runs the evaluation on a USB-connected phone and brings
-the results back, with no tapping. It's transport only: it writes a request
-into the app's private storage over adb, the app runs it through the same
-evaluation service as the Evaluation screen (which opens on the phone and shows
-progress), and the script polls for completion and pulls the result.
-
-### Prerequisites
-
-- `adb` on your `PATH` (Android SDK platform-tools), and Node/npm with
-  `npm install` done in the repo.
-- The phone connected over USB with **USB debugging** enabled and this computer
-  **authorized** (accept the "Allow USB debugging" prompt). `adb devices` must
-  list it as `device`, not `unauthorized` or `offline`.
-- A **debuggable development build** of the app (package `team.sopa.aoair`),
-  e.g. from `npx expo run:android`. Release/EAS builds don't work: reading the
-  results needs `run-as`, and the request pickup only exists in development
-  builds. With `--install` (or if the app is missing) the script builds and
-  installs one with `npx expo run:android --no-bundler`.
-- **Metro running** in another terminal: `make start` (or
-  `npx expo start --localhost`). The script sets up `adb reverse tcp:8081` and
-  reloads the app from Metro, so the phone always runs the current code.
-- First-run setup finished on the phone, and every model you want to compare
-  already downloaded. The script never downloads models.
-- Phone plugged in with the screen on (e.g. Developer options → Stay awake).
-
-### Commands
-
-```bash
-npm run eval:device                                   # every installed model + adaptive, all 17 queries
-npm run eval:device -- --models qwen2.5-1.5b,phi-3.5  # only these models (id or a fragment of it)
-npm run eval:device -- --adaptive                     # only adaptive routing
-npm run eval:device -- --models instella --adaptive   # a model and adaptive
-npm run eval:device -- --queries greeting-1,reasoning # a subset, by query id or category
-npm run eval:device -- --dry-run                      # print every adb command, run nothing
-npm run eval:device -- --help                         # all options (--serial, --timeout-min, --no-reload, …)
-```
-
-A model selector must match exactly one installed model; a typo or an
-ambiguous fragment (`qwen2.5` with both Qwen models installed) stops the run
-and lists what is installed.
-
-### What it does
-
-1. Checks `adb devices` for exactly one authorized device (or `--serial`).
-2. Checks that `team.sopa.aoair` is installed and debuggable, installing it if
-   missing.
-3. Checks Metro and runs `adb reverse tcp:8081 tcp:8081`.
-4. Writes `files/eval/requests/pending.json` through `run-as` and reloads the
-   app through the dev-client link.
-5. Once models are loaded, the app claims the request and opens the Evaluation
-   screen. It writes progress to `files/eval/requests/<requestId>.status.json`,
-   which the script polls every 5 seconds.
-6. Pulls `files/eval/<runId>.jsonl`, saves it and prints the report.
-
-### Output
-
-```
-eval-results/<YYYY-MM-DD>/
-  <runId>.jsonl        raw results, one row per answer (authoritative)
-  <runId>.answers.md   every config's answer grouped by query, for grading
-  <runId>.status.json  the final request status from the phone
-```
-
-The terminal report shows, per configuration: queries succeeded/failed,
-TTFT, model load time (over the queries that loaded a model), generation
-latency, tokens/sec (average and p50), total time per query, peak RSS,
-residency counts, model switches and retrieval use (with how many expected
-corpus articles were found). Re-print it any time with
-`npm run eval:summary -- --report eval-results/<date>/<runId>.jsonl`.
+Over adb, with no tapping: see [DEVICE_EVALUATION.md](DEVICE_EVALUATION.md). The
+results land in `eval-results/`; print a report with
+`node scripts/eval-summary.mjs --report eval-results/eval-out/<runId>.jsonl` (the path the pull step writes).
 
 ## Running it on the device by hand
 
 1. Build and install the app as described in [AGENTS.md](../AGENTS.md), finish
    first-run setup, and download any extra models you want to compare
-   (Settings → Models).
+   (Settings → Reasoning Models → Open the model catalog).
 2. Keep the phone plugged in with the screen on (for example, Developer options
    → Stay awake). Backgrounding or locking the phone can interrupt a run.
-3. Open the drawer → **Execution Telemetry** → **🧪 Evaluate**.
-4. Tick the configurations to compare (by default, every installed model plus
-   adaptive routing) and tap **▶ Run**. Progress shows the current config and
+3. Open Settings → Advanced tweaks → **Evaluation (for builders)** (or the menu,
+   in builds with `SHOW_EVAL_IN_MENU`).
+4. Tick the models to compare and tap **▶ Run**. Progress shows the current config and
    query. **■ Stop** ends the run after the current answer and keeps partial
    results.
 5. When it finishes, the results are saved on the device as
    `files/eval/<runId>.jsonl`. **⬇ JSONL** and **⬇ CSV** open the share
-   sheet to send them to your computer.
+   sheet to send them to your computer. Builds with `EVAL_SHARING=true` also
+   have **Share results**; the default build has no Share button and sends
+   nothing.
 
 Expect roughly 17 answers × (seconds to a minute each) per config, depending
 on the model and phone.
@@ -178,24 +114,18 @@ on the model and phone.
 Any of these works:
 
 - **Share sheet**: the export buttons (file manager, email, Nearby Share, …).
-- **Metro terminal**: with the dev client connected, every answer is printed as
-  one `[EVAL] {...}` line. Save the terminal output to a file; the summary
-  script reads those lines directly.
-- **adb** (debuggable/dev-client builds):
+- **adb** (debuggable builds; a debug build's package is `team.sopa.aoair.native`):
 
   ```bash
-  adb exec-out run-as team.sopa.aoair ls files/eval
-  adb exec-out run-as team.sopa.aoair cat files/eval/<runId>.jsonl > <runId>.jsonl
+  adb exec-out run-as team.sopa.aoair.native ls files/eval
+  adb exec-out run-as team.sopa.aoair.native cat files/eval/<runId>.jsonl > <runId>.jsonl
   ```
-
-Every row is also written to the regular execution telemetry, so eval runs show
-up in the Execution Telemetry screen and its exports like any other message.
 
 ## Comparing results
 
 ```bash
 node scripts/eval-summary.mjs results/*.jsonl            # one line per run + config
-node scripts/eval-summary.mjs --report results/*.jsonl   # detailed per-config report (as printed by eval:device)
+node scripts/eval-summary.mjs --report results/*.jsonl   # detailed per-config report
 node scripts/eval-summary.mjs --answers results/*.jsonl  # answers side by side, per query (markdown)
 ```
 
@@ -223,13 +153,12 @@ Each JSONL row (and CSV line) contains:
   `totalLatencyMs` (whole query), `tokensGenerated`, `tokPerSec`,
   `peakRssBytes`.
 
-The metric fields mean exactly what they mean in the execution telemetry (see
-`src/services/executionTelemetry.pure.ts` and `src/routing/executor.ts`).
+Times are in milliseconds, measured on the phone.
 
 ## The Vitalik battery (`vitalik-1`)
 
-A second set of 6 questions in `VITALIK_SET` (`src/eval/evalSet.ts`), run only on request:
-`npm run eval:device -- --queries vitalik` (or single ids such as `vitalik-about-x`). Its rows are
+A second set of 6 questions in `extraSets` (same file), run only on request: a request with
+`"queries":["vitalik"]` (or single ids such as `vitalik-about-x`). Its rows are
 recorded as set `vitalik-1`, so they're never compared with the standard set above.
 
 The questions are our own, on topics Vitalik Buterin (whose post inspired the bounty) writes and

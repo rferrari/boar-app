@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_lunar_title" formatted="false">Boar Lunar</string>
+    <string name="native_labs_lunar_body" formatted="false">A lua hoje e neste mês, offline: fase, quanto está iluminada, a próxima lua cheia e nova.</string>
+    <string name="native_labs_lunar_lit" formatted="false">{{pct}}% iluminada · dia {{age}} do ciclo</string>
+    <string name="native_labs_lunar_nextFull" formatted="false">PRÓXIMA LUA CHEIA</string>
+    <string name="native_labs_lunar_nextNew" formatted="false">PRÓXIMA LUA NOVA</string>
+    <string name="native_labs_lunar_north" formatted="false">Hemisfério Norte</string>
+    <string name="native_labs_lunar_south" formatted="false">Hemisfério Sul</string>
+    <string name="native_labs_lunar_note" formatted="false">Calculado a partir da data deste celular, sem internet e sem localização. O hemisfério só muda qual lado da lua aparece iluminado. Nascer e pôr da lua precisam da sua localização, por isso não aparecem.</string>
+    <string name="native_labs_lunar_phase_new" formatted="false">Lua nova</string>
+    <string name="native_labs_lunar_phase_waxingCrescent" formatted="false">Crescente</string>
+    <string name="native_labs_lunar_phase_firstQuarter" formatted="false">Quarto crescente</string>
+    <string name="native_labs_lunar_phase_waxingGibbous" formatted="false">Crescente gibosa</string>
+    <string name="native_labs_lunar_phase_full" formatted="false">Lua cheia</string>
+    <string name="native_labs_lunar_phase_waningGibbous" formatted="false">Minguante gibosa</string>
+    <string name="native_labs_lunar_phase_lastQuarter" formatted="false">Quarto minguante</string>
+    <string name="native_labs_lunar_phase_waningCrescent" formatted="false">Minguante</string>
+</resources>

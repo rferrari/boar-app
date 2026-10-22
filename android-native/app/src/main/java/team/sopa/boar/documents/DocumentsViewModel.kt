@@ -23,6 +23,8 @@ data class DocumentsState(
     val done: Int = 0,
     val total: Int = 0,
     val error: String? = null,
+    /** The collection just imported, for "Ask about them" (Personal Files); null once dismissed or on the next import. */
+    val imported: String? = null,
 )
 
 /** My Documents (port of PersonalDocumentsManager.tsx): import files into a collection, switch it on or off, remove it. */
@@ -33,11 +35,13 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     init { refresh() }
 
+    fun dismissImported() = _state.update { it.copy(imported = null) }
+
     fun refresh() = _state.update { it.copy(collections = services.knowledgeBase.collections()) }
 
     fun import(uris: List<Uri>, name: String) {
         if (uris.isEmpty() || _state.value.stage != null) return
-        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0) }
+        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0, imported = null) }
         safeScope.launch(Dispatchers.IO) {
             try {
                 val resolver = getApplication<Application>().contentResolver
@@ -48,6 +52,8 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                         if (c.moveToFirst()) { fileName = c.getString(0) ?: fileName; size = c.getLong(1) }
                     }
                     if (size <= 0) size = runCatching { resolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull() ?: 0L
+                    // Only what BOAR can read: anything else (an .html page, a .docx) would go in as raw code, found by nothing.
+                    if (fileName.substringAfterLast('.', "").lowercase() !in READABLE) throw Failed(text("native.documents.unsupported", fileName))
                     if (DocumentImport.tooLargeToRead(size)) throw TooLarge(fileName)
                     val text = try {
                         if (fileName.lowercase().endsWith(".pdf")) pdfText(uri, fileName)
@@ -62,6 +68,8 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                 DocumentImport.import(services.knowledgeBase, services::embed, files, name, onProgress = { d, t ->
                     _state.update { it.copy(stage = "embedding", done = d, total = t) }
                 })
+                services.vault.record { f -> f.copy(documents = f.documents + files.size) }
+                _state.update { it.copy(imported = name) }
             } catch (e: TooLarge) {
                 _state.update { it.copy(error = tooLarge(e.fileName)) }
             } catch (e: DocumentImport.TooLarge) {
@@ -79,6 +87,14 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     private class TooLarge(val fileName: String) : Exception()
 
+    private companion object {
+        /** The extensions the importer reads (the screen's note lists them). */
+        val READABLE = setOf("txt", "md", "markdown", "csv", "json", "pdf")
+    }
+
+    /** An IOException, so PDDocument.load closes and deletes its scratch file before it reaches [pdfText]. */
+    private class InputTooLarge : java.io.IOException()
+
     /** A failure the user can act on, already in their language. */
     private class Failed(message: String) : Exception(message)
 
@@ -87,13 +103,42 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     private fun tooLarge(fileName: String) =
         team.sopa.boar.ui.I18n.t(getApplication(), "native.documents.tooLarge", "name" to fileName, "mb" to DocumentImport.READ_LIMIT / 1_000_000)
 
-    /** The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. */
+    /**
+     * The PDF's selectable text (no OCR); password-protected PDFs aren't supported, as in the Expo app. PDFBox keeps the
+     * file in a temp file in the cache, not on the heap, and writes the text in one pass, so a large PDF doesn't fill
+     * the memory a loaded model needs. Both the file and its text stop at [DocumentImport.READ_LIMIT], also when the
+     * picker didn't say how big the file is.
+     */
     private fun pdfText(uri: Uri, fileName: String): String {
         val app = getApplication<Application>()
         com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(app)
         val input = app.contentResolver.openInputStream(uri) ?: throw Failed(text("native.documents.unreadable", fileName))
+        val memory = com.tom_roush.pdfbox.io.MemoryUsageSetting.setupTempFileOnly().setTempDir(app.cacheDir)
+        val limit = DocumentImport.READ_LIMIT
         return try {
-            input.use { s -> com.tom_roush.pdfbox.pdmodel.PDDocument.load(s).use { doc -> com.tom_roush.pdfbox.text.PDFTextStripper().getText(doc) } }
+            input.use { raw ->
+                val bounded = object : java.io.FilterInputStream(raw) {
+                    private var read = 0L
+                    private fun count(n: Int): Int { if (n > 0) { read += n; if (read > limit) throw InputTooLarge() }; return n }
+                    override fun read(): Int = super.read().also { if (it >= 0) count(1) }
+                    override fun read(b: ByteArray, off: Int, len: Int): Int = count(super.read(b, off, len))
+                }
+                com.tom_roush.pdfbox.pdmodel.PDDocument.load(bounded, memory).use { doc ->
+                    val out = StringBuilder()
+                    val writer = object : java.io.Writer() {
+                        override fun write(cbuf: CharArray, off: Int, len: Int) {
+                            out.append(cbuf, off, len)
+                            if (out.length > limit) throw TooLarge(fileName)
+                        }
+                        override fun flush() {}
+                        override fun close() {}
+                    }
+                    com.tom_roush.pdfbox.text.PDFTextStripper().writeText(doc, writer)
+                    out.toString()
+                }
+            }
+        } catch (e: InputTooLarge) {
+            throw TooLarge(fileName)
         } catch (e: com.tom_roush.pdfbox.pdmodel.encryption.InvalidPasswordException) {
             throw Failed(text("native.documents.passwordProtected", fileName))
         } catch (e: java.io.IOException) {
@@ -113,6 +158,7 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
         val dir = java.io.File(app.cacheDir, "exports/${System.currentTimeMillis()}").apply { mkdirs() }
         val file = java.io.File(dir, DocumentImport.slug(col.name).ifEmpty { "collection" } + ".json")
         file.writeText(DocumentImport.exportJson(services.knowledgeBase.collectionDocs(col.id)))
+        services.vault.record { f -> f.copy(exports = f.exports + 1) }
         val uri = androidx.core.content.FileProvider.getUriForFile(app, "${app.packageName}.files", file)
         android.content.Intent.createChooser(android.content.Intent(android.content.Intent.ACTION_SEND).apply {
             type = "application/json"

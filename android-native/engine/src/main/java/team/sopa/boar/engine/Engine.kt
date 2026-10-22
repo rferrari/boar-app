@@ -120,10 +120,28 @@ data class BenchStats(val mean: Double, val sd: Double, val runs: Int)
 data class BenchResult(val pp: BenchStats?, val tg: BenchStats?, val nPp: Int, val nTg: Int, val threads: Int)
 
 /**
+ * A loaded text model the answer paths generate with: BOAR's own engine ([LlamaSession]) or an engine a Boar Labs
+ * plugin runs in its own process (team.sopa.boar.plugins.EnginePlugins).
+ */
+interface TextModel : Closeable {
+    /** The model renders chat messages itself ([formatChat]); otherwise callers build a plain prompt. */
+    val hasChatTemplate: Boolean
+    suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean = false): FormattedPrompt
+    /** Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. */
+    fun generate(prompt: String, sampling: Sampling = Sampling()): Flow<GenerationEvent>
+    /** Stops a generation in flight; callable from any thread. */
+    fun cancel()
+    /** Called after every generation with its metrics. */
+    var onGenerated: ((GenerationMetrics) -> Unit)?
+    /** An answer is being generated now (memory release waits for it). */
+    val isGenerating: Boolean get() = false
+}
+
+/**
  * One loaded model. Calls are serialized: llama.cpp contexts are not thread-safe.
  * [cancel] may be called from any thread and stops a running [generate] or [bench].
  */
-class LlamaSession private constructor(@Volatile private var handle: Long, val params: EngineParams) : Closeable {
+class LlamaSession private constructor(@Volatile private var handle: Long, val params: EngineParams) : TextModel {
     private val lock = Mutex()
 
     /** The model's metadata, read once at load: it never changes, and a later read could race [close] freeing the session. */
@@ -132,7 +150,9 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     /** The native handle, or a catchable error once [close] freed it: native code would crash on a 0 handle. */
     private fun live(): Long = handle.takeIf { it != 0L } ?: throw IllegalStateException("model unloaded")
 
-    suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean = false): FormattedPrompt = lock.withLock {
+    override val hasChatTemplate: Boolean get() = info.optBoolean("hasChatTemplate", false)
+
+    override suspend fun formatChat(messages: List<ChatMessage>, enableThinking: Boolean): FormattedPrompt = lock.withLock {
         val h = live()
         withContext(Dispatchers.Default) {
             val arr = JSONArray().apply { messages.forEach { put(JSONObject().put("role", it.role).put("content", it.content)) } }
@@ -149,7 +169,7 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     /** Streams the answer piece by piece, then one [GenerationEvent.Done] with the measurements. */
-    fun generate(prompt: String, sampling: Sampling = Sampling()): Flow<GenerationEvent> = callbackFlow {
+    override fun generate(prompt: String, sampling: Sampling): Flow<GenerationEvent> = callbackFlow {
         lock.withLock {
             val metrics = BoarNative.generate(live(), prompt.toByteArray(Charsets.UTF_8), sampling.toJson()) { bytes ->
                 trySend(GenerationEvent.Piece(String(bytes, Charsets.UTF_8))).isSuccess
@@ -177,9 +197,9 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     /** Called after every generation with its metrics (the model host watches for stalls). */
-    @Volatile var onGenerated: ((GenerationMetrics) -> Unit)? = null
+    @Volatile override var onGenerated: ((GenerationMetrics) -> Unit)? = null
 
-    fun cancel() = BoarNative.cancel(handle)
+    override fun cancel() = BoarNative.cancel(handle)
 
     /** Stops a generation in flight, waits for it to return, then frees the context (never under a running call). */
     override fun close() {
@@ -197,10 +217,28 @@ class LlamaSession private constructor(@Volatile private var handle: Long, val p
     }
 
     companion object {
-        /** Loads a GGUF file; null when llama.cpp can't open it (see logcat tag "llama"). */
-        suspend fun load(path: String, params: EngineParams): LlamaSession? = withContext(Dispatchers.IO) {
-            val h = BoarNative.load(path, params.toJson())
-            if (h == 0L) null else LlamaSession(h, params)
+        /**
+         * Loads a GGUF file; null when llama.cpp can't open it (see logcat tag "llama"). The native load can't be stopped
+         * halfway, so it always runs to the end; a caller cancelled meanwhile (Close BOAR, a new question) gets the model
+         * closed again, never left in memory with nothing pointing at it (2–3 GB after Close BOAR, chaos runs 5, 8, 9).
+         */
+        suspend fun load(path: String, params: EngineParams): LlamaSession? {
+            // Held outside the block: withContext can still throw on the way back to a cancelled caller, after the load.
+            var s: LlamaSession? = null
+            try {
+                withContext(Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+                    val h = BoarNative.load(path, params.toJson())
+                    if (h != 0L) s = LlamaSession(h, params)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                s?.close()
+                throw e
+            }
+            if (kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]?.isActive == false) {
+                s?.close()
+                throw kotlinx.coroutines.CancellationException("load cancelled")
+            }
+            return s
         }
     }
 }

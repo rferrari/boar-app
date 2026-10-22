@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Dictation with the on-device speech recognizer (asked the first time the mic is tapped). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- The Truffle Vault's de-Googled truffle: is GrapheneOS's app store there, are Google Play services missing (TruffleVault.degoogled). -->
+    <queries>
+        <package android:name="app.grapheneos.apps" />
+        <package android:name="com.google.android.gms" />
+    </queries>
     <!-- Settings → Haptic feedback (a normal permission: granted at install, no prompt). -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- AnswerService: "BOAR is answering…" while an answer is written, so the phone doesn't close BOAR mid-answer
@@ -15,7 +20,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
-        android:label="@string/app_name"
+        android:label="${appLabel}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:extractNativeLibs="true"
@@ -39,6 +44,13 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+        <!-- Boar Labs: opens BOAR again after a crash, from a process of its own (labs/CrashRestart.kt). -->
+        <activity
+            android:name=".labs.RestartActivity"
+            android:process=":restart"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="false" />
         <service
             android:name=".app.AnswerService"
             android:exported="false"

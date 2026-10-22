@@ -5,14 +5,16 @@
 > what the app does with data before it is final. Questions or corrections: privacy@boarapp.com or
 > an issue at [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Version 0.9.1 (preview) · 19 October 2026 · Contact: privacy@boarapp.com
+Version 0.9.1 (preview) · 20 October 2026 · Contact: privacy@boarapp.com
 
-BOAR is an offline AI research app for Android and iOS, and boarapp.com is its website. BOAR is a
+BOAR is an AI research app for Android that works offline after a one-time download, and
+boarapp.com is its website. BOAR is a
 free, open-source project built by its community of contributors ("we", "us"). There is no company
 behind it. The project's maintainers run the sharing service and handle the personal data described
 here (the "controller" under the GDPR and Brazil's LGPD); you reach them at privacy@boarapp.com.
 
-This policy covers the BOAR app (both the standard build and the offline build) and boarapp.com. It
+This policy covers the BOAR Android app (version 2.0, the native app) and boarapp.com. An iPhone
+version is not released; this policy will cover it before one is. It
 is written with the EU and UK GDPR, Brazil's LGPD, California's CCPA/CPRA and similar laws in mind,
 and applies to everyone, wherever they live. A Portuguese version is at
 [docs/legal/PRIVACY.pt.md](docs/legal/PRIVACY.pt.md); if the two differ, this English version
@@ -20,17 +22,18 @@ prevails, except where your local law requires otherwise.
 
 ## In short
 
-- **Your questions, answers, conversations and documents never leave your phone.** BOAR answers
+- **BOAR doesn't send your questions, answers, conversations or documents anywhere.** BOAR answers
   with a model that runs on the phone. There is no account, no advertising, and no analytics or
   crash reporting in the app.
 - **The app uses the internet only when you ask it to:** to download models and packs, to search
   Hugging Face for a model, and, in a build that includes it, to share an evaluation run (current
-  Android builds don't). The offline build has no internet permission at all.
+  Android builds don't).
 - **Sharing a run is optional, and current Android builds don't include it.** In a build that does, you
   see everything that will be sent before you confirm. What becomes
   public is a phone's model and chip with its scores, never anything that identifies you.
-- **Your phone is yours to protect.** BOAR keeps your data on your phone and doesn't encrypt it beyond
-  what the phone does for every app (section 9).
+- **Your phone is yours to protect.** BOAR keeps your data on your phone. With a PIN set, your chats
+  are sealed with it; imported documents and everything else are not encrypted beyond what the phone
+  does for every app (section 9).
 
 ## 1. What stays on your phone
 
@@ -39,27 +42,27 @@ These are processed only on your device and are never sent to us or anyone else 
 - your questions and BOAR's answers, conversations and their summaries;
 - documents you import and the collections made from them;
 - the knowledge base and the searches over it;
-- your location: read only when you ask about places near you, used on the phone, and never sent
-  anywhere by BOAR, which has no geocoder. On Android it comes from the phone's GPS alone, with no
-  network location service. On iPhone it comes from iOS's Core Location, which may also use Wi-Fi and
-  cell signals through Apple's location service, under Apple's privacy policy;
-- BOAR's performance log (model, speed, memory for each answer), which never includes your
-  questions or answers, and leaves the phone only if you export it yourself;
+- BOAR's debug log, in builds that have it and only once you turn it on (model, speed, memory and
+  crashes, never your questions or answers), which leaves the phone only if you save and share the
+  file yourself;
 - evaluation runs (BOAR's fixed test questions and the model's answers to them), until you share
   or export one;
 - your settings, and, if you shared a run in a build that includes sharing, a security key that BOAR
   created in the phone's secure hardware for it.
 
-**Deleting it:** Settings → Erase all data deletes your conversations, documents, models,
-knowledge packs and settings. Two things stay until you uninstall the app: saved evaluation runs and
-the sharing key. Uninstalling BOAR deletes everything it stored on the phone.
+BOAR doesn't ask for the location permission and doesn't read your location.
+
+**Deleting it:** Settings → System Recovery & Danger Zone → Purge All Data & Reset App clears all of
+BOAR's data on the phone, the same as Android's "Clear storage": conversations, documents, models,
+knowledge packs, settings, saved evaluation runs and the sharing key. Uninstalling BOAR also deletes
+everything it stored on the phone.
 
 ## 2. When the app uses the internet
 
 The standard build connects to the internet only in these cases, each started by you. Nothing is sent
 in the background.
 
-### 2.1 Downloading models, knowledge packs and places
+### 2.1 Downloading models and knowledge packs
 
 When you set up BOAR or tap Download, the phone fetches the file from **Hugging Face**
 (huggingface.co) or **GitHub** (github.com, raw.githubusercontent.com). BOAR sends only the request
@@ -78,7 +81,7 @@ you search. Hugging Face's privacy policy applies.
 The Evaluation screen can run BOAR's fixed set of test questions and, if you choose **Share results**,
 send the run to us so anyone can compare how models perform on different phones. Current builds of
 the Android app don't include **Share results**: the run is saved as files on your phone and nothing
-is sent. On iOS it isn't open either. In a build that includes sharing, the app shows you every field
+is sent. In a build that includes sharing, the app shows you every field
 before anything is sent. We receive:
 
 - **about the phone:** platform, OS version and API level, brand and model, chipset and its maker,
@@ -104,20 +107,14 @@ but kept hidden until the BOAR team reviews them.
 
 ### 2.4 Voice input
 
-Voice input is off until you turn it on. On iPhone and on Android 12 or later, speech is recognized
-on the phone. On some older Android phones, voice uses the phone's own speech service, which may send
-the audio to its provider (often Google). BOAR warns you and asks first. That provider's privacy
-policy applies, and we never receive the audio or the text.
+Voice input asks for the microphone permission the first time you use it. BOAR uses only Android's
+on-device speech recognizer (Android 12 or later), so the audio is recognized on the phone. Phones
+without an on-device recognizer get no microphone button. We never receive the audio or the text.
 
-### 2.5 Opening a place in a maps app
+### 2.5 The offline build (in testing)
 
-If you tap "Open in maps" on a place, BOAR hands that place's coordinates to the maps app you choose.
-That app's privacy policy applies from then on.
-
-### 2.6 The offline build
-
-BOAR's offline build has no internet permission. None of section 2 applies to it: models and packs are
-imported from files, and nothing can be shared.
+An offline build that carries the models and the knowledge pack inside the APK is in testing and not
+released. It needs no download at first launch. This policy will describe it when it is released.
 
 ## 3. The website (boarapp.com)
 
@@ -204,11 +201,12 @@ server checks each signature and one-time code, and stored runs can't be changed
 us. The database is private except for the public scores, and it holds nothing that names you. If a
 breach puts your data at risk, we'll notify the authorities and affected people as the law requires.
 
-**On your phone:** everything in section 1 lives on your phone, under your control. BOAR doesn't
-encrypt it beyond what the phone's operating system does for every app. On Android, BOAR's data is
-excluded from cloud backup and device transfer; on iOS, the app's documents folder is visible in the
-Files app and may be included in your iCloud backup. Anyone who can unlock or take over your phone,
-or read its backups, can read what BOAR stored. Keeping your phone, its lock screen, its backups and
+**On your phone:** everything in section 1 lives on your phone, under your control. BOAR's data is
+excluded from cloud backup and device transfer. With a PIN set, BOAR seals your chats with a key
+made from the PIN and the phone's keystore, and hides its screen in recent apps and screenshots.
+Everything else, including imported documents, is not encrypted beyond what the phone's operating
+system does for every app. Anyone who can unlock or take over your phone can read what BOAR stored
+outside the sealed chats. Keeping your phone, its lock screen, its backups and
 anything you export safe is up to you.
 
 **Open source:** BOAR's code is public. That lets anyone check what it does, and also means anyone can

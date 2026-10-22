@@ -115,11 +115,13 @@ object Boar {
 /** The app theme: Campfire or Moonlight colors and the brand type at the user's text size. */
 @Composable
 fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: @Composable () -> Unit) {
-    val c = ThemeTokens.byId(themeId)
+    val c = Themes.byId(themeId)
     val scheme = darkColorScheme(
         primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
         onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,
         onSurfaceVariant = c.textSecondary, outline = c.borderDefault, error = c.crimson500,
+        // Dialogs sit on this: the theme's card, not Android's default gray, so every dialog matches the theme.
+        surfaceContainerHigh = c.bgCard,
     )
     CompositionLocalProvider(LocalColors provides c, LocalType provides BoarType(fontScale)) {
         MaterialTheme(colorScheme = scheme, content = content)

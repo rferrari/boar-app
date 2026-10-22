@@ -112,4 +112,25 @@ class AppSettingsTest {
         s.maxTokensChoice = null
         assertEquals(512, s.maxTokens)
     }
+
+    @Test fun `a saved Executive Summary opens in Detailed, written back`() {
+        val f = file("""{"personalityId":"summary","themeId":"moonlight"}""")
+        assertEquals("detailed", AppSettings(f).personalityId)
+        assertTrue(f.readText().contains("\"personalityId\":\"detailed\""))
+        assertEquals("moonlight", AppSettings(f).themeId)
+    }
+
+    @Test fun `other saved styles are kept as they are`() {
+        for (id in listOf("succinct", "detailed", "personal", "custom")) assertEquals(id, AppSettings(file("""{"personalityId":"$id"}""")).personalityId)
+        assertNull(AppSettings(file(null)).personalityId)
+    }
+
+    @Test fun `Personal Files answers at 768, between Succinct and Detailed, even with Deep Research on`() {
+        val s = AppSettings(file(null))
+        s.personalityId = "personal"
+        assertEquals(768, s.maxTokens)
+        s.deepResearchMode = true
+        assertEquals(768, s.maxTokens)
+        assertEquals(548, s.answerTokens(2048))
+    }
 }

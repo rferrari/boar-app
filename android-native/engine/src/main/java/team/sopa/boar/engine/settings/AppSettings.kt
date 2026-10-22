@@ -25,13 +25,27 @@ class AppSettings(private val file: File) {
 
     private fun load(): JsonObject = runCatching { json.parseToJsonElement(file.readText()).jsonObject }.getOrDefault(JsonObject(emptyMap()))
 
+    /** Told after each saved change: the key, its old and new value (null when unset). The app's debug log listens. */
+    @Volatile var onChange: ((key: String, old: JsonElement?, new: JsonElement?) -> Unit)? = null
+
+    init {
+        // Executive Summary became Personal Files (rc1): a saved Summary opens in Detailed, the default, not in a style
+        // that answers only from the user's files.
+        if (str("personalityId") == RETIRED_SUMMARY_STYLE) update { put("personalityId", JsonPrimitive("detailed")) }
+    }
+
+    /** Every key as stored, for the debug log's header. */
+    fun snapshot(): Map<String, JsonElement> = data
+
     @Synchronized private fun update(change: MutableMap<String, JsonElement>.() -> Unit) {
+        val before = data
         val m = data.toMutableMap()
         m.change()
         data = JsonObject(m)
         val tmp = File(file.parentFile, file.name + ".tmp")
         tmp.writeText(json.encodeToString(JsonObject.serializer(), data))
         java.nio.file.Files.move(tmp.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+        onChange?.let { tell -> (before.keys + m.keys).filter { before[it] != m[it] }.forEach { k -> runCatching { tell(k, before[k], m[k]) } } }
     }
 
     private fun str(key: String) = (data[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
@@ -87,7 +101,7 @@ class AppSettings(private val file: File) {
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
-            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles",
+            "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
         )
         const val MODEL_LAST_USED = "modelLastUsedAt"
@@ -97,6 +111,10 @@ class AppSettings(private val file: File) {
         const val AUTO_MAX_TOKENS = 512
         /** Detailed answers ran past 512 tokens and stopped mid-sentence (X6, Oct 11). */
         const val AUTO_MAX_TOKENS_DETAILED = 1024
+        /** Personal Files: the fact first, then two to four sentences; between Succinct's and Detailed's lengths. */
+        const val AUTO_MAX_TOKENS_PERSONAL = 768
+        /** The retired Executive Summary style's id, moved to Detailed when settings load. */
+        const val RETIRED_SUMMARY_STYLE = "summary"
         /**
          * A Deep Research write-up, any style: a Detailed one ran past 1024 tokens and stopped mid-sentence inside its own
          * conclusion (X6, Oct 14). The largest choice in Settings; the style still sets how long it really is.
@@ -115,8 +133,12 @@ class AppSettings(private val file: File) {
         fun fitToContext(cap: Int, openedContext: Int?): Int =
             if (openedContext == null) cap else minOf(cap, maxOf(MIN_AUTO_TOKENS, openedContext - PROMPT_RESERVE))
 
-        /** No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). */
+        /**
+         * No style set means Detailed, the native app's default (BoarServices.DEFAULT_PERSONALITY_ID). Personal Files
+         * comes first: Deep Research steps aside in that style.
+         */
         fun autoMaxTokens(personalityId: String?, deepResearch: Boolean = false): Int = when {
+            personalityId == "personal" -> AUTO_MAX_TOKENS_PERSONAL
             deepResearch -> AUTO_MAX_TOKENS_RESEARCH
             (personalityId ?: "detailed") == "detailed" -> AUTO_MAX_TOKENS_DETAILED
             else -> AUTO_MAX_TOKENS
@@ -156,7 +178,15 @@ class AppSettings(private val file: File) {
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
     var historyTurnThreshold: Int get() = int("historyTurnThreshold") ?: 6; set(v) = set("historyTurnThreshold", JsonPrimitive(v))
     var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
+    /** The menu's 🗑️ asks before deleting a chat (issue #92); off deletes in one tap. The user's call, on by default. */
+    var confirmChatDelete: Boolean get() = bool("confirmChatDelete") ?: true; set(v) = set("confirmChatDelete", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
+
+    /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
+    var showDrawerStats: Boolean get() = bool("showDrawerStats") ?: false; set(v) = set("showDrawerStats", JsonPrimitive(v))
+
+    /** Advanced tweaks → Debug log (native only, builds with ALLOW_DEBUG_LOG): off until the user turns it on. */
+    var debugLogEnabled: Boolean get() = bool("debugLogEnabled") ?: false; set(v) = set("debugLogEnabled", JsonPrimitive(v))
 
     /** Advanced tweaks (native only); all Auto when unset or unreadable. */
     var engineTweaks: EngineTweaks
@@ -194,6 +224,13 @@ class AppSettings(private val file: File) {
     var pinIterations: Int get() = int("pinIterations") ?: team.sopa.boar.engine.security.PinKeys.ITERATIONS; set(v) = set("pinIterations", JsonPrimitive(v))
     var pinFailures: Int get() = int("pinFailures") ?: 0; set(v) = set("pinFailures", JsonPrimitive(v))
     var pinLockedUntil: Long get() = (data["pinLockedUntil"] as? JsonPrimitive)?.content?.toLongOrNull() ?: 0L; set(v) = set("pinLockedUntil", JsonPrimitive(v))
+
+    /** The Truffle Vault (engine/vault/Vault.State) as JSON; null before anything was counted. Native only. */
+    var truffleVault: String?
+        get() = data["truffleVault"]?.takeIf { it is JsonObject }?.toString()
+        set(v) = set("truffleVault", v?.let { json.parseToJsonElement(it) })
+    /** The equipped boar (launcher icon and in-app avatar); null is BOAR's own. Native only. */
+    var iconId: String? get() = str("iconId"); set(v) = set("iconId", v?.let(::JsonPrimitive))
 
     fun raw(): JsonObject = data
 }
