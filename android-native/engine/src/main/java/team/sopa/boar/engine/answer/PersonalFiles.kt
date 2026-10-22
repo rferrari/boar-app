@@ -32,17 +32,19 @@ object PersonalFiles {
     /** An answer this long after the not-found line is a real answer, not a sign-off. */
     const val ANSWER_AFTER_HEDGE_CHARS = 40
     private val LEAD = Regex("^(however|but|that said|still|nevertheless)[,:]?\\s+", RegexOption.IGNORE_CASE)
+    private val CITATION = Regex("\\[\\d+]")
 
     /**
      * A small model sometimes opens with [NOT_FOUND] "to be safe" and then answers from the files anyway ("I couldn't find
      * this in your Personal Files. According to your blood test…", F3, Oct 22): one or the other, never both. The line goes
-     * when a real answer follows it; an answer that is only the line, or the line and a short sign-off, stays as it is.
+     * only when what follows cites the user's files ([1], [2]…). Without a citation the rest may come from memory, so the
+     * line stays as the honest signal; so does a line on its own or with a short sign-off.
      */
     fun dropHedge(answer: String): String {
         val t = answer.trimStart()
         if (!t.startsWith(NOT_FOUND)) return answer
         val rest = t.removePrefix(NOT_FOUND).trimStart()
-        if (rest.length < ANSWER_AFTER_HEDGE_CHARS) return answer
+        if (rest.length < ANSWER_AFTER_HEDGE_CHARS || !CITATION.containsMatchIn(rest)) return answer
         val body = rest.replaceFirst(LEAD, "")
         return body.replaceFirstChar { it.uppercaseChar() }
     }

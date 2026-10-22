@@ -65,6 +65,11 @@ class PersonalFilesPipelineTest {
         org.junit.Assert.assertEquals(short, PersonalFiles.dropHedge(short))
     }
 
+    @Test fun `without a citation the rest may be from memory, so the line stays`() {
+        val a = PersonalFiles.NOT_FOUND + " However, cholesterol is generally considered healthy below 200 mg/dL for most adults."
+        org.junit.Assert.assertEquals(a, PersonalFiles.dropHedge(a))
+    }
+
     @Test fun `an answer that doesn't open with the line is untouched`() {
         val a = "Your blood type is O negative [1]. " + PersonalFiles.NOT_FOUND
         org.junit.Assert.assertEquals(a, PersonalFiles.dropHedge(a))
