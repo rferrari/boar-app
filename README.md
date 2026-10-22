@@ -118,7 +118,8 @@ Research App".
 | Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
 | Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
 
-`fullnative` is an older native line, superseded by `main`.
+`main` holds what's released; `fullnative-dev` is where development happens. Branch from `fullnative-dev`,
+and open your pull request against it.
 
 ## License
 
