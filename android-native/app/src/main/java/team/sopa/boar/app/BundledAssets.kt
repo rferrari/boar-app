@@ -24,7 +24,18 @@ class BundledAssets(private val services: BoarServices, private val context: Con
 
     // openFd only opens an uncompressed asset, the way the offline APK stores them; the size must match the catalog.
     private fun inApk(a: CatalogAsset): Boolean =
-        runCatching { context.assets.openFd("$DIR/${a.filename}").use { it.length == a.sizeBytes } }.getOrDefault(false)
+        runCatching { pieces(a).sumOf { name -> context.assets.openFd(name).use { it.length } } == a.sizeBytes }.getOrDefault(false)
+
+    /**
+     * The asset names holding [a]: the file itself, or its pieces (`<file>.00.piece`, `.01.piece`…). The build splits files
+     * over 1 GiB, because reading one asset past 2 GiB failed on the phone (Qwen3 4B, 2.5 GB, Lab device 8 GB, Oct 22).
+     */
+    private fun pieces(a: CatalogAsset): List<String> {
+        val whole = "$DIR/${a.filename}"
+        if (runCatching { context.assets.openFd(whole).close() }.isSuccess) return listOf(whole)
+        return generateSequence(0) { it + 1 }.map { "$whole.%02d.piece".format(it) }
+            .takeWhile { name -> runCatching { context.assets.openFd(name).close() }.isSuccess }.toList()
+    }
 
     /**
      * Copies every pending asset, verifying each one; [onProgress] gets bytes done and total. One run at a time in the
@@ -46,10 +57,10 @@ class BundledAssets(private val services: BoarServices, private val context: Con
             val part = File(dest.path + ".part")
             val sha = MessageDigest.getInstance("SHA-256")
             try {
-                context.assets.openFd("$DIR/${a.filename}").use { fd ->
-                    fd.createInputStream().use { input ->
-                        part.outputStream().use { out ->
-                            var lastReport = 0L
+                part.outputStream().use { out ->
+                    var lastReport = 0L
+                    for (name in pieces(a)) context.assets.openFd(name).use { fd ->
+                        fd.createInputStream().use { input ->
                             while (true) {
                                 val n = input.read(buf)
                                 if (n < 0) break

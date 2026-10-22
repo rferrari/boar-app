@@ -35,6 +35,8 @@ declare -A SRC=(
 LABS=$ROOT/android-native/app/src/labs/plugins
 # GitHub's limit for one release file.
 MAX_APK_BYTES=2147483648
+# Bundled files bigger than this are split into pieces (see the staging loop).
+PIECE_BYTES=1073741824
 rm -rf "$STAGE"
 for id in "${!SRC[@]}"; do
   read -r path sha size < <(python3 - "$CATALOG" "$id" "$LABS" <<'PY'
@@ -59,7 +61,12 @@ PY
   [ "$(sha256sum "$f" | cut -c1-64)" = "$sha" ] || { echo "$f: SHA-256 differs from the catalog" >&2; exit 1; }
   mkdir -p "$STAGE/bundled/$(dirname "$path")"
   # A hard link where possible: no 2.5 GB copy on a slow disk.
-  ln "$f" "$STAGE/bundled/$path" 2>/dev/null || cp "$f" "$STAGE/bundled/$path"
+  if [ "$size" -gt $PIECE_BYTES ]; then
+    # Reading one asset past 2 GiB failed on the phone: files over 1 GiB go in as pieces the app joins (BundledAssets).
+    split -b $PIECE_BYTES -d -a 2 --additional-suffix=.piece "$f" "$STAGE/bundled/$path."
+  else
+    ln "$f" "$STAGE/bundled/$path" 2>/dev/null || cp "$f" "$STAGE/bundled/$path"
+  fi
 done
 cd "$ROOT/android-native"
 TASK=assemble${VARIANT^}
