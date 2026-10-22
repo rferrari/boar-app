@@ -10,7 +10,9 @@
 #   assets/models/embedding.gguf                                   (bge-small-en-v1.5 Q8)
 #   build/knowledge-pack/wiki-vital5.sqlite                        (npm run pack:build)
 #   build/offline-bundle/labs/sdxs-512-tinySDdistilled_Q8_0.gguf   (Hugging Face, concedo/sdxs-512-tinySDdistilled-GGUF)
-# Output: build/boar-offline[-devtest].apk
+# BOAR_OFFLINE_MODEL picks the answer model by catalog id (default qwen3-1.7b-q4km, under GitHub's 2 GiB;
+# qwen3-4b-instruct-2507-q4km makes a ~3.4 GB APK for 12 GB phones, hosted outside GitHub).
+# Output: build/boar-offline[-<model>][-devtest].apk
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 VARIANT=${1:-release}
@@ -18,8 +20,14 @@ VARIANT=${1:-release}
 IN=${BOAR_OFFLINE_INPUTS:-$ROOT}
 CATALOG=$ROOT/android-native/app/src/main/assets/boar-data/catalog.json
 STAGE=$ROOT/build/offline-apk-assets
+MODEL=${BOAR_OFFLINE_MODEL:-qwen3-1.7b-q4km}
+case $MODEL in
+  qwen3-1.7b-q4km) MODEL_FILE=qwen3-1.7b-q4km.gguf ;;
+  qwen3-4b-instruct-2507-q4km) MODEL_FILE=qwen3-4b-instruct-2507-q4km.gguf ;;
+  *) echo "unknown BOAR_OFFLINE_MODEL $MODEL" >&2; exit 1 ;;
+esac
 declare -A SRC=(
-  [qwen3-1.7b-q4km]=$IN/build/offline-bundle/models/qwen3-1.7b-q4km.gguf
+  [$MODEL]=$IN/build/offline-bundle/models/$MODEL_FILE
   [bge-small-en-v1.5-q8]=$IN/assets/models/embedding.gguf
   [wiki-vital5]=$IN/build/knowledge-pack/wiki-vital5.sqlite
   [lab-sdxs-512-q8]=$IN/build/offline-bundle/labs/sdxs-512-tinySDdistilled_Q8_0.gguf
@@ -59,7 +67,7 @@ TASK=assemble${VARIANT^}
 VERSION_NAME=${BOAR_VERSION_NAME:-$(git -C "$ROOT" describe --tags --abbrev=0 | sed 's/^v//')}
 echo "version $VERSION_NAME"
 nice ./gradlew -q ":app:$TASK" -PreactNativeArchitectures=arm64-v8a -Pboar.bundleDir="$STAGE" -Pboar.experimentalFeatures=true -Pboar.versionName="$VERSION_NAME"
-OUT=$ROOT/build/boar-offline$([ "$VARIANT" = release ] || echo "-$VARIANT").apk
+OUT=$ROOT/build/boar-offline$([ "$MODEL" = qwen3-1.7b-q4km ] || echo "-$MODEL")$([ "$VARIANT" = release ] || echo "-$VARIANT").apk
 cp "app/build/outputs/apk/$VARIANT/app-$VARIANT.apk" "$OUT"
 ./gradlew --stop >/dev/null
 [ "$(stat -c %s "$OUT")" -lt $MAX_APK_BYTES ] || echo "warning: $OUT is over GitHub's 2 GiB per-file limit" >&2
