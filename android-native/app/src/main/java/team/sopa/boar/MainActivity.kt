@@ -246,7 +246,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
         BackHandler { screen = "chat" }
-        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) }) { screen = "chat" }
+        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) },
+            // "Ask about them": a new chat in Personal Files, the style that answers from the user's files.
+            onAskFiles = { vm.setTone("personal"); vm.newChat(); screen = "chat" }) { screen = "chat" }
         return
     }
     if (screen == "evaluation") {

@@ -49,7 +49,7 @@ import team.sopa.boar.ui.theme.Boar
 
 /** My Documents (PersonalDocumentsManager.tsx). */
 @Composable
-fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onBack: () -> Unit) {
+fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onAskFiles: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     var name by remember { mutableStateOf("") }
     var nameMissing by remember { mutableStateOf(false) }
@@ -93,6 +93,14 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                     LinearProgressIndicator(progress = { if (state.total > 0) state.done.toFloat() / state.total else 0f }, modifier = Modifier.fillMaxWidth(), color = c.emerald500, trackColor = c.bgSubtle)
                 }
                 state.error?.let { Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = Boar.type.subtext, color = c.crimson400) }
+                // After an import: the default styles answer from everything, so point to the style that answers from the files.
+                if (state.stage == null) state.imported?.let { col ->
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCardElevated).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp)).padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(t("native.documents.importedHint", "name" to col), style = Boar.type.subtext, color = c.textSecondary)
+                        team.sopa.boar.ui.chat.ActionButton(null, t("native.documents.askAboutThem")) { vm.dismissImported(); onAskFiles() }
+                    }
+                }
                 if (state.collections.isEmpty()) Text(t("personalDocumentsManager.empty"), style = Boar.type.body, color = c.textMuted)
                 for (col in state.collections) Column(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCardElevated).border(1.dp, if (col.active) c.emeraldBorder else c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp),

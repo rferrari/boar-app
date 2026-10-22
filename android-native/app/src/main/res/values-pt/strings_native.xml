@@ -460,6 +460,8 @@
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
+    <string name="native_documents_importedHint" formatted="false">Importado em \"{{name}}\". Para perguntar sobre esses arquivos, mude o estilo de resposta para Arquivos pessoais: ele responde só a partir dos seus arquivos.</string>
+    <string name="native_documents_askAboutThem" formatted="false">Perguntar sobre eles</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" e as respostas dele somem. Não dá para desfazer.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
     <string name="native_settings_confirmChatDeleteNote" formatted="false">O 🗑️ do menu pergunta antes. Desligado: um toque apaga o chat.</string>

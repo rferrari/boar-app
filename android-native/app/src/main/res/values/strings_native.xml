@@ -460,6 +460,8 @@
     <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Delete this chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Delete</string>
+    <string name="native_documents_importedHint" formatted="false">Imported into \"{{name}}\". To ask about these files, switch the answer style to Personal Files: it answers only from your files.</string>
+    <string name="native_documents_askAboutThem" formatted="false">Ask about them</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" and its answers go. This can\'t be undone.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Ask before deleting a chat</string>
     <string name="native_settings_confirmChatDeleteNote" formatted="false">The 🗑️ in the menu asks first. Off: one tap deletes the chat.</string>
