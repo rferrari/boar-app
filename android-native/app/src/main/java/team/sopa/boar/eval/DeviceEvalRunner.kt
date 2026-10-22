@@ -381,7 +381,7 @@ class DeviceEvalRunner(
         val repair = d?.text?.takeIf { error == null && it.isNotBlank() && !personal }?.let { text ->
             if (labs != null) team.sopa.boar.engine.routing.LabTools.first(labs.second) { it.check(q.query, text) } else team.sopa.boar.plugins.AnswerChecks.run(q.query, text)
         }
-        val answer = repair?.text ?: d?.text ?: ""
+        val answer = (repair?.text ?: d?.text ?: "").let { if (personal) PersonalFiles.dropHedge(it) else it }
         val ttftMs = if (genStart > 0) ((if (firstToken > 0) firstToken else end) - genStart) / 1e6 else null
         val genLatency = if (genStart > 0 && ttftMs != null) (end - genStart) / 1e6 - ttftMs else null
         val outcome = if (error != null) "failure" else if (answer.isNotBlank()) "success" else "failure"

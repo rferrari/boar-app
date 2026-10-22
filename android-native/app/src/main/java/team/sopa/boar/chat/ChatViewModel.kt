@@ -664,6 +664,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
+            if (personal) PersonalFiles.dropHedge(text.toString()).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             val stopped = stopRequested
             // The check slot (Boar Labs): a model's finished answer on the default or adaptive path may be repaired; not one
             // that was stopped, timed out or failed part way.

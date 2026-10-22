@@ -52,4 +52,21 @@ class PersonalFilesPipelineTest {
         assertTrue(model.prompts.single().contains(part.body))
         assertTrue(model.prompts.single().contains("I couldn't find this in your Personal Files."))
     }
+
+    // F3, Oct 22: "How is my blood?" opened with the not-found line, then answered from the blood test.
+    @Test fun `the not-found line goes when an answer from the files follows it`() {
+        val a = PersonalFiles.NOT_FOUND + " However, according to your blood test from March, your cholesterol was 231 [1]."
+        org.junit.Assert.assertEquals("According to your blood test from March, your cholesterol was 231 [1].", PersonalFiles.dropHedge(a))
+    }
+
+    @Test fun `the not-found line alone, or with a short sign-off, stays`() {
+        org.junit.Assert.assertEquals(PersonalFiles.NOT_FOUND, PersonalFiles.dropHedge(PersonalFiles.NOT_FOUND))
+        val short = PersonalFiles.NOT_FOUND + " Try another collection."
+        org.junit.Assert.assertEquals(short, PersonalFiles.dropHedge(short))
+    }
+
+    @Test fun `an answer that doesn't open with the line is untouched`() {
+        val a = "Your blood type is O negative [1]. " + PersonalFiles.NOT_FOUND
+        org.junit.Assert.assertEquals(a, PersonalFiles.dropHedge(a))
+    }
 }
