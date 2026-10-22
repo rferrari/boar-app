@@ -115,7 +115,7 @@ Research App".
 | Ship a phone that never goes online | `feat/offline-bundle` | `main` plus models packed inside the APK: `scripts/build-offline-apk.sh` |
 | Send a pull request | `fullnative-dev` | Native development line; changes land here before `main` |
 | Work on iOS or the cross-platform app | `expo`, `ios` | BOAR 1.x, Expo / React Native (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
-| Write a Boar Lab | `main` | One plugin folder: [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
 | Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
 
 `fullnative` is an older native line, superseded by `main`.
