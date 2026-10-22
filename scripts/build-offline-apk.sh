@@ -55,7 +55,10 @@ PY
 done
 cd "$ROOT/android-native"
 TASK=assemble${VARIANT^}
-nice ./gradlew -q ":app:$TASK" -PreactNativeArchitectures=arm64-v8a -Pboar.bundleDir="$STAGE" -Pboar.experimentalFeatures=true
+# The release name the app shows: BOAR_VERSION_NAME, else the latest tag without its "v" (v2.0.0-rc1 -> 2.0.0-rc1).
+VERSION_NAME=${BOAR_VERSION_NAME:-$(git -C "$ROOT" describe --tags --abbrev=0 | sed 's/^v//')}
+echo "version $VERSION_NAME"
+nice ./gradlew -q ":app:$TASK" -PreactNativeArchitectures=arm64-v8a -Pboar.bundleDir="$STAGE" -Pboar.experimentalFeatures=true -Pboar.versionName="$VERSION_NAME"
 OUT=$ROOT/build/boar-offline$([ "$VARIANT" = release ] || echo "-$VARIANT").apk
 cp "app/build/outputs/apk/$VARIANT/app-$VARIANT.apk" "$OUT"
 ./gradlew --stop >/dev/null
