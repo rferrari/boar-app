@@ -181,7 +181,7 @@ android.sourceSets["main"].assets.srcDir(sharedAssets)
 // The offline APK (scripts/build-offline-apk.sh): -Pboar.bundleDir=<dir> adds <dir>/bundled/… (models and packs at their
 // catalog paths) to the assets. Stored uncompressed, so the app can open them by file descriptor (BundledAssets).
 (findProperty("boar.bundleDir") as String?)?.let { android.sourceSets["main"].assets.srcDir(file(it)) }
-android.androidResources.noCompress += listOf("gguf", "sqlite")
+android.androidResources.noCompress += listOf("gguf", "sqlite", "piece")
 tasks.named("preBuild") { dependsOn(copySharedAssets) }
 
 dependencies {
