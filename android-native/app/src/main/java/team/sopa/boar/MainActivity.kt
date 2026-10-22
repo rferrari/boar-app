@@ -185,6 +185,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     if (unpacking) {
         team.sopa.boar.ui.setup.UnpackScreen(bundled) {
             setup.restart()
+            // The chat read its model and topics before the unpack, when there was none: read them again.
+            vm.refreshModel()
             screen = if (setup.ready() && !setup.unfinished) "chat" else "setup"
             unpacking = false
         }
