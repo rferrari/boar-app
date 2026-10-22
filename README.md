@@ -64,6 +64,20 @@ keeps your models.
 The APK has no Google Play Services dependencies. The rc1 previews were tested on a Pixel 8a
 with GrapheneOS.
 
+## Which branch?
+
+| You want to… | Branch | What's there |
+|---|---|---|
+| Build or change the Android app | **`main`** | The native app (Kotlin, llama.cpp). The current APK is built from it. |
+| Ship a phone that never goes online | `feat/offline-bundle` | `main` plus models packed inside the APK: `scripts/build-offline-apk.sh` |
+| Send a pull request | `fullnative-dev` | Native development line; changes land here before `main` |
+| Work on iOS or the cross-platform app | `expo`, `ios` | BOAR 1.x, Expo / React Native (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
+| Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
+
+`main` holds what's released; `fullnative-dev` is where development happens. Branch from `fullnative-dev`,
+and open your pull request against it.
+
 ## Build from source
 
 The app lives in [`android-native/`](android-native). You need the Android SDK with
@@ -106,20 +120,6 @@ A build without the flag has none of this. How a lab is made: [docs/PLUGINS.md](
 
 Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline AI
 Research App".
-
-## Which branch?
-
-| You want to… | Branch | What's there |
-|---|---|---|
-| Build or change the Android app | **`main`** | The native app (Kotlin, llama.cpp). The current APK is built from it. |
-| Ship a phone that never goes online | `feat/offline-bundle` | `main` plus models packed inside the APK: `scripts/build-offline-apk.sh` |
-| Send a pull request | `fullnative-dev` | Native development line; changes land here before `main` |
-| Work on iOS or the cross-platform app | `expo`, `ios` | BOAR 1.x, Expo / React Native (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
-| Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
-| Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
-
-`main` holds what's released; `fullnative-dev` is where development happens. Branch from `fullnative-dev`,
-and open your pull request against it.
 
 ## License
 
