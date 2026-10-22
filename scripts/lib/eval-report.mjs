@@ -1,5 +1,5 @@
 // Reading and summarizing evaluation result rows (see docs/EVAL_QUERIES.md).
-// Shared by scripts/eval-summary.mjs and scripts/eval-device.mjs.
+// Used by scripts/eval-summary.mjs.
 
 /** Rows from JSONL text or a Metro log (lines containing "[EVAL] {"). */
 export function parseRows(text) {
@@ -108,6 +108,9 @@ export function formatReport(rows) {
     const first = runRows[0];
     const queries = new Set(runRows.map((r) => r.queryId)).size;
     out.push(`BOAR Device Evaluation — ${runId} (set v${first.evalSetVersion}, ${queries} queries)`);
+    // The build that answered: rows carry it from the native app on (older runs don't).
+    const versions = [...new Set(runRows.map((r) => r.appVersion).filter(Boolean))];
+    if (versions.length) out.push(`App:             BOAR ${versions.join(", ")}${first.engine ? ` · ${first.engine} engine` : ""}`);
     out.push("─".repeat(60));
     for (const group of groupBy(runRows, (r) => r.configId).values()) {
       const s = configStats(group);

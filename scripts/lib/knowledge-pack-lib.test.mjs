@@ -1,6 +1,34 @@
 import { describe, it, expect } from "vitest";
 import { chunkIntro, cleanIntro, parseArgs, quantizeInt8, vitalListPages } from "./knowledge-pack-lib.mjs";
-import { cosineSimilarity, cosineSimilarityInt8 } from "../../src/rag/pure";
+
+// Same math as the app's retrieval: plain cosine, and cosine against an int8 vector stored as raw bytes
+// (the per-vector scale cancels out).
+function cosineSimilarity(a, b) {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function cosineSimilarityInt8(query, bytes) {
+  const v = new Int8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let dot = 0;
+  let normQ = 0;
+  let normV = 0;
+  for (let i = 0; i < v.length; i++) {
+    dot += query[i] * v[i];
+    normQ += query[i] * query[i];
+    normV += v[i] * v[i];
+  }
+  if (normQ === 0 || normV === 0) return 0;
+  return dot / (Math.sqrt(normQ) * Math.sqrt(normV));
+}
 
 describe("parseArgs", () => {
   it("defaults to Vital Articles level 5", () => {

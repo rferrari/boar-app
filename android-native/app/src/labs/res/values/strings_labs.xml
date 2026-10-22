@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Boar Labs texts (src/labs). -->
+<resources>
+    <string name="native_labs_drawer" formatted="false">Boar Labs ⚛️</string>
+    <string name="native_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_labs_classifiedNote" formatted="false">{{name}} is classified: still in testing. Check back soon.</string>
+    <string name="native_labs_declassifiedNote" formatted="false">{{name}} leaked. Still in testing, with no release date.</string>
+    <string name="native_labs_hero_count" formatted="false">{{open}} open · {{locked}} classified</string>
+    <string name="native_labs_hero_offline" formatted="false">everything here runs on this phone, offline</string>
+    <string name="native_labs_hero_warning" formatted="false">experimental: may be slow, rough, or gone tomorrow</string>
+    <string name="native_labs_status_live" formatted="false">LIVE</string>
+    <string name="native_labs_status_beta" formatted="false">BETA</string>
+    <string name="native_labs_status_alpha" formatted="false">ALPHA</string>
+    <string name="native_labs_status_review" formatted="false">UNDER REVIEW</string>
+    <string name="native_labs_status_leaked" formatted="false">LEAKED</string>
+    <string name="native_labs_status_classified" formatted="false">CLASSIFIED</string>
+    <string name="native_labs_settingsTitle" formatted="false">Boar Labs</string>
+    <string name="native_labs_crash_setting" formatted="false">Restart BOAR after a crash</string>
+    <string name="native_labs_crash_settingNote" formatted="false">If BOAR closes because of an error in its own code, it opens again by itself, at most once a minute.</string>
+    <string name="native_labs_crash_restarted" formatted="false">BOAR restarted after an error.</string>
+    <string name="native_labs_crash_closed" formatted="false">Last time, BOAR closed because of an error.</string>
+    <string name="native_labs_storage_setting" formatted="false">BOAR\'s storage limit</string>
+    <string name="native_labs_storage_auto" formatted="false">Auto (50 GB)</string>
+    <string name="native_labs_storage_none" formatted="false">No limit</string>
+    <string name="native_labs_storage_settingNote" formatted="false">How much space BOAR\'s models and packs may take. No limit: only the phone\'s free space counts.</string>
+    <string name="native_labs_close_title" formatted="false">BOAR is heading back to the den</string>
+    <string name="native_labs_close_unloading" formatted="false">Putting the model to sleep…</string>
+    <string name="native_labs_close_freed" formatted="false">{{gb}} GB back to your phone</string>
+    <string name="native_labs_close_stopping" formatted="false">Stopping the answer…</string>
+    <string name="native_labs_close_saving" formatted="false">Tucking your chats away…</string>
+    <string name="native_labs_close_freeing" formatted="false">Giving the memory back to your phone…</string>
+    <string name="native_labs_close_closing" formatted="false">Off to the den</string>
+    <string name="native_labs_settingsNote" formatted="false">Unfinished experiments in the menu and under answers. They may be slow, rough or change without notice.</string>
+    <string name="native_labs_enabled" formatted="false">Enabled</string>
+    <string name="native_labs_enabledNote" formatted="false">Off: this lab disappears from the chat too.</string>
+    <string name="native_labs_disabled" formatted="false">This lab is off. Turn it on above.</string>
+    <string name="native_labs_off" formatted="false">OFF</string>
+    <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_section_review" formatted="false">UNDER REVIEW</string>
+    <string name="native_labs_section_testing" formatted="false">IN TESTING · NO RELEASE DATE</string>
+</resources>

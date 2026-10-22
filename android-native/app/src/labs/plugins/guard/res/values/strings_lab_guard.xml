@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_guard_title" formatted="false">Boar Guard</string>
+    <string name="native_labs_guard_body" formatted="false">Fixes a Yes, No or winner that the model\'s own figures or dates contradict, after it answers.</string>
+    <string name="native_labs_guard_answers" formatted="false">CHECKS</string>
+    <string name="native_labs_guard_answersList" formatted="false">• Before or after a year: a No next to the answer\'s own first date that says Yes\n• Which is bigger, denser, taller or heavier, A or B: a winner the answer\'s own numbers in the same unit disagree with\n• Which are bigger than X: \"none\" next to \"X is the seventh-largest\"</string>
+    <string name="native_labs_guard_try" formatted="false">TRY</string>
+    <string name="native_labs_guard_example1" formatted="false">Did astronauts walk on the Moon before 1970?</string>
+    <string name="native_labs_guard_example2" formatted="false">Which is more densely populated, Japan or Germany, and by how much?</string>
+    <string name="native_labs_guard_example3" formatted="false">Which countries are bigger than India by area?</string>
+    <string name="native_labs_guard_note" formatted="false">It only reads the finished answer, so you see the model\'s text while it is written and the fixed one when it ends. The facts stay and the wrong verdict is rewritten from them, with the model\'s own corrections and restatements removed; nothing is generated again. It leaves the answer alone when it isn\'t sure: mixed units, overlapping ranges, a number that may belong to something else. Never on health questions, instant answers or Deep Research. The answer\'s details say Tool when it changed something. English only. Ported from r4to\'s verdict guard (BOAR R&amp;D).</string>
+</resources>

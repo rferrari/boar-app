@@ -1,106 +1,76 @@
 # Building and developing BOAR
 
-TL;DR: `make setup` walks you through install, build and dev mode. Manual commands for Android below.
-
-## Quickstart
-
+BOAR is a native Android app in `android-native/`. The build, its flags, signing, tests and
+the on-phone evaluation are in [AGENTS.md](../AGENTS.md). In short:
 
 ```bash
-git clone https://github.com/rferrari/boar-app.git
-cd boar-app
-npm install
-
-# Build via EAS (no local Android SDK needed) — see eas.json
-npx eas-cli build --platform android --profile preview
-
-# OR build locally if you have the Android SDK set up:
-npx expo prebuild -p android --clean
-npx expo run:android
+git clone --recursive https://github.com/rferrari/boar-app.git
+cd boar-app/android-native
+./gradlew assembleDebug                 # id team.sopa.aoair.native, installs beside a release BOAR
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew :engine:testDebugUnitTest     # engine unit tests, no device needed
+./gradlew --stop
 ```
 
-### Guided setup
+Needs JDK 17 and an Android SDK with NDK `27.1.12297006` and CMake `3.22.1`.
 
-The easiest way: clone the repo and run the setup wizard, which asks what you
-want and walks you through it.
+Add `-Pboar.experimentalFeatures=true` to build Boar Labs in, as the 2.0.0 releases are
+(`EXPERIMENTAL_FEATURES=true` in `.env` does the same). How labs work:
+[PLUGINS.md](PLUGINS.md).
 
-```bash
-git clone https://github.com/rferrari/boar-app.git
-cd boar-app
-make setup         # or: node scripts/setup.mjs
-```
+## Package names
 
-It offers:
+Scripts that talk to a phone over adb need the application id of the build you
+installed:
 
-1. **Install BOAR on my phone:** downloads the latest release APK (checksum
-   verified) and installs it over a USB cable, or tells you how to copy it over.
-2. **Build the app from source:** checks Node, JDK and the Android SDK and tells
-   you exactly what's missing, then builds in the cloud with EAS (no Android SDK
-   needed) or locally, and can install the APK over USB.
-3. **Developer mode (advanced):** a live-reloading development build over USB.
-4. **Build a bigger offline knowledge pack** (optional, see
-   [docs/KNOWLEDGE_PACKS.md](KNOWLEDGE_PACKS.md)).
+| Build | Application id |
+|---|---|
+| Release (`assembleRelease`) | `team.sopa.aoair` |
+| Debug (`assembleDebug`) | `team.sopa.aoair.native` |
+| Labs beside BOAR (`-Pboar.appIdSuffix=.labs`) | `team.sopa.aoair.labs` |
+| Instrumented tests (`devtest`) | `team.sopa.aoair.devtest` |
 
-The individual steps are also `make` targets (`make help` lists them):
-`make install` (npm dependencies), `make run-android` (local build, needs the
-Android SDK), `make build-eas` (cloud build).
+For example `npm --prefix scripts run pack:push -- <pack.sqlite> --package team.sopa.aoair.native`
+(pack:push needs a debuggable build), and the evaluation runner's component
+`team.sopa.aoair/team.sopa.boar.bench.BenchActivity` for a release build
+([DEVICE_EVALUATION.md](DEVICE_EVALUATION.md)).
 
-On first launch, the app shows a one-time setup screen that downloads the
-answer model plus a small embedding model (see `docs/MODELS.md`): builds from
-`main` default to Qwen3-4B (about 2.5 GB in all), the v1.0.0 APK to Qwen2.5-1.5B
-(about 1 GB). That is the only time it needs network access. From
-then on it works fully offline, airplane mode included.
-An in-app "Models" screen lets you optionally download additional/alternate
-models later when you do have connectivity — see
-`src/ui/ModelSetupScreen.tsx`, the only place in the app that touches the
-network.
+## Checking an APK's network surface
+
+`RELEASE_VARIANT=downloader scripts/offline-proof.sh <apk>` audits an APK with
+`scripts/audit-apk.py`: its permissions, and whether it holds Play Services or tracker
+classes. `scripts/netstats-uid.sh team.sopa.aoair` prints the traffic Android counted for
+the installed app.
+
+The build tools in `scripts/` (knowledge packs, evaluation reports) are Node scripts with
+their own `scripts/package.json`: `npm --prefix scripts install`, then run them from the repo
+root.
 
 ## iOS
 
-The iPhone app and its build guide live on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch, which builds both platforms. `main` is Android only.
+The iPhone app (the 1.x Expo app) lives on the [`ios`](https://github.com/rferrari/boar-app/tree/ios)
+branch. This branch is Android only.
 
-## Development
+## Testing result sharing
 
+Evaluation › Share results is built in only with `EVAL_SHARING=true` in `.env` (or the
+environment, or `-Pboar.evalSharing=true`), next to the two `EXPO_PUBLIC_SUPABASE_*` values.
+It's off by default since Oct 19, 2026: the server's address isn't built in, and runs stay on
+the phone as files.
 
-```bash
-npm install
-npx expo prebuild -p android --clean   # regenerates ./android (gitignored) from app.json
-npx expo run:android                   # build + launch on a connected device
-```
-
-`--clean` matters any time `app.json`/assets change (app name, icon, plugins): without it,
-prebuild can leave a stale `android/` project around with the old values baked in — that's
-what a plain `npm install` alone will never fix, since it never touches `android/` at all.
-
-### Testing result sharing
-
-Evaluation › Share results only works from a release build signed with BOAR's release key:
-the server checks the phone's hardware-key attestation, and development builds (signed with
-Expo's public debug key) are refused. Build and install a release APK:
+Sharing only works from a release build signed with BOAR's release key: the server checks the
+phone's hardware-key attestation, and debug-signed builds are refused. Build a release APK with
+the key in `~/.gradle/gradle.properties` (AGENTS.md › Signing):
 
 ```bash
-make apk-downloader                                  # dist/boar-downloader-<version>-arm64.apk
-adb install dist/boar-downloader-<version>-arm64.apk # application id team.sopa.aoair
+cd android-native
+./gradlew assembleRelease -Pboar.evalSharing=true -Pboar.versionName=2.0.0-rc1
+adb install -r app/build/outputs/apk/release/app-release.apk   # application id team.sopa.aoair
 ```
 
-A development build made from this repo has the same application id but a different signing
-key, so Android won't install one over the other: uninstall the development build first, which
-deletes its downloaded models (copy them out and import them from files to avoid downloading
-them again).
+A debug-signed release build has the same application id but a different key, so Android won't
+install one over the other: uninstall first, which deletes the downloaded models (copy them out
+and import them from files to avoid downloading them again).
+
 The share flow, limits and moderation: [RESULTS_SCORE.md](RESULTS_SCORE.md#how-a-share-works)
 and [supabase/README.md](../supabase/README.md).
-
-### Blank/white screen or "Failed to connect to \<LAN IP\>" after `make start`
-
-This is a Wi-Fi network problem, not a build problem: some routers (and most phone
-hotspots) enable **client/AP isolation**, which silently blocks the phone and this
-computer from reaching each other even on the same Wi-Fi network and subnet. The dev
-client keeps retrying your computer's LAN IP and timing out. USB debugging isn't
-affected — fix it by forcing Metro onto the USB `adb reverse` tunnel instead of Wi-Fi:
-
-```bash
-npx expo start --localhost
-```
-
-Then reopen the app; if it still shows the old server list, use its "Enter URL
-manually" field with `http://127.0.0.1:8081`.
-

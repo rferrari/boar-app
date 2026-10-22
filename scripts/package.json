@@ -1,0 +1,21 @@
+{
+  "name": "boar-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "BOAR's build tools (knowledge packs, evaluation reports, score mirror). Run from the repo root: node scripts/<name>.mjs, or npm --prefix scripts run <script>. Install the dependencies with npm --prefix scripts install.",
+  "scripts": {
+    "test": "vitest run lib",
+    "pack:build": "cd .. && node scripts/build-knowledge-pack.mjs",
+    "pack:push": "cd .. && node scripts/push-knowledge-pack.mjs",
+    "eval:summary": "cd .. && node scripts/eval-summary.mjs",
+    "scores:mirror": "cd .. && node scripts/mirror-scores-hf.mjs"
+  },
+  "devDependencies": {
+    "hyparquet": "1.31.2",
+    "hyparquet-compressors": "1.1.2",
+    "node-llama-cpp": "3.21.1",
+    "vitest": "5.0.1"
+  }
+}

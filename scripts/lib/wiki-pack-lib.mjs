@@ -5,7 +5,7 @@
 // (https://github.com/Phineas1500/AndroidLM, Apache-2.0, Copyright the AndroidLM
 // authors). Changes: JavaScript, offsets are UTF-16 code units (what the app's
 // String.slice uses), and chunk sections aren't returned (the app recovers them
-// from the article text, see sectionAt in src/rag/wikiPack.ts).
+// from the article text, see sectionAt in android-native/engine/src/main/java/team/sopa/boar/engine/rag/WikiPack.kt).
 
 const HEADING = /^(#{1,6})\s+(.*)$/;
 const CUT = /\n|(?<=[.!?])\s+/g;
@@ -303,7 +303,7 @@ export function parseIndexLine(line) {
 
 /**
  * A page URL safe to store in a pack: spaces become underscores on wiki paths and %20 elsewhere, other unencoded
- * characters are encoded, already-encoded URLs stay as they are. Same rule as normalizeUrl in src/rag/packs.ts.
+ * characters are encoded, already-encoded URLs stay as they are. Same rule as normalizeUrl in android-native/engine/src/main/java/team/sopa/boar/engine/rag/Packs.kt.
  */
 export function normalizeUrl(url) {
   const spaced = /\/wiki\//.test(url) ? url.replace(/ /g, "_") : url.replace(/ /g, "%20");

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Boar Labs texts (src/labs). -->
+<resources>
+    <string name="native_labs_drawer" formatted="false">Boar Labs ⚛️</string>
+    <string name="native_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_labs_classifiedNote" formatted="false">{{name}} é confidencial: ainda em teste. Volte em breve.</string>
+    <string name="native_labs_declassifiedNote" formatted="false">{{name}} vazou. Ainda em testes, sem data de lançamento.</string>
+    <string name="native_labs_hero_count" formatted="false">{{open}} abertos · {{locked}} confidenciais</string>
+    <string name="native_labs_hero_offline" formatted="false">tudo aqui roda neste celular, offline</string>
+    <string name="native_labs_hero_warning" formatted="false">experimental: pode ser lento, imperfeito ou sumir amanhã</string>
+    <string name="native_labs_status_live" formatted="false">ATIVO</string>
+    <string name="native_labs_status_beta" formatted="false">BETA</string>
+    <string name="native_labs_status_alpha" formatted="false">ALPHA</string>
+    <string name="native_labs_status_review" formatted="false">EM REVISÃO</string>
+    <string name="native_labs_status_leaked" formatted="false">VAZOU</string>
+    <string name="native_labs_status_classified" formatted="false">CONFIDENCIAL</string>
+    <string name="native_labs_settingsTitle" formatted="false">Boar Labs</string>
+    <string name="native_labs_crash_setting" formatted="false">Reabrir o BOAR depois de um erro</string>
+    <string name="native_labs_crash_settingNote" formatted="false">Se o BOAR fechar por um erro no próprio código, ele abre de novo sozinho, no máximo uma vez por minuto.</string>
+    <string name="native_labs_crash_restarted" formatted="false">O BOAR reiniciou depois de um erro.</string>
+    <string name="native_labs_crash_closed" formatted="false">Da última vez, o BOAR fechou por um erro.</string>
+    <string name="native_labs_storage_setting" formatted="false">Limite de armazenamento do BOAR</string>
+    <string name="native_labs_storage_auto" formatted="false">Auto (50 GB)</string>
+    <string name="native_labs_storage_none" formatted="false">Sem limite</string>
+    <string name="native_labs_storage_settingNote" formatted="false">Quanto espaço os modelos e pacotes do BOAR podem ocupar. Sem limite: só conta o espaço livre do celular.</string>
+    <string name="native_labs_close_title" formatted="false">O BOAR está voltando para a toca</string>
+    <string name="native_labs_close_unloading" formatted="false">Pondo o modelo para dormir…</string>
+    <string name="native_labs_close_freed" formatted="false">{{gb}} GB de volta ao celular</string>
+    <string name="native_labs_close_stopping" formatted="false">Parando a resposta…</string>
+    <string name="native_labs_close_saving" formatted="false">Guardando suas conversas…</string>
+    <string name="native_labs_close_freeing" formatted="false">Devolvendo a memória ao celular…</string>
+    <string name="native_labs_close_closing" formatted="false">Rumo à toca</string>
+    <string name="native_labs_settingsNote" formatted="false">Experimentos inacabados no menu e embaixo das respostas. Podem ser lentos, imperfeitos ou mudar sem aviso.</string>
+    <string name="native_labs_enabled" formatted="false">Ativado</string>
+    <string name="native_labs_enabledNote" formatted="false">Desligado: este lab some também da conversa.</string>
+    <string name="native_labs_disabled" formatted="false">Este lab está desligado. Ligue acima.</string>
+    <string name="native_labs_off" formatted="false">DESL.</string>
+    <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_section_review" formatted="false">EM REVISÃO</string>
+    <string name="native_labs_section_testing" formatted="false">EM TESTE · SEM DATA DE LANÇAMENTO</string>
+</resources>

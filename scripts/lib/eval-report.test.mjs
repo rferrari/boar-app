@@ -85,4 +85,10 @@ describe("formatting", () => {
     expect(answers).toContain("### Adaptive — phi · chat-template · failure · retrieval: Vaccine");
     expect(answers).toContain("empty answer");
   });
+
+  it("names the app build that answered when the rows carry it", () => {
+    const base = { runId: "r1", evalSetVersion: "1", configId: "model:q", configLabel: "Q", queryId: "a", outcome: "success" };
+    expect(formatReport([{ ...base, appVersion: "2.0.0-dev", engine: "native" }])).toContain("App:             BOAR 2.0.0-dev · native engine");
+    expect(formatReport([base])).not.toContain("App:");
+  });
 });

@@ -1,0 +1,66 @@
+BOAR native (android-native/)
+Copyright (c) 2026 BOAR contributors. Licensed under the MIT License (see ../LICENSE).
+
+This directory includes or is derived from the following third-party work, each under its own terms.
+
+AndroidLM — https://github.com/Phineas1500/AndroidLM
+  Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+  The format-2 knowledge-pack retrieval in engine/src/main/java/team/sopa/boar/engine/rag/WikiPack.kt is a port
+  of src/rag/wikiPack.ts, whose design is derived from AndroidLM's Corpus.kt and rag.py: rarest-first query stems
+  with a document-frequency cut, whole-index BM25 with a title-column weight and a popularity prior, titles
+  resolved through redirects, and per-article passages. BOAR's changes and additions are described in that file.
+
+BOAR R&D (r4to) — https://github.com/r4topunk
+  MIT License. The health and first-aid question detector in
+  engine/src/main/java/team/sopa/boar/engine/routing/QueryContext.kt is ported from src/routing/context.ts
+  (PR #85); health questions answer in Succinct because of it.
+
+llama.cpp / ggml — https://github.com/ggml-org/llama.cpp
+  MIT License, Copyright (c) 2023-2026 The ggml authors. Git submodule under engine/src/main/cpp/llama.cpp.
+
+SQLite — https://sqlite.org
+  Public domain. Amalgamation under engine/src/main/cpp/sqlite.
+
+Zstandard — https://github.com/facebook/zstd
+  BSD License, Copyright (c) Meta Platforms, Inc. and affiliates. Decompression sources under
+  engine/src/main/cpp/zstd.
+
+Baloo 2 and Lexend fonts — https://github.com/EkType/Baloo2, https://github.com/googlefonts/lexend
+  SIL Open Font License 1.1. Copied from the @expo-google-fonts packages into app/src/main/res/font.
+
+PdfBox-Android — https://github.com/TomRoush/PdfBox-Android
+  Apache License 2.0. Extracts the text of PDFs the user imports (a port of Apache PDFBox).
+
+Models and data (downloaded by the user at setup or from the Model Catalog and Knowledge, never bundled in the APK;
+each keeps its own license, shown in the app's catalog and in About):
+  Qwen3-4B-Instruct-2507, Qwen2.5-1.5B / 7B-Instruct (Alibaba Qwen) — Apache License 2.0
+  LFM2.5-8B-A1B (Liquid AI) — LFM Open License v1.0
+  Gemma 4 E4B (Google) — as listed in the catalog
+  bge-small-en-v1.5 (BAAI) — MIT License
+  Wikipedia text in the knowledge base and packs — CC BY-SA 4.0
+
+Boar Labs (built only with EXPERIMENTAL_FEATURES=true, installed as its own app):
+  stable-diffusion.cpp — https://github.com/leejet/stable-diffusion.cpp
+    MIT License. Built as the sd-cli executable Boar Designer runs (scripts/engine-pins.env, SD_PIN).
+  BigMoeOnEdge — https://github.com/Helldez/BigMoeOnEdge
+    Apache License 2.0. Built as the bmoe-cli executable Big Boar runs (BMOE_PIN).
+  colibri — https://github.com/JustVugg/colibri
+    Apache License 2.0. Built as the executable Boar Wisp runs (COLIBRI_PIN).
+  Boar Calculator — ported from r4to's (BOAR R&D) src/routing/arithmetic.ts, numguard.ts and the
+    calculator shortcuts in answer.ts (PR #85). MIT License.
+  Boar Distance — ported from r4to's (BOAR R&D) src/routing/travelDistance.ts (PR #85). MIT License.
+    Its city table (app/src/labs/plugins/distance/res/raw, bundled in the APK) is GeoNames (geonames.org),
+    cities15000, the 6,000 most populous cities, CC BY 4.0.
+  Boar Facts — ported from r4to's (BOAR R&D) src/rag/facts.ts (PR #85). MIT License. Its fact table
+    (app/src/labs/plugins/facts/res/raw, bundled in the APK) is from Wikidata (wikidata.org), snapshot 2026-10-06,
+    CC0 1.0.
+  Boar Guard — ported from r4to's (BOAR R&D) src/routing/verdictGuard.ts (PR #85). MIT License.
+  Boar Cohazard — ported from r4to's (BOAR R&D) src/routing/coHazard.ts (PR #85). MIT License. Its fixed
+    carbon monoxide answer follows public guidance: CDC, "What to Do to Protect Yourself During a Power Outage"
+    and Carbon Monoxide guidance; US CPSC, "Portable Generator Hazards" and "Generators and Engine-Driven Tools";
+    NHS, "Carbon monoxide poisoning".
+  Models the labs use, never bundled: SDXS-512 tinySD distilled (CreativeML Open RAIL++-M, with
+  use restrictions: https://huggingface.co/IDKiro/sdxs-512-0.9/blob/main/LICENSE; downloaded from
+  huggingface.co/concedo/sdxs-512-tinySDdistilled-GGUF, from akleine/sdxs-512 and IDKiro/sdxs-512-dreamshaper), Qwen3.6-35B-A3B
+  (Apache License 2.0), OLMoE-1B-7B (Apache License 2.0).
+

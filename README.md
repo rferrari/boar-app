@@ -6,174 +6,98 @@
 
 <p align="center">
   <b>AI that works when the internet doesn't.</b><br />
-  An open-source research assistant that runs entirely on your phone, and shows where every answer came from.
+  An open-source research assistant that runs on your phone and shows where every answer came from.
 </p>
 
 <p align="center">
-  <a href="https://github.com/rferrari/boar-app/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/rferrari/boar-app?color=FF7A3D" /></a>
+  <a href="https://github.com/rferrari/boar-app/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/rferrari/boar-app?include_prereleases&color=FF7A3D" /></a>
   <img alt="Android" src="https://img.shields.io/badge/platform-Android-FFB547" />
   <img alt="Works offline" src="https://img.shields.io/badge/works-offline-17110D" />
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/github/license/rferrari/boar-app" /></a>
 </p>
 
-<p align="center">
-  <img src="./docs/readme/hero.gif" width="640" alt="BOAR in 10 seconds: set up once, ask anything in airplane mode, get answers with sources" />
-</p>
+## What it is
 
-<p align="center">
-  <a href="#get-it">Get it</a> ·
-  <a href="#how-it-answers">How it answers</a> ·
-  <a href="#measured-on-a-real-phone">Benchmarks</a> ·
-  <a href="#bounty-requirements">Requirements</a> ·
-  <a href="#docs">Docs</a> ·
-  <a href="./MANIFESTO.md">Manifesto</a>
-</p>
+BOAR downloads a small language model and the knowledge you pick once, then answers
+your questions in airplane mode. There is no account, and the app needs no server and no
+Google Play Services. Answers cite local sources: built-in Wikipedia articles, knowledge packs and
+your own documents. Tap a citation to read the exact passage.
 
-## Why
+It is a native Android app written in Kotlin with Jetpack Compose. Inference is
+[llama.cpp](https://github.com/ggml-org/llama.cpp), called through JNI. What we
+believe: [MANIFESTO.md](MANIFESTO.md).
 
-Search and chat assistants stop working the moment you lose signal: on a plane, a
-trail, a border crossing, a blackout. BOAR downloads a small language model and
-the knowledge you pick **once**, then answers in airplane mode, with no account,
-no server and no Google Play Services.
+## Install
 
-It started from Vitalik's call for an offline research tool that is "more than
-half as good" as search plus a frontier model, running an extreme mixture of
-experts that mostly sits on disk. That model doesn't exist yet, so BOAR is two
-things: a useful offline companion today, and a workbench that measures how close
-a phone can get. What we believe: [MANIFESTO.md](MANIFESTO.md).
+1. Download the APK from the [releases page](https://github.com/rferrari/boar-app/releases)
+   (any 64-bit ARM phone, Android 8 or newer). Version 2.0.0-rc1 is a pre-release, a release
+   candidate for 2.0.0.
+2. Check it against the `.sha256` file next to it, then open it on the phone or run
+   `adb install <file>.apk`.
+3. On first launch, setup downloads three things: the answer model, the search model
+   (BGE Small) and the Wikipedia Vital Articles pack (about 164 MB, from the
+   `knowledge-pack-v1` release). The answer model is Qwen3 4B (about 2.5 GB) on 12 GB phones
+   (Android reports 10 GB or more) and Qwen3 1.7B (about 1.1 GB) below that. If the phone is
+   short on space, setup offers a smaller package without the Vital Articles pack. While it
+   downloads, you can take a short BOAR tour.
 
-<table>
-<tr>
-<td width="33%"><img src="docs/readme/answers-sources.jpg" alt="An answer with its sources on the phone"></td>
-<td width="33%"><img src="docs/readme/offline.jpg" alt="An answer in airplane mode, with the OFFLINE pill in the header"></td>
-<td width="33%"><img src="docs/readme/drawer.jpg" alt="The menu: research sessions, documents and settings, with live RAM and disk use"></td>
-</tr>
-<tr>
-<td><b>Answers with sources.</b> Tap a citation to read the exact passage.</td>
-<td><b>Works in airplane mode.</b> The header says OFFLINE, and the answer still comes.</td>
-<td><b>Everything stays on the phone.</b> Your sessions and documents, with RAM and disk shown live.</td>
-</tr>
-</table>
+After setup, chat, search and sources work without a connection. The network permission
+stays for things you start yourself: more models, packs, or searching Hugging Face for
+other GGUF models.
 
-**Android first.** `main` is the Android app: an APK you install yourself, with no Play Store or Google account needed. Search, packs, models, measurements and sharing are one shared engine; on top of it sits an app built for mid-range phones, in the Campfire and Moonlight themes (`src/ui-android`). The iPhone app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch.
+If you have BOAR 1.x (the Expo app) installed, an official release installs over it and
+keeps your models.
 
-## Online once, offline from then on
+BOAR has not been tested on GrapheneOS with this build. The APK has no Google Play
+Services dependencies.
 
-<img src="docs/readme/offline.png" alt="First launch downloads the models once; after that chat, search and sources work in airplane mode" />
+## Build from source
 
-First launch downloads an answer model plus a small embedding model: Qwen3-4B
-(about 2.5 GB) by default, or the compact Qwen2.5-1.5B (about 1 GB) for phones
-with less RAM. That is the only network use the app needs. The network
-permission stays for two things you start yourself: downloading more models or
-packs, and searching Hugging Face for other GGUF models. Why the permission is
-present but unused during chat: [ARCHITECTURE.md](ARCHITECTURE.md).
-
-## How it answers
-
-<img src="docs/readme/how.png" alt="Question is classified, then answered at instant, fast or deep depth from a local index, with numbered sources" />
-
-Routing picks **how deep** to answer, never which model writes a normal answer:
-an **instant** source sentence (no LLM, under 1 s), a **fast** answer from your
-model over compressed sources, or a **deep** answer from a large MoE or several
-passes ("Go deeper"), checked by a second model. Retrieval is local and hybrid: SQLite FTS5
-keyword search plus on-device embeddings. Inference is `llama.cpp` via `llama.rn`.
-Every answer records the model, load time, time to first token, tokens/sec,
-memory and what it retrieved. Details: [docs/ADAPTIVE_ROUTING.md](docs/ADAPTIVE_ROUTING.md).
-
-## What it can cite
-
-<img src="docs/readme/knowledge.png" alt="Built-in Wikipedia, topic packs, OpenStreetMap places packs and your own files feed one local hybrid index" />
-
-- **Built in:** Wikipedia articles, plus the Standard (+1,000 topics) and Full (+4,000) libraries. The Encyclopedia setup adds 50,000 Wikipedia Vital Articles.
-- **Knowledge packs:** pre-indexed files such as Wikipedia Vital Articles, Emergency & preparedness, Ethereum & cryptography ([KNOWLEDGE_PACKS](docs/KNOWLEDGE_PACKS.md)).
-- **Places packs (in the iPhone app on [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) for now):** OpenStreetMap restaurants and cafés with diet tags and hours, plus Wikivoyage listings. Download a city in setup or in Knowledge (Berlin is 3.3 MB for 15,278 places) ([POI_PACKS](docs/POI_PACKS.md)).
-- **Your files:** `.txt`, `.md`, `.csv`, `.json`, `.pdf` (selectable text, no OCR), chunked and embedded on the phone. Toggle, delete, or export a collection as a JSON pack to share over Bluetooth or Nearby Share ([USING](docs/USING.md)).
-
-## Measured on a real phone
-
-<img src="docs/readme/bench.png" alt="LFM2.5-8B-A1B 14.8 tok/s, Qwen2.5-1.5B 11.4, Phi-3.5-mini 4.0, Qwen2.5-7B 2.7" />
-
-| Model | Architecture | Median tok/s | Peak memory |
-|---|---|---|---|
-| **LFM2.5-8B-A1B** | MoE, 8B total, ~1.5B active | **14.8** | 5.2 GB |
-| Qwen2.5-1.5B (compact) | dense, 1.5B | 11.4 | 3.1 GB |
-| Phi-3.5-mini | dense, 3.8B | 4.0 | 4.8 GB |
-| Qwen2.5-7B | dense, 7B | 2.7 | 5.1 GB |
-
-Xiaomi 2311DRK48G, Dimensity 8300, 11.6 GB RAM, 17-question evaluation set, on a hot phone (24 Sep 2026).
-
-Later runs, with the phone kept cool and the model kept loaded: Qwen2.5-1.5B at **16.8 tok/s** on the same X6 Pro (1 Oct) and **19.6 tok/s** on a POCO F3 (Snapdragon 870, 8 GB; 29 Sep). On the X6 Pro the first word comes after 1.6 s when no sources are needed and 6.8 s with four full passages, which is why fast answers now send only the sentences that answer.
-
-- The MoE model is as fast as the 1.5B dense model while carrying 8B parameters, and it was the only one to get the multi-step RAM-budget question right.
-- Its weak spot: it reasons before answering, and with a 512-token budget 4 of 17 answers ran out before the final answer.
-- Not every MoE loads yet: Instella-MoE-16B-A3B fails on this llama.cpp build, and the evaluation records that instead of skipping it.
-
-Repeat or extend the runs on your own phone with one command:
-[docs/DEVICE_EVALUATION.md](docs/DEVICE_EVALUATION.md). Raw files:
-[docs/evidence](docs/evidence/).
-
-## Bounty requirements
-
-<img src="docs/readme/limits.png" alt="Peak RAM at most 12 GB, disk at most 50 GB, offline after setup, no Google Play Services, real device" />
-
-Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline
-AI Research App". Status of each requirement, with the benchmark files:
-[docs/COMPLIANCE.md](docs/COMPLIANCE.md). Submission wallet:
-`0x32d1C8A4d133241a710d780f1198992A015Ea5Ed`.
-
-## Get it
-
-<table>
-<tr>
-<td width="25%"><img src="docs/readme/setup.jpg" alt="Setup: language and this phone's memory"></td>
-<td width="25%"><img src="docs/readme/model.jpg" alt="Choose the answer model: Qwen3-4B recommended, or Qwen2.5-1.5B"></td>
-<td width="25%"><img src="docs/readme/setup-knowledge.jpg" alt="Choose your knowledge: Essential or Encyclopedia, plus places for your city"></td>
-<td width="25%"><img src="docs/readme/ready.jpg" alt="Ready: everything runs offline from now on"></td>
-</tr>
-<tr>
-<td><b>Start.</b> English or Portuguese, and what this phone has.</td>
-<td><b>Pick a model.</b> Qwen3-4B, or the lighter Qwen2.5-1.5B.</td>
-<td><b>Pick knowledge.</b> Essential or Encyclopedia, plus your city's places.</td>
-<td><b>Ready.</b> Download and index once, then offline.</td>
-</tr>
-</table>
-
-**Android APK:** download `boar-v1.0.0-arm64.apk` from the
-[latest release](https://github.com/rferrari/boar-app/releases/latest) (122 MB, any
-64-bit ARM phone), check it and install it:
+The app lives in [`android-native/`](android-native). You need the Android SDK with
+NDK 27.1.12297006 and CMake 3.22.1, and JDK 17.
 
 ```bash
-sha256sum -c boar-v1.0.0-arm64.apk.sha256   # prints "boar-v1.0.0-arm64.apk: OK"
-adb install boar-v1.0.0-arm64.apk           # or open the file on the phone
+git clone --recursive https://github.com/rferrari/boar-app.git
+cd boar-app/android-native
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
+# -> app/build/outputs/apk/release/app-release.apk
 ```
 
-The v1.0.0 APK (Sep 26) downloads Qwen2.5-1.5B (about 1 GB) on first launch.
-Builds from `main` let you pick the model in setup: Qwen3-4B (about 2.5 GB) is recommended on 12 GB phones and Qwen2.5-1.5B (about 1 GB) on smaller ones. They also have the Campfire and Moonlight look.
+Without the release key the APK is debug-signed. That is fine for your own phone.
 
-**Guided setup:** the wizard downloads and installs the APK over USB, builds from
-source (cloud via EAS, no Android SDK needed, or local), starts a live-reload dev
-build, or builds a bigger knowledge pack.
+Exact commands, build flags, signing and tests: [AGENTS.md](AGENTS.md).
 
-```bash
-git clone https://github.com/rferrari/boar-app.git && cd boar-app
-make setup    # or: node scripts/setup.mjs · `make help` lists the single steps
-```
+## Boar Labs
 
-**iPhone:** the iOS app is built from the same engine on the [`ios_android`](https://github.com/rferrari/boar-app/tree/ios_android) branch, together with its build guide and the steps to install it on your own iPhone with a free Apple ID.
+Boar Labs is a set of experiments that exist only in builds made with
+`EXPERIMENTAL_FEATURES=true`, as the 2.0.0 releases are. Each lab is one plugin folder under
+`android-native/app/src/labs/plugins/`. Boar Labs starts on (Settings → Experimental). The
+quick-answer labs (Calculator, Facts, Cohazard, Distance, Polyglot, all beta) and Boar Vitals
+start on. The alpha labs start off: Guard, Press, Designer, Big Boar, Nomad and Lunar. Boar
+Wisp is in review. Some run their own engine: Big Boar (Qwen3.6 35B, 12.3 GB, read from
+storage), Boar Wisp (colibri) and Boar Designer (image generation with stable-diffusion.cpp).
+A build without the flag has none of this. How a lab is made: [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ## Docs
 
 | | |
 |---|---|
-| [docs/demo](docs/demo/README.md) | Videos and screenshots from a phone in airplane mode |
-| [docs/USING.md](docs/USING.md) | Import documents, find more models, recover from a bad model load, reset the app |
-| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Build commands, dev mode, Wi‑Fi troubleshooting |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Design, first-run setup, network permission |
-| [docs/MODELS.md](docs/MODELS.md) | Exact models, datasets and indexes |
+| [docs/USING.md](docs/USING.md) | Using BOAR: answer styles, Deep Research, sources, Labs, PIN |
+| [AGENTS.md](AGENTS.md) | Build, install, test and evaluate from the command line |
+| [docs/PLUGINS.md](docs/PLUGINS.md) | Boar Labs plugins |
+| [docs/MODELS.md](docs/MODELS.md) | Models, datasets and indexes |
 | [docs/KNOWLEDGE_PACKS.md](docs/KNOWLEDGE_PACKS.md) | How knowledge packs are built and searched |
-| [docs/EVAL_QUERIES.md](docs/EVAL_QUERIES.md) | The evaluation questions, including the set on Vitalik's topics |
-| [docs/RESULTS_SCORE.md](docs/RESULTS_SCORE.md) | How shared runs are signed and scored |
-| [docs/RELEASING.md](docs/RELEASING.md) | Building and publishing a signed release |
-| [PRIVACY.md](PRIVACY.md) · [TERMS.md](TERMS.md) | Privacy policy and terms (preview) |
+| [docs/EVAL_QUERIES.md](docs/EVAL_QUERIES.md) | The evaluation questions |
+| [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | Bounty requirements and benchmark files |
+| [PRIVACY.md](PRIVACY.md) · [TERMS.md](TERMS.md) | Privacy policy and terms |
 
-License: [LICENSE](LICENSE).
+Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline AI
+Research App".
+
+The earlier Expo / React Native app (BOAR 1.x) is kept as history on the `expo` branch
+and the git tag `expo-final`.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party code and models keep their own licenses, listed in
+[android-native/NOTICE](android-native/NOTICE).

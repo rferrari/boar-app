@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_printer_title" formatted="false">Boar Press</string>
+    <string name="native_labs_printer_body" formatted="false">Junte respostas de qualquer conversa numa cesta e compile tudo em um PDF ou arquivo Markdown.</string>
+    <string name="native_labs_printer_empty" formatted="false">A cesta está vazia.</string>
+    <string name="native_labs_printer_howTo" formatted="false">Embaixo de qualquer resposta numa conversa, toque em 📎 para adicioná-la aqui. Junte de quantas conversas quiser e volte para organizar e compilar.</string>
+    <string name="native_labs_printer_docTitle" formatted="false">TÍTULO DO DOCUMENTO</string>
+    <string name="native_labs_printer_untitled" formatted="false">Notas de campo</string>
+    <string name="native_labs_printer_items_one" formatted="false">{{count}} ITEM</string>
+    <string name="native_labs_printer_items_other" formatted="false">{{count}} ITENS</string>
+    <string name="native_labs_printer_clear" formatted="false">LIMPAR</string>
+    <string name="native_labs_printer_sources_one" formatted="false">{{count}} fonte</string>
+    <string name="native_labs_printer_sources_other" formatted="false">{{count}} fontes</string>
+    <string name="native_labs_printer_noImages" formatted="false">Nenhum desenho ainda. Crie alguns no Gerador de imagem e escolha aqui.</string>
+    <string name="native_labs_printer_compile" formatted="false">🖨️ Imprimir em PDF</string>
+    <string name="native_labs_printer_compiling" formatted="false">Imprimindo…</string>
+    <string name="native_labs_printer_footer" formatted="false">compilado offline com o BOAR</string>
+    <string name="native_labs_printer_inBasket" formatted="false">Na cesta da Impressora (toque para tirar)</string>
+    <string name="native_labs_printer_addToBasket" formatted="false">Adicionar à cesta da Impressora</string>
+    <string name="native_labs_printer_saved" formatted="false">Salvo: {{name}}</string>
+    <string name="native_labs_printer_include" formatted="false">IMPRIMIR</string>
+    <string name="native_labs_printer_metaDate" formatted="false">Data</string>
+    <string name="native_labs_printer_metaModel" formatted="false">Modelo e velocidade</string>
+    <string name="native_labs_printer_metaSources" formatted="false">Fontes</string>
+    <string name="native_labs_printer_arrange" formatted="false">✎ Organizar</string>
+    <string name="native_labs_printer_preview" formatted="false">👁 Prévia</string>
+    <string name="native_labs_printer_heading" formatted="false">Título da seção</string>
+    <string name="native_labs_printer_moveUp" formatted="false">Mover para cima</string>
+    <string name="native_labs_printer_moveDown" formatted="false">Mover para baixo</string>
+    <string name="native_labs_printer_dragHint" formatted="false">Segure ⠿ e arraste para mudar a ordem.</string>
+    <string name="native_labs_printer_markdown" formatted="false">📝 Salvar em Markdown</string>
+    <string name="native_labs_printer_mdReasoning" formatted="false">Raciocínio</string>
+    <string name="native_labs_printer_place_center" formatted="false">⬛ Centro</string>
+    <string name="native_labs_printer_place_right" formatted="false">▐ Direita</string>
+    <string name="native_labs_printer_place_left" formatted="false">▌ Esquerda</string>
+    <string name="native_labs_printer_place_alternate" formatted="false">⇄ Alternar</string>
+    <string name="native_labs_printer_metaDrawings" formatted="false">Desenhos</string>
+    <string name="native_labs_printer_pos_after" formatted="false">↓ Título, depois desenho</string>
+    <string name="native_labs_printer_pos_before" formatted="false">↑ Desenho, depois título</string>
+    <string name="native_labs_printer_pickTitle" formatted="false">Desenho desta resposta</string>
+    <string name="native_labs_printer_noDrawing" formatted="false">✕ Sem desenho</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_facts_title" formatted="false">Boar Facts</string>
+    <string name="native_labs_facts_body" formatted="false">One fact about a country, city, mountain, river, landmark or award, from a Wikidata table, without the model.</string>
+    <string name="native_labs_facts_answers" formatted="false">ANSWERS ON ITS OWN</string>
+    <string name="native_labs_facts_answersList" formatted="false">• Population, area, capital, currency, official languages, continent and borders\n• Height or elevation, length and depth\n• When a landmark was built or came down\n• Plug types and mains voltage\n• Where an event was held, and an award\'s winner in a given year\n• Two places compared: which is bigger, taller, longer or has more people</string>
+    <string name="native_labs_facts_try" formatted="false">TRY</string>
+    <string name="native_labs_facts_example1" formatted="false">Does Brazil have more people than Russia?</string>
+    <string name="native_labs_facts_example2" formatted="false">What plug type and voltage does Brazil use?</string>
+    <string name="native_labs_facts_example3" formatted="false">If you stood the Burj Khalifa on the deepest point of Lake Baikal, would its top stick out of the water?</string>
+    <string name="native_labs_facts_note" formatted="false">It answers only when the question names something in the table and asks for exactly one of these; every answer ends with its source and the table\'s date (Wikidata, CC0, October 2026), and an older population figure says how old it is. Two properties at once, an overview, a why or how question, a name it can\'t tell apart (Georgia), or a chat about health goes to the model as usual. Questions in English only. Ported from r4to\'s offline facts (BOAR R&amp;D).</string>
+</resources>

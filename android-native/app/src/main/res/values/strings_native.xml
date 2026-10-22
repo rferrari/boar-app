@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts of the native app's own screens (not in the Expo app's locales), written by hand. Keys: native.* -->
+<resources>
+    <string name="native_tweaks_title" formatted="false">Advanced tweaks</string>
+    <string name="native_tweaks_intro" formatted="false">Every engine setting, for people who want to try them. Auto is what we measured best on real phones; anything you set here wins. A value your phone can\'t run is adjusted, never fatal.</string>
+    <string name="native_tweaks_auto" formatted="false">Auto</string>
+    <string name="native_tweaks_autoValue" formatted="false">Auto ({{value}})</string>
+    <string name="native_tweaks_resetAll" formatted="false">Reset all to Auto</string>
+    <string name="native_tweaks_appliesNext" formatted="false">Applies from the next answer (the model reloads).</string>
+    <string name="native_tweaks_appliesRestart" formatted="false">Applies after the app restarts.</string>
+    <string name="native_tweaks_adjusted" formatted="false">Adjusted for this phone: {{notes}}</string>
+    <string name="native_tweaks_cpuBuild" formatted="false">CPU build</string>
+    <string name="native_tweaks_cpuBuildNote" formatted="false">Which instruction set the engine runs. Auto skips the SVE build where it reads prompts slower.</string>
+    <string name="native_tweaks_cpuBest" formatted="false">Engine\'s pick</string>
+    <string name="native_tweaks_threads" formatted="false">Threads</string>
+    <string name="native_tweaks_threadsNote" formatted="false">More threads than fast cores pulls in the slow cores and is usually slower.</string>
+    <string name="native_tweaks_threadsBatch" formatted="false">Threads for reading the prompt</string>
+    <string name="native_tweaks_cores" formatted="false">Cores</string>
+    <string name="native_tweaks_coresFast" formatted="false">Fast cores</string>
+    <string name="native_tweaks_coresAll" formatted="false">Any core</string>
+    <string name="native_tweaks_strict" formatted="false">Keep threads on those cores only</string>
+    <string name="native_tweaks_context" formatted="false">Context window (tokens)</string>
+    <string name="native_tweaks_batch" formatted="false">Prompt batch</string>
+    <string name="native_tweaks_microBatch" formatted="false">Micro-batch</string>
+    <string name="native_tweaks_kv" formatted="false">KV cache</string>
+    <string name="native_tweaks_kvNote" formatted="false">Q8_0 and Q4_0 use less memory; in our tests, Q8_0 with flash attention generated 20% slower (our test phone, Oct 2026).</string>
+    <string name="native_tweaks_flash" formatted="false">Flash attention</string>
+    <string name="native_tweaks_on" formatted="false">On</string>
+    <string name="native_tweaks_off" formatted="false">Off</string>
+    <string name="native_tweaks_load" formatted="false">Model weights</string>
+    <string name="native_tweaks_loadMmap" formatted="false">Mapped from storage</string>
+    <string name="native_tweaks_loadLock" formatted="false">Mapped and locked in RAM</string>
+    <string name="native_tweaks_loadRead" formatted="false">Read into memory</string>
+    <string name="native_tweaks_moe" formatted="false">Stream MoE experts</string>
+    <string name="native_tweaks_timeout" formatted="false">Time limit per generation</string>
+    <string name="native_tweaks_timeoutNote" formatted="false">Auto grows with the max output tokens, so long answers and Deep Research aren\'t cut short. A generation that hits the limit keeps what it wrote.</string>
+    <string name="native_tweaks_noLimit" formatted="false">No limit</string>
+    <string name="native_tweaks_minutes" formatted="false">{{n}} min</string>
+    <string name="native_tweaks_seconds" formatted="false">{{n}} s</string>
+    <string name="native_settings_back" formatted="false">Back</string>
+    <string name="native_settings_textSize" formatted="false">Text size</string>
+    <string name="native_settings_orientation" formatted="false">Screen rotation</string>
+    <string name="native_settings_orientation_auto" formatted="false">Auto</string>
+    <string name="native_settings_orientation_portrait" formatted="false">Portrait</string>
+    <string name="native_settings_orientation_landscape" formatted="false">Landscape</string>
+    <string name="native_settings_compact" formatted="false">Compact</string>
+    <string name="native_settings_standard" formatted="false">Standard</string>
+    <string name="native_settings_large" formatted="false">Large</string>
+    <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
+    <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed.</string>
+    <string name="native_drawer_settings" formatted="false">Settings</string>
+    <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
+    <string name="native_about_siteTitle" formatted="false">Official website</string>
+    <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BOAR.</string>
+    <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
+    <string name="native_about_copied" formatted="false">Copied</string>
+    <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
+    <string name="native_receipt_mode" formatted="false">Mode</string>
+    <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
+    <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
+    <string name="native_receipt_style_personal" formatted="false">Personal Files</string>
+    <string name="native_receipt_style_custom" formatted="false">Custom</string>
+    <string name="native_receipt_path_deep" formatted="false">Deep Research</string>
+    <string name="native_receipt_path_chat" formatted="false">From this chat</string>
+    <string name="native_receipt_path_adaptive" formatted="false">Adaptive routing</string>
+    <string name="native_receipt_checked" formatted="false">checked</string>
+    <string name="native_receipt_tool" formatted="false">Tool</string>
+    <string name="native_receipt_instant" formatted="false">instant</string>
+    <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
+    <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
+    <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
+    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Menu → Evaluation.</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget.</string>
+    <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
+    <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
+    <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Lab:</string>
+    <string name="native_about_post_team" formatted="false">Core team, on X:</string>
+    <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
+    <string name="native_about_creditsAll" formatted="false">Show all {{n}}</string>
+    <string name="native_about_creditsLess" formatted="false">Show fewer</string>
+    <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
+    <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Lab.</string>
+    <string name="native_about_teamTitle" formatted="false">Core team</string>
+    <string name="native_about_teamBody" formatted="false">On X:</string>
+    <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
+    <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
+    <string name="native_eval_answersTitle" formatted="false">Answers ({{count}})</string>
+    <string name="native_eval_score_title" formatted="false">Score</string>
+    <string name="native_eval_score_running" formatted="false">Running · {{done}}/{{total}} answers</string>
+    <string name="native_eval_score_finished" formatted="false">{{done}}/{{total}} answers</string>
+    <string name="native_eval_score_speed" formatted="false">Speed</string>
+    <string name="native_eval_score_reliability" formatted="false">Reliability</string>
+    <string name="native_eval_score_sources" formatted="false">Sources found</string>
+    <string name="native_eval_score_answered" formatted="false">{{done}}/{{total}} answered</string>
+    <string name="native_eval_score_found" formatted="false">{{hits}}/{{total}} found</string>
+    <string name="native_eval_score_noneExpected" formatted="false">none expected</string>
+    <string name="native_eval_score_note" formatted="false">Speed 60 %, reliability 25 %, sources found 15 %, measured on this phone. It doesn\'t say whether the answers are right.</string>
+    <string name="native_eval_keepScreenOn" formatted="false">Keep the screen on and the app open while it runs. The chat\'s model is unloaded first so the two don\'t share memory.</string>
+    <string name="native_chat_loadCrashed" formatted="false">{{crashed}} closed the app while loading: not enough memory. BOAR is answering with {{fallback}} for now.</string>
+    <string name="native_chat_loadCrashedNoFallback" formatted="false">{{crashed}} closed the app while loading: not enough memory. Try again with less memory, or pick a smaller model in the Model Catalog.</string>
+    <string name="native_chat_loadCrashedOnly" formatted="false">{{model}} couldn\'t load last time: not enough memory on this phone. Download a smaller model, such as Qwen2.5 1.5B (about 1 GB).</string>
+    <string name="native_chat_retryLessMemory" formatted="false">Try again with less memory</string>
+    <string name="native_chat_mayNotFit" formatted="false">{{model}} may not fit in this phone\'s memory.</string>
+    <string name="native_chat_mayNotFitOnly" formatted="false">{{model}} may not fit in this phone\'s memory. A smaller model, such as Qwen2.5 1.5B (about 1 GB), fits better.</string>
+    <string name="native_chat_loadAnyway" formatted="false">Load anyway</string>
+    <string name="native_chat_pickAnother" formatted="false">Pick another model</string>
+    <string name="native_tweaks_thinking" formatted="false">Thinking before answering</string>
+    <string name="native_tweaks_thinkingNote" formatted="false">Lets a thinking model reason first. Auto: off, so the answer\'s token budget isn\'t spent on reasoning.</string>
+    <string name="native_tweaks_repack" formatted="false">Repacked weights</string>
+    <string name="native_tweaks_repackNote" formatted="false">Auto: on (prompts read about 2x faster on our test phone, Oct 2026). After a load that ran out of memory, Try again with less memory keeps the weights mapped from storage for that model.</string>
+    <string name="native_pin_enterTitle" formatted="false">Enter your PIN</string>
+    <string name="native_pin_enterSubtitle" formatted="false">Your chats are sealed with it.</string>
+    <string name="native_pin_wrong" formatted="false">Wrong PIN.</string>
+    <string name="native_pin_wait" formatted="false">Too many tries. Wait {{seconds}} s.</string>
+    <string name="native_pin_forgot" formatted="false">Forgot the PIN?</string>
+    <string name="native_pin_forgotTitle" formatted="false">Erase your chats?</string>
+    <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes the PIN too. Models, packs and documents stay.</string>
+    <string name="native_pin_forgotConfirm" formatted="false">Erase chats</string>
+    <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
+    <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
+    <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
+    <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BOAR.</string>
+    <string name="native_pin_confirmTitle" formatted="false">Enter it again</string>
+    <string name="native_pin_saveFailed" formatted="false">Couldn\'t change the PIN. Try again.</string>
+    <string name="native_pin_mismatch" formatted="false">The PINs didn\'t match. Choose it again.</string>
+    <string name="native_pin_offerTitle" formatted="false">Lock BOAR with a PIN?</string>
+    <string name="native_pin_offerBody" formatted="false">With a PIN, your chats are stored sealed: someone with your phone or its files over USB can\'t read them. You can set it or remove it later in Settings.</string>
+    <string name="native_pin_offerSet" formatted="false">Set a PIN</string>
+    <string name="native_pin_offerSkip" formatted="false">Not now</string>
+    <string name="native_settings_security" formatted="false">PIN lock</string>
+    <string name="native_settings_pinOn" formatted="false">PIN on. Chats are stored sealed with it.</string>
+    <string name="native_settings_pinOff" formatted="false">No PIN. Anyone with the phone unlocked can open your chats.</string>
+    <string name="native_settings_pinSet" formatted="false">Set a PIN</string>
+    <string name="native_settings_pinChange" formatted="false">Change PIN</string>
+    <string name="native_settings_pinRemove" formatted="false">Remove PIN</string>
+    <string name="native_settings_clearChatsDone" formatted="false">Chat history cleared.</string>
+    <string name="native_settings_openCatalog" formatted="false">Open the model catalog</string>
+    <string name="native_settings_openDocuments" formatted="false">Open My Documents</string>
+    <string name="native_settings_activeModel" formatted="false">Answering with: {{model}}</string>
+    <string name="native_settings_installedCount" formatted="false">{{count}} installed</string>
+    <string name="native_settings_packsInstalled" formatted="false">Knowledge packs on this phone: {{packs}}</string>
+    <string name="native_settings_noPacks" formatted="false">No knowledge packs yet: the built-in library only.</string>
+    <string name="native_settings_documents" formatted="false">Your documents: {{count}} collections</string>
+    <string name="native_telemetry_device" formatted="false">Device</string>
+    <string name="native_telemetry_chip" formatted="false">Chip</string>
+    <string name="native_telemetry_cores" formatted="false">Cores</string>
+    <string name="native_telemetry_ram" formatted="false">RAM</string>
+    <string name="native_telemetry_features" formatted="false">CPU features for llama.cpp</string>
+    <string name="native_telemetry_build" formatted="false">Engine CPU build</string>
+    <string name="native_telemetry_appMemory" formatted="false">App memory now</string>
+    <string name="native_telemetry_storage" formatted="false">BOAR\'s storage</string>
+    <string name="native_telemetry_memory" formatted="false">Memory</string>
+    <string name="native_telemetry_memoryCaption" formatted="false">BOAR {{app}} · other apps {{others}}</string>
+    <string name="native_telemetry_disk" formatted="false">Storage</string>
+    <string name="native_telemetry_technical" formatted="false">TECHNICAL</string>
+    <string name="native_telemetry_storageValue" formatted="false">{{used}} of BOAR\'s {{limit}} limit</string>
+    <string name="native_telemetry_storageNoLimit" formatted="false">{{used}}, no BOAR limit</string>
+    <string name="native_telemetry_ramValue" formatted="false">{{total}} · {{used}} in use now</string>
+    <string name="native_telemetry_chats" formatted="false">Chats saved</string>
+    <string name="native_telemetry_evals" formatted="false">Evaluation runs on this phone</string>
+    <string name="native_telemetry_lastEval" formatted="false">Last evaluation</string>
+    <string name="native_telemetry_lastEvalValue" formatted="false">{{ok}}/{{n}} answered · median {{tps}} tok/s · {{date}}</string>
+    <string name="native_telemetry_none" formatted="false">none yet</string>
+    <string name="native_telemetry_note" formatted="false">Nothing here leaves the phone.</string>
+    <string name="native_telemetry_noteSharing" formatted="false">Nothing here leaves the phone. Results are shared only from the Evaluation screen, after you see what\'s sent.</string>
+    <string name="native_voice_onDevice" formatted="false">On-device speech recognizer (audio stays on the phone)</string>
+    <string name="native_browse_title" formatted="false">Browse models</string>
+    <string name="native_browse_cta" formatted="false">Browse Hugging Face models</string>
+    <string name="native_browse_ctaNote" formatted="false">Text models in GGUF, one file under 12 GB, that this app can run. Not vetted by BOAR.</string>
+    <string name="native_browse_size" formatted="false">Size</string>
+    <string name="native_browse_sizeAny" formatted="false">Any</string>
+    <string name="native_browse_sort" formatted="false">Sort</string>
+    <string name="native_browse_sortTrending" formatted="false">Trending</string>
+    <string name="native_browse_sortDownloads" formatted="false">Most downloaded</string>
+    <string name="native_browse_sortLikes" formatted="false">Most liked</string>
+    <string name="native_browse_sortNewest" formatted="false">Newest</string>
+    <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
+    <string name="native_browse_errorOffline" formatted="false">No connection. Searching Hugging Face needs the internet; the models on this phone still work.</string>
+    <string name="native_browse_errorGeneric" formatted="false">Hugging Face didn\'t answer. Try again in a moment.</string>
+    <string name="native_browse_unvetted" formatted="false">Not vetted by BOAR</string>
+    <string name="native_browse_more" formatted="false">Loading more…</string>
+    <string name="native_browse_kind" formatted="false">Type</string>
+    <string name="native_browse_kindAll" formatted="false">All</string>
+    <string name="native_browse_kindMoe" formatted="false">Mixture of experts</string>
+    <string name="native_browse_files" formatted="false">Files</string>
+    <!-- Truffle Vault -->
+    <string name="native_truffle_cosmo" formatted="false">Cosmo Boar</string>
+    <string name="native_truffle_quantum" formatted="false">Quantum Boar</string>
+    <string name="native_truffle_tactical" formatted="false">Tactical Boar</string>
+    <string name="native_truffle_hacker" formatted="false">Code Boar</string>
+    <string name="native_truffle_solarpunk" formatted="false">Solarpunk Boar</string>
+    <string name="native_truffle_nomad" formatted="false">Nomad Boar</string>
+    <string name="native_truffle_synthetic" formatted="false">Cyber Boar</string>
+    <string name="native_truffle_senior" formatted="false">Senior Boar</string>
+    <string name="native_truffle_mecha" formatted="false">Mecha Boar</string>
+    <string name="native_truffle_plasma" formatted="false">Plasma Boar</string>
+    <string name="native_truffle_steampunk" formatted="false">Steampunk Boar</string>
+    <string name="native_truffle_retrowave" formatted="false">Retrowave Boar</string>
+    <string name="native_truffle_ice" formatted="false">Frost Boar</string>
+    <string name="native_truffle_volcanic" formatted="false">Magma Boar</string>
+    <string name="native_truffle_astronaut" formatted="false">Astro Boar</string>
+    <string name="native_truffle_stealth" formatted="false">Stealth Boar</string>
+    <string name="native_truffle_biolum" formatted="false">Neon Boar</string>
+    <string name="native_truffle_knight" formatted="false">Knight Boar</string>
+    <string name="native_truffle_void" formatted="false">Void Boar</string>
+    <string name="native_truffle_atomic" formatted="false">Atomic Boar</string>
+    <string name="native_truffle_lunar" formatted="false">Lunar Boar</string>
+    <string name="native_truffle_digital_nomad" formatted="false">Data Nomad</string>
+    <string name="native_truffle_chrono" formatted="false">Chrono Boar</string>
+    <string name="native_truffle_ethereal" formatted="false">Ethereal Boar</string>
+    <string name="native_truffle_sovereign" formatted="false">Sovereign Boar</string>
+    <string name="native_truffle_guardian" formatted="false">Solar Guardian</string>
+    <string name="native_truffle_tactical_city" formatted="false">Urban Boar</string>
+    <string name="native_truffle_pixel_hacker" formatted="false">Pixel Boar</string>
+    <string name="native_truffle_moe" formatted="false">Tensor Boar</string>
+    <string name="native_truffle_explorer" formatted="false">Field Boar</string>
+    <string name="native_truffle_spirit" formatted="false">Spirit Boar</string>
+    <string name="native_truffle_planter" formatted="false">Forest Boar</string>
+    <string name="native_truffle_cloud" formatted="false">Airgap Boar</string>
+    <string name="native_truffle_elder" formatted="false">Elder Boar</string>
+    <string name="native_truffle_fomo_unicorn" formatted="false">Unicorn Boar</string>
+    <string name="native_truffle_tactical_ii" formatted="false">SpecOps Boar</string>
+    <string name="native_truffle_totem" formatted="false">Totem Boar</string>
+    <string name="native_truffle_hammock" formatted="false">Hammock Boar</string>
+    <string name="native_truffle_snow" formatted="false">Snow Boar</string>
+    <string name="native_truffle_hacker_ii" formatted="false">Kernel Boar</string>
+    <string name="native_vault_title" formatted="false">Truffle Vault</string>
+    <string name="native_vault_intro" formatted="false">You find truffles by using BOAR. Everything is counted on this phone and never leaves it.</string>
+    <string name="native_vault_card" formatted="false">🍄 Found {{n}} of {{total}}</string>
+    <string name="native_vault_open" formatted="false">Open vault →</string>
+    <string name="native_vault_boar" formatted="false">Boar</string>
+    <string name="native_vault_default" formatted="false">BOAR</string>
+    <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat and the menu.</string>
+    <string name="native_vault_iconNoteLauncher" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
+    <string name="native_vault_equipped" formatted="false">Equipped</string>
+    <string name="native_vault_equip" formatted="false">Equip</string>
+    <string name="native_vault_unlockedOn" formatted="false">Found {{date}}</string>
+    <string name="native_vault_fresh" formatted="false">🍄 Truffle found: {{name}}</string>
+    <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs.</string>
+    <string name="native_vault_themes" formatted="false">Themes</string>
+    <string name="native_vault_labClue" formatted="false">Unlocked by a Lab</string>
+    <string name="native_rule_ALWAYS" formatted="false">Night-vision gear, issued to everyone.</string>
+    <string name="native_rule_FIRST_ANSWER" formatted="false">Ask BOAR your first question.</string>
+    <string name="native_rule_FIRST_SOURCED" formatted="false">Get an answer that cites a source.</string>
+    <string name="native_rule_ANSWERS_10" formatted="false">10 answers.</string>
+    <string name="native_rule_ANSWERS_50" formatted="false">50 answers.</string>
+    <string name="native_rule_ANSWERS_100" formatted="false">100 answers.</string>
+    <string name="native_rule_ANSWERS_500" formatted="false">500 answers.</string>
+    <string name="native_rule_ANSWERS_1000" formatted="false">1,000 answers. Only the sovereign get here.</string>
+    <string name="native_rule_FIRST_OFFLINE" formatted="false">Get an answer with no network at all.</string>
+    <string name="native_rule_OFFLINE_10" formatted="false">10 answers with no network.</string>
+    <string name="native_rule_NIGHT" formatted="false">The forest is quietest between 2 AM and 4 AM.</string>
+    <string name="native_rule_NIGHT_5" formatted="false">Five questions in the quiet hours.</string>
+    <string name="native_rule_DEEP_RESEARCH" formatted="false">Run a Deep Research.</string>
+    <string name="native_rule_DEEP_RESEARCH_10" formatted="false">10 Deep Researches.</string>
+    <string name="native_rule_EVAL_RUN" formatted="false">Measure, don\'t guess: run an evaluation.</string>
+    <string name="native_rule_EVAL_RUNS_5" formatted="false">Run 5 evaluations.</string>
+    <string name="native_rule_EVAL_SHARED" formatted="false">Share an evaluation\'s results.</string>
+    <string name="native_rule_CHATS_10" formatted="false">Start 10 chats.</string>
+    <string name="native_rule_CHATS_100" formatted="false">Start 100 chats.</string>
+    <string name="native_rule_DOCUMENT" formatted="false">Feed BOAR a document of your own.</string>
+    <string name="native_rule_EXPORT" formatted="false">Export a collection.</string>
+    <string name="native_rule_PACK" formatted="false">Download a knowledge pack.</string>
+    <string name="native_rule_PACKS_2" formatted="false">Carry two knowledge packs.</string>
+    <string name="native_rule_HF_MODEL" formatted="false">Add a model from Hugging Face.</string>
+    <string name="native_rule_FAST_8" formatted="false">Push local silicon past 8 tokens per second.</string>
+    <string name="native_rule_FAST_15" formatted="false">Push local silicon past 15 tokens per second.</string>
+    <string name="native_rule_VOICE" formatted="false">Speak to BOAR.</string>
+    <string name="native_rule_PORTUGUESE" formatted="false">Ask in Portuguese.</string>
+    <string name="native_rule_PIN" formatted="false">Lock BOAR with a PIN.</string>
+    <string name="native_rule_PIN_DARK" formatted="false">Locked with a PIN, and opened in airplane mode.</string>
+    <string name="native_rule_THEME" formatted="false">Change the colors.</string>
+    <string name="native_rule_TWEAKS" formatted="false">Tinker with the engine in Advanced tweaks.</string>
+    <string name="native_rule_SOURCE_BUILD" formatted="false">Don\'t trust the APK. Build the boar with your own hands.</string>
+    <string name="native_rule_DEGOOGLED" formatted="false">Detected running on GrapheneOS or deGoogled AOSP (no Play Services).</string>
+    <string name="native_rule_DAYS_3" formatted="false">Use BOAR on 3 different days.</string>
+    <string name="native_rule_DAYS_7" formatted="false">Use BOAR on 7 different days.</string>
+    <string name="native_rule_DAYS_30" formatted="false">Use BOAR on 30 different days.</string>
+    <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Open BOAR in airplane mode 3 days in a row.</string>
+    <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Forage deep in the woods: airplane mode, 7 days in a row.</string>
+    <string name="native_rule_ALL_OTHERS" formatted="false">The legendary truffle: unearth every other boar in the vault.</string>
+    <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 days off the grid, in any order.</string>
+    <string name="native_vault_section" formatted="false">Boarverse</string>
+    <string name="native_vault_experimental" formatted="false">Boarverse</string>
+    <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
+    <string name="native_settings_experimental" formatted="false">Experimental</string>
+    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with its quick-answer labs (beta) and Boar Vitals; the rest (alpha) start off. If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
+    <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
+    <string name="native_debugLog_title" formatted="false">Debug log</string>
+    <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
+    <string name="native_debugLog_size" formatted="false">Log: {{size}} (up to 4 MB, the oldest part is dropped)</string>
+    <string name="native_debugLog_save" formatted="false">Save log…</string>
+    <string name="native_debugLog_clear" formatted="false">Clear log</string>
+    <string name="native_debugLog_saved" formatted="false">Log saved</string>
+    <string name="native_debugLog_saveFailed" formatted="false">Couldn\'t save the log</string>
+    <string name="native_tweaks_technicalDetails" formatted="false">Show technical details</string>
+    <string name="native_tweaks_technicalDetailsNote" formatted="false">Under each answer, tap the time and speed for the details (time to the first word, context, model); live speed in the header while BOAR answers; memory and storage at the bottom of the menu; This phone in Settings.</string>
+    <string name="native_tweaks_presets" formatted="false">Presets</string>
+    <string name="native_tweaks_preset_run" formatted="false">Run Boar Run</string>
+    <string name="native_tweaks_preset_runNote" formatted="false">Fastest answers: the fast cores only, prompts read in bigger batches (the first word about twice as soon in our tests), no time limit. More heat and battery.</string>
+    <string name="native_tweaks_preset_path" formatted="false">Boar\'s Path</string>
+    <string name="native_tweaks_preset_pathNote" formatted="false">Auto: what we measured best on real phones. Balanced.</string>
+    <string name="native_tweaks_preset_forage" formatted="false">Chill Forage</string>
+    <string name="native_tweaks_preset_forageNote" formatted="false">Cooler and longer battery: 2 threads, a smaller context, no reasoning, 5 minutes at most per step. Slower answers.</string>
+    <string name="native_tweaks_preset_cool" formatted="false">Cool Down</string>
+    <string name="native_tweaks_preset_coolNote" formatted="false">For a hot phone: 1 thread, small prompt batches, a smaller context, no reasoning, 5 minutes at most per step. The slowest.</string>
+    <string name="native_tweaks_presetCustom" formatted="false">Custom: your own settings below. Pick a preset to start over from it.</string>
+    <string name="native_tweaks_drawerStats" formatted="false">Memory and storage in the menu</string>
+    <string name="native_tweaks_drawerStatsNote" formatted="false">Bars at the bottom of the menu: everything BOAR holds in memory (the app and any Labs engine, like Big Boar) and the space its models use.</string>
+    <string name="native_models_engineTag" formatted="false">{{engine}} engine · streams from storage</string>
+    <string name="native_models_placeOverUsb" formatted="false">Copy it over USB (Boar Labs → {{engine}})</string>
+    <string name="native_models_selectUseEngine" formatted="false">🔘 Select &amp; Use · {{engine}} engine</string>
+    <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
+    <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
+    <string name="native_models_cancelDownload" formatted="false">Cancel</string>
+    <string name="native_models_sort" formatted="false">Sort</string>
+    <string name="native_models_sortSmart" formatted="false">Smart</string>
+    <string name="native_models_sortLastUsed" formatted="false">Last used</string>
+    <string name="native_models_sortAdded" formatted="false">Recently added</string>
+    <string name="native_models_show" formatted="false">Show</string>
+    <string name="native_models_filterAll" formatted="false">All</string>
+    <string name="native_models_filterOnPhone" formatted="false">On this phone</string>
+    <string name="native_models_filterDownloading" formatted="false">Downloading</string>
+    <string name="native_models_filterMine" formatted="false">Added by you</string>
+    <string name="native_models_emptyFilter" formatted="false">No models here. Pick All to see every model.</string>
+    <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
+    <string name="native_models_addedToast" formatted="false">Added to your models. Download it here or in Model Catalog.</string>
+    <string name="native_models_inYourModels" formatted="false">In your models</string>
+    <string name="native_models_useNow" formatted="false">Use now</string>
+    <string name="native_settings_embeddingOk" formatted="false">Search model (for packs and documents): {{model}} ✓</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Search model (for packs and documents): {{model}}, not on the phone. Run setup again from Recovery.</string>
+    <string name="native_browse_discoverSubtitle" formatted="false">Browse Hugging Face models</string>
+    <string name="native_chat_errorNoModel" formatted="false">No answer model is loaded. Open the Model Catalog to pick one.</string>
+    <string name="native_common_somethingWrong" formatted="false">Something went wrong. Try again.</string>
+    <string name="native_chat_dbFailed" formatted="false">Couldn\'t do that. Try again.</string>
+    <string name="native_chat_ratingNote" formatted="false">Saved on this phone only. Nothing is sent. BOAR doesn\'t learn from it yet.</string>
+    <string name="native_chat_styleNote_health" formatted="false">Short answer: health questions are kept brief.</string>
+    <string name="native_chat_styleNote_seed" formatted="false">Short answer: seed-phrase questions are kept brief, for your safety.</string>
+    <string name="native_chat_loadingModel" formatted="false">Loading {{model}} · {{s}} s</string>
+    <string name="native_chat_loadingModelWith" formatted="false">Loading {{model}} with {{engine}} · {{s}} s</string>
+    <string name="native_chat_errorGeneric" formatted="false">Something went wrong while answering. Try again.</string>
+    <string name="native_chat_errorEmpty" formatted="false">The model stopped without writing an answer.</string>
+    <string name="native_chat_errorInterrupted" formatted="false">Interrupted: BOAR was closed while answering.</string>
+    <string name="native_chat_askBoarInstead" formatted="false">Ask BOAR instead</string>
+    <string name="native_chat_deepResearchPlaceholder" formatted="false">Deep Research question…</string>
+    <string name="native_chat_roleDeepResearch" formatted="false">BOAR · 🔬 DEEP RESEARCH</string>
+    <string name="native_answering_channel" formatted="false">Answering</string>
+    <string name="native_answering_title" formatted="false">BOAR is answering…</string>
+    <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
+    <string name="native_chat_tryAgain" formatted="false">Try again</string>
+    <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
+    <string name="native_chat_stopping" formatted="false">Stopping…</string>
+    <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
+    <string name="native_personalities_succinct_description" formatted="false">Fastest. 2 or 3 short paragraphs or bullets, no preamble.</string>
+    <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
+    <string name="native_settings_resetDesc" formatted="false">Theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults. Your models, chats, PIN and language stay.</string>
+    <string name="native_settings_resetButton" formatted="false">Reset settings</string>
+    <string name="native_settings_resetConfirmTitle" formatted="false">Reset all settings?</string>
+    <string name="native_settings_resetConfirmBody" formatted="false">Settings go back to their defaults and setup opens again. Downloaded models and packs, your chats, your PIN and your language are kept.</string>
+    <string name="native_settings_resetConfirmButton" formatted="false">Reset</string>
+    <string name="native_chat_foundBeforeStop" formatted="false">Found before stopping</string>
+    <string name="native_chat_cutAtLimit" formatted="false">Stopped at the {{limit}}-token limit</string>
+    <string name="native_chat_allowMore" formatted="false">Allow {{limit}} and redo</string>
+    <string name="native_chat_deepResearchOn" formatted="false">ON · deeper, slower answers</string>
+    <string name="native_chat_deepResearchOff" formatted="false">OFF · normal answers</string>
+    <string name="native_chat_deepResearchExplain" formatted="false">Splits your question into 2 or 3 parts, searches your knowledge for each, then writes one answer with sources. Deeper, but slower. Expect a few minutes per answer on a phone.</string>
+    <string name="native_personalitySettings_deepResearchNote" formatted="false">Breaks your question into smaller questions, researches each one, then writes one answer. It runs several steps on the same model, so it is slower than a normal reply. It works with any style, which sets the tone. Deep Research with Succinct still gives a short answer.</string>
+    <string name="native_chat_suggestions_b1" formatted="false">Darwin, Wallace and the discovery of natural selection</string>
+    <string name="native_chat_suggestionTopics_b1" formatted="false">History of science</string>
+    <string name="native_chat_suggestions_b2" formatted="false">How vaccines train the immune system, from smallpox to mRNA</string>
+    <string name="native_chat_suggestionTopics_b2" formatted="false">Health</string>
+    <string name="native_chat_suggestions_b3" formatted="false">Photosynthesis step by step: from sunlight to sugar</string>
+    <string name="native_chat_suggestionTopics_b3" formatted="false">Biology</string>
+    <string name="native_chat_suggestions_b4" formatted="false">The French and Industrial Revolutions compared: causes and lasting effects</string>
+    <string name="native_chat_suggestionTopics_b4" formatted="false">History</string>
+    <string name="native_chat_suggestions_b5" formatted="false">Why the Western Roman Empire fell: the main theories</string>
+    <string name="native_chat_suggestionTopics_b5" formatted="false">History</string>
+    <string name="native_chat_suggestions_b6" formatted="false">How black holes form, and what happens at the event horizon</string>
+    <string name="native_chat_suggestionTopics_b6" formatted="false">Space</string>
+    <string name="native_chat_suggestions_b7" formatted="false">Napoleon Bonaparte: his rise, his wars and his legacy in Europe</string>
+    <string name="native_chat_suggestionTopics_b7" formatted="false">People</string>
+    <string name="native_chat_suggestions_b8" formatted="false">Antibiotic resistance: why bacteria adapt, and what slows it</string>
+    <string name="native_chat_suggestionTopics_b8" formatted="false">Medicine</string>
+    <string name="native_chat_suggestions_b9" formatted="false">Canberra: why Australia built a new capital</string>
+    <string name="native_chat_suggestionTopics_b9" formatted="false">Geography</string>
+    <string name="native_chat_suggestions_b10" formatted="false">The Great Wall of China: its history, its length and the Moon myth</string>
+    <string name="native_chat_suggestionTopics_b10" formatted="false">Myths</string>
+    <string name="native_chat_suggestions_b11" formatted="false">Polar bears and grizzlies compared: size, diet and habitat</string>
+    <string name="native_chat_suggestionTopics_b11" formatted="false">Animals</string>
+    <string name="native_chat_suggestions_b12" formatted="false">Brazil and Russia compared: population, area and economy</string>
+    <string name="native_chat_suggestionTopics_b12" formatted="false">Geography</string>
+    <string name="native_chat_suggestions_b13" formatted="false">How mosquitoes spread disease, and why HIV isn\'t one of them</string>
+    <string name="native_chat_suggestionTopics_b13" formatted="false">Health</string>
+    <string name="native_chat_suggestions_b14" formatted="false">Exercise and health: how much adults need, and why</string>
+    <string name="native_chat_suggestionTopics_b14" formatted="false">Health</string>
+    <string name="native_chat_suggestions_b15" formatted="false">Kyoto\'s role in Japanese history and culture</string>
+    <string name="native_chat_suggestionTopics_b15" formatted="false">Travel</string>
+    <string name="native_chat_suggestions_b16" formatted="false">Mount Kilimanjaro: how a volcano became Africa\'s highest peak</string>
+    <string name="native_chat_suggestionTopics_b16" formatted="false">Earth science</string>
+    <string name="native_chat_suggestions_b17" formatted="false">The Berlin Wall: why it was built and how it fell</string>
+    <string name="native_chat_suggestionTopics_b17" formatted="false">History</string>
+    <string name="native_chat_suggestions_b18" formatted="false">How cheetahs reach top speed, and how long they can keep it</string>
+    <string name="native_chat_suggestionTopics_b18" formatted="false">Animals</string>
+    <string name="native_chat_suggestions_b19" formatted="false">Travelling in Brazil: plugs, voltage and emergency numbers</string>
+    <string name="native_chat_suggestionTopics_b19" formatted="false">Travel</string>
+    <string name="native_chat_suggestions_b20" formatted="false">Japan and Germany compared: population density and an aging society</string>
+    <string name="native_chat_suggestionTopics_b20" formatted="false">Geography</string>
+    <string name="native_chat_suggestions_b21" formatted="false">Dengue fever: symptoms, how it spreads, and why a second infection is riskier</string>
+    <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
+    <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
+    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from Settings → Advanced tweaks → Evaluation to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
+    <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
+    <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
+    <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
+    <string name="native_tweaks_runWarningKeepPath" formatted="false">Keep Boar\'s Path</string>
+    <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Caps how long a single answer can be. Lower is faster and easier on the battery.</string>
+    <string name="native_personalDocumentsManager_hint" formatted="false">Import your own .txt, .md, .csv, .json or .pdf notes. They are indexed on this device only and never uploaded. PDFs need selectable text: scanned or image-only pages can\'t be read (there\'s no OCR), and password-protected PDFs aren\'t supported.</string>
+    <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">This deletes \"{{name}}\" ({{count}} chunks) from your local knowledge base. This can\'t be undone.</string>
+    <string name="native_voiceSettings_unavailableNote" formatted="false">No speech recognition service was found on this phone. This is common on GrapheneOS and other builds without Google. Typing works as usual.</string>
+    <string name="native_interfaceSettings_hapticFeedbackValue" formatted="false">Vibrate when you send a question and when its answer finishes.</string>
+    <string name="native_modelBrowser_addedMessage" formatted="false">\"{{label}}\" was added to the model list above. Download it from there.</string>
+    <string name="native_evaluation_stoppedEarly" formatted="false">Stopped early. Partial results saved.</string>
+    <string name="native_flows_onboarding_currentItem" formatted="false">Item {{n}} of {{total}}: {{name}}</string>
+    <string name="native_sourceFootnotes_localIndex" formatted="false">FROM</string>
+    <string name="native_sourceFootnotes_yourDocuments" formatted="false">Your documents</string>
+    <string name="native_drawer_answeringHint" formatted="false">Answering… stop it to switch chats.</string>
+    <string name="native_documents_tooLarge" formatted="false">Too large: {{name}} (over {{mb}} MB).</string>
+    <string name="native_documents_unreadable" formatted="false">Couldn\'t read {{name}}.</string>
+    <string name="native_documents_passwordProtected" formatted="false">{{name}} is password-protected. BOAR can\'t open protected PDFs.</string>
+    <string name="native_documents_noText" formatted="false">{{name}} has no selectable text. Scanned pages need OCR, which BOAR doesn\'t do.</string>
+    <string name="native_documents_failed" formatted="false">Couldn\'t import these files. Try again.</string>
+    <string name="native_documents_shareTitle" formatted="false">Share the {{name}} knowledge base</string>
+    <string name="native_setup_indexNoEmbedder" formatted="false">The search model is missing. Retry the download.</string>
+    <string name="native_setup_indexEmbedderFailed" formatted="false">The search model didn\'t load. Try again.</string>
+    <string name="native_setup_indexFailed" formatted="false">Building the search index stopped. Try again.</string>
+    <string name="native_download_errorNoSource" formatted="false">Not available for download yet. Import the file instead.</string>
+    <string name="native_download_errorOffline" formatted="false">This build of BOAR has no network access. Import the file instead.</string>
+    <string name="native_download_errorStorage" formatted="false">This phone has only {{free}} free and the download needs {{needed}}. Free some space and retry.</string>
+    <string name="native_download_errorBudget" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR already stores {{used}}. Remove a model first. The phone itself may still have room.</string>
+    <string name="native_download_errorBudgetDownloading" formatted="false">BOAR\'s {{budget}} storage limit is reached: BOAR stores {{used}}, with {{downloading}} downloading. Remove a model or cancel a download. The phone itself may still have room.</string>
+    <string name="native_drawerStats_ramBoar" formatted="false">BOAR uses {{app}} of the phone\'s memory</string>
+    <string name="native_drawerStats_diskLimit" formatted="false">BOAR\'s storage limit, not the phone\'s</string>
+    <string name="native_drawerStats_diskNoLimit" formatted="false">No BOAR limit: up to the phone\'s free space</string>
+    <string name="native_drawerStats_diskDownloading" formatted="false">BOAR\'s storage limit · {{size}} downloading</string>
+    <string name="native_download_errorSizeChanged" formatted="false">The server now has a different file than this version of BOAR expects. Import the file or update the app.</string>
+    <string name="native_download_errorPaused" formatted="false">The download paused (no data). Check your connection and try again.</string>
+    <string name="native_download_errorChecksum" formatted="false">The file didn\'t match its checksum and was removed. Retry the download.</string>
+    <string name="native_download_errorServer" formatted="false">The download server didn\'t answer. Retry later.</string>
+    <string name="native_download_errorNetwork" formatted="false">No connection to the download server. Check your connection and retry.</string>
+    <string name="native_download_errorGeneric" formatted="false">The download stopped. Retry.</string>
+    <string name="native_common_ok" formatted="false">OK</string>
+    <string name="native_settings_freeMemory" formatted="false">Free memory when I leave BOAR</string>
+    <string name="native_settings_freeMemoryNote" formatted="false">Shortly after you leave, when nothing is being answered, BOAR unloads the model, so the phone doesn\'t close BOAR to get its memory back. The next answer takes a few seconds longer to start.</string>
+    <string name="native_tweaks_freeMemoryAfter" formatted="false">Free memory after</string>
+    <string name="native_tweaks_freeMemoryAfterNote" formatted="false">How long BOAR waits in the background before it unloads the model, when Free memory when I leave BOAR is on. Auto unloads it as soon as you leave, after an answer still being written; the next question loads it again.</string>
+    <string name="native_tweaks_immediately" formatted="false">Immediately</string>
+    <string name="native_drawer_closeStillSaving" formatted="false">Still saving the answer. Try again in a moment.</string>
+    <string name="native_drawer_close" formatted="false">Close BOAR (frees memory)</string>
+    <string name="native_drawer_closeConfirm" formatted="false">An answer is still being written. Close anyway?</string>
+    <string name="native_drawer_deleteConfirm" formatted="false">Delete this chat?</string>
+    <string name="native_drawer_deleteButton" formatted="false">Delete</string>
+    <string name="native_documents_importedHint" formatted="false">Imported into \"{{name}}\". To ask about these files, switch the answer style to Personal Files: it answers only from your files.</string>
+    <string name="native_documents_askAboutThem" formatted="false">Ask about them</string>
+    <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" and its answers go. This can\'t be undone.</string>
+    <string name="native_settings_confirmChatDelete" formatted="false">Ask before deleting a chat</string>
+    <string name="native_settings_confirmChatDeleteNote" formatted="false">The 🗑️ in the menu asks first. Off: one tap deletes the chat.</string>
+    <string name="native_drawer_closeButton" formatted="false">Close</string>
+    <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
+    <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>
+    <string name="native_modelSetupScreen_sections_models" formatted="false">Models</string>
+    <string name="native_modelSetupScreen_sections_knowledgeBase" formatted="false">Knowledge</string>
+    <string name="native_modelSetupScreen_sections_voice" formatted="false">Voice input</string>
+    <string name="native_modelSetupScreen_sections_recovery" formatted="false">Start over</string>
+    <string name="native_modelSetupScreen_recovery_wizardTitle" formatted="false">First-time setup</string>
+    <string name="native_modelSetupScreen_recovery_wizardDesc" formatted="false">Run the first-time setup again to pick another model.</string>
+    <string name="native_modelSetupScreen_recovery_wizardButton" formatted="false">Run setup again</string>
+    <string name="native_modelSetupScreen_recovery_dangerBadge" formatted="false">Erase everything</string>
+    <string name="native_modelSetupScreen_recovery_dangerDesc" formatted="false">Deletes everything BOAR keeps on this phone: downloaded models and packs, your documents, all chats, your settings and the PIN. It can\'t be undone.</string>
+    <string name="native_modelSetupScreen_recovery_dangerButton" formatted="false">Erase everything</string>
+    <string name="native_modelSetupScreen_dangerModal_title" formatted="false">Erase everything?</string>
+    <string name="native_modelSetupScreen_dangerModal_subtitle" formatted="false">This happens at once and can\'t be undone.</string>
+    <string name="native_modelSetupScreen_dangerModal_confirmButton" formatted="false">Erase everything</string>
+    <string name="native_memorySettings_clearAllChatHistory" formatted="false">Clear chat history</string>
+    <string name="native_memorySettings_clearAllConfirmTitle" formatted="false">Clear chat history?</string>
+    <string name="native_memorySettings_clearAllButton" formatted="false">Clear</string>
+    <string name="native_modelSetupScreen_sections_displayTheme" formatted="false">Display &amp; theme</string>
+    <string name="native_voiceSettings_unavailable" formatted="false">Not available on this phone</string>
+    <string name="native_personalities_detailed_description" formatted="false">Structured, in-depth answers on what it knows well.</string>
+    <string name="native_tour_title" formatted="false">BOAR tour</string>
+    <string name="native_tour_skip" formatted="false">Skip</string>
+    <string name="native_tour_back" formatted="false">Back</string>
+    <string name="native_tour_next" formatted="false">Next</string>
+    <string name="native_tour_done" formatted="false">Done</string>
+    <string name="native_tour_openBoar" formatted="false">Open BOAR</string>
+    <string name="native_tour_keepTouring" formatted="false">Keep touring</string>
+    <string name="native_tour_ready" formatted="false">BOAR is ready</string>
+    <string name="native_tour_again" formatted="false">You can see this tour again in Settings.</string>
+    <string name="native_tour_whileYouWait" formatted="false">While you wait</string>
+    <string name="native_tour_cardTitle" formatted="false">Take the 2-minute tour</string>
+    <string name="native_tour_cardSub" formatted="false">Styles, Deep Research, sources, Labs</string>
+    <string name="native_tour_start" formatted="false">Start the tour</string>
+    <string name="native_tour_seeTour" formatted="false">See the tour</string>
+    <string name="native_tour_lineDownloading" formatted="false">Downloading · {{pct}}%</string>
+    <string name="native_tour_lineIndexing" formatted="false">Building the index · {{done}} of {{total}}</string>
+    <string name="native_tour_lineReady" formatted="false">Done</string>
+    <string name="native_tour_welcome_title" formatted="false">Meet BOAR</string>
+    <string name="native_tour_welcome_body" formatted="false">BOAR answers on your phone, from its own offline library, and shows where each answer came from. Here\'s a quick look around while it gets ready.</string>
+    <string name="native_tour_theme_title" formatted="false">Make it yours</string>
+    <string name="native_tour_theme_body" formatted="false">Pick a theme. It changes right away, and you can change it again any time.</string>
+    <string name="native_tour_theme_where" formatted="false">Settings → Display &amp; theme</string>
+    <string name="native_tour_styles_title" formatted="false">Pick how BOAR answers</string>
+    <string name="native_tour_styles_body" formatted="false">Succinct &amp; Direct for quick replies, Thorough &amp; Detailed for full explanations (the default), Personal Files to answer only from your own documents.</string>
+    <string name="native_tour_styles_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
+    <string name="native_tour_deep_title" formatted="false">Deep Research</string>
+    <string name="native_tour_deep_body" formatted="false">For big questions: BOAR searches in several steps and writes a longer answer. It takes more time. When it\'s on, the chat glows and the 🔬 lights up, so you always know.</string>
+    <string name="native_tour_deep_where" formatted="false">The style button in the chat, or Settings → How BOAR answers</string>
+    <string name="native_tour_sources_title" formatted="false">Sources and receipts</string>
+    <string name="native_tour_sources_body" formatted="false">An answer from the library lists the articles it used: tap one to read it. A receipt shows the model, the speed and the time.</string>
+    <string name="native_tour_sources_where" formatted="false">Under every answer</string>
+    <string name="native_tour_knowledge_title" formatted="false">BOAR Knowledge and your Personal Files</string>
+    <string name="native_tour_knowledge_body" formatted="false">BOAR Knowledge is the Vital Articles library on your phone. Import your notes, PDFs and spreadsheets into Personal Files, then ask about them with the Personal Files style.</string>
+    <string name="native_tour_knowledge_where" formatted="false">Menu → Knowledge</string>
+    <string name="native_tour_models_title" formatted="false">Models</string>
+    <string name="native_tour_models_body" formatted="false">Swap the answer model, find more on Hugging Face, and let BOAR free the memory when you leave it.</string>
+    <string name="native_tour_models_where" formatted="false">Settings → Models</string>
+    <string name="native_tour_pin_title" formatted="false">PIN lock</string>
+    <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
+    <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
+    <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on.\n\nAlso try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
+    <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
+    <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
+    <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
+    <string name="native_tour_linePaused" formatted="false">Setup paused · tap to see it</string>
+    <string name="native_tour_linePreparing" formatted="false">Preparing the index…</string>
+    <string name="native_tour_example" formatted="false">Example</string>
+    <string name="native_tour_sample_question" formatted="false">How do I make water safe to drink?</string>
+    <string name="native_tour_sample_answer" formatted="false">Boil it for at least one minute [1], then let it cool covered [2].</string>
+    <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
+    <string name="native_tour_sample_styleButton" formatted="false">The style button, next to where you type</string>
+    <string name="native_tour_sample_doc" formatted="false">field-manual.pdf</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 pages · in Personal Files</string>
+    <string name="native_tour_sample_ask" formatted="false">Ask with 🗂️ Personal Files</string>
+    <string name="native_tour_adaptive_title" formatted="false">Adaptive routing</string>
+    <string name="native_tour_adaptive_body" formatted="false">Off by default. Switch it on and BOAR picks which of your installed models answers each question, and how. Worth it when you have more than one model.</string>
+    <string name="native_tour_adaptive_where" formatted="false">Settings → Experimental</string>
+    <string name="native_models_compat_streamed" formatted="false">Bigger than RAM · {{engine}} streams it</string>
+    <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
+    <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
+    <string name="native_vault_teaser" formatted="false">Keep using BOAR and you\'ll keep finding truffles: each one is a boar to wear, and some unlock new themes. Which questions dig them up is part of the fun.</string>
+    <string name="native_documents_moreFiles" formatted="false">+{{count}} more</string>
+    <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
+    <string name="native_personal_notFound" formatted="false">I couldn\'t find this in your Personal Files.</string>
+    <string name="native_personal_notFoundHint" formatted="false">Check that the collection is switched on in Knowledge → Personal Files.</string>
+    <string name="native_documents_personalTitle" formatted="false">Personal Files</string>
+    <string name="native_documents_personalNote" formatted="false">Ask about them with the Personal Files style.</string>
+    <string name="native_documents_personalFolded_one" formatted="false">Personal Files · {{count}} collection</string>
+    <string name="native_documents_personalFolded_other" formatted="false">Personal Files · {{count}} collections</string>
+</resources>

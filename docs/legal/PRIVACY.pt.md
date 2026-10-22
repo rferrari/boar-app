@@ -5,32 +5,36 @@
 > para que você saiba o que o app faz com os dados antes da versão final. Dúvidas ou correções:
 > privacy@boarapp.com ou uma issue em [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Versão 0.9 (prévia) · 30 de setembro de 2026 · Contato: privacy@boarapp.com
+Versão 0.9.1 (prévia) · 20 de outubro de 2026 · Contato: privacy@boarapp.com
 
 > Esta é uma tradução da [versão em inglês](../../PRIVACY.md). Se as duas forem diferentes, prevalece
 > a versão em inglês, exceto quando a lei local exigir o contrário. Para titulares no Brasil, os
 > direitos previstos na LGPD e no Código de Defesa do Consumidor se aplicam em qualquer caso.
 
-O BOAR é um aplicativo de pesquisa com IA offline para Android e iOS, e boarapp.com é o seu site. O
-BOAR é um projeto gratuito e de código aberto, feito pela sua comunidade de colaboradores ("nós"). Não
+O BOAR é um aplicativo de pesquisa com IA para Android que funciona offline depois de um download
+feito uma vez, e boarapp.com é o seu site. O BOAR é um projeto gratuito e de código aberto, feito pela sua comunidade de colaboradores ("nós"). Não
 há uma empresa por trás dele. Os mantenedores do projeto operam o serviço de compartilhamento e tratam
 os dados pessoais descritos aqui (o "controlador", nos termos do GDPR e da Lei Geral de Proteção de
 Dados Pessoais, LGPD, Lei nº 13.709/2018); o contato com eles é privacy@boarapp.com.
 
-Esta política cobre o aplicativo BOAR (a versão padrão e a versão offline) e o site boarapp.com. Ela
+Esta política cobre o aplicativo BOAR para Android (versão 2.0, o app nativo) e o site boarapp.com.
+Não há versão para iPhone lançada; esta política vai cobri-la antes que uma seja lançada. Ela
 foi escrita tendo em vista o GDPR da União Europeia e do Reino Unido, a LGPD, a CCPA/CPRA da
 Califórnia e leis semelhantes, e vale para todas as pessoas, onde quer que estejam.
 
 ## Em resumo
 
-- **Suas perguntas, respostas, conversas e documentos nunca saem do seu celular.** O BOAR responde
+- **O BOAR não envia suas perguntas, respostas, conversas nem documentos para lugar nenhum.** O BOAR responde
   com um modelo que roda no próprio celular. Não há conta, publicidade, nem analytics ou relatório de
   falhas no app.
 - **O app só usa a internet quando você pede:** para baixar modelos e pacotes, buscar um modelo no
-  Hugging Face e compartilhar uma rodada de avaliação. A versão offline não tem permissão de internet.
-- **Compartilhar uma rodada é opcional.** Você vê tudo o que será enviado antes de confirmar. O que se
+  Hugging Face e, numa versão que inclua isso, compartilhar uma rodada de avaliação (as versões atuais
+  do Android não incluem).
+- **Compartilhar uma rodada é opcional, e as versões atuais do Android não incluem isso.** Numa versão
+  que inclua, você vê tudo o que será enviado antes de confirmar. O que se
   torna público é o modelo e o chip do celular com suas pontuações, nunca algo que identifique você.
-- **Proteger o seu celular cabe a você.** O BOAR guarda seus dados no celular e não os criptografa
+- **Proteger o seu celular cabe a você.** O BOAR guarda seus dados no celular. Com um PIN definido,
+  suas conversas ficam lacradas com ele; os documentos importados e o resto não são criptografados
   além do que o sistema faz para qualquer app (seção 9).
 
 ## 1. O que fica no seu celular
@@ -40,28 +44,27 @@ Estes dados são tratados apenas no seu aparelho e o BOAR nunca os envia para n�
 - suas perguntas e as respostas do BOAR, as conversas e seus resumos;
 - os documentos que você importa e as coleções criadas a partir deles;
 - a base de conhecimento e as buscas feitas nela;
-- sua localização: lida só quando você pergunta sobre lugares por perto, usada no aparelho e nunca
-  enviada pelo BOAR, que não usa geocodificador. No Android, vem só do GPS do celular, sem serviço de
-  localização pela rede. No iPhone, vem do Core Location do iOS, que também pode usar Wi-Fi e rede
-  celular pelo serviço de localização da Apple, sob a política de privacidade da Apple;
-- o registro de desempenho do BOAR (modelo, velocidade e memória de cada resposta), que nunca inclui
-  suas perguntas ou respostas e só sai do celular se você mesmo exportá-lo;
+- o registro de depuração do BOAR, nas versões que o têm e só depois que você o liga (modelo,
+  velocidade, memória e falhas, nunca suas perguntas ou respostas), que só sai do celular se você
+  mesmo salvar e compartilhar o arquivo;
 - as rodadas de avaliação (as perguntas de teste fixas do BOAR e as respostas do modelo a elas), até
   você compartilhar ou exportar uma;
-- suas configurações e uma chave de segurança que o BOAR cria no hardware seguro do celular para o
-  compartilhamento.
+- suas configurações e, se você compartilhou uma rodada numa versão que inclui isso, uma chave de
+  segurança que o BOAR criou no hardware seguro do celular para isso.
 
-**Como apagar:** Ajustes → "Apagar todos os dados" apaga suas conversas, documentos, modelos, pacotes
-de conhecimento e configurações. Duas coisas ficam até você desinstalar o app: as rodadas de
-avaliação salvas e a chave de compartilhamento. Desinstalar o BOAR apaga tudo o que ele guardou no
-celular.
+O BOAR não pede a permissão de localização e não lê a sua localização.
+
+**Como apagar:** Ajustes → Recuperação do Sistema & Zona de Perigo → Apagar Todos os Dados & Redefinir
+App limpa todos os dados do BOAR no celular, como o "Limpar armazenamento" do Android: conversas,
+documentos, modelos, pacotes de conhecimento, configurações, rodadas de avaliação salvas e a chave de
+compartilhamento. Desinstalar o BOAR também apaga tudo o que ele guardou no celular.
 
 ## 2. Quando o app usa a internet
 
 A versão padrão só se conecta à internet nos casos abaixo, sempre iniciados por você. Nada é enviado
 em segundo plano.
 
-### 2.1 Baixar modelos, pacotes de conhecimento e lugares
+### 2.1 Baixar modelos e pacotes de conhecimento
 
 Quando você configura o BOAR ou toca em "Baixar", o celular busca o arquivo no **Hugging Face**
 (huggingface.co) ou no **GitHub** (github.com, raw.githubusercontent.com). O BOAR envia só o pedido do
@@ -79,8 +82,9 @@ Hugging Face, só no momento da busca. Vale a política de privacidade do Huggin
 
 A tela de Avaliação pode rodar o conjunto fixo de perguntas de teste do BOAR e, se você escolher
 **"Compartilhar resultados"**, enviar a rodada para nós, para que qualquer pessoa compare o desempenho
-dos modelos em celulares diferentes. O compartilhamento está disponível no Android; no iOS ainda não
-foi liberado. Antes de qualquer envio, o app mostra todos os campos. Recebemos:
+dos modelos em celulares diferentes. As versões atuais do app Android não incluem **"Compartilhar
+resultados"**: a rodada fica salva em arquivos no seu celular e nada é enviado. Numa versão que inclua o compartilhamento, o app mostra todos os campos antes de qualquer
+envio. Recebemos:
 
 - **sobre o celular:** plataforma, versão e nível de API do sistema, marca e modelo, chipset e seu
   fabricante, nome da placa, RAM total, número de núcleos da CPU, recursos da CPU e velocidades dos
@@ -107,21 +111,16 @@ rodadas deles são guardadas, mas ficam ocultas até a equipe do BOAR revisá-la
 
 ### 2.4 Entrada por voz
 
-A entrada por voz fica desligada até você ligá-la. No iPhone e no Android 12 ou mais recente, a fala é
-reconhecida no próprio celular. Em alguns Android mais antigos, a voz usa o serviço de fala do próprio
-celular, que pode enviar o áudio ao fornecedor dele (em geral o Google). O BOAR avisa e pede
-autorização antes. Vale a política de privacidade desse fornecedor, e nós nunca recebemos o áudio nem
-o texto.
+A entrada por voz pede a permissão do microfone na primeira vez que você a usa. O BOAR usa só o
+reconhecedor de fala do próprio aparelho (Android 12 ou mais recente), então o áudio é reconhecido no
+celular. Celulares sem esse reconhecedor não mostram o botão do microfone. Nós nunca recebemos o
+áudio nem o texto.
 
-### 2.5 Abrir um lugar no app de mapas
+### 2.5 A versão offline (em teste)
 
-Se você tocar em "Abrir no mapa" em um lugar, o BOAR passa as coordenadas desse lugar para o app de
-mapas que você escolher. A partir daí vale a política de privacidade desse app.
-
-### 2.6 A versão offline
-
-A versão offline do BOAR não tem permissão de internet. Nada da seção 2 se aplica a ela: modelos e
-pacotes são importados de arquivos, e nada pode ser compartilhado.
+Uma versão offline, que traz os modelos e o pacote de conhecimento dentro do APK, está em teste e não
+foi lançada. Ela não precisa de download na primeira abertura. Esta política vai descrevê-la quando
+ela for lançada.
 
 ## 3. O site (boarapp.com)
 
@@ -214,12 +213,12 @@ ser alteradas nem apagadas, exceto por nós. O banco de dados é privado, com ex
 públicas, e não guarda nada que identifique você pelo nome. Se um incidente puser seus dados em risco,
 avisaremos as autoridades e as pessoas afetadas como a lei exige.
 
-**No seu celular:** tudo o que está na seção 1 fica no seu celular, sob o seu controle. O BOAR não
-criptografa esses dados além do que o sistema operacional faz para qualquer app. No Android, os dados
-do BOAR ficam fora do backup na nuvem e da transferência entre aparelhos; no iOS, a pasta de
-documentos do app aparece no app Arquivos e pode entrar no backup do iCloud. Quem conseguir
-desbloquear ou tomar o controle do seu celular, ou ler os backups dele, consegue ler o que o BOAR
-guardou. Manter seguros o seu celular, o bloqueio de tela, os backups e tudo o que você exportar cabe
+**No seu celular:** tudo o que está na seção 1 fica no seu celular, sob o seu controle. Os dados do
+BOAR ficam fora do backup na nuvem e da transferência entre aparelhos. Com um PIN definido, o BOAR
+lacra suas conversas com uma chave feita a partir do PIN e do keystore do celular, e esconde a tela
+dele nos apps recentes e nas capturas de tela. O resto, incluindo os documentos importados, não é
+criptografado além do que o sistema operacional faz para qualquer app. Quem conseguir desbloquear ou
+tomar o controle do seu celular consegue ler o que o BOAR guardou fora das conversas lacradas. Manter seguros o seu celular, o bloqueio de tela, os backups e tudo o que você exportar cabe
 a você.
 
 **Código aberto:** o código do BOAR é público. Isso permite que qualquer pessoa confira o que ele faz,

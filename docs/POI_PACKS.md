@@ -7,6 +7,10 @@ phone by distance and diet. A world gazetteer (GeoNames) resolves city names.
 Nothing is generated: every place in an answer is a record with a link to its
 source.
 
+> Future work, not shipped: the native app (2.0) doesn't search places packs, and no
+> places pack is offered in the app. The search below was in the 1.x Expo app (the `expo`
+> branch). The builders in `scripts/` still make the packs.
+
 ```bash
 # 1. food and drink POIs of a bounding box (one Overpass query, a few MB)
 curl -sf --data-urlencode data@query.overpass https://overpass-api.de/api/interpreter -o osm-sao-paulo.json
@@ -58,13 +62,11 @@ Rules the builder follows:
 **Geographic index.** A 0.01° grid (~1.1 km of latitude) numbered row by row:
 the cells of one latitude row are a contiguous range, so a radius query is one
 `cell BETWEEN a AND b` per row, then an exact distance check. It needs no
-SQLite extension; expo-sqlite doesn't compile R*Tree
-(`node_modules/expo-sqlite/android/build.gradle` enables FTS3/4/5 only).
+SQLite extension (the 1.x app's SQLite had FTS3/4/5 but no R*Tree).
 
-## Search (`src/rag/poiPack.ts`, `src/rag/pois.ts`)
+## Search (1.x app, `expo` branch: `src/rag/poiPack.ts`, `src/rag/pois.ts`)
 
-`searchPois({ center, radiusM, diet, categories, text, limit })` (contract in
-`src/rag/pois.types.ts`, mirrored by the engine's `src/routing/geo.ts`):
+`searchPois({ center, radiusM, diet, categories, text, limit })`:
 
 1. Packs whose area contains the center; none → `coverage: "none"` (the app
    says it has no offline data for the place instead of listing somewhere else).
@@ -89,7 +91,8 @@ OSM data from Overpass at 2026-09-26 ~20:25 UTC; Wikivoyage dump of 2026-09-01.
 | Berlin | 3.25 MB | 14,984 | 1,979 | 3,437 | 295 (26) | 233 |
 | World gazetteer | 20.8 MB | 34,149 places, 366,144 names | | | | |
 
-About 190 bytes per place. SHA-256 of each file is in `src/rag/poiRegions.ts`.
+About 190 bytes per place. The 1.x app listed each file's SHA-256 in `src/rag/poiRegions.ts`
+(`expo` branch).
 
 "Vegan places near the city center" on these packs (`searchPois`, diet vegan,
 from the city's GeoNames point): São Paulo "Casa da Coxinha Vegana" 78 m, Berlin

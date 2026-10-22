@@ -5,7 +5,7 @@
 > Questions or corrections: privacy@boarapp.com or an issue at
 > [github.com/rferrari/boar-app](https://github.com/rferrari/boar-app/issues).
 
-Version 0.9 (preview) · 30 September 2026 · Contact: privacy@boarapp.com
+Version 0.9.1 (preview) · 20 October 2026 · Contact: privacy@boarapp.com
 
 These terms apply to the BOAR app and to boarapp.com. BOAR is a free, open-source project built by its
 community of contributors ("we", "us"), with no company behind it. By installing or using BOAR, or sharing results with
@@ -29,11 +29,11 @@ disclaimers below.
 The app downloads and uses third-party content that keeps its own license:
 
 - **AI models**, each under its maker's license (for example Apache 2.0 for Qwen, MIT for Phi, the LFM
-  Open License, the Gemma terms). BOAR shows each model's license in Settings → About and in
+  Open License, the Gemma terms). BOAR shows each model's license in About (tap the BOAR mark in the menu) and in
   [docs/MODELS.md](docs/MODELS.md). Using a model means accepting its license.
 - **Knowledge packs:** Wikipedia and Wikivoyage content under CC BY-SA 4.0, and other sources as
   credited in the app.
-- **Places:** OpenStreetMap data, © OpenStreetMap contributors, under the Open Database License (ODbL).
+- **Cities:** Boar Distance (Boar Labs) uses a list of cities from GeoNames, under CC BY 4.0.
 - **Fonts:** Baloo 2 and Lexend, under the SIL Open Font License 1.1.
 
 ## 3. What BOAR is, and what it isn't
@@ -47,9 +47,9 @@ BOAR runs AI models on your phone to answer questions from a local library.
 - **Not for emergencies.** BOAR is not a substitute for emergency services. In an emergency, call your
   local emergency number. First-aid content is general information from the credited sources, not
   instructions for your situation.
-- **Places may be out of date.** Opening hours, addresses and what a place offers come from
-  OpenStreetMap and may be wrong. Check before you rely on them, especially for diets, allergies or
-  safety.
+- **Quick answers can be wrong too.** Boar Labs tools (Calculator, Facts, Distance and others) answer
+  some questions from fixed tables and formulas, without the model. They are experiments. Check
+  anything important.
 
 You're responsible for how you use BOAR's answers and for the decisions you make with them.
 
@@ -57,14 +57,14 @@ You're responsible for how you use BOAR's answers and for the decisions you make
 
 BOAR keeps your data on your phone, so protecting it is in your hands:
 
-- **Keep your phone secure:** a screen lock, system updates, and care with who can use it. BOAR
-  doesn't add its own encryption; anyone who can unlock your phone or read its backups can read what
-  BOAR stored.
+- **Keep your phone safe:** a screen lock, system updates, and care with who can use it. A BOAR PIN
+  seals your chats, but imported documents and the rest of BOAR's data are not encrypted beyond what
+  the phone does; anyone who can unlock your phone can read them.
 - **What you import is up to you.** Only import documents and model files you have the right to use,
   and that you trust. A model or file from an unknown source can be harmful or misleading.
 - **What you export or share leaves our hands.** Exported files, and the public part of a shared run,
   can be copied by anyone who gets them.
-- **Keep your own backups** of anything that matters. Uninstalling, "Erase all data", a failed
+- **Keep your own backups** of anything that matters. Uninstalling, "Purge All Data & Reset App", a failed
   update or a lost phone deletes BOAR's data, and we can't recover it.
 - **Install BOAR only from its official releases** (github.com/rferrari/boar-app) or a source you
   trust. A modified copy isn't ours, and these terms don't cover it.
@@ -79,6 +79,9 @@ sharing service secure (Privacy Policy, section 9), but we can't guarantee that 
 breached, and we aren't responsible for the security of your phone, your network or those services.
 
 ## 6. Sharing evaluation results
+
+Current Android builds don't include result sharing (since Oct 19, 2026): evaluation runs stay on the
+phone as files. This section applies to builds that include it, and to runs already shared.
 
 Sharing a run is optional. When you share one:
 

@@ -1,7 +1,9 @@
 # Supabase backend
 
 Receives evaluation runs that users choose to share from the app. Nothing is sent
-automatically, and the offline build has no network access at all.
+automatically. Since Oct 19, 2026 the Android app is built without sharing by default: only a
+build with `EVAL_SHARING=true` has the Share button and the server's address
+([docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md#testing-result-sharing)).
 
 ## How a shared run is protected
 
@@ -39,7 +41,7 @@ As the owner (the dashboard's SQL editor):
 ### Phones that can't attest
 
 Some genuine phones can't attest a key: their secure hardware lacks, or lost, its factory
-attestation keys (seen on a stock, locked POCO F3 as Keymaster error -10003). The app then makes
+attestation keys (seen on a stock, locked Lab device 8 GB as Keymaster error -10003). The app then makes
 a plain key and sends only its public key. The server registers it as unattested and still
 checks every signature, but nothing proves the key is in a real phone running BOAR, so each of its
 runs is flagged `unattested` and waits in the review list. A script can make such keys too, so
@@ -58,7 +60,7 @@ commits `scores.csv`, `scores.jsonl` and a dataset card to the Hugging Face data
 Setup, once: create the dataset on Hugging Face, make a fine-grained token with write access to
 it only, then in the GitHub repository set the `HF_TOKEN` secret and the `HF_DATASET`,
 `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` variables. The job does nothing until `HF_DATASET` is
-set. Try it locally with `npm run scores:mirror -- --dry-run` (writes the files to
+set. Try it locally with `npm --prefix scripts run scores:mirror -- --dry-run` (writes the files to
 `build/hf-mirror/`).
 
 ## Deletion requests

@@ -1,9 +1,13 @@
 # BOAR demo
 
+> History: these videos, screenshots and numbers are from the 1.x Expo app, September
+> 2026. The native 2.0 app looks different, and its default models are Qwen3 4B and
+> Qwen3 1.7B ([MODELS.md](../MODELS.md)).
+
 Posted on X: [the BOAR thread](https://x.com/arferrari/status/2103677576380387484).
 
-Recorded on a Xiaomi phone (MediaTek Dimensity, 12 GB RAM) in airplane mode, with
-the default model, Qwen2.5-1.5B-Instruct (about 1 GB). Nothing leaves the phone.
+Recorded on the Lab device 12 GB (X6) in airplane mode, with the 1.x default model,
+Qwen2.5-1.5B-Instruct (about 1 GB).
 
 ## Videos
 
@@ -67,7 +71,7 @@ The whole walkthrough in one file: [boar_demo_small.mp4](boar_demo_small.mp4) (4
 
 ## Measured on the phone
 
-Six knowledge questions with the default 1.5B model and the Vital Articles pack
-(`npm run eval:device`, 2026-09-24): 6 of 6 answered correctly, all from retrieved
+Six knowledge questions with the 1.x default 1.5B model and the Vital Articles pack, on
+the Lab device 12 GB (X6) (`npm run eval:device` in the 1.x app, 2026-09-24): 6 of 6 answered correctly, all from retrieved
 articles, about 10.6 s per answer (6.4 s to the first word, 17.5 tokens/s), 1.76 GB
 peak memory. See [DEVICE_EVALUATION.md](../DEVICE_EVALUATION.md) to run it yourself.

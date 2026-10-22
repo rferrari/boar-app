@@ -1,5 +1,9 @@
 # Shared results and the score
 
+> Since Oct 19, 2026 the native Android app is built without sharing by default (`EVAL_SHARING`,
+> see [DEVELOPMENT.md](DEVELOPMENT.md#testing-result-sharing)): the Evaluation screen still runs
+> and saves its files, but has no Share button. Runs shared before then stay as described below.
+
 People can share an evaluation run from the app (Evaluation › Share results) so others with
 the same chipset, CPU or memory can see which models work best on phones like theirs. This
 page explains what is sent, what is public and how the score is computed.
@@ -15,11 +19,12 @@ Only after the user reads the "What will be shared" screen and presses Share:
 - **App:** BOAR version and the evaluation set version.
 - **Every answer of the run:** the question, the answer, the model and its timings, the
   sources retrieved.
-- **A random id** created in the app the first time it shares. The server keeps only its
-  SHA-256, to allow 20 runs per install per day and to refuse the same run twice.
+- **A key made in the phone's secure hardware** the first time it shares, which signs
+  each run, and on the first share its attestation certificate. The server limits each
+  key to 3 runs in 24 hours, at least 1 hour apart, and refuses the same run twice
+  ([supabase/README.md](../supabase/README.md)).
 
-Not sent: chats, documents, name, location, contacts. The offline build has no network
-access and can't share.
+Not sent: chats, documents, name, location, contacts.
 
 ## What is public
 
@@ -61,6 +66,7 @@ peak RAM, completed and sources found), so people can sort by what matters to th
 
 - `supabase/migrations/*_eval_scores.sql`, `compute_eval_scores`: the stored score. The server
   always computes it from the answers; a score sent by the app would be ignored.
-- `src/eval/score.pure.ts`: the same formula in the app, for the preview before sending.
+- `android-native/engine/src/main/java/team/sopa/boar/engine/eval/EvalScore.kt`: the same formula in
+  the app, for the preview before sending.
 
 Change both together, bump `SCORE_VERSION` and `score_version`, and update this page.

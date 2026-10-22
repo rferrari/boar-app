@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_pulse_title" formatted="false">Boar Vitals</string>
+    <string name="native_labs_pulse_body" formatted="false">Veja o celular trabalhar: calor, o clock de cada núcleo, a memória e o chip em que o BOAR roda.</string>
+    <string name="native_labs_pulse_heat" formatted="false">CALOR</string>
+    <string name="native_labs_pulse_heatNote" formatted="false">últimos {{seconds}} s · mín {{min}} °C · máx {{max}} °C</string>
+    <string name="native_labs_pulse_cores" formatted="false">NÚCLEOS</string>
+    <string name="native_labs_pulse_memory" formatted="false">MEMÓRIA</string>
+    <string name="native_labs_pulse_ramPhone" formatted="false">celular</string>
+    <string name="native_labs_pulse_ramBoar" formatted="false">BOAR</string>
+    <string name="native_labs_pulse_chip" formatted="false">CHIP</string>
+    <string name="native_labs_pulse_engine" formatted="false">motor</string>
+    <string name="native_labs_pulse_features" formatted="false">recursos</string>
+    <string name="native_labs_pulse_battery" formatted="false">bateria</string>
+    <string name="native_labs_pulse_device" formatted="false">aparelho</string>
+    <string name="native_labs_pulse_thermal_none" formatted="false">frio</string>
+    <string name="native_labs_pulse_thermal_light" formatted="false">morno</string>
+    <string name="native_labs_pulse_thermal_moderate" formatted="false">quente: o Android pode reduzir a velocidade</string>
+    <string name="native_labs_pulse_thermal_severe" formatted="false">quente demais: o Android está reduzindo a velocidade</string>
+    <string name="native_labs_pulse_tip" formatted="false">Deixe aberto, pergunte algo ao BOAR ou desenhe uma imagem, e volte para ver quanto custou.</string>
+    <string name="native_labs_pulse_ramApp" formatted="false">app</string>
+    <string name="native_labs_pulse_ramMapped" formatted="false">arquivo do modelo {{size}} GB</string>
+    <string name="native_labs_pulse_ramEngine" formatted="false">motor {{name}}</string>
+</resources>
