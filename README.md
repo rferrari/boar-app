@@ -1,5 +1,13 @@
 <p align="center">
-  <img src="./assets/boar.png" width="112" alt="BOAR mascot" />
+  <img src="./docs/readme/banner.webp" width="100%" alt="BOAR, a boar in a ranger hat reading his phone by a mountain lake at night" />
+</p>
+
+<p align="center">
+  <img src="./docs/readme/app-icon.webp" width="96" alt="BOAR's app icon" />
+  &nbsp;&nbsp;
+  <img src="./assets/boar.png" width="96" alt="The original BOAR mascot" />
+  <br />
+  <sub>The app icon, and the original mascot (kept for reference while the new avatar replaces it).</sub>
 </p>
 
 <h1 align="center">BOAR</h1>
@@ -41,6 +49,11 @@ believe: [MANIFESTO.md](MANIFESTO.md).
    short on space, setup offers a smaller package without the Vital Articles pack. While it
    downloads, you can take a short BOAR tour.
 
+No internet at all, not even once? The release also has an **offline APK**
+(`boar-…-offline-arm64.apk`, about 2 GB) with Qwen3 1.7B, the search model, the Vital Articles
+pack and Designer's drawing model inside. It unpacks them on first launch and never needs the
+network.
+
 After setup, chat, search and sources work without a connection. The network permission
 stays for things you start yourself: more models, packs, or searching Hugging Face for
 other GGUF models.
@@ -48,8 +61,22 @@ other GGUF models.
 If you have BOAR 1.x (the Expo app) installed, an official release installs over it and
 keeps your models.
 
-BOAR has not been tested on GrapheneOS with this build. The APK has no Google Play
-Services dependencies.
+The APK has no Google Play Services dependencies. The rc1 previews were tested on a Pixel 8a
+with GrapheneOS.
+
+## Which branch?
+
+| You want to… | Branch | What's there |
+|---|---|---|
+| Build or change the Android app | **`main`** | The native app (Kotlin, llama.cpp). The current APK is built from it. |
+| Ship a phone that never goes online | `feat/offline-bundle` | `main` plus models packed inside the APK: `scripts/build-offline-apk.sh` |
+| Send a pull request | `fullnative-dev` | Native development line; changes land here before `main` |
+| Work on iOS or the cross-platform app | `expo`, `ios` | BOAR 1.x, Expo / React Native (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
+| Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
+
+`main` holds what's released; `fullnative-dev` is where development happens. Branch from `fullnative-dev`,
+and open your pull request against it.
 
 ## Build from source
 
@@ -93,9 +120,6 @@ A build without the flag has none of this. How a lab is made: [docs/PLUGINS.md](
 
 Built for the [poidh bounty #31](https://poidh.xyz/mainnet/bounty/31), "Best Offline AI
 Research App".
-
-The earlier Expo / React Native app (BOAR 1.x) is kept as history on the `expo` branch
-and the git tag `expo-final`.
 
 ## License
 

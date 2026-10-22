@@ -2,8 +2,11 @@
 
 Release APKs of the native app (`android-native/`) are built locally, on the machine that
 holds the release key, and checked before upload. The 2.0.0 candidates are published as
-GitHub pre-releases: `v2.0.0-rc1`, then `rc2` or `rc3` at most if needed. On Oct 24 the
-release branch merges into `main` and `v2.0.0` becomes the Latest release.
+GitHub pre-releases: `v2.0.0-rc1`, then `rc2` or `rc3` at most if needed.
+
+The flow: changes land on `fullnative-dev` through pull requests. A release is a pull request
+from `fullnative-dev` into `main`, then the tag on `main` and the GitHub release. `v2.0.0` becomes
+the Latest release when it's tagged.
 
 ## Once: the key
 
