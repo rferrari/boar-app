@@ -237,8 +237,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             importDir.mkdirs()
             val errors = mutableListOf<String>()
             for (uri in uris) {
-                // The name comes from the app that provides the file: only its last segment, so "../x.txt" stays in setup-imports/.
-                val name = File(reader.nameAndSize(uri).first).name
+                // The name comes from the app that provides the file: only its last segment, so "../x.txt" stays in
+                // setup-imports/, and no leading dot, which would hide it with the folder's own .import.json and .part files.
+                val name = File(reader.nameAndSize(uri).first).name.trimStart('.')
                 if (name.isEmpty() || !team.sopa.boar.documents.DocumentReader.readable(name)) { errors += text("native.documents.unsupported", name); continue }
                 val target = File(importDir, SetupGuide.freeName(name, pickedNames().toSet()))
                 // Copied under a hidden name, then renamed: an import on another thread (a download just finished) only
