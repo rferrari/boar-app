@@ -62,7 +62,6 @@ object DevicePulseLab : LabPlugin {
     override val emoji = "🌡️"
     override val art = team.sopa.boar.R.drawable.truffle_synthetic
     override val status = LabStatus.LIVE
-    override val onByDefault = true
 
     private const val HISTORY = 120
 

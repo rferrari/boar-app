@@ -34,9 +34,12 @@ import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.BrandType
 import team.sopa.boar.ui.theme.wash
 
-/** components/SourceFootnotes.tsx: the numbered sources under an answer; tapping one shows the passage the model read. */
+/**
+ * components/SourceFootnotes.tsx: the numbered sources under an answer; tapping one shows the passage the model read,
+ * and [onRead] opens the whole article or file (SourceReaderScreen, Oct 24).
+ */
 @Composable
-fun SourceFootnotes(sources: List<Source>, title: String? = null) {
+fun SourceFootnotes(sources: List<Source>, title: String? = null, onRead: (Source) -> Unit = {}) {
     val c = Boar.colors
     val mono = Boar.type["mono.xs"]
     var expanded by remember { mutableStateOf<Int?>(null) }
@@ -79,6 +82,9 @@ fun SourceFootnotes(sources: List<Source>, title: String? = null) {
                             style = mono, color = c.textDim, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
                     Text(s.body, style = mono.copy(lineHeight = mono.fontSize * 1.45f), color = c.textSecondary, maxLines = 6, overflow = TextOverflow.Ellipsis)
+                    // The whole article, read on the phone; a source stored without its document id (older answers) has none.
+                    if (s.docId != null) Text(t("native.sourceFootnotes.readAll"), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onRead(s) }.padding(vertical = 4.dp))
                 }
             }
         }

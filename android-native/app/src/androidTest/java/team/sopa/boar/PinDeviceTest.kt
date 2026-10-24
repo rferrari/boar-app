@@ -154,6 +154,8 @@ class PinDeviceTest {
     @Test fun setupEndsOnThePinOfferUnlessAPinIsSet() {
         assertEquals("pinOffer", afterSetup(pinSet = false))
         assertEquals("chat", afterSetup(pinSet = true))
+        // Setup's own PIN page was shown: no second offer, whatever was chosen there.
+        assertEquals("chat", afterSetup(pinSet = false, offered = true))
     }
 
     @Test fun theOfferTheSetupAndTheLockScreenWorkByTapping() {
