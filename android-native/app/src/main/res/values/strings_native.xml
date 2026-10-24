@@ -556,6 +556,7 @@
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
     <string name="native_personal_notFound" formatted="false">I couldn\'t find this in your Personal Files.</string>
     <string name="native_personal_notFoundHint" formatted="false">Check that the collection is switched on in Knowledge → Personal Files.</string>
+    <string name="native_personal_notFoundAskHint" formatted="false">Try asking about something your files say, in their words, or ask for a summary of your files.</string>
     <string name="native_documents_personalTitle" formatted="false">Personal Files</string>
     <string name="native_documents_personalNote" formatted="false">Ask about them with the Personal Files style.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Personal Files · {{count}} collection</string>

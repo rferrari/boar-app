@@ -196,10 +196,16 @@ object RagPure {
 
     private fun contextOf(chunks: List<Chunk>) = chunks.mapIndexed { i, c -> "[${i + 1}] ${c.title}\n${c.body}" }.joinToString("\n\n")
 
-    /** The completion-style prompt ("Question: …\n\nAnswer:"). [filesOnly]: the Personal Files instruction. */
+    /** Personal Files' list of the user's files (OwnFiles.note), right before the context it explains. */
+    private fun filesSection(filesNote: String?, sep: String) = filesNote?.trim()?.takeIf { it.isNotEmpty() }?.let { "$it$sep" } ?: ""
+
+    /**
+     * The completion-style prompt ("Question: …\n\nAnswer:"). [filesOnly]: the Personal Files instruction; [filesNote]: its
+     * list of the user's files.
+     */
     fun assemblePrompt(
         userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
-        filesOnly: Boolean = false,
+        filesOnly: Boolean = false, filesNote: String? = null,
     ): String {
         val instruction = instructionOf(systemPrompt)
         val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "Summary of earlier conversation:\n$it\n\n" } ?: ""
@@ -209,7 +215,7 @@ object RagPure {
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "Context:\n${contextOf(chunks)}\n\n" else ""
-        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${ctx}Question: $userQuery${styleSection(styleReminder)}\n\nAnswer:"
+        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${filesSection(filesNote, "\n\n")}${ctx}Question: $userQuery${styleSection(styleReminder)}\n\nAnswer:"
     }
 
     /** The fixed start of every sourced answer prompt for a tone, kept prefilled in the KV cache. */
@@ -222,14 +228,16 @@ object RagPure {
     /** The same content as role-separated messages, for the model's own chat template. */
     fun assembleChatMessages(
         userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
-        filesOnly: Boolean = false,
+        filesOnly: Boolean = false, filesNote: String? = null,
     ): List<PromptMessage> {
         val instruction = instructionOf(systemPrompt)
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "\n\nContext:\n${contextOf(chunks)}" else ""
         val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "\n\nSummary of earlier conversation:\n$it" } ?: ""
-        val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$summary$ctx")
+        // After the fixed start (kept prefilled), so the list costs only its own tokens.
+        val files = filesSection(filesNote, "").let { if (it.isEmpty()) "" else "\n\n$it" }
+        val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$summary$files$ctx")
         val past = history?.turns.orEmpty().map { PromptMessage(it.role, it.text) }
         return listOf(system) + past + PromptMessage("user", userQuery + styleSection(styleReminder))
     }
