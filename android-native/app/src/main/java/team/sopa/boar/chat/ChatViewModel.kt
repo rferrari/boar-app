@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -185,6 +186,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.addBusyCheck(busy)
         services.addStopper(stopper)
         services.addForegroundHook(onForeground)
+        // "Forgot PIN" erased the chats: the one open here goes too (it stayed on screen above an empty history, X6).
+        safeScope.launch {
+            services.pinLock.erased.drop(1).collect {
+                job?.cancel()
+                _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
+            }
+        }
     }
 
     override fun onCleared() {

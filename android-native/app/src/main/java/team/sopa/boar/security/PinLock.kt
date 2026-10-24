@@ -95,6 +95,10 @@ class PinLock(
      * Forgot the PIN: the chats can't be opened any more, so they're erased with the key. Personal Files go too (Oct 24):
      * they aren't sealed, so without this "Forgot PIN" handed someone without the PIN the user's own documents.
      */
+    private val _erased = kotlinx.coroutines.flow.MutableStateFlow(0)
+    /** Counts the erases "Forgot PIN" made in this process: the chat on screen starts over when it changes. */
+    val erased: kotlinx.coroutines.flow.StateFlow<Int> = _erased
+
     fun forget(): Boolean {
         // The PIN goes only once everything it guarded is gone (CodeRabbit): a failed erase keeps the lock, so what's
         // left isn't open to whoever didn't know the PIN; the user can try again.
@@ -107,6 +111,7 @@ class PinLock(
         if (!erased) return false
         chats.cipher = PlainCipher
         clear()
+        _erased.value += 1
         return true
     }
 
