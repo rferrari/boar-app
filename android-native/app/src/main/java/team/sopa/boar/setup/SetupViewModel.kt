@@ -237,13 +237,17 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             importDir.mkdirs()
             val errors = mutableListOf<String>()
             for (uri in uris) {
-                val name = reader.nameAndSize(uri).first
-                if (!team.sopa.boar.documents.DocumentReader.readable(name)) { errors += text("native.documents.unsupported", name); continue }
+                // The name comes from the app that provides the file: only its last segment, so "../x.txt" stays in setup-imports/.
+                val name = File(reader.nameAndSize(uri).first).name
+                if (name.isEmpty() || !team.sopa.boar.documents.DocumentReader.readable(name)) { errors += text("native.documents.unsupported", name); continue }
                 val target = File(importDir, SetupGuide.freeName(name, pickedNames().toSet()))
+                // Copied under a hidden name, then renamed: an import on another thread (a download just finished) only
+                // sees whole files, and never deletes one still being written.
+                val part = File(importDir, ".${target.name}.part")
                 val ok = runCatching {
-                    getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input -> target.outputStream().use { input.copyTo(it) } }
-                }.isSuccess
-                if (!ok) { target.delete(); errors += text("native.documents.unreadable", name) }
+                    getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input -> part.outputStream().use { input.copyTo(it) } }
+                }.isSuccess && part.renameTo(target)
+                if (!ok) { part.delete(); errors += text("native.documents.unreadable", name) }
             }
             _state.update { it.copy(files = pickedNames(), importErrors = errors) }
             importQueued()
@@ -287,7 +291,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             }
             // Setup ended meanwhile: the copies aren't needed once everything is in.
             if (!progressFile.exists() && SetupGuide.pending(pickedNames(), imported().second).isEmpty()) importDir.deleteRecursively()
-            else if (SetupGuide.pending(pickedNames(), imported().second).isNotEmpty() && errors.isEmpty()) importQueued()
+            // Files picked during this import: once this job is over (from inside it, canImport sees it still running).
+            else if (SetupGuide.pending(pickedNames(), imported().second).isNotEmpty() && errors.isEmpty())
+                coroutineContext[Job]?.invokeOnCompletion { importQueued() }
         }
     }
 
