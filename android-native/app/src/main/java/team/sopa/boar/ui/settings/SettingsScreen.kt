@@ -74,7 +74,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             ToneSection(services)
             ModelsSection(services, onOpen)
             KnowledgeSection(services, onOpen)
-            Section(t("modelSetupScreen.sections.memory"), summary = {
+            Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
                 t("native.settings.summary.memory", "max" to s.maxSavedSessions) + if (s.confirmChatDelete) " · " + t("native.settings.summary.confirmDelete") else ""
             }) {
                 var auto by remember { mutableStateOf(s.autoSummarize) }
@@ -90,7 +90,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 ClearChats(services)
             }
             val avatarsOn by services.vault.enabled.collectAsState()
-            Section(t("modelSetupScreen.sections.displayTheme"), summary = {
+            Section(t("modelSetupScreen.sections.displayTheme"), team.sopa.boar.R.drawable.ic_settings_display, summary = {
                 val theme = team.sopa.boar.ui.theme.Themes.byId(s.themeId)
                 "${theme.icon} ${theme.name} · " + t("native.settings.${s.fontScale}")
             }) {
@@ -108,7 +108,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
             }
             // Boarverse on: the Vault gets its own section, a teaser and the way in (the avatar is chosen above, with the theme).
-            if (avatarsOn) Section(t("native.vault.title")) {
+            if (avatarsOn) Section(t("native.vault.title"), team.sopa.boar.R.drawable.ic_settings_avatars) {
                 Note(t("native.vault.teaser"))
                 team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
             }
@@ -132,7 +132,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
 @Composable
 private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
     val c = Boar.colors
-    Section(t("modelSetupScreen.sections.models"), summary = { services.answerModel()?.shortName }) {
+    Section(t("modelSetupScreen.sections.models"), team.sopa.boar.R.drawable.ic_settings_models, summary = { services.answerModel()?.shortName }) {
         val llms = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
         Text(t("native.settings.activeModel", "model" to (services.answerModel()?.shortName ?: "—")), style = Boar.type.body, color = c.textPrimary)
         Text(t("modelSetupScreen.installedModels") + ": " + llms.joinToString(", ") { it.shortName }.ifEmpty { "—" }, style = Boar.type.subtext, color = c.textSecondary)
@@ -150,7 +150,7 @@ private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
 @Composable
 private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
     val c = Boar.colors
-    Section(t("modelSetupScreen.sections.knowledgeBase"), summary = {
+    Section(t("modelSetupScreen.sections.knowledgeBase"), team.sopa.boar.R.drawable.ic_settings_knowledge, summary = {
         val packs = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.joinToString(", ") { it.shortName }.ifEmpty { t("native.settings.summary.noPacks") }
         t("native.settings.summary.knowledge", "packs" to packs, "count" to services.knowledgeBase.collections().size)
     }) {
@@ -200,7 +200,7 @@ private fun TelemetrySection(services: BoarServices) {
     }
     // Decimal GB, like the catalog's model sizes and the drawer.
     fun gb(b: Long) = String.format(java.util.Locale.US, "%.1f GB", b / 1e9)
-    Section(t("modelSetupScreen.sections.telemetry")) {
+    Section(t("modelSetupScreen.sections.telemetry"), team.sopa.boar.R.drawable.ic_settings_hardware) {
         // For anyone first: memory and storage as bars, the phone and the chats. Then the technical rows (Oct 18).
         // Boar Labs can set another limit, or none: then the bar runs to what the phone still has free.
         val limit = team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes)
@@ -250,7 +250,7 @@ private fun VoiceSection(services: BoarServices) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val available = remember { team.sopa.boar.voice.VoiceInput.available(ctx) }
-    Section(t("modelSetupScreen.sections.voice"), summary = { t("native.settings.summary.voice", "state" to onOff(services.settings.voiceInputEnabled)) }) {
+    Section(t("modelSetupScreen.sections.voice"), team.sopa.boar.R.drawable.ic_settings_voice, summary = { t("native.settings.summary.voice", "state" to onOff(services.settings.voiceInputEnabled)) }) {
         var on by remember { mutableStateOf(services.settings.voiceInputEnabled) }
         SwitchRow(t("voiceSettings.enabledLabel"), t("voiceSettings.enabledValue"), on) { on = it; services.settings.voiceInputEnabled = it }
         Text(t("voiceSettings.speechEngineLabel"), style = Boar.type.subtext, color = c.textMuted)
@@ -263,7 +263,7 @@ private fun VoiceSection(services: BoarServices) {
 private fun SecuritySection(services: BoarServices, onPin: (String) -> Unit) {
     val c = Boar.colors
     val on = services.pinLock.isSet
-    Section(t("native.settings.security"), summary = { t(if (services.pinLock.isSet) "native.settings.summary.pinOn" else "native.settings.summary.pinOff") }) {
+    Section(t("native.settings.security"), team.sopa.boar.R.drawable.ic_settings_pin, summary = { t(if (services.pinLock.isSet) "native.settings.summary.pinOn" else "native.settings.summary.pinOff") }) {
         Text(t(if (on) "native.settings.pinOn" else "native.settings.pinOff"), style = Boar.type.subtext, color = if (on) c.textAccentEmerald else c.textSecondary)
         if (on) {
             LinkButton(t("native.settings.pinChange")) { onPin("CHANGE") }
@@ -291,7 +291,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var purging by remember { mutableStateOf(false) }
     var resetting by remember { mutableStateOf(false) }
-    Section(t("modelSetupScreen.sections.recovery")) {
+    Section(t("modelSetupScreen.sections.recovery"), team.sopa.boar.R.drawable.ic_settings_recovery, iconTint = Boar.colors.crimson400) {
         Text(t("modelSetupScreen.recovery.wizardTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
@@ -351,7 +351,7 @@ internal fun LinkButton(label: String, danger: Boolean = false, onClick: () -> U
 private fun ToneSection(services: BoarServices) {
     val s = services.settings
     val personalities = services.personalities
-    Section(t("modelSetupScreen.sections.tone"), startOpen = true, summary = {
+    Section(t("modelSetupScreen.sections.tone"), team.sopa.boar.R.drawable.ic_settings_tone, startOpen = true, summary = {
         val id = s.personalityId ?: personalities.defaultId
         "${personalities.get(id).icon} ${t("personalities.$id.label")} · " + t("native.settings.summary.deep", "state" to onOff(s.deepResearchMode))
     }) {
@@ -393,7 +393,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
     }
     val autoLabel = t("native.tweaks.auto")
     @Composable fun autoOf(value: Any) = t("native.tweaks.autoValue", "value" to value)
-    Section(t("native.tweaks.title")) {
+    Section(t("native.tweaks.title"), team.sopa.boar.R.drawable.ic_settings_tweaks) {
         Note(t("native.tweaks.intro"))
         // Presets first: one tap sets the knobs below; any knob changed by hand afterwards makes it Custom.
         val preset = team.sopa.boar.engine.TweakPreset.of(tw)
@@ -490,7 +490,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, onTechnica
 /** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
 @Composable
 private fun ExperimentalSection(services: BoarServices) {
-    Section(t("native.settings.experimental")) {
+    Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
         Note(t("native.settings.experimentalNote"))
         // Boarverse: Boar Avatars to unlock and wear, off by default (back Oct 24; TruffleVault.SWITCH_SHOWN).
         if (team.sopa.boar.appearance.TruffleVault.SWITCH_SHOWN) {
@@ -542,9 +542,10 @@ private fun DebugLogRows() {
  * the next visit starts folded again. [summary] is read when the section folds, so it shows what was just changed.
  */
 @Composable
-private fun Section(title: String, startOpen: Boolean = false, summary: (@Composable () -> String?)? = null, content: @Composable () -> Unit) {
+private fun Section(title: String, icon: Int? = null, startOpen: Boolean = false, summary: (@Composable () -> String?)? = null,
+    iconTint: androidx.compose.ui.graphics.Color? = null, content: @Composable () -> Unit) {
     var open by androidx.compose.runtime.saveable.rememberSaveable(title) { mutableStateOf(startOpen) }
-    team.sopa.boar.ui.BoarSection(title, open, { open = !open }, if (open) null else summary?.invoke()) { content() }
+    team.sopa.boar.ui.BoarSection(title, open, { open = !open }, if (open) null else summary?.invoke(), icon, iconTint) { content() }
 }
 
 /** An answer style as a row of the list: icon, name and what it does; the chosen one marked. */
