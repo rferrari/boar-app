@@ -143,8 +143,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
         }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
-            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
+        if (lab.status == LabStatus.REVIEW) Row(Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ReviewMark(20.dp)
+            Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
+        }
         if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
     }
 }
@@ -226,8 +229,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
-            if (locked) Text(if (lab.shownArt != null) "?" else "🔒", style = if (lab.shownArt != null) Boar.type.titleLg else Boar.type.body,
-                fontSize = if (lab.shownArt != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
+            if (locked) {
+                if (lab.shownArt != null) Text("?", style = Boar.type.titleLg, color = c.textDim)
+                else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_settings_pin, 24.dp, c.textDim)
+            }
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && (LabPrefs.revealed(lab.id) || LabPrefs.unlocked(lab.id))) }
             if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             // A revealed classified lab can't be switched on, so OFF would only confuse: it has LEAKED instead.
@@ -236,7 +241,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         }
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        if (lab.status == LabStatus.REVIEW) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ReviewMark(12.dp)
+            Text(t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        }
         // Classified: the description is blacked out word by word like the title, a redacted file.
         Text(if (locked) redactAll(t("native.labs.${lab.id}.body")) else t("native.labs.${lab.id}.body"), style = Boar.type.caption,
             color = if (locked) c.textDim else c.textMuted)
@@ -283,3 +291,9 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
 
 /** Taps on one classified tile that declassify it: drawn again each time Boar Labs opens, so no number gets passed around. */
 private val REVEAL_TAPS = 11..20
+
+/** The Boar icon pack's warning triangle, in the review amber: a lab under review (Oct 24, was "⚠"). */
+@Composable
+private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.material3.Icon(
+    androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
+    Modifier.size(size), tint = Boar.colors.amber400)

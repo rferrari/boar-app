@@ -74,7 +74,12 @@ private fun PinPad(title: String, subtitle: String?, error: String?, busy: Boole
                         .clickable(enabled = enabled) {
                             when (k) { "⌫" -> pin = pin.dropLast(1); "✓" -> { onSubmit(pin); pin = "" }; else -> pin += k }
                         }, contentAlignment = Alignment.Center) {
-                        Text(k, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = if (enabled) c.textHeading else c.textDim)
+                        val tint = if (enabled) c.textHeading else c.textDim
+                        when (k) {
+                            "⌫" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_backspace, 28.dp, tint)
+                            "✓" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 28.dp, tint)
+                            else -> Text(k, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = tint)
+                        }
                     }
                 }
             }

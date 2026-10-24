@@ -122,7 +122,7 @@ private fun StylesPreview() {
                 Text(t("personalities.${s.id}.label"), style = Boar.type.body, color = if (on) c.textAccentEmerald else c.textPrimary)
                 Text(t("personalities.${s.id}.description"), style = Boar.type.subtext, color = c.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            if (on) Text("✓", color = c.textAccentEmerald, fontSize = 16.sp)
+            if (on) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
         }
     }
 }
@@ -133,12 +133,15 @@ private fun DeepPreview() {
     val c = Boar.colors
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.size(34.dp).background(c.frontierBadgeBg, CircleShape).border(1.dp, c.frontierBadgeBorder, CircleShape), contentAlignment = Alignment.Center) {
-            Text("🔬", fontSize = 15.sp)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp, c.frontierText)
         }
         Text(t("native.chat.deepResearchOn"), style = Boar.type.subtext, color = c.frontierText, fontWeight = FontWeight.SemiBold)
     }
-    Text("🔬 " + t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.frontierText, fontWeight = FontWeight.Bold,
-        modifier = Modifier.fillMaxWidth().background(c.frontierBadgeBg, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 5.dp))
+    Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 11.dp, c.frontierText)
+        Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.frontierText, fontWeight = FontWeight.Bold)
+    }
     Box(Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(50)).border(1.5.dp, c.frontierBadgeBorder, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 11.dp)) {
         Text(t("native.chat.deepResearchPlaceholder"), style = Boar.type.body.copy(fontSize = 14.sp), color = c.frontierText, maxLines = 1)
     }
@@ -170,7 +173,7 @@ private fun ModelPreview() {
             Chip(t("flows.onboarding.recommended"), c.textInverse, c.emerald500, c.emerald500)
         }
         Text("LLM · 2.5 GB · Apache-2.0", style = Boar.type["mono.xs"], color = c.textDim)
-        Chip("🟢 " + t("catalogItemCard.compat.green"), c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
+        Chip("●  " + t("catalogItemCard.compat.green"), c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
     }
 }
 

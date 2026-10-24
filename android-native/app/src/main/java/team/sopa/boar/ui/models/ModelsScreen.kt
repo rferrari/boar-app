@@ -116,7 +116,7 @@ fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel, startOpen: Boolean =
     // Folded unless Settings' "Open BOAR Knowledge" brought the user here ([startOpen], Oct 24): the packs rarely change.
     var open by androidx.compose.runtime.saveable.rememberSaveable(startOpen) { mutableStateOf(startOpen) }
     if (packs.isEmpty()) return
-    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }) {
+    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }, icon = team.sopa.boar.R.drawable.ic_settings_knowledge) {
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)
         for (a in packs) CatalogCard(a, state.rows[a.id], state.rows[a.id]?.present == true, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
     }
@@ -190,7 +190,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
         row?.error?.let { e ->
             Row(Modifier.fillMaxWidth().background(c.crimsonBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("⚠️", fontSize = 12.sp)
+                androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
+                    Modifier.size(14.dp), tint = c.crimson400)
                 Text(e, style = mono, color = c.crimson400)
             }
         }
@@ -215,8 +216,11 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(" • ", style = mono, color = c.textDim)
                 Text(t("catalogItemCard.eta", "eta" to formatEta(row.etaSeconds, calculating)), style = mono, color = c.textAccentAmber, fontWeight = FontWeight.SemiBold)
             }
-            Text("✕ " + t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp))
+            Row(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 12.dp, c.crimson400)
+                Text(t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold)
+            }
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             // The status takes the room left and wraps, so 🗑️ is never pushed off the card (Large text, Oct 15).
             Box(Modifier.weight(1f)) { when {
@@ -231,8 +235,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             } }
             // A Labs engine's model was copied over USB: BOAR never deletes it.
-            if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
-            else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))
+            if (present && !item.required && item.externalPath == null) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textSecondary, Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
+            else if (!present && vm.isDiscovered(item)) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textSecondary, Modifier.clickable { confirmUnlist = true }.padding(4.dp))
         }
     }
     if (confirm) AlertDialog(
@@ -273,8 +277,11 @@ internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = nul
     val mono = Boar.type["mono.xs"]
     val comp = Compatibility.compute(sizeBytes, ramBytes)
     if (streamedBy != null && comp.value != "green") {
-        Text("🌊 " + t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-            modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        Row(Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stream, 12.dp, c.textAccentCyan)
+            Text(t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
+        }
         return
     }
     val (icon, fg, bg, border) = when (comp.value) {
@@ -287,7 +294,8 @@ internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = nul
         Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Text(icon as String, fontSize = 10.sp)
+        // The status as a dot in its color, not an emoji (the app's controls are icons, Oct 24).
+        Box(Modifier.size(8.dp).background(fg as Color, CircleShape))
         Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
     }
 }
@@ -318,7 +326,7 @@ fun DiscoverGgufCard(onBrowse: () -> Unit) {
             Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textAccentCyan)
             Text(t("native.browse.discoverSubtitle"), style = Boar.type.subtext, color = c.textSecondary)
         }
-        Text("›", fontSize = 26.sp, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_right, 22.dp, c.textAccentCyan)
     }
 }
 
@@ -352,7 +360,7 @@ internal fun SmallButton(label: String, enabled: Boolean = true, onClick: () -> 
 
 @Composable
 internal fun Check(label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-    Text("✓", color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold)
+    team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 14.dp, Boar.colors.textAccentEmerald)
     Text(label, style = Boar.type.caption, color = Boar.colors.textAccentEmerald)
 }
 

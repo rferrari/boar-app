@@ -78,8 +78,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             PrimaryButton(t("flows.onboarding.open"), enabled = state.finished, onClick = onDone)
         // A page with its own action (Add files, Set a PIN, Allow notifications) keeps that one as the strong button;
         // skipping is quieter.
-        } else if (skippable) SecondaryButton(t("native.setupGuide.skip") + "  →") { vm.guideNext() }
-        else PrimaryButton(t("native.setupGuide.next") + "  →") { vm.guideNext() }
+        } else if (skippable) SecondaryButton(t("native.setupGuide.skip"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.guideNext() }
+        else PrimaryButton(t("native.setupGuide.next"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.guideNext() }
         if (state.guidePage > 0) BackLink(t("flows.onboarding.back")) { vm.guideBack() }
     }) {
         ProgressStrip(state) { vm.showDetails(true) }
@@ -131,7 +131,7 @@ private fun ReadyBanner(onOpen: () -> Unit, onKeep: () -> Unit) {
         Text(t("native.tour.ready"), style = Boar.type.title, color = c.textHeading)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(1f)) { PrimaryButton(t("native.tour.openBoar"), onClick = onOpen) }
-            Box(Modifier.weight(1f)) { SecondaryButton(t("native.setupGuide.keepGoing"), onKeep) }
+            Box(Modifier.weight(1f)) { SecondaryButton(t("native.setupGuide.keepGoing"), onClick = onKeep) }
         }
     }
 }
@@ -169,20 +169,22 @@ private fun LookPage(services: BoarServices, themeId: String?, onTheme: (String)
  * button to the mode without reading the text. [onPick]: null for a mode explained but not picked here.
  */
 @Composable
-private fun ModeCard(icon: String, title: String, body: String, selected: Boolean, onPick: (() -> Unit)?) {
+private fun ModeCard(icon: String, title: String, body: String, selected: Boolean, styleId: String? = null, onPick: (() -> Unit)?) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
         .then(if (onPick != null) Modifier.clickable(onClick = onPick) else Modifier).padding(14.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(Modifier.size(48.dp).background(if (selected) c.emerald500.copy(alpha = 0.25f) else c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
-            Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
+            // An answer style, and Deep Research, show the icon pack's drawing (StyleIcon).
+            if (styleId != null) team.sopa.boar.ui.StyleIcon(styleId, icon, 26.dp)
+            else Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = Boar.type.title, color = c.textHeading)
             Text(body, style = Boar.type.subtext, color = c.textSecondary)
         }
-        if (selected) Text("✓", style = Boar.type.title, color = c.textAccentEmerald)
+        if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
     }
 }
 
@@ -193,11 +195,11 @@ private fun AnswersPage(services: BoarServices, state: SetupState, onAddFiles: (
     var style by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
     // The styles BOAR can start with; Personal Files only once there are files to answer from.
     val ids = listOfNotNull("succinct", "detailed", if (state.files.isNotEmpty()) "personal" else null)
-    for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id) { style = id; s.personalityId = id }
+    for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id, id) { style = id; s.personalityId = id }
     // Without files, Personal Files is explained, not picked: there would be nothing to answer from. A tap offers the
     // files page, one page back, to add some.
     var askFiles by rememberSaveable { mutableStateOf(false) }
-    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false) { askFiles = true }
+    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false, "personal") { askFiles = true }
     if (askFiles) AlertDialog({ askFiles = false },
         confirmButton = { TextButton({ askFiles = false; onAddFiles() }) { Text(t("native.setupGuide.files.add")) } },
         dismissButton = { TextButton({ askFiles = false }) { Text(t("native.setupGuide.skip")) } },
@@ -205,7 +207,7 @@ private fun AnswersPage(services: BoarServices, state: SetupState, onAddFiles: (
         text = { Text(t("native.setupGuide.answers.addFilesBody") + "\n\n" + t("native.setupGuide.files.types")) },
         containerColor = Boar.colors.bgCard, titleContentColor = Boar.colors.textHeading, textContentColor = Boar.colors.textSecondary)
     var deep by remember { mutableStateOf(s.deepResearchMode) }
-    ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep) { deep = !deep; s.deepResearchMode = deep }
+    ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep, "deep") { deep = !deep; s.deepResearchMode = deep }
     // Deep Research writes longer answers in several steps: on the light model that's minutes per answer.
     val light = state.models.firstOrNull { it.id == state.chosenId }?.answerTier == AnswerTier.COMPACT
     if (deep && light) Meta(t("native.setupGuide.answers.deepSlow"), c.textAccentAmber)
@@ -218,8 +220,8 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.addFiles(uris) }
     // The same types as Knowledge → Personal Files.
     val pick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) }
-    if (state.files.isEmpty()) PrimaryButton("＋  " + t("native.setupGuide.files.add"), onClick = pick)
-    else SecondaryButton("＋  " + t("native.setupGuide.files.addMore"), pick)
+    if (state.files.isEmpty()) PrimaryButton(t("native.setupGuide.files.add"), onClick = pick)
+    else SecondaryButton(t("native.setupGuide.files.addMore"), onClick = pick)
     Meta(t("native.setupGuide.files.types"))
     if (state.files.isNotEmpty()) Card {
         val searchReady = state.downloads.any { it.asset.kind == AssetKind.EMBEDDING && it.done }
@@ -231,12 +233,12 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
         })
         for (name in state.files) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val done = name in state.filesImported && !state.importing
-            Text(if (done) "✓" else "◷", style = Boar.type.title, color = if (done) c.textAccentEmerald else c.textSecondary)
+            team.sopa.boar.ui.PackIcon(if (done) team.sopa.boar.R.drawable.ic_check else team.sopa.boar.R.drawable.ic_pending, 20.dp, if (done) c.textAccentEmerald else c.textSecondary)
             Text(name, style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f), maxLines = 2)
             Text(if (done) t("native.setupGuide.files.added") else waiting, style = Boar.type.caption, color = if (done) c.textAccentEmerald else c.textMuted)
             // A wrong pick goes again; an imported one comes out of Personal Files too.
             val removeLabel = t("native.setupGuide.files.remove", "name" to name)
-            Text("✕", style = Boar.type.title, color = c.textMuted, modifier = Modifier.clip(CircleShape)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 18.dp, c.textMuted, Modifier.clip(CircleShape)
                 .clickable(enabled = !state.importing) { vm.removeFile(name) }
                 .semantics { contentDescription = removeLabel }.padding(8.dp))
         }
@@ -290,11 +292,16 @@ private fun FirstQuestionPage(services: BoarServices) {
 private fun PinPage(services: BoarServices, onSet: () -> Unit) {
     val c = Boar.colors
     if (services.pinLock.isSet) {
-        Card(background = c.emeraldBgSubtle, border = c.emerald500) { Text("✓  " + t("native.setupGuide.pin.on"), style = Boar.type.title, color = c.textHeading) }
+        Card(background = c.emeraldBgSubtle, border = c.emerald500) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
+                Text(t("native.setupGuide.pin.on"), style = Boar.type.title, color = c.textHeading)
+            }
+        }
         return
     }
     Text(t("native.pin.offerBody"), style = Boar.type.body, color = c.textPrimary)
-    PrimaryButton("🔑  " + t("native.pin.offerSet"), onClick = onSet)
+    PrimaryButton(t("native.pin.offerSet"), onClick = onSet)
     Meta(t("native.setupGuide.pin.note"))
 }
 
@@ -329,16 +336,21 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it }
     Card {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) { Text("🔔") }
+            Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_notifications), null, Modifier.size(22.dp), tint = c.textHeading)
+            }
             Text(t("native.setupGuide.privacy.notifyTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
         }
         Text(t("native.setupGuide.privacy.notifyBody"), style = Boar.type.body, color = c.textSecondary)
     }
     Text(t("native.setupGuide.notify.why"), style = Boar.type.body, color = c.textPrimary)
     when {
-        granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+        granted -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
+            Meta(t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+        }
         refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
-        else -> PrimaryButton("🔔  " + t("native.setupGuide.privacy.notifyAllow")) {
+        else -> PrimaryButton(t("native.setupGuide.privacy.notifyAllow")) {
             team.sopa.boar.app.NotificationAsk.markAsked(ctx)
             ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -372,5 +384,5 @@ private fun ReadyPage(services: BoarServices, state: SetupState, onDetails: () -
         Meta(t("native.setupGuide.ready.change"))
     }
     if (state.finished) DoneSummary(state)
-    else SecondaryButton(t("native.setupGuide.ready.seeDownload"), onDetails)
+    else SecondaryButton(t("native.setupGuide.ready.seeDownload"), onClick = onDetails)
 }

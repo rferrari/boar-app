@@ -74,7 +74,7 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
             // still says how many there are.
             val count = state.collections.size
             team.sopa.boar.ui.BoarSection(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count),
-                personalOpen, { personalOpen = !personalOpen }) {
+                personalOpen, { personalOpen = !personalOpen }, icon = team.sopa.boar.R.drawable.ic_style_personal) {
                 Text(t("native.documents.personalNote"), style = Boar.type.subtext, color = c.textSecondary)
                 Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {
@@ -125,7 +125,10 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
                         Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                     }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
-                        Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
+                        Row(Modifier.clickable { removing = col }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 16.dp, c.crimson400)
+                            Text(t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }

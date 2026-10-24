@@ -46,17 +46,17 @@ fun ToneSheet(state: ChatState, onSetTone: (String) -> Unit, onSetDeepResearch: 
                         .clickable { onSetTone(id); onDismiss() }.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(icon, fontSize = 20.sp)
+                    team.sopa.boar.ui.StyleIcon(id, icon, 22.dp)
                     Column(Modifier.weight(1f)) {
                         Text(t("personalities.$id.label"), style = Boar.type.body, color = if (selected) c.textAccentEmerald else c.textPrimary)
                         Text(t("personalities.$id.description"), style = Boar.type.subtext, color = c.textMuted)
                     }
-                    if (selected) Text("✓", color = c.textAccentEmerald, fontSize = 18.sp)
+                    if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 20.dp, c.textAccentEmerald)
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp), color = c.borderSubtle)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("🔬", fontSize = 20.sp)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp)
                 Column(Modifier.weight(1f)) {
                     Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.body, color = c.textPrimary)
                     Text(t("personalitySettings.deepResearchNote"), style = Boar.type.subtext, color = c.textMuted)

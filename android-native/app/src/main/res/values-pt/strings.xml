@@ -34,7 +34,7 @@
     <string name="modelBrowser_downloadsLikes" formatted="false">{{downloads}} downloads · {{likes}} curtidas</string>
     <string name="modelBrowser_noChecksum" formatted="false">checksum não disponível</string>
     <string name="modelBrowser_adding" formatted="false">Adicionando…</string>
-    <string name="modelBrowser_addButton" formatted="false">➕ Adicionar</string>
+    <string name="modelBrowser_addButton" formatted="false">Adicionar</string>
     <string name="modelBrowser_noGgufFiles" formatted="false">Nenhum arquivo .gguf encontrado neste repositório.</string>
     <string name="modelBrowser_offlineNote" formatted="false">Você está offline. Conecte-se à internet para buscar mais modelos no Hugging Face; todo o resto funciona offline.</string>
     <string name="catalogItemCard_calculating" formatted="false">Calculando…</string>
@@ -54,10 +54,10 @@
     <string name="catalogItemCard_compat_red" formatted="false">Incompatível (excede a RAM do aparelho)</string>
     <string name="catalogItemCard_downloadingAsset" formatted="false">Baixando</string>
     <string name="catalogItemCard_eta" formatted="false">Tempo restante: {{eta}}</string>
-    <string name="catalogItemCard_retryDownload" formatted="false">🔄 Repetir Download</string>
+    <string name="catalogItemCard_retryDownload" formatted="false">Repetir Download</string>
     <string name="catalogItemCard_downloadAsset" formatted="false">Baixar</string>
     <string name="catalogItemCard_loadingModel" formatted="false">Carregando modelo…</string>
-    <string name="catalogItemCard_selectUse" formatted="false">🔘 Selecionar e Usar</string>
+    <string name="catalogItemCard_selectUse" formatted="false">Selecionar e Usar</string>
     <string name="catalogItemCard_indexedNote" formatted="false">Indexado na base de conhecimento offline</string>
     <string name="catalogItemCard_activeNote" formatted="false">Modelo de inferência ativo</string>
     <string name="catalogItemCard_deleteAccessibility" formatted="false">Excluir recurso do modelo</string>
@@ -112,10 +112,10 @@
     <string name="modelSetupScreen_toasts_resetFailed" formatted="false">Falha ao redefinir: {{error}}</string>
     <string name="modelSetupScreen_recovery_wizardTitle" formatted="false">Assistente de configuração</string>
     <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Execute novamente o fluxo inicial de 3 etapas para reescanear o hardware do aparelho ou trocar o nível do modelo base.</string>
-    <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Reabrir Assistente de Configuração ➔</string>
+    <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Reabrir Assistente de Configuração</string>
     <string name="modelSetupScreen_recovery_dangerBadge" formatted="false">ZONA DE PERIGO CRÍTICA</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Apaga permanentemente todos os pesos GGUF baixados, índices do banco SQLite offline e registros de conversas deste aparelho.</string>
-    <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Apagar Todos os Dados &amp; Redefinir App</string>
+    <string name="modelSetupScreen_recovery_dangerButton" formatted="false">Apagar Todos os Dados &amp; Redefinir App</string>
     <string name="modelSetupScreen_dangerModal_title" formatted="false">Confirmar redefinição destrutiva</string>
     <string name="modelSetupScreen_dangerModal_subtitle" formatted="false">Esta ação é imediata, permanente e não pode ser desfeita.</string>
     <string name="modelSetupScreen_dangerModal_consequencesHeader" formatted="false">O seguinte será removido:</string>

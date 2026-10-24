@@ -35,7 +35,7 @@
     <string name="modelBrowser_downloadsLikes" formatted="false">{{downloads}} downloads · {{likes}} likes</string>
     <string name="modelBrowser_noChecksum" formatted="false">no checksum available</string>
     <string name="modelBrowser_adding" formatted="false">Adding…</string>
-    <string name="modelBrowser_addButton" formatted="false">➕ Add</string>
+    <string name="modelBrowser_addButton" formatted="false">Add</string>
     <string name="modelBrowser_noGgufFiles" formatted="false">No .gguf files found in this repo.</string>
     <string name="modelBrowser_offlineNote" formatted="false">You\'re offline. Connect to the internet to search Hugging Face for more models; everything else works offline.</string>
     <string name="catalogItemCard_calculating" formatted="false">Calculating…</string>
@@ -55,10 +55,10 @@
     <string name="catalogItemCard_compat_red" formatted="false">Incompatible (Exceeds Device RAM)</string>
     <string name="catalogItemCard_downloadingAsset" formatted="false">Downloading</string>
     <string name="catalogItemCard_eta" formatted="false">ETA: {{eta}}</string>
-    <string name="catalogItemCard_retryDownload" formatted="false">🔄 Retry Download</string>
+    <string name="catalogItemCard_retryDownload" formatted="false">Retry Download</string>
     <string name="catalogItemCard_downloadAsset" formatted="false">Download</string>
     <string name="catalogItemCard_loadingModel" formatted="false">Loading model…</string>
-    <string name="catalogItemCard_selectUse" formatted="false">🔘 Select &amp; Use</string>
+    <string name="catalogItemCard_selectUse" formatted="false">Select &amp; Use</string>
     <string name="catalogItemCard_indexedNote" formatted="false">Indexed in offline knowledge base</string>
     <string name="catalogItemCard_activeNote" formatted="false">Active inference model</string>
     <string name="catalogItemCard_deleteAccessibility" formatted="false">Delete model asset</string>
@@ -113,10 +113,10 @@
     <string name="modelSetupScreen_toasts_resetFailed" formatted="false">Reset failed: {{error}}</string>
     <string name="modelSetupScreen_recovery_wizardTitle" formatted="false">Setup wizard</string>
     <string name="modelSetupScreen_recovery_wizardDesc" formatted="false">Re-run the initial 3-step onboarding flow to re-scan device hardware or switch your base model tier.</string>
-    <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard ➔</string>
+    <string name="modelSetupScreen_recovery_wizardButton" formatted="false">Relaunch Setup Wizard</string>
     <string name="modelSetupScreen_recovery_dangerBadge" formatted="false">CRITICAL DANGER ZONE</string>
     <string name="modelSetupScreen_recovery_dangerDesc" formatted="false">Permanently wipes all downloaded GGUF weights, offline SQLite database indices, and conversation logs from this device.</string>
-    <string name="modelSetupScreen_recovery_dangerButton" formatted="false">🚨 Purge All Data &amp; Reset App</string>
+    <string name="modelSetupScreen_recovery_dangerButton" formatted="false">Purge All Data &amp; Reset App</string>
     <string name="modelSetupScreen_dangerModal_title" formatted="false">Confirm destructive reset</string>
     <string name="modelSetupScreen_dangerModal_subtitle" formatted="false">This action is immediate, permanent, and cannot be undone.</string>
     <string name="modelSetupScreen_dangerModal_consequencesHeader" formatted="false">The following will be removed:</string>

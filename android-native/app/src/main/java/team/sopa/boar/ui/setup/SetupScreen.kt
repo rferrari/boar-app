@@ -147,24 +147,38 @@ internal fun Card(modifier: Modifier = Modifier, background: Color = Boar.colors
 }
 
 @Composable
-internal fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
+internal fun PrimaryButton(label: String, enabled: Boolean = true, leading: Int? = null, trailing: Int? = null, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type.title, color = if (enabled) c.textInverse else c.textDim, textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (enabled) c.emerald500 else c.bgCard)
-            .clickable(enabled = enabled, onClick = onClick).padding(vertical = 15.dp, horizontal = 14.dp))
+    val fg = if (enabled) c.textInverse else c.textDim
+    // [leading]/[trailing]: the icon pack's drawings (an arrow on Next), in the label's color (Oct 24, were "→" in the text).
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (enabled) c.emerald500 else c.bgCard)
+        .clickable(enabled = enabled, onClick = onClick).padding(vertical = 15.dp, horizontal = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+        leading?.let { team.sopa.boar.ui.PackIcon(it, 20.dp, fg) }
+        Text(label, style = Boar.type.title, color = fg, textAlign = TextAlign.Center)
+        trailing?.let { team.sopa.boar.ui.PackIcon(it, 20.dp, fg) }
+    }
 }
 
 @Composable
-internal fun SecondaryButton(label: String, onClick: () -> Unit) {
+internal fun SecondaryButton(label: String, leading: Int? = null, trailing: Int? = null, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type.titleSm, color = c.textPrimary, textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick).padding(12.dp))
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp))
+        .clickable(onClick = onClick).padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+        leading?.let { team.sopa.boar.ui.PackIcon(it, 18.dp, c.textPrimary) }
+        Text(label, style = Boar.type.titleSm, color = c.textPrimary, textAlign = TextAlign.Center)
+        trailing?.let { team.sopa.boar.ui.PackIcon(it, 18.dp, c.textPrimary) }
+    }
 }
 
 @Composable
 internal fun BackLink(label: String, onClick: () -> Unit) =
-    Text("← $label", style = Boar.type.body, color = Boar.colors.textMuted, modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(10.dp))
+    Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(10.dp), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 16.dp, Boar.colors.textMuted)
+        Text(label, style = Boar.type.body, color = Boar.colors.textMuted)
+    }
 
 @Composable
 private fun Badge(label: String) {
@@ -181,7 +195,7 @@ internal fun OptionCard(title: String, selected: Boolean, trailing: String?, bad
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
         .clickable(onClick = onClick).padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(if (selected) "●" else "○", style = Boar.type.title, color = if (selected) c.textAccentEmerald else c.textDim)
+            team.sopa.boar.ui.PackIcon(if (selected) team.sopa.boar.R.drawable.ic_radio_on else team.sopa.boar.R.drawable.ic_radio_off, 20.dp, if (selected) c.textAccentEmerald else c.textDim)
             Text(title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
             trailing?.let { Text(it, style = Boar.type["mono.sm"], color = c.textSecondary) }
         }
@@ -209,7 +223,7 @@ private fun minutesAbout(seconds: Long) = maxOf(1, (seconds / 60.0).roundToLong(
 private fun Welcome(state: SetupState, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onNext: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
-        PrimaryButton(t("flows.onboarding.start") + "  →", onClick = onNext)
+        PrimaryButton(t("flows.onboarding.start"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onNext)
         onSkip?.let { BackLink(t("flows.onboarding.backToApp"), it) }
     }) {
         Stepper(0)
@@ -261,7 +275,7 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
 private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
-        PrimaryButton(t("flows.onboarding.continue") + "  →", enabled = state.chosenId != null) { vm.next() }
+        PrimaryButton(t("flows.onboarding.continue"), enabled = state.chosenId != null, trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.next() }
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
         StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
@@ -296,9 +310,9 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
     StepScreen(footer = {
         val short = chosen?.shortfallBytes ?: 0
         PrimaryButton(
-            if ((chosen?.downloadBytes ?: 0) > 0) t("flows.onboarding.install", "size" to Units.formatBytes(chosen!!.downloadBytes)) + "  →"
-            else t("flows.onboarding.continue") + "  →",
-            enabled = chosen != null && short == 0L,
+            if ((chosen?.downloadBytes ?: 0) > 0) t("flows.onboarding.install", "size" to Units.formatBytes(chosen!!.downloadBytes))
+            else t("flows.onboarding.continue"),
+            enabled = chosen != null && short == 0L, trailing = team.sopa.boar.R.drawable.ic_arrow_forward,
         ) { vm.install() }
         if (short > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(short)), c.crimson400)
         BackLink(t("flows.onboarding.back")) { vm.back() }
@@ -324,7 +338,7 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
 
 // --- Step 4: download and index ------------------------------------------------------------------------------------
 
-private enum class Category(val key: String, val icon: String) { ANSWER("answer", "◆"), SEARCH("search", "⌕"), KNOWLEDGE("knowledge", "▤") }
+private enum class Category(val key: String, val icon: Int) { ANSWER("answer", team.sopa.boar.R.drawable.ic_settings_models), SEARCH("search", team.sopa.boar.R.drawable.ic_search), KNOWLEDGE("knowledge", team.sopa.boar.R.drawable.ic_settings_knowledge) }
 
 private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
     AssetKind.LLM -> Category.ANSWER
@@ -338,7 +352,7 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
     val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
     StepScreen(footer = {
         // Back to the page the user was on; the download keeps going under it.
-        PrimaryButton(t("native.setupGuide.backToGuide") + "  →", onClick = onGuide)
+        PrimaryButton(t("native.setupGuide.backToGuide"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onGuide)
         if (!state.transferring && state.indexPhase != IndexPhase.BUILDING && !state.finished) BackLink(t("flows.onboarding.back"), onBack)
     }) {
         StepHeader(if (state.indexPhase == IndexPhase.WAITING) 3 else 4,
@@ -396,10 +410,10 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
                 val open = expanded[cat] == true
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { expanded[cat] = !open }.padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (status == "ready") "✓" else if (status == "failed") "!" else cat.icon, style = Boar.type.title, color = tone)
+                    team.sopa.boar.ui.PackIcon(when (status) { "ready" -> team.sopa.boar.R.drawable.ic_check; "failed" -> team.sopa.boar.R.drawable.ic_settings_recovery; else -> cat.icon }, 22.dp, tone)
                     Text(t("flows.onboarding.category.${cat.key}"), style = Boar.type.title, color = c.textPrimary, modifier = Modifier.weight(1f))
                     Text(t("flows.onboarding.categoryStatus.$status").uppercase(), style = Boar.type.micro, color = tone, fontWeight = FontWeight.Bold)
-                    Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)
+                    team.sopa.boar.ui.PackIcon(if (open) team.sopa.boar.R.drawable.ic_chevron_up else team.sopa.boar.R.drawable.ic_chevron_down, 18.dp, c.textMuted)
                 }
                 items.firstOrNull { it.error != null }?.error?.let { Meta(it, c.crimson400) }
                 if (open) items.forEach { d ->
@@ -419,8 +433,8 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
             // The index row; while the hero shows the index it would repeat it.
             if (!showIndexHero) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (state.indexPhase == IndexPhase.ERROR) "!" else "◷", style = Boar.type.title,
-                        color = if (state.indexPhase == IndexPhase.ERROR) c.crimson400 else c.textSecondary)
+                    team.sopa.boar.ui.PackIcon(if (state.indexPhase == IndexPhase.ERROR) team.sopa.boar.R.drawable.ic_settings_recovery else team.sopa.boar.R.drawable.ic_pending, 22.dp,
+                        if (state.indexPhase == IndexPhase.ERROR) c.crimson400 else c.textSecondary)
                     Column(Modifier.weight(1f)) {
                         Text(t("flows.onboarding.indexRow"), style = Boar.type.title, color = c.textPrimary)
                         Meta(t(when (state.indexPhase) {
@@ -461,7 +475,7 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
 
         if (state.stalled) {
             Meta(t("flows.onboarding.restartHint"), c.textSecondary)
-            SecondaryButton("↻ " + t("flows.onboarding.restart")) { vm.restartDownloads() }
+            SecondaryButton(t("flows.onboarding.restart"), leading = team.sopa.boar.R.drawable.ic_refresh) { vm.restartDownloads() }
         }
     }
 }

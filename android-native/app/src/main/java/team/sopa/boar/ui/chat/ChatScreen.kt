@@ -175,7 +175,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, voiceEnabled, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
+            }, onStop, voiceEnabled, state.personalityId, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
         }
     }
 }
@@ -235,7 +235,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
+            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
                 val truffle = team.sopa.boar.appearance.LocalTruffle.current
@@ -288,13 +288,16 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("🔬 " + t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp)
+                            Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        }
                         Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
                     }
                     androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
@@ -361,12 +364,12 @@ private fun StatusPill(online: Boolean) {
 private fun DeepResearchBanner(onClose: () -> Unit) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(start = 12.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("🔬", fontSize = 10.sp)
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 12.dp, c.frontierText)
         Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
         // Closed for good: the header chip still shows Deep Research is on.
         Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
-            Text("✕", style = Boar.type["mono.sm"], color = c.frontierText)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText)
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
@@ -406,7 +409,7 @@ private fun LoadNoteBanner(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
             Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
             Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
-                Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.amber400)
             }
         }
         // The first action is the recommended one: filled. Both share the width and the height of the taller label.
@@ -454,7 +457,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
                 else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
             }
         }, contentAlignment = Alignment.Center) {
-        Text(if (listening) "■" else "🎤", fontSize = if (listening) 12.sp else 16.sp, color = Color.White)
+        if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading)
     }
 }
 
@@ -765,13 +768,13 @@ private fun Badge(text: String) {
  * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneId: String, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
     Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            Text(toneIcon, fontSize = 18.sp)
+            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp)
         }
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
@@ -797,7 +800,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         Box(
             Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { Text(if (answering) "■" else "➤", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
+        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White) }
     }
 }
 

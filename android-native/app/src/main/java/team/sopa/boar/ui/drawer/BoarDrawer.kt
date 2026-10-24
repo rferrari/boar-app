@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -92,7 +93,7 @@ fun BoarDrawer(
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
                 .alpha(if (answering) 0.4f else 1f).clickable(enabled = !answering, onClick = onNewChat).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("＋", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = c.textAccentEmerald)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_add, 18.dp, c.textAccentEmerald)
                 Text(t("drawer.newChat"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textAccentEmerald)
             }
             Text(t("drawer.recentSessions"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
@@ -108,15 +109,21 @@ fun BoarDrawer(
                                 Text(s.title, style = Boar.type.caption, color = c.textPrimary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, modifier = Modifier.padding(top = 2.dp))
                             }
-                            if (!answering) Text("🗑️", fontSize = 13.sp, modifier = Modifier.alpha(0.7f).clickable { onDelete(s.id) }.padding(4.dp))
+                            if (!answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 18.dp, c.textMuted, Modifier.clickable { onDelete(s.id) }.padding(4.dp))
                         }
                     }
                 }
             Box(Modifier.fillMaxWidth().padding(vertical = 12.dp).height(1.dp).background(c.borderSubtle))
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items.forEach { item ->
-                    Text(item.label, style = Boar.type.titleSm, color = c.textHeading,
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(onClick = item.onClick).padding(horizontal = 10.dp, vertical = 12.dp))
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(onClick = item.onClick).padding(horizontal = 10.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // The icon pack's drawing for each place (Oct 24); one without keeps the space, so the labels line up.
+                        val icon = drawerIcon(item.key)
+                        if (icon != null) androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(icon), null, Modifier.size(22.dp), tint = c.textHeading)
+                        else Spacer(Modifier.size(22.dp))
+                        Text(item.label, style = Boar.type.titleSm, color = c.textHeading)
+                    }
                 }
             }
         }
@@ -225,4 +232,15 @@ internal fun UsageBar(label: String, parts: List<Pair<Long, Color>>, total: Long
         }
         Text(text, style = if (large) Boar.type["mono.xs"] else small, color = c.textMuted, maxLines = 1)
     }
+}
+
+/** A menu place's icon from the Boar icon pack, by its key; Boar Labs' routes start with "lab". */
+private fun drawerIcon(key: String): Int? = when {
+    key == "knowledge" -> team.sopa.boar.R.drawable.ic_settings_knowledge
+    key == "models" -> team.sopa.boar.R.drawable.ic_settings_models
+    key == "settings" -> team.sopa.boar.R.drawable.ic_style_custom
+    key == "evaluation" -> team.sopa.boar.R.drawable.ic_settings_hardware
+    key == "close" -> team.sopa.boar.R.drawable.ic_exit_app
+    key.startsWith("lab") -> team.sopa.boar.R.drawable.ic_settings_experimental
+    else -> null
 }
