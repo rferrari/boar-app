@@ -30,10 +30,13 @@ class SetupFlowDeviceTest {
     /** Screens launched by a test, closed after it whatever happened. */
     private val opened = mutableListOf<ActivityScenario<*>>()
 
+    /** This test emptied the throwaway install and ran setup on it: only then is the PIN its own to remove. */
+    private var ranSetup = false
+
     @org.junit.After fun closeScreens() {
         opened.forEach { runCatching { it.close() } }
-        // The PIN this test sets is removed, so the chat tests after it in the same run don't skip themselves.
-        runCatching { BoarServices.get(ctx).pinLock.let { if (it.isSet) it.disable("2580") } }
+        // The PIN this test set is removed, so the chat tests after it in the same run don't skip themselves.
+        if (ranSetup) runCatching { BoarServices.get(ctx).pinLock.let { if (it.isSet) it.disable("2580") } }
     }
     private fun t(key: String) = I18n.t(ctx, key)
 
@@ -59,6 +62,7 @@ class SetupFlowDeviceTest {
         // A first run: this throwaway install's files are emptied before the app starts (nothing else in this process
         // has opened them yet), so setup begins from step 1.
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
+        ranSetup = true
         ctx.filesDir.listFiles().orEmpty().forEach { it.deleteRecursively() }
         val scenario = ActivityScenario.launch(MainActivity::class.java).also { opened += it }
         val services = BoarServices.get(ctx)
