@@ -87,7 +87,7 @@ object DebugLog {
             "nativeHeapMb" to android.os.Debug.getNativeHeapAllocatedSize() / MB, "javaHeapMb" to javaHeapMb())
 
     /** Settings that hold secrets or the user's own words: the change is logged, the value isn't. */
-    private val REDACTED = setOf("pinWrapped", "pinSalt", "customSystemPrompt", "shareDeviceId")
+    private val REDACTED = setOf("pinWrapped", "pinSalt", "customSystemPrompt", "shareDeviceId", "pendingFirstQuestion")
     /** Counters the app updates by itself, not settings. */
     private val QUIET = setOf("truffleVault", "debugLogEnabled")
 

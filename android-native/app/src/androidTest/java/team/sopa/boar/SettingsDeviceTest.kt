@@ -41,6 +41,9 @@ class SettingsDeviceTest {
         compose.waitForIdle()
     }
 
+    /** Sections start folded (Oct 24), How BOAR answers aside: a tap on the title opens one. */
+    private fun section(key: String) = click(t(key))
+
     @Test fun securityClearAllChatsAndRecoveryAreThere() {
         val services = BoarServices.get(ctx)
         // Clear All really clears: only run where the app has no chats of its own (a test install).
@@ -62,22 +65,29 @@ class SettingsDeviceTest {
         compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = { pinFlow = it }, onSetup = { setupAgain = true }, onOpen = { opened = it }) {} } }
 
         // The sections brought back from the Expo app.
-        click(t("native.settings.openCatalog")); assertEquals("models", opened)
-        click(t("native.settings.openDocuments")); assertEquals("documents", opened)
+        section("modelSetupScreen.sections.models"); click(t("native.settings.openCatalog")); assertEquals("models", opened)
+        // Each Knowledge link opens its own section on the Knowledge screen (Oct 24).
+        section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents:personal", opened)
+        click(t("native.settings.openKnowledge")); assertEquals("documents:packs", opened)
+        section("modelSetupScreen.sections.telemetry")
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.telemetry.chip")))
         compose.onNodeWithText(t("native.telemetry.chip")).assertExists()
         compose.onNodeWithText(t("native.telemetry.note")).assertExists()
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("voiceSettings.enabledLabel")))
+        section("modelSetupScreen.sections.voice")
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("voiceSettings.speechEngineLabel")))
         compose.onNodeWithText(t("voiceSettings.speechEngineLabel")).assertExists()
+        section("modelSetupScreen.sections.displayTheme")
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("interfaceSettings.hapticFeedbackLabel")))
     
             // Security: no PIN on this install, so it offers one.
-            compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.settings.security")))
+            section("native.settings.security")
+            compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.settings.pinOff")))
             compose.onNodeWithText(t("native.settings.pinOff")).assertExists()
             click(t("native.settings.pinSet"))
             assertEquals("NEW", pinFlow)
     
             // Memory: Clear All Chat History, confirmed, empties the chats.
+            section("modelSetupScreen.sections.memory")
             click(t("memorySettings.clearAllChatHistory"))
             compose.onNodeWithText(t("memorySettings.clearAllButton")).performSemanticsAction(SemanticsActions.OnClick)
             compose.waitForIdle()
@@ -85,6 +95,7 @@ class SettingsDeviceTest {
             compose.onNodeWithText(t("native.settings.clearChatsDone")).assertExists()
     
             // Recovery: setup again, and the purge button opens its confirmation (not confirmed here: it wipes the app).
+            section("modelSetupScreen.sections.recovery")
             click(t("modelSetupScreen.recovery.wizardButton"))
             assertTrue(setupAgain)
             click(t("modelSetupScreen.recovery.dangerButton"))
@@ -106,8 +117,9 @@ class SettingsDeviceTest {
             var opened by mutableStateOf<String?>(null)
             val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = { opened = it }) {} } }
-            click(t("native.settings.openCatalog")); assertEquals("models", opened)
-            click(t("native.settings.openDocuments")); assertEquals("documents", opened)
+            section("modelSetupScreen.sections.models"); click(t("native.settings.openCatalog")); assertEquals("models", opened)
+            section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents:personal", opened)
+            for (key in listOf("modelSetupScreen.sections.telemetry", "modelSetupScreen.sections.voice", "modelSetupScreen.sections.displayTheme")) section(key)
             for (label in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "native.telemetry.chip", "native.telemetry.note",
                 "voiceSettings.enabledLabel", "voiceSettings.speechEngineLabel", "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {
                 compose.onNode(hasScrollAction()).performScrollToNode(hasText(t(label)))
