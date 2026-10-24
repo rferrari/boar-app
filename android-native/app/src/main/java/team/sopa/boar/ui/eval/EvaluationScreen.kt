@@ -48,6 +48,7 @@ import team.sopa.boar.eval.EvaluationViewModel
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.util.Locale
+import team.sopa.boar.ui.theme.wash
 
 private fun formatMs(ms: Double?): String = when {
     ms == null -> "—"
@@ -83,7 +84,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             }
             if (!state.running) {
                 Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))

@@ -237,7 +237,7 @@
     <string name="native_vault_equip" formatted="false">Equip</string>
     <string name="native_vault_unlockedOn" formatted="false">Unlocked {{date}}</string>
     <string name="native_vault_fresh" formatted="false">New avatar unlocked: {{name}}</string>
-    <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs.</string>
+    <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs and avatars.</string>
     <string name="native_vault_themes" formatted="false">Themes</string>
     <string name="native_vault_labClue" formatted="false">Unlocked by a Lab</string>
     <string name="native_rule_ALWAYS" formatted="false">Night-vision gear, issued to everyone.</string>

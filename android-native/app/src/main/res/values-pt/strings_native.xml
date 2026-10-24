@@ -237,7 +237,7 @@
     <string name="native_vault_equip" formatted="false">Usar</string>
     <string name="native_vault_unlockedOn" formatted="false">Liberado em {{date}}</string>
     <string name="native_vault_fresh" formatted="false">Novo avatar: {{name}}</string>
-    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos Labs.</string>
+    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos Labs e pelos avatares.</string>
     <string name="native_vault_themes" formatted="false">Temas</string>
     <string name="native_vault_labClue" formatted="false">Liberado por um Lab</string>
     <string name="native_rule_ALWAYS" formatted="false">Óculos de visão noturna, para todos.</string>

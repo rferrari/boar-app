@@ -52,6 +52,8 @@ import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.BrandType
 import kotlin.math.ceil
 import kotlin.math.floor
+import team.sopa.boar.ui.theme.wash
+import team.sopa.boar.ui.theme.track
 
 /** The models and knowledge catalog (ModelCatalogScreen.tsx with CatalogItemCard.tsx's layout and styles). */
 @Composable
@@ -158,7 +160,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(item.shortName, style = Boar.type.titleSm, color = c.textHeading)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(t("catalogItemCard.kind.${item.kind.name.lowercase()}"), style = mono.copy(fontSize = 9.sp), fontWeight = FontWeight.Bold, color = c.textSecondary,
-                        modifier = Modifier.background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
+                        modifier = Modifier.background(Boar.colors.wash(0.08f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
                     Text(formatMB(item.sizeBytes), style = mono, color = c.textDim)
                     Text("•", style = mono, color = c.textDim)
                     Text(item.license, style = mono, color = c.textDim, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
@@ -203,7 +205,7 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Spacer(Modifier.weight(1f))
                 Text("%.0f%%".format(row.progress * 100), style = mono, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
             }
-            Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color.Black.copy(alpha = 0.6f))) {
+            Box(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Boar.colors.track(0.6f))) {
                 Box(Modifier.fillMaxHeight().fillMaxWidth(maxOf(row.progress, 0.02).toFloat()).clip(RoundedCornerShape(4.dp)).background(c.emerald500))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -326,9 +328,9 @@ private fun StatusBadge(present: Boolean, active: Boolean, downloading: Boolean)
     val mono = Boar.type["mono.xs"]
     val (text, fg, bg, border) = when {
         downloading -> listOf(t("catalogItemCard.badge.downloading"), c.textAccentCyan, c.cyanBgSubtle, c.cyanBorder)
-        !present -> listOf(t("catalogItemCard.badge.notOnDisk"), c.textDim, Color.White.copy(alpha = 0.04f), c.borderSubtle)
+        !present -> listOf(t("catalogItemCard.badge.notOnDisk"), c.textDim, Boar.colors.wash(0.04f), c.borderSubtle)
         active -> listOf(t("catalogItemCard.badge.active"), c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder)
-        else -> listOf(t("catalogItemCard.badge.cached"), c.textSecondary, Color.White.copy(alpha = 0.06f), c.borderDefault)
+        else -> listOf(t("catalogItemCard.badge.cached"), c.textSecondary, Boar.colors.wash(0.06f), c.borderDefault)
     }
     Row(
         Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 7.dp, vertical = 3.dp),

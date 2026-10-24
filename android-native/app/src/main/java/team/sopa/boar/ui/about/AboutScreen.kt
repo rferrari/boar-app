@@ -44,6 +44,7 @@ import team.sopa.boar.R
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import team.sopa.boar.ui.theme.wash
 
 /**
  * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
@@ -60,7 +61,7 @@ fun AboutScreen(onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(t("aboutScreen.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
             Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
@@ -90,7 +91,7 @@ fun AboutScreen(onClose: () -> Unit) {
             Text(
                 t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
                 style = Boar.type["mono.xs"], color = c.textSecondary,
-                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Boar.colors.wash(0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
             )
         }
     }

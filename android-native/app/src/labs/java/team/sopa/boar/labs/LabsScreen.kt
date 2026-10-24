@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import team.sopa.boar.ui.theme.wash
 
 /** The grid's scroll position while a lab's page is open (this process only). */
 private var gridScroll = 0
@@ -168,7 +169,7 @@ private fun Shell(
 private fun DoneButton(onClose: () -> Unit) {
     val c = Boar.colors
     Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
 }
 
 /** The lab's console: the lines type themselves once, with a blinking cursor after. */
@@ -267,7 +268,7 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
         LabStatus.ALPHA -> c.amber400 to c.amberBgSubtle
         LabStatus.REVIEW -> c.crimson400 to c.crimsonBgSubtle
-        LabStatus.CLASSIFIED -> c.textDim to Color.White.copy(alpha = 0.06f)
+        LabStatus.CLASSIFIED -> c.textDim to Boar.colors.wash(0.06f)
     }
     // UNDER REVIEW reads as a warning: red and a size up from the other tags.
     val review = status == LabStatus.REVIEW
