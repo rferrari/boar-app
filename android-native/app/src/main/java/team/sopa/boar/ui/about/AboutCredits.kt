@@ -15,6 +15,12 @@ object AboutCredits {
         "Baloo 2 and Lexend fonts" to "SIL OFL 1.1",
     )
 
+    /** What BOAR reads and where its models come from (owner, Oct 24): credited next to the code it runs on. */
+    val sources: List<Pair<String, String>> = listOf(
+        "Wikipedia (the built-in library and the Vital Articles pack)" to "CC BY-SA 4.0",
+        "Hugging Face (where BOAR's models download from)" to "model hosting",
+    )
+
     /** Set at start by a build that ships more (Boar Labs: its engines and models). */
     @Volatile var extra: () -> List<Pair<String, String>> = { emptyList() }
 }
