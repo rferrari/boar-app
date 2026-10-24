@@ -71,5 +71,7 @@ fi
 ls -la "$PLUGINS"/colibri/jniLibs/arm64-v8a "$PLUGINS"/bmoe/jniLibs/arm64-v8a
 # 16 KB pages (issue #88): every LOAD segment aligned to 0x4000.
 for f in "$PLUGINS"/colibri/jniLibs/arm64-v8a/*.so "$PLUGINS"/bmoe/jniLibs/arm64-v8a/*.so; do
-  "$TC/llvm-readelf" -lW "$f" | awk '/LOAD/{print $NF}' | grep -qv 0x4000 && { echo "$f is not 16 KB-aligned" >&2; exit 1; }
+  if "$TC/llvm-readelf" -lW "$f" | awk '/LOAD/{print $NF}' | grep -qv 0x4000; then
+    echo "$f is not 16 KB-aligned" >&2; exit 1
+  fi
 done
