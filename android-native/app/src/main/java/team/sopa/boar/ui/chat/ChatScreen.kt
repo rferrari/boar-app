@@ -114,6 +114,8 @@ fun ChatScreen(
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
+    /** The setup's first question went into the input box. */
+    onPrefilled: () -> Unit = {},
     /** Opens an app route from a plugin's header badge ("lab:printer"). */
     onOpenRoute: (String) -> Unit = {},
     voiceEnabled: Boolean = false,
@@ -121,6 +123,7 @@ fun ChatScreen(
     val c = Boar.colors
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
+    LaunchedEffect(state.prefill) { state.prefill?.let { input = it; onPrefilled() } }
     // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
     // (issue #91). Asked once, with the first question; a refusal stands and is never asked again.
     val notifyCtx = androidx.compose.ui.platform.LocalContext.current

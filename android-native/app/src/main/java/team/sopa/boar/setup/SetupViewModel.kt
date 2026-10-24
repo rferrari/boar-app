@@ -24,7 +24,9 @@ import team.sopa.boar.engine.models.AnswerTier
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.AssetStore
 import team.sopa.boar.engine.models.CatalogAsset
+import team.sopa.boar.engine.models.SetupGuide
 import team.sopa.boar.engine.models.SetupModel
+import team.sopa.boar.engine.rag.DocumentImport
 import team.sopa.boar.engine.rag.SeedCorpus
 import java.io.File
 import java.io.IOException
@@ -76,7 +78,19 @@ data class SetupState(
     val indexError: String? = null,
     /** Counts progress updates: the loading line under the bar changes every few of them, without a timer. */
     val tick: Int = 0,
+    /** The pages shown while setup downloads (SetupGuide), and the one on screen. */
+    val pages: List<SetupGuide.Page> = emptyList(),
+    val guidePage: Int = 0,
+    /** The download's details over the guide: a tap on its progress strip, or a problem to fix. */
+    val details: Boolean = false,
+    /** Files picked on the files page, copied into setup-imports/, and the ones the last finished import took. */
+    val files: List<String> = emptyList(),
+    val filesImported: List<String> = emptyList(),
+    val importing: Boolean = false,
+    /** Why a picked file didn't go in, in the user's language. */
+    val importErrors: List<String> = emptyList(),
 ) {
+    val page get() = pages.getOrNull(guidePage) ?: SetupGuide.Page.READY
     val allPresent get() = downloads.isNotEmpty() && downloads.all { it.done }
     /** Files are still coming in and nothing has failed: no Back, and the "keep BOAR open" card. */
     val transferring get() = downloads.isNotEmpty() && !allPresent && failed.isEmpty()
@@ -87,7 +101,9 @@ data class SetupState(
 }
 
 /** What survives a killed process, so setup resumes where it was (src/models/settings.ts setupProgress). */
-private data class SavedProgress(val step: Int, val packageId: String, val chosenId: String?, val packageChosen: Boolean, val answerChosen: Boolean)
+private data class SavedProgress(val step: Int, val packageId: String, val chosenId: String?, val packageChosen: Boolean, val answerChosen: Boolean,
+    /** The guide page by name, and whether the pages had the PIN page (SetupGuide.resume). */
+    val guidePage: String?, val pinPage: Boolean?)
 
 /**
  * The first-run setup (port of src/ui/SetupWizardScreen.tsx): welcome with the phone's numbers and the language,
@@ -98,6 +114,11 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private val services = BoarServices.get(app)
     private val store = AssetStore(app.filesDir, services.catalog)
     private val progressFile = File(app.filesDir, "setup_progress.json")
+    /** Files picked during setup, kept until they're imported and setup ends; [importRecord] is the last import. */
+    private val importDir = File(app.filesDir, "setup-imports")
+    private val importRecord = File(importDir, ".import.json")
+    private val reader = team.sopa.boar.documents.DocumentReader(app)
+    private var importJob: Job? = null
     private val _state = MutableStateFlow(SetupState())
     val state: StateFlow<SetupState> = _state
     private var job: Job? = null
@@ -119,12 +140,13 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         val added = services.discovered().map { it.id }.toSet()
         val answer = services.catalog.setupModels.filter { it.engine == null && it.id !in added }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
-        _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id) }
+        _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id, pages = guidePages()) }
         restore()
         refreshPlans()
         // Process killed in step 4 (downloading or indexing): pick up there. Files already in are skipped and the
         // index skips the articles it has, so this ends on the summary.
         unfinished = _state.value.step == 4
+        _state.update { it.copy(files = pickedNames(), filesImported = imported().second) }
         if (unfinished) install()
         watchStall()
     }
@@ -135,7 +157,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private fun restore() {
         val saved = runCatching {
             val o = org.json.JSONObject(progressFile.readText())
-            SavedProgress(o.getInt("step"), o.getString("packageId"), o.optString("chosenId").ifEmpty { null }, o.optBoolean("packageChosen"), o.optBoolean("answerChosen"))
+            SavedProgress(o.getInt("step"), o.getString("packageId"), o.optString("chosenId").ifEmpty { null }, o.optBoolean("packageChosen"), o.optBoolean("answerChosen"),
+                o.opt("guidePage") as? String, if (o.has("pinPage")) o.getBoolean("pinPage") else null)
         }.getOrNull() ?: return
         packageChosen = saved.packageChosen
         answerChosen = saved.answerChosen
@@ -143,11 +166,14 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         saved.chosenId?.let { id -> services.catalog.byId(id) }?.let { m ->
             _state.update { s -> if (s.models.any { it.id == m.id }) s else s.copy(models = s.models + m) }
         }
+        val resumed = SetupGuide.resume(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, saved.pinPage, services.pinLock.isSet, saved.guidePage)
         _state.update { s ->
             s.copy(
                 step = saved.step.coerceIn(1, 4),
                 packageId = SetupPackage.entries.firstOrNull { it.id == saved.packageId } ?: s.packageId,
                 chosenId = saved.chosenId?.takeIf { id -> s.models.any { it.id == id } && saved.answerChosen } ?: s.chosenId,
+                pages = resumed.first,
+                guidePage = resumed.second,
             )
         }
     }
@@ -157,13 +183,115 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         runCatching {
             val tmp = File(progressFile.path + ".tmp")
             tmp.writeText(org.json.JSONObject().put("step", s.step).put("packageId", s.packageId.id).put("chosenId", s.chosenId ?: "")
-                .put("packageChosen", packageChosen).put("answerChosen", answerChosen).toString())
+                .put("packageChosen", packageChosen).put("answerChosen", answerChosen).put("guidePage", s.page.name).put("pinPage", SetupGuide.Page.PIN in s.pages).toString())
             tmp.renameTo(progressFile)
         }
     }
 
     /** Setup is over (finished, or left from Settings): the next start doesn't resume it. */
-    fun forget() { progressFile.delete() }
+    fun forget() {
+        progressFile.delete()
+        running = false
+        // Picked files still waiting go in now; the folder goes once nothing is left to import.
+        if (importJob?.isActive != true && SetupGuide.pending(pickedNames(), imported().second).isEmpty()) importDir.deleteRecursively() else importQueued()
+    }
+
+    /** The guide's pages for this setup: no PIN page when a PIN was set before it started. */
+    private fun guidePages() = SetupGuide.pages(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, services.pinLock.isSet)
+
+    fun guideNext() = setGuide(_state.value.guidePage + 1)
+    fun guideBack() = setGuide(_state.value.guidePage - 1)
+
+    private fun setGuide(page: Int) {
+        _state.update { it.copy(guidePage = page.coerceIn(0, maxOf(it.pages.lastIndex, 0)), details = false) }
+        save()
+    }
+
+    fun showDetails(on: Boolean) = _state.update { it.copy(details = on) }
+
+    // --- Files picked during setup ------------------------------------------------------------------------------------
+
+    private fun pickedNames() = importDir.listFiles { f -> f.isFile && !f.name.startsWith(".") }.orEmpty().map { it.name }.sorted()
+
+    /** The last import: its collection (replaced by the next import) and the files it took. */
+    private fun imported(): Pair<String?, List<String>> = runCatching {
+        val o = org.json.JSONObject(importRecord.readText())
+        val names = o.optJSONArray("files")?.let { a -> (0 until a.length()).map(a::getString) }.orEmpty()
+        o.optString("collectionId").ifEmpty { null } to names
+    }.getOrDefault(null to emptyList())
+
+    private fun recordImport(collectionId: String?, files: List<String>) {
+        val tmp = File(importRecord.path + ".tmp")
+        tmp.writeText(org.json.JSONObject().put("collectionId", collectionId ?: "").put("files", org.json.JSONArray(files)).toString())
+        tmp.renameTo(importRecord)
+    }
+
+    /**
+     * The files page's picker: each file is copied into setup-imports/ at once (the picker's permission doesn't last),
+     * then imported when it can be (SetupGuide.canImport). A kind BOAR can't read is refused here, with the same line
+     * as Knowledge → Personal Files.
+     */
+    fun addFiles(uris: List<android.net.Uri>) {
+        if (uris.isEmpty()) return
+        safeScope.launch(Dispatchers.IO) {
+            importDir.mkdirs()
+            val errors = mutableListOf<String>()
+            for (uri in uris) {
+                val name = reader.nameAndSize(uri).first
+                if (!team.sopa.boar.documents.DocumentReader.readable(name)) { errors += text("native.documents.unsupported", name); continue }
+                val target = File(importDir, SetupGuide.freeName(name, pickedNames().toSet()))
+                val ok = runCatching {
+                    getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input -> target.outputStream().use { input.copyTo(it) } }
+                }.isSuccess
+                if (!ok) { target.delete(); errors += text("native.documents.unreadable", name) }
+            }
+            _state.update { it.copy(files = pickedNames(), importErrors = errors) }
+            importQueued()
+        }
+    }
+
+    /**
+     * Imports the picked files into one Personal Files collection when it can: called when files are picked, after each
+     * download and when the index is done. Each import takes every picked file and replaces the last one's collection,
+     * so a second batch, or an import the process didn't finish, never leaves a duplicate or a half collection.
+     */
+    private fun importQueued(): Unit = synchronized(this) {
+        val names = pickedNames()
+        val (lastId, done) = imported()
+        if (SetupGuide.pending(names, done).isEmpty()) return@synchronized
+        val search = services.installed(AssetKind.EMBEDDING).isNotEmpty()
+        if (!SetupGuide.canImport(search, _state.value.indexPhase == IndexPhase.BUILDING, importJob?.isActive == true)) return@synchronized
+        importJob = safeScope.launch(Dispatchers.IO) {
+            _state.update { it.copy(importing = true) }
+            val errors = mutableListOf<String>()
+            try {
+                lastId?.let { services.knowledgeBase.deleteCollection(it) }
+                val id = DocumentImport.collectionId(text("native.setupGuide.files.collection"))
+                // Recorded before the first chunk: a process killed mid-import leaves a collection the next import removes.
+                recordImport(id, emptyList())
+                val files = names.mapNotNull { n ->
+                    val f = File(importDir, n)
+                    try { reader.read(android.net.Uri.fromFile(f), n) } catch (e: Exception) { errors += reader.messageFor(e); f.delete(); null }
+                }
+                if (files.isNotEmpty()) {
+                    DocumentImport.import(services.knowledgeBase, services::embed, files, text("native.setupGuide.files.collection"), id)
+                    services.vault.record { v -> v.copy(documents = v.documents + files.count { it.name !in done }) }
+                }
+                recordImport(id.takeIf { files.isNotEmpty() }, files.map { it.name })
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errors += reader.messageFor(e)
+            } finally {
+                _state.update { it.copy(importing = false, files = pickedNames(), filesImported = imported().second, importErrors = it.importErrors + errors) }
+            }
+            // Setup ended meanwhile: the copies aren't needed once everything is in.
+            if (!progressFile.exists() && SetupGuide.pending(pickedNames(), imported().second).isEmpty()) importDir.deleteRecursively()
+            else if (SetupGuide.pending(pickedNames(), imported().second).isNotEmpty() && errors.isEmpty()) importQueued()
+        }
+    }
+
+    private fun text(key: String, name: String? = null) = team.sopa.boar.ui.I18n.t(getApplication(), key, "name" to name)
 
     private fun setStep(step: Int) {
         _state.update { it.copy(step = step) }
@@ -174,7 +302,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     fun restart() {
         job?.cancel()
         job = null
-        _state.update { it.copy(step = 1, downloads = emptyList(), indexPhase = IndexPhase.WAITING, indexError = null, stalled = false) }
+        _state.update { it.copy(step = 1, downloads = emptyList(), indexPhase = IndexPhase.WAITING, indexError = null, stalled = false,
+            pages = guidePages(), guidePage = 0, details = false) }
         refreshPlans()
         save()
     }
@@ -237,12 +366,15 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             })
         }
         save()
+        running = true
         rateStart = null
         lastMove = Pair(_state.value.doneBytes, System.currentTimeMillis())
         job = safeScope.launch(Dispatchers.IO) {
             for (a in assets) {
-                if (store.status(a).present) { update(a) { it.copy(done = true, bytesDone = a.sizeBytes) }; continue }
-                if (!fetch(a)) return@launch
+                if (store.status(a).present) update(a) { it.copy(done = true, bytesDone = a.sizeBytes) }
+                else if (!fetch(a)) return@launch
+                // The search model may have just arrived: files picked meanwhile can go in.
+                importQueued()
             }
             index()
         }
@@ -327,7 +459,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun index() {
-        _state.update { it.copy(indexPhase = IndexPhase.BUILDING, indexError = null) }
+        // BUILDING first, so no import starts; one already running finishes before the index embeds.
+        val importing = synchronized(this) { _state.update { it.copy(indexPhase = IndexPhase.BUILDING, indexError = null) }; importJob }
+        importing?.join()
         indexStart = null
         val app = getApplication<Application>()
         val emb = services.installed(AssetKind.EMBEDDING).firstOrNull() ?: run { indexFailed(team.sopa.boar.ui.I18n.t(getApplication(), "native.setup.indexNoEmbedder")); return }
@@ -354,6 +488,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             })
             services.reloadPacks()
             _state.update { it.copy(indexPhase = IndexPhase.READY) }
+            importQueued()
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -372,5 +507,14 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     /** The answer model's tier, for its friendly name ("More accurate" / "Fast"). */
     fun tierOf(m: CatalogAsset) = if (m.answerTier == AnswerTier.COMPACT) "compact" else "default"
 
-    private companion object { const val STALL_MS = 60_000L }
+    companion object {
+        private const val STALL_MS = 60_000L
+
+        /**
+         * Setup's install step is running in this process (Install pressed, not yet finished or left). MainActivity
+         * keeps the setup screen up while it is, and doesn't lock BOAR before there's a chat to protect.
+         */
+        @Volatile var running = false
+            private set
+    }
 }
