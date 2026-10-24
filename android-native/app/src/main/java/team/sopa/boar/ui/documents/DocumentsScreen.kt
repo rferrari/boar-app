@@ -74,7 +74,7 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
             // still says how many there are.
             val count = state.collections.size
             team.sopa.boar.ui.BoarSection(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count),
-                personalOpen, { personalOpen = !personalOpen }) {
+                personalOpen, { personalOpen = !personalOpen }, icon = team.sopa.boar.R.drawable.ic_style_personal) {
                 Text(t("native.documents.personalNote"), style = Boar.type.subtext, color = c.textSecondary)
                 Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {

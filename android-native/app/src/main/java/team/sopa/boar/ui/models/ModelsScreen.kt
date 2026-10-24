@@ -116,7 +116,7 @@ fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel, startOpen: Boolean =
     // Folded unless Settings' "Open BOAR Knowledge" brought the user here ([startOpen], Oct 24): the packs rarely change.
     var open by androidx.compose.runtime.saveable.rememberSaveable(startOpen) { mutableStateOf(startOpen) }
     if (packs.isEmpty()) return
-    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }) {
+    team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }, icon = team.sopa.boar.R.drawable.ic_settings_knowledge) {
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)
         for (a in packs) CatalogCard(a, state.rows[a.id], state.rows[a.id]?.present == true, state.totalRamBytes, state.activating == a.id, state.activating != null, vm)
     }
