@@ -288,7 +288,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Unlock boar avatars as you use BOAR and wear them in the chat; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with its quick-answer labs (beta) and Boar Vitals; the rest (alpha) start off. If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with every lab off: switch on the ones you want, beta (tested on phones) or alpha (early). If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
     <string name="native_debugLog_title" formatted="false">Debug log</string>
     <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
@@ -531,7 +531,7 @@
     <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
     <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on.\n\nAlso try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. They all start off: switch on the ones you want.\n\nAlso try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
