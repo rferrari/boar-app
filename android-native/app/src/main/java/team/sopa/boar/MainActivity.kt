@@ -308,6 +308,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Back with the menu open closes the menu, not BOAR (#93): ModalNavigationDrawer doesn't handle Back itself.
+    BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
     var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
     LaunchedEffect(drawer.isOpen, state.answeringId) {
         if (drawer.isOpen) sessions = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
