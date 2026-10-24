@@ -10,6 +10,7 @@ import android.content.Context
 object NotificationAsk {
     private const val PREFS = "permissions"
     private const val ASKED = "notificationsAsked"
+    private const val PAGE_SEEN = "notificationsPageSeen"
 
     /** Android asks for it at all (13 and newer). */
     fun applies(): Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
@@ -19,11 +20,16 @@ object NotificationAsk {
 
     fun asked(ctx: Context): Boolean = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(ASKED, false)
 
+    /** Setup's Notifications page has shown: the chat won't ask (Oct 24). Not [asked]: Android's dialog may not have. */
+    fun pageSeen(ctx: Context): Boolean = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(PAGE_SEEN, false)
+
+    fun markPageSeen(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(PAGE_SEEN, true).apply()
+
     fun markAsked(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(ASKED, true).apply()
 
     /** Asks with [ask] when it applies, isn't granted and was never asked; records that it was. */
     fun once(ctx: Context, ask: () -> Unit) {
-        if (!applies() || granted(ctx) || asked(ctx)) return
+        if (!applies() || granted(ctx) || asked(ctx) || pageSeen(ctx)) return
         markAsked(ctx)
         ask()
     }

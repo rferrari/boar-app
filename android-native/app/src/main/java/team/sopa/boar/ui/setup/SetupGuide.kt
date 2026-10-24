@@ -323,7 +323,9 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     val ctx = LocalContext.current
     // Refused before (Android won't show its dialog again): say where to turn it on. Read before the page marks it.
     var refused by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.asked(ctx) && !granted) }
-    androidx.compose.runtime.LaunchedEffect(Unit) { team.sopa.boar.app.NotificationAsk.markAsked(ctx) }
+    // Only Android's dialog counts as asked; the page showing only stops the chat from asking (CodeRabbit: a rotation or
+    // Back hid the Allow button though nothing had been asked).
+    androidx.compose.runtime.LaunchedEffect(Unit) { team.sopa.boar.app.NotificationAsk.markPageSeen(ctx) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it }
     Card {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -336,7 +338,10 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     when {
         granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
         refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
-        else -> PrimaryButton("🔔  " + t("native.setupGuide.privacy.notifyAllow")) { ask.launch(android.Manifest.permission.POST_NOTIFICATIONS) }
+        else -> PrimaryButton("🔔  " + t("native.setupGuide.privacy.notifyAllow")) {
+            team.sopa.boar.app.NotificationAsk.markAsked(ctx)
+            ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
     Meta(t("native.setupGuide.notify.without"), c.textAccentCyan)
 }
