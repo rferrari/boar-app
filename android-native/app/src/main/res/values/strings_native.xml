@@ -286,7 +286,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with its quick-answer labs (beta) and Boar Vitals; the rest (alpha) start off. If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with every lab off: switch on the ones you want, beta (tested on phones) or alpha (early). If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
     <string name="native_debugLog_title" formatted="false">Debug log</string>
     <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
@@ -529,7 +529,7 @@
     <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
     <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. Calculator, Facts, Cohazard, Distance, Polyglot and Vitals start on.\n\nAlso try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. They all start off: switch on the ones you want.\n\nAlso try Boar Designer, which draws a picture from your answer; Boar Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>
@@ -569,4 +569,81 @@
     <string name="native_settings_summary_voice" formatted="false">Voice input {{state}}</string>
     <string name="native_settings_summary_pinOn" formatted="false">PIN on</string>
     <string name="native_settings_summary_pinOff" formatted="false">No PIN</string>
+    <!-- Setup's pages while it downloads (ui/setup/SetupGuide.kt) -->
+    <string name="native_setupGuide_next" formatted="false">Next</string>
+    <string name="native_setupGuide_skip" formatted="false">Not now</string>
+    <string name="native_setupGuide_keepGoing" formatted="false">Keep going</string>
+    <string name="native_setupGuide_details" formatted="false">Details</string>
+    <string name="native_setupGuide_backToGuide" formatted="false">Back to setup</string>
+    <string name="native_setupGuide_step" formatted="false">{{n}} of {{total}}</string>
+    <string name="native_setupGuide_look_title" formatted="false">Make it yours</string>
+    <string name="native_setupGuide_look_sub" formatted="false">Pick a theme and a text size. They change right away, and you can change them again in Settings.</string>
+    <string name="native_setupGuide_answers_title" formatted="false">How BOAR answers</string>
+    <string name="native_setupGuide_answers_sub" formatted="false">The style BOAR starts with. In the chat, the style button switches it for any question.</string>
+    <string name="native_setupGuide_answers_deepNote" formatted="false">Searches in several steps and writes a longer answer. It takes longer; you can also turn it on just for one question.</string>
+    <string name="native_setupGuide_answers_deepSlow" formatted="false">With the light model you picked, a Deep Research answer can take a few minutes.</string>
+    <string name="native_setupGuide_files_title" formatted="false">Your own files</string>
+    <string name="native_setupGuide_files_sub" formatted="false">Add notes, PDFs or spreadsheets now and ask about them later. They stay on this phone.</string>
+    <string name="native_setupGuide_files_add" formatted="false">Add files</string>
+    <string name="native_setupGuide_files_addMore" formatted="false">Add more files</string>
+    <string name="native_setupGuide_files_types" formatted="false">BOAR reads .txt, .md, .csv, .json and .pdf (with selectable text, not scans).</string>
+    <string name="native_setupGuide_files_waitSearch" formatted="false">After the search model</string>
+    <string name="native_setupGuide_files_waitIndex" formatted="false">After the index</string>
+    <string name="native_setupGuide_files_adding" formatted="false">Adding…</string>
+    <string name="native_setupGuide_files_added" formatted="false">Added</string>
+    <string name="native_setupGuide_files_queued" formatted="false">Next</string>
+    <string name="native_setupGuide_files_collection" formatted="false">Setup files</string>
+    <string name="native_setupGuide_files_where" formatted="false">Later: Menu → Knowledge → Personal Files</string>
+    <string name="native_setupGuide_ask_title" formatted="false">How to ask</string>
+    <string name="native_setupGuide_ask_sub" formatted="false">BOAR searches its library for your question, then answers from what it found.</string>
+    <string name="native_setupGuide_ask_tip1" formatted="false">Ask a whole question: \"How do I make water safe to drink?\" finds more than \"water\".</string>
+    <string name="native_setupGuide_ask_tip2" formatted="false">Follow up as you would with a person: \"and if I can\'t boil it?\" keeps the subject.</string>
+    <string name="native_setupGuide_ask_tip3" formatted="false">The articles an answer used are listed under it: tap one to read it. Hold your question to copy it back.</string>
+    <string name="native_setupGuide_ask_tipFiles" formatted="false">To answer only from your own files, pick the Personal Files style with the style button.</string>
+    <string name="native_setupGuide_ask_pick" formatted="false">Your first question</string>
+    <string name="native_setupGuide_ask_pickNote" formatted="false">It\'ll be waiting in the chat when BOAR opens. You send it when you want.</string>
+    <string name="native_setupGuide_ask_own" formatted="false">Or write your own…</string>
+    <string name="native_setupGuide_files_howToAsk" formatted="false">To ask about them, switch the chat\'s style to Personal Files (the style button, next to where you type). Then BOAR answers only from your files, and says so when they don\'t have the answer.</string>
+    <string name="native_setupGuide_pin_title" formatted="false">Lock BOAR with a PIN?</string>
+    <string name="native_setupGuide_pin_sub" formatted="false">Only for BOAR: your phone\'s own screen lock doesn\'t change.</string>
+    <string name="native_setupGuide_pin_on" formatted="false">PIN set. BOAR asks for it from now on.</string>
+    <string name="native_setupGuide_pin_note" formatted="false">Your imported files aren\'t encrypted yet. If you forget the PIN, the chats can be erased to start again; models and files stay.</string>
+    <string name="native_setupGuide_notify_title" formatted="false">Notifications</string>
+    <string name="native_setupGuide_notify_sub" formatted="false">One notification, only while BOAR answers.</string>
+    <string name="native_setupGuide_notify_why" formatted="false">Why Android asks: since Android 13, an app needs your permission to show any notification. BOAR asks once, here. It never sends ads or reminders: it only says it\'s answering.</string>
+    <string name="native_setupGuide_notify_without" formatted="false">Without it, answers still finish; you just won\'t see that BOAR is working. You can change this in Android\'s settings for BOAR.</string>
+    <string name="native_setupGuide_privacy_title" formatted="false">Privacy and memory</string>
+    <string name="native_setupGuide_privacy_sub" formatted="false">How BOAR treats your chats and your phone\'s memory.</string>
+    <string name="native_setupGuide_privacy_where" formatted="false">All of these are in Settings too.</string>
+    <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_setupGuide_labs_sub" formatted="false">Experiments, labelled beta or alpha. They all start off: switch on the ones you want.</string>
+    <string name="native_setupGuide_labs_beta" formatted="false">Beta: tested on phones</string>
+    <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: early, less tested</string>
+    <string name="native_setupGuide_labs_note" formatted="false">Labs don\'t slow the answers. The ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run. All of them are in Settings → Experimental → Boar Labs.</string>
+    <string name="native_setupGuide_ready_title" formatted="false">Almost there</string>
+    <string name="native_setupGuide_ready_sub" formatted="false">BOAR opens as soon as the download and the index are done.</string>
+    <string name="native_setupGuide_ready_choices" formatted="false">Your choices</string>
+    <string name="native_setupGuide_ready_style" formatted="false">Answer style</string>
+    <string name="native_setupGuide_ready_deep" formatted="false">Deep Research</string>
+    <string name="native_setupGuide_ready_files" formatted="false">Your files</string>
+    <string name="native_setupGuide_ready_question" formatted="false">First question</string>
+    <string name="native_setupGuide_ready_pin" formatted="false">PIN</string>
+    <string name="native_setupGuide_ready_on" formatted="false">On</string>
+    <string name="native_setupGuide_ready_off" formatted="false">Off</string>
+    <string name="native_setupGuide_ready_none" formatted="false">None</string>
+    <string name="native_setupGuide_ready_change" formatted="false">Go back to change any of them, or later in Settings.</string>
+    <string name="native_setupGuide_ready_seeDownload" formatted="false">See the download</string>
+    <string name="native_setupGuide_first_title" formatted="false">Your first question</string>
+    <string name="native_setupGuide_first_sub" formatted="false">Pick one, or write your own. It will be waiting in the chat when BOAR opens; you send it.</string>
+    <string name="native_setupGuide_files_duplicate" formatted="false">Already added: {{name}}</string>
+    <string name="native_setupGuide_files_remove" formatted="false">Remove {{name}}</string>
+    <string name="native_setupGuide_answers_personalLater" formatted="false">Answers only from your own files. Tap to add some first.</string>
+    <string name="native_setupGuide_answers_addFilesTitle" formatted="false">Add your files first?</string>
+    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Personal Files answers only from your own files. Add some on the files page, then come back and pick it here.</string>
+    <string name="native_setupGuide_answers_switch" formatted="false">In the chat, the style button next to where you type shows this icon and switches it any time.</string>
+    <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“BOAR is answering…”</string>
+    <string name="native_setupGuide_privacy_notifyBody" formatted="false">While BOAR writes an answer, this notification shows that it\'s still working, even if you switch apps or lock the phone. Tap it to come back. It goes away when the answer is done.</string>
+    <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Allow notifications</string>
+    <string name="native_setupGuide_privacy_notifyOn" formatted="false">Notifications are on.</string>
+    <string name="native_setupGuide_privacy_notifyOff" formatted="false">Notifications are off. You can turn them on in Android’s settings for BOAR.</string>
 </resources>

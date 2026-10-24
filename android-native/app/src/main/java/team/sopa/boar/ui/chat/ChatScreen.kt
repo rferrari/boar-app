@@ -114,6 +114,8 @@ fun ChatScreen(
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
+    /** The setup's first question went into the input box. */
+    onPrefilled: () -> Unit = {},
     /** Opens an app route from a plugin's header badge ("lab:printer"). */
     onOpenRoute: (String) -> Unit = {},
     voiceEnabled: Boolean = false,
@@ -121,6 +123,7 @@ fun ChatScreen(
     val c = Boar.colors
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
+    LaunchedEffect(state.prefill) { state.prefill?.let { input = it; onPrefilled() } }
     // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
     // (issue #91). Asked once, with the first question; a refusal stands and is never asked again.
     val notifyCtx = androidx.compose.ui.platform.LocalContext.current
@@ -795,11 +798,4 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
 }
 
 /** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
-private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
-    if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
-    val prefs = ctx.getSharedPreferences("permissions", android.content.Context.MODE_PRIVATE)
-    if (prefs.getBoolean("notificationsAsked", false)) return
-    prefs.edit().putBoolean("notificationsAsked", true).apply()
-    ask()
-}
+private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) = team.sopa.boar.app.NotificationAsk.once(ctx, ask)
