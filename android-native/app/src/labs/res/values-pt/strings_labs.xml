@@ -5,6 +5,7 @@
     <string name="native_labs_title" formatted="false">Boar Labs</string>
     <string name="native_labs_classifiedNote" formatted="false">{{name}} é confidencial: ainda em teste. Volte em breve.</string>
     <string name="native_labs_declassifiedNote" formatted="false">{{name}} vazou. Ainda em testes, sem data de lançamento.</string>
+    <string name="native_labs_unlockedNote" formatted="false">{{name}} vazou, e é seu: toque para abrir e ligar. Ainda em teste.</string>
     <string name="native_labs_hero_count" formatted="false">{{open}} abertos · {{locked}} confidenciais</string>
     <string name="native_labs_hero_offline" formatted="false">tudo aqui roda neste celular, offline</string>
     <string name="native_labs_hero_warning" formatted="false">experimental: pode ser lento, imperfeito ou sumir amanhã</string>

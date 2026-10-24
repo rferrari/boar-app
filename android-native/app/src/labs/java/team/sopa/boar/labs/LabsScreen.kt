@@ -80,13 +80,15 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     row.forEach { lab ->
                         Tile(lab, Modifier.weight(1f), flash = alert == lab.id) {
-                            if (lab.status != LabStatus.CLASSIFIED) onOpen("lab:${lab.id}")
+                            if (LabRegistry.opened(lab) != null) onOpen("lab:${lab.id}")
                             else {
                                 // Easter egg: 11 to 20 taps (a new count per tile each visit) declassify it, like Android's developer options.
                                 val n = (taps[lab.id] ?: 0) + 1
                                 taps[lab.id] = n
                                 if (n == revealAt.getOrPut(lab.id) { REVEAL_TAPS.random() } && !LabPrefs.revealed(lab.id)) {
                                     LabPrefs.setRevealed(lab.id)
+                                    // A lab with code behind the teaser (the Daily Quiz) stays unlocked; its next tap opens it.
+                                    if (lab is ClassifiedLab && lab.inner != null) LabPrefs.unlock(lab.id)
                                     alert = lab.id
                                     team.sopa.boar.app.Haptics.leak(ctx)
                                 }
@@ -101,6 +103,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
         note?.let { id ->
             val name = t("native.labs.$id.title")
             val text = when {
+                LabPrefs.unlocked(id) -> t("native.labs.unlockedNote", "name" to name)
                 LabPrefs.revealed(id) -> t("native.labs.declassifiedNote", "name" to name)
                 // The taps count in silence: no countdown gives the easter egg away.
                 else -> t("native.labs.classifiedNote", "name" to name)
@@ -214,7 +217,7 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         if (flash) { red.snapTo(0.7f); red.animateTo(0f, androidx.compose.animation.core.tween(1000)) }
     }
     // A classified lab the user declassified (ten taps) shows its boar, name and description; it still can't be opened.
-    val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id)
+    val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id) && !LabPrefs.unlocked(lab.id)
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
@@ -225,7 +228,7 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
             if (locked) Text(if (lab.shownArt != null) "?" else "🔒", style = if (lab.shownArt != null) Boar.type.titleLg else Boar.type.body,
                 fontSize = if (lab.shownArt != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
-            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && LabPrefs.revealed(lab.id)) }
+            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && (LabPrefs.revealed(lab.id) || LabPrefs.unlocked(lab.id))) }
             if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             // A revealed classified lab can't be switched on, so OFF would only confuse: it has LEAKED instead.
             if (!locked && lab.status != LabStatus.CLASSIFIED && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,

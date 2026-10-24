@@ -94,7 +94,11 @@ interface LabPlugin {
 class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null, val onClick: () -> Unit)
 
 /** A tile for something in testing: no screen, no slots. Its boar shows as a silhouette until it launches. */
-class ClassifiedLab(override val id: String, override val emoji: String) : LabPlugin {
+/**
+ * A classified lab's teaser tile. [inner]: the working lab behind it, when it has code (plugin.properties sets both object=
+ * and classified=, e.g. the Daily Quiz): leaking the tile unlocks it for good, and then it opens and switches on as itself.
+ */
+class ClassifiedLab(override val id: String, override val emoji: String, val inner: LabPlugin? = null) : LabPlugin {
     override val status = LabStatus.CLASSIFIED
     override val art: Int? get() = CLASSIFIED_ART[id]
 
@@ -119,10 +123,17 @@ object LabRegistry {
         when (it.status) { LabStatus.LIVE -> 0; LabStatus.BETA -> 1; LabStatus.ALPHA -> 2; LabStatus.REVIEW -> 3; LabStatus.CLASSIFIED -> 4 }
     }
 
-    fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id && it.status != LabStatus.CLASSIFIED }
+    /** The lab a tile opens: itself, a classified one's working lab once the user unlocked it, else null. */
+    fun opened(lab: LabPlugin): LabPlugin? = when {
+        lab.status != LabStatus.CLASSIFIED -> lab
+        lab is ClassifiedLab && lab.inner != null && LabPrefs.unlocked(lab.id) -> lab.inner
+        else -> null
+    }
 
-    /** The labs that fill slots: built, not classified, and switched on. */
-    val active: List<LabPlugin> get() = if (!LabPrefs.labsOn) emptyList() else visible.filter { it.status != LabStatus.CLASSIFIED && LabPrefs.enabled(it.id) }
+    fun byId(id: String): LabPlugin? = visible.firstOrNull { it.id == id }?.let(::opened)
+
+    /** The labs that fill slots: built, open (not classified, or unlocked), and switched on. */
+    val active: List<LabPlugin> get() = if (!LabPrefs.labsOn) emptyList() else visible.mapNotNull(::opened).filter { LabPrefs.enabled(it.id) }
 }
 
 /** Per-lab switches and small settings, in SharedPreferences "labs". The switches are Compose state. */
@@ -135,7 +146,7 @@ object LabPrefs {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
         // Calculator, Facts, Cohazard, Distance and Polyglot start on (owner, Oct 20); every other lab starts off.
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault) }
+        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault); unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false) }
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         restart.value = p.getBoolean("autoRestart", true)
     }
@@ -159,6 +170,15 @@ object LabPrefs {
     fun revealed(id: String) = reveals[id] ?: false
     fun setRevealed(id: String) { reveals[id] = true }
     fun coverAll() = reveals.clear()
+
+    /** A classified lab with code that the user leaked (ClassifiedLab.inner): unlocked for good, it opens like any lab. */
+    private val unlocks = mutableStateMapOf<String, Boolean>()
+    fun unlocked(id: String) = unlocks[id] ?: false
+    fun unlock(id: String) {
+        team.sopa.boar.app.DebugLog.settingChanged("labs.unlocked.$id", unlocked(id), true)
+        unlocks[id] = true
+        prefs?.edit()?.putBoolean("unlocked.$id", true)?.apply()
+    }
 
     fun setEnabled(id: String, on: Boolean) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)

@@ -29,7 +29,8 @@ val generateLabsRegistry by tasks.registering {
     // Labs a builder brings out of classified: -Pboar.labs.declassify=dailyQuiz (comma-separated ids).
     val declassified = (providers.gradleProperty("boar.labs.declassify").orNull ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
     val entries = labPlugins.map { p ->
-        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\")" else p.obj!!
+        // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
+        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (p.obj != null) ", ${p.obj}" else ""})" else p.obj!!
     }
     inputs.property("entries", entries)
     outputs.dir(labsRegistryDir)
