@@ -11,6 +11,6 @@
     <string name="native_labs_colibri_use" formatted="false">Responder com este modelo</string>
     <string name="native_labs_colibri_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
     <string name="native_labs_colibri_note" formatted="false">Sem raciocínio, só inglês e um modelo pequeno: mais um experimento de motor do que um assistente. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
-    <string name="native_labs_colibri_review" formatted="false">Lento demais para um assistente nos nossos celulares de teste: uma resposta curta leva minutos. O Javali Gigante roda um modelo 5× maior, mais rápido. Continua aqui para testar e comparar.</string>
+    <string name="native_labs_colibri_review" formatted="false">Lento demais para um assistente nos nossos celulares de teste: uma resposta curta leva minutos. O Big Boar roda um modelo 5× maior, mais rápido. Continua aqui para testar e comparar.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">menos de 1 tok/s</string>
 </resources>
