@@ -130,7 +130,8 @@ object LabHooks {
         val c = team.sopa.boar.ui.theme.Boar.colors
         val type = team.sopa.boar.ui.theme.Boar.type
         val usable = LabRegistry.visible.filter { it.status != LabStatus.CLASSIFIED && it.status != LabStatus.REVIEW }
-        val (on, off) = usable.partition { it.onByDefault }
+        // Every lab starts off (owner, Oct 24): beta first (live ones with them), then alpha, for the user to pick.
+        val (beta, alpha) = usable.partition { it.status == LabStatus.LIVE || it.status == LabStatus.BETA }
         @Composable fun group(title: String, labs: List<LabPlugin>) {
             if (labs.isEmpty()) return
             androidx.compose.material3.Text(title.uppercase(), style = type.micro, color = c.textSecondary,
@@ -151,8 +152,8 @@ object LabHooks {
                     colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
             }
         }
-        group(team.sopa.boar.ui.t("native.setupGuide.labs.startOn"), on)
-        group(team.sopa.boar.ui.t("native.setupGuide.labs.toTry"), off)
+        group(team.sopa.boar.ui.t("native.setupGuide.labs.beta"), beta)
+        group(team.sopa.boar.ui.t("native.setupGuide.labs.alpha"), alpha)
     }
 
     private const val STORAGE_LIMIT = "storageLimit"
