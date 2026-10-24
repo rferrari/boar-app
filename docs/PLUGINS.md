@@ -144,7 +144,7 @@ file.
 | `LIVE` | green | It works well |
 | `BETA` | cyan | It works, still rough. Starts on, unless the lab sets `onByDefault = false` (Designer, Press) |
 | `ALPHA` | amber | Early; starts off |
-| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal. Example: colibri, "under 1 tok/s", which also sets `review=true`, so its engine is left out and its page says so. |
+| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal, unless it also sets `review=true`: then its engine is left out, the page stays open to read, and it can't answer. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 
 The grid shows live, then beta, alpha, under review and classified labs, in plugin.properties order within each.
