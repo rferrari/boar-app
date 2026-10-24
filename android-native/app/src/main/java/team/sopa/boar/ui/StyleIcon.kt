@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.sp
 import team.sopa.boar.ui.theme.Boar
 
 /**
- * An answer style's icon outside the chat (Settings, setup): the Boar icon pack's drawing when it has one (Oct 24), else
- * the style's own emoji. The chat keeps the colored emoji everywhere, so its controls stand out (adam, Oct 24).
+ * An answer style's icon: the Boar icon pack's drawing when it has one (Oct 24), else the style's own emoji. In Settings,
+ * setup, and the chat's style button and sheet (one look for the styles); the chat's other emoji stay (adam, Oct 24).
  */
 @Composable
 fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.textHeading) {

@@ -175,7 +175,7 @@ fun ChatScreen(
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, voiceEnabled, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
+            }, onStop, voiceEnabled, state.personalityId, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
         }
     }
 }
@@ -765,13 +765,13 @@ private fun Badge(text: String) {
  * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneId: String, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
     Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            Text(toneIcon, fontSize = 18.sp)
+            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp)
         }
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
