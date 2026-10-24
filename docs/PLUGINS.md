@@ -66,7 +66,7 @@ object=team.sopa.boar.labs.pulse.DevicePulseLab  # the LabPlugin object…
 order=20                                         # grid position (lower first; ties by id)
 ```
 
-Set **either** `object=` (a working lab) **or** `classified=<emoji>` (a teaser: a locked tile, nothing runs):
+Set `object=` (a working lab), `classified=<emoji>` (a teaser: a locked tile, nothing runs), or both:
 
 ```properties
 id=signboard
@@ -74,7 +74,17 @@ classified=📷
 order=90
 ```
 
-The build stops with a clear error if `id` doesn't match the folder, or if both or neither of `object`/`classified` are set.
+With **both**, the lab is built and kept as a teaser in normal builds; a builder brings it out with
+`-Pboar.labs.declassify=<id>` (comma-separated ids). The Daily Quiz ships this way:
+
+```properties
+id=dailyQuiz
+object=team.sopa.boar.labs.dailyquiz.DailyQuizLab
+classified=❔
+order=80
+```
+
+The build stops with a clear error if `id` doesn't match the folder, or if neither `object` nor `classified` is set.
 
 ### Strings
 

@@ -225,18 +225,18 @@
     <string name="native_truffle_hammock" formatted="false">Hammock Boar</string>
     <string name="native_truffle_snow" formatted="false">Snow Boar</string>
     <string name="native_truffle_hacker_ii" formatted="false">Kernel Boar</string>
-    <string name="native_vault_title" formatted="false">Truffle Vault</string>
-    <string name="native_vault_intro" formatted="false">You find truffles by using BOAR. Everything is counted on this phone and never leaves it.</string>
-    <string name="native_vault_card" formatted="false">🍄 Found {{n}} of {{total}}</string>
-    <string name="native_vault_open" formatted="false">Open vault →</string>
+    <string name="native_vault_title" formatted="false">Boar Avatars</string>
+    <string name="native_vault_intro" formatted="false">You unlock avatars by using BOAR. Everything is counted on this phone and never leaves it.</string>
+    <string name="native_vault_card" formatted="false">{{n}} of {{total}} avatars unlocked</string>
+    <string name="native_vault_open" formatted="false">Open Boar Avatars →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
     <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat and the menu.</string>
     <string name="native_vault_iconNoteLauncher" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Equipped</string>
     <string name="native_vault_equip" formatted="false">Equip</string>
-    <string name="native_vault_unlockedOn" formatted="false">Found {{date}}</string>
-    <string name="native_vault_fresh" formatted="false">🍄 Truffle found: {{name}}</string>
+    <string name="native_vault_unlockedOn" formatted="false">Unlocked {{date}}</string>
+    <string name="native_vault_fresh" formatted="false">New avatar unlocked: {{name}}</string>
     <string name="native_vault_themesLocked" formatted="false">{{n}} more themes are unlocked by Labs.</string>
     <string name="native_vault_themes" formatted="false">Themes</string>
     <string name="native_vault_labClue" formatted="false">Unlocked by a Lab</string>
@@ -261,6 +261,8 @@
     <string name="native_rule_CHATS_100" formatted="false">Start 100 chats.</string>
     <string name="native_rule_DOCUMENT" formatted="false">Feed BOAR a document of your own.</string>
     <string name="native_rule_EXPORT" formatted="false">Export a collection.</string>
+    <string name="native_rule_QUIZ_FIRST" formatted="false">Somewhere in Boar Labs, a question is waiting.</string>
+    <string name="native_rule_QUIZ_DAYS_7" formatted="false">Answer the same lab’s questions for a week.</string>
     <string name="native_rule_PACK" formatted="false">Download a knowledge pack.</string>
     <string name="native_rule_PACKS_2" formatted="false">Carry two knowledge packs.</string>
     <string name="native_rule_HF_MODEL" formatted="false">Add a model from Hugging Face.</string>
@@ -279,11 +281,11 @@
     <string name="native_rule_DAYS_30" formatted="false">Use BOAR on 30 different days.</string>
     <string name="native_rule_AIRPLANE_STREAK_3" formatted="false">Open BOAR in airplane mode 3 days in a row.</string>
     <string name="native_rule_AIRPLANE_STREAK_7" formatted="false">Forage deep in the woods: airplane mode, 7 days in a row.</string>
-    <string name="native_rule_ALL_OTHERS" formatted="false">The legendary truffle: unearth every other boar in the vault.</string>
+    <string name="native_rule_ALL_OTHERS" formatted="false">The legendary avatar: unlock every other one.</string>
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 days off the grid, in any order.</string>
     <string name="native_vault_section" formatted="false">Boarverse</string>
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
-    <string name="native_vault_experimentalNote" formatted="false">Unearth boars as you use BOAR and wear them as your avatar; some unlock new themes.</string>
+    <string name="native_vault_experimentalNote" formatted="false">Unlock boar avatars as you use BOAR and wear them in the chat; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
     <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Boar Labs starts on, with its quick-answer labs (beta) and Boar Vitals; the rest (alpha) start off. If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
@@ -548,7 +550,7 @@
     <string name="native_models_compat_streamed" formatted="false">Bigger than RAM · {{engine}} streams it</string>
     <string name="native_download_errorGated" formatted="false">This model needs a Hugging Face account and its license accepted. BOAR downloads without an account, so it can\'t get this one.</string>
     <string name="native_browse_gated" formatted="false">Needs a Hugging Face account: BOAR can\'t download it.</string>
-    <string name="native_vault_teaser" formatted="false">Keep using BOAR and you\'ll keep finding truffles: each one is a boar to wear, and some unlock new themes. Which questions dig them up is part of the fun.</string>
+    <string name="native_vault_teaser" formatted="false">Keep using BOAR and you’ll keep unlocking avatars: each one is a boar to wear, and some unlock new themes. Finding out what unlocks them is part of the fun.</string>
     <string name="native_documents_moreFiles" formatted="false">+{{count}} more</string>
     <string name="native_documents_unsupported" formatted="false">BOAR can\'t read {{name}}: it imports .txt, .md, .csv, .json and .pdf. Save the page as one of those (a browser can save it as PDF) and import it again.</string>
     <string name="native_personal_notFound" formatted="false">I couldn\'t find this in your Personal Files.</string>
