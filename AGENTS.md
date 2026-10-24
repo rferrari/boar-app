@@ -67,7 +67,7 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
 Without `-Pboar.versionName` the version is `2.0.0-dev`. The 2.0.0 releases are built with
-`-Pboar.experimentalFeatures=true` (Boar Labs included); 2.0.0-rc1 has `versionCode` 4. About
+`-Pboar.experimentalFeatures=true` (Boar Labs included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5. About
 shows the version, the git commit and the build date.
 
 Other build types:

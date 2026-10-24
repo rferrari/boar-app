@@ -31,7 +31,7 @@ models.
 
 1. **Version.** `versionCode` in `android-native/app/build.gradle.kts` must be higher than
    the last published release, or the APK won't install over it (2.0.0-rc1 is
-   `versionCode` 4). The version name comes from the build command.
+   `versionCode` 4, 2.0.0-rc2 is 5). The version name comes from the build command.
 
 2. **Build.** No `.env` with `EVAL_SHARING=true`: the release has no Share button and never
    contacts the results server.
