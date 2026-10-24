@@ -602,7 +602,7 @@
     <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
     <string name="native_setupGuide_labs_sub" formatted="false">Experimentos, marcados como beta ou alfa. Estes começam ligados; desligue os que não quiser.</string>
     <string name="native_setupGuide_labs_startOn" formatted="false">Começam ligados</string>
-    <string name="native_setupGuide_labs_toTry" formatted="false">Mais para experimentar (desligados)</string>
+    <string name="native_setupGuide_labs_toTry" formatted="false">Mais para experimentar</string>
     <string name="native_setupGuide_labs_note" formatted="false">Os Labs não deixam as respostas mais lentas. Os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Todos ficam em Configurações → Experimental → Boar Labs.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Quase lá</string>
     <string name="native_setupGuide_ready_sub" formatted="false">O BOAR abre assim que o download e o índice terminarem.</string>
@@ -617,4 +617,15 @@
     <string name="native_setupGuide_ready_none" formatted="false">Nenhum</string>
     <string name="native_setupGuide_ready_change" formatted="false">Volte para mudar qualquer uma, ou depois nas Configurações.</string>
     <string name="native_setupGuide_ready_seeDownload" formatted="false">Ver o download</string>
+    <string name="native_setupGuide_first_title" formatted="false">Sua primeira pergunta</string>
+    <string name="native_setupGuide_first_sub" formatted="false">Escolha uma ou escreva a sua. Ela vai estar esperando na conversa quando o BOAR abrir; você envia.</string>
+    <string name="native_setupGuide_files_duplicate" formatted="false">Já adicionado: {{name}}</string>
+    <string name="native_setupGuide_files_remove" formatted="false">Remover {{name}}</string>
+    <string name="native_setupGuide_answers_personalLater" formatted="false">Responde só com seus próprios arquivos. Adicione arquivos primeiro, depois escolha na conversa para perguntar sobre eles.</string>
+    <string name="native_setupGuide_answers_switch" formatted="false">Na conversa, o botão de estilo ao lado de onde você digita mostra este ícone e troca quando quiser.</string>
+    <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“O BOAR está respondendo…”</string>
+    <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, ele mostra esta notificação. Assim a resposta continua se você sair do app. O Android pede sua permissão uma vez.</string>
+    <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Permitir notificações</string>
+    <string name="native_setupGuide_privacy_notifyOn" formatted="false">As notificações estão ligadas.</string>
+    <string name="native_setupGuide_privacy_notifyOff" formatted="false">As notificações estão desligadas. Dá para ligar nas configurações do Android para o BOAR.</string>
 </resources>

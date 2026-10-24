@@ -8,7 +8,7 @@ import team.sopa.boar.engine.models.SetupGuide.Page
 
 class SetupGuideTest {
     @Test fun `every page in a Labs build without a PIN, ending on Ready`() =
-        assertEquals(listOf(Page.LOOK, Page.ANSWERS, Page.FILES, Page.ASK, Page.PIN, Page.PRIVACY, Page.LABS, Page.READY),
+        assertEquals(listOf(Page.LOOK, Page.FILES, Page.ANSWERS, Page.ASK, Page.FIRST, Page.PIN, Page.PRIVACY, Page.LABS, Page.READY),
             SetupGuide.pages(experimental = true, pinSetBefore = false))
 
     @Test fun `no Labs page in a normal build`() =

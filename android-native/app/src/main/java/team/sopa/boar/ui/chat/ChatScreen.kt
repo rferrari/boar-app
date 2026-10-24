@@ -798,11 +798,4 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
 }
 
 /** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
-private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
-    if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
-    val prefs = ctx.getSharedPreferences("permissions", android.content.Context.MODE_PRIVATE)
-    if (prefs.getBoolean("notificationsAsked", false)) return
-    prefs.edit().putBoolean("notificationsAsked", true).apply()
-    ask()
-}
+private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) = team.sopa.boar.app.NotificationAsk.once(ctx, ask)

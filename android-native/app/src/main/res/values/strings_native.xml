@@ -602,7 +602,7 @@
     <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
     <string name="native_setupGuide_labs_sub" formatted="false">Experiments, labelled beta or alpha. These start on; switch off any you don\'t want.</string>
     <string name="native_setupGuide_labs_startOn" formatted="false">Start on</string>
-    <string name="native_setupGuide_labs_toTry" formatted="false">More to try (off)</string>
+    <string name="native_setupGuide_labs_toTry" formatted="false">More to try</string>
     <string name="native_setupGuide_labs_note" formatted="false">Labs don\'t slow the answers. The ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run. All of them are in Settings → Experimental → Boar Labs.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Almost there</string>
     <string name="native_setupGuide_ready_sub" formatted="false">BOAR opens as soon as the download and the index are done.</string>
@@ -617,4 +617,15 @@
     <string name="native_setupGuide_ready_none" formatted="false">None</string>
     <string name="native_setupGuide_ready_change" formatted="false">Go back to change any of them, or later in Settings.</string>
     <string name="native_setupGuide_ready_seeDownload" formatted="false">See the download</string>
+    <string name="native_setupGuide_first_title" formatted="false">Your first question</string>
+    <string name="native_setupGuide_first_sub" formatted="false">Pick one, or write your own. It will be waiting in the chat when BOAR opens; you send it.</string>
+    <string name="native_setupGuide_files_duplicate" formatted="false">Already added: {{name}}</string>
+    <string name="native_setupGuide_files_remove" formatted="false">Remove {{name}}</string>
+    <string name="native_setupGuide_answers_personalLater" formatted="false">Answers only from your own files. Add files first, then pick it in the chat to ask about them.</string>
+    <string name="native_setupGuide_answers_switch" formatted="false">In the chat, the style button next to where you type shows this icon and switches it any time.</string>
+    <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“BOAR is answering…”</string>
+    <string name="native_setupGuide_privacy_notifyBody" formatted="false">While BOAR writes an answer, it shows this notification. That lets the answer keep going if you leave the app. Android asks your permission once.</string>
+    <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Allow notifications</string>
+    <string name="native_setupGuide_privacy_notifyOn" formatted="false">Notifications are on.</string>
+    <string name="native_setupGuide_privacy_notifyOff" formatted="false">Notifications are off. You can turn them on in Android’s settings for BOAR.</string>
 </resources>

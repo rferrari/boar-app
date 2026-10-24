@@ -5,7 +5,11 @@ package team.sopa.boar.engine.models
  * same flow, instead of waiting on a progress bar. Every page can be skipped; what it sets is saved as it's chosen.
  */
 object SetupGuide {
-    enum class Page { LOOK, ANSWERS, FILES, ASK, PIN, PRIVACY, LABS, READY }
+    /**
+     * In this order (Oct 24, adam's test on the X6): the files come before the answer modes, so Personal Files is taught
+     * with files in hand; the first question has its own page.
+     */
+    enum class Page { LOOK, FILES, ANSWERS, ASK, FIRST, PIN, PRIVACY, LABS, READY }
 
     /**
      * The pages in order. [pinSetBefore]: a PIN was already set when this setup started (setup run again from Settings

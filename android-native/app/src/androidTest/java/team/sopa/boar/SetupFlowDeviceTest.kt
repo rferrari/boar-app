@@ -79,10 +79,6 @@ class SetupFlowDeviceTest {
         assertEquals("large", services.settings.fontScale)
         click(t("native.setupGuide.next"), substring = true)
 
-        onPage("answers")
-        click(t("personalities.succinct.label"), substring = true)
-        click(t("native.setupGuide.next"), substring = true)
-
         // A file picked now, before the search model is in: copied at once, imported when it can be. The system
         // picker can't be driven from here, so the file goes to the same call the picker's result does.
         onPage("files")
@@ -91,7 +87,16 @@ class SetupFlowDeviceTest {
         compose.waitUntil(10_000) { shows("boar-notes.txt") }
         click(t("native.setupGuide.next"), substring = true)
 
+        // The answer modes after the files: Personal Files is offered now that there is one.
+        onPage("answers")
+        assertTrue(shows(t("personalities.personal.label")))
+        click(t("personalities.succinct.label"), substring = true)
+        click(t("native.setupGuide.next"), substring = true)
+
         onPage("ask")
+        click(t("native.setupGuide.next"), substring = true)
+
+        onPage("first")
         val question = t("chat.suggestions.q4")
         click(question)
         assertEquals(question, services.settings.pendingFirstQuestion)

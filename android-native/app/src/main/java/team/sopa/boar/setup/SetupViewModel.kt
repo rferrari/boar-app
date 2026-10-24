@@ -89,6 +89,8 @@ data class SetupState(
     val importing: Boolean = false,
     /** Why a picked file didn't go in, in the user's language. */
     val importErrors: List<String> = emptyList(),
+    /** Files skipped because the same content was already picked ("Already added: notes.txt"). */
+    val importNotes: List<String> = emptyList(),
 ) {
     val page get() = pages.getOrNull(guidePage) ?: SetupGuide.Page.READY
     val allPresent get() = downloads.isNotEmpty() && downloads.all { it.done }
@@ -236,6 +238,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch(Dispatchers.IO) {
             importDir.mkdirs()
             val errors = mutableListOf<String>()
+            val notes = mutableListOf<String>()
+            // The same file picked twice (same bytes, whatever its name) goes in once.
+            val have = pickedNames().mapNotNull { n -> sha256(File(importDir, n))?.let { it to n } }.toMap().toMutableMap()
             for (uri in uris) {
                 // The name comes from the app that provides the file: only its last segment, so "../x.txt" stays in
                 // setup-imports/, and no leading dot, which would hide it with the folder's own .import.json and .part files.
@@ -247,10 +252,44 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
                 val part = File(importDir, ".${target.name}.part")
                 val ok = runCatching {
                     getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input -> part.outputStream().use { input.copyTo(it) } }
-                }.isSuccess && part.renameTo(target)
-                if (!ok) { part.delete(); errors += text("native.documents.unreadable", name) }
+                }.isSuccess
+                val hash = if (ok) sha256(part) else null
+                val same = hash?.let(have::get)
+                when {
+                    !ok -> { part.delete(); errors += text("native.documents.unreadable", name) }
+                    same != null -> { part.delete(); notes += text("native.setupGuide.files.duplicate", same) }
+                    !part.renameTo(target) -> { part.delete(); errors += text("native.documents.unreadable", name) }
+                    else -> hash?.let { have[it] = target.name }
+                }
             }
-            _state.update { it.copy(files = pickedNames(), importErrors = errors) }
+            _state.update { it.copy(files = pickedNames(), importErrors = errors, importNotes = notes) }
+            importQueued()
+        }
+    }
+
+    private fun sha256(f: File): String? = runCatching {
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        f.inputStream().use { input -> val buf = ByteArray(64 * 1024); while (true) { val n = input.read(buf); if (n < 0) break; md.update(buf, 0, n) } }
+        md.digest().joinToString("") { "%02x".format(it) }
+    }.getOrNull()
+
+    /**
+     * The files page's ✕: the picked file goes. Once an import took it, the collection is rebuilt without it (the next
+     * import replaces the last one's collection); with no file left, the collection goes too. After a running import.
+     */
+    fun removeFile(name: String) {
+        safeScope.launch(Dispatchers.IO) {
+            importJob?.join()
+            File(importDir, name).delete()
+            val (lastId, done) = imported()
+            val left = pickedNames()
+            if (name in done) {
+                if (left.isEmpty()) {
+                    lastId?.let { services.knowledgeBase.deleteCollection(it) }
+                    importRecord.delete()
+                } else recordImport(lastId, emptyList()) // all pending again: re-imported without it
+            }
+            _state.update { it.copy(files = pickedNames(), filesImported = imported().second, importNotes = emptyList(), importErrors = emptyList()) }
             importQueued()
         }
     }

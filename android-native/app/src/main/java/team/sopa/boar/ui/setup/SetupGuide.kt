@@ -31,6 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.app.BoarServices
 import team.sopa.boar.engine.models.AnswerTier
@@ -63,7 +65,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
     }
     var bannerHidden by rememberSaveable { mutableStateOf(false) }
     val skippable = (page == Page.FILES && state.files.isEmpty()) || (page == Page.PIN && !services.pinLock.isSet)
-    StepScreen(footer = {
+    // A page of its own: Next opens it at the top, not where the last one was scrolled to.
+    androidx.compose.runtime.key(page) { StepScreen(footer = {
         if (page == Page.READY) {
             // The page's subtitle already says when it opens: no note here, so large text keeps room for the page.
             PrimaryButton(t("flows.onboarding.open"), enabled = state.finished, onClick = onDone)
@@ -80,7 +83,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             Page.LOOK -> LookPage(services, themeId, onTheme, onFontScale)
             Page.ANSWERS -> AnswersPage(services, state)
             Page.FILES -> FilesPage(state, vm)
-            Page.ASK -> AskPage(services, state)
+            Page.ASK -> AskPage(state)
+            Page.FIRST -> FirstQuestionPage(services)
             Page.PIN -> PinPage(services) { pinEntry = true }
             Page.PRIVACY -> PrivacyPage(services)
             Page.LABS -> {
@@ -89,7 +93,7 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             }
             Page.READY -> ReadyPage(services, state) { vm.showDetails(true) }
         }
-    }
+    } }
 }
 
 // --- Frame ---------------------------------------------------------------------------------------------------------
@@ -152,22 +156,44 @@ private fun LookPage(services: BoarServices, themeId: String?, onTheme: (String)
     team.sopa.boar.ui.tour.TourPreview("theme")
 }
 
+/**
+ * One way BOAR answers, its icon big and first (the same as on the chat's style button), so a quick reader matches the
+ * button to the mode without reading the text. [onPick]: null for a mode explained but not picked here.
+ */
+@Composable
+private fun ModeCard(icon: String, title: String, body: String, selected: Boolean, onPick: (() -> Unit)?) {
+    val c = Boar.colors
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
+        .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
+        .then(if (onPick != null) Modifier.clickable(onClick = onPick) else Modifier).padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Box(Modifier.size(48.dp).background(if (selected) c.emerald500.copy(alpha = 0.25f) else c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
+            Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = Boar.type.title, color = c.textHeading)
+            Text(body, style = Boar.type.subtext, color = c.textSecondary)
+        }
+        if (selected) Text("✓", style = Boar.type.title, color = c.textAccentEmerald)
+    }
+}
+
 @Composable
 private fun AnswersPage(services: BoarServices, state: SetupState) {
     val c = Boar.colors
     val s = services.settings
     var style by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
-    // Personal Files is offered with the files (the How to ask page says how to switch to it).
-    for (id in listOf("succinct", "detailed")) {
-        OptionCard("${services.personalities.get(id).icon}  ${t("personalities.$id.label")}", style == id, null, null, { style = id; s.personalityId = id }) {
-            Meta(t("personalities.$id.description"), c.textSecondary)
-        }
-    }
+    // The styles BOAR can start with; Personal Files only once there are files to answer from.
+    val ids = listOfNotNull("succinct", "detailed", if (state.files.isNotEmpty()) "personal" else null)
+    for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id) { style = id; s.personalityId = id }
+    // Without files, Personal Files is explained, not offered: there would be nothing to answer from.
+    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false, null)
     var deep by remember { mutableStateOf(s.deepResearchMode) }
-    SwitchRow(t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep) { deep = it; s.deepResearchMode = it }
+    ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep) { deep = !deep; s.deepResearchMode = deep }
     // Deep Research writes longer answers in several steps: on the light model that's minutes per answer.
     val light = state.models.firstOrNull { it.id == state.chosenId }?.answerTier == AnswerTier.COMPACT
     if (deep && light) Meta(t("native.setupGuide.answers.deepSlow"), c.textAccentAmber)
+    Meta(t("native.setupGuide.answers.switch"), c.textAccentCyan)
 }
 
 @Composable
@@ -192,8 +218,14 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
             Text(if (done) "✓" else "◷", style = Boar.type.title, color = if (done) c.textAccentEmerald else c.textSecondary)
             Text(name, style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f), maxLines = 2)
             Text(if (done) t("native.setupGuide.files.added") else waiting, style = Boar.type.caption, color = if (done) c.textAccentEmerald else c.textMuted)
+            // A wrong pick goes again; an imported one comes out of Personal Files too.
+            val removeLabel = t("native.setupGuide.files.remove", "name" to name)
+            Text("✕", style = Boar.type.title, color = c.textMuted, modifier = Modifier.clip(CircleShape)
+                .clickable(enabled = !state.importing) { vm.removeFile(name) }
+                .semantics { contentDescription = removeLabel }.padding(8.dp))
         }
     }
+    state.importNotes.forEach { Meta(it, c.textSecondary) }
     state.importErrors.forEach { Meta(it, c.crimson400) }
     // A question about these files needs the Personal Files style: the default one searches the library first.
     if (state.files.isNotEmpty()) Card(background = c.emeraldBgSubtle, border = c.emerald500) {
@@ -203,7 +235,7 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
 }
 
 @Composable
-private fun AskPage(services: BoarServices, state: SetupState) {
+private fun AskPage(state: SetupState) {
     val c = Boar.colors
     Card {
         // With files added, how to ask about them comes first.
@@ -215,10 +247,13 @@ private fun AskPage(services: BoarServices, state: SetupState) {
         }
     }
     team.sopa.boar.ui.tour.TourPreview("sources")
-    Text(t("native.setupGuide.ask.pick").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-    val examples = listOf(
-        t("chat.suggestions.q2"), t("chat.suggestions.q4"), t("chat.suggestions.q8"),
-    )
+}
+
+/** The question waiting in the chat when BOAR opens: an example, or the user's own. */
+@Composable
+private fun FirstQuestionPage(services: BoarServices) {
+    val c = Boar.colors
+    val examples = listOf(t("chat.suggestions.q2"), t("chat.suggestions.q4"), t("chat.suggestions.q8"))
     var question by remember { mutableStateOf(services.settings.pendingFirstQuestion.orEmpty()) }
     val pick: (String) -> Unit = { q -> question = q; services.settings.pendingFirstQuestion = q }
     for (q in examples) {
@@ -233,7 +268,6 @@ private fun AskPage(services: BoarServices, state: SetupState) {
         if (own.isEmpty()) Text(t("native.setupGuide.ask.own"), style = Boar.type.body, color = c.textDim)
         BasicTextField(own, pick, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth())
     }
-    Meta(t("native.setupGuide.ask.pickNote"))
 }
 
 @Composable
@@ -250,6 +284,7 @@ private fun PinPage(services: BoarServices, onSet: () -> Unit) {
 
 @Composable
 private fun PrivacyPage(services: BoarServices) {
+    NotificationCard()
     val s = services.settings
     var free by remember { mutableStateOf(s.freeMemoryInBackground) }
     SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
@@ -260,6 +295,35 @@ private fun PrivacyPage(services: BoarServices) {
     var voice by remember { mutableStateOf(s.voiceInputEnabled) }
     SwitchRow(t("voiceSettings.enabledLabel"), t("voiceSettings.enabledValue"), voice) { voice = it; s.voiceInputEnabled = it }
     Meta(t("native.setupGuide.privacy.where"), Boar.colors.textAccentCyan)
+}
+
+/**
+ * "BOAR is answering…": what the notification is for, and Android's permission asked here, with the reason in view,
+ * instead of at the first question (NotificationAsk keeps it to once).
+ */
+@Composable
+private fun NotificationCard() {
+    if (!team.sopa.boar.app.NotificationAsk.applies()) return
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    var granted by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.granted(ctx)) }
+    var asked by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.asked(ctx)) }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it; asked = true }
+    Card {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) { Text("🔔") }
+            Text(t("native.setupGuide.privacy.notifyTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
+        }
+        Text(t("native.setupGuide.privacy.notifyBody"), style = Boar.type.body, color = c.textSecondary)
+        when {
+            granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+            asked -> Meta(t("native.setupGuide.privacy.notifyOff"))
+            else -> SecondaryButton(t("native.setupGuide.privacy.notifyAllow")) {
+                team.sopa.boar.app.NotificationAsk.markAsked(ctx)
+                ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 }
 
 /** The last page: what was chosen, then the summary when BOAR is ready, else where the download is. */
