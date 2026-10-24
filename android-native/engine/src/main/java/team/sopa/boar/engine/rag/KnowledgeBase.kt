@@ -82,6 +82,12 @@ class KnowledgeBase(private val db: SqlDatabase) {
             CollectionDoc(it.string("title")!!, it.string("source") ?: "", it.string("body")!!)
         }
 
+    /** One document's parts (the built-in library's, or a file in Personal Files), for reading it whole (SourceArticle). */
+    fun docParts(docId: String): List<Chunk> =
+        db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE doc_id = ?", listOf(docId)) {
+            Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"))
+        }
+
     fun setCollectionActive(id: String, active: Boolean) {
         db.execute("UPDATE custom_collections SET active = ? WHERE id = ?", listOf(if (active) 1 else 0, id))
     }

@@ -642,4 +642,9 @@
     <string name="native_settings_summary_voice" formatted="false">Entrada de voz {{state}}</string>
     <string name="native_settings_summary_pinOn" formatted="false">PIN ligado</string>
     <string name="native_settings_summary_pinOff" formatted="false">Sem PIN</string>
+    <!-- A source read whole (ui/chat/SourceReader.kt) -->
+    <string name="native_sourceFootnotes_readAll" formatted="false">Ler o artigo inteiro ›</string>
+    <string name="native_reader_loading" formatted="false">Abrindo…</string>
+    <string name="native_reader_missing" formatted="false">Este artigo não está mais no celular: o pacote ou a coleção foi removido.</string>
+    <string name="native_reader_used" formatted="false">A parte que o BOAR usou está marcada.</string>
 </resources>
