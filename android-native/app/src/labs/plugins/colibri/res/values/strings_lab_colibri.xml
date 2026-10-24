@@ -4,13 +4,13 @@
     <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B on colibri, a tiny pure-C engine: a quarter of each layer\'s experts stay in memory, the rest stream from storage.</string>
     <string name="native_labs_colibri_engine" formatted="false">ENGINE</string>
     <string name="native_labs_colibri_engineOk" formatted="false">colibri is in this build</string>
-    <string name="native_labs_colibri_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
+    <string name="native_labs_colibri_engineMissing" formatted="false">Not in this version: parked while under review</string>
     <string name="native_labs_colibri_model" formatted="false">MODEL</string>
     <string name="native_labs_colibri_modelOk" formatted="false">Found the converted model folder</string>
     <string name="native_labs_colibri_modelMissing" formatted="false">Not on the phone. Copy the converted folder over USB to {{path}}</string>
     <string name="native_labs_colibri_use" formatted="false">Answer with this model</string>
     <string name="native_labs_colibri_using" formatted="false">✓ BOAR answers with this model now. Pick another one in Models to switch back.</string>
     <string name="native_labs_colibri_note" formatted="false">No reasoning, English only, and a small model: an engine experiment more than an assistant. Adaptive routing is skipped while it\'s selected.</string>
-    <string name="native_labs_colibri_review" formatted="false">Too slow for an assistant on our test phones: a short answer takes minutes. Big Boar runs a model 5× bigger, faster. Still here to try and compare.</string>
+    <string name="native_labs_colibri_review" formatted="false">Too slow for an assistant on our test phones: a short answer takes minutes. Big Boar runs a model 5× bigger, faster. Parked while under review: its engine is not in this version.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">under 1 tok/s</string>
 </resources>

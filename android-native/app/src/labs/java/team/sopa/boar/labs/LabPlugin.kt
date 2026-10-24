@@ -38,8 +38,6 @@ interface LabPlugin {
     /** The tile's picture (a drawable), shown instead of [emoji] when set. */
     val art: Int? get() = null
     val status: LabStatus
-    /** Switched on in a fresh install (or after Reset); every other lab starts off until the user turns it on. */
-    val onByDefault: Boolean get() = false
 
     /** The experiment's page, below the shared header (LabScaffold). */
     @Composable fun Content() {}
@@ -134,8 +132,9 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // Calculator, Facts, Cohazard, Distance and Polyglot start on (owner, Oct 20); every other lab starts off.
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", it.onByDefault) }
+        // Every lab starts off (owner, Oct 24; the instant ones started on since Oct 20): the user picks them, from
+        // setup's Labs page or the grid.
+        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", false) }
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         restart.value = p.getBoolean("autoRestart", true)
     }

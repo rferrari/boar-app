@@ -285,7 +285,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Desenterre javalis enquanto usa o BOAR e use-os como avatar; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com os labs de resposta rápida (beta) e o Boar Vitals; o resto (alpha) vem desligado. Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com todos os labs desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
     <string name="native_debugLog_title" formatted="false">Log de depuração</string>
     <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>
@@ -528,7 +528,7 @@
     <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
     <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
     <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Calculator, Facts, Cohazard, Distance, Polyglot e Vitals já vêm ligados.\n\nExperimente também o Boar Designer, que desenha uma imagem a partir da resposta; o Boar Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs labs não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.\n\nExperimente também o Boar Designer, que desenha uma imagem a partir da resposta; o Boar Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs labs não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
