@@ -106,7 +106,7 @@ android {
         manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
+        versionCode = 5
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
         versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
