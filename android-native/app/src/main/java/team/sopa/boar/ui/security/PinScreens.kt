@@ -76,8 +76,8 @@ private fun PinPad(title: String, subtitle: String?, error: String?, busy: Boole
                         }, contentAlignment = Alignment.Center) {
                         val tint = if (enabled) c.textHeading else c.textDim
                         when (k) {
-                            "⌫" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_backspace, 28.dp, tint)
-                            "✓" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 28.dp, tint)
+                            "⌫" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_backspace, 28.dp, tint, description = t("native.a11y.backspace"))
+                            "✓" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 28.dp, tint, description = t("native.a11y.done"))
                             else -> Text(k, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = tint)
                         }
                     }

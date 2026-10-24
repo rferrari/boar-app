@@ -65,7 +65,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 24.dp, c.textPrimary, Modifier.clickable(onClick = onBack).padding(4.dp))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 24.dp, c.textPrimary, Modifier.clickable(onClick = onBack).padding(4.dp), t("native.a11y.back"))
             Text(t("modelSetupScreen.header.title"), style = Boar.type.titleLg, color = c.textHeading)
         }
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

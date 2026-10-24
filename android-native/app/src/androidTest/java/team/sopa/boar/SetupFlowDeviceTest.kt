@@ -3,6 +3,7 @@ package team.sopa.boar
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.compose.ui.test.onNodeWithText
@@ -116,7 +117,8 @@ class SetupFlowDeviceTest {
         click(t("native.pin.offerSet"), substring = true)
         repeat(2) {
             "2580".forEach { d -> click(d.toString()) }
-            click("✓")
+            compose.onNode(hasContentDescription(t("native.a11y.done")) and hasClickAction()).performSemanticsAction(SemanticsActions.OnClick)
+            compose.waitForIdle()
         }
         compose.waitUntil(20_000) { services.pinLock.isSet }
         // Android 13 and newer: the notifications page. Not now, so no system dialog; the chat won't ask either.

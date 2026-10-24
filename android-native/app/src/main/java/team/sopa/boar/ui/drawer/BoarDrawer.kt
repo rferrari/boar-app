@@ -109,7 +109,7 @@ fun BoarDrawer(
                                 Text(s.title, style = Boar.type.caption, color = c.textPrimary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, modifier = Modifier.padding(top = 2.dp))
                             }
-                            if (!answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 18.dp, c.textMuted, Modifier.clickable { onDelete(s.id) }.padding(4.dp))
+                            if (!answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 18.dp, c.textMuted, Modifier.clickable { onDelete(s.id) }.padding(4.dp), t("native.a11y.deleteChat"))
                         }
                     }
                 }

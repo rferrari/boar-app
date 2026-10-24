@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import team.sopa.boar.ui.theme.Boar
@@ -16,7 +18,7 @@ import team.sopa.boar.ui.theme.Boar
  * setup, and the chat's style button and sheet (one look for the styles); the chat's other emoji stay (adam, Oct 24).
  */
 @Composable
-fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.textHeading) {
+fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.textHeading, description: String? = null) {
     val drawable = when (id) {
         "succinct" -> team.sopa.boar.R.drawable.ic_style_quick
         "detailed" -> team.sopa.boar.R.drawable.ic_settings_knowledge
@@ -26,6 +28,7 @@ fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.tex
         "deep" -> team.sopa.boar.R.drawable.ic_deep_research
         else -> null
     }
-    if (drawable != null) Icon(painterResource(drawable), null, Modifier.size(size), tint = tint)
-    else Text(emoji, fontSize = (size.value * 0.9f).sp)
+    val labelled = if (description != null) Modifier.semantics { contentDescription = description } else Modifier
+    if (drawable != null) Icon(painterResource(drawable), description, Modifier.size(size), tint = tint)
+    else Text(emoji, fontSize = (size.value * 0.9f).sp, modifier = labelled)
 }
