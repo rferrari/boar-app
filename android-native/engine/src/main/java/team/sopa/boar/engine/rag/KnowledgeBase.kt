@@ -76,9 +76,12 @@ class KnowledgeBase(private val db: SqlDatabase) {
         )
     }
 
-    /** getCollectionDocs: each distinct passage of a collection, in chunk order. */
+    /**
+     * getCollectionDocs: each distinct passage of a collection, in chunk order. Cards (OwnFiles.card) stay out: they're
+     * BOAR's index of a file, and a re-imported export would turn them into the user's text.
+     */
     fun collectionDocs(id: String): List<CollectionDoc> =
-        db.query("SELECT DISTINCT title, body, source FROM chunks WHERE collection_id = ? ORDER BY chunk_id", listOf(id)) {
+        db.query("SELECT DISTINCT title, body, source FROM chunks WHERE collection_id = ? AND chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}' ORDER BY chunk_id", listOf(id)) {
             CollectionDoc(it.string("title")!!, it.string("source") ?: "", it.string("body")!!)
         }
 
@@ -163,11 +166,11 @@ class KnowledgeBase(private val db: SqlDatabase) {
         return ids.mapNotNull(byId::get)
     }
 
-    /** One document's parts, closest to [queryVec] first, with no similarity floor: the question named this file. */
-    fun rankWithin(docId: String, queryVec: FloatArray, limit: Int): List<Chunk> = db.query(
+    /** The parts of [docIds] (one file's documents), closest to [queryVec] first, with no similarity floor: the question named the file. */
+    fun rankWithin(docIds: List<String>, queryVec: FloatArray, limit: Int): List<Chunk> = if (docIds.isEmpty()) emptyList() else db.query(
         """SELECT c.chunk_id, c.doc_id, c.title, c.body, c.source, c.collection_id, e.embedding
-           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id WHERE c.doc_id = ?""",
-        listOf(docId),
+           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id WHERE c.doc_id IN (${docIds.joinToString(", ") { "?" }})""",
+        docIds,
     ) {
         val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
         Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"),

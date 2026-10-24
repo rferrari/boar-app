@@ -31,10 +31,10 @@ class Retriever(
         // opening part after what the search found, since no single passage is close to "summarize my files".
         val files = kb.ownFiles()
         val vec = queryVec ?: embed(query)
-        OwnFiles.named(query, files)?.let { f -> return OwnFiles.dropCoveredCards(kb.rankWithin(f.docId, vec, topK + 1)).take(topK) }
+        OwnFiles.named(query, files)?.let { f -> return OwnFiles.dropCoveredCards(kb.rankWithin(OwnFiles.docsOf(f, files), vec, topK + 1)).take(topK) }
         val found = OwnFiles.dropCoveredCards(retrieveAll(query, topK, vec, includeWikiPacks, params))
         if (!OwnFiles.aboutTheFiles(query)) return found
-        return OwnFiles.withOpenings(found, kb.openingParts(files.map { it.docId }), maxOf(topK, OwnFiles.OVERVIEW_MAX_FILES))
+        return OwnFiles.withOpenings(found, kb.openingParts(files.map { it.docId }), topK, maxOf(topK, OwnFiles.OVERVIEW_MAX_FILES))
     }
 
     /** The user's switched-on files, for the prompt's list of them (OwnFiles.note). */

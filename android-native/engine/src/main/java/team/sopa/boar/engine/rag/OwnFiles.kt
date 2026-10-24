@@ -65,7 +65,8 @@ object OwnFiles {
     /**
      * The one file the question names: every naming word of a file name with one or two of them ("blood-test-2026.txt"
      * by "blood test"), at least two of a longer name's. None when no file or two equally do; then the search runs on
-     * all the files as before.
+     * all the files as before. A file that is a list of documents (JSON) is several [File]s with one name: the caller
+     * searches all of them ([docsOf]).
      */
     fun named(question: String, files: List<File>): File? {
         val words = WORD.findAll(fold(question)).map { stem(it.value) }.toSet()
@@ -78,6 +79,9 @@ object OwnFiles {
         val best = scored.maxOfOrNull { it.second } ?: return null
         return scored.filter { it.second == best }.singleOrNull()?.first
     }
+
+    /** Every document of [file]'s file: one, or each of a JSON list's. */
+    fun docsOf(file: File, files: List<File>): List<String> = files.filter { it.name == file.name }.map { it.docId }
 
     /** The prompt's line naming the switched-on files, or null without any. */
     fun note(files: List<File>): String? {
@@ -118,12 +122,14 @@ object OwnFiles {
     }
 
     /**
-     * [found] first, then [more] (each file's opening part) for files [found] doesn't already have, up to [limit]; a
-     * card goes when a real part of its file is there.
+     * An overview's passages: up to [hits] of what the search found (cards left out: the file's own opening says more),
+     * then [openings] (each file's opening part) for every file those hits don't cover, up to [limit] in all. Each file
+     * gets its opening before a second hit from any file does.
      */
-    fun withOpenings(found: List<Chunk>, more: List<Chunk>, limit: Int): List<Chunk> {
-        val docs = found.map { it.docId }.toHashSet()
-        return dropCoveredCards((found + more.filter { it.docId !in docs }).distinctBy { it.chunkId }).take(limit)
+    fun withOpenings(found: List<Chunk>, openings: List<Chunk>, hits: Int, limit: Int): List<Chunk> {
+        val first = found.filter { !isCard(it) }.take(hits)
+        val docs = first.map { it.docId }.toHashSet()
+        return (first + openings.filter { it.docId !in docs }).distinctBy { it.chunkId }.take(limit)
     }
 
     /** A card is there to find its file: once a part of the same file is among the passages, it only repeats it. */

@@ -146,6 +146,29 @@ class OwnFilesTest {
         assertTrue(found.toString(), found.none { it.startsWith("c-") })
     }
 
+    @Test fun `a card in the hits doesn't take its file's opening in an overview`() {
+        val card = Chunk("d-card", "d", "d (about this file)", "File: d.md")
+        val hitE1 = Chunk("e-c3", "e", "e (part 4/9)", "x")
+        val hitE2 = Chunk("e-c5", "e", "e (part 6/9)", "y")
+        val openings = listOf(Chunk("d-c0", "d", "d", "d starts"), Chunk("e-c0", "e", "e", "e starts"), Chunk("f-c0", "f", "f", "f starts"))
+        // Hits first (up to 2 here), no card; then the opening of every file they don't cover.
+        assertEquals(listOf("e-c3", "e-c5", "d-c0", "f-c0"), OwnFiles.withOpenings(listOf(card, hitE1, hitE2), openings, hits = 2, limit = 12).map { it.chunkId })
+    }
+
+    @Test fun `a named JSON list file searches all of its documents`() {
+        val k = KnowledgeBase(JdbcSqlite()).apply {
+            createCollection("j", "recipes", "recipes.json", 2, 2, 100, now = 1)
+            insertChunk(Chunk("j-doc0-soup-c0", "j-doc0-soup", "Soup", "Onion soup.", source = "recipes.json", collectionId = "j"), farVec)
+            insertChunk(Chunk("j-doc1-bread-c0", "j-doc1-bread", "Bread", "Sourdough bread.", source = "recipes.json", collectionId = "j"), questionVec)
+        }
+        val found = retriever(k).retrieve("What's in my recipes?", 4, params = ownOnly).map { it.chunkId }
+        assertEquals(listOf("j-doc1-bread-c0", "j-doc0-soup-c0"), found)
+    }
+
+    @Test fun `an export leaves the cards out`() {
+        assertEquals(listOf("festival-notes", "blood-test-2026 (part 1/2)", "blood-test-2026 (part 2/2)"), kb().collectionDocs("c").map { it.title })
+    }
+
     @Test fun `switched-off files stay out of every Personal Files path`() {
         val r = retriever(kb(active = false))
         assertEquals(emptyList<Chunk>(), r.retrieve("What are the main points of my files?", 4, params = ownOnly))
