@@ -50,6 +50,7 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.io.File
 import java.util.Locale
+import team.sopa.boar.ui.theme.track
 
 /**
  * Boar Vitals (was Device Pulse): what the phone feels while BOAR works. Once a second: battery temperature (with the last two minutes
@@ -189,7 +190,7 @@ object DevicePulseLab : LabPlugin {
         val c = Boar.colors
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(label, style = Boar.type["mono.xs"], color = c.textMuted, modifier = Modifier.width(64.dp))
-            Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.4f))) {
+            Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Boar.colors.track(0.4f))) {
                 Box(Modifier.fillMaxWidth(frac.coerceIn(0f, 1f)).fillMaxHeight().background(color))
             }
             Text(value, style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = c.textSecondary, modifier = Modifier.width(96.dp))

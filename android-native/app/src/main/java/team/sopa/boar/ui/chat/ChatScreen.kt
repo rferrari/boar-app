@@ -87,6 +87,7 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.BrandType
 import kotlin.math.sqrt
+import team.sopa.boar.ui.theme.wash
 
 /**
  * The chat, laid out as src/ui-android/ChatScreen.tsx and ChatHeader.tsx with their style values: the ambient light,
@@ -234,7 +235,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(Color.White.copy(alpha = 0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
+            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
                 val truffle = team.sopa.boar.appearance.LocalTruffle.current
@@ -286,7 +287,7 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     val c = Boar.colors
     var open by remember { mutableStateOf(false) }
     Box {
-        RoundButton(if (on) c.frontierBadgeBg else Color.White.copy(alpha = 0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
+        RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
             Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
