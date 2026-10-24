@@ -56,7 +56,7 @@ fun ToneSheet(state: ChatState, onSetTone: (String) -> Unit, onSetDeepResearch: 
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp), color = c.borderSubtle)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("🔬", fontSize = 20.sp)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp)
                 Column(Modifier.weight(1f)) {
                     Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.body, color = c.textPrimary)
                     Text(t("personalitySettings.deepResearchNote"), style = Boar.type.subtext, color = c.textMuted)

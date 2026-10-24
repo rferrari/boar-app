@@ -288,13 +288,16 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("🔬 " + t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp)
+                            Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        }
                         Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
                     }
                     androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
@@ -361,7 +364,7 @@ private fun StatusPill(online: Boolean) {
 private fun DeepResearchBanner(onClose: () -> Unit) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(start = 12.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("🔬", fontSize = 10.sp)
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 12.dp, c.frontierText)
         Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
         // Closed for good: the header chip still shows Deep Research is on.
@@ -454,7 +457,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
                 else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
             }
         }, contentAlignment = Alignment.Center) {
-        Text(if (listening) "■" else "🎤", fontSize = if (listening) 12.sp else 16.sp, color = Color.White)
+        if (listening) Text("■", fontSize = 12.sp, color = Color.White) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, Color.White)
     }
 }
 
@@ -797,7 +800,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         Box(
             Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { Text(if (answering) "■" else "➤", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
+        ) { if (answering) Text("■", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White) }
     }
 }
 
