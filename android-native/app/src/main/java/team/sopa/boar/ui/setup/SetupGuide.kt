@@ -66,13 +66,18 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
         return
     }
     var bannerHidden by rememberSaveable { mutableStateOf(false) }
-    val skippable = (page == Page.FILES && state.files.isEmpty()) || (page == Page.PIN && !services.pinLock.isSet)
+    val ctx = LocalContext.current
+    // The notifications page's answer, here so the footer turns to Next once they're allowed.
+    var notifyGranted by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.granted(ctx)) }
+    val skippable = (page == Page.FILES && state.files.isEmpty()) || (page == Page.PIN && !services.pinLock.isSet) ||
+        (page == Page.NOTIFY && !notifyGranted)
     // A page of its own: Next opens it at the top, not where the last one was scrolled to.
     androidx.compose.runtime.key(page) { StepScreen(footer = {
         if (page == Page.READY) {
             // The page's subtitle already says when it opens: no note here, so large text keeps room for the page.
             PrimaryButton(t("flows.onboarding.open"), enabled = state.finished, onClick = onDone)
-        // A page with its own action (Add files, Set a PIN) keeps that one as the strong button; skipping is quieter.
+        // A page with its own action (Add files, Set a PIN, Allow notifications) keeps that one as the strong button;
+        // skipping is quieter.
         } else if (skippable) SecondaryButton(t("native.setupGuide.skip") + "  →") { vm.guideNext() }
         else PrimaryButton(t("native.setupGuide.next") + "  →") { vm.guideNext() }
         if (state.guidePage > 0) BackLink(t("flows.onboarding.back")) { vm.guideBack() }
@@ -88,6 +93,7 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             Page.ASK -> AskPage(state)
             Page.FIRST -> FirstQuestionPage(services)
             Page.PIN -> PinPage(services) { pinEntry = true }
+            Page.NOTIFY -> NotifyPage(notifyGranted) { notifyGranted = it }
             Page.PRIVACY -> PrivacyPage(services)
             Page.LABS -> {
                 team.sopa.boar.labs.LabHooks.SetupList()
@@ -294,7 +300,6 @@ private fun PinPage(services: BoarServices, onSet: () -> Unit) {
 
 @Composable
 private fun PrivacyPage(services: BoarServices) {
-    NotificationCard()
     val s = services.settings
     var free by remember { mutableStateOf(s.freeMemoryInBackground) }
     SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
@@ -308,32 +313,32 @@ private fun PrivacyPage(services: BoarServices) {
 }
 
 /**
- * "BOAR is answering…": what the notification is for, and Android's permission asked here, with the reason in view,
- * instead of at the first question (NotificationAsk keeps it to once).
+ * Notifications, a page of their own (Oct 24; Android 13 and newer, SetupGuide.pages): what "BOAR is answering…" is,
+ * how it works and why Android asks, with the permission asked here. Once this page has shown, the chat never asks at
+ * the first question (NotificationAsk), whether the user allowed it or went on.
  */
 @Composable
-private fun NotificationCard() {
-    if (!team.sopa.boar.app.NotificationAsk.applies()) return
+private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
-    var granted by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.granted(ctx)) }
-    var asked by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.asked(ctx)) }
-    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it; asked = true }
+    // Refused before (Android won't show its dialog again): say where to turn it on. Read before the page marks it.
+    var refused by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.asked(ctx) && !granted) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { team.sopa.boar.app.NotificationAsk.markAsked(ctx) }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it }
     Card {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) { Text("🔔") }
             Text(t("native.setupGuide.privacy.notifyTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
         }
         Text(t("native.setupGuide.privacy.notifyBody"), style = Boar.type.body, color = c.textSecondary)
-        when {
-            granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
-            asked -> Meta(t("native.setupGuide.privacy.notifyOff"))
-            else -> SecondaryButton(t("native.setupGuide.privacy.notifyAllow")) {
-                team.sopa.boar.app.NotificationAsk.markAsked(ctx)
-                ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
     }
+    Text(t("native.setupGuide.notify.why"), style = Boar.type.body, color = c.textPrimary)
+    when {
+        granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+        refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
+        else -> PrimaryButton("🔔  " + t("native.setupGuide.privacy.notifyAllow")) { ask.launch(android.Manifest.permission.POST_NOTIFICATIONS) }
+    }
+    Meta(t("native.setupGuide.notify.without"), c.textAccentCyan)
 }
 
 /** The last page: what was chosen, then the summary when BOAR is ready, else where the download is. */

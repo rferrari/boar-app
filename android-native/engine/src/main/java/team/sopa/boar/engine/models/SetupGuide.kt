@@ -7,18 +7,22 @@ package team.sopa.boar.engine.models
 object SetupGuide {
     /**
      * In this order (Oct 24, adam's test on the X6): the files come before the answer modes, so Personal Files is taught
-     * with files in hand; the first question has its own page.
+     * with files in hand; the first question has its own page. Notifications have their own page too (Oct 24): Android
+     * asks for them there, with what they are for, not at the first question.
      */
-    enum class Page { LOOK, FILES, ANSWERS, ASK, FIRST, PIN, PRIVACY, LABS, READY }
+    enum class Page { LOOK, FILES, ANSWERS, ASK, FIRST, PIN, NOTIFY, PRIVACY, LABS, READY }
 
     /**
      * The pages in order. [pinSetBefore]: a PIN was already set when this setup started (setup run again from Settings
      * → Recovery), so there's nothing to offer; a PIN set on the PIN page keeps the page, so the list doesn't shift
      * under the user. [experimental]: the Boar Labs page, only in builds with the Experimental section.
+     * [notifications]: Android asks for the notification permission (13 and newer); the page stays once allowed, so the
+     * list never shifts.
      */
-    fun pages(experimental: Boolean, pinSetBefore: Boolean): List<Page> = Page.entries.filter {
+    fun pages(experimental: Boolean, pinSetBefore: Boolean, notifications: Boolean): List<Page> = Page.entries.filter {
         when (it) {
             Page.PIN -> !pinSetBefore
+            Page.NOTIFY -> notifications
             Page.LABS -> experimental
             else -> true
         }
@@ -29,8 +33,8 @@ object SetupGuide {
      * page when it was saved (null: saved by a build without it). A PIN set on that page must not drop the page now,
      * or every page after it would shift by one. [page]: the saved page's name; an unknown one starts over.
      */
-    fun resume(experimental: Boolean, pinPage: Boolean?, pinSetNow: Boolean, page: String?): Pair<List<Page>, Int> {
-        val pages = pages(experimental, pinSetBefore = pinPage?.not() ?: pinSetNow)
+    fun resume(experimental: Boolean, pinPage: Boolean?, pinSetNow: Boolean, notifications: Boolean, page: String?): Pair<List<Page>, Int> {
+        val pages = pages(experimental, pinSetBefore = pinPage?.not() ?: pinSetNow, notifications = notifications)
         return pages to maxOf(0, pages.indexOfFirst { it.name == page })
     }
 

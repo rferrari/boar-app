@@ -600,6 +600,10 @@
     <string name="native_setupGuide_pin_sub" formatted="false">Only for BOAR: your phone\'s own screen lock doesn\'t change.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN set. BOAR asks for it from now on.</string>
     <string name="native_setupGuide_pin_note" formatted="false">Your imported files aren\'t encrypted yet. If you forget the PIN, the chats can be erased to start again; models and files stay.</string>
+    <string name="native_setupGuide_notify_title" formatted="false">Notifications</string>
+    <string name="native_setupGuide_notify_sub" formatted="false">One notification, only while BOAR answers.</string>
+    <string name="native_setupGuide_notify_why" formatted="false">Why Android asks: since Android 13, an app needs your permission to show any notification. BOAR asks once, here. It never sends ads or reminders: it only says it\'s answering.</string>
+    <string name="native_setupGuide_notify_without" formatted="false">Without it, answers still finish; you just won\'t see that BOAR is working. You can change this in Android\'s settings for BOAR.</string>
     <string name="native_setupGuide_privacy_title" formatted="false">Privacy and memory</string>
     <string name="native_setupGuide_privacy_sub" formatted="false">How BOAR treats your chats and your phone\'s memory.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">All of these are in Settings too.</string>
@@ -630,7 +634,7 @@
     <string name="native_setupGuide_answers_addFilesBody" formatted="false">Personal Files answers only from your own files. Add some on the files page, then come back and pick it here.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">In the chat, the style button next to where you type shows this icon and switches it any time.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“BOAR is answering…”</string>
-    <string name="native_setupGuide_privacy_notifyBody" formatted="false">While BOAR writes an answer, it shows this notification. That lets the answer keep going if you leave the app. Android asks your permission once.</string>
+    <string name="native_setupGuide_privacy_notifyBody" formatted="false">While BOAR writes an answer, this notification shows that it\'s still working, even if you switch apps or lock the phone. Tap it to come back. It goes away when the answer is done.</string>
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Allow notifications</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">Notifications are on.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">Notifications are off. You can turn them on in Android’s settings for BOAR.</string>

@@ -4,8 +4,8 @@ import android.content.Context
 
 /**
  * "BOAR is answering…" (AnswerService) needs the notification permission on Android 13+ (issue #91). BOAR asks once:
- * on setup's Privacy page, where it says what the notification is for (Oct 24), or else with the first question.
- * Either way the other never asks again, and a refusal stands.
+ * on setup's Notifications page, which says what it is for (Oct 24), or with the first question for a phone that never
+ * saw that page (set up by an older version). Once the page has shown the chat never asks, and a refusal stands.
  */
 object NotificationAsk {
     private const val PREFS = "permissions"

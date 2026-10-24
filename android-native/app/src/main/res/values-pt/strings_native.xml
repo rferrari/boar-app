@@ -600,6 +600,10 @@
     <string name="native_setupGuide_pin_sub" formatted="false">Só para o BOAR: o bloqueio de tela do seu celular não muda.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN ativado. O BOAR vai pedir o PIN a partir de agora.</string>
     <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, as conversas podem ser apagadas para recomeçar; modelos e arquivos ficam.</string>
+    <string name="native_setupGuide_notify_title" formatted="false">Notificações</string>
+    <string name="native_setupGuide_notify_sub" formatted="false">Uma notificação, só enquanto o BOAR responde.</string>
+    <string name="native_setupGuide_notify_why" formatted="false">Por que o Android pede: desde o Android 13, um app precisa da sua permissão para mostrar qualquer notificação. O BOAR pede uma vez, aqui. Ele nunca manda anúncios nem lembretes: só avisa que está respondendo.</string>
+    <string name="native_setupGuide_notify_without" formatted="false">Sem ela, as respostas terminam do mesmo jeito; você só não vê que o BOAR está trabalhando. Dá para mudar isso nas configurações do Android para o BOAR.</string>
     <string name="native_setupGuide_privacy_title" formatted="false">Privacidade e memória</string>
     <string name="native_setupGuide_privacy_sub" formatted="false">Como o BOAR trata suas conversas e a memória do celular.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">Tudo isso também está nas Configurações.</string>
@@ -630,7 +634,7 @@
     <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos pessoais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">Na conversa, o botão de estilo ao lado de onde você digita mostra este ícone e troca quando quiser.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“O BOAR está respondendo…”</string>
-    <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, ele mostra esta notificação. Assim a resposta continua se você sair do app. O Android pede sua permissão uma vez.</string>
+    <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, esta notificação mostra que ele continua trabalhando, mesmo se você trocar de app ou bloquear o celular. Toque nela para voltar. Ela some quando a resposta termina.</string>
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Permitir notificações</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">As notificações estão ligadas.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">As notificações estão desligadas. Dá para ligar nas configurações do Android para o BOAR.</string>

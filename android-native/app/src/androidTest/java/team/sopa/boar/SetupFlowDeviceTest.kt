@@ -119,6 +119,11 @@ class SetupFlowDeviceTest {
             click("✓")
         }
         compose.waitUntil(20_000) { services.pinLock.isSet }
+        // Android 13 and newer: the notifications page. Not now, so no system dialog; the chat won't ask either.
+        if (team.sopa.boar.app.NotificationAsk.applies()) {
+            onPage("notify")
+            click(t("native.setupGuide.skip"), substring = true)
+        }
         onPage("privacy")
         click(t("native.setupGuide.next"), substring = true)
         if (shows(t("native.setupGuide.labs.title"))) click(t("native.setupGuide.next"), substring = true)
