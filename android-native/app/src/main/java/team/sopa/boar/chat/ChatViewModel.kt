@@ -638,10 +638,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
                     val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
-                    // Nothing found in the files: the fixed line in the user's language, and where to switch a collection on.
+                    // Nothing found in the files: the fixed line in the user's language, then where to switch a collection on
+                    // when none is on, or how to ask when one is. The prompt lists the switched-on files by name.
+                    val ownFiles = if (personal) services.retriever.ownFiles() else emptyList()
+                    val hint = if (ownFiles.isEmpty()) "native.personal.notFoundHint" else "native.personal.notFoundAskHint"
                     val request = if (!personal) base else PersonalFiles.request(base,
                         services.host.openedContext ?: team.sopa.boar.engine.EngineTweaks.contextSizeForRam(totalRamBytes()),
-                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFoundHint"))
+                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), hint),
+                        team.sopa.boar.engine.rag.OwnFiles.note(ownFiles))
                     pipeline.answer(request).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }

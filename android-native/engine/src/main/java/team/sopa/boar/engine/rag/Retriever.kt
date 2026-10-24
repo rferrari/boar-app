@@ -26,6 +26,21 @@ class Retriever(
     fun retrieve(
         query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, params: RetrievalParams = RetrievalParams.DEFAULT,
     ): List<Chunk> {
+        if (!params.ownOnly) return OwnFiles.dropCoveredCards(retrieveAll(query, topK, queryVec, includeWikiPacks, params))
+        // Personal Files: a file the question names is searched alone; a question about all the files brings each one's
+        // opening part after what the search found, since no single passage is close to "summarize my files".
+        val files = kb.ownFiles()
+        val vec = queryVec ?: embed(query)
+        OwnFiles.named(query, files)?.let { f -> return OwnFiles.dropCoveredCards(kb.rankWithin(f.docId, vec, topK + 1)).take(topK) }
+        val found = OwnFiles.dropCoveredCards(retrieveAll(query, topK, vec, includeWikiPacks, params))
+        if (!OwnFiles.aboutTheFiles(query)) return found
+        return OwnFiles.withOpenings(found, kb.openingParts(files.map { it.docId }), maxOf(topK, OwnFiles.OVERVIEW_MAX_FILES))
+    }
+
+    /** The user's switched-on files, for the prompt's list of them (OwnFiles.note). */
+    fun ownFiles(): List<OwnFiles.File> = kb.ownFiles()
+
+    private fun retrieveAll(query: String, topK: Int, queryVec: FloatArray?, includeWikiPacks: Boolean, params: RetrievalParams): List<Chunk> {
         val main = retrieveOne(query, topK, queryVec, includeWikiPacks, null, null, null, params)
         // A Portuguese question against English sources: search again with the English names it mentions and put
         // those results first. The English embedder and keyword index barely match Portuguese words.

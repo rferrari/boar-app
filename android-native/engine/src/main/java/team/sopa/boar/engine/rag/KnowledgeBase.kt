@@ -141,6 +141,39 @@ class KnowledgeBase(private val db: SqlDatabase) {
         return scored.sortedByDescending { it.score }.filter { it.score >= minSimilarity }.take(limit)
     }
 
+    /**
+     * The documents of the switched-on collections, oldest collection first, with their file's name (the part's source)
+     * and their part count, cards left out (OwnFiles).
+     */
+    fun ownFiles(): List<OwnFiles.File> = db.query(
+        """SELECT c.doc_id, MIN(c.source) AS name, SUM(CASE WHEN c.chunk_id LIKE '%${OwnFiles.CARD_SUFFIX}' THEN 0 ELSE 1 END) AS parts
+           FROM chunks c JOIN custom_collections cc ON cc.id = c.collection_id
+           WHERE cc.active = 1
+           GROUP BY c.doc_id ORDER BY MIN(cc.created_at), c.doc_id""",
+    ) { OwnFiles.File(it.string("doc_id")!!, it.string("name") ?: it.string("doc_id")!!, it.long("parts").toInt()) }
+
+    /** Each document's opening part ("<doc>-c0"), in [docIds]' order. */
+    fun openingParts(docIds: List<String>): List<Chunk> {
+        if (docIds.isEmpty()) return emptyList()
+        val ids = docIds.map { "$it-c0" }
+        val byId = db.query(
+            "SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE chunk_id IN (${ids.joinToString(", ") { "?" }})", ids,
+        ) { Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id")) }
+            .associateBy { it.chunkId }
+        return ids.mapNotNull(byId::get)
+    }
+
+    /** One document's parts, closest to [queryVec] first, with no similarity floor: the question named this file. */
+    fun rankWithin(docId: String, queryVec: FloatArray, limit: Int): List<Chunk> = db.query(
+        """SELECT c.chunk_id, c.doc_id, c.title, c.body, c.source, c.collection_id, e.embedding
+           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id WHERE c.doc_id = ?""",
+        listOf(docId),
+    ) {
+        val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
+        Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"),
+            score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
+    }.sortedByDescending { it.score }.take(limit)
+
     companion object {
         /** Extra BM25 candidates so the coverage gate has something to choose from. */
         const val LEXICAL_CANDIDATE_MULTIPLIER = 4

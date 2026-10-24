@@ -16,7 +16,8 @@ import java.io.File
 /**
  * Document import must make the same collection and chunks as importDocuments (scripts/export-native-golden-import.mjs),
  * except for Markdown, which the native app cuts at its headings (Oct 21): there each heading starts one part, and the
- * other files of the same import still match the TS.
+ * other files of the same import still match the TS. The native app adds a card for each long file (Oct 23,
+ * OwnFiles.card), after the parts: the TS comparison is on the parts.
  */
 class DocumentImportGoldenTest {
     @Test fun `same collection, chunks and embedding inputs as the TS`() = runBlocking {
@@ -39,16 +40,22 @@ class DocumentImportGoldenTest {
             val headings = files.filter { isMarkdown(it.name) }.sumOf { f -> f.text.lines().count { it.startsWith("# ") || it.startsWith("## ") } }
             val markdown = headings > 0
             assertEquals(col["sizeBytes"]!!.jsonPrimitive.long, made.sizeBytes)
-            val rows = db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks ORDER BY rowid") { r -> (0..5).map { r.string(it) } }
+            val all = db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks ORDER BY rowid") { r -> (0..5).map { r.string(it) } }
+            val (cards, rows) = all.partition { it[0]!!.endsWith(OwnFiles.CARD_SUFFIX) }
+            // Cards come last, one per long file that is one document.
+            assertEquals(name, DocumentImport.cards(id, files).map { it.chunkId }, cards.map { it[0] })
+            assertEquals(name, rows, all.take(rows.size))
             val want = run["chunks"]!!.jsonArray.map { it.jsonObject }.map { c ->
                 listOf("chunkId", "docId", "title", "body", "source").map { c[it]!!.jsonPrimitive.content } + id
             }
             assertEquals(name, want.filterNot { isMarkdown(it[4]) }, rows.filterNot { isMarkdown(it[4]) })
             assertEquals(name, headings, rows.count { isMarkdown(it[4]) })
-            assertEquals(rows.size.toLong(), made.chunkCount)
-            if (!markdown) assertEquals(col["chunkCount"]!!.jsonPrimitive.long, made.chunkCount)
-            if (!markdown) assertEquals(name, run["embedded"]!!.jsonArray.map { it.jsonPrimitive.content }, embedded)
-            else assertEquals(name, rows.map { "${it[2]}\n${it[3]}" }, embedded)
+            assertEquals(all.size.toLong(), made.chunkCount)
+            if (!markdown) assertEquals(col["chunkCount"]!!.jsonPrimitive.long, rows.size.toLong())
+            val parts = embedded.take(rows.size)
+            if (!markdown) assertEquals(name, run["embedded"]!!.jsonArray.map { it.jsonPrimitive.content }, parts)
+            else assertEquals(name, rows.map { "${it[2]}\n${it[3]}" }, parts)
+            assertEquals(name, cards.map { "${it[2]}\n${it[3]}" }, embedded.drop(rows.size))
             // collectionId: "custom-<ms>-<slug of the name>"
             val ms = id.removePrefix("custom-").substringBefore('-').toLong()
             assertEquals(id, DocumentImport.collectionId(name, ms))
