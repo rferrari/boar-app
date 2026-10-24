@@ -112,7 +112,11 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         team.sopa.boar.app.DebugLog.foreground(true)
         BoarServices.get(this).onForeground()
-        if (stoppedAt > 0 && BoarServices.get(this).pinLock.isSet && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
+        val services = BoarServices.get(this)
+        // A PIN set during setup doesn't lock it while it downloads: there's no chat yet to protect, and the file picker
+        // or a long download away would otherwise drop the user out of setup's pages.
+        val setupOnly = SetupViewModel.running && runCatching { services.chats.listSessions().isEmpty() }.getOrDefault(false)
+        if (stoppedAt > 0 && services.pinLock.isSet && !setupOnly && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
     }
 
     override fun onTrimMemory(level: Int) {
@@ -171,13 +175,17 @@ class MainActivity : ComponentActivity() {
     private companion object { const val RELOCK_AFTER_MS = 60_000L }
 }
 
-/** Where setup leads: the PIN offer, unless a PIN is already set (setup run again from Settings → Recovery). */
-internal fun afterSetup(pinSet: Boolean) = if (pinSet) "chat" else "pinOffer"
+/**
+ * Where setup leads: the PIN offer, unless a PIN is already set (setup run again from Settings → Recovery) or setup's
+ * own PIN page was already shown ([offered]: Open BOAR can come before the user reaches it).
+ */
+internal fun afterSetup(pinSet: Boolean, offered: Boolean = false) = if (pinSet || offered) "chat" else "pinOffer"
 
 @Composable
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
     val state by vm.state.collectAsState()
-    var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished) "chat" else "setup") }
+    // While setup's install step runs, setup stays: also when this composition was dropped for the lock screen.
+    var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished && !SetupViewModel.running) "chat" else "setup") }
     if (screen == "setup") {
         val setupState by setup.state.collectAsState()
         // Downloads pause in the background on MIUI: the screen stays on while setup runs.
@@ -211,7 +219,12 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             // The tour's theme card: the same write as Settings → Display & Theme.
             themeId = services.settings.themeId,
             onTheme = { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
-        ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
+            onFontScale = { scale -> services.settings.fontScale = scale; prefs.setFontScale(scale) },
+        ) {
+            val pinPage = setupState.pages.indexOf(team.sopa.boar.engine.models.SetupGuide.Page.PIN)
+            setup.forget(); vm.refreshSettings(); vm.refreshModel()
+            screen = afterSetup(services.pinLock.isSet, offered = pinPage in 0..setupState.guidePage)
+        }
         return
     }
     if (screen == "pinOffer") {
@@ -383,6 +396,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onOpenModels = { vm.openedCatalog(); screen = "models" },
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
+            onPrefilled = vm::prefilled,
             voiceEnabled = services.settings.voiceInputEnabled,
             onOpenRoute = { screen = it },
         )
