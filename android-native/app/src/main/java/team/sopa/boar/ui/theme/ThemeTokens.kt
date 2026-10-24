@@ -67,7 +67,15 @@ data class BoarColors(
     val crimson900: Color,
     val crimsonBgSubtle: Color,
     val crimsonBorder: Color,
+    /** A light theme (Paper): dark text on white, the light Material scheme and dark system-bar icons. */
+    val light: Boolean = false,
 )
+
+/** A faint wash over the background for chips and buttons: white on the dark themes, black on a light one. */
+fun BoarColors.wash(alpha: Float): Color = (if (light) Color.Black else Color.White).copy(alpha = alpha)
+
+/** A meter's empty track: dark on the dark themes, a light grey on a light one. */
+fun BoarColors.track(alpha: Float): Color = Color.Black.copy(alpha = if (light) 0.08f else alpha)
 
 object ThemeTokens {
     val campfire = BoarColors(

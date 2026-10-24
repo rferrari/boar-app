@@ -50,6 +50,7 @@ import team.sopa.boar.engine.chat.ChatSession
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.util.Locale
+import team.sopa.boar.ui.theme.track
 
 class DrawerItem(val key: String, val label: String, val onClick: () -> Unit)
 
@@ -214,7 +215,7 @@ internal fun UsageBar(label: String, parts: List<Pair<Long, Color>>, total: Long
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = if (large) Boar.type.subtext else small, color = if (large) c.textSecondary else c.textDim, fontWeight = FontWeight.Bold, maxLines = 1,
             modifier = Modifier.widthIn(min = if (large) 86.dp else 40.dp))
-        Row(Modifier.weight(1f).height(if (large) 9.dp else 5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black.copy(alpha = 0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
+        Row(Modifier.weight(1f).height(if (large) 9.dp else 5.dp).clip(RoundedCornerShape(3.dp)).background(Boar.colors.track(0.5f)).border(1.dp, c.borderDefault, RoundedCornerShape(3.dp))) {
             if (total > 0) parts.forEach { (bytes, color) ->
                 val frac = (bytes.toFloat() / maxOf(total, sum)).coerceIn(0f, 1f)
                 if (frac > 0f) Box(Modifier.weight(frac).fillMaxHeight().background(if (over) c.crimson500 else color))
