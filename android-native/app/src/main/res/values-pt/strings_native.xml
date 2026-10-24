@@ -230,7 +230,7 @@
     <string name="native_vault_intro" formatted="false">Você libera avatares usando o BOAR. Tudo é contado neste celular e nunca sai dele.</string>
     <string name="native_vault_card" formatted="false">{{n}} de {{total}} avatares liberados</string>
     <string name="native_vault_open" formatted="false">Abrir Avatares do Boar →</string>
-    <string name="native_vault_boar" formatted="false">Javali</string>
+    <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
     <string name="native_vault_iconNote" formatted="false">Muda o javali da conversa e do menu.</string>
     <string name="native_vault_iconNoteLauncher" formatted="false">Muda o javali da conversa agora, e o ícone do app quando você sai do BOAR.</string>
@@ -275,7 +275,7 @@
     <string name="native_rule_PIN_DARK" formatted="false">Com PIN, aberto em modo avião.</string>
     <string name="native_rule_THEME" formatted="false">Troque as cores.</string>
     <string name="native_rule_TWEAKS" formatted="false">Mexa no motor nos Ajustes avançados.</string>
-    <string name="native_rule_SOURCE_BUILD" formatted="false">Não confie no APK. Compile o javali com as próprias mãos.</string>
+    <string name="native_rule_SOURCE_BUILD" formatted="false">Não confie no APK. Compile o BOAR com as próprias mãos.</string>
     <string name="native_rule_DEGOOGLED" formatted="false">Rodando no GrapheneOS ou num AOSP sem Google (sem Play Services).</string>
     <string name="native_rule_DAYS_3" formatted="false">Use o BOAR em 3 dias diferentes.</string>
     <string name="native_rule_DAYS_7" formatted="false">Use o BOAR em 7 dias diferentes.</string>
@@ -300,9 +300,9 @@
     <string name="native_tweaks_technicalDetails" formatted="false">Mostrar detalhes técnicos</string>
     <string name="native_tweaks_technicalDetailsNote" formatted="false">Sob cada resposta, toque no tempo e na velocidade para ver os detalhes (tempo até a primeira palavra, contexto, modelo); velocidade ao vivo no topo enquanto o BOAR responde; memória e armazenamento no fim do menu; Este celular nas Configurações.</string>
     <string name="native_tweaks_presets" formatted="false">Predefinições</string>
-    <string name="native_tweaks_preset_run" formatted="false">Corre, Javali</string>
+    <string name="native_tweaks_preset_run" formatted="false">Corre, Boar</string>
     <string name="native_tweaks_preset_runNote" formatted="false">Respostas mais rápidas: só os núcleos rápidos, o prompt lido em lotes maiores (a primeira palavra chega na metade do tempo nos nossos testes), sem limite de tempo. Mais calor e bateria.</string>
-    <string name="native_tweaks_preset_path" formatted="false">Trilha do Javali</string>
+    <string name="native_tweaks_preset_path" formatted="false">Trilha do Boar</string>
     <string name="native_tweaks_preset_pathNote" formatted="false">Auto: o que medimos como melhor em celulares reais. Equilibrado.</string>
     <string name="native_tweaks_preset_forage" formatted="false">Forrageio Tranquilo</string>
     <string name="native_tweaks_preset_forageNote" formatted="false">Mais frio e mais bateria: 2 threads, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. Respostas mais lentas.</string>
@@ -310,7 +310,7 @@
     <string name="native_tweaks_preset_coolNote" formatted="false">Para um celular quente: 1 thread, lotes pequenos, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. O mais lento.</string>
     <string name="native_tweaks_presetCustom" formatted="false">Personalizado: seus próprios ajustes abaixo. Escolha uma predefinição para recomeçar a partir dela.</string>
     <string name="native_tweaks_drawerStats" formatted="false">Memória e armazenamento no menu</string>
-    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor do Labs, como o Javali Gigante) e o espaço dos modelos.</string>
+    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor do Labs, como o Big Boar) e o espaço dos modelos.</string>
     <string name="native_models_engineTag" formatted="false">motor {{engine}} · lê do armazenamento</string>
     <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Boar Labs → {{engine}})</string>
     <string name="native_models_selectUseEngine" formatted="false">🔘 Selecionar e Usar · motor {{engine}}</string>
@@ -416,7 +416,7 @@
     <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
-    <string name="native_tweaks_runWarningKeepPath" formatted="false">Manter Trilha do Javali</string>
+    <string name="native_tweaks_runWarningKeepPath" formatted="false">Manter Trilha do Boar</string>
     <string name="native_personalitySettings_maxOutputTokensNote" formatted="false">Limita o tamanho de uma resposta. Menor é mais rápido e gasta menos bateria.</string>
     <string name="native_personalDocumentsManager_hint" formatted="false">Importe suas notas em .txt, .md, .csv, .json ou .pdf. Elas são indexadas só neste aparelho e nunca enviadas. PDFs precisam de texto selecionável: páginas digitalizadas ou só com imagem não são lidas (não há OCR), e PDFs com senha não são suportados.</string>
     <string name="native_personalDocumentsManager_removeConfirmMessage" formatted="false">Isso exclui \"{{name}}\" ({{count}} trechos) da sua base de conhecimento local. Isso não pode ser desfeito.</string>
