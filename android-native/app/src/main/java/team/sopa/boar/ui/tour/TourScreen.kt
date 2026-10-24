@@ -41,7 +41,8 @@ import team.sopa.boar.ui.theme.wash
  * One card of the tour: its strings are native.tour.<key>.title / .body / .where (no where line for welcome and end).
  * [art]: a picture on top (the brand avatar, the mascot); [emoji]: a small one where there's no preview; else neither.
  */
-data class TourCard(val key: String, val emoji: String? = null, val where: Boolean = true, val art: Int? = null)
+/** [icon]: the Boar icon pack's drawing for the card (the same as in Settings and the menu), shown in place of [emoji]. */
+data class TourCard(val key: String, val emoji: String? = null, val where: Boolean = true, val art: Int? = null, val icon: Int? = null)
 
 /** The setup download under the tour: its line ("Downloading · 42% · 6 min"), its fraction, and whether BOAR is ready. */
 data class TourProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean = false)
@@ -56,8 +57,8 @@ fun tourCards(experimental: Boolean): List<TourCard> = listOfNotNull(
     TourCard("knowledge"),
     TourCard("models"),
     if (experimental) TourCard("adaptive") else null,
-    TourCard("pin", "🔑"),
-    if (experimental) TourCard("labs", "🧪") else null,
+    TourCard("pin", icon = team.sopa.boar.R.drawable.ic_settings_pin),
+    if (experimental) TourCard("labs", icon = team.sopa.boar.R.drawable.ic_settings_experimental) else null,
     TourCard("end", where = false, art = team.sopa.boar.R.drawable.mascot),
 )
 
@@ -121,6 +122,7 @@ fun TourScreen(
                     androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(96.dp).clip(RoundedCornerShape(20.dp)),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop)
                 }
+                card.icon?.let { r -> androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(r), null, Modifier.size(40.dp), tint = c.textHeading) }
                 card.emoji?.let { Text(it, fontSize = 32.sp) }
                 Text(t("native.tour.${card.key}.title"), style = Boar.type.headline, color = c.textHeading)
                 Text(t("native.tour.${card.key}.body"), style = Boar.type.body, color = c.textPrimary)
