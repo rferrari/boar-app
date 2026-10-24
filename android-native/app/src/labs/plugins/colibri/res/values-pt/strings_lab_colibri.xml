@@ -4,13 +4,13 @@
     <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B no colibri, um motor minúsculo em C puro: um quarto dos especialistas de cada camada fica na memória, o resto vem do armazenamento.</string>
     <string name="native_labs_colibri_engine" formatted="false">MOTOR</string>
     <string name="native_labs_colibri_engineOk" formatted="false">O colibri está nesta versão</string>
-    <string name="native_labs_colibri_engineMissing" formatted="false">Não está nesta versão: rode scripts/build-lab-engines.sh e compile de novo</string>
+    <string name="native_labs_colibri_engineMissing" formatted="false">Não está nesta versão: estacionado enquanto está em revisão</string>
     <string name="native_labs_colibri_model" formatted="false">MODELO</string>
     <string name="native_labs_colibri_modelOk" formatted="false">Pasta do modelo convertido encontrada</string>
     <string name="native_labs_colibri_modelMissing" formatted="false">Não está no celular. Copie a pasta convertida pelo USB para {{path}}</string>
     <string name="native_labs_colibri_use" formatted="false">Responder com este modelo</string>
     <string name="native_labs_colibri_using" formatted="false">✓ O BOAR responde com este modelo agora. Escolha outro em Modelos para voltar.</string>
     <string name="native_labs_colibri_note" formatted="false">Sem raciocínio, só inglês e um modelo pequeno: mais um experimento de motor do que um assistente. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
-    <string name="native_labs_colibri_review" formatted="false">Lento demais para um assistente nos nossos celulares de teste: uma resposta curta leva minutos. O Javali Gigante roda um modelo 5× maior, mais rápido. Continua aqui para testar e comparar.</string>
+    <string name="native_labs_colibri_review" formatted="false">Lento demais para um assistente nos nossos celulares de teste: uma resposta curta leva minutos. O Javali Gigante roda um modelo 5× maior, mais rápido. Estacionado enquanto está em revisão: o motor não está nesta versão.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">menos de 1 tok/s</string>
 </resources>

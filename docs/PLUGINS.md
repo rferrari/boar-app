@@ -76,6 +76,8 @@ order=90
 
 The build stops with a clear error if `id` doesn't match the folder, or if both or neither of `object`/`classified` are set.
 
+A lab under review (`LabStatus.REVIEW`) that runs its own engine also sets `review=true`. Its `jniLibs` then stay out of every APK. Google Play Protect blocks an APK that bundles executables it doesn't trust, so only the engines of labs in use ship. Example: colibri.
+
 ### Strings
 
 String keys follow `native.labs.<id>.<name>`, written in XML as `native_labs_<id>_<name>`. Every lab needs:
@@ -140,9 +142,9 @@ file.
 | `LabStatus` | Tile | Use when |
 |---|---|---|
 | `LIVE` | green | It works well |
-| `BETA` | cyan | It works, still rough. The labs that start on |
+| `BETA` | cyan | It works, still rough. Starts on, unless the lab sets `onByDefault = false` (Designer, Press) |
 | `ALPHA` | amber | Early; starts off |
-| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal. Example: colibri, "under 1 tok/s". |
+| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal. Example: colibri, "under 1 tok/s", which also sets `review=true`, so its engine is left out and its page says so. |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 
 The grid shows live, then beta, alpha, under review and classified labs, in plugin.properties order within each.

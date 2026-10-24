@@ -123,7 +123,9 @@ A Labs build that installs beside the normal BOAR:
 Big Boar (`libbmoe_cli.so`), Boar Wisp (`libcolibri_olmoe.so`) and Boar Designer
 (`libsdcli.so`, `libsdcli_i8mm.so`) run their own executables. They are prebuilt into
 `android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a/`, which is gitignored, so a
-fresh clone doesn't have them. They are packed into the APK only in experimental builds.
+fresh clone doesn't have them. They are packed into the APK only in experimental builds, and never for a lab under
+review (`review=true` in its `plugin.properties`: Boar Wisp). Google Play Protect blocks an APK with engines it
+doesn't trust ("Harmful app blocked"), so each engine that ships has to earn its place.
 
 To build them, clone the upstream repos yourself at the commits pinned in
 `scripts/engine-pins.env`, then:
