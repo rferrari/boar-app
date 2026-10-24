@@ -169,14 +169,16 @@ private fun LookPage(services: BoarServices, themeId: String?, onTheme: (String)
  * button to the mode without reading the text. [onPick]: null for a mode explained but not picked here.
  */
 @Composable
-private fun ModeCard(icon: String, title: String, body: String, selected: Boolean, onPick: (() -> Unit)?) {
+private fun ModeCard(icon: String, title: String, body: String, selected: Boolean, styleId: String? = null, onPick: (() -> Unit)?) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
         .then(if (onPick != null) Modifier.clickable(onClick = onPick) else Modifier).padding(14.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(Modifier.size(48.dp).background(if (selected) c.emerald500.copy(alpha = 0.25f) else c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
-            Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
+            // An answer style shows the icon pack's drawing (StyleIcon); Deep Research keeps its 🔬.
+            if (styleId != null) team.sopa.boar.ui.StyleIcon(styleId, icon, 26.dp)
+            else Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = Boar.type.title, color = c.textHeading)
@@ -193,11 +195,11 @@ private fun AnswersPage(services: BoarServices, state: SetupState, onAddFiles: (
     var style by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
     // The styles BOAR can start with; Personal Files only once there are files to answer from.
     val ids = listOfNotNull("succinct", "detailed", if (state.files.isNotEmpty()) "personal" else null)
-    for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id) { style = id; s.personalityId = id }
+    for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id, id) { style = id; s.personalityId = id }
     // Without files, Personal Files is explained, not picked: there would be nothing to answer from. A tap offers the
     // files page, one page back, to add some.
     var askFiles by rememberSaveable { mutableStateOf(false) }
-    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false) { askFiles = true }
+    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false, "personal") { askFiles = true }
     if (askFiles) AlertDialog({ askFiles = false },
         confirmButton = { TextButton({ askFiles = false; onAddFiles() }) { Text(t("native.setupGuide.files.add")) } },
         dismissButton = { TextButton({ askFiles = false }) { Text(t("native.setupGuide.skip")) } },

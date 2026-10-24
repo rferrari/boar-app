@@ -46,7 +46,7 @@ fun ToneSheet(state: ChatState, onSetTone: (String) -> Unit, onSetDeepResearch: 
                         .clickable { onSetTone(id); onDismiss() }.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(icon, fontSize = 20.sp)
+                    team.sopa.boar.ui.StyleIcon(id, icon, 22.dp)
                     Column(Modifier.weight(1f)) {
                         Text(t("personalities.$id.label"), style = Boar.type.body, color = if (selected) c.textAccentEmerald else c.textPrimary)
                         Text(t("personalities.$id.description"), style = Boar.type.subtext, color = c.textMuted)

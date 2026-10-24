@@ -358,7 +358,7 @@ private fun ToneSection(services: BoarServices) {
         var id by remember { mutableStateOf(s.personalityId ?: personalities.defaultId) }
         // One row per style, its icon first (the chat's style button shows the same), so none sits alone on a wrapped line.
         for (p in personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }) {
-            StyleRow(p.icon, t("personalities.${p.id}.label"), t("personalities.${p.id}.description"), p.id == id) { id = p.id; s.personalityId = p.id }
+            StyleRow(p.id, p.icon, t("personalities.${p.id}.label"), t("personalities.${p.id}.description"), p.id == id) { id = p.id; s.personalityId = p.id }
         }
         if (id == "custom" && BoarServices.SHOW_CUSTOM_STYLE) {
             var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
@@ -550,12 +550,12 @@ private fun Section(title: String, icon: Int? = null, startOpen: Boolean = false
 
 /** An answer style as a row of the list: icon, name and what it does; the chosen one marked. */
 @Composable
-private fun StyleRow(icon: String, label: String, description: String, selected: Boolean, onPick: () -> Unit) {
+private fun StyleRow(id: String, icon: String, label: String, description: String, selected: Boolean, onPick: () -> Unit) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (selected) c.emeraldBgSubtle else c.bgSubtle)
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(12.dp))
         .clickable(onClick = onPick).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(22f, androidx.compose.ui.unit.TextUnitType.Sp))
+        team.sopa.boar.ui.StyleIcon(id, icon, 24.dp)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(label, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
             Text(description, style = Boar.type.subtext, color = c.textSecondary)
