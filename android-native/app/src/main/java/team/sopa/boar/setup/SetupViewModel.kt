@@ -244,8 +244,12 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             for (uri in uris) {
                 // The name comes from the app that provides the file: only its last segment, so "../x.txt" stays in
                 // setup-imports/, and no leading dot, which would hide it with the folder's own .import.json and .part files.
-                val name = File(reader.nameAndSize(uri).first).name.trimStart('.')
+                val (picked, size) = reader.nameAndSize(uri)
+                val name = File(picked).name.trimStart('.')
                 if (name.isEmpty() || !team.sopa.boar.documents.DocumentReader.readable(name)) { errors += text("native.documents.unsupported", name); continue }
+                // Too large is turned away before the copy, which would take the space the downloads need. A size of 0 is
+                // unknown: the import still checks the text it reads.
+                if (DocumentImport.tooLargeToRead(size)) { errors += reader.messageFor(DocumentImport.TooLarge(name, "too large")); continue }
                 val target = File(importDir, SetupGuide.freeName(name, pickedNames().toSet()))
                 // Copied under a hidden name, then renamed: an import on another thread (a download just finished) only
                 // sees whole files, and never deletes one still being written.
