@@ -22,6 +22,8 @@ fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.tex
         "detailed" -> team.sopa.boar.R.drawable.ic_settings_knowledge
         "personal" -> team.sopa.boar.R.drawable.ic_style_personal
         "custom" -> team.sopa.boar.R.drawable.ic_style_custom
+        // Not a style, but shown with them (setup's Deep Research card).
+        "deep" -> team.sopa.boar.R.drawable.ic_deep_research
         else -> null
     }
     if (drawable != null) Icon(painterResource(drawable), null, Modifier.size(size), tint = tint)

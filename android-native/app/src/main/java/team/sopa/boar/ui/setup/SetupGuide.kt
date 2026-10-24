@@ -176,7 +176,7 @@ private fun ModeCard(icon: String, title: String, body: String, selected: Boolea
         .then(if (onPick != null) Modifier.clickable(onClick = onPick) else Modifier).padding(14.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(Modifier.size(48.dp).background(if (selected) c.emerald500.copy(alpha = 0.25f) else c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
-            // An answer style shows the icon pack's drawing (StyleIcon); Deep Research keeps its 🔬.
+            // An answer style, and Deep Research, show the icon pack's drawing (StyleIcon).
             if (styleId != null) team.sopa.boar.ui.StyleIcon(styleId, icon, 26.dp)
             else Text(icon, fontSize = androidx.compose.ui.unit.TextUnit(24f, androidx.compose.ui.unit.TextUnitType.Sp))
         }
@@ -207,7 +207,7 @@ private fun AnswersPage(services: BoarServices, state: SetupState, onAddFiles: (
         text = { Text(t("native.setupGuide.answers.addFilesBody") + "\n\n" + t("native.setupGuide.files.types")) },
         containerColor = Boar.colors.bgCard, titleContentColor = Boar.colors.textHeading, textContentColor = Boar.colors.textSecondary)
     var deep by remember { mutableStateOf(s.deepResearchMode) }
-    ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep) { deep = !deep; s.deepResearchMode = deep }
+    ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep, "deep") { deep = !deep; s.deepResearchMode = deep }
     // Deep Research writes longer answers in several steps: on the light model that's minutes per answer.
     val light = state.models.firstOrNull { it.id == state.chosenId }?.answerTier == AnswerTier.COMPACT
     if (deep && light) Meta(t("native.setupGuide.answers.deepSlow"), c.textAccentAmber)
