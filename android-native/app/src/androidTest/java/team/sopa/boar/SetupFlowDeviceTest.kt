@@ -33,7 +33,14 @@ class SetupFlowDeviceTest {
     /** Screens launched by a test, closed after it whatever happened. */
     private val opened = mutableListOf<ActivityScenario<*>>()
 
-    @org.junit.After fun closeScreens() { opened.forEach { runCatching { it.close() } } }
+    /** This test emptied the throwaway install and ran setup on it: only then is the PIN its own to remove. */
+    private var ranSetup = false
+
+    @org.junit.After fun closeScreens() {
+        opened.forEach { runCatching { it.close() } }
+        // The PIN this test set is removed, so the chat tests after it in the same run don't skip themselves.
+        if (ranSetup) runCatching { BoarServices.get(ctx).pinLock.let { if (it.isSet) it.disable("2580") } }
+    }
     private fun t(key: String) = I18n.t(ctx, key)
 
     private fun click(text: String, substring: Boolean = false) {
@@ -61,6 +68,7 @@ class SetupFlowDeviceTest {
         // A first run: this throwaway install's files are emptied before the app starts (nothing else in this process
         // has opened them yet), so setup begins from step 1.
         assumeTrue("only on the throwaway devtest install", ctx.packageName.endsWith(".devtest"))
+        ranSetup = true
         ctx.filesDir.listFiles().orEmpty().forEach { it.deleteRecursively() }
         val scenario = ActivityScenario.launch(MainActivity::class.java).also { opened += it }
         val services = BoarServices.get(ctx)
@@ -68,7 +76,8 @@ class SetupFlowDeviceTest {
         compose.waitUntil(60_000) { shows(t("flows.onboarding.start"), substring = true) }
 
         click(t("flows.onboarding.start"), substring = true)
-        val compact = services.catalog.answerModels.first { it.id == "qwen2.5-1.5b-instruct-q4km" }
+        // The light answer model, whichever the catalog names (Qwen2.5 1.5B until rc1, Qwen3 1.7B since).
+        val compact = services.catalog.answerModels.first { it.answerTier == team.sopa.boar.engine.models.AnswerTier.COMPACT }
         click(compact.shortName, substring = true) // the name the model step shows
         click(t("flows.onboarding.continue"), substring = true)
         click(t("flows.onboarding.package.essential.name"))
