@@ -29,7 +29,7 @@ object OwnFiles {
     /** Lower case without accents ("Resumo dos meus Arquivos" → "resumo dos meus arquivos"). */
     private fun fold(s: String) = MARKS.replace(Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD), "")
 
-    private const val FILE_NOUNS = "files?|documents?|docs?|notes?|pdfs?|uploads?|arquivos?|documentos?|notas?|anotacoes|anotacao"
+    private const val FILE_NOUNS = "files?|documents?|docs?|notes?|pdfs?|uploads?|arquivos?|documentos?|notas?|anotacoes|anotacao|documentacao"
 
     /** The user's files as a thing ("my files", "meus arquivos", "the documents I imported"). */
     private val FILES = Regex("\\b($FILE_NOUNS)\\b")

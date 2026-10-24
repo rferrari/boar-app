@@ -17,7 +17,7 @@ class OwnFilesTest {
             "What are the main points of my files?", "Summarize my notes", "Give me an overview of my documents",
             "Which files do I have?", "Do I have a medical file?", "How many documents did I import?",
             "Resuma meus arquivos", "Quais são os pontos principais dos meus documentos?", "Tenho algum arquivo sobre o carro?",
-            "O que tem nas minhas anotações?",
+            "O que tem nas minhas anotações?", "Resuma a minha documentação",
         )) assertTrue(q, OwnFiles.aboutTheFiles(q))
     }
 
