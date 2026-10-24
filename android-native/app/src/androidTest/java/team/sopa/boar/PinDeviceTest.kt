@@ -111,6 +111,14 @@ class PinDeviceTest {
         assertTrue(b.lock.unlock("4821") is PinLock.Attempt.Wait)
     }
 
+    @Test fun aFailedEraseKeepsThePin() {
+        val a = open()
+        a.lock.enable("4821")
+        val failing = PinLock(a.settings, a.chats, alias = "boar-pin-test", eraseOwnFiles = { error("disk") })
+        assertFalse(failing.forget())
+        assertTrue(failing.isSet)
+    }
+
     @Test fun forgettingThePinErasesTheChatsPersonalFilesAndTheLock() {
         val a = open()
         val s = a.chats.createSession("Secret")
@@ -119,7 +127,7 @@ class PinDeviceTest {
         a.kb.createCollection("c-diary", "diary", "diary.txt", 1, 1, 10, now = 1)
         a.lock.enable("4821")
         val b = open()
-        b.lock.forget()
+        assertTrue(b.lock.forget())
         assertFalse(b.lock.isSet)
         assertTrue(b.chats.listSessions().isEmpty())
         assertTrue(b.kb.collections().isEmpty())

@@ -115,7 +115,11 @@ fun LockScreen(lock: PinLock, onUnlocked: () -> Unit) {
     }) {
         Text(t("native.pin.forgot"), style = Boar.type.caption, color = Boar.colors.textAccentCyan, modifier = Modifier.clickable { forgetting = true }.padding(8.dp))
     }
-    if (forgetting) ForgetDialog(onErase = { forgetting = false; scope.launch { withContext(Dispatchers.IO) { lock.forget() }; onUnlocked() } }) { forgetting = false }
+    val notErased = t("native.pin.forgotFailed")
+    if (forgetting) ForgetDialog(onErase = {
+        forgetting = false
+        scope.launch { if (withContext(Dispatchers.IO) { lock.forget() }) onUnlocked() else error = notErased }
+    }) { forgetting = false }
 }
 
 /** How long "Erase your chats?" stays open: time to read it and decide; then it closes by itself. */

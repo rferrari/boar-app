@@ -95,13 +95,19 @@ class PinLock(
      * Forgot the PIN: the chats can't be opened any more, so they're erased with the key. Personal Files go too (Oct 24):
      * they aren't sealed, so without this "Forgot PIN" handed someone without the PIN the user's own documents.
      */
-    fun forget() {
-        chats.clearAll()
-        runCatching { eraseOwnFiles() }
-        // What the labs made goes too: pictures and illustrations can show what the chats were about.
-        runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
+    fun forget(): Boolean {
+        // The PIN goes only once everything it guarded is gone (CodeRabbit): a failed erase keeps the lock, so what's
+        // left isn't open to whoever didn't know the PIN; the user can try again.
+        val erased = runCatching {
+            eraseOwnFiles()
+            chats.clearAll()
+            // What the labs made goes too: pictures and illustrations can show what the chats were about.
+            team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING)
+        }.isSuccess
+        if (!erased) return false
         chats.cipher = PlainCipher
         clear()
+        return true
     }
 
     private fun dataKey(pin: String): ByteArray? {

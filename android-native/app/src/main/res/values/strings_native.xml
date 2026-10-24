@@ -118,6 +118,7 @@
     <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes your Personal Files and the PIN too. Models and knowledge packs stay.</string>
     <string name="native_pin_forgotConfirm" formatted="false">Erase chats and files</string>
     <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
+    <string name="native_pin_forgotFailed" formatted="false">Couldn\'t erase everything. Your PIN stays on: try again.</string>
     <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
     <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
     <string name="native_pin_newSubtitle" formatted="false">4 to 8 digits. You\'ll enter it each time you open BOAR.</string>
