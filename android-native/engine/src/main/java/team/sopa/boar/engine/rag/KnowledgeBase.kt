@@ -98,7 +98,8 @@ class KnowledgeBase(private val db: SqlDatabase) {
     ) { (it.string("title") ?: "") to (it.string("head") ?: "") }.filter { it.first.isNotBlank() }.shuffled(kotlin.random.Random(seed)).take(limit)
     /** One document's parts (the built-in library's, or a file in Personal Files), for reading it whole (SourceArticle). */
     fun docParts(docId: String): List<Chunk> =
-        db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE doc_id = ?", listOf(docId)) {
+        // Not the file's card (OwnFiles.card): it describes the file, it isn't part of its text.
+        db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE doc_id = ? AND chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}'", listOf(docId)) {
             Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"))
         }
 
