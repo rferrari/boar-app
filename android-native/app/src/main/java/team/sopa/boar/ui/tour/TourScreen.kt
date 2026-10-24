@@ -35,6 +35,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.t
+import team.sopa.boar.ui.theme.wash
 
 /**
  * One card of the tour: its strings are native.tour.<key>.title / .body / .where (no where line for welcome and end).
@@ -85,7 +86,7 @@ fun TourScreen(
             Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(t("native.tour.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
                 Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.08f))
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f))
                         .clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))

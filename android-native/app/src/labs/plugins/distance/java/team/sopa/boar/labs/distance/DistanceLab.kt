@@ -31,8 +31,6 @@ import team.sopa.boar.ui.theme.Boar
  */
 object DistanceLab : LabPlugin {
     override val id = "distance"
-    // On at first launch in the bounty build (owner, Oct 20): instant, offline, no download.
-    override val onByDefault = true
     override val emoji = "🗺️"
     override val art = team.sopa.boar.R.drawable.lab_distance
     override val status = LabStatus.BETA
