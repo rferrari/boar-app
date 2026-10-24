@@ -7,7 +7,8 @@ plugins {
 }
 
 /** A Boar Labs plugin folder: src/labs/plugins/<folder>/plugin.properties (folders starting with _ are templates). */
-class LabPluginDir(val dir: File, val id: String, val obj: String?, val classified: String?, val order: Int)
+/** [review]: under review (review=true), so its engine (jniLibs) stays out of the APK, whatever the build. */
+class LabPluginDir(val dir: File, val id: String, val obj: String?, val classified: String?, val order: Int, val review: Boolean)
 
 val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpty()
     .filter { it.isDirectory && !it.name.startsWith("_") && it.resolve("plugin.properties").isFile }
@@ -18,7 +19,7 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
         val obj = p.getProperty("object")?.trim()
         val classified = p.getProperty("classified")?.trim()
         require((obj == null) != (classified == null)) { "${dir.name}/plugin.properties: set either object= or classified=" }
-        LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100)
+        LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100, p.getProperty("review")?.trim()?.toBoolean() ?: false)
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
 
@@ -155,14 +156,15 @@ android {
     }
     // Boar Labs: the framework (src/labs/java, res) and every plugin folder under src/labs/plugins, found here, so a
     // plugin is one folder and nothing else (docs/PLUGINS.md). A plugin's jniLibs (gitignored executables named lib*.so,
-    // e.g. sd-cli or bmoe-cli, installed runnable in nativeLibraryDir) ship only in experimental builds.
+    // e.g. sd-cli or bmoe-cli, installed runnable in nativeLibraryDir) ship only in experimental builds, and never for a
+    // lab under review (Oct 24): Play Protect blocks an APK whose executables it doesn't trust, so only the ones in use go.
     sourceSets["main"].java.srcDir("src/labs/java")
     sourceSets["main"].res.srcDir("src/labs/res")
     sourceSets["main"].java.srcDir(labsRegistryDir)
-    for (dir in labPlugins.map { it.dir }) {
-        sourceSets["main"].java.srcDir(dir.resolve("java"))
-        sourceSets["main"].res.srcDir(dir.resolve("res"))
-        if (labsExecutables) sourceSets["main"].jniLibs.srcDir(dir.resolve("jniLibs"))
+    for (plugin in labPlugins) {
+        sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
+        sourceSets["main"].res.srcDir(plugin.dir.resolve("res"))
+        if (labsExecutables && !plugin.review) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
     }
 }
 
