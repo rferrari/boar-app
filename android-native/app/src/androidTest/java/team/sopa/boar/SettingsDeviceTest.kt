@@ -4,7 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
@@ -31,7 +36,8 @@ class SettingsDeviceTest {
     private fun t(key: String) = I18n.t(ctx, key)
     private fun click(text: String) {
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(text))
-        compose.onNodeWithText(text).performSemanticsAction(SemanticsActions.OnClick)
+        // The button, not a heading with the same words ("Erase everything" is both).
+        compose.onNode(hasText(text) and hasClickAction()).performSemanticsAction(SemanticsActions.OnClick)
         compose.waitForIdle()
     }
 
@@ -83,7 +89,8 @@ class SettingsDeviceTest {
             assertTrue(setupAgain)
             click(t("modelSetupScreen.recovery.dangerButton"))
             compose.onNodeWithText(t("modelSetupScreen.dangerModal.title")).assertExists()
-            compose.onNodeWithText(t("modelSetupScreen.dangerModal.confirmButton")).assertExists()
+            // In the dialog: the section's heading and button use the same words.
+            compose.onNode(hasText(t("modelSetupScreen.dangerModal.confirmButton")) and hasAnyAncestor(isDialog())).assertExists()
         } finally {
             runCatching { services.chats.deleteSession(s.id) }
             services.settings.showLiveStats = was
@@ -104,7 +111,8 @@ class SettingsDeviceTest {
             for (label in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "native.telemetry.chip", "native.telemetry.note",
                 "voiceSettings.enabledLabel", "voiceSettings.speechEngineLabel", "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {
                 compose.onNode(hasScrollAction()).performScrollToNode(hasText(t(label)))
-                compose.onNodeWithText(t(label)).assertExists()
+                // "Voice input" is both the section's heading and its switch: any one of them.
+                compose.onAllNodesWithText(t(label)).onFirst().assertExists()
             }
         } finally {
             services.settings.showLiveStats = was

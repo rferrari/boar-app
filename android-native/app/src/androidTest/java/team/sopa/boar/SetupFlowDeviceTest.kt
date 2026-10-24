@@ -19,7 +19,7 @@ import team.sopa.boar.app.BoarServices
 import team.sopa.boar.ui.I18n
 
 /**
- * The whole first run, on the throwaway devtest install (its files are emptied first): hardware, the 1.5B
+ * The whole first run, on the throwaway devtest install (its files are emptied first): hardware, the light (compact)
  * model, the Essential package, the real download and indexing, the summary, then the PIN offer and a PIN set through it. Needs Wi-Fi and about
  * 1 GB; it only runs on the devtest install.
  */
@@ -30,7 +30,11 @@ class SetupFlowDeviceTest {
     /** Screens launched by a test, closed after it whatever happened. */
     private val opened = mutableListOf<ActivityScenario<*>>()
 
-    @org.junit.After fun closeScreens() { opened.forEach { runCatching { it.close() } } }
+    @org.junit.After fun closeScreens() {
+        opened.forEach { runCatching { it.close() } }
+        // The PIN this test sets is removed, so the chat tests after it in the same run don't skip themselves.
+        runCatching { BoarServices.get(ctx).pinLock.let { if (it.isSet) it.disable("2580") } }
+    }
     private fun t(key: String) = I18n.t(ctx, key)
 
     private fun click(text: String, substring: Boolean = false) {
@@ -62,7 +66,8 @@ class SetupFlowDeviceTest {
         compose.waitUntil(60_000) { shows(t("flows.onboarding.start"), substring = true) }
 
         click(t("flows.onboarding.start"), substring = true)
-        val compact = services.catalog.answerModels.first { it.id == "qwen2.5-1.5b-instruct-q4km" }
+        // The light answer model, whichever the catalog names (Qwen2.5 1.5B until rc1, Qwen3 1.7B since).
+        val compact = services.catalog.answerModels.first { it.answerTier == team.sopa.boar.engine.models.AnswerTier.COMPACT }
         click(compact.shortName, substring = true) // the name the model step shows
         click(t("flows.onboarding.continue"), substring = true)
         click(t("flows.onboarding.package.essential.name"))
