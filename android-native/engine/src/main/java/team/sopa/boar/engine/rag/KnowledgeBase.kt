@@ -23,6 +23,9 @@ class KnowledgeBase(private val db: SqlDatabase) {
         db.exec(SCHEMA)
         val columns = db.query("PRAGMA table_info(chunks)") { it.string("name") }
         if ("collection_id" !in columns) db.exec("ALTER TABLE chunks ADD COLUMN collection_id TEXT REFERENCES custom_collections(id)")
+        // A file's parts and a collection's chunks are looked up by these (the files' cards, a source read whole, a
+        // collection removed): without an index each is a scan of every chunk. After the ALTER, which adds the column.
+        db.exec("CREATE INDEX IF NOT EXISTS idx_chunks_doc ON chunks(doc_id); CREATE INDEX IF NOT EXISTS idx_chunks_collection ON chunks(collection_id);")
     }
 
     fun insertChunk(chunk: Chunk, embedding: FloatArray) = db.transaction {
