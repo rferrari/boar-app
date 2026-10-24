@@ -120,6 +120,42 @@ object LabHooks {
         }
     }
 
+    /**
+     * Setup's Boar Labs page: a switch for each lab that starts on, then the ones that start off (alpha, or that load a
+     * model), to try now or later. The same switches as the Labs grid.
+     */
+    @Composable
+    fun SetupList() {
+        Init()
+        val c = team.sopa.boar.ui.theme.Boar.colors
+        val type = team.sopa.boar.ui.theme.Boar.type
+        val usable = LabRegistry.visible.filter { it.status != LabStatus.CLASSIFIED && it.status != LabStatus.REVIEW }
+        // Every lab starts off (owner, Oct 24): beta first (live ones with them), then alpha, for the user to pick.
+        val (beta, alpha) = usable.partition { it.status == LabStatus.LIVE || it.status == LabStatus.BETA }
+        @Composable fun group(title: String, labs: List<LabPlugin>) {
+            if (labs.isEmpty()) return
+            androidx.compose.material3.Text(title.uppercase(), style = type.micro, color = c.textSecondary,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(top = 6.dp))
+            // What each lab does (its page's own first line), so the choice means something; the status is a small tag.
+            // Text only, no emoji or art: setup's pages follow the app's plain design.
+            for (lab in labs) Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(androidx.compose.ui.Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.title"), style = type.body, color = c.textPrimary,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, modifier = androidx.compose.ui.Modifier.weight(1f, fill = false))
+                        androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.status.${lab.status.name.lowercase()}").uppercase(), style = type.micro, color = c.textMuted,
+                            modifier = androidx.compose.ui.Modifier.border(1.dp, c.borderSubtle, androidx.compose.foundation.shape.RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+                    }
+                    androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.body"), style = type.subtext, color = c.textSecondary)
+                }
+                androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
+                    colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+            }
+        }
+        group(team.sopa.boar.ui.t("native.setupGuide.labs.beta"), beta)
+        group(team.sopa.boar.ui.t("native.setupGuide.labs.alpha"), alpha)
+    }
+
     private const val STORAGE_LIMIT = "storageLimit"
 
     /** Close BOAR shows the rain while Labs is on, unless the phone's animations are off (Android's remove animations). */

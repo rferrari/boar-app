@@ -5,9 +5,8 @@ finds by itself. Adding a lab is adding a folder; removing it is deleting the fo
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
-**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. A lab with
-`onByDefault = true` starts enabled: Calculator, Facts, Cohazard, Distance, Polyglot (beta) and Boar Vitals (live).
-The others start off. A build without the flag has none of this.
+**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. Every lab
+starts off: the user turns on the ones they want, on setup's Labs page or in the grid. A build without the flag has none of this.
 
 ## The rules every lab follows
 - Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
@@ -66,7 +65,7 @@ object=team.sopa.boar.labs.pulse.DevicePulseLab  # the LabPlugin object…
 order=20                                         # grid position (lower first; ties by id)
 ```
 
-Set **either** `object=` (a working lab) **or** `classified=<emoji>` (a teaser: a locked tile, nothing runs):
+Set `object=` (a working lab), `classified=<emoji>` (a teaser: a locked tile, nothing runs), or both:
 
 ```properties
 id=signboard
@@ -74,7 +73,19 @@ classified=📷
 order=90
 ```
 
-The build stops with a clear error if `id` doesn't match the folder, or if both or neither of `object`/`classified` are set.
+With **both**, the lab is built and kept as a teaser in normal builds; a builder brings it out with
+`-Pboar.labs.declassify=<id>` (comma-separated ids). The Daily Quiz ships this way:
+
+```properties
+id=dailyQuiz
+object=team.sopa.boar.labs.dailyquiz.DailyQuizLab
+classified=❔
+order=80
+```
+
+The build stops with a clear error if `id` doesn't match the folder, or if neither `object` nor `classified` is set.
+
+A lab under review (`LabStatus.REVIEW`) that runs its own engine also sets `review=true`. Its `jniLibs` then stay out of every APK. Google Play Protect blocks an APK that bundles executables it doesn't trust, so only the engines of labs in use ship. Example: colibri.
 
 ### Strings
 
@@ -92,7 +103,7 @@ escape apostrophes (`\'`). Read them in code with `t("native.labs.<id>.<name>")`
 ## The LabPlugin interface
 
 `android-native/app/src/labs/java/team/sopa/boar/labs/LabPlugin.kt`. Everything except `id`, `emoji` and `status` has a
-do-nothing default (`onByDefault` is false), so a lab only overrides what it uses.
+do-nothing default, so a lab only overrides what it uses.
 
 ```kotlin
 object MyLab : LabPlugin {
@@ -140,9 +151,9 @@ file.
 | `LabStatus` | Tile | Use when |
 |---|---|---|
 | `LIVE` | green | It works well |
-| `BETA` | cyan | It works, still rough. The labs that start on |
+| `BETA` | cyan | It works, still rough |
 | `ALPHA` | amber | Early; starts off |
-| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal. Example: colibri, "under 1 tok/s". |
+| `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal, unless it also sets `review=true`: then its engine is left out, the page stays open to read, and it can't answer. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 
 The grid shows live, then beta, alpha, under review and classified labs, in plugin.properties order within each.

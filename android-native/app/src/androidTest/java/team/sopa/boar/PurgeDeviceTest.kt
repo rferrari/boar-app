@@ -1,6 +1,9 @@
 package team.sopa.boar
 
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -33,9 +36,11 @@ class PurgeDeviceTest {
         val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
         compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}) {} } }
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("modelSetupScreen.recovery.dangerButton")))
-        compose.onNodeWithText(t("modelSetupScreen.recovery.dangerButton")).performSemanticsAction(SemanticsActions.OnClick)
+        // The button, not the section heading with the same words.
+        compose.onNode(hasText(t("modelSetupScreen.recovery.dangerButton")) and hasClickAction()).performSemanticsAction(SemanticsActions.OnClick)
         compose.waitForIdle()
-        compose.onNodeWithText(t("modelSetupScreen.dangerModal.confirmButton")).performSemanticsAction(SemanticsActions.OnClick)
+        // The dialog's own "Erase everything", not the section's heading or button with the same words.
+        compose.onNode(hasText(t("modelSetupScreen.dangerModal.confirmButton")) and hasAnyAncestor(isDialog())).performSemanticsAction(SemanticsActions.OnClick)
         Thread.sleep(10_000) // the process is killed before this ends
     }
 }

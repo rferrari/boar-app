@@ -24,10 +24,11 @@ object PersonalFiles {
 
     /**
      * [base] as this style sends it: whole parts within [contextSize] (the context the model was opened with), the
-     * files-only instruction, and [notFound] written without the model when nothing is found.
+     * files-only instruction, [notFound] written without the model when nothing is found, and [filesNote], the list of
+     * the user's switched-on files (OwnFiles.note).
      */
-    fun request(base: AnswerRequest, contextSize: Int, notFound: String = NOT_FOUND): AnswerRequest =
-        base.copy(filesOnly = true, contextSize = contextSize, notFoundText = notFound)
+    fun request(base: AnswerRequest, contextSize: Int, notFound: String = NOT_FOUND, filesNote: String? = null): AnswerRequest =
+        base.copy(filesOnly = true, contextSize = contextSize, notFoundText = notFound, filesNote = filesNote)
 
     /** An answer this long after the not-found line is a real answer, not a sign-off. */
     const val ANSWER_AFTER_HEDGE_CHARS = 40

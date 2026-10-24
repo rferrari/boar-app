@@ -42,7 +42,6 @@ object PolyglotLab : LabPlugin {
     override val emoji = "🗣️"
     override val art = team.sopa.boar.R.drawable.lab_polyglot
     override val status = LabStatus.BETA
-    override val onByDefault = true
 
     override val answerTool: AnswerTool = AnswerTool { query, history ->
         val app = LabContext.app ?: return@AnswerTool null

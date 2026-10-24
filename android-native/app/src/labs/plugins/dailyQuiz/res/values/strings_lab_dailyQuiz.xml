@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_dailyQuiz_title" formatted="false">Daily Quiz</string>
+    <string name="native_labs_dailyQuiz_body" formatted="false">A short daily quiz from BOAR\'s library, offline. Right answers unlock Boar Avatars.</string>
+    <string name="native_labs_dailyQuiz_prompt" formatted="false">Which article does this come from?</string>
+    <string name="native_labs_dailyQuiz_progress" formatted="false">Question {{n}} of {{total}}</string>
+    <string name="native_labs_dailyQuiz_right" formatted="false">Right!</string>
+    <string name="native_labs_dailyQuiz_wrong" formatted="false">Not this time: it was {{title}}.</string>
+    <string name="native_labs_dailyQuiz_next" formatted="false">Next</string>
+    <string name="native_labs_dailyQuiz_score" formatted="false">{{right}} of {{total}} right today.</string>
+    <string name="native_labs_dailyQuiz_tomorrow" formatted="false">A new quiz tomorrow.</string>
+    <string name="native_labs_dailyQuiz_empty" formatted="false">The library isn\'t ready yet: finish setup, then come back.</string>
+    <string name="native_labs_dailyQuiz_loading" formatted="false">Picking today\'s questions…</string>
+</resources>

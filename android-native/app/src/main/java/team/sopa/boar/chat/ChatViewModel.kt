@@ -131,6 +131,8 @@ data class ChatState(
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
+    /** The question picked in setup, for the input box once (not sent). */
+    val prefill: String? = null,
 )
 
 /**
@@ -340,6 +342,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         refreshTone()
         refreshModel()
         _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
+        // Setup's "How to ask" page: its question waits in the input, once.
+        services.settings.pendingFirstQuestion?.let { q -> services.settings.pendingFirstQuestion = null; _state.update { it.copy(prefill = q) } }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
         val open = _state.value.sessionId
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
@@ -347,6 +351,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun showToast(key: String) = team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), key))
     fun hideToast() = _state.update { it.copy(toast = null) }
+    fun prefilled() = _state.update { it.copy(prefill = null) }
 
     /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
     private fun watchConnectivity(app: Application) {
@@ -638,10 +643,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
                     val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
-                    // Nothing found in the files: the fixed line in the user's language, and where to switch a collection on.
+                    // Nothing found in the files: the fixed line in the user's language, then where to switch a collection on
+                    // when none is on, or how to ask when one is. The prompt lists the switched-on files by name.
+                    val ownFiles = if (personal) services.retriever.ownFiles() else emptyList()
+                    val hint = if (ownFiles.isEmpty()) "native.personal.notFoundHint" else "native.personal.notFoundAskHint"
                     val request = if (!personal) base else PersonalFiles.request(base,
                         services.host.openedContext ?: team.sopa.boar.engine.EngineTweaks.contextSizeForRam(totalRamBytes()),
-                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFoundHint"))
+                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), hint),
+                        team.sopa.boar.engine.rag.OwnFiles.note(ownFiles))
                     pipeline.answer(request).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }

@@ -28,6 +28,8 @@ data class AnswerRequest(
     val contextSize: Int? = null,
     /** [filesOnly]'s answer when the search found nothing: written as is, without the model. */
     val notFoundText: String = PersonalFiles.NOT_FOUND,
+    /** [filesOnly]'s list of the user's switched-on files (OwnFiles.note), so "which files do I have?" has an answer. */
+    val filesNote: String? = null,
 )
 
 enum class AnswerStage { RETRIEVING, THINKING, GENERATING }
@@ -100,13 +102,13 @@ class AnswerPipeline(
         emit(AnswerEvent.Stage(AnswerStage.THINKING))
         val useTemplate = session.hasChatTemplate
         val (prompt, stops) = if (useTemplate) {
-            val messages = RagPure.assembleChatMessages(req.query, sources, req.systemPrompt, req.history, req.styleReminder, req.filesOnly).map { ChatMessage(it.role, it.content) }
+            val messages = RagPure.assembleChatMessages(req.query, sources, req.systemPrompt, req.history, req.styleReminder, req.filesOnly, req.filesNote).map { ChatMessage(it.role, it.content) }
             // llama.rn left enable_thinking at the template's default (on); here it's the user's tweak, off by default,
             // so a thinking model doesn't spend the answer's token cap reasoning.
             val f = session.formatChat(messages, enableThinking = req.enableThinking)
             f.prompt to f.stops
         } else {
-            RagPure.assemblePrompt(req.query, sources, req.systemPrompt, req.history, req.styleReminder, req.filesOnly) to DEFAULT_STOP_SEQUENCES
+            RagPure.assemblePrompt(req.query, sources, req.systemPrompt, req.history, req.styleReminder, req.filesOnly, req.filesNote) to DEFAULT_STOP_SEQUENCES
         }
         val text = StringBuilder()
         var metrics: GenerationMetrics? = null
@@ -126,7 +128,8 @@ class AnswerPipeline(
 
     /** The prompt without its passages, estimated as the plain prompt plus the files-only instruction and its heading. */
     private fun promptTokens(req: AnswerRequest): Int =
-        Compress.approxTokens(RagPure.assemblePrompt(req.query, emptyList(), req.systemPrompt, req.history, req.styleReminder) + RagPure.FILES_ONLY_INSTRUCTION + "Context:\n\n")
+        Compress.approxTokens(RagPure.assemblePrompt(req.query, emptyList(), req.systemPrompt, req.history, req.styleReminder, filesNote = req.filesNote) +
+            RagPure.FILES_ONLY_INSTRUCTION + "Context:\n\n")
 
     companion object {
         /** The smallest context BOAR opens (EngineTweaks.contextSizeForRam), for a model that doesn't say its own. */

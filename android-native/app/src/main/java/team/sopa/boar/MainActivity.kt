@@ -112,7 +112,11 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         team.sopa.boar.app.DebugLog.foreground(true)
         BoarServices.get(this).onForeground()
-        if (stoppedAt > 0 && BoarServices.get(this).pinLock.isSet && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
+        val services = BoarServices.get(this)
+        // A PIN set during setup doesn't lock it while it downloads: there's no chat yet to protect, and the file picker
+        // or a long download away would otherwise drop the user out of setup's pages.
+        val setupOnly = SetupViewModel.running && runCatching { services.chats.listSessions().isEmpty() }.getOrDefault(false)
+        if (stoppedAt > 0 && services.pinLock.isSet && !setupOnly && android.os.SystemClock.elapsedRealtime() - stoppedAt > RELOCK_AFTER_MS) locked.value = true
     }
 
     override fun onTrimMemory(level: Int) {
@@ -171,13 +175,26 @@ class MainActivity : ComponentActivity() {
     private companion object { const val RELOCK_AFTER_MS = 60_000L }
 }
 
-/** Where setup leads: the PIN offer, unless a PIN is already set (setup run again from Settings → Recovery). */
-internal fun afterSetup(pinSet: Boolean) = if (pinSet) "chat" else "pinOffer"
+/**
+ * Where setup leads: the PIN offer, unless a PIN is already set (setup run again from Settings → Recovery) or setup's
+ * own PIN page was already shown ([offered]: Open BOAR can come before the user reaches it).
+ */
+internal fun afterSetup(pinSet: Boolean, offered: Boolean = false) = if (pinSet || offered) "chat" else "pinOffer"
 
 @Composable
 private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel = viewModel(), setup: SetupViewModel = viewModel()) {
     val state by vm.state.collectAsState()
-    var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished) "chat" else "setup") }
+    // While setup's install step runs, setup stays: also when this composition was dropped for the lock screen.
+    var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished && !SetupViewModel.running) "chat" else "setup") }
+    // The source a "Read the whole article" opened (SourceReaderScreen): kept across rotation, as the screen is.
+    var readDoc by rememberSaveable { mutableStateOf("") }
+    var readTitle by rememberSaveable { mutableStateOf("") }
+    var readBody by rememberSaveable { mutableStateOf("") }
+    if (screen == "reader") {
+        BackHandler { screen = "chat" }
+        team.sopa.boar.ui.chat.SourceReaderScreen(services, readDoc, readTitle, readBody) { screen = "chat" }
+        return
+    }
     if (screen == "setup") {
         val setupState by setup.state.collectAsState()
         // Downloads pause in the background on MIUI: the screen stays on while setup runs.
@@ -211,7 +228,12 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             // The tour's theme card: the same write as Settings → Display & Theme.
             themeId = services.settings.themeId,
             onTheme = { id -> services.settings.themeId = id; prefs.setTheme(id); services.vault.record { f -> f.copy(themeChanged = true) } },
-        ) { setup.forget(); vm.refreshSettings(); vm.refreshModel(); screen = afterSetup(services.pinLock.isSet) }
+            onFontScale = { scale -> services.settings.fontScale = scale; prefs.setFontScale(scale) },
+        ) {
+            val pinPage = setupState.pages.indexOf(team.sopa.boar.engine.models.SetupGuide.Page.PIN)
+            setup.forget(); vm.refreshSettings(); vm.refreshModel()
+            screen = afterSetup(services.pinLock.isSet, offered = pinPage in 0..setupState.guidePage)
+        }
         return
     }
     if (screen == "pinOffer") {
@@ -240,13 +262,15 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         BrowseScreen(modelsState, models) { screen = "models" }
         return
     }
-    if (screen == "documents") {
+    // "documents" from the menu (both sections folded); "documents:packs" or "documents:personal" from Settings opens that one.
+    if (screen.startsWith("documents")) {
+        val focus = screen.substringAfter(':', "")
         val docs: DocumentsViewModel = viewModel()
         val docsState by docs.state.collectAsState()
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
         BackHandler { screen = "chat" }
-        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) },
+        DocumentsScreen(docsState, docs, focus = focus, packs = { KnowledgePacks(modelsState, models, startOpen = focus == "packs") },
             // "Ask about them": a new chat in Personal Files, the style that answers from the user's files.
             onAskFiles = { vm.setTone("personal"); vm.newChat(); screen = "chat" }) { screen = "chat" }
         return
@@ -284,6 +308,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Back with the menu open closes the menu, not BOAR (#93): ModalNavigationDrawer doesn't handle Back itself.
+    BackHandler(enabled = drawer.isOpen) { scope.launch { drawer.close() } }
     var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
     LaunchedEffect(drawer.isOpen, state.answeringId) {
         if (drawer.isOpen) sessions = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -383,6 +409,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onOpenModels = { vm.openedCatalog(); screen = "models" },
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
+            onReadSource = { src -> readDoc = src.docId.orEmpty(); readTitle = src.title; readBody = src.body; screen = "reader" },
+            onPrefilled = vm::prefilled,
             voiceEnabled = services.settings.voiceInputEnabled,
             onOpenRoute = { screen = it },
         )
