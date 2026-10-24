@@ -65,8 +65,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
     val skippable = (page == Page.FILES && state.files.isEmpty()) || (page == Page.PIN && !services.pinLock.isSet)
     StepScreen(footer = {
         if (page == Page.READY) {
+            // The page's subtitle already says when it opens: no note here, so large text keeps room for the page.
             PrimaryButton(t("flows.onboarding.open"), enabled = state.finished, onClick = onDone)
-            if (!state.finished) Meta(t("flows.onboarding.openWhenReady"))
         // A page with its own action (Add files, Set a PIN) keeps that one as the strong button; skipping is quieter.
         } else if (skippable) SecondaryButton(t("native.setupGuide.skip") + "  →") { vm.guideNext() }
         else PrimaryButton(t("native.setupGuide.next") + "  →") { vm.guideNext() }
@@ -145,10 +145,11 @@ private fun PageHeader(index: Int, total: Int, page: Page) {
 private fun LookPage(services: BoarServices, themeId: String?, onTheme: (String) -> Unit, onFontScale: (String) -> Unit) {
     var picked by remember { mutableStateOf(themeId) }
     team.sopa.boar.ui.appearance.ThemePicker(services.vault, picked) { picked = it; onTheme(it) }
-    // Below the chips, so a tap repaints the example right under the finger (as the tour's theme card).
-    team.sopa.boar.ui.tour.TourPreview("theme")
+    // Text size above the example: with large text the example fills the screen, and the size chips must stay in reach.
     var scale by remember { mutableStateOf(services.settings.fontScale) }
     Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; onFontScale(it) }
+    // Below the chips, so a tap repaints the example right under the finger (as the tour's theme card).
+    team.sopa.boar.ui.tour.TourPreview("theme")
 }
 
 @Composable
