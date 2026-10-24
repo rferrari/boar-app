@@ -100,15 +100,16 @@ class PinLock(
     val erased: kotlinx.coroutines.flow.StateFlow<Int> = _erased
 
     fun forget(): Boolean {
-        // The PIN goes only once everything it guarded is gone (CodeRabbit): a failed erase keeps the lock, so what's
-        // left isn't open to whoever didn't know the PIN; the user can try again.
+        // The PIN goes only once the chats and Personal Files are gone (CodeRabbit): a failed erase keeps the lock, so
+        // they aren't left open to whoever didn't know the PIN; the user can try again.
         val erased = runCatching {
             eraseOwnFiles()
             chats.clearAll()
-            // What the labs made goes too: pictures and illustrations can show what the chats were about.
-            team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING)
         }.isSuccess
         if (!erased) return false
+        // What the labs made goes too (pictures can show what the chats were about), but best effort: a lab that fails
+        // to erase must not keep the user locked out for good (CodeRabbit).
+        runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
         chats.cipher = PlainCipher
         clear()
         _erased.value += 1
