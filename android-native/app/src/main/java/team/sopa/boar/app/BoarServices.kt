@@ -102,7 +102,10 @@ class BoarServices private constructor(private val context: Context) {
     fun exportKnowledgeBase(to: File) = kbDb.exec("VACUUM INTO '${to.path.replace("'", "''")}'")
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
-    val pinLock = team.sopa.boar.security.PinLock(settings, chats)
+    val pinLock = team.sopa.boar.security.PinLock(settings, chats, eraseOwnFiles = {
+        knowledgeBase.collections().forEach { knowledgeBase.deleteCollection(it.id) }
+        java.io.File(context.filesDir, "setup-imports").deleteRecursively()
+    })
     /** The Truffle Vault: boar icons unearthed by using the app, counted on the phone. */
     val vault = team.sopa.boar.appearance.TruffleVault(context, settings)
 

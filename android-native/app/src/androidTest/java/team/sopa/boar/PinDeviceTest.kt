@@ -42,15 +42,17 @@ class PinDeviceTest {
     private val dir = File(ctx.cacheDir, "pin-test").apply { deleteRecursively(); mkdirs() }
     private val opened = mutableListOf<NativeSqlite>()
 
-    private class Store(val db: NativeSqlite, val chats: ChatStore, val settings: AppSettings, val lock: PinLock)
+    private class Store(val db: NativeSqlite, val chats: ChatStore, val settings: AppSettings, val lock: PinLock, val kb: KnowledgeBase)
 
     /** A fresh process's view of the same files: new connection, new settings, no key in memory. */
     private fun open(): Store {
         val db = NativeSqlite.open(File(dir, "kb.db").path).also { opened += it }
-        KnowledgeBase(db)
+        val kb = KnowledgeBase(db)
         val chats = ChatStore(db)
         val settings = AppSettings(File(dir, "settings.json"))
-        return Store(db, chats, settings, PinLock(settings, chats, alias = "boar-pin-test"))
+        // As the app wires it (BoarServices): forgetting the PIN erases Personal Files too.
+        return Store(db, chats, settings, PinLock(settings, chats, alias = "boar-pin-test",
+            eraseOwnFiles = { kb.collections().forEach { kb.deleteCollection(it.id) } }), kb)
     }
 
     private fun bytesOnDisk(): String = dir.walkTopDown().filter { it.isFile }.joinToString("") { String(it.readBytes(), Charsets.ISO_8859_1) }
@@ -109,15 +111,18 @@ class PinDeviceTest {
         assertTrue(b.lock.unlock("4821") is PinLock.Attempt.Wait)
     }
 
-    @Test fun forgettingThePinErasesTheChatsAndTheLock() {
+    @Test fun forgettingThePinErasesTheChatsPersonalFilesAndTheLock() {
         val a = open()
         val s = a.chats.createSession("Secret")
         a.chats.addMessage(s.id, "user", "hidden", "u1")
+        // A Personal Files collection: not sealed by the PIN, so "Forgot PIN" must erase it, or it's left readable.
+        a.kb.createCollection("c-diary", "diary", "diary.txt", 1, 1, 10, now = 1)
         a.lock.enable("4821")
         val b = open()
         b.lock.forget()
         assertFalse(b.lock.isSet)
         assertTrue(b.chats.listSessions().isEmpty())
+        assertTrue(b.kb.collections().isEmpty())
     }
 
     /** The lock screen of a PIN-protected store, with "Forgot the PIN?" tapped. */

@@ -24,6 +24,8 @@ class PinLock(
     private val chats: ChatStore,
     /** The Keystore key's name; tests use their own so they never touch the app's real key. */
     private val alias: String = "boar-pin-v1",
+    /** Erases Personal Files (their collections and any file setup still has waiting): [forget] runs it. */
+    private val eraseOwnFiles: () -> Unit = {},
 ) {
     sealed interface Attempt {
         data object Ok : Attempt
@@ -89,9 +91,13 @@ class PinLock(
         return true
     }
 
-    /** Forgot the PIN: the chats can't be opened any more, so they're erased with the key. */
+    /**
+     * Forgot the PIN: the chats can't be opened any more, so they're erased with the key. Personal Files go too (Oct 24):
+     * they aren't sealed, so without this "Forgot PIN" handed someone without the PIN the user's own documents.
+     */
     fun forget() {
         chats.clearAll()
+        runCatching { eraseOwnFiles() }
         // What the labs made goes too: pictures and illustrations can show what the chats were about.
         runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
         chats.cipher = PlainCipher

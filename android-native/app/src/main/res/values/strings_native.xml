@@ -114,9 +114,9 @@
     <string name="native_pin_wrong" formatted="false">Wrong PIN.</string>
     <string name="native_pin_wait" formatted="false">Too many tries. Wait {{seconds}} s.</string>
     <string name="native_pin_forgot" formatted="false">Forgot the PIN?</string>
-    <string name="native_pin_forgotTitle" formatted="false">Erase your chats?</string>
-    <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes the PIN too. Models, packs and documents stay.</string>
-    <string name="native_pin_forgotConfirm" formatted="false">Erase chats</string>
+    <string name="native_pin_forgotTitle" formatted="false">Erase your chats and personal files?</string>
+    <string name="native_pin_forgotBody" formatted="false">Without the PIN, your chats can\'t be opened, not even by us. Erasing them removes your Personal Files and the PIN too. Models and knowledge packs stay.</string>
+    <string name="native_pin_forgotConfirm" formatted="false">Erase chats and files</string>
     <string name="native_pin_forgotCountdown" formatted="false">Closes in {{seconds}} s</string>
     <string name="native_pin_currentTitle" formatted="false">Current PIN</string>
     <string name="native_pin_newTitle" formatted="false">Choose a PIN</string>
