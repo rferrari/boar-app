@@ -130,7 +130,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private var rateStart: Pair<Long, Long>? = null
     private var lastMove = Pair(0L, System.currentTimeMillis())
     private var indexStart: Pair<Int, Long>? = null
-    /** Setup was in its install step when the process ended: the app opens on it, not on the chat. */
+    /** Setup was left unfinished when the process ended: the app opens on it, from its first page, not on the chat. */
     var unfinished = false
         private set
 
@@ -143,41 +143,43 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         val answer = services.catalog.setupModels.filter { it.engine == null && it.id !in added }
         val rec = SetupModel.recommended(services.catalog.answerModels, ram)
         _state.update { it.copy(totalRamBytes = ram, models = answer, recommendedId = rec?.id, chosenId = rec?.id, pages = guidePages()) }
-        restore()
+        unfinished = restore()
         refreshPlans()
-        // Process killed in step 4 (downloading or indexing): pick up there. Files already in are skipped and the
-        // index skips the articles it has, so this ends on the summary.
-        unfinished = _state.value.step == 4
+        // Setup left unfinished (owner, Oct 24: the app closed mid-download sat on a stuck step 4): it starts over from
+        // its first page, choices kept. Install picks the download up again: files already in are skipped and the
+        // index skips the articles it has, so a finished download goes straight on to the summary.
         _state.update { it.copy(files = pickedNames(), filesImported = imported().second) }
-        if (unfinished) install()
         watchStall()
     }
 
     /** Free space on the phone; -1 when Android doesn't say (a real 0 means the disk is full). */
     private fun freeBytes() = runCatching { StatFs(getApplication<Application>().filesDir.path).availableBytes }.getOrDefault(-1L)
 
-    private fun restore() {
+    /** The choices of a setup left unfinished, from its first page; whether there was one. */
+    private fun restore(): Boolean {
         val saved = runCatching {
             val o = org.json.JSONObject(progressFile.readText())
             SavedProgress(o.getInt("step"), o.getString("packageId"), o.optString("chosenId").ifEmpty { null }, o.optBoolean("packageChosen"), o.optBoolean("answerChosen"),
                 o.opt("guidePage") as? String, if (o.has("pinPage")) o.getBoolean("pinPage") else null)
-        }.getOrNull() ?: return
+        }.getOrNull() ?: return false
         packageChosen = saved.packageChosen
         answerChosen = saved.answerChosen
         // A model picked from Hugging Face before the process ended is listed again, so the choice survives.
         saved.chosenId?.let { id -> services.catalog.byId(id) }?.let { m ->
             _state.update { s -> if (s.models.any { it.id == m.id }) s else s.copy(models = s.models + m) }
         }
-        val resumed = SetupGuide.resume(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, saved.pinPage, services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies(), saved.guidePage)
+        // The guide's pages as they were (a PIN set on its page keeps that page), from the first one.
+        val resumed = SetupGuide.resume(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, saved.pinPage, services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies(), null)
         _state.update { s ->
             s.copy(
-                step = saved.step.coerceIn(1, 4),
+                step = 1,
                 packageId = SetupPackage.entries.firstOrNull { it.id == saved.packageId } ?: s.packageId,
                 chosenId = saved.chosenId?.takeIf { id -> s.models.any { it.id == id } && saved.answerChosen } ?: s.chosenId,
                 pages = resumed.first,
                 guidePage = resumed.second,
             )
         }
+        return true
     }
 
     private fun save() {
