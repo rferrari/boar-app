@@ -65,7 +65,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("←", style = Boar.type.titleLg, color = c.textPrimary, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 24.dp, c.textPrimary, Modifier.clickable(onClick = onBack).padding(4.dp))
             Text(t("modelSetupScreen.header.title"), style = Boar.type.titleLg, color = c.textHeading)
         }
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -353,7 +353,7 @@ private fun ToneSection(services: BoarServices) {
     val personalities = services.personalities
     Section(t("modelSetupScreen.sections.tone"), team.sopa.boar.R.drawable.ic_settings_tone, startOpen = true, summary = {
         val id = s.personalityId ?: personalities.defaultId
-        "${personalities.get(id).icon} ${t("personalities.$id.label")} · " + t("native.settings.summary.deep", "state" to onOff(s.deepResearchMode))
+        "${t("personalities.$id.label")} · " + t("native.settings.summary.deep", "state" to onOff(s.deepResearchMode))
     }) {
         var id by remember { mutableStateOf(s.personalityId ?: personalities.defaultId) }
         // One row per style, its icon first (the chat's style button shows the same), so none sits alone on a wrapped line.
@@ -560,7 +560,7 @@ private fun StyleRow(id: String, icon: String, label: String, description: Strin
             Text(label, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
             Text(description, style = Boar.type.subtext, color = c.textSecondary)
         }
-        if (selected) Text("✓", style = Boar.type.title, color = c.textAccentEmerald)
+        if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
     }
 }
 

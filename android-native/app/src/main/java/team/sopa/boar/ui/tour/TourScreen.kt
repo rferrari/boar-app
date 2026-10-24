@@ -137,8 +137,11 @@ fun TourScreen(
             }
             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.weight(1f)) {
-                    if (i > 0) Text("← " + t("native.tour.back"), style = Boar.type.body, color = c.textMuted,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onIndex(i - 1) }.padding(10.dp))
+                    if (i > 0) Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onIndex(i - 1) }.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 16.dp, c.textMuted)
+                        Text(t("native.tour.back"), style = Boar.type.body, color = c.textMuted)
+                    }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     cards.indices.forEach { n -> Box(Modifier.size(6.dp).background(if (n == i) c.emerald500 else c.bgSubtle, CircleShape)) }
@@ -147,12 +150,12 @@ fun TourScreen(
                     val last = i == cards.lastIndex
                     // Last card: into BOAR when it's ready; otherwise Done, back to the download or to Settings.
                     val label = when {
-                        !last -> t("native.tour.next") + " →"
+                        !last -> t("native.tour.next")
                         progress == null -> t("native.tour.done")
                         progress.ready && onReady != null -> t("native.tour.openBoar")
                         else -> t("native.tour.done")
                     }
-                    Button(label, primary = true) {
+                    Button(label, primary = true, trailing = if (!last) team.sopa.boar.R.drawable.ic_arrow_forward else null) {
                         when {
                             !last -> onIndex(i + 1)
                             progress?.ready == true && onReady != null -> onReady()
@@ -166,9 +169,12 @@ fun TourScreen(
 }
 
 @Composable
-private fun Button(label: String, primary: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun Button(label: String, primary: Boolean, modifier: Modifier = Modifier, trailing: Int? = null, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type.titleSm, color = if (primary) c.textInverse else c.textPrimary, textAlign = TextAlign.Center,
-        modifier = modifier.clip(RoundedCornerShape(12.dp)).then(if (primary) Modifier.background(c.emerald500) else Modifier.border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)))
-            .clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp))
+    val fg = if (primary) c.textInverse else c.textPrimary
+    Row(modifier.clip(RoundedCornerShape(12.dp)).then(if (primary) Modifier.background(c.emerald500) else Modifier.border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)))
+        .clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = Boar.type.titleSm, color = fg, textAlign = TextAlign.Center)
+        trailing?.let { team.sopa.boar.ui.PackIcon(it, 18.dp, fg) }
+    }
 }

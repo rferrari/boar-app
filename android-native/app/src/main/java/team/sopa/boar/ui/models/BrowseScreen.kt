@@ -190,7 +190,7 @@ private fun FileAction(repo: String, f: HfBrowser.GgufFile, state: ModelsState, 
     when {
         row?.downloading == true -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Busy("%.0f%%".format(row.progress * 100))
-            Text("✕", style = Boar.type.body, color = c.crimson400, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { vm.cancelDownload(item) }.padding(4.dp))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 18.dp, c.crimson400, Modifier.clickable { vm.cancelDownload(item) }.padding(4.dp))
         }
         row?.present != true -> Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             SmallButton(t(if (row?.error != null) "catalogItemCard.retryDownload" else "catalogItemCard.downloadAsset")) { vm.download(item) }

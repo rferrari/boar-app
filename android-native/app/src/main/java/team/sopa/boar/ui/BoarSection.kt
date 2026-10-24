@@ -43,7 +43,7 @@ fun BoarSection(title: String, open: Boolean = true, onToggle: (() -> Unit)? = n
                 Text(title, style = Boar.type.title, color = c.textHeading)
                 if (!open && !summary.isNullOrBlank()) Text(summary, style = Boar.type.subtext, color = c.textSecondary, maxLines = 2)
             }
-            Text(if (open) "▴" else "▾", style = Boar.type.title, color = c.textMuted)
+            team.sopa.boar.ui.PackIcon(if (open) team.sopa.boar.R.drawable.ic_chevron_up else team.sopa.boar.R.drawable.ic_chevron_down, 18.dp, c.textMuted)
         } else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             mark()
             Text(title, style = Boar.type.title, color = c.textHeading)

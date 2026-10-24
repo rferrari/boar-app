@@ -78,8 +78,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             PrimaryButton(t("flows.onboarding.open"), enabled = state.finished, onClick = onDone)
         // A page with its own action (Add files, Set a PIN, Allow notifications) keeps that one as the strong button;
         // skipping is quieter.
-        } else if (skippable) SecondaryButton(t("native.setupGuide.skip") + "  →") { vm.guideNext() }
-        else PrimaryButton(t("native.setupGuide.next") + "  →") { vm.guideNext() }
+        } else if (skippable) SecondaryButton(t("native.setupGuide.skip"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.guideNext() }
+        else PrimaryButton(t("native.setupGuide.next"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.guideNext() }
         if (state.guidePage > 0) BackLink(t("flows.onboarding.back")) { vm.guideBack() }
     }) {
         ProgressStrip(state) { vm.showDetails(true) }
@@ -131,7 +131,7 @@ private fun ReadyBanner(onOpen: () -> Unit, onKeep: () -> Unit) {
         Text(t("native.tour.ready"), style = Boar.type.title, color = c.textHeading)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.weight(1f)) { PrimaryButton(t("native.tour.openBoar"), onClick = onOpen) }
-            Box(Modifier.weight(1f)) { SecondaryButton(t("native.setupGuide.keepGoing"), onKeep) }
+            Box(Modifier.weight(1f)) { SecondaryButton(t("native.setupGuide.keepGoing"), onClick = onKeep) }
         }
     }
 }
@@ -184,7 +184,7 @@ private fun ModeCard(icon: String, title: String, body: String, selected: Boolea
             Text(title, style = Boar.type.title, color = c.textHeading)
             Text(body, style = Boar.type.subtext, color = c.textSecondary)
         }
-        if (selected) Text("✓", style = Boar.type.title, color = c.textAccentEmerald)
+        if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
     }
 }
 
@@ -221,7 +221,7 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
     // The same types as Knowledge → Personal Files.
     val pick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) }
     if (state.files.isEmpty()) PrimaryButton(t("native.setupGuide.files.add"), onClick = pick)
-    else SecondaryButton(t("native.setupGuide.files.addMore"), pick)
+    else SecondaryButton(t("native.setupGuide.files.addMore"), onClick = pick)
     Meta(t("native.setupGuide.files.types"))
     if (state.files.isNotEmpty()) Card {
         val searchReady = state.downloads.any { it.asset.kind == AssetKind.EMBEDDING && it.done }
@@ -233,12 +233,12 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
         })
         for (name in state.files) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val done = name in state.filesImported && !state.importing
-            Text(if (done) "✓" else "◷", style = Boar.type.title, color = if (done) c.textAccentEmerald else c.textSecondary)
+            team.sopa.boar.ui.PackIcon(if (done) team.sopa.boar.R.drawable.ic_check else team.sopa.boar.R.drawable.ic_pending, 20.dp, if (done) c.textAccentEmerald else c.textSecondary)
             Text(name, style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f), maxLines = 2)
             Text(if (done) t("native.setupGuide.files.added") else waiting, style = Boar.type.caption, color = if (done) c.textAccentEmerald else c.textMuted)
             // A wrong pick goes again; an imported one comes out of Personal Files too.
             val removeLabel = t("native.setupGuide.files.remove", "name" to name)
-            Text("✕", style = Boar.type.title, color = c.textMuted, modifier = Modifier.clip(CircleShape)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 18.dp, c.textMuted, Modifier.clip(CircleShape)
                 .clickable(enabled = !state.importing) { vm.removeFile(name) }
                 .semantics { contentDescription = removeLabel }.padding(8.dp))
         }
@@ -292,7 +292,12 @@ private fun FirstQuestionPage(services: BoarServices) {
 private fun PinPage(services: BoarServices, onSet: () -> Unit) {
     val c = Boar.colors
     if (services.pinLock.isSet) {
-        Card(background = c.emeraldBgSubtle, border = c.emerald500) { Text("✓  " + t("native.setupGuide.pin.on"), style = Boar.type.title, color = c.textHeading) }
+        Card(background = c.emeraldBgSubtle, border = c.emerald500) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
+                Text(t("native.setupGuide.pin.on"), style = Boar.type.title, color = c.textHeading)
+            }
+        }
         return
     }
     Text(t("native.pin.offerBody"), style = Boar.type.body, color = c.textPrimary)
@@ -340,7 +345,10 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     }
     Text(t("native.setupGuide.notify.why"), style = Boar.type.body, color = c.textPrimary)
     when {
-        granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+        granted -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
+            Meta(t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
+        }
         refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
         else -> PrimaryButton(t("native.setupGuide.privacy.notifyAllow")) {
             team.sopa.boar.app.NotificationAsk.markAsked(ctx)
@@ -376,5 +384,5 @@ private fun ReadyPage(services: BoarServices, state: SetupState, onDetails: () -
         Meta(t("native.setupGuide.ready.change"))
     }
     if (state.finished) DoneSummary(state)
-    else SecondaryButton(t("native.setupGuide.ready.seeDownload"), onDetails)
+    else SecondaryButton(t("native.setupGuide.ready.seeDownload"), onClick = onDetails)
 }

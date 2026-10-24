@@ -51,7 +51,7 @@ fun ToneSheet(state: ChatState, onSetTone: (String) -> Unit, onSetDeepResearch: 
                         Text(t("personalities.$id.label"), style = Boar.type.body, color = if (selected) c.textAccentEmerald else c.textPrimary)
                         Text(t("personalities.$id.description"), style = Boar.type.subtext, color = c.textMuted)
                     }
-                    if (selected) Text("✓", color = c.textAccentEmerald, fontSize = 18.sp)
+                    if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 20.dp, c.textAccentEmerald)
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp), color = c.borderSubtle)

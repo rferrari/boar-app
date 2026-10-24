@@ -253,7 +253,7 @@ object LabHooks {
                         act.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, androidx.compose.ui.Modifier.size(28.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                             ?: androidx.compose.material3.Text(act.emoji, fontSize = 20.sp)
                         androidx.compose.material3.Text(act.label, style = team.sopa.boar.ui.theme.Boar.type.body, color = if (act.enabled) c.textPrimary else c.textDim, modifier = androidx.compose.ui.Modifier.weight(1f))
-                        if (act.done) androidx.compose.material3.Text("✓", color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        if (act.done) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
                     }
                 }
             }

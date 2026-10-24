@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Boar icon pack, traced from boar_icon_pack_grid_v5.png (Oct 24). One color: tinted by the theme where it's drawn. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp"
+    android:viewportWidth="476" android:viewportHeight="476">
+    <path android:fillColor="#FF000000" android:fillType="evenOdd" android:pathData="M264.0,401.4C259.5,399.4 256.3,396.4 253.9,391.8C248.9,382.1 251.9,377.0 277.3,352.3C288.4,341.4 313.5,316.6 333.0,297.2C352.5,277.9 369.5,261.3 370.8,260.4C373.2,258.8 373.8,256.0 371.8,256.0C371.1,256.0 298.1,256.0 209.5,256.0L48.5,256.0L44.3,253.8C33.3,247.9 30.8,234.3 39.3,226.3C46.5,219.4 31.9,220.0 209.7,220.0C298.1,220.0 371.1,220.0 371.8,220.0C374.7,220.0 372.0,216.9 353.3,198.7C321.3,167.4 256.0,101.5 253.9,98.4C249.0,91.0 253.1,79.0 262.0,74.5C274.5,68.2 271.3,65.6 357.2,151.8C435.3,230.1 435.1,229.8 435.0,238.8C434.9,240.8 434.1,243.9 433.2,245.7C429.7,252.2 283.5,397.8 277.3,400.9C272.4,403.4 268.8,403.5 264.0,401.4Z" />
+</vector>

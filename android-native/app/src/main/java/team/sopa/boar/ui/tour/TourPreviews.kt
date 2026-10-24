@@ -122,7 +122,7 @@ private fun StylesPreview() {
                 Text(t("personalities.${s.id}.label"), style = Boar.type.body, color = if (on) c.textAccentEmerald else c.textPrimary)
                 Text(t("personalities.${s.id}.description"), style = Boar.type.subtext, color = c.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            if (on) Text("✓", color = c.textAccentEmerald, fontSize = 16.sp)
+            if (on) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
         }
     }
 }

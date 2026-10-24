@@ -216,8 +216,11 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 Text(" • ", style = mono, color = c.textDim)
                 Text(t("catalogItemCard.eta", "eta" to formatEta(row.etaSeconds, calculating)), style = mono, color = c.textAccentAmber, fontWeight = FontWeight.SemiBold)
             }
-            Text("✕ " + t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp))
+            Row(Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).clickable { vm.cancelDownload(item) }.padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 12.dp, c.crimson400)
+                Text(t("native.models.cancelDownload"), style = mono, color = c.crimson400, fontWeight = FontWeight.Bold)
+            }
         } else Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             // The status takes the room left and wraps, so 🗑️ is never pushed off the card (Large text, Oct 15).
             Box(Modifier.weight(1f)) { when {
@@ -274,8 +277,11 @@ internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = nul
     val mono = Boar.type["mono.xs"]
     val comp = Compatibility.compute(sizeBytes, ramBytes)
     if (streamedBy != null && comp.value != "green") {
-        Text("🌊 " + t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-            modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+        Row(Modifier.background(c.cyanBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stream, 12.dp, c.textAccentCyan)
+            Text(t("native.models.compat.streamed", "engine" to streamedBy), style = mono, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
+        }
         return
     }
     val (icon, fg, bg, border) = when (comp.value) {
@@ -320,7 +326,7 @@ fun DiscoverGgufCard(onBrowse: () -> Unit) {
             Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textAccentCyan)
             Text(t("native.browse.discoverSubtitle"), style = Boar.type.subtext, color = c.textSecondary)
         }
-        Text("›", fontSize = 26.sp, color = c.textAccentCyan, fontWeight = FontWeight.Bold)
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_right, 22.dp, c.textAccentCyan)
     }
 }
 
@@ -354,7 +360,7 @@ internal fun SmallButton(label: String, enabled: Boolean = true, onClick: () -> 
 
 @Composable
 internal fun Check(label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-    Text("✓", color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold)
+    team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 14.dp, Boar.colors.textAccentEmerald)
     Text(label, style = Boar.type.caption, color = Boar.colors.textAccentEmerald)
 }
 
