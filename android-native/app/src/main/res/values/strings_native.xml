@@ -313,7 +313,7 @@
     <string name="native_tweaks_drawerStatsNote" formatted="false">Bars at the bottom of the menu: everything BOAR holds in memory (the app and any Labs engine, like Big Boar) and the space its models use.</string>
     <string name="native_models_engineTag" formatted="false">{{engine}} engine · streams from storage</string>
     <string name="native_models_placeOverUsb" formatted="false">Copy it over USB (Boar Labs → {{engine}})</string>
-    <string name="native_models_selectUseEngine" formatted="false">🔘 Select &amp; Use · {{engine}} engine</string>
+    <string name="native_models_selectUseEngine" formatted="false">Select &amp; Use · {{engine}} engine</string>
     <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
     <string name="native_models_cancelDownload" formatted="false">Cancel</string>
@@ -467,7 +467,7 @@
     <string name="native_documents_askAboutThem" formatted="false">Ask about them</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" and its answers go. This can\'t be undone.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Ask before deleting a chat</string>
-    <string name="native_settings_confirmChatDeleteNote" formatted="false">The 🗑️ in the menu asks first. Off: one tap deletes the chat.</string>
+    <string name="native_settings_confirmChatDeleteNote" formatted="false">Deleting a chat from the menu asks first. Off: one tap deletes it.</string>
     <string name="native_drawer_closeButton" formatted="false">Close</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">This phone</string>
     <string name="native_modelSetupScreen_sections_memory" formatted="false">Chats &amp; history</string>

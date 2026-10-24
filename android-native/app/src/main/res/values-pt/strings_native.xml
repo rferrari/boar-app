@@ -313,7 +313,7 @@
     <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor do Labs, como o Big Boar) e o espaço dos modelos.</string>
     <string name="native_models_engineTag" formatted="false">motor {{engine}} · lê do armazenamento</string>
     <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Boar Labs → {{engine}})</string>
-    <string name="native_models_selectUseEngine" formatted="false">🔘 Selecionar e Usar · motor {{engine}}</string>
+    <string name="native_models_selectUseEngine" formatted="false">Selecionar e Usar · motor {{engine}}</string>
     <string name="native_tweaks_evaluation" formatted="false">Avaliação (para quem desenvolve)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Roda o conjunto de avaliação do BOAR neste celular e envia o relatório. Versões para quem desenvolve também a mostram no menu.</string>
     <string name="native_models_cancelDownload" formatted="false">Cancelar</string>
@@ -467,7 +467,7 @@
     <string name="native_documents_askAboutThem" formatted="false">Perguntar sobre eles</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" e as respostas dele somem. Não dá para desfazer.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
-    <string name="native_settings_confirmChatDeleteNote" formatted="false">O 🗑️ do menu pergunta antes. Desligado: um toque apaga o chat.</string>
+    <string name="native_settings_confirmChatDeleteNote" formatted="false">Apagar uma conversa pelo menu pergunta antes. Desligado: um toque apaga.</string>
     <string name="native_drawer_closeButton" formatted="false">Fechar</string>
     <string name="native_modelSetupScreen_sections_telemetry" formatted="false">Este celular</string>
     <string name="native_modelSetupScreen_sections_memory" formatted="false">Conversas e histórico</string>
