@@ -331,7 +331,9 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it }
     Card {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) { Text("🔔") }
+            Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_notifications), null, Modifier.size(22.dp), tint = c.textHeading)
+            }
             Text(t("native.setupGuide.privacy.notifyTitle"), style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
         }
         Text(t("native.setupGuide.privacy.notifyBody"), style = Boar.type.body, color = c.textSecondary)
@@ -340,7 +342,7 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     when {
         granted -> Meta("✓  " + t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
         refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
-        else -> PrimaryButton("🔔  " + t("native.setupGuide.privacy.notifyAllow")) {
+        else -> PrimaryButton(t("native.setupGuide.privacy.notifyAllow")) {
             team.sopa.boar.app.NotificationAsk.markAsked(ctx)
             ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
