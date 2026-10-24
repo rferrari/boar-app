@@ -557,4 +557,15 @@
     <string name="native_documents_personalNote" formatted="false">Ask about them with the Personal Files style.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Personal Files · {{count}} collection</string>
     <string name="native_documents_personalFolded_other" formatted="false">Personal Files · {{count}} collections</string>
+    <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
+    <string name="native_settings_summary_on" formatted="false">on</string>
+    <string name="native_settings_summary_off" formatted="false">off</string>
+    <string name="native_settings_summary_deep" formatted="false">Deep Research {{state}}</string>
+    <string name="native_settings_summary_noPacks" formatted="false">Built-in library</string>
+    <string name="native_settings_summary_knowledge" formatted="false">{{packs}} · {{count}} of your collections</string>
+    <string name="native_settings_summary_memory" formatted="false">Keeps {{max}} chats</string>
+    <string name="native_settings_summary_confirmDelete" formatted="false">asks before deleting</string>
+    <string name="native_settings_summary_voice" formatted="false">Voice input {{state}}</string>
+    <string name="native_settings_summary_pinOn" formatted="false">PIN on</string>
+    <string name="native_settings_summary_pinOff" formatted="false">No PIN</string>
 </resources>

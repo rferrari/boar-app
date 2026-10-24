@@ -557,4 +557,15 @@
     <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
     <string name="native_documents_personalFolded_other" formatted="false">Arquivos pessoais · {{count}} coleções</string>
+    <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
+    <string name="native_settings_summary_on" formatted="false">ligado</string>
+    <string name="native_settings_summary_off" formatted="false">desligado</string>
+    <string name="native_settings_summary_deep" formatted="false">Pesquisa Profunda {{state}}</string>
+    <string name="native_settings_summary_noPacks" formatted="false">Biblioteca embutida</string>
+    <string name="native_settings_summary_knowledge" formatted="false">{{packs}} · {{count}} coleções suas</string>
+    <string name="native_settings_summary_memory" formatted="false">Guarda {{max}} conversas</string>
+    <string name="native_settings_summary_confirmDelete" formatted="false">pergunta antes de apagar</string>
+    <string name="native_settings_summary_voice" formatted="false">Entrada de voz {{state}}</string>
+    <string name="native_settings_summary_pinOn" formatted="false">PIN ligado</string>
+    <string name="native_settings_summary_pinOff" formatted="false">Sem PIN</string>
 </resources>
