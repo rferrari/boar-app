@@ -195,6 +195,10 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
         }
     }
     state.importErrors.forEach { Meta(it, c.crimson400) }
+    // A question about these files needs the Personal Files style: the default one searches the library first.
+    if (state.files.isNotEmpty()) Card(background = c.emeraldBgSubtle, border = c.emerald500) {
+        Text(t("native.setupGuide.files.howToAsk"), style = Boar.type.body, color = c.textPrimary)
+    }
     Meta(t("native.setupGuide.files.where"), c.textAccentCyan)
 }
 
@@ -202,7 +206,8 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
 private fun AskPage(services: BoarServices, state: SetupState) {
     val c = Boar.colors
     Card {
-        listOfNotNull("tip1", "tip2", "tip3", if (state.files.isNotEmpty()) "tipFiles" else null).forEach { k ->
+        // With files added, how to ask about them comes first.
+        listOfNotNull(if (state.files.isNotEmpty()) "tipFiles" else null, "tip1", "tip2", "tip3").forEach { k ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("•", style = Boar.type.body, color = c.textAccentEmerald)
                 Text(t("native.setupGuide.ask.$k"), style = Boar.type.body, color = c.textPrimary)
@@ -211,9 +216,8 @@ private fun AskPage(services: BoarServices, state: SetupState) {
     }
     team.sopa.boar.ui.tour.TourPreview("sources")
     Text(t("native.setupGuide.ask.pick").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-    val examples = listOfNotNull(
+    val examples = listOf(
         t("chat.suggestions.q2"), t("chat.suggestions.q4"), t("chat.suggestions.q8"),
-        if (state.files.isNotEmpty()) t("native.setupGuide.ask.filesExample") else null,
     )
     var question by remember { mutableStateOf(services.settings.pendingFirstQuestion.orEmpty()) }
     val pick: (String) -> Unit = { q -> question = q; services.settings.pendingFirstQuestion = q }

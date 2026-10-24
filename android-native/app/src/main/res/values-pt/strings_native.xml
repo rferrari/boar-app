@@ -591,7 +591,7 @@
     <string name="native_setupGuide_ask_pick" formatted="false">Sua primeira pergunta</string>
     <string name="native_setupGuide_ask_pickNote" formatted="false">Ela vai estar esperando na conversa quando o BOAR abrir. Você envia quando quiser.</string>
     <string name="native_setupGuide_ask_own" formatted="false">Ou escreva a sua…</string>
-    <string name="native_setupGuide_ask_filesExample" formatted="false">Quais são os pontos principais dos meus arquivos?</string>
+    <string name="native_setupGuide_files_howToAsk" formatted="false">Para perguntar sobre eles, mude o estilo da conversa para Arquivos pessoais (o botão de estilo, ao lado de onde você digita). Aí o BOAR responde só com seus arquivos, e avisa quando eles não têm a resposta.</string>
     <string name="native_setupGuide_pin_title" formatted="false">Trancar o BOAR com um PIN?</string>
     <string name="native_setupGuide_pin_sub" formatted="false">Só para o BOAR: o bloqueio de tela do seu celular não muda.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN ativado. O BOAR vai pedir o PIN a partir de agora.</string>
