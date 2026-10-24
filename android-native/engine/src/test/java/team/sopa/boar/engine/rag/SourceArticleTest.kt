@@ -30,6 +30,18 @@ class SourceArticleTest {
         assertTrue(!a.markdown)
     }
 
+    @Test fun `a file's card is not read as part of the file`() {
+        val text = (1..900).joinToString(" ") { "word$it" }
+        val parts = DocumentImport.chunkText(text)
+        val kb = KnowledgeBase(JdbcSqlite()).apply {
+            createCollection("c", "notes", "trip.txt", 1, parts.size.toLong(), text.length.toLong(), now = 1)
+            parts.forEachIndexed { i, p -> insertChunk(Chunk("c-doc0-trip-c$i", "c-doc0-trip", "trip (part ${i + 1}/${parts.size})", p, source = "trip.txt", collectionId = "c"), v) }
+            // The card OwnFiles makes for a long file: same doc_id, its own chunk id (CodeRabbit: it showed inside the file).
+            insertChunk(Chunk("c-doc0-trip${OwnFiles.CARD_SUFFIX}", "c-doc0-trip", "trip (about this file)", "File: trip.txt. Starts: word1 word2", source = "trip.txt", collectionId = "c"), v)
+        }
+        assertEquals(text, SourceArticle.read("c-doc0-trip", "trip", kb, emptyList())!!.text)
+    }
+
     @Test fun `parts past c9 keep their order`() {
         val joined = SourceArticle.join(listOf("a".repeat(30) + "XYZ", "XYZ" + "b".repeat(30)))
         assertEquals("a".repeat(30) + "XYZ\n\nXYZ" + "b".repeat(30), joined) // 3 chars repeat: under the 20 a cut overlaps by
