@@ -190,7 +190,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
         Text(item.description.replace("not vetted by aoair", "not vetted by BOAR"), style = Boar.type.caption.let { it.copy(lineHeight = it.fontSize * 1.4f) }, color = c.textSecondary)
         row?.error?.let { e ->
             Row(Modifier.fillMaxWidth().background(c.crimsonBgSubtle, RoundedCornerShape(6.dp)).border(1.dp, c.crimsonBorder, RoundedCornerShape(6.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("⚠️", fontSize = 12.sp)
+                androidx.compose.material3.Icon(androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
+                    Modifier.size(14.dp), tint = c.crimson400)
                 Text(e, style = mono, color = c.crimson400)
             }
         }

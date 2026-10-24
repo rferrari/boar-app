@@ -143,8 +143,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
         }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
-            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
+        if (lab.status == LabStatus.REVIEW) Row(Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ReviewMark(20.dp)
+            Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
+        }
         if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
     }
 }
@@ -236,7 +239,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         }
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        if (lab.status == LabStatus.REVIEW) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ReviewMark(12.dp)
+            Text(t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        }
         // Classified: the description is blacked out word by word like the title, a redacted file.
         Text(if (locked) redactAll(t("native.labs.${lab.id}.body")) else t("native.labs.${lab.id}.body"), style = Boar.type.caption,
             color = if (locked) c.textDim else c.textMuted)
@@ -283,3 +289,9 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
 
 /** Taps on one classified tile that declassify it: drawn again each time Boar Labs opens, so no number gets passed around. */
 private val REVEAL_TAPS = 11..20
+
+/** The Boar icon pack's warning triangle, in the review amber: a lab under review (Oct 24, was "⚠"). */
+@Composable
+private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.material3.Icon(
+    androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
+    Modifier.size(size), tint = Boar.colors.amber400)
