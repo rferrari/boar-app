@@ -60,7 +60,9 @@ class SettingsDeviceTest {
 
         // The sections brought back from the Expo app.
         section("modelSetupScreen.sections.models"); click(t("native.settings.openCatalog")); assertEquals("models", opened)
-        section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents", opened)
+        // Each Knowledge link opens its own section on the Knowledge screen (Oct 24).
+        section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents:personal", opened)
+        click(t("native.settings.openKnowledge")); assertEquals("documents:packs", opened)
         section("modelSetupScreen.sections.telemetry")
         compose.onNode(hasScrollAction()).performScrollToNode(hasText(t("native.telemetry.chip")))
         compose.onNodeWithText(t("native.telemetry.chip")).assertExists()
@@ -109,7 +111,7 @@ class SettingsDeviceTest {
             val prefs = object : DisplayPrefs { override fun setTheme(id: String) {}; override fun setFontScale(scale: String) {}; override fun setOrientation(mode: String) {}; override fun setLanguage(id: String?) {} }
             compose.setContent { BoarTheme { SettingsScreen(services, prefs, onPin = {}, onSetup = {}, onOpen = { opened = it }) {} } }
             section("modelSetupScreen.sections.models"); click(t("native.settings.openCatalog")); assertEquals("models", opened)
-            section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents", opened)
+            section("modelSetupScreen.sections.knowledgeBase"); click(t("native.settings.openDocuments")); assertEquals("documents:personal", opened)
             for (key in listOf("modelSetupScreen.sections.telemetry", "modelSetupScreen.sections.voice", "modelSetupScreen.sections.displayTheme")) section(key)
             for (label in listOf("modelSetupScreen.sections.models", "modelSetupScreen.sections.knowledgeBase", "native.telemetry.chip", "native.telemetry.note",
                 "voiceSettings.enabledLabel", "voiceSettings.speechEngineLabel", "interfaceSettings.hapticFeedbackLabel", "native.settings.security")) {

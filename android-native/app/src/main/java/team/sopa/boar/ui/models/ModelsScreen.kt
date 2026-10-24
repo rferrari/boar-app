@@ -108,11 +108,11 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
 
 /** The knowledge packs, "BOAR Knowledge" (KnowledgeScreen.tsx "Topic packs"): download, verify and remove, on the Knowledge screen. */
 @Composable
-fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel) {
+fun KnowledgePacks(state: ModelsState, vm: ModelsViewModel, startOpen: Boolean = false) {
     val c = Boar.colors
     val packs = state.items.filter { it.kind == AssetKind.CORPUS }
-    // Folded by default: the packs rarely change, and Personal Files above is what people come here for (Oct 21).
-    var open by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    // Folded unless Settings' "Open BOAR Knowledge" brought the user here ([startOpen], Oct 24): the packs rarely change.
+    var open by androidx.compose.runtime.saveable.rememberSaveable(startOpen) { mutableStateOf(startOpen) }
     if (packs.isEmpty()) return
     team.sopa.boar.ui.BoarSection(t("flows.knowledge.topicPacksTitle"), open, { open = !open }) {
         Text(t("flows.knowledge.topicPacksFooter"), style = Boar.type.subtext, color = c.textMuted)

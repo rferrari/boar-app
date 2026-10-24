@@ -136,12 +136,13 @@
     <string name="native_settings_pinRemove" formatted="false">Remover o PIN</string>
     <string name="native_settings_clearChatsDone" formatted="false">Histórico de conversas apagado.</string>
     <string name="native_settings_openCatalog" formatted="false">Abrir o catálogo de modelos</string>
-    <string name="native_settings_openDocuments" formatted="false">Abrir Meus documentos</string>
+    <string name="native_settings_openKnowledge" formatted="false">Abrir Conhecimento BOAR</string>
+    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos pessoais</string>
     <string name="native_settings_activeModel" formatted="false">Respondendo com: {{model}}</string>
     <string name="native_settings_installedCount" formatted="false">{{count}} instalados</string>
     <string name="native_settings_packsInstalled" formatted="false">Pacotes de conhecimento no celular: {{packs}}</string>
     <string name="native_settings_noPacks" formatted="false">Nenhum pacote ainda: só a biblioteca embutida.</string>
-    <string name="native_settings_documents" formatted="false">Seus documentos: {{count}} coleções</string>
+    <string name="native_settings_documents" formatted="false">Arquivos pessoais: {{count}} coleções</string>
     <string name="native_telemetry_device" formatted="false">Aparelho</string>
     <string name="native_telemetry_chip" formatted="false">Chip</string>
     <string name="native_telemetry_cores" formatted="false">Núcleos</string>

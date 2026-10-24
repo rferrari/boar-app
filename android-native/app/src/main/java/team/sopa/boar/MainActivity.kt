@@ -240,13 +240,15 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         BrowseScreen(modelsState, models) { screen = "models" }
         return
     }
-    if (screen == "documents") {
+    // "documents" from the menu (both sections folded); "documents:packs" or "documents:personal" from Settings opens that one.
+    if (screen.startsWith("documents")) {
+        val focus = screen.substringAfter(':', "")
         val docs: DocumentsViewModel = viewModel()
         val docsState by docs.state.collectAsState()
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
         BackHandler { screen = "chat" }
-        DocumentsScreen(docsState, docs, packs = { KnowledgePacks(modelsState, models) },
+        DocumentsScreen(docsState, docs, focus = focus, packs = { KnowledgePacks(modelsState, models, startOpen = focus == "packs") },
             // "Ask about them": a new chat in Personal Files, the style that answers from the user's files.
             onAskFiles = { vm.setTone("personal"); vm.newChat(); screen = "chat" }) { screen = "chat" }
         return

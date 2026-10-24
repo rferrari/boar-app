@@ -157,9 +157,9 @@ private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
         val packs = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }
         Text(if (packs.isEmpty()) t("native.settings.noPacks") else t("native.settings.packsInstalled", "packs" to packs.joinToString(", ") { it.shortName }),
             style = Boar.type.subtext, color = c.textSecondary)
-        LinkButton(t("corpusSettingsTab.downloadablePacks")) { onOpen("documents") }
+        LinkButton(t("native.settings.openKnowledge")) { onOpen("documents:packs") }
         Text(t("native.settings.documents", "count" to services.knowledgeBase.collections().size), style = Boar.type.subtext, color = c.textSecondary)
-        LinkButton(t("native.settings.openDocuments")) { onOpen("documents") }
+        LinkButton(t("native.settings.openDocuments")) { onOpen("documents:personal") }
     }
 }
 
