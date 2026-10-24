@@ -600,9 +600,9 @@
     <string name="native_setupGuide_privacy_sub" formatted="false">How BOAR treats your chats and your phone\'s memory.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">All of these are in Settings too.</string>
     <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_setupGuide_labs_sub" formatted="false">Experiments, labelled beta or alpha. These start on; switch off any you don\'t want.</string>
-    <string name="native_setupGuide_labs_startOn" formatted="false">Start on</string>
-    <string name="native_setupGuide_labs_toTry" formatted="false">More to try</string>
+    <string name="native_setupGuide_labs_sub" formatted="false">Experiments, labelled beta or alpha. They all start off: switch on the ones you want.</string>
+    <string name="native_setupGuide_labs_beta" formatted="false">Beta: tested on phones</string>
+    <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: early, less tested</string>
     <string name="native_setupGuide_labs_note" formatted="false">Labs don\'t slow the answers. The ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run. All of them are in Settings → Experimental → Boar Labs.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Almost there</string>
     <string name="native_setupGuide_ready_sub" formatted="false">BOAR opens as soon as the download and the index are done.</string>
