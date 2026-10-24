@@ -220,8 +220,8 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.addFiles(uris) }
     // The same types as Knowledge → Personal Files.
     val pick = { picker.launch(arrayOf("text/plain", "text/markdown", "text/csv", "text/comma-separated-values", "application/json", "application/pdf", "text/*")) }
-    if (state.files.isEmpty()) PrimaryButton("＋  " + t("native.setupGuide.files.add"), onClick = pick)
-    else SecondaryButton("＋  " + t("native.setupGuide.files.addMore"), pick)
+    if (state.files.isEmpty()) PrimaryButton(t("native.setupGuide.files.add"), onClick = pick)
+    else SecondaryButton(t("native.setupGuide.files.addMore"), pick)
     Meta(t("native.setupGuide.files.types"))
     if (state.files.isNotEmpty()) Card {
         val searchReady = state.downloads.any { it.asset.kind == AssetKind.EMBEDDING && it.done }
@@ -296,7 +296,7 @@ private fun PinPage(services: BoarServices, onSet: () -> Unit) {
         return
     }
     Text(t("native.pin.offerBody"), style = Boar.type.body, color = c.textPrimary)
-    PrimaryButton("🔑  " + t("native.pin.offerSet"), onClick = onSet)
+    PrimaryButton(t("native.pin.offerSet"), onClick = onSet)
     Meta(t("native.setupGuide.pin.note"))
 }
 

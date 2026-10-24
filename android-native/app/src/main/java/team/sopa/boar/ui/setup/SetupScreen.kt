@@ -324,7 +324,7 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
 
 // --- Step 4: download and index ------------------------------------------------------------------------------------
 
-private enum class Category(val key: String, val icon: String) { ANSWER("answer", "◆"), SEARCH("search", "⌕"), KNOWLEDGE("knowledge", "▤") }
+private enum class Category(val key: String, val icon: Int) { ANSWER("answer", team.sopa.boar.R.drawable.ic_settings_models), SEARCH("search", team.sopa.boar.R.drawable.ic_search), KNOWLEDGE("knowledge", team.sopa.boar.R.drawable.ic_settings_knowledge) }
 
 private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
     AssetKind.LLM -> Category.ANSWER
@@ -396,7 +396,8 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
                 val open = expanded[cat] == true
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { expanded[cat] = !open }.padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(if (status == "ready") "✓" else if (status == "failed") "!" else cat.icon, style = Boar.type.title, color = tone)
+                    if (status == "ready" || status == "failed") Text(if (status == "ready") "✓" else "!", style = Boar.type.title, color = tone)
+                    else team.sopa.boar.ui.PackIcon(cat.icon, 22.dp, tone)
                     Text(t("flows.onboarding.category.${cat.key}"), style = Boar.type.title, color = c.textPrimary, modifier = Modifier.weight(1f))
                     Text(t("flows.onboarding.categoryStatus.$status").uppercase(), style = Boar.type.micro, color = tone, fontWeight = FontWeight.Bold)
                     Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)

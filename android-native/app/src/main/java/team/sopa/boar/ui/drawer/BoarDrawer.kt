@@ -93,7 +93,7 @@ fun BoarDrawer(
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
                 .alpha(if (answering) 0.4f else 1f).clickable(enabled = !answering, onClick = onNewChat).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("＋", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = c.textAccentEmerald)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_add, 18.dp, c.textAccentEmerald)
                 Text(t("drawer.newChat"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textAccentEmerald)
             }
             Text(t("drawer.recentSessions"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
@@ -109,7 +109,7 @@ fun BoarDrawer(
                                 Text(s.title, style = Boar.type.caption, color = c.textPrimary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(relativeTime(s.updatedAt), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, modifier = Modifier.padding(top = 2.dp))
                             }
-                            if (!answering) Text("🗑️", fontSize = 13.sp, modifier = Modifier.alpha(0.7f).clickable { onDelete(s.id) }.padding(4.dp))
+                            if (!answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 18.dp, c.textMuted, Modifier.clickable { onDelete(s.id) }.padding(4.dp))
                         }
                     }
                 }

@@ -229,8 +229,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
-            if (locked) Text(if (lab.shownArt != null) "?" else "🔒", style = if (lab.shownArt != null) Boar.type.titleLg else Boar.type.body,
-                fontSize = if (lab.shownArt != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
+            if (locked) {
+                if (lab.shownArt != null) Text("?", style = Boar.type.titleLg, color = c.textDim)
+                else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_settings_pin, 24.dp, c.textDim)
+            }
             Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && (LabPrefs.revealed(lab.id) || LabPrefs.unlocked(lab.id))) }
             if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             // A revealed classified lab can't be switched on, so OFF would only confuse: it has LEAKED instead.

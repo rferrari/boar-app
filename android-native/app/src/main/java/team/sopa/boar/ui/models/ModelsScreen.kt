@@ -232,8 +232,8 @@ private fun CatalogCard(item: CatalogAsset, row: AssetRow?, active: Boolean, ram
                 else -> SmallButton(t("catalogItemCard.selectUse"), enabled = !busy) { vm.use(item) }
             } }
             // A Labs engine's model was copied over USB: BOAR never deletes it.
-            if (present && !item.required && item.externalPath == null) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
-            else if (!present && vm.isDiscovered(item)) Text("🗑️", fontSize = 16.sp, modifier = Modifier.clickable { confirmUnlist = true }.padding(4.dp))
+            if (present && !item.required && item.externalPath == null) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textSecondary, Modifier.clickable(enabled = !busy) { confirm = true }.padding(4.dp))
+            else if (!present && vm.isDiscovered(item)) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textSecondary, Modifier.clickable { confirmUnlist = true }.padding(4.dp))
         }
     }
     if (confirm) AlertDialog(
@@ -288,7 +288,8 @@ internal fun RamBadge(sizeBytes: Long, ramBytes: Long, streamedBy: String? = nul
         Modifier.background(bg as Color, RoundedCornerShape(6.dp)).border(1.dp, border as Color, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Text(icon as String, fontSize = 10.sp)
+        // The status as a dot in its color, not an emoji (the app's controls are icons, Oct 24).
+        Box(Modifier.size(8.dp).background(fg as Color, CircleShape))
         Text(t("catalogItemCard.compat.${comp.value}"), style = mono, color = fg as Color, fontWeight = FontWeight.Bold)
     }
 }

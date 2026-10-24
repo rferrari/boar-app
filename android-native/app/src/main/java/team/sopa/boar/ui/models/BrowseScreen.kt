@@ -2,6 +2,7 @@ package team.sopa.boar.ui.models
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -84,7 +85,9 @@ fun BrowseScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { search() }),
                     modifier = Modifier.weight(1f).background(c.bgCard, RoundedCornerShape(8.dp)).padding(12.dp),
                     decorationBox = { inner -> if (query.isEmpty()) Text(t("modelBrowser.searchPlaceholder"), style = Boar.type.body, color = c.textDim); inner() })
-                SmallButton("🔍", enabled = !state.hfSearching) { search() }
+                // Search: the pack's magnifier on the small button's own green.
+                Box(Modifier.clip(RoundedCornerShape(6.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp))
+                    .clickable(enabled = !state.hfSearching) { search() }.padding(horizontal = 12.dp, vertical = 7.dp)) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_search, 20.dp, c.textAccentEmerald) }
             }
             ChipRow(t("native.browse.size"), HfQuery.Size.entries.map { it to sizeLabel(it) }, state.hfSize) { vm.hfBrowse(query.trim(), size = it) }
             ChipRow(t("native.browse.sort"), listOf(
