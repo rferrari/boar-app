@@ -136,12 +136,13 @@
     <string name="native_settings_pinRemove" formatted="false">Remover o PIN</string>
     <string name="native_settings_clearChatsDone" formatted="false">Histórico de conversas apagado.</string>
     <string name="native_settings_openCatalog" formatted="false">Abrir o catálogo de modelos</string>
-    <string name="native_settings_openDocuments" formatted="false">Abrir Meus documentos</string>
+    <string name="native_settings_openKnowledge" formatted="false">Abrir Conhecimento BOAR</string>
+    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos pessoais</string>
     <string name="native_settings_activeModel" formatted="false">Respondendo com: {{model}}</string>
     <string name="native_settings_installedCount" formatted="false">{{count}} instalados</string>
     <string name="native_settings_packsInstalled" formatted="false">Pacotes de conhecimento no celular: {{packs}}</string>
     <string name="native_settings_noPacks" formatted="false">Nenhum pacote ainda: só a biblioteca embutida.</string>
-    <string name="native_settings_documents" formatted="false">Seus documentos: {{count}} coleções</string>
+    <string name="native_settings_documents" formatted="false">Arquivos pessoais: {{count}} coleções</string>
     <string name="native_telemetry_device" formatted="false">Aparelho</string>
     <string name="native_telemetry_chip" formatted="false">Chip</string>
     <string name="native_telemetry_cores" formatted="false">Núcleos</string>
@@ -630,4 +631,15 @@
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Permitir notificações</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">As notificações estão ligadas.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">As notificações estão desligadas. Dá para ligar nas configurações do Android para o BOAR.</string>
+    <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
+    <string name="native_settings_summary_on" formatted="false">ligado</string>
+    <string name="native_settings_summary_off" formatted="false">desligado</string>
+    <string name="native_settings_summary_deep" formatted="false">Pesquisa Profunda {{state}}</string>
+    <string name="native_settings_summary_noPacks" formatted="false">Biblioteca embutida</string>
+    <string name="native_settings_summary_knowledge" formatted="false">{{packs}} · {{count}} coleções suas</string>
+    <string name="native_settings_summary_memory" formatted="false">Guarda {{max}} conversas</string>
+    <string name="native_settings_summary_confirmDelete" formatted="false">pergunta antes de apagar</string>
+    <string name="native_settings_summary_voice" formatted="false">Entrada de voz {{state}}</string>
+    <string name="native_settings_summary_pinOn" formatted="false">PIN ligado</string>
+    <string name="native_settings_summary_pinOff" formatted="false">Sem PIN</string>
 </resources>

@@ -136,12 +136,13 @@
     <string name="native_settings_pinRemove" formatted="false">Remove PIN</string>
     <string name="native_settings_clearChatsDone" formatted="false">Chat history cleared.</string>
     <string name="native_settings_openCatalog" formatted="false">Open the model catalog</string>
-    <string name="native_settings_openDocuments" formatted="false">Open My Documents</string>
+    <string name="native_settings_openKnowledge" formatted="false">Open BOAR Knowledge</string>
+    <string name="native_settings_openDocuments" formatted="false">Open Personal Files</string>
     <string name="native_settings_activeModel" formatted="false">Answering with: {{model}}</string>
     <string name="native_settings_installedCount" formatted="false">{{count}} installed</string>
     <string name="native_settings_packsInstalled" formatted="false">Knowledge packs on this phone: {{packs}}</string>
     <string name="native_settings_noPacks" formatted="false">No knowledge packs yet: the built-in library only.</string>
-    <string name="native_settings_documents" formatted="false">Your documents: {{count}} collections</string>
+    <string name="native_settings_documents" formatted="false">Personal Files: {{count}} collections</string>
     <string name="native_telemetry_device" formatted="false">Device</string>
     <string name="native_telemetry_chip" formatted="false">Chip</string>
     <string name="native_telemetry_cores" formatted="false">Cores</string>
@@ -630,4 +631,15 @@
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Allow notifications</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">Notifications are on.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">Notifications are off. You can turn them on in Android’s settings for BOAR.</string>
+    <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
+    <string name="native_settings_summary_on" formatted="false">on</string>
+    <string name="native_settings_summary_off" formatted="false">off</string>
+    <string name="native_settings_summary_deep" formatted="false">Deep Research {{state}}</string>
+    <string name="native_settings_summary_noPacks" formatted="false">Built-in library</string>
+    <string name="native_settings_summary_knowledge" formatted="false">{{packs}} · {{count}} of your collections</string>
+    <string name="native_settings_summary_memory" formatted="false">Keeps {{max}} chats</string>
+    <string name="native_settings_summary_confirmDelete" formatted="false">asks before deleting</string>
+    <string name="native_settings_summary_voice" formatted="false">Voice input {{state}}</string>
+    <string name="native_settings_summary_pinOn" formatted="false">PIN on</string>
+    <string name="native_settings_summary_pinOff" formatted="false">No PIN</string>
 </resources>
