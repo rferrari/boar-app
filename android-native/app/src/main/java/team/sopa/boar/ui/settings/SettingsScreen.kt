@@ -112,7 +112,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Note(t("native.vault.teaser"))
                 team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
             }
-            Section(t("modelSetupScreen.sections.language"), summary = {
+            Section(t("modelSetupScreen.sections.language"), team.sopa.boar.R.drawable.ic_settings_language, summary = {
                 when (s.languageId) { "en" -> "English"; "pt" -> "Português"; else -> "System" }
             }) {
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }

@@ -20,6 +20,7 @@ fun StyleIcon(id: String, emoji: String, size: Dp, tint: Color = Boar.colors.tex
     val drawable = when (id) {
         "succinct" -> team.sopa.boar.R.drawable.ic_style_quick
         "detailed" -> team.sopa.boar.R.drawable.ic_settings_knowledge
+        "personal" -> team.sopa.boar.R.drawable.ic_style_personal
         "custom" -> team.sopa.boar.R.drawable.ic_style_custom
         else -> null
     }
