@@ -169,7 +169,8 @@ class KnowledgeBase(private val db: SqlDatabase) {
     /** The parts of [docIds] (one file's documents), closest to [queryVec] first, with no similarity floor: the question named the file. */
     fun rankWithin(docIds: List<String>, queryVec: FloatArray, limit: Int): List<Chunk> = if (docIds.isEmpty()) emptyList() else db.query(
         """SELECT c.chunk_id, c.doc_id, c.title, c.body, c.source, c.collection_id, e.embedding
-           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id WHERE c.doc_id IN (${docIds.joinToString(", ") { "?" }})""",
+           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id
+           WHERE c.doc_id IN (${docIds.joinToString(", ") { "?" }}) AND c.chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}'""",
         docIds,
     ) {
         val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))

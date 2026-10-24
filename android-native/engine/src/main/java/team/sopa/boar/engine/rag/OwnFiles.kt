@@ -64,8 +64,8 @@ object OwnFiles {
 
     /**
      * The one file the question names: every naming word of a file name with one or two of them ("blood-test-2026.txt"
-     * by "blood test"), at least two of a longer name's. None when no file or two equally do; then the search runs on
-     * all the files as before. A file that is a list of documents (JSON) is several [File]s with one name: the caller
+     * by "blood test"), at least two of a longer name's. None when no file or two different files do ("compare my car
+     * insurance with the trip plan"); then the search runs on all the files as before. A file that is a list of documents (JSON) is several [File]s with one name: the caller
      * searches all of them ([docsOf]).
      */
     fun named(question: String, files: List<File>): File? {
@@ -76,8 +76,7 @@ object OwnFiles {
             val enough = if (name.size <= 2) name.isNotEmpty() && hit == name.size else hit >= 2
             if (enough) f to hit else null
         }
-        val best = scored.maxOfOrNull { it.second } ?: return null
-        return scored.filter { it.second == best }.singleOrNull()?.first
+        return scored.singleOrNull()?.first
     }
 
     /** Every document of [file]'s file: one, or each of a JSON list's. */

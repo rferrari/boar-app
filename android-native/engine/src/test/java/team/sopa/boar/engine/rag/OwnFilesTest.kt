@@ -51,6 +51,8 @@ class OwnFilesTest {
         assertNull(OwnFiles.named("Tell me about Patagonia", files)) // one of three words
         val twins = listOf(OwnFiles.File("a", "car-insurance.pdf", 1), OwnFiles.File("b", "car-insurance-2025.pdf", 1))
         assertNull(OwnFiles.named("my car insurance", twins))
+        // Two different files named: both stay in the search.
+        assertNull(OwnFiles.named("Compare my car insurance with the Patagonia trip plan", files))
     }
 
     // --- The list in the prompt -----------------------------------------------------------------------------------
