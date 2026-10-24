@@ -363,7 +363,9 @@ class DeviceEvalRunner(
         var error: String? = null
         try {
             val base = AnswerRequest(q.query, AnswerTools.systemPrompt(systemPrompt, tool), styleReminder, maxTokens)
-            pipeline.answer(if (filesContext != null) PersonalFiles.request(base, filesContext) else base).collect { e ->
+            // The files' list as the chat sends it (OwnFiles.note), so a run answers "which files do I have?" as the chat does.
+            val filesNote = if (filesContext != null) retrieval?.retriever?.ownFiles()?.let(team.sopa.boar.engine.rag.OwnFiles::note) else null
+            pipeline.answer(if (filesContext != null) PersonalFiles.request(base, filesContext, filesNote = filesNote) else base).collect { e ->
                 when (e) {
                     is AnswerEvent.Stage -> if (e.stage == team.sopa.boar.engine.answer.AnswerStage.THINKING) genStart = System.nanoTime()
                     is AnswerEvent.Piece -> { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() }

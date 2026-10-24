@@ -141,8 +141,24 @@ object DocumentImport {
     fun collectionId(name: String, nowMs: Long = System.currentTimeMillis()) = "custom-$nowMs-${slug(name)}"
 
     /**
-     * importDocuments: parse, chunk, create the collection, embed each chunk as "title\nbody". On failure or stop the
-     * half-made collection is removed.
+     * The cards of a collection (OwnFiles.card): one for each file that is one long document, in [plan]'s doc order. A
+     * file that is a list of documents (JSON) has none: its documents are the file's own outline.
+     */
+    fun cards(collectionId: String, files: List<File>): List<Chunk> {
+        var di = 0
+        return files.flatMap { f ->
+            val docs = parse(f)
+            val first = di
+            di += docs.size
+            val doc = docs.singleOrNull() ?: return@flatMap emptyList()
+            listOfNotNull(OwnFiles.card("$collectionId-doc$first-${slug(doc.title)}", collectionId, doc.title, f.name, doc.body, pieces(doc).size,
+                team.sopa.boar.engine.models.Units.formatBytes(f.sizeBytes)))
+        }
+    }
+
+    /**
+     * importDocuments: parse, chunk, create the collection, embed each chunk as "title\nbody", then a card for each long
+     * file ([cards]). On failure or stop the half-made collection is removed.
      */
     suspend fun import(
         kb: KnowledgeBase, embed: suspend (String) -> FloatArray, files: List<File>, collectionName: String,
@@ -150,14 +166,15 @@ object DocumentImport {
     ): String {
         val docs = files.flatMap(::parse)
         val planned = plan(collectionId, docs)
-        kb.createCollection(collectionId, collectionName, files.joinToString(", ") { it.name }, docs.size.toLong(), planned.chunks.size.toLong(), files.sumOf { it.sizeBytes })
+        val all = planned.chunks + cards(collectionId, files)
+        kb.createCollection(collectionId, collectionName, files.joinToString(", ") { it.name }, docs.size.toLong(), all.size.toLong(), files.sumOf { it.sizeBytes })
         try {
-            planned.chunks.forEachIndexed { i, c ->
+            all.forEachIndexed { i, c ->
                 if (shouldStop()) throw SeedCorpus.Stopped()
-                onProgress(i, planned.chunks.size)
+                onProgress(i, all.size)
                 kb.insertChunk(c, embed("${c.title}\n${c.body}"))
             }
-            onProgress(planned.chunks.size, planned.chunks.size)
+            onProgress(all.size, all.size)
         } catch (e: Throwable) {
             runCatching { kb.deleteCollection(collectionId) }
             throw e

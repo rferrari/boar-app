@@ -102,7 +102,7 @@ environment, or as a Gradle property with `-P`.
 
 | `.env` / environment | Gradle property | Default | Effect |
 |---|---|---|---|
-| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs exists, in Settings → Experimental. It starts on, with the beta labs and Boar Vitals on |
+| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs exists, in Settings → Experimental. It starts on, with every lab off until the user turns it on |
 | `EVAL_SHARING` | `boar.evalSharing` | false | Builds in the results server (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `.env`). Off: no Share button, runs stay on the phone as files |
 | `SHOW_EVAL_IN_MENU` | `boar.showEvalInMenu` | false | Evaluation in the side menu (always reachable from Advanced tweaks) |
 | `ALLOW_DEBUG_LOG` | `boar.allowDebugLog` | false | Settings › Advanced tweaks › Debug log exists |
@@ -111,6 +111,7 @@ environment, or as a Gradle property with `-P`.
 | | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
 | | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
 | | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
+| | `boar.labs.declassify` | empty | Classified labs that have code (`object=` and `classified=`) built as themselves, comma-separated; e.g. `dailyQuiz` |
 
 A Labs build that installs beside the normal BOAR:
 
@@ -123,7 +124,9 @@ A Labs build that installs beside the normal BOAR:
 Big Boar (`libbmoe_cli.so`), Boar Wisp (`libcolibri_olmoe.so`) and Boar Designer
 (`libsdcli.so`, `libsdcli_i8mm.so`) run their own executables. They are prebuilt into
 `android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a/`, which is gitignored, so a
-fresh clone doesn't have them. They are packed into the APK only in experimental builds.
+fresh clone doesn't have them. They are packed into the APK only in experimental builds, and never for a lab under
+review (`review=true` in its `plugin.properties`: Boar Wisp). Google Play Protect blocks an APK with engines it
+doesn't trust ("Harmful app blocked"), so each engine that ships has to earn its place.
 
 To build them, clone the upstream repos yourself at the commits pinned in
 `scripts/engine-pins.env`, then:

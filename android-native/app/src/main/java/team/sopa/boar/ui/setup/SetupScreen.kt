@@ -30,8 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,13 +68,14 @@ private val STAGES = listOf("start", "model", "knowledge", "download", "index")
  */
 @Composable
 fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLanguage: (String) -> Unit, onSkip: (() -> Unit)?, onBrowse: () -> Unit = {},
-    themeId: String? = null, onTheme: (String) -> Unit = {}, onDone: () -> Unit) {
+    themeId: String? = null, onTheme: (String) -> Unit = {}, onFontScale: (String) -> Unit = {}, onDone: () -> Unit) {
     var backOpen by remember { mutableStateOf(false) }
-    // The tour lives above the steps: setup moves from download to index to done under it, and it stays on its card.
-    var tourOpen by rememberSaveable { mutableStateOf(false) }
-    var tourIndex by rememberSaveable { mutableIntStateOf(0) }
+    // Step 4: the guide's pages while it downloads (SetupGuide), with the download's details a tap away.
+    val guide = state.step == 4 && !state.details
     BackHandler(state.step > 1 || onSkip != null) {
         when {
+            state.step == 4 && state.details -> vm.showDetails(false)
+            guide && state.guidePage > 0 -> vm.guideBack()
             state.step == 4 && state.indexPhase == IndexPhase.BUILDING -> Unit // the index keeps going: leaving would hide it
             state.step == 4 && state.finished -> Unit
             state.step == 4 && !state.allPresent -> backOpen = true
@@ -89,11 +88,9 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         state.step == 1 -> Welcome(state, language, onLanguage, onSkip) { vm.next() }
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
-        state.finished -> Done(state, onDone)
-        else -> InstallStep(state, vm, onTour = { tourIndex = 0; tourOpen = true }) { backOpen = true }
+        state.details -> InstallStep(state, vm, onGuide = { vm.showDetails(false) }) { backOpen = true }
+        else -> SetupGuidePage(state, vm, themeId, onTheme, onFontScale, onDone)
     }
-    if (tourOpen) team.sopa.boar.ui.tour.TourScreen(tourProgress(state), tourIndex, { tourIndex = it }, themeId, onTheme,
-        onReady = { tourOpen = false; onDone() }, onClose = { tourOpen = false })
     if (backOpen) {
         AlertDialog(
             onDismissRequest = { backOpen = false },
@@ -112,7 +109,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
 
 /** A step: its content scrolls, the actions stay at the bottom (the mockup's footer). */
 @Composable
-private fun StepScreen(footer: @Composable ColumnScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+internal fun StepScreen(footer: @Composable ColumnScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
     Column(Modifier.fillMaxSize().background(Boar.colors.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp), content = content)
@@ -135,7 +132,7 @@ private fun Stepper(stage: Int) {
 }
 
 @Composable
-private fun StepHeader(stage: Int, title: String, subtitle: String?) {
+internal fun StepHeader(stage: Int, title: String, subtitle: String?) {
     Stepper(stage)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(title, style = Boar.type.headline, color = Boar.colors.textHeading)
@@ -144,13 +141,13 @@ private fun StepHeader(stage: Int, title: String, subtitle: String?) {
 }
 
 @Composable
-private fun Card(modifier: Modifier = Modifier, background: Color = Boar.colors.bgCard, border: Color = Boar.colors.borderSubtle, content: @Composable ColumnScope.() -> Unit) {
+internal fun Card(modifier: Modifier = Modifier, background: Color = Boar.colors.bgCard, border: Color = Boar.colors.borderSubtle, content: @Composable ColumnScope.() -> Unit) {
     Column(modifier.fillMaxWidth().background(background, RoundedCornerShape(16.dp)).border(1.dp, border, RoundedCornerShape(16.dp)).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
 }
 
 @Composable
-private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
+internal fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     val c = Boar.colors
     Text(label, style = Boar.type.title, color = if (enabled) c.textInverse else c.textDim, textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (enabled) c.emerald500 else c.bgCard)
@@ -158,7 +155,7 @@ private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () ->
 }
 
 @Composable
-private fun SecondaryButton(label: String, onClick: () -> Unit) {
+internal fun SecondaryButton(label: String, onClick: () -> Unit) {
     val c = Boar.colors
     Text(label, style = Boar.type.titleSm, color = c.textPrimary, textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp))
@@ -166,7 +163,7 @@ private fun SecondaryButton(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun BackLink(label: String, onClick: () -> Unit) =
+internal fun BackLink(label: String, onClick: () -> Unit) =
     Text("← $label", style = Boar.type.body, color = Boar.colors.textMuted, modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(10.dp))
 
 @Composable
@@ -178,7 +175,7 @@ private fun Badge(label: String) {
 
 /** A selectable card (OptionCard): title, a badge, the number that decides on the right, then details. */
 @Composable
-private fun OptionCard(title: String, selected: Boolean, trailing: String?, badge: String?, onClick: () -> Unit, details: @Composable ColumnScope.() -> Unit) {
+internal fun OptionCard(title: String, selected: Boolean, trailing: String?, badge: String?, onClick: () -> Unit, details: @Composable ColumnScope.() -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
         .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(16.dp))
@@ -194,16 +191,16 @@ private fun OptionCard(title: String, selected: Boolean, trailing: String?, badg
 }
 
 @Composable
-private fun Meta(text: String, color: Color = Boar.colors.textMuted) = Text(text, style = Boar.type.subtext, color = color)
+internal fun Meta(text: String, color: Color = Boar.colors.textMuted) = Text(text, style = Boar.type.subtext, color = color)
 
 @Composable
-private fun BrandDisc(size: Int) =
+internal fun BrandDisc(size: Int) =
     Image(painterResource(R.drawable.brand_pfp), null, Modifier.size(size.dp).clip(CircleShape))
 
 private fun formatRam(bytes: Long): String =
     if (bytes >= 999.5 * 1024 * 1024) String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024)) else "${bytes / (1024 * 1024)} MB"
 
-private fun minutesLeft(seconds: Long) = maxOf(1, ceil(seconds / 60.0).toInt())
+internal fun minutesLeft(seconds: Long) = maxOf(1, ceil(seconds / 60.0).toInt())
 private fun minutesAbout(seconds: Long) = maxOf(1, (seconds / 60.0).roundToLong().toInt())
 
 // --- Step 1: welcome -----------------------------------------------------------------------------------------------
@@ -336,14 +333,13 @@ private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
 }
 
 @Composable
-private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Unit, onBack: () -> Unit) {
+internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> Unit, onBack: () -> Unit) {
     val c = Boar.colors
     val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
     StepScreen(footer = {
-        // Disabled until every file is on the phone and indexed, and it says why.
-        PrimaryButton(t("flows.onboarding.open"), enabled = false) {}
-        Meta(t("flows.onboarding.openWhenReady"))
-        if (!state.transferring && state.indexPhase != IndexPhase.BUILDING) BackLink(t("flows.onboarding.back"), onBack)
+        // Back to the page the user was on; the download keeps going under it.
+        PrimaryButton(t("native.setupGuide.backToGuide") + "  →", onClick = onGuide)
+        if (!state.transferring && state.indexPhase != IndexPhase.BUILDING && !state.finished) BackLink(t("flows.onboarding.back"), onBack)
     }) {
         StepHeader(if (state.indexPhase == IndexPhase.WAITING) 3 else 4,
             t(if (indexing) "flows.onboarding.indexTitle" else "flows.onboarding.step3Title"),
@@ -382,14 +378,6 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Uni
                     eta?.let { Meta(t("flows.onboarding.minutesLeft", "count" to minutesLeft(it)), c.textSecondary) }
                 }
             }
-        }
-
-        // While it downloads or indexes: BOAR's tour, full screen, with the download live on top.
-        if (!state.finished) Card(background = c.emeraldBgSubtle, border = c.emerald500) {
-            Text(t("native.tour.whileYouWait").uppercase(), style = Boar.type.micro, color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
-            Text(t("native.tour.cardTitle"), style = Boar.type.title, color = c.textHeading)
-            Meta(t("native.tour.cardSub"), c.textSecondary)
-            PrimaryButton(t("native.tour.start") + "  →", onClick = onTour)
         }
 
         // One row per category; a tap shows its files and, for a failed one, Try again.
@@ -480,30 +468,28 @@ private fun InstallStep(state: SetupState, vm: SetupViewModel, onTour: () -> Uni
 
 // --- Done ----------------------------------------------------------------------------------------------------------
 
+/** The summary at the end of setup: in the guide's Ready page, under its header. */
 @Composable
-private fun Done(state: SetupState, onDone: () -> Unit) {
+internal fun DoneSummary(state: SetupState) {
     val c = Boar.colors
-    StepScreen(footer = { PrimaryButton(t("flows.onboarding.open"), onClick = onDone) }) {
-        Spacer(Modifier.height(24.dp))
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            BrandDisc(120)
-            Text(t("flows.onboarding.doneTitle"), style = Boar.type.headline, color = c.textHeading, textAlign = TextAlign.Center)
-            Text(t("flows.onboarding.doneBody"), style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
-        }
-        val answer = state.downloads.firstOrNull { it.asset.kind == AssetKind.LLM }?.asset
-        val collections = state.downloads.count { it.asset.kind == AssetKind.CORPUS }
-        val rows = listOfNotNull(
-            answer?.let { "doneAnswer" to it.shortName },
-            if (collections > 0) "doneKnowledge" to t("flows.onboarding.doneCollections", "count" to collections, "value" to collections) else null,
-            if (state.indexTotal > 0) "doneIndex" to t("flows.onboarding.doneArticles", "count" to state.indexTotal, "value" to state.indexTotal) else null,
-        )
-        if (rows.isNotEmpty()) Card {
-            Text(t("flows.onboarding.doneSummary").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-            rows.forEach { (key, value) ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text(t("flows.onboarding.$key"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.weight(1f))
-                    Text(value, style = Boar.type.body, color = c.textPrimary, textAlign = TextAlign.End)
-                }
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        BrandDisc(120)
+        Text(t("flows.onboarding.doneTitle"), style = Boar.type.headline, color = c.textHeading, textAlign = TextAlign.Center)
+        Text(t("flows.onboarding.doneBody"), style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
+    }
+    val answer = state.downloads.firstOrNull { it.asset.kind == AssetKind.LLM }?.asset
+    val collections = state.downloads.count { it.asset.kind == AssetKind.CORPUS }
+    val rows = listOfNotNull(
+        answer?.let { "doneAnswer" to it.shortName },
+        if (collections > 0) "doneKnowledge" to t("flows.onboarding.doneCollections", "count" to collections, "value" to collections) else null,
+        if (state.indexTotal > 0) "doneIndex" to t("flows.onboarding.doneArticles", "count" to state.indexTotal, "value" to state.indexTotal) else null,
+    )
+    if (rows.isNotEmpty()) Card {
+        Text(t("flows.onboarding.doneSummary").uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
+        rows.forEach { (key, value) ->
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                Text(t("flows.onboarding.$key"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.weight(1f))
+                Text(value, style = Boar.type.body, color = c.textPrimary, textAlign = TextAlign.End)
             }
         }
     }
@@ -514,7 +500,7 @@ fun currentLanguage(saved: String?): String = saved ?: LocalConfiguration.curren
 
 /** The tour's top line, from the same numbers as the download screen: bytes while files arrive, then the index. */
 @Composable
-private fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress {
+internal fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress {
     val downloading = !state.allPresent
     val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
         else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f

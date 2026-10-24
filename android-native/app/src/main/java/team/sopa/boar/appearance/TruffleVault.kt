@@ -147,8 +147,11 @@ class TruffleVault(private val context: Context, private val settings: AppSettin
     private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     companion object {
-        /** Settings shows the Boarverse switch (hidden since Oct 21, SettingsScreen.ExperimentalSection); false keeps it off. */
-        const val SWITCH_SHOWN = false
+        /**
+         * Settings shows the Boarverse switch (SettingsScreen.ExperimentalSection): hidden Oct 21, back Oct 24 with Boar
+         * Avatars named plainly in the UI (the code keeps vault and truffle). False hides it and keeps Boarverse off.
+         */
+        const val SWITCH_SHOWN = true
         /** FLAG: the equipped boar also becomes the launcher icon (boar.truffleLauncherIcons). */
         val LAUNCHER_ICONS: Boolean = team.sopa.boar.BuildConfig.TRUFFLE_LAUNCHER_ICONS
 

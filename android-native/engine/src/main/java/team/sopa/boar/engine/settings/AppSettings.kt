@@ -181,6 +181,8 @@ class AppSettings(private val file: File) {
     /** The menu's 🗑️ asks before deleting a chat (issue #92); off deletes in one tap. The user's call, on by default. */
     var confirmChatDelete: Boolean get() = bool("confirmChatDelete") ?: true; set(v) = set("confirmChatDelete", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
+    /** The question picked on setup's "How to ask" page: in the chat's input once setup ends, not sent; then cleared. */
+    var pendingFirstQuestion: String? get() = str("pendingFirstQuestion"); set(v) = set("pendingFirstQuestion", v?.takeIf { it.isNotBlank() }?.let(::JsonPrimitive))
 
     /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
     var showDrawerStats: Boolean get() = bool("showDrawerStats") ?: false; set(v) = set("showDrawerStats", JsonPrimitive(v))

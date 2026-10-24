@@ -116,13 +116,24 @@ object Boar {
 @Composable
 fun BoarTheme(themeId: String? = null, fontScale: String = "standard", content: @Composable () -> Unit) {
     val c = Themes.byId(themeId)
-    val scheme = darkColorScheme(
+    val scheme = if (c.light) androidx.compose.material3.lightColorScheme(
+        primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
+        onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,
+        onSurfaceVariant = c.textSecondary, outline = c.borderDefault, error = c.crimson500, surfaceContainerHigh = c.bgCard,
+    ) else darkColorScheme(
         primary = c.emerald500, onPrimary = c.textInverse, secondary = c.cyan500, background = c.bgTerminal,
         onBackground = c.textPrimary, surface = c.bgSurface, onSurface = c.textPrimary, surfaceVariant = c.bgCard,
         onSurfaceVariant = c.textSecondary, outline = c.borderDefault, error = c.crimson500,
         // Dialogs sit on this: the theme's card, not Android's default gray, so every dialog matches the theme.
         surfaceContainerHigh = c.bgCard,
     )
+    // The status and navigation bars' icons: dark on a light theme, light on the dark ones.
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) androidx.compose.runtime.SideEffect {
+        (view.context as? android.app.Activity)?.window?.let { w ->
+            androidx.core.view.WindowCompat.getInsetsController(w, view).apply { isAppearanceLightStatusBars = c.light; isAppearanceLightNavigationBars = c.light }
+        }
+    }
     CompositionLocalProvider(LocalColors provides c, LocalType provides BoarType(fontScale)) {
         MaterialTheme(colorScheme = scheme, content = content)
     }
