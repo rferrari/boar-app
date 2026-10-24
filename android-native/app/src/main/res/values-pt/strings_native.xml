@@ -556,6 +556,7 @@
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
     <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos pessoais.</string>
     <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos pessoais.</string>
+    <string name="native_personal_notFoundAskHint" formatted="false">Tente perguntar sobre algo que seus arquivos dizem, com as palavras deles, ou peça um resumo dos seus arquivos.</string>
     <string name="native_documents_personalTitle" formatted="false">Arquivos pessoais</string>
     <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
