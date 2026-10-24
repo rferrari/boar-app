@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,7 +83,7 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
         PageHeader(state.guidePage, state.pages.size, page)
         when (page) {
             Page.LOOK -> LookPage(services, themeId, onTheme, onFontScale)
-            Page.ANSWERS -> AnswersPage(services, state)
+            Page.ANSWERS -> AnswersPage(services, state) { vm.guideTo(Page.FILES) }
             Page.FILES -> FilesPage(state, vm)
             Page.ASK -> AskPage(state)
             Page.FIRST -> FirstQuestionPage(services)
@@ -179,15 +181,23 @@ private fun ModeCard(icon: String, title: String, body: String, selected: Boolea
 }
 
 @Composable
-private fun AnswersPage(services: BoarServices, state: SetupState) {
+private fun AnswersPage(services: BoarServices, state: SetupState, onAddFiles: () -> Unit) {
     val c = Boar.colors
     val s = services.settings
     var style by remember { mutableStateOf(s.personalityId ?: services.personalities.defaultId) }
     // The styles BOAR can start with; Personal Files only once there are files to answer from.
     val ids = listOfNotNull("succinct", "detailed", if (state.files.isNotEmpty()) "personal" else null)
     for (id in ids) ModeCard(services.personalities.get(id).icon, t("personalities.$id.label"), t("personalities.$id.description"), style == id) { style = id; s.personalityId = id }
-    // Without files, Personal Files is explained, not offered: there would be nothing to answer from.
-    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false, null)
+    // Without files, Personal Files is explained, not picked: there would be nothing to answer from. A tap offers the
+    // files page, one page back, to add some.
+    var askFiles by rememberSaveable { mutableStateOf(false) }
+    if (state.files.isEmpty()) ModeCard(services.personalities.get("personal").icon, t("personalities.personal.label"), t("native.setupGuide.answers.personalLater"), false) { askFiles = true }
+    if (askFiles) AlertDialog({ askFiles = false },
+        confirmButton = { TextButton({ askFiles = false; onAddFiles() }) { Text(t("native.setupGuide.files.add")) } },
+        dismissButton = { TextButton({ askFiles = false }) { Text(t("native.setupGuide.skip")) } },
+        title = { Text(t("native.setupGuide.answers.addFilesTitle")) },
+        text = { Text(t("native.setupGuide.answers.addFilesBody") + "\n\n" + t("native.setupGuide.files.types")) },
+        containerColor = Boar.colors.bgCard, titleContentColor = Boar.colors.textHeading, textContentColor = Boar.colors.textSecondary)
     var deep by remember { mutableStateOf(s.deepResearchMode) }
     ModeCard("🔬", t("personalitySettings.deepResearchTitle"), t("native.setupGuide.answers.deepNote"), deep) { deep = !deep; s.deepResearchMode = deep }
     // Deep Research writes longer answers in several steps: on the light model that's minutes per answer.

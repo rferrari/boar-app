@@ -621,7 +621,9 @@
     <string name="native_setupGuide_first_sub" formatted="false">Escolha uma ou escreva a sua. Ela vai estar esperando na conversa quando o BOAR abrir; você envia.</string>
     <string name="native_setupGuide_files_duplicate" formatted="false">Já adicionado: {{name}}</string>
     <string name="native_setupGuide_files_remove" formatted="false">Remover {{name}}</string>
-    <string name="native_setupGuide_answers_personalLater" formatted="false">Responde só com seus próprios arquivos. Adicione arquivos primeiro, depois escolha na conversa para perguntar sobre eles.</string>
+    <string name="native_setupGuide_answers_personalLater" formatted="false">Responde só com seus próprios arquivos. Toque para adicionar alguns primeiro.</string>
+    <string name="native_setupGuide_answers_addFilesTitle" formatted="false">Adicionar seus arquivos primeiro?</string>
+    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos pessoais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">Na conversa, o botão de estilo ao lado de onde você digita mostra este ícone e troca quando quiser.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“O BOAR está respondendo…”</string>
     <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, ele mostra esta notificação. Assim a resposta continua se você sair do app. O Android pede sua permissão uma vez.</string>

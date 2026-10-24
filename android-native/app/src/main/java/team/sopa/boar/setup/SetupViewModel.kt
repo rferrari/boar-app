@@ -203,6 +203,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
 
     fun guideNext() = setGuide(_state.value.guidePage + 1)
     fun guideBack() = setGuide(_state.value.guidePage - 1)
+    /** To a page by name (the Answers page's "Add files"), not by count, so it holds if the pages are reordered. */
+    fun guideTo(page: SetupGuide.Page) { _state.value.pages.indexOf(page).takeIf { it >= 0 }?.let(::setGuide) }
 
     private fun setGuide(page: Int) {
         _state.update { it.copy(guidePage = page.coerceIn(0, maxOf(it.pages.lastIndex, 0)), details = false) }

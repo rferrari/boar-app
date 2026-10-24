@@ -621,7 +621,9 @@
     <string name="native_setupGuide_first_sub" formatted="false">Pick one, or write your own. It will be waiting in the chat when BOAR opens; you send it.</string>
     <string name="native_setupGuide_files_duplicate" formatted="false">Already added: {{name}}</string>
     <string name="native_setupGuide_files_remove" formatted="false">Remove {{name}}</string>
-    <string name="native_setupGuide_answers_personalLater" formatted="false">Answers only from your own files. Add files first, then pick it in the chat to ask about them.</string>
+    <string name="native_setupGuide_answers_personalLater" formatted="false">Answers only from your own files. Tap to add some first.</string>
+    <string name="native_setupGuide_answers_addFilesTitle" formatted="false">Add your files first?</string>
+    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Personal Files answers only from your own files. Add some on the files page, then come back and pick it here.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">In the chat, the style button next to where you type shows this icon and switches it any time.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“BOAR is answering…”</string>
     <string name="native_setupGuide_privacy_notifyBody" formatted="false">While BOAR writes an answer, it shows this notification. That lets the answer keep going if you leave the app. Android asks your permission once.</string>
