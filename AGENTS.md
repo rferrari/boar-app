@@ -102,7 +102,7 @@ environment, or as a Gradle property with `-P`.
 
 | `.env` / environment | Gradle property | Default | Effect |
 |---|---|---|---|
-| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs exists, in Settings → Experimental. It starts on, with the beta labs and Boar Vitals on |
+| `EXPERIMENTAL_FEATURES` | `boar.experimentalFeatures` | false | Boar Labs exists, in Settings → Experimental. It starts on, with every lab off until the user turns it on |
 | `EVAL_SHARING` | `boar.evalSharing` | false | Builds in the results server (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `.env`). Off: no Share button, runs stay on the phone as files |
 | `SHOW_EVAL_IN_MENU` | `boar.showEvalInMenu` | false | Evaluation in the side menu (always reachable from Advanced tweaks) |
 | `ALLOW_DEBUG_LOG` | `boar.allowDebugLog` | false | Settings › Advanced tweaks › Debug log exists |

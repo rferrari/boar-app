@@ -5,9 +5,8 @@ finds by itself. Adding a lab is adding a folder; removing it is deleting the fo
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
-**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. A lab with
-`onByDefault = true` starts enabled: Calculator, Facts, Cohazard, Distance, Polyglot (beta) and Boar Vitals (live).
-The others start off. A build without the flag has none of this.
+**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. Every lab
+starts off: the user turns on the ones they want, on setup's Labs page or in the grid. A build without the flag has none of this.
 
 ## The rules every lab follows
 - Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
@@ -94,7 +93,7 @@ escape apostrophes (`\'`). Read them in code with `t("native.labs.<id>.<name>")`
 ## The LabPlugin interface
 
 `android-native/app/src/labs/java/team/sopa/boar/labs/LabPlugin.kt`. Everything except `id`, `emoji` and `status` has a
-do-nothing default (`onByDefault` is false), so a lab only overrides what it uses.
+do-nothing default, so a lab only overrides what it uses.
 
 ```kotlin
 object MyLab : LabPlugin {
@@ -142,7 +141,7 @@ file.
 | `LabStatus` | Tile | Use when |
 |---|---|---|
 | `LIVE` | green | It works well |
-| `BETA` | cyan | It works, still rough. Starts on, unless the lab sets `onByDefault = false` (Designer, Press) |
+| `BETA` | cyan | It works, still rough |
 | `ALPHA` | amber | Early; starts off |
 | `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal, unless it also sets `review=true`: then its engine is left out, the page stays open to read, and it can't answer. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
