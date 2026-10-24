@@ -558,6 +558,11 @@
     <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
     <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
     <string name="native_documents_personalFolded_other" formatted="false">Arquivos pessoais · {{count}} coleções</string>
+    <!-- A source read whole (ui/chat/SourceReader.kt) -->
+    <string name="native_sourceFootnotes_readAll" formatted="false">Ler o artigo inteiro ›</string>
+    <string name="native_reader_loading" formatted="false">Abrindo…</string>
+    <string name="native_reader_missing" formatted="false">Este artigo não está mais no celular: o pacote ou a coleção foi removido.</string>
+    <string name="native_reader_used" formatted="false">A parte que o BOAR usou está marcada.</string>
     <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
     <string name="native_settings_summary_on" formatted="false">ligado</string>
     <string name="native_settings_summary_off" formatted="false">desligado</string>

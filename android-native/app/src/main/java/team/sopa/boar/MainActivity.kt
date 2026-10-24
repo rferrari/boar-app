@@ -186,6 +186,15 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     val state by vm.state.collectAsState()
     // While setup's install step runs, setup stays: also when this composition was dropped for the lock screen.
     var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished && !SetupViewModel.running) "chat" else "setup") }
+    // The source a "Read the whole article" opened (SourceReaderScreen): kept across rotation, as the screen is.
+    var readDoc by rememberSaveable { mutableStateOf("") }
+    var readTitle by rememberSaveable { mutableStateOf("") }
+    var readBody by rememberSaveable { mutableStateOf("") }
+    if (screen == "reader") {
+        BackHandler { screen = "chat" }
+        team.sopa.boar.ui.chat.SourceReaderScreen(services, readDoc, readTitle, readBody) { screen = "chat" }
+        return
+    }
     if (screen == "setup") {
         val setupState by setup.state.collectAsState()
         // Downloads pause in the background on MIUI: the screen stays on while setup runs.
@@ -398,6 +407,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onOpenModels = { vm.openedCatalog(); screen = "models" },
             onReused = { vm.showToast("chatScreen.messageReused") },
             onToastHidden = vm::hideToast,
+            onReadSource = { src -> readDoc = src.docId.orEmpty(); readTitle = src.title; readBody = src.body; screen = "reader" },
             onPrefilled = vm::prefilled,
             voiceEnabled = services.settings.voiceInputEnabled,
             onOpenRoute = { screen = it },
