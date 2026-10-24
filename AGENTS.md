@@ -111,6 +111,7 @@ environment, or as a Gradle property with `-P`.
 | | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
 | | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
 | | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
+| | `boar.labs.declassify` | empty | Classified labs that have code (`object=` and `classified=`) built as themselves, comma-separated; e.g. `dailyQuiz` |
 
 A Labs build that installs beside the normal BOAR:
 

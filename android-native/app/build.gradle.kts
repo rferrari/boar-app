@@ -17,7 +17,8 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
         require(id == dir.name) { "${dir.name}/plugin.properties: id=$id must match the folder name" }
         val obj = p.getProperty("object")?.trim()
         val classified = p.getProperty("classified")?.trim()
-        require((obj == null) != (classified == null)) { "${dir.name}/plugin.properties: set either object= or classified=" }
+        // Both: a working lab kept as a teaser in normal builds, built as itself with -Pboar.labs.declassify=<id> (Oct 24).
+        require(obj != null || classified != null) { "${dir.name}/plugin.properties: set object=, classified=, or both" }
         LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100)
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
@@ -25,7 +26,11 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
 // The registry the app reads (LabRegistry.ALL), written from the plugin folders: no shared list to edit.
 val labsRegistryDir = layout.buildDirectory.dir("generated/labsRegistry")
 val generateLabsRegistry by tasks.registering {
-    val entries = labPlugins.map { p -> p.obj ?: "ClassifiedLab(\"${p.id}\", \"${p.classified}\")" }
+    // Labs a builder brings out of classified: -Pboar.labs.declassify=dailyQuiz (comma-separated ids).
+    val declassified = (providers.gradleProperty("boar.labs.declassify").orNull ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    val entries = labPlugins.map { p ->
+        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\")" else p.obj!!
+    }
     inputs.property("entries", entries)
     outputs.dir(labsRegistryDir)
     doLast {

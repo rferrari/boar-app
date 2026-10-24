@@ -84,4 +84,29 @@ class VaultTest {
         assertEquals(Vault.State(), Vault.fromJson("not json"))
         assertEquals(Vault.State(), Vault.fromJson(null))
     }
+
+    // The Daily Quiz lab unlocks knight and elder (Oct 24).
+    @Test fun `a first right quiz answer unlocks knight, seven quiz days elder`() {
+        val d = LocalDate.of(2026, 10, 24)
+        val (one, fresh) = Vault.apply(Vault.State(), Vault.Facts(quizRight = 1), d, 1L)
+        assertTrue(fresh.toString(), "knight" in fresh)
+        assertFalse("elder" in one.unlocked)
+        val days = (0L until 7).map { d.minusDays(it).toString() }
+        val (_, later) = Vault.apply(one, Vault.Facts(quizRight = 1, quizDays = days), d, 2L)
+        assertTrue(later.toString(), "elder" in later)
+    }
+
+    @Test fun `a vault stored before the quiz still loads, and keeps what it had`() {
+        val old = """{"facts":{"answers":12,"evalShares":1},"unlocked":{"knight":5,"cosmo":3}}"""
+        val s = Vault.fromJson(old)
+        assertEquals(12, s.facts.answers)
+        assertEquals(0, s.facts.quizRight)
+        assertEquals(5L, s.unlocked["knight"])
+    }
+
+    @Test fun `knight and elder belong to the Daily Quiz`() {
+        assertEquals(Vault.Rule.QUIZ_FIRST, Vault.RULES["knight"])
+        assertEquals(Vault.Rule.QUIZ_DAYS_7, Vault.RULES["elder"])
+        assertTrue(Vault.RULES.values.none { it == Vault.Rule.EVAL_SHARED || it == Vault.Rule.EXPORT })
+    }
 }
