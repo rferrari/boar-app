@@ -168,7 +168,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         saved.chosenId?.let { id -> services.catalog.byId(id) }?.let { m ->
             _state.update { s -> if (s.models.any { it.id == m.id }) s else s.copy(models = s.models + m) }
         }
-        val resumed = SetupGuide.resume(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, saved.pinPage, services.pinLock.isSet, saved.guidePage)
+        val resumed = SetupGuide.resume(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, saved.pinPage, services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies(), saved.guidePage)
         _state.update { s ->
             s.copy(
                 step = saved.step.coerceIn(1, 4),
@@ -199,7 +199,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** The guide's pages for this setup: no PIN page when a PIN was set before it started. */
-    private fun guidePages() = SetupGuide.pages(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, services.pinLock.isSet)
+    private fun guidePages() = SetupGuide.pages(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES, services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies())
 
     fun guideNext() = setGuide(_state.value.guidePage + 1)
     fun guideBack() = setGuide(_state.value.guidePage - 1)

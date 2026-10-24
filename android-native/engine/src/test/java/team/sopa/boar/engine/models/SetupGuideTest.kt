@@ -8,27 +8,30 @@ import team.sopa.boar.engine.models.SetupGuide.Page
 
 class SetupGuideTest {
     @Test fun `every page in a Labs build without a PIN, ending on Ready`() =
-        assertEquals(listOf(Page.LOOK, Page.FILES, Page.ANSWERS, Page.ASK, Page.FIRST, Page.PIN, Page.PRIVACY, Page.LABS, Page.READY),
-            SetupGuide.pages(experimental = true, pinSetBefore = false))
+        assertEquals(listOf(Page.LOOK, Page.FILES, Page.ANSWERS, Page.ASK, Page.FIRST, Page.PIN, Page.NOTIFY, Page.PRIVACY, Page.LABS, Page.READY),
+            SetupGuide.pages(experimental = true, pinSetBefore = false, notifications = true))
+
+    @Test fun `no notifications page where Android doesn't ask (before 13)`() =
+        assertFalse(Page.NOTIFY in SetupGuide.pages(experimental = true, pinSetBefore = false, notifications = false))
 
     @Test fun `no Labs page in a normal build`() =
-        assertFalse(Page.LABS in SetupGuide.pages(experimental = false, pinSetBefore = false))
+        assertFalse(Page.LABS in SetupGuide.pages(experimental = false, pinSetBefore = false, notifications = true))
 
     @Test fun `no PIN page when a PIN was set before setup started`() {
-        val pages = SetupGuide.pages(experimental = false, pinSetBefore = true)
+        val pages = SetupGuide.pages(experimental = false, pinSetBefore = true, notifications = true)
         assertFalse(Page.PIN in pages)
         assertEquals(Page.READY, pages.last())
     }
 
     @Test fun `a PIN set on its page keeps the pages when setup resumes in a new process`() {
         // Saved on Privacy, with the PIN page in the list; the PIN is set now. Same pages, same page.
-        val (pages, i) = SetupGuide.resume(experimental = true, pinPage = true, pinSetNow = true, page = "PRIVACY")
+        val (pages, i) = SetupGuide.resume(experimental = true, pinPage = true, pinSetNow = true, notifications = true, page = "PRIVACY")
         assertTrue(Page.PIN in pages)
         assertEquals(Page.PRIVACY, pages[i])
     }
 
     @Test fun `resuming without a saved page starts on the first one`() {
-        val (pages, i) = SetupGuide.resume(experimental = false, pinPage = null, pinSetNow = true, page = null)
+        val (pages, i) = SetupGuide.resume(experimental = false, pinPage = null, pinSetNow = true, notifications = true, page = null)
         assertFalse(Page.PIN in pages)
         assertEquals(0, i)
     }
