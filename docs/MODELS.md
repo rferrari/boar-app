@@ -141,8 +141,8 @@ retrieval and your documents work without a network connection. A download that 
 resumes from where it stopped (HTTP Range). Other models download only when the user
 taps Download in the Model Catalog, or adds one from a Hugging Face search.
 
-An offline APK that carries the models and the pack inside it is in testing and not
-released.
+The offline APKs carry the models and the pack inside them instead: Qwen3 1.7B (GitHub and
+Hugging Face) or Qwen3 4B (Hugging Face only). See [USING.md](USING.md#the-offline-apk).
 
 ## Verification
 
