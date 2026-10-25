@@ -5,6 +5,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performSemanticsAction
@@ -47,10 +49,10 @@ class ChatFlowDeviceTest {
         compose.waitUntil(60_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
         val before = screenText()
         compose.onNode(hasSetTextAction()).performTextInput("What is a monsoon?")
-        compose.onNode(hasText("➤")).performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNode(hasContentDescription(I18n.t(ctx, "native.a11y.send"))).performSemanticsAction(SemanticsActions.OnClick)
         // The answer appears and grows on screen (not only in the database).
         compose.waitUntil(180_000) { compose.onAllNodesWithText("monsoon", substring = true, ignoreCase = true).fetchSemanticsNodes().size >= 2 }
-        compose.waitUntil(300_000) { runCatching { compose.onNode(hasText("➤")).assertExists() }.isSuccess && compose.onAllNodesWithText("■").fetchSemanticsNodes().isEmpty() }
+        compose.waitUntil(300_000) { runCatching { compose.onNode(hasContentDescription(I18n.t(ctx, "native.a11y.send"))).assertExists() }.isSuccess && compose.onAllNodesWithContentDescription(I18n.t(ctx, "native.a11y.stop")).fetchSemanticsNodes().isEmpty() }
         val after = screenText()
         android.util.Log.i("ChatFlowDeviceTest", "screen after answer:\n$after")
         assertTrue("no answer text appeared on screen", after.length > before.length + 80)
@@ -66,13 +68,13 @@ class ChatFlowDeviceTest {
             val scenario = ActivityScenario.launch(MainActivity::class.java).also { opened += it }
             compose.waitUntil(60_000) { compose.onAllNodesWithText(I18n.t(ctx, "native.pin.enterTitle")).fetchSemanticsNodes().isNotEmpty() }
             "2580".forEach { d -> compose.onNode(hasText(d.toString())).performSemanticsAction(SemanticsActions.OnClick) }
-            compose.onNode(hasText("✓")).performSemanticsAction(SemanticsActions.OnClick)
+            compose.onNode(hasContentDescription(I18n.t(ctx, "native.a11y.done"))).performSemanticsAction(SemanticsActions.OnClick)
             compose.waitUntil(30_000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             val before = screenText()
             compose.onNode(hasSetTextAction()).performTextInput("What is a monsoon?")
-            compose.onNode(hasText("➤")).performSemanticsAction(SemanticsActions.OnClick)
+            compose.onNode(hasContentDescription(I18n.t(ctx, "native.a11y.send"))).performSemanticsAction(SemanticsActions.OnClick)
             compose.waitUntil(180_000) { compose.onAllNodesWithText("monsoon", substring = true, ignoreCase = true).fetchSemanticsNodes().size >= 2 }
-            compose.waitUntil(300_000) { runCatching { compose.onNode(hasText("➤")).assertExists() }.isSuccess && compose.onAllNodesWithText("■").fetchSemanticsNodes().isEmpty() }
+            compose.waitUntil(300_000) { runCatching { compose.onNode(hasContentDescription(I18n.t(ctx, "native.a11y.send"))).assertExists() }.isSuccess && compose.onAllNodesWithContentDescription(I18n.t(ctx, "native.a11y.stop")).fetchSemanticsNodes().isEmpty() }
             val after = screenText()
             android.util.Log.i("ChatFlowDeviceTest", "PIN screen after answer:\n$after")
             assertTrue("no answer text appeared on screen with a PIN", after.length > before.length + 80)

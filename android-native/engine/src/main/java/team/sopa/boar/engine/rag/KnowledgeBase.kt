@@ -23,6 +23,9 @@ class KnowledgeBase(private val db: SqlDatabase) {
         db.exec(SCHEMA)
         val columns = db.query("PRAGMA table_info(chunks)") { it.string("name") }
         if ("collection_id" !in columns) db.exec("ALTER TABLE chunks ADD COLUMN collection_id TEXT REFERENCES custom_collections(id)")
+        // A file's parts and a collection's chunks are looked up by these (the files' cards, a source read whole, a
+        // collection removed): without an index each is a scan of every chunk. After the ALTER, which adds the column.
+        db.exec("CREATE INDEX IF NOT EXISTS idx_chunks_doc ON chunks(doc_id); CREATE INDEX IF NOT EXISTS idx_chunks_collection ON chunks(collection_id);")
     }
 
     fun insertChunk(chunk: Chunk, embedding: FloatArray) = db.transaction {
@@ -76,14 +79,55 @@ class KnowledgeBase(private val db: SqlDatabase) {
         )
     }
 
-    /** getCollectionDocs: each distinct passage of a collection, in chunk order. */
+    /**
+     * getCollectionDocs: each distinct passage of a collection, in chunk order. Cards (OwnFiles.card) stay out: they're
+     * BOAR's index of a file, and a re-imported export would turn them into the user's text.
+     */
     fun collectionDocs(id: String): List<CollectionDoc> =
-        db.query("SELECT DISTINCT title, body, source FROM chunks WHERE collection_id = ? ORDER BY chunk_id", listOf(id)) {
+        db.query("SELECT DISTINCT title, body, source FROM chunks WHERE collection_id = ? AND chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}' ORDER BY chunk_id", listOf(id)) {
             CollectionDoc(it.string("title")!!, it.string("source") ?: "", it.string("body")!!)
+        }
+
+    /**
+     * Up to [limit] of the built-in library's articles (title, body), a different handful for each [seed]: the Daily
+     * Quiz's pool. The user's own files never come in.
+     */
+    fun seedArticles(seed: Long, limit: Int): List<Pair<String, String>> = db.query(
+        // Only the opening: the quiz shows an article's first sentence, and a few thousand bodies would be megabytes.
+        "SELECT title, substr(body, 1, 600) AS head FROM chunks WHERE collection_id IS NULL AND title IS NOT NULL ORDER BY chunk_id",
+    ) { (it.string("title") ?: "") to (it.string("head") ?: "") }.filter { it.first.isNotBlank() }.shuffled(kotlin.random.Random(seed)).take(limit)
+    /** One document's parts (the built-in library's, or a file in Personal Files), for reading it whole (SourceArticle). */
+    fun docParts(docId: String): List<Chunk> =
+        // Not the file's card (OwnFiles.card): it describes the file, it isn't part of its text.
+        db.query("SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE doc_id = ? AND chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}'", listOf(docId)) {
+            Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"))
         }
 
     fun setCollectionActive(id: String, active: Boolean) {
         db.execute("UPDATE custom_collections SET active = ? WHERE id = ?", listOf(if (active) 1 else 0, id))
+    }
+
+    /**
+     * Every Personal Files collection erased so its text can't be read back from the database file (Forgot PIN; t9's
+     * review): pages freed are overwritten (secure_delete), the search index is merged so the deleted words leave its
+     * segments, and the write-ahead log is emptied.
+     */
+    fun eraseAllCollections() {
+        db.exec("PRAGMA secure_delete = ON")
+        try {
+            collections().forEach { deleteCollection(it.id) }
+            db.exec("INSERT INTO chunks_fts(chunks_fts) VALUES('optimize')")
+        } finally {
+            db.exec("PRAGMA secure_delete = OFF")
+        }
+        // The log must really be emptied: a checkpoint blocked by a reader reports busy (its first column) instead of
+        // failing (CodeRabbit). Retried for a moment; still busy, the erase fails, and Forgot PIN keeps the PIN.
+        repeat(30) {
+            val busy = db.query("PRAGMA wal_checkpoint(TRUNCATE)") { it.long(0) }.firstOrNull() ?: 0L
+            if (busy == 0L) return
+            Thread.sleep(100)
+        }
+        error("the write-ahead log couldn't be emptied: a reader holds it")
     }
 
     fun deleteCollection(id: String) {
@@ -140,6 +184,40 @@ class KnowledgeBase(private val db: SqlDatabase) {
         }
         return scored.sortedByDescending { it.score }.filter { it.score >= minSimilarity }.take(limit)
     }
+
+    /**
+     * The documents of the switched-on collections, oldest collection first, with their file's name (the part's source)
+     * and their part count, cards left out (OwnFiles).
+     */
+    fun ownFiles(): List<OwnFiles.File> = db.query(
+        """SELECT c.doc_id, MIN(c.source) AS name, SUM(CASE WHEN c.chunk_id LIKE '%${OwnFiles.CARD_SUFFIX}' THEN 0 ELSE 1 END) AS parts
+           FROM chunks c JOIN custom_collections cc ON cc.id = c.collection_id
+           WHERE cc.active = 1
+           GROUP BY c.doc_id ORDER BY MIN(cc.created_at), c.doc_id""",
+    ) { OwnFiles.File(it.string("doc_id")!!, it.string("name") ?: it.string("doc_id")!!, it.long("parts").toInt()) }
+
+    /** Each document's opening part ("<doc>-c0"), in [docIds]' order. */
+    fun openingParts(docIds: List<String>): List<Chunk> {
+        if (docIds.isEmpty()) return emptyList()
+        val ids = docIds.map { "$it-c0" }
+        val byId = db.query(
+            "SELECT chunk_id, doc_id, title, body, source, collection_id FROM chunks WHERE chunk_id IN (${ids.joinToString(", ") { "?" }})", ids,
+        ) { Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id")) }
+            .associateBy { it.chunkId }
+        return ids.mapNotNull(byId::get)
+    }
+
+    /** The parts of [docIds] (one file's documents), closest to [queryVec] first, with no similarity floor: the question named the file. */
+    fun rankWithin(docIds: List<String>, queryVec: FloatArray, limit: Int): List<Chunk> = if (docIds.isEmpty()) emptyList() else db.query(
+        """SELECT c.chunk_id, c.doc_id, c.title, c.body, c.source, c.collection_id, e.embedding
+           FROM chunks c JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id
+           WHERE c.doc_id IN (${docIds.joinToString(", ") { "?" }}) AND c.chunk_id NOT LIKE '%${OwnFiles.CARD_SUFFIX}'""",
+        docIds,
+    ) {
+        val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
+        Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), it.string("collection_id"),
+            score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
+    }.sortedByDescending { it.score }.take(limit)
 
     companion object {
         /** Extra BM25 candidates so the coverage gate has something to choose from. */

@@ -44,6 +44,7 @@ import team.sopa.boar.R
 import team.sopa.boar.engine.BoarEngine
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import team.sopa.boar.ui.theme.wash
 
 /**
  * About BOAR as a short thread from @boar_app (brand book, manifesto register): what BOAR is, its addresses, and the
@@ -60,7 +61,7 @@ fun AboutScreen(onClose: () -> Unit) {
         Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(t("aboutScreen.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
             Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
@@ -90,7 +91,7 @@ fun AboutScreen(onClose: () -> Unit) {
             Text(
                 t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
                 style = Boar.type["mono.xs"], color = c.textSecondary,
-                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
+                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Boar.colors.wash(0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
             )
         }
     }
@@ -142,12 +143,11 @@ private fun Post(last: Boolean, content: @Composable () -> Unit) {
     }
 }
 
-/** The open work BOAR stands on: libraries, then each model and pack with its license; the full list one tap away. */
+/** The open work BOAR stands on: libraries, Wikipedia and Hugging Face, then each model with its license, all shown. */
 @Composable
 private fun Credits() {
     val c = Boar.colors
     val ctx = LocalContext.current
-    var open by remember { mutableStateOf(false) }
     val models = remember {
         team.sopa.boar.app.BoarServices.get(ctx).catalog.models
             // Hidden models (no longer offered, such as Phi-3.5) aren't credited.
@@ -155,17 +155,14 @@ private fun Credits() {
             .map { it.label to it.license }
             .distinct()
     }
-    val all = AboutCredits.libraries + AboutCredits.extra() + models
-    val shown = if (open) all else all.take(4)
+    val all = AboutCredits.libraries + AboutCredits.sources.map { (key, license) -> t(key) to license } + AboutCredits.extra() + models
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        shown.forEach { (name, license) ->
+        all.forEach { (name, license) ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(name, style = Boar.type.caption, color = c.textSecondary, modifier = Modifier.weight(1f))
                 Text(license, style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
-        Text(if (open) t("native.about.creditsLess") else t("native.about.creditsAll", "n" to all.size), style = Boar.type.caption, color = c.textAccentCyan,
-            fontWeight = FontWeight.SemiBold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { open = !open }.padding(vertical = 4.dp))
     }
 }
 

@@ -4,7 +4,7 @@
       "id": "succinct",
       "label": "Succinct & Direct",
       "icon": "⚡",
-      "description": "Fastest — 2–3 brief paragraphs, no preamble. Default for mobile.",
+      "description": "Fastest — 2–3 short sentences, no preamble.",
       "systemPrompt": "You are Boar, a concise offline research assistant. Answer in 2-3 short, direct sentences or a brief paragraph, no preamble. Do not default to a bulleted list or a single takeaway sentence followed by three bullet points — use bullets only when the content is genuinely a list of distinct items.",
       "styleReminder": "Keep it short: 2-3 sentences. No lists unless the question asks for one."
     },

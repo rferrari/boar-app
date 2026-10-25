@@ -7,7 +7,8 @@ plugins {
 }
 
 /** A Boar Labs plugin folder: src/labs/plugins/<folder>/plugin.properties (folders starting with _ are templates). */
-class LabPluginDir(val dir: File, val id: String, val obj: String?, val classified: String?, val order: Int)
+/** [review]: under review (review=true), so its engine (jniLibs) stays out of the APK, whatever the build. */
+class LabPluginDir(val dir: File, val id: String, val obj: String?, val classified: String?, val order: Int, val review: Boolean)
 
 val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpty()
     .filter { it.isDirectory && !it.name.startsWith("_") && it.resolve("plugin.properties").isFile }
@@ -17,15 +18,21 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
         require(id == dir.name) { "${dir.name}/plugin.properties: id=$id must match the folder name" }
         val obj = p.getProperty("object")?.trim()
         val classified = p.getProperty("classified")?.trim()
-        require((obj == null) != (classified == null)) { "${dir.name}/plugin.properties: set either object= or classified=" }
-        LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100)
+        // Both: a working lab kept as a teaser in normal builds, built as itself with -Pboar.labs.declassify=<id> (Oct 24).
+        require(obj != null || classified != null) { "${dir.name}/plugin.properties: set object=, classified=, or both" }
+        LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100, p.getProperty("review")?.trim()?.toBoolean() ?: false)
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
 
 // The registry the app reads (LabRegistry.ALL), written from the plugin folders: no shared list to edit.
 val labsRegistryDir = layout.buildDirectory.dir("generated/labsRegistry")
 val generateLabsRegistry by tasks.registering {
-    val entries = labPlugins.map { p -> p.obj ?: "ClassifiedLab(\"${p.id}\", \"${p.classified}\")" }
+    // Labs a builder brings out of classified: -Pboar.labs.declassify=dailyQuiz (comma-separated ids).
+    val declassified = (providers.gradleProperty("boar.labs.declassify").orNull ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    val entries = labPlugins.map { p ->
+        // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
+        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (p.obj != null) ", ${p.obj}" else ""})" else p.obj!!
+    }
     inputs.property("entries", entries)
     outputs.dir(labsRegistryDir)
     doLast {
@@ -99,7 +106,7 @@ android {
         manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
+        versionCode = 5
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
         versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
@@ -155,14 +162,15 @@ android {
     }
     // Boar Labs: the framework (src/labs/java, res) and every plugin folder under src/labs/plugins, found here, so a
     // plugin is one folder and nothing else (docs/PLUGINS.md). A plugin's jniLibs (gitignored executables named lib*.so,
-    // e.g. sd-cli or bmoe-cli, installed runnable in nativeLibraryDir) ship only in experimental builds.
+    // e.g. sd-cli or bmoe-cli, installed runnable in nativeLibraryDir) ship only in experimental builds, and never for a
+    // lab under review (Oct 24): Play Protect blocks an APK whose executables it doesn't trust, so only the ones in use go.
     sourceSets["main"].java.srcDir("src/labs/java")
     sourceSets["main"].res.srcDir("src/labs/res")
     sourceSets["main"].java.srcDir(labsRegistryDir)
-    for (dir in labPlugins.map { it.dir }) {
-        sourceSets["main"].java.srcDir(dir.resolve("java"))
-        sourceSets["main"].res.srcDir(dir.resolve("res"))
-        if (labsExecutables) sourceSets["main"].jniLibs.srcDir(dir.resolve("jniLibs"))
+    for (plugin in labPlugins) {
+        sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
+        sourceSets["main"].res.srcDir(plugin.dir.resolve("res"))
+        if (labsExecutables && !plugin.review) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
     }
 }
 
@@ -195,6 +203,8 @@ dependencies {
     // On-device checks (the PIN, its Keystore key, the sealed database, the PIN screens), run with adb am instrument.
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.espresso.core)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)

@@ -48,6 +48,7 @@ import team.sopa.boar.eval.EvaluationViewModel
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.util.Locale
+import team.sopa.boar.ui.theme.wash
 
 private fun formatMs(ms: Double?): String = when {
     ms == null -> "—"
@@ -83,7 +84,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             }
             if (!state.running) {
                 Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -100,7 +101,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(c.bgCardElevated).border(1.dp, c.borderDefault, RoundedCornerShape(6.dp))
                         .clickable { vm.toggle(cfg.id) }.padding(horizontal = 8.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(if (on) "☑" else "☐", fontSize = 16.sp, color = if (on) c.textAccentEmerald else c.textDim)
+                        team.sopa.boar.ui.PackIcon(if (on) team.sopa.boar.R.drawable.ic_checkbox_on else team.sopa.boar.R.drawable.ic_checkbox_off, 18.dp, if (on) c.textAccentEmerald else c.textDim)
                         Text(cfg.label, style = Boar.type.subtext, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     }
                 }
@@ -228,7 +229,7 @@ private fun SectionToggle(title: String, open: Boolean, onToggle: () -> Unit) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable(onClick = onToggle).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(title, style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        Text(if (open) "▾" else "▸", style = Boar.type.subtext, color = c.textMuted)
+        team.sopa.boar.ui.PackIcon(if (open) team.sopa.boar.R.drawable.ic_chevron_down else team.sopa.boar.R.drawable.ic_chevron_right, 16.dp, c.textMuted)
     }
 }
 

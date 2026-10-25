@@ -74,7 +74,12 @@ private fun PinPad(title: String, subtitle: String?, error: String?, busy: Boole
                         .clickable(enabled = enabled) {
                             when (k) { "⌫" -> pin = pin.dropLast(1); "✓" -> { onSubmit(pin); pin = "" }; else -> pin += k }
                         }, contentAlignment = Alignment.Center) {
-                        Text(k, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = if (enabled) c.textHeading else c.textDim)
+                        val tint = if (enabled) c.textHeading else c.textDim
+                        when (k) {
+                            "⌫" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_backspace, 28.dp, tint, description = t("native.a11y.backspace"))
+                            "✓" -> team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 28.dp, tint, description = t("native.a11y.done"))
+                            else -> Text(k, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = tint)
+                        }
                     }
                 }
             }
@@ -108,9 +113,20 @@ fun LockScreen(lock: PinLock, onUnlocked: () -> Unit) {
             }
         }
     }) {
-        Text(t("native.pin.forgot"), style = Boar.type.caption, color = Boar.colors.textAccentCyan, modifier = Modifier.clickable { forgetting = true }.padding(8.dp))
+        Text(t("native.pin.forgot"), style = Boar.type.caption, color = Boar.colors.textAccentCyan, modifier = Modifier.clickable(enabled = !busy) { forgetting = true }.padding(8.dp))
     }
-    if (forgetting) ForgetDialog(onErase = { forgetting = false; scope.launch { withContext(Dispatchers.IO) { lock.forget() }; onUnlocked() } }) { forgetting = false }
+    val notErased = t("native.pin.forgotFailed")
+    if (forgetting) ForgetDialog(onErase = {
+        forgetting = false
+        // Any failure, the erase's or the lock's own, keeps the PIN screen with the error: never a crash (t9's review).
+        // Busy while it erases (up to ~15 s waiting for an answer to stop): no PIN, no second erase meanwhile.
+        busy = true
+        scope.launch {
+            val erased = withContext(Dispatchers.IO) { runCatching { lock.forget() }.getOrDefault(false) }
+            busy = false
+            if (erased) onUnlocked() else error = notErased
+        }
+    }) { forgetting = false }
 }
 
 /** How long "Erase your chats?" stays open: time to read it and decide; then it closes by itself. */

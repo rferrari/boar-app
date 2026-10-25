@@ -64,7 +64,9 @@ fun ThemePicker(vault: TruffleVault, themeId: String?, onTheme: (String) -> Unit
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.vault.themes"), style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
         // Unlocked themes show (and apply) only while Boar Avatars is on.
-        val openThemes = Themes.all.filter { it.id in Themes.open || (avatarsOn && (it.id in Themes.starter || it.id in state.themes)) }
+        val openThemes = Themes.all.filter {
+            it.id in Themes.open || (avatarsOn && (it.id in Themes.starter || it.id in state.themes || Themes.byAvatar[it.id]?.let { a -> a in state.unlocked } == true))
+        }
         val selected = Themes.byId(themeId?.takeIf { avatarsOn || it in Themes.open }).id
         // Wraps like Settings' other choices: scrolling sideways cut the third theme at the edge (Large text, Oct 15).
         @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)

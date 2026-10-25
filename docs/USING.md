@@ -148,7 +148,36 @@ Settings → System Recovery & Danger Zone has:
   knowledge base, your documents, chats and settings), the same as Android's "Clear
   storage", then setup starts again.
 
-## The offline APK (in testing)
+## The offline APK
 
-An offline APK that carries the models and the knowledge pack inside it, so first launch
-needs no download, is in testing. It is not released.
+For a phone that never goes online, not even once, there are offline APKs. They carry the
+answer model, the search model, the Wikipedia Vital Articles pack and Boar Designer's drawing
+model inside. First launch unpacks and checks them (it needs a few GB of free space for that),
+with no download:
+
+- `boar-v…-offline-arm64.apk` (about 2 GB), with Qwen3 1.7B: on the GitHub release and on
+  [Hugging Face](https://huggingface.co/BOAR-App/boar-offline).
+- `boar-v…-offline-qwen3-4b-arm64.apk` (about 3.4 GB), with Qwen3 4B, for 12 GB phones: on
+  Hugging Face only, since GitHub takes files up to 2 GiB.
+
+Each is signed with the release key, so it installs over the normal BOAR and the normal BOAR
+over it. Other models and packs can still be added later from the Model Catalog or a Hugging
+Face search, which needs internet.
+
+### Build your own
+
+To bundle the other supported answer model, build the offline APK from source. The script is on the
+`feat/offline-bundle` branch:
+
+```bash
+BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km BOAR_VERSION_NAME=2.0.0-rc2 \
+  scripts/build-offline-apk.sh release
+```
+
+It expects, and checks against the catalog's SHA-256: the model GGUF in
+`build/offline-bundle/models/`, `assets/models/embedding.gguf`,
+`build/knowledge-pack/wiki-vital5.sqlite` (`npm run pack:build`) and Designer's
+`build/offline-bundle/labs/sdxs-512-tinySDdistilled_Q8_0.gguf`. `BOAR_OFFLINE_MODEL` takes
+`qwen3-1.7b-q4km` (the default) or `qwen3-4b-instruct-2507-q4km`. A self-built APK is signed
+with your own key (or debug-signed), so it can't install over an official BOAR: switching
+means uninstalling, and that deletes the downloaded models.

@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -77,8 +78,8 @@ sealed interface Activity {
     data object Retrieving : Activity
     data object Thinking : Activity
     data object Generating : Activity
-    /** Deep Research: stage, sub-question index (1-based) and count. */
-    data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?) : Activity
+    /** Deep Research: stage, sub-question index (1-based) and count, and the sub-question being researched. */
+    data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?, val subQuestion: String? = null) : Activity
 }
 
 /** A note over the chat about the answer model and the phone's memory, with what the user can do about it. */
@@ -100,6 +101,8 @@ data class ChatState(
     val sessionId: String? = null,
     val messages: List<UiMessage> = emptyList(),
     val answeringId: String? = null,
+    /** When the answer being written started (elapsedRealtime), for its seconds; kept here, not in the bubble, so scrolling it away and back doesn't restart them. */
+    val answerStartedAt: Long = 0L,
     val activity: Activity? = null,
     val liveTokPerSec: Double? = null,
     val modelLabel: String? = null,
@@ -131,6 +134,8 @@ data class ChatState(
     val online: Boolean = false,
     /** Suggested question keys for the empty chat (chat.suggestions.*). */
     val suggestions: List<String> = emptyList(),
+    /** The question picked in setup, for the input box once (not sent). */
+    val prefill: String? = null,
 )
 
 /**
@@ -183,6 +188,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.addBusyCheck(busy)
         services.addStopper(stopper)
         services.addForegroundHook(onForeground)
+        // "Forgot PIN" erased the chats: the one open here goes too (it stayed on screen above an empty history, X6).
+        safeScope.launch {
+            services.pinLock.erased.drop(1).collect {
+                job?.cancel()
+                _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
+            }
+        }
     }
 
     override fun onCleared() {
@@ -340,6 +352,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         refreshTone()
         refreshModel()
         _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
+        // Setup's "How to ask" page: its question waits in the input, once.
+        services.settings.pendingFirstQuestion?.let { q -> services.settings.pendingFirstQuestion = null; _state.update { it.copy(prefill = q) } }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
         val open = _state.value.sessionId
         if (open != null && services.chats.listSessions().none { it.id == open }) newChat()
@@ -347,6 +361,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun showToast(key: String) = team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), key))
     fun hideToast() = _state.update { it.copy(toast = null) }
+    fun prefilled() = _state.update { it.copy(prefill = null) }
 
     /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
     private fun watchConnectivity(app: Application) {
@@ -493,6 +508,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
         routedModelId = null
+        answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
@@ -513,7 +529,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             _state.update {
-                it.copy(sessionId = sessionId, error = null, answeringId = answerId, activity = Activity.Retrieving, liveTokPerSec = null,
+                it.copy(sessionId = sessionId, error = null, answeringId = answerId, answerStartedAt = android.os.SystemClock.elapsedRealtime(), activity = Activity.Retrieving, liveTokPerSec = null,
                     messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings
@@ -591,6 +607,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 // An instant answer doesn't load the model.
                 val session = if (instant != null) null else services.activeSession()
+                if (session != null) answeredById = services.host.residentId()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
                     // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
@@ -614,7 +631,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     path = if (research) "deep" else "chat"
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
-                        onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount) else Activity.Thinking) } },
+                        onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount, p.subQuestion) else Activity.Thinking) } },
                         onToken = ::onPiece,
                         shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
@@ -638,10 +655,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
                     val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
-                    // Nothing found in the files: the fixed line in the user's language, and where to switch a collection on.
+                    // Nothing found in the files: the fixed line in the user's language, then where to switch a collection on
+                    // when none is on, or how to ask when one is. The prompt lists the switched-on files by name.
+                    val ownFiles = if (personal) services.retriever.ownFiles() else emptyList()
+                    val hint = if (ownFiles.isEmpty()) "native.personal.notFoundHint" else "native.personal.notFoundAskHint"
                     val request = if (!personal) base else PersonalFiles.request(base,
                         services.host.openedContext ?: team.sopa.boar.engine.EngineTweaks.contextSizeForRam(totalRamBytes()),
-                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFoundHint"))
+                        team.sopa.boar.ui.I18n.t(getApplication(), "native.personal.notFound") + "\n\n" + team.sopa.boar.ui.I18n.t(getApplication(), hint),
+                        team.sopa.boar.engine.rag.OwnFiles.note(ownFiles))
                     pipeline.answer(request).collect { e ->
                         when (e) {
                             is AnswerEvent.Stage -> _state.update { it.copy(activity = when (e.stage) { AnswerStage.RETRIEVING -> Activity.Retrieving; AnswerStage.THINKING -> Activity.Thinking; AnswerStage.GENERATING -> Activity.Generating }) }
@@ -794,6 +815,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
     /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
     @Volatile private var routedModelId: String? = null
+    /** The model loaded for this answer: the receipt names it even if another is picked meanwhile (X6, Oct 24). */
+    @Volatile private var answeredById: String? = null
 
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, budget: Int, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
@@ -834,7 +857,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             totalMs = (end - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6,
             tokPerSec = m?.decodeTokPerSec?.takeIf { it > 0 } ?: wallRate, tokens = m?.generatedTokens?.takeIf { it > 0 } ?: streamed,
             // The model that wrote it: the one adaptive routing picked, else the active one.
-            model = (routedModelId?.let(services.catalog::byId) ?: services.activeModel())?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
+            model = ((routedModelId ?: answeredById)?.let(services.catalog::byId) ?: services.activeModel())?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
         )
     }
 

@@ -47,15 +47,18 @@ import team.sopa.boar.engine.rag.KnowledgeBase
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
-/** My Documents (PersonalDocumentsManager.tsx). */
+/**
+ * Knowledge (Oct 24): BOAR Knowledge (the packs, [packs]) first, then Personal Files (PersonalDocumentsManager.tsx).
+ * [focus]: the section Settings opened this for ("packs" or "personal") starts open; from the menu ("") both are folded.
+ */
 @Composable
-fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Composable () -> Unit = {}, onAskFiles: () -> Unit = {}, onBack: () -> Unit) {
+fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String = "", packs: @Composable () -> Unit = {}, onAskFiles: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     var name by remember { mutableStateOf("") }
     var nameMissing by remember { mutableStateOf(false) }
     var removing by remember { mutableStateOf<KnowledgeBase.Collection?>(null) }
-    // Both Knowledge sections start open; folded stays folded while the app runs.
-    var personalOpen by rememberSaveable { mutableStateOf(true) }
+    // Open when Settings' "Open Personal Files" brought the user here; folded or opened, it stays so while on the screen.
+    var personalOpen by rememberSaveable(focus) { mutableStateOf(focus == "personal") }
     val ctx = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.import(uris, name.trim()); name = "" }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
@@ -65,11 +68,13 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // BOAR Knowledge first, the library everyone has; then the user's own files.
+            packs()
             // Personal Files: the user's own collections, what the Personal Files style answers from. Folded, its title
             // still says how many there are.
             val count = state.collections.size
             team.sopa.boar.ui.BoarSection(if (personalOpen) t("native.documents.personalTitle") else t("native.documents.personalFolded", "count" to count),
-                personalOpen, { personalOpen = !personalOpen }) {
+                personalOpen, { personalOpen = !personalOpen }, icon = team.sopa.boar.R.drawable.ic_style_personal) {
                 Text(t("native.documents.personalNote"), style = Boar.type.subtext, color = c.textSecondary)
                 Text(t("personalDocumentsManager.hint"), style = Boar.type.subtext, color = c.textMuted)
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(12.dp)) {
@@ -120,12 +125,13 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, packs: @Compo
                         Switch(col.active, { vm.setActive(col.id, it) }, colors = SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
                     }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
-                        Text("🗑️ " + t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { removing = col }.padding(vertical = 4.dp))
+                        Row(Modifier.clickable { removing = col }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 16.dp, c.crimson400)
+                            Text(t("common.remove"), style = Boar.type.caption, color = c.crimson400, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
-            // Your documents first, then the knowledge packs (KnowledgeScreen.tsx's order).
-            packs()
         }
     }
     if (nameMissing) AlertDialog({ nameMissing = false }, confirmButton = { TextButton({ nameMissing = false }) { Text(t("native.common.ok")) } },

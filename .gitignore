@@ -51,3 +51,8 @@ docs/demo/boar_demo.mp4
 
 # Native binaries a lab plugin builds (scripts/build-sd-cli.sh for the image lab)
 android-native/app/src/labs/plugins/*/jniLibs/
+
+# Agent tooling set up per machine (Claude Code, the skills CLI)
+.claude/
+.agents/
+skills-lock.json

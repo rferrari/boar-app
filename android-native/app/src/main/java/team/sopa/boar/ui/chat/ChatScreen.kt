@@ -87,6 +87,7 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import team.sopa.boar.ui.theme.BrandType
 import kotlin.math.sqrt
+import team.sopa.boar.ui.theme.wash
 
 /**
  * The chat, laid out as src/ui-android/ChatScreen.tsx and ChatHeader.tsx with their style values: the ambient light,
@@ -114,13 +115,18 @@ fun ChatScreen(
     onOpenModels: () -> Unit = {},
     onReused: () -> Unit = {},
     onToastHidden: () -> Unit = {},
+    /** The setup's first question went into the input box. */
+    onPrefilled: () -> Unit = {},
     /** Opens an app route from a plugin's header badge ("lab:printer"). */
     onOpenRoute: (String) -> Unit = {},
     voiceEnabled: Boolean = false,
+    /** A source's "Read the whole article": the reader page for it. */
+    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {},
 ) {
     val c = Boar.colors
     val list = rememberLazyListState()
     var input by remember { mutableStateOf("") }
+    LaunchedEffect(state.prefill) { state.prefill?.let { input = it; onPrefilled() } }
     // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
     // (issue #91). Asked once, with the first question; a refusal stands and is never asked again.
     val notifyCtx = androidx.compose.ui.platform.LocalContext.current
@@ -163,13 +169,13 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource) }
                 }
             }
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
-            }, onStop, voiceEnabled, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
+            }, onStop, voiceEnabled, state.personalityId, state.toneIcon, state.stopping, deepResearch = state.deepResearch) { toneSheet = true }
         }
     }
 }
@@ -229,7 +235,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(Color.White.copy(alpha = 0.05f), null, onMenu) { Text("☰", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textHeading) }
+            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp, description = t("native.a11y.menu")) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
                 val truffle = team.sopa.boar.appearance.LocalTruffle.current
@@ -281,14 +287,17 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     val c = Boar.colors
     var open by remember { mutableStateOf(false) }
     Box {
-        RoundButton(if (on) c.frontierBadgeBg else Color.White.copy(alpha = 0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            Text("🔬", fontSize = 17.sp, modifier = Modifier.alpha(if (on) 1f else 0.45f))
+        RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f), t("personalitySettings.deepResearchTitle"))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("🔬 " + t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp)
+                            Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
+                        }
                         Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
                     }
                     androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
@@ -355,12 +364,12 @@ private fun StatusPill(online: Boolean) {
 private fun DeepResearchBanner(onClose: () -> Unit) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().background(c.frontierBadgeBg).padding(start = 12.dp, end = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("🔬", fontSize = 10.sp)
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 12.dp, c.frontierText)
         Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
         // Closed for good: the header chip still shows Deep Research is on.
         Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
-            Text("✕", style = Boar.type["mono.sm"], color = c.frontierText)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText, description = t("native.a11y.close"))
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
@@ -400,7 +409,7 @@ private fun LoadNoteBanner(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
             Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
             Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
-                Text("✕", style = Boar.type["mono.sm"], color = c.amber400)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.amber400, description = t("native.a11y.close"))
             }
         }
         // The first action is the recommended one: filled. Both share the width and the height of the taller label.
@@ -448,7 +457,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
                 else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
             }
         }, contentAlignment = Alignment.Center) {
-        Text(if (listening) "■" else "🎤", fontSize = if (listening) 12.sp else 16.sp, color = Color.White)
+        if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stopListening")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading, description = t("native.a11y.mic"))
     }
 }
 
@@ -518,12 +527,15 @@ private fun activityLabel(a: Activity?): String = when (a) {
 /** A message bubble (ChatScreen.tsx styles.bubble / userBubble / assistantBubble). */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {}) {
+private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {},
+    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
     val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
+    // When this answer started, for the seconds on its activity line (Expo's ReasoningPeek).
+    val startedAt = state.answerStartedAt
     val clipboard = LocalClipboardManager.current
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -555,8 +567,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
-                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
-                split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
+                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
+                    if (state.stopping) null else activityDetail(state.activity), startedAt)
+                split.thinkingInProgress && split.answer.isEmpty() && streaming -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(t("chatScreen.reasoningElapsed", "seconds" to elapsedSeconds(startedAt)), style = Boar.type.subtext, color = c.textMuted)
+                    ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
+                }
                 // The reasoning used the whole answer budget: the note says "tap 💭", so 💭 shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
                     Text(if (reasoningShown && split.thinking != null) split.thinking!! else "💭 " + t("chatScreen.reasoningUnfinished"),
@@ -580,7 +596,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null)
+            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
@@ -707,15 +723,40 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     }
 }
 
-/** ProcessingIndicator.tsx: the stage line while nothing has streamed yet. */
+/**
+ * ProcessingIndicator.tsx: the stage line while nothing has streamed yet, with its seconds, and a second line under it:
+ * the sub-question Deep Research is on, else one of the loading lines, swapped every few seconds (Expo's two-line wait).
+ */
 @Composable
-private fun ProcessingIndicator(label: String) {
+private fun ProcessingIndicator(label: String, detail: String?, startedAt: Long) {
     val c = Boar.colors
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
-        Text(label, style = Boar.type.body, color = c.textMuted)
+    val seconds = elapsedSeconds(startedAt)
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
+            Text(if (seconds >= 2) "$label · ${seconds}s" else label, style = Boar.type.body, color = c.textMuted)
+        }
+        val line = detail ?: t("flows.onboarding.loadingLines.l${(seconds / LOADING_LINE_SECONDS + startedAt / 1000).mod(LOADING_LINES) + 1}")
+        Text(line, style = Boar.type.subtext, fontStyle = FontStyle.Italic, color = c.textDim, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(start = 20.dp))
     }
 }
+
+/** Whole seconds since [startedAt] (elapsedRealtime), ticking once a second while shown. */
+@Composable
+private fun elapsedSeconds(startedAt: Long): Int {
+    var now by remember { mutableStateOf(android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(startedAt) { while (true) { kotlinx.coroutines.delay(1000); now = android.os.SystemClock.elapsedRealtime() } }
+    return ((now - startedAt) / 1000).toInt().coerceAtLeast(0)
+}
+
+/** The second line's real detail when there is one: the sub-question Deep Research is reading for. */
+private fun activityDetail(a: Activity?): String? =
+    (a as? Activity.Researching)?.takeIf { it.stage == ResearchStage.RESEARCHING }?.subQuestion?.trim()?.takeIf { it.isNotEmpty() }?.let { "“$it”" }
+
+/** flows.onboarding.loadingLines.l1 … l12, each shown this long. */
+private const val LOADING_LINES = 12
+private const val LOADING_LINE_SECONDS = 4
 
 /**
  * Something to do about an answer (Try again, Allow more, Ask BOAR instead): on its own line, full size, in the accent,
@@ -758,13 +799,13 @@ private fun Badge(text: String) {
  * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
  */
 @Composable
-private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
+private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneId: String, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
     Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            Text(toneIcon, fontSize = 18.sp)
+            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp, description = t("native.a11y.style"))
         }
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
@@ -790,16 +831,9 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         Box(
             Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { Text(if (answering) "■" else "➤", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = if (answering) 14.sp else 16.sp) }
+        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
     }
 }
 
 /** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
-private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return
-    if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED) return
-    val prefs = ctx.getSharedPreferences("permissions", android.content.Context.MODE_PRIVATE)
-    if (prefs.getBoolean("notificationsAsked", false)) return
-    prefs.edit().putBoolean("notificationsAsked", true).apply()
-    ask()
-}
+private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) = team.sopa.boar.app.NotificationAsk.once(ctx, ask)

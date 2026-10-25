@@ -1,5 +1,6 @@
 package team.sopa.boar
 
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.runtime.getValue
@@ -42,20 +43,22 @@ class PinDeviceTest {
     private val dir = File(ctx.cacheDir, "pin-test").apply { deleteRecursively(); mkdirs() }
     private val opened = mutableListOf<NativeSqlite>()
 
-    private class Store(val db: NativeSqlite, val chats: ChatStore, val settings: AppSettings, val lock: PinLock)
+    private class Store(val db: NativeSqlite, val chats: ChatStore, val settings: AppSettings, val lock: PinLock, val kb: KnowledgeBase)
 
     /** A fresh process's view of the same files: new connection, new settings, no key in memory. */
     private fun open(): Store {
         val db = NativeSqlite.open(File(dir, "kb.db").path).also { opened += it }
-        KnowledgeBase(db)
+        val kb = KnowledgeBase(db)
         val chats = ChatStore(db)
         val settings = AppSettings(File(dir, "settings.json"))
-        return Store(db, chats, settings, PinLock(settings, chats, alias = "boar-pin-test"))
+        // As the app wires it (BoarServices): forgetting the PIN erases Personal Files too.
+        return Store(db, chats, settings, PinLock(settings, chats, alias = "boar-pin-test",
+            eraseOwnFiles = { kb.eraseAllCollections() }), kb)
     }
 
     private fun bytesOnDisk(): String = dir.walkTopDown().filter { it.isFile }.joinToString("") { String(it.readBytes(), Charsets.ISO_8859_1) }
     private fun t(key: String) = I18n.t(ctx, key)
-    private fun type(pin: String) { pin.forEach { compose.onNodeWithText(it.toString()).performSemanticsAction(SemanticsActions.OnClick) }; compose.onNodeWithText("✓").performSemanticsAction(SemanticsActions.OnClick) }
+    private fun type(pin: String) { pin.forEach { compose.onNodeWithText(it.toString()).performSemanticsAction(SemanticsActions.OnClick) }; compose.onNodeWithContentDescription(t("native.a11y.done")).performSemanticsAction(SemanticsActions.OnClick) }
 
     @After fun cleanUp() {
         opened.forEach { runCatching { it.close() } }
@@ -109,15 +112,30 @@ class PinDeviceTest {
         assertTrue(b.lock.unlock("4821") is PinLock.Attempt.Wait)
     }
 
-    @Test fun forgettingThePinErasesTheChatsAndTheLock() {
+    @Test fun aFailedEraseKeepsThePin() {
+        val a = open()
+        a.lock.enable("4821")
+        val failing = PinLock(a.settings, a.chats, alias = "boar-pin-test", eraseOwnFiles = { error("disk") })
+        assertFalse(failing.forget())
+        assertTrue(failing.isSet)
+    }
+
+    @Test fun forgettingThePinErasesTheChatsPersonalFilesAndTheLock() {
         val a = open()
         val s = a.chats.createSession("Secret")
         a.chats.addMessage(s.id, "user", "hidden", "u1")
+        // A Personal Files collection: not sealed by the PIN, so "Forgot PIN" must erase it, or it's left readable.
+        a.kb.createCollection("c-diary", "diary", "diary.txt", 1, 1, 10, now = 1)
+        // A word only the file has: after the erase it must be nowhere in the files on disk (database, log, index).
+        a.kb.insertChunk(team.sopa.boar.engine.rag.Chunk("c-diary-doc0-c0", "c-diary-doc0", "diary", "zebracorn lighthouse appointment", source = "diary.txt", collectionId = "c-diary"), floatArrayOf(1f, 0f, 0f))
         a.lock.enable("4821")
         val b = open()
-        b.lock.forget()
+        assertTrue(b.lock.forget())
         assertFalse(b.lock.isSet)
         assertTrue(b.chats.listSessions().isEmpty())
+        assertTrue(b.kb.collections().isEmpty())
+        opened.forEach { runCatching { it.close() } }
+        assertFalse("the file's text is still readable on disk", bytesOnDisk().contains("zebracorn"))
     }
 
     /** The lock screen of a PIN-protected store, with "Forgot the PIN?" tapped. */
@@ -154,6 +172,8 @@ class PinDeviceTest {
     @Test fun setupEndsOnThePinOfferUnlessAPinIsSet() {
         assertEquals("pinOffer", afterSetup(pinSet = false))
         assertEquals("chat", afterSetup(pinSet = true))
+        // Setup's own PIN page was shown: no second offer, whatever was chosen there.
+        assertEquals("chat", afterSetup(pinSet = false, offered = true))
     }
 
     @Test fun theOfferTheSetupAndTheLockScreenWorkByTapping() {

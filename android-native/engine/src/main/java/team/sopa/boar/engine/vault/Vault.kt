@@ -5,8 +5,9 @@ import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
 /**
- * The Truffle Vault's rules: which boar icon ("truffle") unlocks when, from facts the app counts on the phone. Nothing
- * here reads the phone or the clock; the app (appearance/TruffleVault) feeds the facts and stores [State].
+ * Boar Avatars' rules (the code still says vault and truffle; the app says avatars since Oct 24): which boar avatar
+ * unlocks when, from facts the app counts on the phone. Nothing here reads the phone or the clock; the app
+ * (appearance/TruffleVault) feeds the facts and stores [State].
  */
 object Vault {
     /** What the vault knows about how BOAR has been used, all counted on the phone and never sent anywhere. */
@@ -38,6 +39,10 @@ object Vault {
         val sourceBuild: Boolean = false,
         /** GrapheneOS, or no Google Play services at all. */
         val degoogled: Boolean = false,
+        /** Daily Quiz answers right (Boar Labs, classified unless a builder declassifies it; knight needs one). */
+        val quizRight: Int = 0,
+        /** ISO dates the Daily Quiz was played, newest last. */
+        val quizDays: List<String> = emptyList(),
         /** ISO dates (yyyy-MM-dd) the app was opened, newest last. */
         val usedDays: List<String> = emptyList(),
         /** ISO dates the app was opened in airplane mode, newest last. */
@@ -86,6 +91,8 @@ object Vault {
         AIRPLANE_STREAK_3({ f, d -> Days.streak(f.airplaneDays, d) >= 3 }),
         AIRPLANE_STREAK_7({ f, d -> Days.streak(f.airplaneDays, d) >= 7 }),
         AIRPLANE_DAYS_14({ f, _ -> f.airplaneDays.size >= 14 }),
+        QUIZ_FIRST({ f, _ -> f.quizRight >= 1 }),
+        QUIZ_DAYS_7({ f, _ -> f.quizDays.size >= 7 }),
         /** The legendary truffle: every other one unearthed. Decided in [apply], which sees what's unlocked. */
         ALL_OTHERS({ _, _ -> false }),
     }
@@ -109,7 +116,8 @@ object Vault {
         "astronaut" to Rule.DAYS_7,
         "stealth" to Rule.DEGOOGLED,
         "biolum" to Rule.NIGHT_5,
-        "knight" to Rule.EVAL_SHARED,
+        // The Daily Quiz lab's (Oct 24); labs can unlock avatars of their own the same way.
+        "knight" to Rule.QUIZ_FIRST,
         "void" to Rule.CHATS_10,
         "atomic" to Rule.EVAL_RUNS_5,
         "lunar" to Rule.NIGHT,
@@ -125,7 +133,7 @@ object Vault {
         "spirit" to Rule.DEEP_RESEARCH_10,
         "planter" to Rule.ANSWERS_50,
         "cloud" to Rule.OFFLINE_10,
-        "elder" to Rule.EXPORT,
+        "elder" to Rule.QUIZ_DAYS_7,
         "fomo_unicorn" to Rule.ALL_OTHERS,
         "tactical_ii" to Rule.PIN_DARK,
         "totem" to Rule.PACK,

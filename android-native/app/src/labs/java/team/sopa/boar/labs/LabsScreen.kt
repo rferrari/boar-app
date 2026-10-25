@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
+import team.sopa.boar.ui.theme.wash
 
 /** The grid's scroll position while a lab's page is open (this process only). */
 private var gridScroll = 0
@@ -79,13 +80,15 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     row.forEach { lab ->
                         Tile(lab, Modifier.weight(1f), flash = alert == lab.id) {
-                            if (lab.status != LabStatus.CLASSIFIED) onOpen("lab:${lab.id}")
+                            if (LabRegistry.opened(lab) != null) onOpen("lab:${lab.id}")
                             else {
                                 // Easter egg: 11 to 20 taps (a new count per tile each visit) declassify it, like Android's developer options.
                                 val n = (taps[lab.id] ?: 0) + 1
                                 taps[lab.id] = n
                                 if (n == revealAt.getOrPut(lab.id) { REVEAL_TAPS.random() } && !LabPrefs.revealed(lab.id)) {
                                     LabPrefs.setRevealed(lab.id)
+                                    // A lab with code behind the teaser (the Daily Quiz) stays unlocked; its next tap opens it.
+                                    if (lab is ClassifiedLab && lab.inner != null) LabPrefs.unlock(lab.id)
                                     alert = lab.id
                                     team.sopa.boar.app.Haptics.leak(ctx)
                                 }
@@ -100,6 +103,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
         note?.let { id ->
             val name = t("native.labs.$id.title")
             val text = when {
+                LabPrefs.unlocked(id) -> t("native.labs.unlockedNote", "name" to name)
                 LabPrefs.revealed(id) -> t("native.labs.declassifiedNote", "name" to name)
                 // The taps count in silence: no countdown gives the easter egg away.
                 else -> t("native.labs.classifiedNote", "name" to name)
@@ -139,8 +143,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
         }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400,
-            modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp))
+        if (lab.status == LabStatus.REVIEW) Row(Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ReviewMark(20.dp)
+            Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
+        }
         if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
     }
 }
@@ -168,7 +175,7 @@ private fun Shell(
 private fun DoneButton(onClose: () -> Unit) {
     val c = Boar.colors
     Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White.copy(alpha = 0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
+        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
 }
 
 /** The lab's console: the lines type themselves once, with a blinking cursor after. */
@@ -213,7 +220,7 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         if (flash) { red.snapTo(0.7f); red.animateTo(0f, androidx.compose.animation.core.tween(1000)) }
     }
     // A classified lab the user declassified (ten taps) shows its boar, name and description; it still can't be opened.
-    val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id)
+    val locked = lab.status == LabStatus.CLASSIFIED && !LabPrefs.revealed(lab.id) && !LabPrefs.unlocked(lab.id)
     Column(modifier.clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(if (locked) c.bgCard else c.emeraldBgSubtle)
             .border(1.dp, if (locked) c.borderSubtle else c.emeraldBorder, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
@@ -222,9 +229,11 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
                 androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
             } ?: Text(lab.emoji, fontSize = 56.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
-            if (locked) Text(if (lab.shownArt != null) "?" else "🔒", style = if (lab.shownArt != null) Boar.type.titleLg else Boar.type.body,
-                fontSize = if (lab.shownArt != null) Boar.type.titleLg.fontSize else 22.sp, color = c.textDim)
-            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && LabPrefs.revealed(lab.id)) }
+            if (locked) {
+                if (lab.shownArt != null) Text("?", style = Boar.type.titleLg, color = c.textDim)
+                else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_settings_pin, 24.dp, c.textDim)
+            }
+            Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) { StatusChip(lab.status, leaked = lab.status == LabStatus.CLASSIFIED && (LabPrefs.revealed(lab.id) || LabPrefs.unlocked(lab.id))) }
             if (red.value > 0f) Box(Modifier.fillMaxSize().background(c.crimson500.copy(alpha = red.value)))
             // A revealed classified lab can't be switched on, so OFF would only confuse: it has LEAKED instead.
             if (!locked && lab.status != LabStatus.CLASSIFIED && !LabPrefs.enabled(lab.id)) Text(t("native.labs.off"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim, fontWeight = FontWeight.ExtraBold,
@@ -232,7 +241,10 @@ private fun Tile(lab: LabPlugin, modifier: Modifier, flash: Boolean = false, onC
         }
         Text(if (locked) redact(t("native.labs.${lab.id}.title")) else t("native.labs.${lab.id}.title"), style = Boar.type.titleSm,
             color = if (locked) c.textSecondary else c.textHeading, modifier = Modifier.padding(top = 4.dp))
-        if (lab.status == LabStatus.REVIEW) Text("⚠ " + t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        if (lab.status == LabStatus.REVIEW) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            ReviewMark(12.dp)
+            Text(t("native.labs.${lab.id}.reviewShort"), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold)
+        }
         // Classified: the description is blacked out word by word like the title, a redacted file.
         Text(if (locked) redactAll(t("native.labs.${lab.id}.body")) else t("native.labs.${lab.id}.body"), style = Boar.type.caption,
             color = if (locked) c.textDim else c.textMuted)
@@ -267,7 +279,7 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
         LabStatus.BETA -> c.textAccentCyan to c.cyanBgSubtle
         LabStatus.ALPHA -> c.amber400 to c.amberBgSubtle
         LabStatus.REVIEW -> c.crimson400 to c.crimsonBgSubtle
-        LabStatus.CLASSIFIED -> c.textDim to Color.White.copy(alpha = 0.06f)
+        LabStatus.CLASSIFIED -> c.textDim to Boar.colors.wash(0.06f)
     }
     // UNDER REVIEW reads as a warning: red and a size up from the other tags.
     val review = status == LabStatus.REVIEW
@@ -279,3 +291,9 @@ fun StatusChip(status: LabStatus, leaked: Boolean = false) {
 
 /** Taps on one classified tile that declassify it: drawn again each time Boar Labs opens, so no number gets passed around. */
 private val REVEAL_TAPS = 11..20
+
+/** The Boar icon pack's warning triangle, in the review amber: a lab under review (Oct 24, was "⚠"). */
+@Composable
+private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.material3.Icon(
+    androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
+    Modifier.size(size), tint = Boar.colors.amber400)
