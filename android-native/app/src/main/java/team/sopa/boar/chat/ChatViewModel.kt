@@ -78,8 +78,8 @@ sealed interface Activity {
     data object Retrieving : Activity
     data object Thinking : Activity
     data object Generating : Activity
-    /** Deep Research: stage, sub-question index (1-based) and count. */
-    data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?) : Activity
+    /** Deep Research: stage, sub-question index (1-based) and count, and the sub-question being researched. */
+    data class Researching(val stage: ResearchStage, val index: Int?, val count: Int?, val subQuestion: String? = null) : Activity
 }
 
 /** A note over the chat about the answer model and the phone's memory, with what the user can do about it. */
@@ -629,7 +629,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     path = if (research) "deep" else "chat"
                     val r = DeepResearch(SessionEngine(session, settings.engineTweaks.thinkingEnabled), services::search, settings.engineTweaks::stageTimeoutMs, settings.engineTweaks::writeUpTimeoutMs).run(
                         q, systemPrompt, history, budget,
-                        onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount) else Activity.Thinking) } },
+                        onProgress = { p -> _state.update { it.copy(activity = if (research) Activity.Researching(p.stage, p.subQuestionIndex?.plus(1), p.subQuestionCount, p.subQuestion) else Activity.Thinking) } },
                         onToken = ::onPiece,
                         shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
