@@ -52,7 +52,9 @@ believe: [MANIFESTO.md](MANIFESTO.md).
 No internet at all, not even once? The release also has an **offline APK**
 (`boar-…-offline-arm64.apk`, about 2 GB) with Qwen3 1.7B, the search model, the Vital Articles
 pack and Designer's drawing model inside. It unpacks them on first launch and never needs the
-network.
+network. A Qwen3 4B one (about 3.4 GB, for 12 GB phones) is on
+[Hugging Face](https://huggingface.co/BOAR-App/boar-offline), with the 1.7B one; you can also
+build your own with another model ([USING.md](docs/USING.md#build-your-own)).
 
 After setup, chat, search and sources work without a connection. The network permission
 stays for things you start yourself: more models, packs, or searching Hugging Face for

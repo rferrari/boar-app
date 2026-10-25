@@ -62,6 +62,23 @@ models.
 5. **Install it on a phone over the previous release** (no uninstall), and check that
    setup, a chat answer and About (version, commit, build date) work.
 
+   **Offline APKs.** Rebase `feat/offline-bundle` on the release commit, then build each one
+   with the same version name (without it the script takes the last tag's):
+
+   ```bash
+   BOAR_VERSION_NAME=2.0.0-rc2 scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0-rc2 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
+   ```
+
+   Check each with `scripts/check-release-apk.sh` (its default mode: the offline APK is
+   `team.sopa.aoair` too), and test a first launch in airplane mode. The 1.7B one goes on
+   GitHub and Hugging Face (`BOAR-App/boar-offline`), the 4B one on Hugging Face only (over
+   GitHub's 2 GiB per file).
+
+   **Reviews, last.** After the team's reviews and a free CodeRabbit run with no findings
+   (`cr review --agent --base main`), run a CodeRabbit Deep Scan on the release pull request,
+   and fix what holds up before tagging.
+
 6. **Tag and publish as a pre-release.**
 
    ```bash

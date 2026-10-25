@@ -356,7 +356,7 @@
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
     <!-- The native default is Detailed: no "Default for mobile" here (the Expo app's default is Succinct). -->
-    <string name="native_personalities_succinct_description" formatted="false">Fastest. 2 or 3 short paragraphs or bullets, no preamble.</string>
+    <string name="native_personalities_succinct_description" formatted="false">Fastest. 2 or 3 short sentences, no preamble.</string>
     <string name="native_settings_resetTitle" formatted="false">Reset settings</string>
     <string name="native_settings_resetDesc" formatted="false">Theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults. Your models, chats, PIN and language stay.</string>
     <string name="native_settings_resetButton" formatted="false">Reset settings</string>
