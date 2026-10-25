@@ -15,10 +15,13 @@ object AboutCredits {
         "Baloo 2 and Lexend fonts" to "SIL OFL 1.1",
     )
 
-    /** What BOAR reads and where its models come from (owner, Oct 24): credited next to the code it runs on. */
+    /**
+     * What BOAR reads and where its models come from (owner, Oct 24), credited next to the code it runs on: string keys
+     * for the name (it's translated) and the license; Hugging Face hosts, it isn't a license, so "—".
+     */
     val sources: List<Pair<String, String>> = listOf(
-        "Wikipedia (the built-in library and the Vital Articles pack)" to "CC BY-SA 4.0",
-        "Hugging Face (where BOAR's models download from)" to "model hosting",
+        "native.about.creditWikipedia" to "CC BY-SA 4.0",
+        "native.about.creditHuggingFace" to "—",
     )
 
     /** Set at start by a build that ships more (Boar Labs: its engines and models). */

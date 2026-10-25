@@ -155,7 +155,7 @@ private fun Credits() {
             .map { it.label to it.license }
             .distinct()
     }
-    val all = AboutCredits.libraries + AboutCredits.sources + AboutCredits.extra() + models
+    val all = AboutCredits.libraries + AboutCredits.sources.map { (key, license) -> t(key) to license } + AboutCredits.extra() + models
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         all.forEach { (name, license) ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
