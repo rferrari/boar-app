@@ -658,6 +658,7 @@
     <string name="native_a11y_menu" formatted="false">Menu</string>
     <string name="native_a11y_close" formatted="false">Fechar</string>
     <string name="native_a11y_stop" formatted="false">Parar</string>
+    <string name="native_a11y_stopListening" formatted="false">Parar de ouvir</string>
     <string name="native_a11y_mic" formatted="false">Entrada por voz</string>
     <string name="native_a11y_style" formatted="false">Estilo de resposta</string>
     <string name="native_a11y_send" formatted="false">Enviar</string>

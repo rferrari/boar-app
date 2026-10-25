@@ -658,6 +658,7 @@
     <string name="native_a11y_menu" formatted="false">Menu</string>
     <string name="native_a11y_close" formatted="false">Close</string>
     <string name="native_a11y_stop" formatted="false">Stop</string>
+    <string name="native_a11y_stopListening" formatted="false">Stop listening</string>
     <string name="native_a11y_mic" formatted="false">Voice input</string>
     <string name="native_a11y_style" formatted="false">Answer style</string>
     <string name="native_a11y_send" formatted="false">Send</string>
