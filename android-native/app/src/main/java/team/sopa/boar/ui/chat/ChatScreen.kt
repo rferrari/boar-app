@@ -534,6 +534,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
     val user = m.role == "user"
     val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
+    // When this answer started, for the seconds on its activity line (Expo's ReasoningPeek).
+    val startedAt = state.answerStartedAt
     val clipboard = LocalClipboardManager.current
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -565,8 +567,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             when {
-                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity))
-                split.thinkingInProgress && split.answer.isEmpty() && streaming -> ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
+                m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
+                    if (state.stopping) null else activityDetail(state.activity), startedAt)
+                split.thinkingInProgress && split.answer.isEmpty() && streaming -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(t("chatScreen.reasoningElapsed", "seconds" to elapsedSeconds(startedAt)), style = Boar.type.subtext, color = c.textMuted)
+                    ThinkingTail(split.thinking.orEmpty(), reasoningStyle)
+                }
                 // The reasoning used the whole answer budget: the note says "tap 💭", so 💭 shows what it reasoned.
                 split.thinkingInProgress && split.answer.isEmpty() ->
                     Text(if (reasoningShown && split.thinking != null) split.thinking!! else "💭 " + t("chatScreen.reasoningUnfinished"),
@@ -717,15 +723,40 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     }
 }
 
-/** ProcessingIndicator.tsx: the stage line while nothing has streamed yet. */
+/**
+ * ProcessingIndicator.tsx: the stage line while nothing has streamed yet, with its seconds, and a second line under it:
+ * the sub-question Deep Research is on, else one of the loading lines, swapped every few seconds (Expo's two-line wait).
+ */
 @Composable
-private fun ProcessingIndicator(label: String) {
+private fun ProcessingIndicator(label: String, detail: String?, startedAt: Long) {
     val c = Boar.colors
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
-        Text(label, style = Boar.type.body, color = c.textMuted)
+    val seconds = elapsedSeconds(startedAt)
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.CircularProgressIndicator(Modifier.size(12.dp), color = c.textAccentEmerald, strokeWidth = 1.5.dp)
+            Text(if (seconds >= 2) "$label · ${seconds}s" else label, style = Boar.type.body, color = c.textMuted)
+        }
+        val line = detail ?: t("flows.onboarding.loadingLines.l${(seconds / LOADING_LINE_SECONDS + startedAt / 1000).mod(LOADING_LINES) + 1}")
+        Text(line, style = Boar.type.subtext, fontStyle = FontStyle.Italic, color = c.textDim, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(start = 20.dp))
     }
 }
+
+/** Whole seconds since [startedAt] (elapsedRealtime), ticking once a second while shown. */
+@Composable
+private fun elapsedSeconds(startedAt: Long): Int {
+    var now by remember { mutableStateOf(android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(startedAt) { while (true) { kotlinx.coroutines.delay(1000); now = android.os.SystemClock.elapsedRealtime() } }
+    return ((now - startedAt) / 1000).toInt().coerceAtLeast(0)
+}
+
+/** The second line's real detail when there is one: the sub-question Deep Research is reading for. */
+private fun activityDetail(a: Activity?): String? =
+    (a as? Activity.Researching)?.takeIf { it.stage == ResearchStage.RESEARCHING }?.subQuestion?.trim()?.takeIf { it.isNotEmpty() }?.let { "“$it”" }
+
+/** flows.onboarding.loadingLines.l1 … l12, each shown this long. */
+private const val LOADING_LINES = 12
+private const val LOADING_LINE_SECONDS = 4
 
 /**
  * Something to do about an answer (Try again, Allow more, Ask BOAR instead): on its own line, full size, in the accent,
