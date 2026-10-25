@@ -328,12 +328,24 @@ private fun PrivacyPage(services: BoarServices) {
 private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
-    // Refused before (Android won't show its dialog again): say where to turn it on. Read before the page marks it.
-    var refused by remember { mutableStateOf(team.sopa.boar.app.NotificationAsk.asked(ctx) && !granted) }
+    // Refused for good: Android won't show its dialog again (asked before, and no rationale left, i.e. denied twice or
+    // "don't ask again"). Then the page opens BOAR's notification settings instead. One "no" still leaves the dialog
+    // (Oct 24, X6: a setup run again showed only "off" and Not now, with no way to allow).
+    // The Activity behind LocalContext, which can be a ContextWrapper (t9's review): unwrapped until one is found.
+    val activity = remember(ctx) { generateSequence(ctx) { (it as? android.content.ContextWrapper)?.baseContext }.firstOrNull { it is android.app.Activity } as android.app.Activity? }
+    fun deniedForGood() = !granted && team.sopa.boar.app.NotificationAsk.asked(ctx) &&
+        activity?.let { !androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(it, android.Manifest.permission.POST_NOTIFICATIONS) } == true
+    var refused by remember { mutableStateOf(deniedForGood()) }
+    // Back from Android's settings: what the user switched there shows at once.
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        val now = team.sopa.boar.app.NotificationAsk.granted(ctx)
+        if (now != granted) onGranted(now)
+        if (now) refused = false
+    }
     // Only Android's dialog counts as asked; the page showing only stops the chat from asking (CodeRabbit: a rotation or
     // Back hid the Allow button though nothing had been asked).
     androidx.compose.runtime.LaunchedEffect(Unit) { team.sopa.boar.app.NotificationAsk.markPageSeen(ctx) }
-    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onGranted(it); refused = !it && deniedForGood() }
     Card {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(40.dp).background(c.bgSubtle, CircleShape), contentAlignment = Alignment.Center) {
@@ -349,7 +361,13 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
             team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
             Meta(t("native.setupGuide.privacy.notifyOn"), c.textAccentEmerald)
         }
-        refused -> Meta(t("native.setupGuide.privacy.notifyOff"))
+        refused -> {
+            Meta(t("native.setupGuide.privacy.notifyOff"))
+            SecondaryButton(t("native.setupGuide.notify.openSettings"), onClick = {
+                ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, ctx.packageName))
+            })
+        }
         else -> PrimaryButton(t("native.setupGuide.privacy.notifyAllow")) {
             team.sopa.boar.app.NotificationAsk.markAsked(ctx)
             ask.launch(android.Manifest.permission.POST_NOTIFICATIONS)

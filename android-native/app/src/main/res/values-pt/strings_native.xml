@@ -621,6 +621,7 @@
     <string name="native_setupGuide_notify_sub" formatted="false">Uma notificação, só enquanto o BOAR responde.</string>
     <string name="native_setupGuide_notify_why" formatted="false">Por que o Android pede: desde o Android 13, um app precisa da sua permissão para mostrar qualquer notificação. O BOAR pede uma vez, aqui. Ele nunca manda anúncios nem lembretes: só avisa que está respondendo.</string>
     <string name="native_setupGuide_notify_without" formatted="false">Sem ela, as respostas terminam do mesmo jeito; você só não vê que o BOAR está trabalhando. Dá para mudar isso nas configurações do Android para o BOAR.</string>
+    <string name="native_setupGuide_notify_openSettings" formatted="false">Abrir ajustes de notificação</string>
     <string name="native_setupGuide_privacy_title" formatted="false">Privacidade e memória</string>
     <string name="native_setupGuide_privacy_sub" formatted="false">Como o BOAR trata suas conversas e a memória do celular.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">Tudo isso também está nas Configurações.</string>
