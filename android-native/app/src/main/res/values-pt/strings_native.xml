@@ -114,10 +114,11 @@
     <string name="native_pin_wrong" formatted="false">PIN errado.</string>
     <string name="native_pin_wait" formatted="false">Tentativas demais. Espere {{seconds}} s.</string>
     <string name="native_pin_forgot" formatted="false">Esqueceu o PIN?</string>
-    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas?</string>
-    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagá-las remove o PIN também. Modelos, pacotes e documentos continuam.</string>
-    <string name="native_pin_forgotConfirm" formatted="false">Apagar conversas</string>
+    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas e arquivos pessoais?</string>
+    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagar remove também seus Arquivos pessoais e o PIN. Modelos e pacotes de conhecimento ficam.</string>
+    <string name="native_pin_forgotConfirm" formatted="false">Apagar conversas e arquivos</string>
     <string name="native_pin_forgotCountdown" formatted="false">Fecha em {{seconds}} s</string>
+    <string name="native_pin_forgotFailed" formatted="false">Não deu para apagar tudo. Seu PIN continua ativo: tente de novo.</string>
     <string name="native_pin_currentTitle" formatted="false">PIN atual</string>
     <string name="native_pin_newTitle" formatted="false">Escolha um PIN</string>
     <string name="native_pin_newSubtitle" formatted="false">De 4 a 8 dígitos. Você vai digitá-lo sempre que abrir o BOAR.</string>

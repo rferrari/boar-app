@@ -24,6 +24,8 @@ class PinLock(
     private val chats: ChatStore,
     /** The Keystore key's name; tests use their own so they never touch the app's real key. */
     private val alias: String = "boar-pin-v1",
+    /** Erases Personal Files (their collections and any file setup still has waiting): [forget] runs it. */
+    private val eraseOwnFiles: () -> Unit = {},
 ) {
     sealed interface Attempt {
         data object Ok : Attempt
@@ -89,13 +91,29 @@ class PinLock(
         return true
     }
 
-    /** Forgot the PIN: the chats can't be opened any more, so they're erased with the key. */
-    fun forget() {
-        chats.clearAll()
-        // What the labs made goes too: pictures and illustrations can show what the chats were about.
+    /**
+     * Forgot the PIN: the chats can't be opened any more, so they're erased with the key. Personal Files go too (Oct 24):
+     * they aren't sealed, so without this "Forgot PIN" handed someone without the PIN the user's own documents.
+     */
+    private val _erased = kotlinx.coroutines.flow.MutableStateFlow(0)
+    /** Counts the erases "Forgot PIN" made in this process: the chat on screen starts over when it changes. */
+    val erased: kotlinx.coroutines.flow.StateFlow<Int> = _erased
+
+    fun forget(): Boolean {
+        // The PIN goes only once the chats and Personal Files are gone (CodeRabbit): a failed erase keeps the lock, so
+        // they aren't left open to whoever didn't know the PIN; the user can try again.
+        val erased = runCatching {
+            eraseOwnFiles()
+            chats.clearAll()
+        }.isSuccess
+        if (!erased) return false
+        // What the labs made goes too (pictures can show what the chats were about), but best effort: a lab that fails
+        // to erase must not keep the user locked out for good (CodeRabbit).
         runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.EVERYTHING) }
         chats.cipher = PlainCipher
         clear()
+        _erased.value += 1
+        return true
     }
 
     private fun dataKey(pin: String): ByteArray? {

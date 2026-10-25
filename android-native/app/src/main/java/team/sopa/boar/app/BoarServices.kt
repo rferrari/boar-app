@@ -102,7 +102,14 @@ class BoarServices private constructor(private val context: Context) {
     fun exportKnowledgeBase(to: File) = kbDb.exec("VACUUM INTO '${to.path.replace("'", "''")}'")
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
-    val pinLock = team.sopa.boar.security.PinLock(settings, chats)
+    val pinLock = team.sopa.boar.security.PinLock(settings, chats, eraseOwnFiles = {
+        // An answer still being written would save its message after the chats are erased (CodeRabbit): every answer
+        // is stopped and waited for first; one that won't stop fails the erase, and the PIN stays.
+        check(stopAnswersAndWait()) { "an answer is still being written" }
+        knowledgeBase.eraseAllCollections()
+        val waiting = java.io.File(context.filesDir, "setup-imports")
+        check(waiting.deleteRecursively() || !waiting.exists()) { "setup-imports not erased" }
+    })
     /** The Truffle Vault: boar icons unearthed by using the app, counted on the phone. */
     val vault = team.sopa.boar.appearance.TruffleVault(context, settings)
 
@@ -432,6 +439,14 @@ class BoarServices private constructor(private val context: Context) {
     fun addStopper(stop: () -> Unit) { stoppers += stop }
     fun removeStopper(stop: () -> Unit) { stoppers -= stop }
     private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
+
+    /** Stops every answer, title and summary and waits up to [timeoutMs] for them to end; true when nothing runs. Blocking. */
+    fun stopAnswersAndWait(timeoutMs: Long = 15_000): Boolean {
+        stoppers.forEach { runCatching { it() } }
+        val until = android.os.SystemClock.elapsedRealtime() + timeoutMs
+        while (modelBusy() && android.os.SystemClock.elapsedRealtime() < until) Thread.sleep(200)
+        return !modelBusy()
+    }
 
     /**
      * BOAR left the screen: with Settings → Free memory when I leave BOAR on, the model is unloaded after the chosen
