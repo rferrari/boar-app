@@ -331,7 +331,8 @@ private fun NotifyPage(granted: Boolean, onGranted: (Boolean) -> Unit) {
     // Refused for good: Android won't show its dialog again (asked before, and no rationale left, i.e. denied twice or
     // "don't ask again"). Then the page opens BOAR's notification settings instead. One "no" still leaves the dialog
     // (Oct 24, X6: a setup run again showed only "off" and Not now, with no way to allow).
-    val activity = ctx as? android.app.Activity
+    // The Activity behind LocalContext, which can be a ContextWrapper (t9's review): unwrapped until one is found.
+    val activity = remember(ctx) { generateSequence(ctx) { (it as? android.content.ContextWrapper)?.baseContext }.firstOrNull { it is android.app.Activity } as android.app.Activity? }
     fun deniedForGood() = !granted && team.sopa.boar.app.NotificationAsk.asked(ctx) &&
         activity?.let { !androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(it, android.Manifest.permission.POST_NOTIFICATIONS) } == true
     var refused by remember { mutableStateOf(deniedForGood()) }
