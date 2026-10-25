@@ -329,6 +329,7 @@
     <string name="native_models_filterMine" formatted="false">Added by you</string>
     <string name="native_models_emptyFilter" formatted="false">No models here. Pick All to see every model.</string>
     <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>
+    <string name="native_models_switchBusy" formatted="false">BOAR is still answering. Stop the answer, then pick {{model}} again.</string>
     <string name="native_models_addedToast" formatted="false">Added to your models. Download it here or in Model Catalog.</string>
     <string name="native_models_inYourModels" formatted="false">In your models</string>
     <string name="native_models_useNow" formatted="false">Use now</string>
@@ -616,7 +617,7 @@
     <string name="native_setupGuide_pin_title" formatted="false">Lock BOAR with a PIN?</string>
     <string name="native_setupGuide_pin_sub" formatted="false">Only for BOAR: your phone\'s own screen lock doesn\'t change.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN set. BOAR asks for it from now on.</string>
-    <string name="native_setupGuide_pin_note" formatted="false">Your imported files aren\'t encrypted yet. If you forget the PIN, the chats can be erased to start again; models and files stay.</string>
+    <string name="native_setupGuide_pin_note" formatted="false">Your imported files aren\'t encrypted yet. If you forget the PIN, BOAR erases your chats and Personal Files to start again; models and knowledge packs stay.</string>
     <string name="native_setupGuide_notify_title" formatted="false">Notifications</string>
     <string name="native_setupGuide_notify_sub" formatted="false">One notification, only while BOAR answers.</string>
     <string name="native_setupGuide_notify_why" formatted="false">Why Android asks: since Android 13, an app needs your permission to show any notification. BOAR asks once, here. It never sends ads or reminders: it only says it\'s answering.</string>

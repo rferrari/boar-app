@@ -62,7 +62,7 @@ models.
 5. **Install it on a phone over the previous release** (no uninstall), and check that
    setup, a chat answer and About (version, commit, build date) work.
 
-   **Offline APKs.** Rebase `feat/offline-bundle` on the release commit, then build each one
+   **Offline APKs.** Rebase `feat/offline-bundle` on the release commit, then, from the repository root of that branch (not `android-native/`), build each one
    with the main APK's version name (without it the script takes the last tag's), then name
    and hash them as in step 4:
 

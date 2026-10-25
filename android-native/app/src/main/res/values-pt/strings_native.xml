@@ -329,6 +329,7 @@
     <string name="native_models_filterMine" formatted="false">Adicionados por você</string>
     <string name="native_models_emptyFilter" formatted="false">Nenhum modelo aqui. Escolha Todos para ver todos.</string>
     <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
+    <string name="native_models_switchBusy" formatted="false">O BOAR ainda está respondendo. Pare a resposta e escolha {{model}} de novo.</string>
     <string name="native_models_addedToast" formatted="false">Adicionado aos seus modelos. Baixe aqui ou no Catálogo de Modelos.</string>
     <string name="native_models_inYourModels" formatted="false">Nos seus modelos</string>
     <string name="native_models_useNow" formatted="false">Usar agora</string>
@@ -616,7 +617,7 @@
     <string name="native_setupGuide_pin_title" formatted="false">Trancar o BOAR com um PIN?</string>
     <string name="native_setupGuide_pin_sub" formatted="false">Só para o BOAR: o bloqueio de tela do seu celular não muda.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN ativado. O BOAR vai pedir o PIN a partir de agora.</string>
-    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, as conversas podem ser apagadas para recomeçar; modelos e arquivos ficam.</string>
+    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, o BOAR apaga suas conversas e Arquivos pessoais para recomeçar; modelos e pacotes de conhecimento ficam.</string>
     <string name="native_setupGuide_notify_title" formatted="false">Notificações</string>
     <string name="native_setupGuide_notify_sub" formatted="false">Uma notificação, só enquanto o BOAR responde.</string>
     <string name="native_setupGuide_notify_why" formatted="false">Por que o Android pede: desde o Android 13, um app precisa da sua permissão para mostrar qualquer notificação. O BOAR pede uma vez, aqui. Ele nunca manda anúncios nem lembretes: só avisa que está respondendo.</string>
