@@ -77,8 +77,8 @@
     <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Lab do R4to:</string>
     <string name="native_about_post_team" formatted="false">Equipe principal, no X:</string>
     <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença:</string>
-    <string name="native_about_creditsAll" formatted="false">Mostrar todos ({{n}})</string>
-    <string name="native_about_creditsLess" formatted="false">Mostrar menos</string>
+    <string name="native_about_creditWikipedia" formatted="false">Wikipédia (a biblioteca embutida e o pacote Vital Articles)</string>
+    <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (de onde os modelos do BOAR são baixados)</string>
     <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
     <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to.</string>
     <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
