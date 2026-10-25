@@ -101,6 +101,8 @@ data class ChatState(
     val sessionId: String? = null,
     val messages: List<UiMessage> = emptyList(),
     val answeringId: String? = null,
+    /** When the answer being written started (elapsedRealtime), for its seconds; kept here, not in the bubble, so scrolling it away and back doesn't restart them. */
+    val answerStartedAt: Long = 0L,
     val activity: Activity? = null,
     val liveTokPerSec: Double? = null,
     val modelLabel: String? = null,
@@ -527,7 +529,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             _state.update {
-                it.copy(sessionId = sessionId, error = null, answeringId = answerId, activity = Activity.Retrieving, liveTokPerSec = null,
+                it.copy(sessionId = sessionId, error = null, answeringId = answerId, answerStartedAt = android.os.SystemClock.elapsedRealtime(), activity = Activity.Retrieving, liveTokPerSec = null,
                     messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings

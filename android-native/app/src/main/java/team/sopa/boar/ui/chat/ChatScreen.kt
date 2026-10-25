@@ -535,7 +535,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
     val streaming = state.answeringId == m.id
     var reasoningShown by remember { mutableStateOf(false) }
     // When this answer started, for the seconds on its activity line (Expo's ReasoningPeek).
-    val startedAt = remember(m.id) { android.os.SystemClock.elapsedRealtime() }
+    val startedAt = state.answerStartedAt
     val clipboard = LocalClipboardManager.current
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
