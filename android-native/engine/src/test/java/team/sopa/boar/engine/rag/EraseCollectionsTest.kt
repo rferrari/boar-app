@@ -30,4 +30,21 @@ class EraseCollectionsTest {
         db.close()
         dir.deleteRecursively()
     }
+
+    @Test fun `an erase that can't empty the log fails instead of reporting success`() {
+        val dir = Files.createTempDirectory("erase-busy").toFile()
+        val db = JdbcSqlite(File(dir, "kb.db").path)
+        db.exec("PRAGMA journal_mode = WAL")
+        val kb = KnowledgeBase(db)
+        kb.createCollection("c-diary", "diary", "diary.txt", 1, 1, 10, now = 1)
+        kb.insertChunk(Chunk("c-diary-doc0-c0", "c-diary-doc0", "diary", "zebracorn", source = "diary.txt", collectionId = "c-diary"), floatArrayOf(0f, 1f, 0f))
+        // Another connection in the middle of a read: the checkpoint can't truncate the log under it.
+        val reader = java.sql.DriverManager.getConnection("jdbc:sqlite:" + File(dir, "kb.db").path)
+        reader.autoCommit = false
+        reader.createStatement().executeQuery("SELECT count(*) FROM chunks").use { it.next() }
+        assertTrue(runCatching { kb.eraseAllCollections() }.isFailure)
+        reader.rollback(); reader.close()
+        db.close()
+        dir.deleteRecursively()
+    }
 }

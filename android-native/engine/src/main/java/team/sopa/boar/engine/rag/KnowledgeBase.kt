@@ -120,7 +120,14 @@ class KnowledgeBase(private val db: SqlDatabase) {
         } finally {
             db.exec("PRAGMA secure_delete = OFF")
         }
-        db.exec("PRAGMA wal_checkpoint(TRUNCATE)")
+        // The log must really be emptied: a checkpoint blocked by a reader reports busy (its first column) instead of
+        // failing (CodeRabbit). Retried for a moment; still busy, the erase fails, and Forgot PIN keeps the PIN.
+        repeat(30) {
+            val busy = db.query("PRAGMA wal_checkpoint(TRUNCATE)") { it.long(0) }.firstOrNull() ?: 0L
+            if (busy == 0L) return
+            Thread.sleep(100)
+        }
+        error("the write-ahead log couldn't be emptied: a reader holds it")
     }
 
     fun deleteCollection(id: String) {
