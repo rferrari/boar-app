@@ -118,7 +118,8 @@ fun LockScreen(lock: PinLock, onUnlocked: () -> Unit) {
     val notErased = t("native.pin.forgotFailed")
     if (forgetting) ForgetDialog(onErase = {
         forgetting = false
-        scope.launch { if (withContext(Dispatchers.IO) { lock.forget() }) onUnlocked() else error = notErased }
+        // Any failure, the erase's or the lock's own, keeps the PIN screen with the error: never a crash (t9's review).
+        scope.launch { if (withContext(Dispatchers.IO) { runCatching { lock.forget() }.getOrDefault(false) }) onUnlocked() else error = notErased }
     }) { forgetting = false }
 }
 

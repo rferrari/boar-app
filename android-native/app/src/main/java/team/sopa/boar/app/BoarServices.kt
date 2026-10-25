@@ -103,7 +103,7 @@ class BoarServices private constructor(private val context: Context) {
     val chats = ChatStore(kbDb)
     /** The PIN that opens the app and seals the chats (none until the user sets one). */
     val pinLock = team.sopa.boar.security.PinLock(settings, chats, eraseOwnFiles = {
-        knowledgeBase.collections().forEach { knowledgeBase.deleteCollection(it.id) }
+        knowledgeBase.eraseAllCollections()
         val waiting = java.io.File(context.filesDir, "setup-imports")
         check(waiting.deleteRecursively() || !waiting.exists()) { "setup-imports not erased" }
     })

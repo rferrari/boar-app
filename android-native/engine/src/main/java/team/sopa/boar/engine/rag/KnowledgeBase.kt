@@ -107,6 +107,22 @@ class KnowledgeBase(private val db: SqlDatabase) {
         db.execute("UPDATE custom_collections SET active = ? WHERE id = ?", listOf(if (active) 1 else 0, id))
     }
 
+    /**
+     * Every Personal Files collection erased so its text can't be read back from the database file (Forgot PIN; t9's
+     * review): pages freed are overwritten (secure_delete), the search index is merged so the deleted words leave its
+     * segments, and the write-ahead log is emptied.
+     */
+    fun eraseAllCollections() {
+        db.exec("PRAGMA secure_delete = ON")
+        try {
+            collections().forEach { deleteCollection(it.id) }
+            db.exec("INSERT INTO chunks_fts(chunks_fts) VALUES('optimize')")
+        } finally {
+            db.exec("PRAGMA secure_delete = OFF")
+        }
+        db.exec("PRAGMA wal_checkpoint(TRUNCATE)")
+    }
+
     fun deleteCollection(id: String) {
         val rows = "SELECT chunk_id FROM chunks WHERE collection_id = ?"
         db.transaction {

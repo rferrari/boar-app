@@ -52,7 +52,7 @@ class PinDeviceTest {
         val settings = AppSettings(File(dir, "settings.json"))
         // As the app wires it (BoarServices): forgetting the PIN erases Personal Files too.
         return Store(db, chats, settings, PinLock(settings, chats, alias = "boar-pin-test",
-            eraseOwnFiles = { kb.collections().forEach { kb.deleteCollection(it.id) } }), kb)
+            eraseOwnFiles = { kb.eraseAllCollections() }), kb)
     }
 
     private fun bytesOnDisk(): String = dir.walkTopDown().filter { it.isFile }.joinToString("") { String(it.readBytes(), Charsets.ISO_8859_1) }
@@ -125,12 +125,16 @@ class PinDeviceTest {
         a.chats.addMessage(s.id, "user", "hidden", "u1")
         // A Personal Files collection: not sealed by the PIN, so "Forgot PIN" must erase it, or it's left readable.
         a.kb.createCollection("c-diary", "diary", "diary.txt", 1, 1, 10, now = 1)
+        // A word only the file has: after the erase it must be nowhere in the files on disk (database, log, index).
+        a.kb.insertChunk(team.sopa.boar.engine.rag.Chunk("c-diary-doc0-c0", "c-diary-doc0", "diary", "zebracorn lighthouse appointment", source = "diary.txt", collectionId = "c-diary"), floatArrayOf(1f, 0f, 0f))
         a.lock.enable("4821")
         val b = open()
         assertTrue(b.lock.forget())
         assertFalse(b.lock.isSet)
         assertTrue(b.chats.listSessions().isEmpty())
         assertTrue(b.kb.collections().isEmpty())
+        opened.forEach { runCatching { it.close() } }
+        assertFalse("the file's text is still readable on disk", bytesOnDisk().contains("zebracorn"))
     }
 
     /** The lock screen of a PIN-protected store, with "Forgot the PIN?" tapped. */
