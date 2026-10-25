@@ -93,8 +93,10 @@ models.
    gh release create v2.0.0-rc1 --prerelease --title "BOAR 2.0.0-rc1" \
      boar-v2.0.0-rc1-arm64.apk boar-v2.0.0-rc1-arm64.apk.sha256 \
      boar-v2.0.0-rc1-offline-arm64.apk boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk          # and its .sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk # and its .sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    The Hugging Face upload needs a login with write access to `BOAR-App` (`hf auth login`);
