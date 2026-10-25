@@ -256,6 +256,9 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
         if (_state.value.activating != null) return
         _state.update { it.copy(activating = a.id) }
         safeScope.launch(Dispatchers.Default) {
+            // An answer still being written is stopped first, as with Stop: it ends marked stopped on the model that wrote
+            // it, instead of being cut mid-sentence by the unload and credited to the new model (X6, Oct 24).
+            if (a.kind == AssetKind.LLM) services.stopAnswersAndWait()
             services.settings.setActiveModelId(a.kind.name.lowercase(), a.id)
             // Picked again after it closed the app: the user's call (CR-2's confirmation).
             if (a.kind == AssetKind.LLM) services.loadGuard.confirm(a.id)
