@@ -100,6 +100,8 @@ object DailyQuizLab : LabPlugin {
                             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(bg)
                                 .border(1.dp, if (picked != null && isAnswer) c.emerald500 else c.borderSubtle, RoundedCornerShape(12.dp))
                                 .clickable(enabled = picked == null) {
+                                    // A second tap before the screen updates finds this question answered already (Deep Scan).
+                                    if (picks.size > i) return@clickable
                                     // Kept before counting: a second tap, or the app closing here, can't count it twice.
                                     picks = picks + o
                                     LabPrefs.putString(DAY, today.toString())

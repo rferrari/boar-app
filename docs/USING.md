@@ -166,7 +166,7 @@ Face search, which needs internet.
 
 ### Build your own
 
-To bundle another model, build the offline APK from source. The script is on the
+To bundle the other supported answer model, build the offline APK from source. The script is on the
 `feat/offline-bundle` branch:
 
 ```bash
