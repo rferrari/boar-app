@@ -656,4 +656,16 @@
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Permitir notificações</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">As notificações estão ligadas.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">As notificações estão desligadas. Dá para ligar nas configurações do Android para o BOAR.</string>
+    <!-- Labels of icon-only controls, for screen readers and UI automation (ui/PackIcon.kt) -->
+    <string name="native_a11y_menu" formatted="false">Menu</string>
+    <string name="native_a11y_close" formatted="false">Fechar</string>
+    <string name="native_a11y_stop" formatted="false">Parar</string>
+    <string name="native_a11y_stopListening" formatted="false">Parar de ouvir</string>
+    <string name="native_a11y_mic" formatted="false">Entrada por voz</string>
+    <string name="native_a11y_style" formatted="false">Estilo de resposta</string>
+    <string name="native_a11y_send" formatted="false">Enviar</string>
+    <string name="native_a11y_deleteChat" formatted="false">Apagar conversa</string>
+    <string name="native_a11y_backspace" formatted="false">Apagar dígito</string>
+    <string name="native_a11y_done" formatted="false">Confirmar</string>
+    <string name="native_a11y_back" formatted="false">Voltar</string>
 </resources>

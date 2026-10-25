@@ -1,5 +1,6 @@
 package team.sopa.boar
 
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.runtime.getValue
@@ -57,7 +58,7 @@ class PinDeviceTest {
 
     private fun bytesOnDisk(): String = dir.walkTopDown().filter { it.isFile }.joinToString("") { String(it.readBytes(), Charsets.ISO_8859_1) }
     private fun t(key: String) = I18n.t(ctx, key)
-    private fun type(pin: String) { pin.forEach { compose.onNodeWithText(it.toString()).performSemanticsAction(SemanticsActions.OnClick) }; compose.onNodeWithText("✓").performSemanticsAction(SemanticsActions.OnClick) }
+    private fun type(pin: String) { pin.forEach { compose.onNodeWithText(it.toString()).performSemanticsAction(SemanticsActions.OnClick) }; compose.onNodeWithContentDescription(t("native.a11y.done")).performSemanticsAction(SemanticsActions.OnClick) }
 
     @After fun cleanUp() {
         opened.forEach { runCatching { it.close() } }

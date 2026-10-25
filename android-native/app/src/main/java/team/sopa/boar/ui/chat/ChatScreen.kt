@@ -235,7 +235,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     val type = Boar.type
     Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp) }
+            RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp, description = t("native.a11y.menu")) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
                 val truffle = team.sopa.boar.appearance.LocalTruffle.current
@@ -288,7 +288,7 @@ private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f), t("personalitySettings.deepResearchTitle"))
         }
         androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -369,7 +369,7 @@ private fun DeepResearchBanner(onClose: () -> Unit) {
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
         // Closed for good: the header chip still shows Deep Research is on.
         Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText)
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText, description = t("native.a11y.close"))
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.frontierBadgeBorder))
@@ -409,7 +409,7 @@ private fun LoadNoteBanner(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
             Text(text, style = Boar.type.subtext, color = c.amber400, modifier = Modifier.weight(1f))
             Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onDismiss), contentAlignment = Alignment.Center) {
-                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.amber400)
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.amber400, description = t("native.a11y.close"))
             }
         }
         // The first action is the recommended one: filled. Both share the width and the height of the taller label.
@@ -457,7 +457,7 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
                 else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
             }
         }, contentAlignment = Alignment.Center) {
-        if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading)
+        if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stopListening")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading, description = t("native.a11y.mic"))
     }
 }
 
@@ -774,7 +774,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
     Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp)
+            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp, description = t("native.a11y.style"))
         }
         // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
         var lines by remember { mutableStateOf(1) }
@@ -800,7 +800,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         Box(
             Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White) }
+        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
     }
 }
 

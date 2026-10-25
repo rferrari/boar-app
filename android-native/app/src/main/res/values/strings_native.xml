@@ -656,4 +656,16 @@
     <string name="native_setupGuide_privacy_notifyAllow" formatted="false">Allow notifications</string>
     <string name="native_setupGuide_privacy_notifyOn" formatted="false">Notifications are on.</string>
     <string name="native_setupGuide_privacy_notifyOff" formatted="false">Notifications are off. You can turn them on in Android’s settings for BOAR.</string>
+    <!-- Labels of icon-only controls, for screen readers and UI automation (ui/PackIcon.kt) -->
+    <string name="native_a11y_menu" formatted="false">Menu</string>
+    <string name="native_a11y_close" formatted="false">Close</string>
+    <string name="native_a11y_stop" formatted="false">Stop</string>
+    <string name="native_a11y_stopListening" formatted="false">Stop listening</string>
+    <string name="native_a11y_mic" formatted="false">Voice input</string>
+    <string name="native_a11y_style" formatted="false">Answer style</string>
+    <string name="native_a11y_send" formatted="false">Send</string>
+    <string name="native_a11y_deleteChat" formatted="false">Delete chat</string>
+    <string name="native_a11y_backspace" formatted="false">Delete digit</string>
+    <string name="native_a11y_done" formatted="false">Done</string>
+    <string name="native_a11y_back" formatted="false">Back</string>
 </resources>
