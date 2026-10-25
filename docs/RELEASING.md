@@ -63,11 +63,17 @@ models.
    setup, a chat answer and About (version, commit, build date) work.
 
    **Offline APKs.** Rebase `feat/offline-bundle` on the release commit, then build each one
-   with the same version name (without it the script takes the last tag's):
+   with the main APK's version name (without it the script takes the last tag's), then name
+   and hash them as in step 4:
 
    ```bash
-   BOAR_VERSION_NAME=2.0.0-rc2 scripts/build-offline-apk.sh release
-   BOAR_VERSION_NAME=2.0.0-rc2 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0-rc1 scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0-rc1 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
+   # -> build/boar-offline.apk, build/boar-offline-qwen3-4b-instruct-2507-q4km.apk
+   cp build/boar-offline.apk boar-v2.0.0-rc1-offline-arm64.apk
+   cp build/boar-offline-qwen3-4b-instruct-2507-q4km.apk boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
+   sha256sum boar-v2.0.0-rc1-offline-arm64.apk > boar-v2.0.0-rc1-offline-arm64.apk.sha256
+   sha256sum boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk > boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    Check each with `scripts/check-release-apk.sh` (its default mode: the offline APK is
@@ -85,8 +91,14 @@ models.
    git tag v2.0.0-rc1 <commit>
    git push origin v2.0.0-rc1
    gh release create v2.0.0-rc1 --prerelease --title "BOAR 2.0.0-rc1" \
-     boar-v2.0.0-rc1-arm64.apk boar-v2.0.0-rc1-arm64.apk.sha256
+     boar-v2.0.0-rc1-arm64.apk boar-v2.0.0-rc1-arm64.apk.sha256 \
+     boar-v2.0.0-rc1-offline-arm64.apk boar-v2.0.0-rc1-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk          # and its .sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk # and its .sha256
    ```
+
+   The Hugging Face upload needs a login with write access to `BOAR-App` (`hf auth login`);
+   never put the token in a file or a message.
 
    Write the notes on the release. For `v2.0.0`, leave out `--prerelease` so it becomes
    Latest.
