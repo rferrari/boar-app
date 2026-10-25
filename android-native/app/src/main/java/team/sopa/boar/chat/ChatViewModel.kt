@@ -506,6 +506,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
         routedModelId = null
+        answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
@@ -604,6 +605,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 // An instant answer doesn't load the model.
                 val session = if (instant != null) null else services.activeSession()
+                if (session != null) answeredById = services.host.residentId()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
                     // A thank-you or greeting: Succinct's length in any style. Not the router's 128: a model that thinks first
@@ -811,6 +813,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var lastAdaptive: Pair<String, Boolean>? = null
     /** The model the adaptive plan's generate step runs, for the header and the receipt; null on the other paths. */
     @Volatile private var routedModelId: String? = null
+    /** The model loaded for this answer: the receipt names it even if another is picked meanwhile (X6, Oct 24). */
+    @Volatile private var answeredById: String? = null
 
     private suspend fun adaptive(q: String, systemPrompt: String, styleReminder: String?, history: ConversationHistory, budget: Int, onPiece: (String) -> Unit): Triple<List<Chunk>, Boolean, GenerationMetrics?> {
         lastAdaptive = null  // a plan that fails mustn't leave the previous answer's task on this receipt
@@ -851,7 +855,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             totalMs = (end - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6,
             tokPerSec = m?.decodeTokPerSec?.takeIf { it > 0 } ?: wallRate, tokens = m?.generatedTokens?.takeIf { it > 0 } ?: streamed,
             // The model that wrote it: the one adaptive routing picked, else the active one.
-            model = (routedModelId?.let(services.catalog::byId) ?: services.activeModel())?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
+            model = ((routedModelId ?: answeredById)?.let(services.catalog::byId) ?: services.activeModel())?.let(::receiptModel), retrievalMs = retrievalMs, prefillMs = m?.prefillMs, contextTokens = m?.promptTokens,
         )
     }
 
