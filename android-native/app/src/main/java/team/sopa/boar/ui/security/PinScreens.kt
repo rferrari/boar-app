@@ -113,13 +113,19 @@ fun LockScreen(lock: PinLock, onUnlocked: () -> Unit) {
             }
         }
     }) {
-        Text(t("native.pin.forgot"), style = Boar.type.caption, color = Boar.colors.textAccentCyan, modifier = Modifier.clickable { forgetting = true }.padding(8.dp))
+        Text(t("native.pin.forgot"), style = Boar.type.caption, color = Boar.colors.textAccentCyan, modifier = Modifier.clickable(enabled = !busy) { forgetting = true }.padding(8.dp))
     }
     val notErased = t("native.pin.forgotFailed")
     if (forgetting) ForgetDialog(onErase = {
         forgetting = false
         // Any failure, the erase's or the lock's own, keeps the PIN screen with the error: never a crash (t9's review).
-        scope.launch { if (withContext(Dispatchers.IO) { runCatching { lock.forget() }.getOrDefault(false) }) onUnlocked() else error = notErased }
+        // Busy while it erases (up to ~15 s waiting for an answer to stop): no PIN, no second erase meanwhile.
+        busy = true
+        scope.launch {
+            val erased = withContext(Dispatchers.IO) { runCatching { lock.forget() }.getOrDefault(false) }
+            busy = false
+            if (erased) onUnlocked() else error = notErased
+        }
     }) { forgetting = false }
 }
 
