@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_canvas_title" formatted="false">Boar Canvas</string>
+    <string name="native_labs_canvas_body" formatted="false">Turn an answer into a card to read at a glance, or a small tool to play with. Made on this phone, offline.</string>
+    <string name="native_labs_canvas_intro" formatted="false">Some answers read better as a picture or work better as a tool. Under any answer, open 🧩 and pick one. The model that answered makes it from the answer, after the answer is done.</string>
+    <string name="native_labs_canvas_howCard" formatted="false">📊 Card: a table, a bar chart, steps, a side-by-side comparison or key facts, drawn by BOAR.</string>
+    <string name="native_labs_canvas_howWidget" formatted="false">🧪 Widget: a small interactive page, like a converter, a quiz or a slider. Small models often get these wrong; bigger models do better.</string>
+    <string name="native_labs_canvas_safety" formatted="false">Cards use only what the answer says: a chart with a number the answer doesn\'t have is thrown away. Widgets run locked: no internet, no files, no access to BOAR or your chats. Nothing for health or seed-phrase questions.</string>
+    <string name="native_labs_canvas_example" formatted="false">For example, from an answer about the highest mountains:</string>
+    <string name="native_labs_canvas_exampleTitle" formatted="false">Highest peaks</string>
+    <string name="native_labs_canvas_credit" formatted="false">The idea comes from CopilotKit\'s Open Intelligent UI (MIT). Here it runs on your phone with no server.</string>
+    <string name="native_labs_canvas_make_card" formatted="false">Show as a card</string>
+    <string name="native_labs_canvas_make_widget" formatted="false">Build a widget</string>
+    <string name="native_labs_canvas_again_card" formatted="false">Make the card again</string>
+    <string name="native_labs_canvas_again_widget" formatted="false">Build the widget again</string>
+    <string name="native_labs_canvas_making" formatted="false">Making it…</string>
+    <string name="native_labs_canvas_makingCard" formatted="false">📊 Making a card from this answer…</string>
+    <string name="native_labs_canvas_makingWidget" formatted="false">🧪 Building a widget from this answer (a few minutes; a new question waits for it)…</string>
+    <string name="native_labs_canvas_madeBy" formatted="false">made in {{seconds}} s from this answer</string>
+    <string name="native_labs_canvas_noModel" formatted="false">No answer model is loaded. Ask something first, then try again.</string>
+    <string name="native_labs_canvas_failed" formatted="false">The model stopped before it finished. Try again.</string>
+    <string name="native_labs_canvas_noCard" formatted="false">The model didn\'t write a card BOAR can draw. Try again, or build a widget.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">The model found nothing in this answer worth a card.</string>
+    <string name="native_labs_canvas_invented" formatted="false">The chart had a number that isn\'t in the answer, so BOAR threw it away.</string>
+    <string name="native_labs_canvas_noWidget" formatted="false">The model didn\'t write a page BOAR can show. Try again; bigger models do better.</string>
+</resources>
