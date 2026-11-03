@@ -81,6 +81,9 @@ interface LabPlugin {
     /** The check slot: reads a model's finished answer and may repair it (team.sopa.boar.plugins.AnswerChecks). */
     val answerCheck: team.sopa.boar.plugins.AnswerCheck? get() = null
 
+    /** The answer-mode slot: the chat answers in steps, sources first (team.sopa.boar.plugins.AnswerModes). */
+    val stagedAnswers: Boolean get() = false
+
     /**
      * adb only (BenchActivity run=labtest): exercises this lab without its screen, reporting each check through [say] as
      * "ok …" or "FAIL …". False when the lab has no self-test.

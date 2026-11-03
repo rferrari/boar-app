@@ -566,6 +566,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
+            // Boar Staged answers: what the sources say comes first, before and above the answer's text.
+            m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource) }
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
                     if (state.stopping) null else activityDetail(state.activity), startedAt)
@@ -596,6 +598,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
+            if (!streaming) m.staged?.let { StagedCheck(it) }
             if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
@@ -685,6 +688,7 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
                 "deep" -> t("native.receipt.path.deep")
                 "chat" -> t("native.receipt.path.chat")
                 "adaptive" -> listOfNotNull(t("native.receipt.path.adaptive"), r.task, if (r.checked) t("native.receipt.checked") else null).joinToString(" · ")
+                "staged" -> t("native.receipt.path.staged")
                 else -> null
             },
         ).joinToString(" · ")
@@ -692,6 +696,8 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     return listOfNotNull(
         mode?.let { t("native.receipt.mode") to it },
         r.retrievalMs?.let { t("chat.receipt.search") to ReceiptFormat.seconds(it) },
+        // A staged answer: when each step showed up, from the question.
+        r.stages?.let { st -> t("native.receipt.stages") to listOf("sources", "introFirst", "detailsFirst").mapNotNull { k -> st[k]?.let { t("native.receipt.stage.$k") + " " + ReceiptFormat.seconds(it) } }.joinToString(" · ") },
         r.prefillMs?.let { t("chat.receipt.prefill") to ReceiptFormat.seconds(it) },
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },
         t("chat.receipt.start") to ReceiptFormat.seconds(r.ttftMs),

@@ -61,6 +61,8 @@ class DeviceEvalRunner(
     /** The app version on every row, so a saved or exported run says which build answered. */
     /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
     @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
+    /** The request's labs ask for staged answers (Boar Staged Answers); null: the app's (AnswerModes). */
+    @Volatile private var runStaged: Boolean? = null
     private val appVersion: String = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?" 
 
     private fun asset(name: String) = context.assets.open("boar-data/$name").bufferedReader().readText()
@@ -145,6 +147,7 @@ class DeviceEvalRunner(
             writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
         } }
         runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        runStaged = labs?.any { it.stagedAnswers }
         // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
         val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
             ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
@@ -353,6 +356,9 @@ class DeviceEvalRunner(
             ?.takeIf { !personal || PersonalFiles.keepsTool(it.tool) }
         if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
         val params = if (personal) PersonalFiles.retrieval(mode.params()) else mode.params()
+        if (!personal && (runStaged ?: team.sopa.boar.plugins.AnswerModes.staged()))
+            return stagedRow(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, runId, config, q, personalityId,
+                AnswerTools.systemPrompt(systemPrompt, tool), styleReminder, maxTokens, residency, loadMs, mode, tool)
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
@@ -437,6 +443,68 @@ class DeviceEvalRunner(
         "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, emptyList()),
         "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
     )
+
+    /**
+     * A Boar Staged Answers row: the same fields as [answerRow], plus when each step showed up (ms from the start, the
+     * model already loaded: stagedSourcesMs, stagedIntroFirstMs, stagedIntroDoneMs, stagedResearchMs, stagedDetailsFirstMs),
+     * the passages the research step added, and the numbers no source has. ttftMs is the intro's first word.
+     */
+    private suspend fun stagedRow(
+        s: team.sopa.boar.engine.TextModel, retrieve: (String, Int) -> List<team.sopa.boar.engine.rag.Chunk>, runId: String, config: EvalConfig.Model, q: EvalQuery,
+        personalityId: String, systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
+        mode: team.sopa.boar.engine.rag.RetrievalMode, tool: ToolResult?,
+    ): JsonObject {
+        val introReminder = Personalities.parse(asset("personalities.json")).promptFor("succinct", null).second
+        val peak = PeakRss().apply { start() }
+        val start = System.nanoTime()
+        var tokens = 0
+        var done: team.sopa.boar.engine.answer.StagedEvent.Done? = null
+        var error: String? = null
+        try {
+            team.sopa.boar.engine.answer.StagedAnswer(retrieve, classify, retrievalIrrelevant)
+                .answer(team.sopa.boar.engine.answer.StagedRequest(q.query, systemPrompt, introReminder, styleReminder.takeIf { personalityId != "succinct" }, maxTokens),
+                    load = { s }, shouldStop = { false })
+                .collect { e ->
+                    when (e) {
+                        is team.sopa.boar.engine.answer.StagedEvent.Piece -> tokens++
+                        is team.sopa.boar.engine.answer.StagedEvent.Done -> done = e
+                        else -> {}
+                    }
+                }
+        } catch (e: Throwable) {
+            error = e.message ?: e.toString()
+        }
+        val end = System.nanoTime()
+        val peakRss = peak.stop()
+        val d = done
+        val answer = d?.text.orEmpty()
+        val t = d?.times
+        val outcome = if (error == null && answer.isNotBlank()) "success" else "failure"
+        val genLatency = t?.let { tt -> tt.introFirstMs?.let { (end - start) / 1e6 - it } }
+        val titles = d?.sources?.map { it.title } ?: emptyList()
+        val taskType = classify(q.query)
+        val m = d?.metrics
+        return json(
+            "modelId" to config.modelId, "taskType" to taskType, "adaptiveRoutingUsed" to false,
+            "reasonCodes" to DeviceEval.fixedPlanReasonCodes(!retrievalIrrelevant(taskType), config.modelId),
+            "retrievalUsed" to titles.isNotEmpty(), "modelSwitches" to 0, "crossMessageModelSwitch" to false,
+            "modelResidency" to residency, "modelLoadMs" to loadMs, "ttftMs" to t?.introFirstMs, "generationLatencyMs" to genLatency,
+            "totalLatencyMs" to (end - start) / 1e6, "tokensGenerated" to tokens, "tokPerSec" to DeviceEval.tokensPerSecond(tokens, genLatency),
+            "peakRssBytes" to peakRss, "outcome" to outcome, "errorMessage" to (error ?: if (outcome == "failure") "empty answer" else null),
+            "runId" to runId, "evalSetVersion" to q.setVersion, "retrievalMs" to d?.retrievalMs,
+            "promptTokens" to m?.promptTokensDecoded, "promptMs" to m?.prefillMs, "cachedTokens" to m?.let { it.promptTokens - it.promptTokensDecoded },
+            "predictedTokens" to m?.generatedTokens, "predictedMs" to m?.decodeMs,
+            "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+            "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to if (s.hasChatTemplate) "chat-template" else "plain",
+            "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
+            "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "tool" to tool?.tool, "inferenceEngine" to config.engine, "retrievalMode" to mode.name.lowercase(),
+            "path" to "staged", "stagedSourcesMs" to t?.sourcesMs, "stagedIntroFirstMs" to t?.introFirstMs, "stagedIntroDoneMs" to t?.introDoneMs,
+            "stagedResearchMs" to t?.researchMs, "stagedDetailsFirstMs" to t?.detailsFirstMs,
+            "stagedKeyFacts" to d?.keyFacts?.size, "stagedSources" to d?.sources?.size, "stagedIntro" to d?.intro,
+            "unsupportedNumbers" to d?.unsupported,
+        )
+    }
 
     companion object {
         const val TAG = "BOAR_EVAL"

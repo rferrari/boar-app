@@ -38,6 +38,10 @@ import team.sopa.boar.engine.answer.PlanExecutor
 import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.Summarize
+import team.sopa.boar.engine.answer.StagedAnswer
+import team.sopa.boar.engine.answer.StagedEvent
+import team.sopa.boar.engine.answer.StagedRequest
+import team.sopa.boar.engine.answer.StagedStep
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.StartLoad
 import team.sopa.boar.engine.rag.Chunk
@@ -71,7 +75,28 @@ data class UiMessage(
     val nextLimit: Int? = null,
     /** Why it failed (a native.chat.error* key): stays under the answer after the next question and in the saved chat. */
     val error: String? = null,
+    /** Boar Staged answers: the steps and what they found; null for an answer written the usual way. */
+    val staged: StagedView? = null,
 )
+
+/**
+ * What a staged answer shows over its text (team.sopa.boar.engine.answer.StagedAnswer): the step running now, the
+ * sentences from the sources that answer (each with its passage), the passages the research step added, the numbers no
+ * source has, and when each step happened. Kept with the answer, so a reopened chat shows it too.
+ */
+data class StagedView(
+    val step: team.sopa.boar.engine.answer.StagedStep? = null,
+    val keyFacts: List<KeyFactView> = emptyList(),
+    val added: Int = 0,
+    val unsupported: List<String>? = null,
+    val times: Map<String, Double> = emptyMap(),
+    val stopped: Boolean = false,
+    /** A health question: each sentence shows with its passage, never alone. */
+    val withPassages: Boolean = false,
+)
+
+/** A key fact as shown: the sentence, the passage it comes from (opened by a tap), and its source for the reader. */
+data class KeyFactView(val sentence: String, val passage: String, val source: Source)
 
 /** What the assistant is doing for the message being answered. */
 sealed interface Activity {
@@ -440,7 +465,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch {
             val msgs = runCatching {
                 withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
-                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta))
+                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta),
+                        staged = receiptFromMeta(r.meta).let { stagedFromMeta(r.meta, it) })
                 }
             }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
@@ -604,9 +630,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString()) else it })
                 }
             }
+            // Boar Staged answers: the default path only (not Personal Files, Deep Research, a recap or small talk). It loads
+            // the model itself, after the search, so the sources show while a cold model loads.
+            val staged = instant == null && !personal && !deep && team.sopa.boar.plugins.AnswerModes.staged() &&
+                !aboutConversation(q, history, conversation) && !team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)
+            var stagedView: StagedView? = null
+            var stagedTimes: Map<String, Double>? = null
             try {
                 // An instant answer doesn't load the model.
-                val session = if (instant != null) null else services.activeSession()
+                val session = if (instant != null || staged) null else services.activeSession()
                 if (session != null) answeredById = services.host.residentId()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
@@ -624,6 +656,57 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 } else if (instant != null) {
                     limited = null
                     onPiece(instant.text)
+                } else if (staged) {
+                    path = "staged"
+                    val (introReminder, detailsReminder) = stagedReminders(style, smallModel)
+                    var view = StagedView(withPassages = shortReason != null)
+                    fun show(v: StagedView, shownSources: List<Source>? = null) {
+                        view = v
+                        stagedView = v
+                        _state.update { s -> s.copy(messages = s.messages.map { if (it.id == answerId) it.copy(staged = v, sources = shownSources ?: it.sources) else it }) }
+                    }
+                    StagedAnswer(services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
+                        .answer(StagedRequest(q, toolPrompt, introReminder, detailsReminder, budget, history, settings.engineTweaks.thinkingEnabled),
+                            load = {
+                                services.activeSession()?.also {
+                                    answeredById = services.host.residentId()
+                                    // Auto fits the length to the context the model was opened with, known only now.
+                                    limited = limit ?: settings.answerTokens(services.host.openedContext)
+                                }
+                            },
+                            shouldStop = { stopRequested })
+                        .collect { e ->
+                            when (e) {
+                                is StagedEvent.Step -> {
+                                    show(view.copy(step = e.step))
+                                    _state.update { it.copy(activity = if (e.step == StagedStep.SOURCES) Activity.Retrieving else if (text.isEmpty()) Activity.Thinking else it.activity) }
+                                }
+                                is StagedEvent.Cards -> {
+                                    sources = e.sources
+                                    retrievalMs = e.retrievalMs
+                                    show(view.copy(keyFacts = keyFactViews(e.keyFacts, e.sources)), groupSources(e.sources))
+                                }
+                                is StagedEvent.Piece -> {
+                                    // The details start on their own paragraph, under the intro.
+                                    if (e.step == StagedStep.DETAILS && text.isNotEmpty() && !text.endsWith("\n\n")) text.append("\n\n")
+                                    onPiece(e.text)
+                                }
+                                is StagedEvent.MoreSources -> {
+                                    sources = sources + e.added
+                                    show(view.copy(added = view.added + e.added.size), groupSources(sources))
+                                }
+                                is StagedEvent.Checked -> show(view.copy(unsupported = e.unsupported))
+                                is StagedEvent.Done -> {
+                                    sources = e.sources
+                                    metrics = e.metrics
+                                    stagedTimes = e.times.toMap()
+                                    // The saved text: the intro, then the details, thinking left out (as the TS stores it).
+                                    text.setLength(0); text.append(e.text)
+                                    show(view.copy(step = null, times = e.times.toMap(), stopped = e.stopped))
+                                    if (e.noModel) _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
+                                }
+                            }
+                        }
                 } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
@@ -677,12 +760,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             // Ended without a word, no error and not stopped: say so (with Try again) instead of an empty bubble.
             if (text.isBlank() && !stopRequested && _state.value.error == null) _state.update { it.copy(error = team.sopa.boar.engine.UserErrors.EMPTY_ANSWER) }
-            val passages = sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
             // One source per article, best first; the answer's numbers follow (a reused list is already grouped).
-            val grouped = SourceGroups.group(passages, { SourceGroups.articleKey(it.source, it.docId, it.title) }, { it.similarity ?: it.relevance }) { g ->
-                g.first().copy(similarity = g.mapNotNull { it.similarity }.maxOrNull(), relevance = g.mapNotNull { it.relevance }.maxOrNull(),
-                    body = g.joinToString("\n…\n") { it.body })
-            }
+            val grouped = groupedSources(sources)
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             if (personal) PersonalFiles.dropHedge(text.toString()).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
@@ -699,7 +778,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked,
+                r.copy(style = style, path = path, task = task, checked = checked, stages = stagedTimes,
                     tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
                     styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }
@@ -708,7 +787,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
                 // Always written: it replaces the interrupted mark of the partial saves.
-                chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey))
+                chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey, stagedView))
                 afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
                 chats.prune(settings.maxSavedSessions)
                 // Boar Polyglot's "doesn't speak it yet" reply isn't an answer.
@@ -724,7 +803,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
-                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey) else it })
+                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey, staged = stagedView) else it })
             }
         }
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
@@ -871,12 +950,56 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         Json.parseToJsonElement(meta ?: return null).jsonObject["receipt"]?.jsonObject?.let(Receipt::fromJson)
     }.getOrNull()
 
-    private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
+    private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null, staged: StagedView? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
         JsonObject(listOfNotNull(
             "title" to JsonPrimitive(s.title), s.source?.let { "source" to JsonPrimitive(it) }, s.relevance?.let { "relevance" to JsonPrimitive(it) },
             s.similarity?.let { "similarity" to JsonPrimitive(it) }, s.docId?.let { "docId" to JsonPrimitive(it) }, "body" to JsonPrimitive(s.body),
         ).toMap())
-    }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }).toMap()).toString()
+    }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }, staged?.let { "staged" to stagedJson(it) }).toMap()).toString()
+
+    /** A staged answer's key facts and check, kept with it (the times are in the receipt). */
+    private fun stagedJson(v: StagedView) = JsonObject(listOfNotNull(
+        "keyFacts" to JsonArray(v.keyFacts.map { k -> JsonObject(mapOf("sentence" to JsonPrimitive(k.sentence), "passage" to JsonPrimitive(k.passage),
+            "title" to JsonPrimitive(k.source.title), "docId" to JsonPrimitive(k.source.docId ?: ""), "source" to JsonPrimitive(k.source.source ?: ""))) }),
+        "added" to JsonPrimitive(v.added), v.unsupported?.let { u -> "unsupported" to JsonArray(u.map(::JsonPrimitive)) },
+        if (v.stopped) "stopped" to JsonPrimitive(true) else null,
+    ).toMap())
+
+    private fun stagedFromMeta(meta: String?, receipt: Receipt?): StagedView? = runCatching {
+        val o = Json.parseToJsonElement(meta ?: return null).jsonObject["staged"]?.jsonObject ?: return null
+        StagedView(
+            keyFacts = o["keyFacts"]!!.jsonArray.map { e ->
+                val k = e.jsonObject
+                fun s(key: String) = k[key]?.jsonPrimitive?.content.orEmpty()
+                KeyFactView(s("sentence"), s("passage"), Source(s("title"), s("source").ifEmpty { null }, null, null, s("docId").ifEmpty { null }, s("passage")))
+            },
+            added = o["added"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+            unsupported = o["unsupported"]?.jsonArray?.map { it.jsonPrimitive.content },
+            times = receipt?.stages.orEmpty(),
+            stopped = o["stopped"]?.jsonPrimitive?.content == "true",
+        )
+    }.getOrNull()
+
+    private fun groupedSources(chunks: List<Chunk>) =
+        SourceGroups.group(chunks.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) },
+            { SourceGroups.articleKey(it.source, it.docId, it.title) }, { it.similarity ?: it.relevance }) { g ->
+            g.first().copy(similarity = g.mapNotNull { it.similarity }.maxOrNull(), relevance = g.mapNotNull { it.relevance }.maxOrNull(),
+                body = g.joinToString("\n…\n") { it.body })
+        }
+
+    /** The sources as the chat lists them while a staged answer is written: one per article, best first. */
+    private fun groupSources(chunks: List<Chunk>): List<Source> = groupedSources(chunks).items
+
+    private fun keyFactViews(facts: List<team.sopa.boar.engine.answer.KeyFact>, chunks: List<Chunk>) = facts.mapNotNull { f ->
+        chunks.getOrNull(f.source)?.let { c -> KeyFactView(f.sentence, c.body, Source(c.title, c.source, c.relevance, c.similarity, c.docId, c.body)) }
+    }
+
+    /** The intro's style line (Succinct's) and the details' (the style picked; none when the answer is kept short). */
+    private fun stagedReminders(style: String, smallModel: Boolean): Pair<String?, String?> {
+        val succinct = services.personalities.promptFor("succinct", null, smallModel).second
+        val picked = services.personalities.promptFor(style, services.settings.customSystemPrompt, smallModel).second
+        return succinct to picked.takeIf { style != "succinct" }
+    }
 
     private fun errorFromMeta(meta: String?): String? = runCatching {
         Json.parseToJsonElement(meta ?: return null).jsonObject["error"]?.jsonPrimitive?.content
