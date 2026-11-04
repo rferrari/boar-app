@@ -48,12 +48,31 @@ object StartLoad {
         return Decision.Load(active.id)
     }
 
-    /** The model that answers instead of a blocked one: the last that loaded, else the smallest installed, never a blocked one. */
+    /**
+     * The model the chat answers with, the one its header names: the user's [active] model, unless its last load closed the
+     * app; then [fallback]. Null: none can answer.
+     */
+    fun answering(active: Model?, installed: List<Model>, isBlocked: (String) -> Boolean, lastLoadedId: String?): Model? =
+        active?.takeIf { !isBlocked(it.id) } ?: fallback(installed, isBlocked, lastLoadedId)
+
+    /**
+     * The model that answers instead of a blocked one: the last that loaded, else the smallest installed, never a blocked one,
+     * and never a model a Labs engine streams (Big Boar's 35B answered at 3.5 tok/s in the user's place, X6, Nov 4): that
+     * one answers only when the user picks it.
+     */
     fun fallback(installed: List<Model>, isBlocked: (String) -> Boolean, lastLoadedId: String?): Model? {
-        val ok = installed.filter { !isBlocked(it.id) }
+        val ok = installed.filter { !isBlocked(it.id) && !it.streamed }
         return lastLoadedId?.let { id -> ok.firstOrNull { it.id == id } } ?: ok.minByOrNull { it.sizeBytes }
     }
 
     /** RED for this phone; unknown RAM, or a model an engine streams from storage, is never risky. */
     fun risky(model: Model, totalRamBytes: Long): Boolean = !model.streamed && Compatibility.compute(model.sizeBytes, totalRamBytes) == Compatibility.RED
+
+    /**
+     * A model file the chat may load: all of it is there. A download writes into the model's own file, so a file that
+     * exists can be half of one (Gemma mid-download was picked and failed with "data is not within the file bounds", X6,
+     * Nov 4). [expectedBytes] 0 or less: the size isn't known (a model copied by hand), any file counts.
+     */
+    fun complete(isFile: Boolean, lengthBytes: Long, expectedBytes: Long): Boolean =
+        isFile && (expectedBytes <= 0 || lengthBytes == expectedBytes)
 }

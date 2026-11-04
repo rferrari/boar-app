@@ -306,9 +306,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         userLoad(modelId)
     }
 
+    /** The held-back model whose note the user closed: not shown again for it in this run. */
+    private var heldBackClosed: String? = null
+
     /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
     fun openedCatalog() {
         heldQuestion = null
+        heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
 
@@ -394,7 +398,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct()
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
-        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
+        // The pick is held back (its last load closed the app): the note says so for as long as it is, not only once after
+        // the crash, so the header naming another model than the Model Catalog's pick is never left unexplained (X6, Nov 4).
+        val heldBack = services.activeModel()?.takeIf { services.answeringInstead() && it.id != heldBackClosed }
+        _state.update { s ->
+            s.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas(),
+                loadNote = s.loadNote ?: heldBack?.let { a -> LoadNote.Crashed(a.id, shortLabel(a.label), label, services.installed(AssetKind.LLM).none { it.id != a.id }) })
+        }
         // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
         val note = _state.value.loadNote
         val holds = when (note) {
@@ -411,6 +421,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun dismissLoadNote() {
         heldQuestion = null
+        heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
 

@@ -131,7 +131,14 @@ class BoarServices private constructor(private val context: Context) {
     fun fileOf(asset: CatalogAsset) = asset.externalPath?.let(::File) ?: File(files, asset.filename)
 
     /** Installed: a file, or an engine plugin's model folder. */
-    fun isInstalled(asset: CatalogAsset) = fileOf(asset).let { it.isFile || (asset.externalPath != null && it.isDirectory) }
+    /**
+     * On the phone and whole: a download in progress (or stopped half way) isn't installed (StartLoad.complete). A Labs
+     * engine's model copied over USB ([CatalogAsset.externalPath]) is there as soon as its file or folder is.
+     */
+    fun isInstalled(asset: CatalogAsset) = fileOf(asset).let {
+        if (asset.externalPath != null) it.isFile || it.isDirectory
+        else team.sopa.boar.engine.models.StartLoad.complete(it.isFile, it.length(), asset.sizeBytes)
+    }
     /** Everything BOAR keeps on the phone: models, packs, the knowledge base with imported documents, chats, settings. */
     fun storageUsedBytes(): Long = files.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 
@@ -155,11 +162,13 @@ class BoarServices private constructor(private val context: Context) {
      */
     fun answerModel(): CatalogAsset? {
         val m = activeModel() ?: return null
-        if (!loadGuard.isBlocked(m.id)) return m
         val llms = installed(AssetKind.LLM)
-        val pick = team.sopa.boar.engine.models.StartLoad.fallback(llms.map(::startModel), loadGuard::isBlocked, settings.lastLoadedModelId)
-        return pick?.let { p -> llms.firstOrNull { it.id == p.id } }
+        val pick = team.sopa.boar.engine.models.StartLoad.answering(startModel(m), llms.map(::startModel), loadGuard::isBlocked, settings.lastLoadedModelId)
+        return pick?.let { p -> if (p.id == m.id) m else llms.firstOrNull { it.id == p.id } }
     }
+
+    /** The user's model is held back (its last load closed the app) and [answerModel] answers in its place, or none does. */
+    fun answeringInstead(): Boolean = activeModel()?.let { loadGuard.isBlocked(it.id) } == true
 
     /** A model a Labs engine streams from storage (Big Boar) isn't held to the RAM check: it never loads whole. */
     private fun startModel(a: CatalogAsset) = team.sopa.boar.engine.models.StartLoad.Model(a.id, a.sizeBytes, streamed = !runsOnBuiltIn(a))
