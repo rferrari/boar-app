@@ -29,6 +29,8 @@ object StagedLab : LabPlugin {
     override val status = LabStatus.ALPHA
 
     override val stagedAnswers = true
+    // Its quotes and "+N sources" show every source above the answer: no second list under it.
+    override val ownsSources = true
 
     @Composable
     override fun Content() {

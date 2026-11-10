@@ -685,4 +685,6 @@
     <string name="native_a11y_backspace" formatted="false">Apagar dígito</string>
     <string name="native_a11y_done" formatted="false">Confirmar</string>
     <string name="native_a11y_back" formatted="false">Voltar</string>
+    <string name="native_staged_moreSources" formatted="false">+{{count}} fontes</string>
+    <string name="native_staged_lessSources" formatted="false">Menos fontes ‹</string>
 </resources>

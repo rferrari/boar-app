@@ -36,15 +36,22 @@ import team.sopa.boar.ui.theme.Boar
 internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onRead: (Source) -> Unit) {
     val c = Boar.colors
     var open by remember { mutableStateOf<Boolean?>(null) }
-    // Open while the sources are all there is (the model loading), then one compact "From the sources (n) ›" row once
-    // the model writes or reasons: three big quote cards over the reasoning read as a second answer (X6, Nov 10).
-    val factsOpen = open ?: (streaming && !written)
+    // Open, and kept open when the model starts answering (adam, Nov 10); a tap on the heading folds it.
+    val factsOpen = open ?: true
+    var moreOpen by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (v.keyFacts.isNotEmpty()) {
             Text(t("native.staged.facts", "count" to v.keyFacts.size) + if (factsOpen) "" else " ›", style = Boar.type["mono.xs"], color = c.textDim,
                 fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !factsOpen }.padding(vertical = 2.dp))
             if (factsOpen) {
                 v.keyFacts.forEach { KeyFact(it, v.withPassages, onRead) }
+                // The rest of the sources, one tap away: "+2 sources ›" (adam, Nov 10: 2 or 3 quotes are good as they are).
+                if (v.more.isNotEmpty()) {
+                    Text(if (moreOpen) t("native.staged.lessSources") else t("native.staged.moreSources", "count" to v.more.size) + " ›",
+                        style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { moreOpen = !moreOpen }.padding(vertical = 2.dp))
+                    if (moreOpen) v.more.forEach { KeyFact(it, v.withPassages, onRead) }
+                }
                 Text(t("native.staged.factsNote"), style = Boar.type.subtext, color = c.textDim, fontStyle = FontStyle.Italic)
             }
         }

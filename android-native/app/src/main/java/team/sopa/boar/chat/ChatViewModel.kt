@@ -93,6 +93,8 @@ data class StagedView(
     val stopped: Boolean = false,
     /** A health question: each sentence shows with its passage, never alone. */
     val withPassages: Boolean = false,
+    /** The other sources (not among [keyFacts], and what the research step added), behind "+N sources" (adam, Nov 10). */
+    val more: List<KeyFactView> = emptyList(),
 )
 
 /** A key fact as shown: the sentence, the passage it comes from (opened by a tap), and its source for the reader. */
@@ -704,7 +706,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                                 is StagedEvent.Cards -> {
                                     sources = e.sources
                                     retrievalMs = e.retrievalMs
-                                    show(view.copy(keyFacts = keyFactViews(e.keyFacts, e.sources)), groupSources(e.sources))
+                                    val shownAt = e.keyFacts.map { it.source }.toSet()
+                                    show(view.copy(keyFacts = keyFactViews(e.keyFacts, e.sources),
+                                        more = e.sources.filterIndexed { i, _ -> i !in shownAt }.map { factView(q, it) }), groupSources(e.sources))
                                 }
                                 is StagedEvent.Piece -> {
                                     // The intro and the details kept apart and shown joined, as they're saved: one paragraph
@@ -715,7 +719,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                                 is StagedEvent.Restart -> { stagedIntro.setLength(0); stagedDetails.setLength(0); restartText() }
                                 is StagedEvent.MoreSources -> {
                                     sources = sources + e.added
-                                    show(view.copy(added = view.added + e.added.size), groupSources(sources))
+                                    show(view.copy(added = view.added + e.added.size, more = view.more + e.added.map { factView(q, it) }), groupSources(sources))
                                 }
                                 is StagedEvent.Checked -> show(view.copy(unsupported = e.unsupported))
                                 is StagedEvent.Done -> {
@@ -1012,6 +1016,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The sources as the chat lists them while a staged answer is written: one per article, best first. */
     private fun groupSources(chunks: List<Chunk>): List<Source> = groupedSources(chunks).items
+
+    /** A source as a line of "+N sources": its best sentence for [q] (or its first), its passage and the source to read. */
+    private fun factView(q: String, c: Chunk) = KeyFactView(team.sopa.boar.engine.answer.StagedAnswer.factOf(q, c), c.body,
+        Source(c.title, c.source, c.relevance, c.similarity, c.docId, c.body))
 
     private fun keyFactViews(facts: List<team.sopa.boar.engine.answer.KeyFact>, chunks: List<Chunk>) = facts.mapNotNull { f ->
         chunks.getOrNull(f.source)?.let { c -> KeyFactView(f.sentence, c.body, Source(c.title, c.source, c.relevance, c.similarity, c.docId, c.body)) }

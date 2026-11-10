@@ -99,4 +99,20 @@ class StagedAnswerTest {
 
     private fun Flow<StagedEvent>.onEachCards(f: () -> Unit) = kotlinx.coroutines.flow.flow { collect { if (it is StagedEvent.Cards) f(); emit(it) } }
     private fun Flow<StagedEvent>.onEachIntro(f: () -> Unit) = kotlinx.coroutines.flow.flow { collect { emit(it); if (it is StagedEvent.Piece && it.step == StagedStep.INTRO) f() } }
+
+    @Test fun `a source outside the quotes gets its best sentence, or its first`() {
+        val q = "How do volcanoes form?"
+        assertEquals("A volcano forms where magma rises through the crust.", StagedAnswer.factOf(q, volcano))
+        val off = Chunk("o1", "football", "Football", "The 1950 World Cup was held in Brazil. Uruguay won it.")
+        assertEquals("The 1950 World Cup was held in Brazil.", StagedAnswer.factOf(q, off))
+    }
+
+    @Test fun `the chat keeps the quotes open, shows +N sources and hides its own list for a lab that owns them`() {
+        val card = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/StagedCard.kt").readText()
+        assertTrue(card.contains("val factsOpen = open ?: true"))
+        assertTrue(card.contains("native.staged.moreSources"))
+        val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        assertTrue(chat.contains("m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()"))
+        assertTrue(java.io.File("../app/src/labs/plugins/staged/java/team/sopa/boar/labs/staged/StagedLab.kt").readText().contains("override val ownsSources = true"))
+    }
 }

@@ -685,4 +685,6 @@
     <string name="native_a11y_backspace" formatted="false">Delete digit</string>
     <string name="native_a11y_done" formatted="false">Done</string>
     <string name="native_a11y_back" formatted="false">Back</string>
+    <string name="native_staged_moreSources" formatted="false">+{{count}} sources</string>
+    <string name="native_staged_lessSources" formatted="false">Fewer sources ‹</string>
 </resources>
