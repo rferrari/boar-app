@@ -41,4 +41,5 @@
     <string name="native_labs_canvas_hideReply" formatted="false">Hide what the model wrote</string>
     <string name="native_labs_canvas_leftOut" formatted="false">⚠ Left out, not in the answer, earlier answers or sources: {{what}}. Check the sources before you rely on this visual.</string>
     <string name="native_labs_canvas_withMore" formatted="false">with earlier answers or sources</string>
+    <string name="native_labs_canvas_unpaired" formatted="false">A number in the visual belongs to another item in the answer, so BOAR threw it away.</string>
 </resources>

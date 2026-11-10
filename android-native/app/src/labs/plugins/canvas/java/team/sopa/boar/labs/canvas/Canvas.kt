@@ -100,7 +100,19 @@ internal object Canvas {
         Visual.Reason.NOTHING -> "native.labs.canvas.nothing"
         Visual.Reason.INVENTED_NUMBERS -> "native.labs.canvas.invented"
         Visual.Reason.UNGROUNDED_LABELS -> "native.labs.canvas.ungrounded"
+        Visual.Reason.UNPAIRED -> "native.labs.canvas.unpaired"
         else -> "native.labs.canvas.noCard"
+    }
+
+    /**
+     * The earlier answers' and the sources' sentences a visual of [a] reads and is checked against, read from the chat
+     * (never stored): the same text the model had, as long as the chat exists.
+     */
+    fun contextFor(ctx: Context, a: AnswerRef): String {
+        val none = VisualContext.Earlier(emptyList(), "")
+        val earlier = runCatching { earlier(ctx, a) }.getOrDefault(none)
+        val sources = VisualContext.fromSources(a.question, a.text, a.passages)
+        return listOf(earlier.sourceText, sources.sourceText).filter { it.isNotBlank() }.joinToString("\n")
     }
 
     /** What a visual's numbers and labels are checked against: the answer and the earlier facts the model read. */
@@ -144,14 +156,14 @@ internal object Canvas {
 
     private fun save(ctx: Context, id: String, d: Status.Done) = runCatching {
         dir(ctx).mkdirs()
-        file(ctx, id).writeText(JsonObject(mapOf("kind" to JsonPrimitive(d.kind.name), "raw" to JsonPrimitive(d.raw), "seconds" to JsonPrimitive(d.seconds),
-            "context" to JsonPrimitive(d.context))).toString())
+        // Only the model's reply: the earlier answers' and sources' sentences aren't copied to disk (validator P-1); they're
+        // read again from the chat when the visual is drawn (contextFor).
+        file(ctx, id).writeText(JsonObject(mapOf("kind" to JsonPrimitive(d.kind.name), "raw" to JsonPrimitive(d.raw), "seconds" to JsonPrimitive(d.seconds))).toString())
     }
 
     private fun load(ctx: Context, id: String): Status.Done? = runCatching {
         val o = Json.parseToJsonElement(file(ctx, id).takeIf { it.isFile }?.readText() ?: return null).jsonObject
-        Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0,
-            (o["context"] as? JsonPrimitive)?.contentOrNull ?: "")
+        Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0)
     }.getOrNull()
 
     // The page runs with no network: everything inline, and the app's colors as CSS variables.

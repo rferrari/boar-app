@@ -37,7 +37,8 @@ object VisualContext {
             for (s in sentencesWithNumbers(e.answer)) {
                 val key = fold(s).replace(Regex("\\s+"), " ")
                 if (!seen.add(key) || key in fold(current.answer)) continue
-                val line = "${e.question.trim().take(80)} — $s"
+                // One line each, newlines collapsed: an earlier question can't forge a "ANSWER:" line (validator).
+                val line = "${e.question.replace(Regex("\\s+"), " ").trim().take(80)} — ${s.replace(Regex("\\s+"), " ")}"
                 if (facts.size >= MAX_FACTS || chars + line.length > MAX_CHARS) break
                 facts += line; sentences += s; chars += line.length
             }
@@ -63,7 +64,7 @@ object VisualContext {
             .sortedByDescending { (t, s) -> (words("$t $s") intersect topic).size }
         val facts = ArrayList<String>(); val sentences = ArrayList<String>(); var chars = 0
         for ((title, s) in candidates) {
-            val line = "${title.take(60)} — $s"
+            val line = "${title.replace(Regex("\\s+"), " ").take(60)} — ${s.replace(Regex("\\s+"), " ")}"
             if (facts.size >= MAX_SOURCE_FACTS || chars + line.length > MAX_SOURCE_CHARS) break
             facts += line; sentences += s; chars += line.length
         }
