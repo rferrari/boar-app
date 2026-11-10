@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_canvas_title" formatted="false">Boar Canvas</string>
+    <string name="native_labs_canvas_body" formatted="false">Transforme uma resposta num cartão para ler de relance, ou numa pequena ferramenta para mexer. Feito neste celular, offline.</string>
+    <string name="native_labs_canvas_intro" formatted="false">Algumas respostas ficam melhores como imagem ou funcionam melhor como ferramenta. Em qualquer resposta, abra o 🧩 e escolha. O modelo que respondeu monta a partir da resposta, depois que ela termina.</string>
+    <string name="native_labs_canvas_howCard" formatted="false">📊 Cartão: uma tabela, um gráfico de barras, passos, uma comparação lado a lado ou fatos principais, desenhados pelo BOAR.</string>
+    <string name="native_labs_canvas_howWidget" formatted="false">🧪 Widget: uma pequena página interativa, como um conversor, um quiz ou um controle deslizante. Modelos pequenos erram muito; modelos maiores se saem melhor.</string>
+    <string name="native_labs_canvas_safety" formatted="false">Os cartões usam só o que a resposta diz: um gráfico com um número que não está na resposta é descartado. Os widgets rodam trancados: sem internet, sem arquivos, sem acesso ao BOAR ou às suas conversas. Nada para perguntas de saúde ou de frase-semente.</string>
+    <string name="native_labs_canvas_example" formatted="false">Por exemplo, a partir de uma resposta sobre as montanhas mais altas:</string>
+    <string name="native_labs_canvas_exampleTitle" formatted="false">Picos mais altos</string>
+    <string name="native_labs_canvas_credit" formatted="false">A ideia vem do Open Intelligent UI da CopilotKit (MIT). Aqui roda no seu celular, sem servidor.</string>
+    <string name="native_labs_canvas_make_card" formatted="false">Mostrar como cartão</string>
+    <string name="native_labs_canvas_make_widget" formatted="false">Montar um widget</string>
+    <string name="native_labs_canvas_again_card" formatted="false">Refazer o cartão</string>
+    <string name="native_labs_canvas_again_widget" formatted="false">Montar o widget de novo</string>
+    <string name="native_labs_canvas_making" formatted="false">Montando…</string>
+    <string name="native_labs_canvas_makingCard" formatted="false">📊 Montando um cartão a partir desta resposta…</string>
+    <string name="native_labs_canvas_makingWidget" formatted="false">🧪 Montando um widget a partir desta resposta (alguns minutos; uma nova pergunta espera por ele)…</string>
+    <string name="native_labs_canvas_madeBy" formatted="false">feito em {{seconds}} s a partir desta resposta</string>
+    <string name="native_labs_canvas_noModel" formatted="false">Nenhum modelo de resposta está carregado. Pergunte algo primeiro e tente de novo.</string>
+    <string name="native_labs_canvas_failed" formatted="false">O modelo parou antes de terminar. Tente de novo.</string>
+    <string name="native_labs_canvas_noCard" formatted="false">O modelo não escreveu um cartão que o BOAR consiga desenhar. Tente de novo, ou monte um widget.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">O modelo não achou nada nesta resposta que valha um cartão.</string>
+    <string name="native_labs_canvas_invented" formatted="false">O gráfico tinha um número que não está na resposta, então o BOAR descartou.</string>
+    <string name="native_labs_canvas_noWidget" formatted="false">O modelo não escreveu uma página que o BOAR consiga mostrar. Tente de novo; modelos maiores se saem melhor.</string>
+</resources>
