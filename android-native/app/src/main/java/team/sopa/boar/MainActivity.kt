@@ -380,7 +380,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         items.filter { it.key !in last } + labs + items.filter { it.key in last }
                     },
                     onAbout = { go { screen = "about" } },
-                    lastTokPerSec = state.liveTokPerSec.takeIf { state.answeringId == null },
                     storageUsed = { services.storageUsedBytes() },
                     downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
                     storageBudgetBytes = team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes),

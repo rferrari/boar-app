@@ -39,11 +39,9 @@ enum class SettingsPart(val from: UserProfile) {
     THEME(UserProfile.SIMPLE),
     TEXT_SIZE(UserProfile.SIMPLE),
     SECURITY(UserProfile.SIMPLE),
-    MODELS(UserProfile.SIMPLE),
     RECOVERY(UserProfile.SIMPLE),
 
     TONE(UserProfile.EXPLORER),
-    KNOWLEDGE(UserProfile.EXPLORER),
     MEMORY(UserProfile.EXPLORER),
     VOICE(UserProfile.EXPLORER),
     AVATARS(UserProfile.EXPLORER),

@@ -19,8 +19,8 @@ class UserProfileTest {
     // ── Gating: each part shows from its profile on, and in every profile above it ──
 
     private val simple = setOf(SettingsPart.PROFILE, SettingsPart.LANGUAGE, SettingsPart.THEME, SettingsPart.TEXT_SIZE, SettingsPart.SECURITY,
-        SettingsPart.MODELS, SettingsPart.RECOVERY)
-    private val explorer = simple + setOf(SettingsPart.TONE, SettingsPart.KNOWLEDGE, SettingsPart.MEMORY, SettingsPart.VOICE, SettingsPart.AVATARS,
+        SettingsPart.RECOVERY)
+    private val explorer = simple + setOf(SettingsPart.TONE, SettingsPart.MEMORY, SettingsPart.VOICE, SettingsPart.AVATARS,
         SettingsPart.BOARVERSE_SWITCH, SettingsPart.ORIENTATION, SettingsPart.HAPTICS)
     private val pro = SettingsPart.entries.toSet()
 

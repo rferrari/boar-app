@@ -350,7 +350,7 @@
     <string name="native_models_inYourModels" formatted="false">Nos seus modelos</string>
     <string name="native_models_useNow" formatted="false">Usar agora</string>
     <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
-    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (para pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo: Configurações → Recomeçar.</string>
     <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
     <string name="native_chat_errorNoModel" formatted="false">Nenhum modelo de resposta está carregado. Abra o Catálogo de Modelos para escolher um.</string>
     <string name="native_common_somethingWrong" formatted="false">Algo deu errado. Tente de novo.</string>
@@ -477,7 +477,7 @@
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado. Auto descarrega assim que você sai, depois de terminar uma resposta em andamento; a próxima pergunta carrega de novo.</string>
     <string name="native_tweaks_immediately" formatted="false">Na hora</string>
     <string name="native_drawer_closeStillSaving" formatted="false">Ainda salvando a resposta. Tente de novo em instantes.</string>
-    <string name="native_drawer_close" formatted="false">Fechar o BOAR (libera memória)</string>
+    <string name="native_drawer_close" formatted="false">Fechar o BOAR</string>
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
@@ -695,4 +695,7 @@
     <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Os detalhes técnicos (a velocidade ao vivo no topo da conversa, os detalhes de desempenho da resposta, as barras de memória e armazenamento do menu) agora ficam no Pro.</string>
     <string name="native_settings_profile_labsOn" formatted="false">Estes labs agora estão ligados: {{labs}}. Desligue no Boar Labs, no perfil Pro.</string>
+    <string name="native_settings_languageVoice" formatted="false">Idioma e voz</string>
+    <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
+    <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>
 </resources>

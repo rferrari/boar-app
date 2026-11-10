@@ -71,7 +71,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
         // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
-        // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
+        // below); the embedding model is BOAR's own search engine, not a choice: only a warning when it's missing.
         val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
         val facts = ModelOrder.Facts(
             active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
@@ -83,6 +83,14 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         val order = remember(state.sort, state.filter, all.size) { sorted.map { it.id } }
         val models = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // The search model missing (its warning lived in Settings → Models until rc3, slice 5): it reads the packs and
+            // the documents, so nothing is found without it. Said first, where models are.
+            state.items.firstOrNull { it.kind == AssetKind.EMBEDDING }?.takeIf { state.rows[it.id]?.present == false }?.let { emb ->
+                item {
+                    Text("⚠ " + t("native.settings.embeddingMissing", "model" to emb.shortName), style = Boar.type.body, color = c.amber400,
+                        modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, androidx.compose.foundation.shape.RoundedCornerShape(10.dp)).padding(12.dp))
+                }
+            }
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
             item {

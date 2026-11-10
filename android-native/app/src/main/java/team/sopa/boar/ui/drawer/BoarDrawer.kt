@@ -61,7 +61,6 @@ fun BoarDrawer(
     sessions: List<ChatSession>,
     activeSessionId: String?,
     items: List<DrawerItem>,
-    lastTokPerSec: Double?,
     storageUsed: () -> Long,
     /** What the running downloads still have to fetch: they count against BOAR's limit before they land. */
     downloading: () -> Long,
@@ -127,7 +126,7 @@ fun BoarDrawer(
                 }
             }
         }
-        if (showStats) FooterStats(lastTokPerSec, storageUsed, downloading, storageBudgetBytes)
+        if (showStats) FooterStats(storageUsed, downloading, storageBudgetBytes)
     }
 }
 
@@ -155,7 +154,7 @@ internal fun usage(used: Long, total: Long): String {
  * caption names so it isn't read as the phone's space. Then the last answer's speed.
  */
 @Composable
-private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloading: () -> Long, storageBudget: Long) {
+private fun FooterStats(storageUsed: () -> Long, downloading: () -> Long, storageBudget: Long) {
     val c = Boar.colors
     val ctx = LocalContext.current
     var app by remember { mutableLongStateOf(0L) }
@@ -189,11 +188,7 @@ private fun FooterStats(lastTokPerSec: Double?, storageUsed: () -> Long, downloa
                 else -> t("native.drawerStats.diskLimit")
             },
         )
-        if (lastTokPerSec != null) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 2.dp)) {
-            Text("●", fontSize = 8.sp, color = c.cyan400)
-            Text(t("drawerFooterStats.lastQuery", "rate" to String.format(Locale.US, "%.1f", lastTokPerSec)), style = Boar.type["mono.xs"].copy(fontSize = 9.sp),
-                color = c.textAccentCyan, fontWeight = FontWeight.SemiBold)
-        }
+        // The last answer's speed is in its own receipt and the header while writing: no row here (adam, Nov 10).
     }
 }
 
@@ -240,7 +235,8 @@ private fun drawerIcon(key: String): Int? = when {
     key == "models" -> team.sopa.boar.R.drawable.ic_settings_models
     key == "settings" -> team.sopa.boar.R.drawable.ic_style_custom
     key == "evaluation" -> team.sopa.boar.R.drawable.ic_settings_hardware
-    key == "close" -> team.sopa.boar.R.drawable.ic_exit_app
+    // A power symbol, like the other menu icons a plain sign (adam, Nov 10); the sleeping-boar den stays in the pack.
+    key == "close" -> team.sopa.boar.R.drawable.ic_power
     key.startsWith("lab") -> team.sopa.boar.R.drawable.ic_settings_experimental
     else -> null
 }

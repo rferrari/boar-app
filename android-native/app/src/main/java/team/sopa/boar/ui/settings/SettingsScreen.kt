@@ -81,8 +81,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(it)
             }
             if (shown(SettingsPart.TONE)) ToneSection(services)
-            if (shown(SettingsPart.MODELS)) ModelsSection(services, onOpen)
-            if (shown(SettingsPart.KNOWLEDGE)) KnowledgeSection(services, onOpen)
+            // Models and Knowledge are in the menu (Model Catalog, Knowledge): not repeated here (rc3, slice 5).
             if (shown(SettingsPart.MEMORY)) Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
                 t("native.settings.summary.memory", "max" to s.maxSavedSessions) + if (s.confirmChatDelete) " · " + t("native.settings.summary.confirmDelete") else ""
             }) {
@@ -121,54 +120,22 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 Note(t("native.vault.teaser"))
                 team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
             }
-            if (shown(SettingsPart.LANGUAGE)) Section(t("modelSetupScreen.sections.language"), team.sopa.boar.R.drawable.ic_settings_language, summary = {
-                when (s.languageId) { "en" -> "English"; "pt" -> "Português"; else -> "System" }
+            // Language and voice in one section (adam: "both has only 1 option each"): the language for everyone, the voice
+            // rows from Explorer. Voice listens in the app's language (VoiceInput).
+            if (shown(SettingsPart.LANGUAGE)) Section(t("native.settings.languageVoice"), team.sopa.boar.R.drawable.ic_settings_language, summary = {
+                (when (s.languageId) { "en" -> "English"; "pt" -> "Português"; else -> "System" }) +
+                    if (shown(SettingsPart.VOICE)) " · " + t("native.settings.summary.voice", "state" to onOff(s.voiceInputEnabled)) else ""
             }) {
                 var lang by remember { mutableStateOf(s.languageId ?: "system") }
                 Choices(null, listOf("system" to "System", "en" to "English", "pt" to "Português"), lang) { lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id) }
+                if (shown(SettingsPart.VOICE)) VoiceRows(services, lang)
             }
             if (shown(SettingsPart.SECURITY)) SecuritySection(services, onPin)
-            if (shown(SettingsPart.VOICE)) VoiceSection(services)
             if (tech && shown(SettingsPart.TELEMETRY)) TelemetrySection(services)
             if (shown(SettingsPart.TWEAKS)) TweaksSection(services, tech, shown(SettingsPart.TECHNICAL_DETAILS), { tech = it }, onOpen)
             if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen)
             if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
         }
-    }
-}
-
-/** ModelSetupScreen.tsx's Reasoning Models: what answers now, and the catalog (download, use, remove, Hugging Face search). */
-@Composable
-private fun ModelsSection(services: BoarServices, onOpen: (String) -> Unit) {
-    val c = Boar.colors
-    Section(t("modelSetupScreen.sections.models"), team.sopa.boar.R.drawable.ic_settings_models, summary = { services.answerModel()?.shortName }) {
-        val llms = services.installed(team.sopa.boar.engine.models.AssetKind.LLM)
-        Text(t("native.settings.activeModel", "model" to (services.answerModel()?.shortName ?: "—")), style = Boar.type.body, color = c.textPrimary)
-        Text(t("modelSetupScreen.installedModels") + ": " + llms.joinToString(", ") { it.shortName }.ifEmpty { "—" }, style = Boar.type.subtext, color = c.textSecondary)
-        // The embedding model searches the knowledge packs and documents; it isn't a choice, so not in the catalog.
-        val emb = services.catalog.models.firstOrNull { it.kind == team.sopa.boar.engine.models.AssetKind.EMBEDDING }
-        if (emb != null) Text(t(if (services.fileOf(emb).isFile) "native.settings.embeddingOk" else "native.settings.embeddingMissing", "model" to emb.shortName),
-            style = Boar.type.subtext, color = c.textSecondary)
-        LinkButton(t("native.settings.openCatalog")) { onOpen("models") }
-        var free by remember { mutableStateOf(services.settings.freeMemoryInBackground) }
-        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; services.settings.freeMemoryInBackground = it }
-    }
-}
-
-/** CorpusSettingsTab.tsx: the knowledge packs on the phone and your documents. */
-@Composable
-private fun KnowledgeSection(services: BoarServices, onOpen: (String) -> Unit) {
-    val c = Boar.colors
-    Section(t("modelSetupScreen.sections.knowledgeBase"), team.sopa.boar.R.drawable.ic_settings_knowledge, summary = {
-        val packs = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }.joinToString(", ") { it.shortName }.ifEmpty { t("native.settings.summary.noPacks") }
-        t("native.settings.summary.knowledge", "packs" to packs, "count" to services.knowledgeBase.collections().size)
-    }) {
-        val packs = services.catalog.corpusCatalog.filter { services.fileOf(it).isFile }
-        Text(if (packs.isEmpty()) t("native.settings.noPacks") else t("native.settings.packsInstalled", "packs" to packs.joinToString(", ") { it.shortName }),
-            style = Boar.type.subtext, color = c.textSecondary)
-        LinkButton(t("native.settings.openKnowledge")) { onOpen("documents:packs") }
-        Text(t("native.settings.documents", "count" to services.knowledgeBase.collections().size), style = Boar.type.subtext, color = c.textSecondary)
-        LinkButton(t("native.settings.openDocuments")) { onOpen("documents:personal") }
     }
 }
 
@@ -255,17 +222,17 @@ private fun TelemetrySection(services: BoarServices) {
 
 /** VoiceSettings.tsx: the mic in the chat, and whether this phone has an on-device recognizer. */
 @Composable
-private fun VoiceSection(services: BoarServices) {
+private fun VoiceRows(services: BoarServices, language: String) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val available = remember { team.sopa.boar.voice.VoiceInput.available(ctx) }
-    Section(t("modelSetupScreen.sections.voice"), team.sopa.boar.R.drawable.ic_settings_voice, summary = { t("native.settings.summary.voice", "state" to onOff(services.settings.voiceInputEnabled)) }) {
-        var on by remember { mutableStateOf(services.settings.voiceInputEnabled) }
-        SwitchRow(t("voiceSettings.enabledLabel"), t("voiceSettings.enabledValue"), on) { on = it; services.settings.voiceInputEnabled = it }
-        Text(t("voiceSettings.speechEngineLabel"), style = Boar.type.subtext, color = c.textMuted)
-        Text(if (available) t("native.voice.onDevice") else t("voiceSettings.unavailable"), style = Boar.type.body, color = if (available) c.textAccentEmerald else c.textSecondary)
-        if (!available) Text(t("voiceSettings.unavailableNote"), style = Boar.type.micro, color = c.textDim)
-    }
+    var on by remember { mutableStateOf(services.settings.voiceInputEnabled) }
+    SwitchRow(t("voiceSettings.enabledLabel"), t("voiceSettings.enabledValue"), on) { on = it; services.settings.voiceInputEnabled = it }
+    Text(t("voiceSettings.speechEngineLabel"), style = Boar.type.subtext, color = c.textMuted)
+    Text(if (available) t("native.voice.onDevice") else t("voiceSettings.unavailable"), style = Boar.type.body, color = if (available) c.textAccentEmerald else c.textSecondary)
+    if (!available) Text(t("voiceSettings.unavailableNote"), style = Boar.type.micro, color = c.textDim)
+    // Voice follows the app's language; with System, the phone's. A phone without that speech pack listens in its own.
+    Text(t(if (language == "system") "native.voice.followsPhone" else "native.voice.followsApp"), style = Boar.type.micro, color = c.textDim)
 }
 
 @Composable
@@ -478,6 +445,9 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
         // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
+        // Moved from Settings → Models (rc3, slice 5); stays in effect in every profile, its default on.
+        var free by remember { mutableStateOf(s.freeMemoryInBackground) }
+        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
         var freeAfter by remember { mutableStateOf(s.freeMemoryAfterMinutes) }
         Choices(
             t("native.tweaks.freeMemoryAfter"),
