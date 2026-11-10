@@ -434,7 +434,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val note = _state.value.loadNote
         val holds = when (note) {
             null -> true
-            is LoadNote.Crashed -> services.loadGuard.isBlocked(note.modelId)
+            // Picking another model in the Model Catalog closes it (adam, Nov 10): the note is about the pick, and the pick
+            // changed. It stays while the crashed model is still blocked and still the pick.
+            is LoadNote.Crashed -> services.loadGuard.isBlocked(note.modelId) &&
+                team.sopa.boar.engine.models.LoadNotes.stillAbout(note.modelId, services.activeModel()?.id)
             is LoadNote.Risky -> services.startDecision().let { it is StartLoad.Decision.AskRisky && it.modelId == note.modelId }
         }
         if (!holds) _state.update { it.copy(loadNote = null) }
