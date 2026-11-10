@@ -58,12 +58,16 @@ internal object Canvas {
         status[a.id] = Status.Making(kind)
         jobs[a.id] = scope.launch {
             val started = System.nanoTime()
-            val earlier = if (kind == Kind.WIDGET) VisualContext.Earlier(emptyList(), "") else runCatching { earlier(ctx, a) }.getOrDefault(VisualContext.Earlier(emptyList(), ""))
-            val r = runCatching { generate(ctx, a, kind, earlier) }
+            val none = VisualContext.Earlier(emptyList(), "")
+            val earlier = if (kind == Kind.WIDGET) none else runCatching { earlier(ctx, a) }.getOrDefault(none)
+            // A number the answer leaves out may be in its own sources (Brazil's area in "Economy of Brazil").
+            val fromSources = if (kind == Kind.WIDGET) none else VisualContext.fromSources(a.question, a.text, a.passages)
+            val context = listOf(earlier.sourceText, fromSources.sourceText).filter { it.isNotBlank() }.joinToString("\n")
+            val r = runCatching { generate(ctx, a, kind, earlier, fromSources) }
             // Forgotten (✕) while it was being made.
             if (status[a.id] !is Status.Making) return@launch
             val raw = r.getOrNull()
-            val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, earlier.sourceText), a.question) as? Visual.Parsed.Rejected else null
+            val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, context), a.question) as? Visual.Parsed.Rejected else null
             val rejected = when {
                 raw == null -> if (r.exceptionOrNull() != null) "native.labs.canvas.failed" else "native.labs.canvas.noModel"
                 kind != Kind.WIDGET -> refusal?.let(::rejectedKey)
@@ -72,7 +76,7 @@ internal object Canvas {
             // The reason in the log (never the answer's text); the refused number or label only on screen.
             refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
             status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
-            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, earlier.sourceText).also { save(ctx, a.id, it) }
+            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, a.id, it) }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[a.id]?.javaClass?.simpleName}")
             jobs.remove(a.id)
@@ -123,10 +127,10 @@ internal object Canvas {
     }
 
     /** The model's reply; null when no model is loaded. No session.cancel() of its own: the chat's Stop cancels it. */
-    private suspend fun generate(ctx: Context, a: AnswerRef, kind: Kind, earlier: VisualContext.Earlier): String? {
+    private suspend fun generate(ctx: Context, a: AnswerRef, kind: Kind, earlier: VisualContext.Earlier, sources: VisualContext.Earlier): String? {
         val session = BoarServices.get(ctx).activeSession() ?: return null
         val user = if (kind == Kind.WIDGET) "QUESTION: ${a.question.take(400)}\n\nANSWER:\n${a.text.take(3000)}"
-        else VisualContext.prompt(a.question, a.text, earlier)
+        else VisualContext.prompt(a.question, a.text, earlier, sources)
         val r = when (kind) {
             // The merged visual's prompt for a card too: CARD is only for ones saved before the merge.
             Kind.VISUAL, Kind.CARD -> SessionEngine(session).generate(Visual.PROMPT, user, nPredict = 700, temperature = 0.2f, timeoutMs = 180_000, onToken = null)

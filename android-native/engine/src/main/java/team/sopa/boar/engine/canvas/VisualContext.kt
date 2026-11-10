@@ -45,12 +45,44 @@ object VisualContext {
         return Earlier(facts, sentences.joinToString("\n"))
     }
 
-    /** The user message for the visual's model: the question, the answer, then the earlier facts when there are any. */
-    fun prompt(question: String, answer: String, earlier: Earlier): String = buildString {
+    const val MAX_SOURCE_FACTS = 10
+    const val MAX_SOURCE_CHARS = 1200
+
+    /**
+     * The answer's own sources (adam, Nov 10: "does we have a brazil source with area? if yes, why not there?"): the
+     * sentences with a number from the passages the answer was written from, those sharing the most words with the
+     * question and the answer first, deduplicated, not already in the answer, at most [MAX_SOURCE_FACTS] and
+     * [MAX_SOURCE_CHARS]. A number the model takes from them is backed, so it stays.
+     */
+    fun fromSources(question: String, answer: String, passages: List<Pair<String, String>>): Earlier {
+        val topic = words(question + " " + answer)
+        val inAnswer = fold(answer)
+        val seen = HashSet<String>()
+        val candidates = passages.flatMap { (title, body) -> sentencesWithNumbers(body).map { title to it } }
+            .filter { (_, s) -> val k = fold(s).replace(Regex("\\s+"), " "); seen.add(k) && k !in inAnswer }
+            .sortedByDescending { (t, s) -> (words("$t $s") intersect topic).size }
+        val facts = ArrayList<String>(); val sentences = ArrayList<String>(); var chars = 0
+        for ((title, s) in candidates) {
+            val line = "${title.take(60)} — $s"
+            if (facts.size >= MAX_SOURCE_FACTS || chars + line.length > MAX_SOURCE_CHARS) break
+            facts += line; sentences += s; chars += line.length
+        }
+        return Earlier(facts, sentences.joinToString("\n"))
+    }
+
+    /**
+     * The user message for the visual's model: the question, the answer, then the earlier facts and the facts from the
+     * answer's sources when there are any.
+     */
+    fun prompt(question: String, answer: String, earlier: Earlier, sources: Earlier = Earlier(emptyList(), "")): String = buildString {
         append("QUESTION: ").append(question.take(400)).append("\n\nANSWER:\n").append(answer.take(3000))
         if (!earlier.isEmpty) {
             append("\n\nEARLIER IN THIS CHAT (facts from earlier answers; use them only for the same visual as the ANSWER):\n")
             earlier.facts.forEach { append("- ").append(it).append('\n') }
+        }
+        if (!sources.isEmpty) {
+            append("\n\nFROM THE SOURCES (facts from the articles this ANSWER used; use them only to fill a value the ANSWER's visual needs):\n")
+            sources.facts.forEach { append("- ").append(it).append('\n') }
         }
     }.trimEnd()
 

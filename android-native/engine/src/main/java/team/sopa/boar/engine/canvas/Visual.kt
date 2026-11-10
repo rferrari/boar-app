@@ -37,7 +37,8 @@ sealed interface Visual {
     enum class SeriesKind { BARS, LINE, SHARE }
 
     sealed interface Parsed {
-        data class Ok(val visual: Visual) : Parsed
+        /** [leftOut]: what was taken out because none of the texts has it (a number, a name), shown under the visual. */
+        data class Ok(val visual: Visual, val leftOut: List<String> = emptyList()) : Parsed
         /** [detail]: what failed, for the eval and the log (a number, a label); never shown as the answer. */
         data class Rejected(val reason: Reason, val detail: String? = null) : Parsed
     }
@@ -104,7 +105,9 @@ sealed interface Visual {
                 }
                 else -> return Parsed.Rejected(Reason.UNKNOWN_TYPE, type)
             }
-            return VisualCheck.check(visual, answer, userText)?.let { Parsed.Rejected(it.first, it.second) } ?: Parsed.Ok(visual)
+            // What isn't in the texts comes out (an item, a row or column, a line); refused only when too little is left.
+            val pruned = VisualCheck.prune(visual, answer, userText)
+            return pruned.visual?.let { Parsed.Ok(it, pruned.leftOut) } ?: Parsed.Rejected(pruned.reason ?: Reason.EMPTY, pruned.leftOut.firstOrNull())
         }
 
         /**
@@ -116,7 +119,7 @@ sealed interface Visual {
             // Rules before the examples: a 1.7B model weighs what it reads first (X6, Nov 10: a 6-column table filled from
             // memory, and an area of 8.5 under "km²" that meant 8.5 million km²).
             "STRICT RULES:\n" +
-            "1. Use ONLY facts and numbers written in the ANSWER (or EARLIER IN THIS CHAT), copied exactly as written there.\n" +
+            "1. Use ONLY facts and numbers written in the ANSWER (or EARLIER IN THIS CHAT or FROM THE SOURCES), copied exactly as written there.\n" +
             "2. NEVER add, invent, estimate, round, convert or compute a number, and never fill missing data from memory " +
             "(no totals, no percentages: the app does that).\n" +
             "3. Units: write the unit exactly as the ANSWER does, with its scale word, so the number and unit read as in the " +
@@ -124,7 +127,7 @@ sealed interface Visual {
             "In one chart or column, every value has the same unit.\n" +
             "4. If a value or cell is missing from the ANSWER, use an empty string (\"\") or leave the item out.\n" +
             "5. Keep text short (under 8 words per label). Tables: at most 3 columns. At most 6 rows or items.\n" +
-            "6. Facts under EARLIER IN THIS CHAT may join only when the ANSWER measures the same thing.\n" +
+            "6. Facts under EARLIER IN THIS CHAT or FROM THE SOURCES may join only when the ANSWER's visual measures the same thing.\n" +
             "7. If fewer than 2 numbers, steps or facts come from the ANSWER, reply {\"type\":\"none\"}.\n" +
             "Pick ONE type that fits:\n" +
             "- numbers to compare across things: {\"type\":\"bars\",\"title\":\"...\",\"unit\":\"...\",\"items\":[{\"label\":\"...\",\"value\":123}]}\n" +
@@ -203,6 +206,95 @@ object VisualCheck {
         texts.forEach { t -> numbersOk(t)?.let { return Visual.Reason.INVENTED_NUMBERS to it } }
         labels.firstOrNull { !labelOk(it) }?.let { return Visual.Reason.UNGROUNDED_LABELS to it }
         return null
+    }
+
+    /**
+     * [visual]: what's left once everything not in the texts is out; null when too little is left to draw (fewer than two
+     * items, rows of numbers, steps or options; no fact). [leftOut]: what came out, in order; [reason]: why the first did.
+     */
+    data class Pruned(val visual: Visual?, val leftOut: List<String>, val reason: Visual.Reason?)
+
+    /**
+     * Takes out what none of the texts has (the answer, the user's message, and whatever the caller added: earlier
+     * answers, the answer's sources), instead of refusing the whole visual (adam, Nov 10):
+     * - a chart: the items with a number or a label not in the texts; a unit not in them refuses the chart;
+     * - a table: the row or the column with the most cells not in the texts or empty, again and again until every cell
+     *   is backed (the first column, the names, stays: a bad name takes its row out); a column whose heading holds a
+     *   number not in the texts goes too;
+     * - steps, a comparison's points and options, facts: the lines not in the texts.
+     */
+    fun prune(v: Visual, answer: String, userText: String = ""): Pruned {
+        val g = Ground("$answer\n$userText")
+        val out = ArrayList<String>()
+        var reason: Visual.Reason? = null
+        fun note(what: String, r: Visual.Reason) { if (what !in out) out += what; if (reason == null) reason = r }
+        /** Why [text] isn't backed: the number not in the texts, or the text itself when its words aren't; null when it is. */
+        fun fault(text: String, checkWords: Boolean = true): Pair<String, Visual.Reason>? =
+            g.badNumber(text)?.let { it to Visual.Reason.INVENTED_NUMBERS }
+                ?: if (checkWords && !g.wordsOk(text)) text to Visual.Reason.UNGROUNDED_LABELS else null
+        val left: Visual? = when (v) {
+            is Visual.Series -> {
+                v.unit?.let { u -> if (!unitOk(u, g.source)) return Pruned(null, listOf(u), Visual.Reason.UNGROUNDED_LABELS) }
+                val kept = v.items.filter { (l, x) ->
+                    val f = if (!g.grounded(x)) VisualScale.format(x) to Visual.Reason.INVENTED_NUMBERS else fault(l)
+                    f?.let { note(it.first, it.second) }
+                    f == null
+                }
+                if (kept.size >= 2 && (v.kind != Visual.SeriesKind.SHARE || VisualScale.canShare(kept.map { it.second }))) v.copy(items = kept) else null
+            }
+            is Visual.Table -> {
+                var cols = v.columns.indices.filter { c ->
+                    if (c == 0) true else g.badNumber(v.columns[c]).also { b -> b?.let { note(it, Visual.Reason.INVENTED_NUMBERS) } } == null
+                }
+                var rows = v.rows.filter { r -> fault(r.getOrElse(0) { "" })?.also { note(it.first, it.second) } == null && r.getOrElse(0) { "" }.isNotBlank() }
+                // A cell is bad when it's empty or holds something not in the texts; each round removes the worst line.
+                fun bad(r: List<String>, c: Int): Boolean = r.getOrElse(c) { "" }.let { it.isBlank() || fault(it) != null }
+                while (true) {
+                    val dataCols = cols.filter { it > 0 }
+                    if (rows.isEmpty() || dataCols.isEmpty()) break
+                    // Each round takes out the line that removes the most bad cells for the fewest good ones (bad − good):
+                    // with Brazil backed and Russia invented, Russia's row goes, then the columns Brazil has no value for.
+                    fun score(bad: Int, total: Int) = bad - (total - bad)
+                    val worstRow = rows.map { r -> r to dataCols.count { bad(r, it) } }.maxByOrNull { (_, b) -> score(b, dataCols.size) }!!
+                    val worstCol = dataCols.map { c -> c to rows.count { bad(it, c) } }.maxByOrNull { (_, b) -> score(b, rows.size) }!!
+                    if (worstRow.second == 0 && worstCol.second == 0) break
+                    val rowScore = if (worstRow.second == 0) Int.MIN_VALUE else score(worstRow.second, dataCols.size)
+                    val colScore = if (worstCol.second == 0) Int.MIN_VALUE else score(worstCol.second, rows.size)
+                    // On a tie, a column goes: the rows are the things compared.
+                    val dropCol = colScore >= rowScore
+                    if (dropCol) {
+                        rows.forEach { r -> r.getOrElse(worstCol.first) { "" }.takeIf { it.isNotBlank() }?.let { fault(it) }?.let { note(it.first, it.second) } }
+                        cols = cols - worstCol.first
+                    } else {
+                        dataCols.forEach { c -> worstRow.first.getOrElse(c) { "" }.takeIf { it.isNotBlank() }?.let { fault(it) }?.let { note(it.first, it.second) } }
+                        rows = rows.filter { it !== worstRow.first }
+                    }
+                }
+                val dataCols = cols.filter { it > 0 }
+                val cells = rows.sumOf { r -> dataCols.count { !bad(r, it) } }
+                if (rows.isNotEmpty() && dataCols.isNotEmpty() && cells >= 2)
+                    Visual.Table(v.title, cols.map { v.columns[it] }, rows.map { r -> cols.map { r.getOrElse(it) { "" } } }) else null
+            }
+            is Visual.Steps -> v.steps.filter { s -> fault(s)?.also { note(it.first, it.second) } == null }.takeIf { it.size >= 2 }?.let { Visual.Steps(v.title, it) }
+            is Visual.Compare -> v.items.mapNotNull { (n, ps) ->
+                if (fault(n)?.also { note(it.first, it.second) } != null) return@mapNotNull null
+                val kept = ps.filter { p -> fault(p)?.also { note(it.first, it.second) } == null }
+                if (kept.isEmpty()) null else n to kept
+            }.takeIf { it.size >= 2 }?.let { Visual.Compare(v.title, it) }
+            is Visual.Facts -> v.facts.filter { (l, x) ->
+                (g.badNumber(l)?.let { it to Visual.Reason.INVENTED_NUMBERS } ?: fault(x))?.also { note(it.first, it.second) } == null
+            }.takeIf { it.isNotEmpty() }?.let { Visual.Facts(v.title, it) }
+        }
+        return Pruned(left, out, if (left == null) reason ?: Visual.Reason.EMPTY else reason)
+    }
+
+    /** The texts a visual is checked against, read once. */
+    private class Ground(val source: String) {
+        private val written = numbersIn(source)
+        private val words = wordsOf(source)
+        fun grounded(x: Double) = written.any { kotlin.math.abs(it - x) <= 1e-9 * maxOf(1.0, kotlin.math.abs(x)) }
+        fun badNumber(text: String): String? = tokens(text).firstOrNull { t -> valuesOf(t).none(::grounded) }
+        fun wordsOk(text: String): Boolean = contentWords(text).let { it.isEmpty() || it.any { w -> w in words } }
     }
 
     /**

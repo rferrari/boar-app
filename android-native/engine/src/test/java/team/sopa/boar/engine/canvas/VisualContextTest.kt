@@ -62,4 +62,22 @@ class VisualContextTest {
     @Test fun `sentences split at stops and line breaks, citations removed`() =
         assertEquals(listOf("Etna is 3,357 m high.", "It erupted in 2021"),
             VisualContext.sentencesWithNumbers("Etna is 3,357 m high [2]. Magma rises.\n- It erupted in 2021"))
+
+    @Test fun `the answer's sources give their numbers, the closest to the topic first`() {
+        val passages = listOf(
+            "Economy of Brazil" to "Brazil has the largest economy in South America. Its GDP grew 2.9% in 2023.",
+            "Brazil" to "Brazil covers 8,515,767 km², the fifth-largest area in the world. Its capital is Brasília.",
+            "Football" to "The 1950 World Cup was held in Brazil.",
+        )
+        val s = VisualContext.fromSources("Compare the area and economy of Brazil and Russia", "Brazil's GDP was $2.642 trillion.", passages)
+        assertTrue(s.facts.any { it.startsWith("Brazil — Brazil covers 8,515,767 km²") })
+        assertTrue(s.sourceText.contains("8,515,767"))
+        assertFalse(s.facts.any { it.contains("Brasília") })
+        val p = VisualContext.prompt("q", "a", VisualContext.Earlier(emptyList(), ""), s)
+        assertTrue(p.contains("FROM THE SOURCES"))
+        assertTrue(Visual.PROMPT.contains("FROM THE SOURCES"))
+    }
+
+    @Test fun `no passages, no sources part`() =
+        assertFalse(VisualContext.prompt("q", "a", VisualContext.Earlier(emptyList(), ""), VisualContext.fromSources("q", "a", emptyList())).contains("FROM THE SOURCES"))
 }

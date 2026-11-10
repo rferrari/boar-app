@@ -119,12 +119,17 @@ object CanvasLab : LabPlugin {
                 when (st.kind) {
                     // A card saved before the merge reads as a visual (Visual is a superset of CardSpec).
                     Canvas.Kind.CARD, Canvas.Kind.VISUAL ->
-                        (Visual.parse(st.raw, Canvas.grounding(a, st.context), a.question) as? Visual.Parsed.Ok)?.let { VisualView(it.visual) }
+                        (Visual.parse(st.raw, Canvas.grounding(a, st.context), a.question) as? Visual.Parsed.Ok)?.let { ok ->
+                            VisualView(ok.visual)
+                            // What came out because neither the answer, the earlier answers nor the sources have it.
+                            if (ok.leftOut.isNotEmpty()) Text(t("native.labs.canvas.leftOut", "what" to ok.leftOut.take(8).joinToString(", ")),
+                                style = Boar.type.caption, color = c.amber400)
+                        }
                     Canvas.Kind.WIDGET -> WidgetHtml.extract(st.raw)?.let { WidgetView(it) }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text((if (st.kind == Canvas.Kind.WIDGET) "🧪 " else "📊 ") + t("native.labs.canvas.madeBy", "seconds" to String.format(Locale.US, "%.0f", st.seconds)) +
-                        if (st.context.isNotBlank()) " · " + t("native.labs.canvas.withEarlier") else "",
+                        if (st.context.isNotBlank()) " · " + t("native.labs.canvas.withMore") else "",
                         style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
                     Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
                 }

@@ -183,11 +183,48 @@ class VisualTest {
         assertEquals("-4", VisualScale.format(-4.0))
     }
 
-    @Test fun `an empty cell makes no claim and passes, an invented one doesn't`() {
-        val t = """{"type":"table","title":"Brazil and Russia","columns":["Country","Population (millions)","Area (km²)"],"rows":[["Brazil","210",""],["Russia","",""]]}"""
-        val answer = "Brazil has a population of approximately 210 million. Russia is larger but has fewer people."
-        assertTrue(Visual.parse(t, answer) is Visual.Parsed.Ok)
-        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason(t.replace("\"210\",\"\"]", "\"210\",\"8.5\"]"), answer))
+    /** The X6's Brazil and Russia answer (Nov 10) and the table Qwen3-1.7B wrote from it, most of it from memory. */
+    private val x6Answer = "Brazil, on the other hand, is one of the ten chief industrial states in the world according to the International " +
+        "Labour Organization. It has a population of approximately 210 million, making it the second-most populous country in the world. " +
+        "Brazil's economy is more diversified. The country's nominal GDP was $2.642 trillion in 2024, and its GDP per capita was $12,313. " +
+        "Brazil's economy is less dependent on a single sector compared to Russia's. Russia's economy is more volatile due to its reliance on oil and gas."
+    private val x6Table = """{"type":"table","title":"Brazil and Russia compared: population, area and economy",
+        "columns":["Country","Population (millions)","Area (km²)","Economy (Nominal GDP, ${'$'}trillion)","Economy (GDP per capita, ${'$'})","Economy (Oil/Gas % of Budget)"],
+        "rows":[["Brazil","210","8.5","2.642","12,313","30"],["Russia","140","11.5","2.642","11,633","50"]]}"""
+
+    @Test fun `the X6 table keeps what the answer backs and says what it left out`() {
+        val r = Visual.parse(x6Table, x6Answer) as Visual.Parsed.Ok
+        val t = r.visual as Visual.Table
+        assertEquals(listOf("Country", "Population (millions)", "Economy (Nominal GDP, ${'$'}trillion)", "Economy (GDP per capita, ${'$'})"), t.columns)
+        assertEquals(listOf(listOf("Brazil", "210", "2.642", "12,313")), t.rows)
+        assertTrue(r.leftOut.containsAll(listOf("140", "11.5", "11,633", "50", "8.5", "30")))
+    }
+
+    @Test fun `a number in the sources is backed too, so it stays`() {
+        val sources = "Brazil covers an area of 8.5 million square kilometres."
+        val r = Visual.parse(x6Table, x6Answer + "\n" + sources) as Visual.Parsed.Ok
+        assertTrue((r.visual as Visual.Table).columns.contains("Area (km²)"))
+        assertFalse(r.leftOut.contains("8.5"))
+    }
+
+    @Test fun `empty cells come out with their line, not left blank`() {
+        val t = """{"type":"table","title":"","columns":["Country","Population","Area"],"rows":[["Brazil","210 million",""],["Russia","146 million",""]]}"""
+        val v = (Visual.parse(t, "Brazil has 210 million people and Russia 146 million.") as Visual.Parsed.Ok).visual as Visual.Table
+        assertEquals(listOf("Country", "Population"), v.columns)
+        assertEquals(2, v.rows.size)
+    }
+
+    @Test fun `a chart drops the item not in the texts and keeps the rest`() {
+        val r = Visual.parse("""{"type":"bars","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611},{"label":"Kangchenjunga","value":8600}]}""", peaks) as Visual.Parsed.Ok
+        assertEquals(listOf("Everest", "K2"), (r.visual as Visual.Series).items.map { it.first })
+        assertEquals(listOf("8600"), r.leftOut)
+    }
+
+    @Test fun `too little left is still refused, with what failed first`() {
+        assertEquals(Visual.Parsed.Rejected(Visual.Reason.INVENTED_NUMBERS, "8612"),
+            Visual.parse("""{"type":"bars","items":[{"label":"Everest","value":8849},{"label":"K2","value":8612}]}""", peaks))
+        val all = """{"type":"table","columns":["Country","Area"],"rows":[["Brazil","8.5"],["Russia","11.5"]]}"""
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason(all, x6Answer))
     }
 
     @Test fun `a unit must come from the answer too`() {

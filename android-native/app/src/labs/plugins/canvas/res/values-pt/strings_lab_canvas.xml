@@ -39,4 +39,6 @@
     <string name="native_labs_canvas_refused" formatted="false">Recusado: {{what}} (não está na resposta)</string>
     <string name="native_labs_canvas_showReply" formatted="false">Mostrar o que o modelo escreveu</string>
     <string name="native_labs_canvas_hideReply" formatted="false">Ocultar o que o modelo escreveu</string>
+    <string name="native_labs_canvas_leftOut" formatted="false">⚠ Deixado de fora, não está na resposta, nas respostas anteriores nem nas fontes: {{what}}. Confira as fontes antes de confiar neste visual.</string>
+    <string name="native_labs_canvas_withMore" formatted="false">com respostas anteriores ou fontes</string>
 </resources>
