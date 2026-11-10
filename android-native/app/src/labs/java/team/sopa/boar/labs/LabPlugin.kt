@@ -166,6 +166,9 @@ object LabPrefs {
 
     fun enabled(id: String) = switches[id] ?: false
 
+    /** Any lab switched on (master switch aside): an rc2 install that used Boar Labs becomes Pro (UserProfile.forUpdate). */
+    fun anyEnabled() = LabRegistry.ALL.any { enabled(it.id) }
+
     /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
     private val reveals = mutableStateMapOf<String, Boolean>()
     // A leak lasts while Boar Labs is open: leaving it covers every tile again (Oct 19), and ten taps reveal it again.

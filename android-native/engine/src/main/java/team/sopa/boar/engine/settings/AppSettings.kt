@@ -32,7 +32,44 @@ class AppSettings(private val file: File) {
         // Executive Summary became Personal Files (rc1): a saved Summary opens in Detailed, the default, not in a style
         // that answers only from the user's files.
         if (str("personalityId") == RETIRED_SUMMARY_STYLE) update { put("personalityId", JsonPrimitive("detailed")) }
+        // A fresh install (nothing saved yet) starts on Simple. An install with settings from before profiles waits for
+        // settleProfile, which knows about the labs.
+        if (data.isEmpty()) update { put(PROFILE_KEY, JsonPrimitive(UserProfile.DEFAULT.key)) }
     }
+
+    /** Settings → Profile. Simple until set; see [UserProfile]. */
+    var userProfile: UserProfile
+        get() = UserProfile.of(str(PROFILE_KEY)) ?: UserProfile.DEFAULT
+        set(v) = set(PROFILE_KEY, JsonPrimitive(v.key))
+
+    /** False on an install from before profiles until [settleProfile] runs. */
+    val profileSettled: Boolean get() = UserProfile.of(str(PROFILE_KEY)) != null
+
+    /**
+     * Gives an install from before profiles (rc2) its profile, once ([UserProfile.forUpdate], from what is stored, not
+     * from the effective values), and asks Settings to say so ([profileNotePending]). Does nothing once settled.
+     */
+    fun settleProfile(anyLabOn: Boolean): UserProfile {
+        if (profileSettled) return userProfile
+        val p = UserProfile.forUpdate(
+            tweaksChanged = !storedTweaks.isAuto,
+            adaptiveRouting = bool("adaptiveRoutingEnabled") == true,
+            freeMemoryAfterSet = int("freeMemoryAfterMinutes") != null,
+            anyLabOn = anyLabOn,
+        )
+        update { put(PROFILE_KEY, JsonPrimitive(p.key)); put("profileNotePending", JsonPrimitive(true)) }
+        return p
+    }
+
+    /** Settings shows a one-time note on the Profile row after an update gave the user a profile. */
+    var profileNotePending: Boolean get() = bool("profileNotePending") ?: false; set(v) = set("profileNotePending", v.takeIf { it }?.let(::JsonPrimitive))
+
+    /**
+     * Pro's settings (Advanced tweaks, adaptive routing, technical details, the debug log) count only in Pro: below it
+     * they read as their defaults, and what is stored stays for when the user comes back to Pro. An install not settled
+     * yet keeps rc2's behavior.
+     */
+    private val proActive: Boolean get() = !profileSettled || userProfile == UserProfile.PRO
 
     /** Every key as stored, for the debug log's header. */
     fun snapshot(): Map<String, JsonElement> = data
@@ -104,6 +141,7 @@ class AppSettings(private val file: File) {
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
         )
+        const val PROFILE_KEY = "userProfile"
         const val MODEL_LAST_USED = "modelLastUsedAt"
         const val MODEL_ADDED = "modelAddedAt"
         /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
@@ -151,7 +189,7 @@ class AppSettings(private val file: File) {
     var ratingNoteShown: Boolean get() = bool("ratingNoteShown") ?: false; set(v) = set("ratingNoteShown", JsonPrimitive(v))
     /** Run Boar Run's heat and battery card was shown and accepted once: picking it again doesn't ask. */
     var runPresetWarned: Boolean get() = bool("runPresetWarned") ?: false; set(v) = set("runPresetWarned", JsonPrimitive(v))
-    var adaptiveRoutingEnabled: Boolean get() = bool("adaptiveRoutingEnabled") ?: false; set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
+    var adaptiveRoutingEnabled: Boolean get() = proActive && (bool("adaptiveRoutingEnabled") ?: false); set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
     var routingPreset: String? get() = str("routingPreset"); set(v) = set("routingPreset", v?.let(::JsonPrimitive))
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))
@@ -167,12 +205,13 @@ class AppSettings(private val file: File) {
      * only; on, the receipt's details, live tok/s in the header, the menu's memory and storage bars, Hardware telemetry.
      */
     // On by default: the bounty's judges and early users want the numbers (time to first word, speed, memory).
-    var showLiveStats: Boolean get() = bool("showLiveStats") ?: true; set(v) = set("showLiveStats", JsonPrimitive(v))
+    // Below Pro the technical details stay out of sight (rc3 profiles).
+    var showLiveStats: Boolean get() = proActive && (bool("showLiveStats") ?: true); set(v) = set("showLiveStats", JsonPrimitive(v))
 
     /** Settings → Free memory when I leave BOAR (on by default): see [FreeMemory]. */
     var freeMemoryInBackground: Boolean get() = bool("freeMemoryInBackground") ?: true; set(v) = set("freeMemoryInBackground", JsonPrimitive(v))
     /** Advanced tweaks → Free memory after, in minutes (0 = immediately); null is Auto ([FreeMemory.AUTO_SECONDS], in seconds). */
-    var freeMemoryAfterMinutes: Int? get() = int("freeMemoryAfterMinutes"); set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
+    var freeMemoryAfterMinutes: Int? get() = if (proActive) int("freeMemoryAfterMinutes") else null; set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
 
     /** DEFAULT_MEMORY_SETTINGS when unset. */
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
@@ -185,15 +224,17 @@ class AppSettings(private val file: File) {
     var pendingFirstQuestion: String? get() = str("pendingFirstQuestion"); set(v) = set("pendingFirstQuestion", v?.takeIf { it.isNotBlank() }?.let(::JsonPrimitive))
 
     /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
-    var showDrawerStats: Boolean get() = bool("showDrawerStats") ?: false; set(v) = set("showDrawerStats", JsonPrimitive(v))
+    var showDrawerStats: Boolean get() = proActive && (bool("showDrawerStats") ?: false); set(v) = set("showDrawerStats", JsonPrimitive(v))
 
     /** Advanced tweaks → Debug log (native only, builds with ALLOW_DEBUG_LOG): off until the user turns it on. */
-    var debugLogEnabled: Boolean get() = bool("debugLogEnabled") ?: false; set(v) = set("debugLogEnabled", JsonPrimitive(v))
+    var debugLogEnabled: Boolean get() = proActive && (bool("debugLogEnabled") ?: false); set(v) = set("debugLogEnabled", JsonPrimitive(v))
 
     /** Advanced tweaks (native only); all Auto when unset or unreadable. */
     var engineTweaks: EngineTweaks
-        get() = EngineTweaks.fromJson(data["engineTweaks"]?.toString())
+        get() = if (proActive) storedTweaks else EngineTweaks()
         set(v) = set("engineTweaks", if (v.isAuto) null else json.parseToJsonElement(v.toJson()))
+
+    private val storedTweaks: EngineTweaks get() = EngineTweaks.fromJson(data["engineTweaks"]?.toString())
 
     /** Every key as stored, for tests and diagnostics. */
     private fun strings(key: String): List<String> = (data[key] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content }.orEmpty()

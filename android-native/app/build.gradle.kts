@@ -106,7 +106,8 @@ android {
         manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        // 2.0.0-rc2 was 5; the X6's Mesh test build used 6. rc3 is 7, so it installs over both and keeps the models.
+        versionCode = 7
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
         versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"

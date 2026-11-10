@@ -685,4 +685,12 @@
     <string name="native_a11y_backspace" formatted="false">Delete digit</string>
     <string name="native_a11y_done" formatted="false">Done</string>
     <string name="native_a11y_back" formatted="false">Back</string>
+    <string name="native_settings_profile_title" formatted="false">Profile</string>
+    <string name="native_settings_profile_simple" formatted="false">Simple</string>
+    <string name="native_settings_profile_simpleNote" formatted="false">Just the essentials: language, look, PIN, models and starting over.</string>
+    <string name="native_settings_profile_explorer" formatted="false">Explorer</string>
+    <string name="native_settings_profile_explorerNote" formatted="false">Simple, plus how BOAR answers, knowledge, chats, voice and Boarverse.</string>
+    <string name="native_settings_profile_pro" formatted="false">Pro</string>
+    <string name="native_settings_profile_proNote" formatted="false">Everything, plus Advanced tweaks, technical details and Boar Labs settings. Below Pro, these go back to Auto; your choices return when you pick Pro again.</string>
+    <string name="native_settings_profile_updated" formatted="false">New in this version: profiles. BOAR picked {{profile}} from your settings. Change it any time.</string>
 </resources>
