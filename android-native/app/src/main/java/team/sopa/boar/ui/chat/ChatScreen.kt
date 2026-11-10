@@ -567,7 +567,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
             // Boar Staged answers: what the sources say comes first, before and above the answer's text.
-            m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource) }
+            m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource, key = m.id) }
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
                     if (state.stopping) null else activityDetail(state.activity), startedAt)
@@ -601,7 +601,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (!streaming) m.staged?.let { StagedCheck(it) }
             // A lab that shows the sources itself (Staged Answers) asks the chat to leave its list out; off, it's back.
             val sourcesShownAbove = m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()
-            if (m.sources.isNotEmpty() && !sourcesShownAbove) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
+            if (m.sources.isNotEmpty() && !sourcesShownAbove) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource, key = m.id)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).

@@ -33,24 +33,25 @@ import team.sopa.boar.ui.theme.Boar
  * number check. While the answer is written the facts are open; once it's done they fold into one line.
  */
 @Composable
-internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onRead: (Source) -> Unit) {
+internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onRead: (Source) -> Unit, key: String? = null) {
     val c = Boar.colors
-    var open by remember { mutableStateOf<Boolean?>(null) }
+    // Kept per answer (ChatFolds): back from Read the whole article, the card is as it was left.
+    var open by ChatFolds.remember<Boolean?>(key?.let { "$it/staged" }, null)
     // Open, and kept open when the model starts answering (adam, Nov 10); a tap on the heading folds it.
     val factsOpen = open ?: true
-    var moreOpen by remember { mutableStateOf(false) }
+    var moreOpen by ChatFolds.remember(key?.let { "$it/staged/more" }, false)
     Column(Modifier.fillMaxWidth().padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (v.keyFacts.isNotEmpty()) {
             Text(t("native.staged.facts", "count" to v.keyFacts.size) + if (factsOpen) "" else " ›", style = Boar.type["mono.xs"], color = c.textDim,
                 fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !factsOpen }.padding(vertical = 2.dp))
             if (factsOpen) {
-                v.keyFacts.forEach { KeyFact(it, v.withPassages, onRead) }
+                v.keyFacts.forEachIndexed { i, k -> KeyFact(k, v.withPassages, onRead, key?.let { "$it/staged/$i" }) }
                 // The rest of the sources, one tap away: "+2 sources ›" (adam, Nov 10: 2 or 3 quotes are good as they are).
                 if (v.more.isNotEmpty()) {
                     Text(if (moreOpen) t("native.staged.lessSources") else t("native.staged.moreSources", "count" to v.more.size) + " ›",
                         style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { moreOpen = !moreOpen }.padding(vertical = 2.dp))
-                    if (moreOpen) v.more.forEach { KeyFact(it, v.withPassages, onRead) }
+                    if (moreOpen) v.more.forEachIndexed { i, k -> KeyFact(k, v.withPassages, onRead, key?.let { "$it/staged/more/$i" }) }
                 }
                 Text(t("native.staged.factsNote"), style = Boar.type.subtext, color = c.textDim, fontStyle = FontStyle.Italic)
             }
@@ -76,10 +77,10 @@ internal fun StagedCheck(v: StagedView) {
 }
 
 @Composable
-private fun KeyFact(k: KeyFactView, withPassage: Boolean, onRead: (Source) -> Unit) {
+private fun KeyFact(k: KeyFactView, withPassage: Boolean, onRead: (Source) -> Unit, key: String?) {
     val c = Boar.colors
     // A health answer shows each sentence with its passage: a sentence alone, out of context, can mislead.
-    var passage by remember { mutableStateOf(withPassage) }
+    var passage by ChatFolds.remember(key, withPassage)
     Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).clickable { passage = !passage }.padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("“${k.sentence}”", style = Boar.type.body, color = c.textPrimary)
