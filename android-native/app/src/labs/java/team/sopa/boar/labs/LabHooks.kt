@@ -316,6 +316,13 @@ object LabHooks {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { LabRegistry.active.forEach { it.HeaderBadge(go) } }
     }
 
+    /** About's version block: each enabled lab as (name, "id status"); empty while Boar Labs is off. */
+    @Composable
+    fun enabledLabs(): List<Pair<String, String>> {
+        Init()
+        return LabRegistry.active.map { team.sopa.boar.ui.t("native.labs.${it.id}.title") to "${it.id} ${it.status.name.lowercase()}" }
+    }
+
     @Composable
     private fun Init() {
         val ctx = LocalContext.current
