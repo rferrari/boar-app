@@ -25,13 +25,16 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
     .sortedWith(compareBy({ it.order }, { it.id }))
 
 /**
- * The labs a release build includes (src/labs/released.txt, rc3): "id: TestClass…" lines. Release builds are the ones
- * whose task names say Release (assembleRelease, bundleRelease); -Pboar.labs.released=true or false overrides that.
+ * The labs a release build includes (src/labs/released.txt, rc3): "id: TestClass…" lines. Every build is a release
+ * build here unless all its tasks say Debug or Devtest: `assemble`, `build`, `bundle` and abbreviations like `aR` make
+ * a release variant too, and once built all 18 labs into it (validator B-1). -Pboar.labs.released=true or false wins.
  */
 val releasedLabs: Set<String> = file("src/labs/released.txt").takeIf { it.isFile }?.readLines().orEmpty()
     .map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }.map { it.substringBefore(':').trim() }.toSet()
 val releaseLabsOnly: Boolean = (providers.gradleProperty("boar.labs.released").orNull?.trim()?.toBoolean())
-    ?: gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+    ?: gradle.startParameter.taskNames.let { tasks ->
+        tasks.isEmpty() || !tasks.all { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) }
+    }
 /** In this build: every lab, or on a release build the listed ones and the code-free teasers. */
 fun LabPluginDir.inBuild(): Boolean = !releaseLabsOnly || id in releasedLabs || obj == null
 
@@ -186,7 +189,8 @@ android {
     sourceSets["main"].res.srcDir("src/labs/res")
     sourceSets["main"].java.srcDir(labsRegistryDir)
     for (plugin in labPlugins) {
-        sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
+        // A lab left out of this build leaves its code out too (validator B-3); its strings stay for a teaser's tile.
+        if (plugin.inBuild()) sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
         sourceSets["main"].res.srcDir(plugin.dir.resolve("res"))
         // A release build packs only the listed labs' executables (released.txt).
         if (labsExecutables && !plugin.review && plugin.inBuild()) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))

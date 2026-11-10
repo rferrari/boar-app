@@ -29,6 +29,8 @@ class VitalsTest {
 
     @Test fun `battery percent and temperature`() {
         assertEquals(81, Vitals.batteryPercent(81, 100))
+        assertEquals(0, Vitals.batteryPercent(0, 100))
+        assertEquals(100, Vitals.batteryPercent(100, 100))
         assertEquals(50, Vitals.batteryPercent(128, 256))
         assertNull(Vitals.batteryPercent(-1, 100))
         assertNull(Vitals.batteryPercent(50, 0))

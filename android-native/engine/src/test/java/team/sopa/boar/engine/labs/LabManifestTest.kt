@@ -23,15 +23,75 @@ class LabManifestTest {
         }
     }
 
-    @Test fun `every listed lab has tests, and each named test exists and has a test in it`() {
+    /** Source without comments, so a word in one doesn't count. */
+    private fun code(source: String) = source.replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "").replace(Regex("//[^\n]*"), "")
+
+    /** A test file that runs: an @Test outside comments that isn't @Ignore'd, in a class that isn't @Ignore'd. */
+    private fun runsTests(source: String): Boolean {
+        val c = code(source)
+        if (Regex("@Ignore[\\s\\S]{0,200}?\\bclass\\s").containsMatchIn(c.substringBefore("@Test"))) return false
+        return Regex("(@Ignore\\s+)?@Test").findAll(c).any { it.groupValues[1].isEmpty() } &&
+            Regex("@Test\\s+@Ignore").findAll(c).count() < Regex("@Test").findAll(c).count()
+    }
+
+    /** Every engine class name declared in engine/src/main. */
+    private val engineNames: Set<String> by lazy {
+        File("src/main/java").walk().filter { it.extension == "kt" }.flatMap { f ->
+            Regex("""^\s*(?:(?:internal|private|data|sealed|enum|fun)\s+)*(?:object|class|interface)\s+([A-Z]\w*)""", RegexOption.MULTILINE).findAll(f.readText()).map { it.groupValues[1] }
+        }.toSet()
+    }
+
+    /**
+     * The engine code a lab reaches: the engine classes its sources name, and the ones those classes name in turn (calc,
+     * guard and cohazard go through LabTools to CalcShortcut, VerdictGuard and CoHazard).
+     */
+    private fun engineReach(id: String): Set<String> {
+        val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { code(it.readText()) }
+        val direct = Regex("""team\.sopa\.boar\.engine\.[a-z.]+\.([A-Z]\w*)""").findAll(src).map { it.groupValues[1] }.toSet()
+        val next = direct.flatMap { name ->
+            File("src/main/java").walk().filter { it.name == "$name.kt" }.flatMap { f -> Regex("""\b([A-Z]\w*)\b""").findAll(code(f.readText())).map { it.groupValues[1] } }
+        }.filter { it in engineNames }.toSet()
+        return direct + next
+    }
+
+    @Test fun `every listed lab has tests, and each named test exists and runs`() {
         for ((id, tests) in manifest) {
             assertTrue("$id lists no tests", tests.isNotEmpty())
             for (name in tests) {
                 val f = testFiles[name]
                 assertTrue("$id: $name not found under engine or app tests", f != null)
-                assertTrue("$id: $name has no @Test", f!!.readText().contains("@Test"))
+                assertTrue("$id: $name has no @Test that runs (outside comments, not @Ignore'd)", runsTests(f!!.readText()))
             }
         }
+    }
+
+    @Test fun `each named test exercises engine code its lab reaches`() {
+        for ((id, tests) in manifest) {
+            val reach = engineReach(id)
+            assertTrue("$id reaches no engine code", reach.isNotEmpty())
+            for (name in tests) {
+                val used = Regex("""\b([A-Z]\w*)\b""").findAll(code(testFiles.getValue(name).readText())).map { it.groupValues[1] }.toSet()
+                assertTrue("$id: $name tests none of $reach", (used intersect reach).isNotEmpty())
+            }
+        }
+    }
+
+    @Test fun `the test checks catch a comment, an ignored test and another lab's test`() {
+        assertTrue(runsTests("class A {\n    @Test fun a() {}\n}"))
+        assertTrue(!runsTests("class A {\n    // @Test fun a() {}\n}"))
+        assertTrue(!runsTests("class A {\n    /* @Test */ fun a() {}\n}"))
+        assertTrue(!runsTests("class A {\n    @Ignore @Test fun a() {}\n}"))
+        assertTrue(!runsTests("class A {\n    @Test @Ignore fun a() {}\n}"))
+        assertTrue(!runsTests("@Ignore\nclass A {\n    @Test fun a() {}\n}"))
+        assertTrue(runsTests("class A {\n    @Ignore @Test fun a() {}\n    @Test fun b() {}\n}"))
+        // Lunar's reach doesn't include Vitals: naming VitalsTest for it would fail.
+        assertTrue("Vitals" !in engineReach("lunar"))
+        assertTrue("MoonPhase" in engineReach("lunar"))
+    }
+
+    @Test fun `Big Boar and Boar Wisp stay out of releases (adam, Nov 10)`() {
+        assertTrue("bmoe" !in manifest)
+        assertTrue("colibri" !in manifest)
     }
 
     @Test fun `every lab that starts on, or waits to, ships in a release`() {

@@ -50,6 +50,14 @@ class MoonPhaseTest {
         assertEquals("waxingCrescent", MoonPhase.nameKey(state(5.9)))
     }
 
+    @Test fun `the new moon window is a day either side, edges exclusive`() {
+        assertEquals(0, MoonPhase.index(state(0.0)))
+        assertEquals(0, MoonPhase.index(state(0.999)))
+        assertEquals(1, MoonPhase.index(state(1.0)))
+        assertEquals(7, MoonPhase.index(state(29.53 - 1.0)))
+        assertEquals(0, MoonPhase.index(state(29.53 - 0.999)))
+    }
+
     @Test fun `the southern sky mirrors the crescents`() {
         assertEquals("🌒", MoonPhase.emoji(state(3.0), south = false))
         assertEquals("🌘", MoonPhase.emoji(state(3.0), south = true))

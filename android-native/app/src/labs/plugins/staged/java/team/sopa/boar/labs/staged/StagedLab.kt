@@ -31,6 +31,8 @@ object StagedLab : LabPlugin {
     override val status = LabStatus.ALPHA
 
     override val stagedAnswers = true
+    /** The engine code this switch turns on (the chat runs it through AnswerModes); named so the release manifest can tie its tests to it. */
+    internal val engineCode = team.sopa.boar.engine.answer.StagedAnswer::class
 
     @Composable
     override fun Content() {

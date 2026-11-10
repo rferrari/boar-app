@@ -26,7 +26,8 @@ class AppSettings(private val file: File) {
     @Volatile private var data: JsonObject = load()
 
     private fun load(): JsonObject {
-        val text = runCatching { file.readText() }.getOrNull()
+        // A file that is there but can't be read (EACCES, an I/O error) is a failure too, never an empty file to overwrite.
+        val text = runCatching { file.readText() }.getOrElse { if (file.exists()) loadFailed = true; null }
         if (text.isNullOrBlank()) return JsonObject(emptyMap())
         return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { loadFailed = true; JsonObject(emptyMap()) }
     }

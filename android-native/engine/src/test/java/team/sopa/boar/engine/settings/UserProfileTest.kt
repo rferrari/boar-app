@@ -87,6 +87,18 @@ class UserProfileTest {
         assertEquals(UserProfile.PRO, s.userProfile)
     }
 
+    // A settings file that is there but can't be read (EACCES) is left alone too.
+    @Test fun `settling a file it can't read for permissions writes nothing`() {
+        val f = file("""{"themeId":"campfire"}""")
+        org.junit.Assume.assumeTrue(f.setReadable(false) && !f.canRead())  // root reads anything: skip there
+        try {
+            val s = AppSettings(f)
+            s.settleProfile(anyLabOn = false)
+            f.setReadable(true)
+            assertEquals("""{"themeId":"campfire"}""", f.readText())
+        } finally { f.setReadable(true) }
+    }
+
     // F1: the menu's bars and the debug log are Pro-only switches; an rc2 user with one on keeps it.
     @Test fun `an rc2 install with the menu's bars or the debug log on becomes Pro`() {
         assertEquals(UserProfile.PRO, AppSettings(file("""{"activeModelId":{"llm":"m"},"showDrawerStats":true}""")).settleProfile(false))

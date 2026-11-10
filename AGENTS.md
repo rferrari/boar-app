@@ -111,13 +111,13 @@ environment, or as a Gradle property with `-P`.
 | | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
 | | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
 | | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
-| | `boar.labs.released` | by task | `true` builds only the labs in `app/src/labs/released.txt` (each with its tests); release tasks do this by default, `false` keeps every lab |
+| | `boar.labs.released` | by task | `true` builds only the labs in `app/src/labs/released.txt` (each with its tests), code included; every build does this unless all its tasks are Debug or Devtest. `false` keeps every lab (a Labs build for advanced users) |
 | | `boar.labs.declassify` | empty | Classified labs that have code (`object=` and `classified=`) built as themselves, comma-separated; e.g. `dailyQuiz` |
 
 A Labs build that installs beside the normal BOAR:
 
 ```bash
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.versionName=2.0.0-rc1
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.labs.released=false -Pboar.versionName=2.0.0-rc1
 ```
 
 ## Boar Labs engines
