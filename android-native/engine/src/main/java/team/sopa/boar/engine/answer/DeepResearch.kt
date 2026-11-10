@@ -76,7 +76,6 @@ class DeepResearch(
     ): ResearchResult {
         timedOut = false
         lastMetrics = null
-        answerBudget = maxTokens
         // "Summarize our conversation in 3 bullet points" covered only the last two topics of nine (X6, Oct 16).
         // Earlier recaps and summaries are left out: read back, the next recap copied them instead of the topics (X6, Oct 16).
         val topics = conversation.filterNot { isConversationRecap(it.question) || isSummaryFollowUp(it.question) }
@@ -136,7 +135,7 @@ class DeepResearch(
         }
         val answer = synthesize(query, subResults, systemPrompt, maxTokens, onToken, answerLanguage, exchange?.let { it to asked })
         // A write-up with nothing in it, or only the sub-questions read back, is not an answer: write one from the sources.
-        if (!shouldStop() && onlyRepeats(AnswerText.stripThinking(answer), subQuestions)) {
+        if (!shouldStop() && onlyRepeats(AnswerText.stripThinking(answer), subQuestions, query)) {
             onRestart()
             val again = directAnswer(query, all, systemPrompt, maxTokens, onToken, answerLanguage)
             return ResearchResult(again, subQuestions, all, full(), timedOut, metrics = lastMetrics)
@@ -148,8 +147,6 @@ class DeepResearch(
     /** The latest stage's numbers: after the write-up, the write-up's. */
     private var lastMetrics: GenerationMetrics? = null
 
-    /** The answer's budget for this run: the extra room an internal step gets when a model spent its own on reasoning. */
-    private var answerBudget = 0
 
     /**
      * An internal step (not shown while it's written): its reasoning left out of what it returns, since the next step
@@ -160,7 +157,9 @@ class DeepResearch(
     private suspend fun internal(system: String, user: String, nPredict: Int, temperature: Float): String {
         val first = AnswerText.splitThinking(stage(system, user, nPredict, temperature, null))
         if (first.answer.isNotBlank() || (first.thinking == null && !first.thinkingInProgress)) return first.answer.trim()
-        return AnswerText.stripThinking(stage(system, user, nPredict + answerBudget.coerceAtLeast(nPredict), temperature, null)).trim()
+        // The retry gets RETRY_ROOM more, not the whole answer budget: with 2048 a reasoning model spent up to 2348 tokens on
+        // each step and Deep Research took 9 min 52 s (X6, Nov 10).
+        return AnswerText.stripThinking(stage(system, user, nPredict + RETRY_ROOM, temperature, null)).trim()
     }
 
     private suspend fun stage(system: String, user: String, nPredict: Int, temperature: Float, onToken: ((String) -> Unit)?, timeoutMs: Long? = timeoutFor(nPredict)): String {
@@ -256,6 +255,8 @@ class DeepResearch(
     companion object {
         /** Per-sub-question context budget: three of these plus the synthesis still prefill fast. */
         const val SUB_QUESTION_CONTEXT_TOKENS = 600
+        /** The extra tokens an internal step gets on its one retry, after it spent its own budget reasoning. */
+        const val RETRY_ROOM = 512
         private val LIST_MARK = Regex("^[-*\\d.)${Js.WS.removePrefix("[").removeSuffix("]")}]+")
 
         /** The earlier question and the answer to it, for a follow-up. */
@@ -382,13 +383,16 @@ class DeepResearch(
          * A write-up that isn't an answer: empty, or the [subQuestions] read back with next to nothing else (one at least
          * found in it, and fewer than 20 letters or digits left once they're taken out). A short real answer stays.
          */
-        fun onlyRepeats(answer: String, subQuestions: List<String>): Boolean {
+        fun onlyRepeats(answer: String, subQuestions: List<String>, query: String? = null): Boolean {
             fun norm(s: String) = s.lowercase().replace(Regex("[^\\p{L}\\p{N}]+"), " ").trim()
             val whole = norm(answer)
             if (whole.isEmpty()) return true
             var rest = " $whole "
             var found = false
-            for (q in subQuestions.map(::norm).filter { it.isNotEmpty() }.sortedByDescending { it.length }) {
+            // A sub-question that is the question itself (one that wasn't split) doesn't count: a short real answer often
+            // restates it ("The capital of Australia is Canberra.").
+            val asked = query?.let(::norm)
+            for (q in subQuestions.map(::norm).filter { it.isNotEmpty() && it != asked }.sortedByDescending { it.length }) {
                 if (" $q " in rest) { found = true; rest = rest.replace(" $q ", " ") }
             }
             return found && rest.count { it.isLetterOrDigit() } < 20

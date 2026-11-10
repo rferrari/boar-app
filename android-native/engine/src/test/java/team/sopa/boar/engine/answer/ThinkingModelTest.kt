@@ -60,7 +60,8 @@ class ThinkingModelTest {
         } }
         val r = research(gen).run("Canberra: why Australia built a new capital", null, null, 1024)
         val decompose = gen.calls.filter { it.first.startsWith("You plan") }
-        assertEquals(listOf(150, 150 + 1024), decompose.map { it.third })
+        // The retry gets 512 more, not the answer's 1024 (9 min 52 s on the X6 with 2048).
+        assertEquals(listOf(150, 150 + DeepResearch.RETRY_ROOM), decompose.map { it.third })
         assertEquals(2, r.subQuestions.size)
         assertTrue(r.answer.contains("compromise"))
     }
@@ -113,6 +114,15 @@ class ThinkingModelTest {
         assertTrue(DeepResearch.onlyRepeats("1. Why a compromise? 2. What security concerns?", subs))
         assertFalse(DeepResearch.onlyRepeats("ok", subs))
         assertFalse(DeepResearch.onlyRepeats("Why a compromise? Because Sydney and Melbourne both wanted it [1].", subs))
+    }
+
+    @Test fun `an answer that restates an unsplit question is an answer`() {
+        // The split kept the question as its only sub-question; a short answer that restates it is real (validator T-1).
+        val q = "What is the capital of Australia?"
+        assertFalse(DeepResearch.onlyRepeats("The capital of Australia is Canberra.", listOf(q), q))
+        assertFalse(DeepResearch.onlyRepeats("What is the capital of Australia? Canberra.", listOf(q), q))
+        assertTrue(DeepResearch.onlyRepeats("", listOf(q), q))
+        assertTrue(DeepResearch.onlyRepeats("Why a compromise?\nWhat security concerns?", listOf("Why a compromise?", "What security concerns?"), "Canberra: why a new capital"))
     }
 
     @Test fun `the title of a thinking model is its answer, or the question's start`() = runBlocking {
