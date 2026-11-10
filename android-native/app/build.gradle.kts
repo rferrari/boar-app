@@ -31,13 +31,16 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
  */
 val releasedLabs: Set<String> = file("src/labs/released.txt").takeIf { it.isFile }?.readLines().orEmpty()
     .map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }.map { it.substringBefore(':').trim() }.toSet()
-val releaseLabsOnly: Boolean = (providers.gradleProperty("boar.labs.released").orNull?.trim()?.toBoolean())
-    ?: gradle.startParameter.taskNames.let { tasks ->
-        // `clean assembleDebug` and `aD` stay full debug builds (validator R-1): a task naming Release, or none naming
-        // Debug or Devtest (assemble, build, bundle, aR, no task at all).
-        tasks.any { it.contains("Release", ignoreCase = true) || it == "aR" || it.endsWith(":aR") } ||
-            tasks.none { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) || t == "aD" || t.endsWith(":aD") }
-    }
+val releaseLabsOnly: Boolean = providers.gradleProperty("boar.labs.released").orNull?.trim()?.let { v ->
+    // Only true or false (validator R-4: "1", "yes" or a typo read as false and kept every lab without a word).
+    when (v.lowercase()) { "true" -> true; "false" -> false; else -> error("-Pboar.labs.released must be true or false, not \"$v\"") }
+} ?: gradle.startParameter.taskNames.let { tasks ->
+    // Release mode when any task builds a release variant: one naming Release (or aR), a bare assemble, build or bundle
+    // (validator R-3: "assembleDebug assemble" built a release with every lab), or none naming Debug or Devtest (or aD).
+    val name = { t: String -> t.substringAfterLast(':') }
+    tasks.any { it.contains("Release", ignoreCase = true) || name(it) in setOf("aR", "assemble", "build", "bundle") } ||
+        tasks.none { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) || name(t) == "aD" }
+}
 /** In this build: every lab, or on a release build the listed ones and the code-free teasers. */
 fun LabPluginDir.inBuild(): Boolean = !releaseLabsOnly || id in releasedLabs || obj == null
 
