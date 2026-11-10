@@ -54,7 +54,7 @@
     <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BOAR.</string>
     <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
-    <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it.</string>
+    <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it, or the version to copy it with the plugins that are on, for a bug report.</string>
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
@@ -706,4 +706,6 @@
     <string name="native_tweaks_sourcesAbove" formatted="false">Above the answer</string>
     <string name="native_staged_moreSources" formatted="false">+{{count}} sources</string>
     <string name="native_staged_lessSources" formatted="false">Fewer sources ‹</string>
+    <string name="native_about_plugins" formatted="false">Plugins ({{count}}): {{list}}</string>
+    <string name="native_about_noPlugins" formatted="false">Plugins: none</string>
 </resources>
