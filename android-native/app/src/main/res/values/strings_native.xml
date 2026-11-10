@@ -694,4 +694,5 @@
     <string name="native_settings_profile_proNote" formatted="false">Everything, plus Advanced tweaks, technical details and Boar Labs settings. Below Pro, these go back to Auto; your choices return when you pick Pro again (Reset settings clears them).</string>
     <string name="native_settings_profile_updated" formatted="false">New in this version: profiles. BOAR picked {{profile}} from your settings. Change it any time.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Technical details (live speed at the top of the chat, the answer\'s performance details, the menu\'s memory and storage bars) are now in Pro.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">These labs are now on: {{labs}}. Turn them off in Boar Labs, in the Pro profile.</string>
 </resources>

@@ -694,4 +694,5 @@
     <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações do Boar Labs. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
     <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Os detalhes técnicos (a velocidade ao vivo no topo da conversa, os detalhes de desempenho da resposta, as barras de memória e armazenamento do menu) agora ficam no Pro.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">Estes labs agora estão ligados: {{labs}}. Desligue no Boar Labs, no perfil Pro.</string>
 </resources>

@@ -26,6 +26,8 @@ import team.sopa.boar.ui.theme.Boar
 object StagedLab : LabPlugin {
     override val id = "staged"
     override val emoji = "🪜"
+    // TODO(rc3): its own icon. An existing Boar avatar stands in for now (adam, Nov 10).
+    override val art = team.sopa.boar.R.drawable.truffle_elder
     override val status = LabStatus.ALPHA
 
     override val stagedAnswers = true

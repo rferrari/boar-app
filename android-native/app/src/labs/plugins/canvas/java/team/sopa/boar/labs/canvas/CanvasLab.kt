@@ -58,6 +58,8 @@ import java.util.Locale
 object CanvasLab : LabPlugin {
     override val id = "canvas"
     override val emoji = "📊"
+    // TODO(rc3): its own icon. An existing Boar avatar stands in for now (adam, Nov 10).
+    override val art = team.sopa.boar.R.drawable.truffle_pixel_hacker
     override val status = LabStatus.ALPHA
 
     @Composable

@@ -509,6 +509,9 @@ private fun ProfileSection(services: BoarServices, profile: UserProfile, onPick:
         if (note) Note(t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
             // Below Pro, say what moved out of sight: rc2 showed technical details by default.
             if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "")
+        // An update switches on the default-on labs nobody had switched: name them, and say where to turn them off.
+        val updatedLabs = remember { team.sopa.boar.labs.LabPrefs.turnedOnByUpdate() }
+        if (note && updatedLabs.isNotEmpty()) Note(t("native.settings.profile.labsOn", "labs" to updatedLabs.map { t("native.labs.$it.title") }.joinToString(", ")))
         Choices(null, UserProfile.entries.map { it to t("native.settings.profile.${it.key}") }, profile) { onPick(it) }
         Note(t("native.settings.profile.${profile.key}Note"))
     }

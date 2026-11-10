@@ -178,6 +178,15 @@ object LabPrefs {
      * (UserProfile.forUpdate). Default-on labs don't count, or every update would become Pro.
      */
     fun anyChosenOn() = chosenOn
+
+    /** Default-on labs this install never switched itself: on because of the update (LabDefaults.turnedOnByUpdate). */
+    fun turnedOnByUpdate(): List<String> {
+        val p = prefs ?: return emptyList()
+        if (!labsOn) return emptyList()
+        return team.sopa.boar.engine.labs.LabDefaults.turnedOnByUpdate(LabRegistry.visible.map { it.id }) { id ->
+            if (p.contains("enabled.$id")) p.getBoolean("enabled.$id", false) else null
+        }
+    }
     private var chosenOn = false
 
     /** The user is on Pro: Boar Labs' own places (menu, list, setup page, tour card) show (LabDefaults.managementShown). */

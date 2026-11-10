@@ -16,6 +16,12 @@ object LabDefaults {
      */
     val PENDING_ALPHA: Set<String> = setOf("compass", "lunar", "staged", "guard")
 
+    /**
+     * The labs an update switched on: default-on labs the user never switched (no stored choice), in [ON]'s order of
+     * [ids]. The one-time update note names them, so nobody finds a lab on without being told.
+     */
+    fun turnedOnByUpdate(ids: List<String>, stored: (String) -> Boolean?): List<String> = ids.filter { it in ON && stored(it) == null }
+
     /** The switch a lab shows: the user's own choice when there is one, else the default. */
     fun switchOf(id: String, stored: Boolean?): Boolean = stored ?: (id in ON)
 

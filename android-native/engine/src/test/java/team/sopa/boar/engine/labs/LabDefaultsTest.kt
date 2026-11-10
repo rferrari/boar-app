@@ -44,6 +44,30 @@ class LabDefaultsTest {
         assertTrue(LabDefaults.switchOf("calc", null))
     }
 
+    @Test fun `the update note names the default-on labs the user never switched`() {
+        val ids = listOf("pulse", "calc", "facts", "bmoe", "image", "compass", "printer")
+        val stored = mapOf("calc" to false, "facts" to true, "bmoe" to true)
+        assertEquals(listOf("pulse", "image", "printer"), LabDefaults.turnedOnByUpdate(ids) { stored[it] })
+    }
+
+    @Test fun `an update that changes nothing names no lab`() =
+        assertEquals(emptyList<String>(), LabDefaults.turnedOnByUpdate(LabDefaults.ON.toList()) { false })
+
+    @Test fun `the update note's lab line is in English and Portuguese`() {
+        for (dir in listOf("values", "values-pt")) {
+            val xml = File("../app/src/main/res/$dir/strings_native.xml").readText()
+            val line = Regex("""<string name="native_settings_profile_labsOn"[^>]*>(.*?)</string>""").find(xml)?.groupValues?.get(1)
+            assertTrue("$dir: native_settings_profile_labsOn", line != null && line.contains("{{labs}}"))
+        }
+    }
+
+    @Test fun `Staged Answers and Canvas show an avatar until they have their own icon`() {
+        for ((id, art) in listOf("staged" to "truffle_elder", "canvas" to "truffle_pixel_hacker")) {
+            val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
+            assertTrue(id, src.contains("override val art = team.sopa.boar.R.drawable.$art"))
+        }
+    }
+
     @Test fun `only Pro manages labs`() {
         assertFalse(LabDefaults.managementShown(UserProfile.SIMPLE))
         assertFalse(LabDefaults.managementShown(UserProfile.EXPLORER))
