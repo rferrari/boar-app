@@ -1,0 +1,193 @@
+package team.sopa.boar.engine.canvas
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/** The merged visual: the contract, grounding of every number and label, and what the app computes. */
+class VisualTest {
+    private val peaks = "Mount Everest is 8,849 m high, K2 is 8,611 m and Kangchenjunga 8,586 m. Everest was first climbed on 29 May 1953."
+    private val pt = "A população do Brasil é de 203,1 milhões; a Rússia tem 146.4 milhões e uma área de 17.098.246 km²."
+
+    private fun ok(raw: String, answer: String, user: String = ""): Visual =
+        (Visual.parse(raw, answer, user) as? Visual.Parsed.Ok)?.visual ?: error("rejected: ${Visual.parse(raw, answer, user)}")
+    private fun reason(raw: String, answer: String, user: String = "") = (Visual.parse(raw, answer, user) as? Visual.Parsed.Rejected)?.reason
+
+    // ── The contract ──
+
+    @Test fun `bars, line and share read as one series, pie as share`() {
+        val items = """[{"label":"Everest","value":8849},{"label":"K2","value":8611},{"label":"Kangchenjunga","value":8586}]"""
+        for ((type, kind) in listOf("bars" to Visual.SeriesKind.BARS, "line" to Visual.SeriesKind.LINE, "share" to Visual.SeriesKind.SHARE, "pie" to Visual.SeriesKind.SHARE)) {
+            val v = ok("""{"type":"$type","title":"Highest peaks","unit":"m","items":$items}""", peaks) as Visual.Series
+            assertEquals(type, kind, v.kind)
+            assertEquals(listOf(8849.0, 8611.0, 8586.0), v.items.map { it.second })
+            assertEquals("m", v.unit)
+        }
+    }
+
+    @Test fun `a card saved before reads the same (CardSpec shapes)`() {
+        val old = listOf(
+            """{"type":"table","title":"Peaks","columns":["Peak","Height"],"rows":[["Everest","8,849 m"],["K2","8,611 m"]]}""",
+            """{"type":"bars","title":"Peaks","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":"8,611"}]}""",
+            """{"type":"steps","title":"Climb","steps":["Everest was climbed","in May 1953"]}""",
+            """{"type":"compare","title":"Two peaks","items":[{"name":"Everest","points":["8,849 m high"]},{"name":"K2","points":["8,611 m"]}]}""",
+            """{"type":"facts","title":"Everest","facts":[{"label":"Height","value":"8,849 m"},{"label":"First climbed","value":"29 May 1953"}]}""",
+        )
+        for (raw in old) {
+            assertTrue(raw, CardSpec.parse(raw, peaks) is CardSpec.Parsed.Ok)
+            assertTrue(raw, Visual.parse(raw, peaks) is Visual.Parsed.Ok)
+        }
+    }
+
+    @Test fun `the reply may come in a fence, after reasoning, or with a brace in a string`() {
+        val raw = "<think>{\"type\":\"bars\"} maybe</think>Here it is:\n```json\n{\"type\":\"facts\",\"title\":\"Everest {tallest}\",\"facts\":[{\"label\":\"Height\",\"value\":\"8,849 m\"}]}\n```"
+        assertEquals("Everest {tallest}", ok(raw, peaks).title)
+    }
+
+    @Test fun `none, reserved kinds, unknown types, broken JSON and empty data are refused`() {
+        assertEquals(Visual.Reason.NOTHING, reason("""{"type":"none"}""", peaks))
+        for (k in listOf("timeline", "slider", "quiz", "converter")) assertEquals(k, Visual.Reason.RESERVED, reason("""{"type":"$k","items":[]}""", peaks))
+        assertEquals(Visual.Reason.UNKNOWN_TYPE, reason("""{"type":"map"}""", peaks))
+        assertEquals(Visual.Reason.NO_JSON, reason("I think a table would help.", peaks))
+        assertEquals(Visual.Reason.NO_JSON, reason("""{"type":"bars","items":[""", peaks))
+        assertEquals(Visual.Reason.EMPTY, reason("""{"type":"bars","items":[{"label":"Everest","value":8849}]}""", peaks))
+        assertEquals(Visual.Reason.EMPTY, reason("""{"type":"steps","steps":["only one"]}""", peaks))
+    }
+
+    @Test fun `a share needs parts that can make a whole`() {
+        assertEquals(Visual.Reason.BAD_SHARE, reason("""{"type":"share","items":[{"label":"Everest","value":-8849},{"label":"K2","value":8611}]}""", "Everest -8849 K2 8611"))
+        assertEquals(Visual.Reason.BAD_SHARE, reason("""{"type":"share","items":[{"label":"Everest","value":0},{"label":"K2","value":0}]}""", "Everest 0 K2 0"))
+        val nine = (1..9).joinToString(",") { """{"label":"Everest","value":$it}""" }
+        assertTrue(Visual.parse("""{"type":"share","items":[$nine]}""", "Everest 1 2 3 4 5 6 7 8 9") is Visual.Parsed.Ok)  // cut to 8 parts
+        assertEquals(8, (ok("""{"type":"share","items":[$nine]}""", "Everest 1 2 3 4 5 6 7 8 9") as Visual.Series).items.size)
+    }
+
+    // ── Grounding: numbers ──
+
+    @Test fun `a number the answer doesn't write is refused, with the number`() {
+        val r = Visual.parse("""{"type":"bars","items":[{"label":"Everest","value":8849},{"label":"K2","value":8612}]}""", peaks)
+        assertEquals(Visual.Parsed.Rejected(Visual.Reason.INVENTED_NUMBERS, "8612"), r)
+    }
+
+    @Test fun `numbers inside text are checked too`() {
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"facts","facts":[{"label":"Height","value":"8,850 m"}]}""", peaks))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"table","columns":["Peak","Height"],"rows":[["Everest","9,000 m"],["K2","8,611 m"]]}""", peaks))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"steps","steps":["Everest climbed in 1952","then K2"]}""", peaks))
+    }
+
+    @Test fun `a computed total or percentage is refused`() {
+        // 8849 + 8611 = 17460: the model added; the app computes totals, not the model.
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"facts","facts":[{"label":"Everest and K2","value":"17,460 m"}]}""", peaks))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"facts","facts":[{"label":"Everest share","value":"51%"}]}""", peaks))
+    }
+
+    @Test fun `numbers written in any usual way are grounded`() {
+        val ns = VisualCheck.numbersIn(pt)
+        assertTrue(203.1 in ns); assertTrue(203_100_000.0 in ns)
+        assertTrue(146.4 in ns); assertTrue(146_400_000.0 in ns)
+        assertTrue(17_098_246.0 in ns)
+        assertTrue(1234.0 in VisualCheck.numbersIn("1 234 people"))
+        assertTrue(1234.0 in VisualCheck.numbersIn("1,234 people"))
+        assertTrue(3.5 in VisualCheck.numbersIn("3,5 graus"))
+        assertTrue(12.0 in VisualCheck.numbersIn("12% of it"))
+        assertTrue(1_500_000.0 in VisualCheck.numbersIn("1.5 million people"))
+        assertTrue(9.5 in VisualCheck.numbersIn("magnitude M9.5 quake"))
+        // A list stays separate numbers, and a date's dashes aren't minus signs.
+        assertEquals(setOf(1913.0, 1914.0), VisualCheck.numbersIn("in 1913, 1914").filter { it > 1000 }.toSet())
+        val date = VisualCheck.numbersIn("on 1913-03-12")
+        assertTrue(3.0 in date && 12.0 in date && -3.0 !in date)
+        assertTrue(-4.0 in VisualCheck.numbersIn("it fell to -4 degrees"))
+    }
+
+    @Test fun `PT answers ground their own numbers`() {
+        val v = ok("""{"type":"bars","title":"População","unit":"milhões","items":[{"label":"Brasil","value":203.1},{"label":"Rússia","value":146.4}]}""", pt)
+        assertEquals(2, (v as Visual.Series).items.size)
+    }
+
+    @Test fun `a year is grounded by a full date, and a full date needs its day`() {
+        assertNull(VisualCheck.check(Visual.Facts("", listOf("Everest first climbed" to "1953")), peaks))
+        assertNull(VisualCheck.check(Visual.Facts("", listOf("Everest first climbed" to "29 May 1953")), peaks))
+        assertNull(VisualCheck.check(Visual.Facts("", listOf("Everest first climbed" to "1953")), "Everest was climbed on 1953-05-29."))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, VisualCheck.check(Visual.Facts("", listOf("Everest first climbed" to "28 May 1953")), peaks)?.first)
+    }
+
+    @Test fun `the user's own numbers count`() {
+        val v = ok("""{"type":"bars","items":[{"label":"Monday","value":5},{"label":"Tuesday","value":8}]}""", "Here is the chart.", "Monday:5, Tuesday:8")
+        assertEquals(2, (v as Visual.Series).items.size)
+    }
+
+    // ── Grounding: labels ──
+
+    @Test fun `a label with no word from the answer is refused`() {
+        val r = Visual.parse("""{"type":"bars","items":[{"label":"Everest","value":8849},{"label":"Aconcagua","value":8611}]}""", peaks)
+        assertEquals(Visual.Parsed.Rejected(Visual.Reason.UNGROUNDED_LABELS, "Aconcagua"), r)
+    }
+
+    @Test fun `labels match across plurals, accents and case`() {
+        assertNull(VisualCheck.check(Visual.Steps("", listOf("Volcanoes erupt", "Magma rises")), "A volcano forms where magma rises."))
+        assertNull(VisualCheck.check(Visual.Facts("", listOf("POPULACAO" to "203,1 milhões")), pt))
+        assertNull(VisualCheck.check(Visual.Facts("", listOf("Rússia" to "146.4 milhões")), pt))
+    }
+
+    @Test fun `headings are the model's own words and aren't checked, their numbers are`() {
+        assertNull(VisualCheck.check(Visual.Facts("A wholly new heading", listOf("Height" to "8,849 m")), peaks))
+        assertNull(VisualCheck.check(Visual.Table("", listOf("Peak", "Elevation"), listOf(listOf("Everest", "8,849 m"))), peaks))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, VisualCheck.check(Visual.Facts("", listOf("Top 3 peaks" to "Everest")), peaks)?.first)
+        assertEquals(Visual.Reason.UNGROUNDED_LABELS, VisualCheck.check(Visual.Facts("", listOf("Height" to "Aconcagua")), peaks)?.first)
+    }
+
+    // ── What the app computes ──
+
+    @Test fun `shares add up to exactly 100`() {
+        assertEquals(listOf(34, 33, 33), VisualScale.percents(listOf(1.0, 1.0, 1.0)))
+        assertEquals(100, VisualScale.percents(listOf(8849.0, 8611.0, 8586.0)).sum())
+        assertEquals(listOf(13, 21, 26, 40), VisualScale.percents(listOf(5.0, 8.0, 10.0, 15.5)))
+        assertEquals(listOf(0, 0), VisualScale.percents(listOf(0.0, 0.0)))
+    }
+
+    @Test fun `axes start at zero for bars and fit the data for a line, at round steps`() {
+        val bars = VisualScale.axis(listOf(8586.0, 8611.0, 8849.0), fromZero = true)
+        assertEquals(0.0, bars.min, 0.0); assertEquals(10000.0, bars.max, 0.0); assertEquals(2500.0, bars.step, 0.0)
+        val line = VisualScale.axis(listOf(8586.0, 8611.0, 8849.0), fromZero = false)
+        assertTrue(line.min <= 8586 && line.min > 8000); assertTrue(line.max >= 8849)
+        assertTrue(listOf(1.0, 2.0, 2.5, 5.0).any { kotlin.math.abs(line.step / Math.pow(10.0, kotlin.math.floor(kotlin.math.log10(line.step))) - it) < 1e-9 })
+        assertEquals(listOf(0.0, 2500.0, 5000.0, 7500.0, 10000.0), bars.ticks)
+        val flat = VisualScale.axis(listOf(5.0, 5.0), fromZero = false)
+        assertTrue(flat.max > flat.min)
+    }
+
+    @Test fun `the same data switches view with no new model call`() {
+        val s = Visual.Series("Peaks", Visual.SeriesKind.BARS, "m", listOf("Everest" to 8849.0, "K2" to 8611.0, "Kangchenjunga" to 8586.0))
+        assertEquals(listOf("bars", "line", "share", "table"), VisualScale.kinds(s))
+        assertEquals(listOf("bars", "share", "table"), VisualScale.kinds(s.copy(items = s.items.take(2))))
+        assertEquals(listOf("bars", "line", "table"), VisualScale.kinds(s.copy(items = listOf("a" to -1.0, "b" to 2.0, "c" to 3.0))))
+        assertEquals(Visual.SeriesKind.LINE, VisualScale.asKind(s, Visual.SeriesKind.LINE)?.kind)
+        assertNull(VisualScale.asKind(s.copy(items = listOf("a" to -1.0, "b" to 2.0)), Visual.SeriesKind.SHARE))
+        assertEquals(listOf(listOf("Everest", "8849"), listOf("K2", "8611"), listOf("Kangchenjunga", "8586")), VisualScale.asTable(s).rows)
+    }
+
+    @Test fun `copy gives plain Markdown, shares with the app's percents`() {
+        val share = Visual.Series("Stock", Visual.SeriesKind.SHARE, null, listOf("Monday" to 5.0, "Tuesday" to 8.0, "Wednesday" to 10.0, "Thursday" to 15.5))
+        assertEquals("**Stock**\n\n- Monday: 5 (13%)\n- Tuesday: 8 (21%)\n- Wednesday: 10 (26%)\n- Thursday: 15.5 (40%)", VisualScale.markdown(share))
+        val table = Visual.Table("", listOf("Peak", "Height"), listOf(listOf("Everest", "8,849 m")))
+        assertEquals("| Peak | Height |\n| --- | --- |\n| Everest | 8,849 m |", VisualScale.markdown(table))
+        assertEquals("1. a\n2. b", VisualScale.markdown(Visual.Steps("", listOf("a", "b"))))
+    }
+
+    @Test fun `numbers print without trailing zeros or exponents`() {
+        assertEquals("1500", VisualScale.format(1500.0))
+        assertEquals("3.25", VisualScale.format(3.25))
+        assertEquals("203100000", VisualScale.format(2.031e8))
+        assertEquals("-4", VisualScale.format(-4.0))
+    }
+
+    @Test fun `the prompt asks for data, never for computed numbers`() {
+        assertTrue(Visual.PROMPT.contains("\"type\":\"line\""))
+        assertTrue(Visual.PROMPT.contains("\"type\":\"share\""))
+        assertTrue(Visual.PROMPT.contains("no percentages"))
+        assertTrue(Visual.PROMPT.contains("{\"type\":\"none\"}"))
+        assertFalse(Visual.PROMPT.contains("timeline"))
+    }
+}
