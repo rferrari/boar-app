@@ -633,16 +633,23 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             savePartial(force = true)
-            fun onPiece(piece: String) {
+            /** One streamed piece: [edit] changes the text shown (appends the piece, or rebuilds it). */
+            fun onText(edit: (StringBuilder) -> Unit) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
-                text.append(piece)
+                edit(text)
                 savePartial()
                 val elapsed = (System.nanoTime() - firstAt) / 1e9
                 _state.update { s ->
                     s.copy(activity = Activity.Generating, liveTokPerSec = if (elapsed > 0.5) tokens / elapsed else s.liveTokPerSec,
                         messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString()) else it })
                 }
+            }
+            fun onPiece(piece: String) = onText { it.append(piece) }
+            /** A write-up thrown away for a new one (Deep Research's fallback, Staged's redo): the screen starts empty again. */
+            fun restartText() {
+                text.setLength(0)
+                _state.update { s -> s.copy(messages = s.messages.map { if (it.id == answerId) it.copy(text = "") else it }) }
             }
             // Boar Staged answers: the default path only (not Personal Files, Deep Research, a recap or small talk). It loads
             // the model itself, after the search, so the sources show while a cold model loads.
@@ -674,6 +681,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     path = "staged"
                     val (introReminder, detailsReminder) = stagedReminders(style, smallModel)
                     var view = StagedView(withPassages = shortReason != null)
+                    val stagedIntro = StringBuilder()
+                    val stagedDetails = StringBuilder()
                     fun show(v: StagedView, shownSources: List<Source>? = null) {
                         view = v
                         stagedView = v
@@ -701,10 +710,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                                     show(view.copy(keyFacts = keyFactViews(e.keyFacts, e.sources)), groupSources(e.sources))
                                 }
                                 is StagedEvent.Piece -> {
-                                    // The details start on their own paragraph, under the intro.
-                                    if (e.step == StagedStep.DETAILS && text.isNotEmpty() && !text.endsWith("\n\n")) text.append("\n\n")
-                                    onPiece(e.text)
+                                    // The intro and the details kept apart and shown joined, as they're saved: one paragraph
+                                    // break between them, not one per piece (one token per line, X6, Nov 9).
+                                    if (e.step == StagedStep.DETAILS) stagedDetails.append(e.text) else stagedIntro.append(e.text)
+                                    onText { it.setLength(0); it.append(team.sopa.boar.engine.answer.StagedAnswer.join(stagedIntro.toString(), stagedDetails.toString())) }
                                 }
+                                is StagedEvent.Restart -> { stagedIntro.setLength(0); stagedDetails.setLength(0); restartText() }
                                 is StagedEvent.MoreSources -> {
                                     sources = sources + e.added
                                     show(view.copy(added = view.added + e.added.size), groupSources(sources))
@@ -733,6 +744,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
                         conversation = conversation,
+                        onRestart = ::restartText,
                     )
                     sources = r.citations
                     // Written from the last answer: its numbers [n] are that answer's sources.

@@ -53,6 +53,11 @@ sealed interface StagedEvent {
     /** What the search found, before any model runs: the passages ([1]..[n]) and the sentences that answer best. */
     data class Cards(val sources: List<Chunk>, val keyFacts: List<KeyFact>, val retrievalMs: Double) : StagedEvent
     data class Piece(val step: StagedStep, val text: String) : StagedEvent
+    /**
+     * The intro so far is dropped and written again as the whole answer (a model that reasons first spent the short
+     * budget on its reasoning): clear what's shown.
+     */
+    data object Restart : StagedEvent
     /** Passages the search between the steps added, numbered after the first ones. */
     data class MoreSources(val added: List<Chunk>) : StagedEvent
     /** Numbers in the answer that no source (nor the question) has. */
@@ -73,7 +78,7 @@ sealed interface StagedEvent {
         val stopped: Boolean = false,
     ) : StagedEvent {
         /** The answer as saved: the intro, then the details. */
-        val text: String get() = listOf(intro.trim(), details.trim()).filter { it.isNotEmpty() }.joinToString("\n\n")
+        val text: String get() = StagedAnswer.join(intro, details)
     }
 }
 
@@ -122,10 +127,23 @@ class StagedAnswer(
             emit(StagedEvent.Piece(StagedStep.INTRO, piece))
         }
         times = times.copy(introDoneMs = now())
-        val introText = AnswerText.stripThinking(intro.toString()).trim()
+        var introText = AnswerText.stripThinking(intro.toString()).trim()
+        var fullAnswer = false
+        // Only reasoning came back (LFM2.5 spent the 160 tokens inside <think>, X6, Nov 10): write it again as the whole
+        // answer, the normal answer's prompt and budget, with no details step after it.
+        if (introText.isEmpty() && intro.isNotBlank() && !shouldStop()) {
+            emit(StagedEvent.Restart)
+            intro.setLength(0)
+            fullAnswer = true
+            metrics = generate(session, prompt(session, req.query, sources, req.systemPrompt, req.history, req.detailsReminder, req.enableThinking), req.maxTokens) { piece ->
+                intro.append(piece)
+                emit(StagedEvent.Piece(StagedStep.INTRO, piece))
+            }
+            introText = AnswerText.stripThinking(intro.toString()).trim()
+        }
 
         val details = StringBuilder()
-        if (req.detailsReminder != null && introText.isNotEmpty() && !shouldStop()) {
+        if (req.detailsReminder != null && introText.isNotEmpty() && !fullAnswer && !shouldStop()) {
             if (sources.isNotEmpty()) {
                 emit(StagedEvent.Step(StagedStep.RESEARCH))
                 val added = moreSources(req.query, introText, sources)
@@ -187,6 +205,13 @@ class StagedAnswer(
     companion object {
         /** The intro's cap: Succinct's two or three sentences with room to finish one. */
         const val INTRO_TOKENS = 160
+
+        /**
+         * The answer as shown and saved: the intro, then the details on their own paragraph. The chat calls it while the
+         * pieces stream in, so the text reads as it will once done (a break added per piece put one token per line, X6).
+         */
+        fun join(intro: String, details: String): String =
+            listOf(intro.trim(), details.trim()).filter { it.isNotEmpty() }.joinToString("\n\n")
         /** Passages the research step may add. */
         const val MORE_SOURCES = 2
         const val KEY_FACTS = 3
