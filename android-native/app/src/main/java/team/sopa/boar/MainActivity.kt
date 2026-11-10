@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
         services.pinLock.onChange = { runOnUiThread { applySecure() } }
         team.sopa.boar.labs.LabHooks.init(this)
         // An install from before profiles (rc2) gets its profile once, from its tweaks and its labs (UserProfile.forUpdate).
-        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyEnabled())
+        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyEnabled(), boarverseOn = services.vault.enabled.value)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }

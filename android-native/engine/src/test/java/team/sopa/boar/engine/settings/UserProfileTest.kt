@@ -55,13 +55,55 @@ class UserProfileTest {
 
     // ── Fresh install and update ──
 
-    @Test fun `a fresh install starts on Simple`() {
+    @Test fun `a fresh install starts on Simple, quietly`() {
         val f = file(null)
         val s = AppSettings(f)
-        assertEquals(UserProfile.SIMPLE, s.userProfile)
+        assertEquals(UserProfile.SIMPLE, s.settleProfile(anyLabOn = false))
         assertTrue(s.profileSettled)
         assertFalse(s.profileNotePending)
         assertEquals(UserProfile.SIMPLE, AppSettings(f).userProfile)
+    }
+
+    // F4: opening settings never writes, so a file it can't read stays for recovery.
+    @Test fun `opening settings writes nothing, even a file it can't read`() {
+        for (text in listOf(null, "", "{\"themeId\":\"camp", "[]")) {
+            val f = file(text)
+            AppSettings(f)
+            assertEquals(text, if (f.exists()) f.readText() else null)
+        }
+    }
+
+    // F1: the menu's bars and the debug log are Pro-only switches; an rc2 user with one on keeps it.
+    @Test fun `an rc2 install with the menu's bars or the debug log on becomes Pro`() {
+        assertEquals(UserProfile.PRO, AppSettings(file("""{"activeModelId":{"llm":"m"},"showDrawerStats":true}""")).settleProfile(false))
+        assertEquals(UserProfile.PRO, AppSettings(file("""{"activeModelId":{"llm":"m"},"debugLogEnabled":true}""")).settleProfile(false))
+        assertEquals(UserProfile.SIMPLE, AppSettings(file("""{"activeModelId":{"llm":"m"},"showDrawerStats":false,"debugLogEnabled":false}""")).settleProfile(false))
+    }
+
+    // F2: something only Explorer shows, changed in rc2, keeps its row in sight.
+    @Test fun `an rc2 install with an Explorer setting changed becomes Explorer`() {
+        for (changed in listOf(""""screenOrientation":"landscape"""", """"hapticsEnabled":true""", """"personalityId":"succinct"""", """"maxTokens":2048""",
+                """"voiceInputEnabled":false""", """"autoSummarize":false""", """"autoGenerateTitles":false""", """"confirmChatDelete":false""",
+                """"historyTurnThreshold":12""", """"maxSavedSessions":50""")) {
+            assertEquals(changed, UserProfile.EXPLORER, AppSettings(file("""{"activeModelId":{"llm":"m"},$changed}""")).settleProfile(false))
+        }
+        assertEquals(UserProfile.EXPLORER, AppSettings(file(rc2)).settleProfile(anyLabOn = false, boarverseOn = true))
+    }
+
+    @Test fun `Explorer settings left at their defaults don't count`() {
+        val s = AppSettings(file("""{"activeModelId":{"llm":"m"},"screenOrientation":"portrait","hapticsEnabled":false,"personalityId":"detailed",
+            |"voiceInputEnabled":true,"autoSummarize":true,"historyTurnThreshold":6,"maxSavedSessions":10}""".trimMargin()))
+        assertEquals(UserProfile.SIMPLE, s.settleProfile(false))
+    }
+
+    @Test fun `Pro wins over Explorer`() =
+        assertEquals(UserProfile.PRO, AppSettings(file("""{"activeModelId":{"llm":"m"},"hapticsEnabled":true,"engineTweaks":{"threads":4}}""")).settleProfile(false))
+
+    // F3: settings.json missing but a lab on (labs live elsewhere): Pro, with the note.
+    @Test fun `a missing settings file with a lab on becomes Pro`() {
+        val s = AppSettings(file(null))
+        assertEquals(UserProfile.PRO, s.settleProfile(anyLabOn = true))
+        assertTrue(s.profileNotePending)
     }
 
     @Test fun `an rc2 install with nothing changed becomes Simple, with the note`() {
@@ -161,7 +203,7 @@ class UserProfileTest {
 
     @Test fun `every profile string is in English and Portuguese`() {
         val en = strings("values"); val pt = strings("values-pt")
-        val keys = listOf("title", "updated") + UserProfile.entries.flatMap { listOf(it.key, it.key + "Note") }
+        val keys = listOf("title", "updated", "updatedBelowPro") + UserProfile.entries.flatMap { listOf(it.key, it.key + "Note") }
         for (k in keys.map { "native_settings_profile_$it" }) {
             assertTrue("$k missing in English", en[k]?.isNotBlank() == true)
             assertTrue("$k missing in Portuguese", pt[k]?.isNotBlank() == true)

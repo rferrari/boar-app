@@ -32,9 +32,8 @@ class AppSettings(private val file: File) {
         // Executive Summary became Personal Files (rc1): a saved Summary opens in Detailed, the default, not in a style
         // that answers only from the user's files.
         if (str("personalityId") == RETIRED_SUMMARY_STYLE) update { put("personalityId", JsonPrimitive("detailed")) }
-        // A fresh install (nothing saved yet) starts on Simple. An install with settings from before profiles waits for
-        // settleProfile, which knows about the labs.
-        if (data.isEmpty()) update { put(PROFILE_KEY, JsonPrimitive(UserProfile.DEFAULT.key)) }
+        // No profile is written here: settleProfile does it once the labs are known (an install whose settings.json is
+        // missing may still have a lab on), and a file that could not be read is left as it is.
     }
 
     /** Settings → Profile. Simple until set; see [UserProfile]. */
@@ -46,18 +45,20 @@ class AppSettings(private val file: File) {
     val profileSettled: Boolean get() = UserProfile.of(str(PROFILE_KEY)) != null
 
     /**
-     * Gives an install from before profiles (rc2) its profile, once ([UserProfile.forUpdate], from what is stored, not
-     * from the effective values), and asks Settings to say so ([profileNotePending]). Does nothing once settled.
+     * Gives the install its profile, once, at launch after the labs are loaded: from what is stored, not from the
+     * effective values ([UserProfile.forUpdate]). A fresh install (nothing saved, no lab switched on) gets Simple
+     * quietly; an install from before profiles (rc2) gets a one-time note on the Profile row ([profileNotePending]).
+     * [anyLabOn]: a lab the user switched on; [boarverseOn]: Boarverse is on (both kept outside settings.json).
      */
-    fun settleProfile(anyLabOn: Boolean): UserProfile {
+    fun settleProfile(anyLabOn: Boolean, boarverseOn: Boolean = false): UserProfile {
         if (profileSettled) return userProfile
-        val p = UserProfile.forUpdate(
-            tweaksChanged = !storedTweaks.isAuto,
-            adaptiveRouting = bool("adaptiveRoutingEnabled") == true,
-            freeMemoryAfterSet = int("freeMemoryAfterMinutes") != null,
-            anyLabOn = anyLabOn,
-        )
-        update { put(PROFILE_KEY, JsonPrimitive(p.key)); put("profileNotePending", JsonPrimitive(true)) }
+        // Fresh: setup never finished (no answer model chosen yet), no lab, no Boarverse. Every rc2 install has a model.
+        val fresh = activeModelId("llm") == null && !anyLabOn && !boarverseOn
+        val proChanged = !storedTweaks.isAuto || bool("adaptiveRoutingEnabled") == true || int("freeMemoryAfterMinutes") != null ||
+            bool("showDrawerStats") == true || bool("debugLogEnabled") == true || anyLabOn
+        val explorerChanged = boarverseOn || EXPLORER_CHANGES.any { (key, isDefault) -> data[key]?.let { it !is JsonNull && !isDefault(it) } == true }
+        val p = UserProfile.forUpdate(proChanged, explorerChanged)
+        update { put(PROFILE_KEY, JsonPrimitive(p.key)); if (!fresh) put("profileNotePending", JsonPrimitive(true)) }
         return p
     }
 
@@ -142,6 +143,23 @@ class AppSettings(private val file: File) {
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
         )
         const val PROFILE_KEY = "userProfile"
+
+        /**
+         * Settings Explorer shows, each with what its default looks like: one stored away from its default means the
+         * user changed it, so an rc2 install with it becomes Explorer at least ([settleProfile]).
+         */
+        private val EXPLORER_CHANGES: List<Pair<String, (JsonElement) -> Boolean>> = listOf(
+            "personalityId" to { v -> (v as? JsonPrimitive)?.contentOrNull in setOf(null, "detailed") },
+            "maxTokens" to { _ -> false },
+            "screenOrientation" to { v -> (v as? JsonPrimitive)?.contentOrNull == DEFAULT_ORIENTATION },
+            "hapticsEnabled" to { v -> (v as? JsonPrimitive)?.booleanOrNull != true },
+            "voiceInputEnabled" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
+            "autoSummarize" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
+            "autoGenerateTitles" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
+            "confirmChatDelete" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
+            "historyTurnThreshold" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, 6) },
+            "maxSavedSessions" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, 10) },
+        )
         const val MODEL_LAST_USED = "modelLastUsedAt"
         const val MODEL_ADDED = "modelAddedAt"
         /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */

@@ -503,7 +503,9 @@ private fun ProfileSection(services: BoarServices, profile: UserProfile, onPick:
     val note = remember { s.profileNotePending }
     if (note) androidx.compose.runtime.LaunchedEffect(Unit) { s.profileNotePending = false }
     Section(t("native.settings.profile.title"), team.sopa.boar.R.drawable.ic_settings_avatars, startOpen = note, summary = { t("native.settings.profile.${profile.key}") }) {
-        if (note) Note(t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")))
+        if (note) Note(t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
+            // Below Pro, say what moved out of sight: rc2 showed technical details by default.
+            if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "")
         Choices(null, UserProfile.entries.map { it to t("native.settings.profile.${it.key}") }, profile) { onPick(it) }
         Note(t("native.settings.profile.${profile.key}Note"))
     }

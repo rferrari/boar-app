@@ -15,12 +15,17 @@ enum class UserProfile(val key: String) {
         fun of(key: String?): UserProfile? = entries.firstOrNull { it.key == key }
 
         /**
-         * The profile for an install that has settings from before profiles (rc2): Pro when the user already changed
-         * something only Pro shows (an Advanced tweak, adaptive routing, the free-memory delay) or switched a lab on;
-         * Simple otherwise. Technical details on (rc2's default) is not a sign: nobody chose it.
+         * The profile for an install that has settings from before profiles (rc2): the lowest one that still shows
+         * everything the user changed, so nothing they chose is hidden or switched off. [proChanged]: something only
+         * Pro shows (an Advanced tweak, adaptive routing, the free-memory delay, the menu's bars, the debug log, a lab
+         * switched on). [explorerChanged]: something Explorer shows (a style, an answer length, rotation, haptics,
+         * voice off, a chat-history option, Boarverse on). Technical details on (rc2's default) is not a sign.
          */
-        fun forUpdate(tweaksChanged: Boolean, adaptiveRouting: Boolean, freeMemoryAfterSet: Boolean, anyLabOn: Boolean): UserProfile =
-            if (tweaksChanged || adaptiveRouting || freeMemoryAfterSet || anyLabOn) PRO else SIMPLE
+        fun forUpdate(proChanged: Boolean, explorerChanged: Boolean): UserProfile = when {
+            proChanged -> PRO
+            explorerChanged -> EXPLORER
+            else -> SIMPLE
+        }
     }
 }
 
