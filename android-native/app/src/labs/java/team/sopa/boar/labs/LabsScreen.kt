@@ -297,3 +297,67 @@ private val REVEAL_TAPS = 11..20
 private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.material3.Icon(
     androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
     Modifier.size(size), tint = Boar.colors.amber400)
+
+/**
+ * Boar Labs as a compact list (rc3, adam, Nov 10): one row per lab with its picture, name, one line, status and an
+ * on/off switch, so nothing needs a page just to switch on. Tapping a row opens the lab's page for its own settings.
+ * Classified labs are listed by status only, blacked out like the tiles. The tile grid stays one tap away ([onTiles]).
+ */
+@Composable
+fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val labs = LabRegistry.visible
+    Shell(t("native.labs.title"), onClose) {
+        Text(t("native.labs.listNote"), style = Boar.type.caption, color = c.textMuted)
+        val (open, classified) = labs.partition { LabRegistry.opened(it) != null }
+        for (lab in open) LabRow(lab, onOpen)
+        if (classified.isNotEmpty()) {
+            Text(t("native.labs.section.testing"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+            for (lab in classified) Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                LabArt(lab, locked = true)
+                Column(Modifier.weight(1f)) {
+                    Text(redact(t("native.labs.${lab.id}.title")), style = Boar.type.body, color = c.textSecondary)
+                    Text(redactAll(t("native.labs.${lab.id}.body")), style = Boar.type.caption, color = c.textDim, maxLines = 1)
+                }
+                StatusChip(lab.status)
+            }
+        }
+        Text(t("native.labs.showTiles"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable(onClick = onTiles).padding(vertical = 6.dp))
+    }
+}
+
+/** One lab in [LabsList]: tap the row for its page, flip the switch to turn it on or off right here. */
+@Composable
+private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
+    val c = Boar.colors
+    val on = LabPrefs.enabled(lab.id)
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (on) c.emeraldBgSubtle else c.bgCard)
+        .border(1.dp, if (on) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).clickable { onOpen("lab:${lab.id}") }.padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        LabArt(lab, locked = false)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(t("native.labs.${lab.id}.title"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                StatusChip(lab.status)
+            }
+            Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+        androidx.compose.material3.Switch(on, { LabPrefs.setEnabled(lab.id, it) },
+            colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+    }
+}
+
+/** A lab's picture at list size, or its emoji until it has one (Staged Answers, Canvas); a classified one dark. */
+@Composable
+private fun LabArt(lab: LabPlugin, locked: Boolean) {
+    val c = Boar.colors
+    Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).background(c.bgCardElevated), contentAlignment = Alignment.Center) {
+        lab.shownArt?.let { res ->
+            androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
+        } ?: Text(lab.emoji, fontSize = 24.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
+    }
+}

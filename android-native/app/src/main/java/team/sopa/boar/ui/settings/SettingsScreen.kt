@@ -76,7 +76,10 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
             // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
-            if (shown(SettingsPart.PROFILE)) ProfileSection(services, profile) { profile = it; s.userProfile = it; tech = s.showLiveStats }
+            if (shown(SettingsPart.PROFILE)) ProfileSection(services, profile) {
+                profile = it; s.userProfile = it; tech = s.showLiveStats
+                team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(it)
+            }
             if (shown(SettingsPart.TONE)) ToneSection(services)
             if (shown(SettingsPart.MODELS)) ModelsSection(services, onOpen)
             if (shown(SettingsPart.KNOWLEDGE)) KnowledgeSection(services, onOpen)
@@ -128,7 +131,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (shown(SettingsPart.VOICE)) VoiceSection(services)
             if (tech && shown(SettingsPart.TELEMETRY)) TelemetrySection(services)
             if (shown(SettingsPart.TWEAKS)) TweaksSection(services, tech, shown(SettingsPart.TECHNICAL_DETAILS), { tech = it }, onOpen)
-            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown)
+            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen)
             if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
         }
     }
@@ -513,7 +516,7 @@ private fun ProfileSection(services: BoarServices, profile: UserProfile, onPick:
 
 /** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
 @Composable
-private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean) {
+private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit) {
     Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
         Note(t("native.settings.experimentalNote"))
         // Boarverse: Boar Avatars to unlock and wear, off by default (back Oct 24; TruffleVault.SWITCH_SHOWN).
@@ -521,7 +524,11 @@ private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) ->
             val avatarsOn by services.vault.enabled.collectAsState()
             SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
         }
-        if (shown(SettingsPart.LABS_SETTINGS)) team.sopa.boar.labs.LabHooks.SettingsRow()
+        if (shown(SettingsPart.LABS_SETTINGS)) {
+            team.sopa.boar.labs.LabHooks.SettingsRow()
+            // Pro → Boar Labs: the compact list with a switch per lab (rc3).
+            if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
+        }
         // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default.
         val s = services.settings
         var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
