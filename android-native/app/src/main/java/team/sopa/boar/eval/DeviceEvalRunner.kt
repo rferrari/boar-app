@@ -94,12 +94,17 @@ class DeviceEvalRunner(
         true
     }
 
-    /** Installed language models from the catalog, in catalog order. */
+    /**
+     * Installed language models from the catalog, in catalog order: complete files only, the app's own rule
+     * (StartLoad.complete, the size the catalog names). A partial download (Qwen3-4B, X6, Nov 10) was listed and failed
+     * to load as "corrupted or incomplete".
+     */
     fun installedModels(): List<Pair<ModelRef, File>> {
         val catalog = Json.parseToJsonElement(asset("catalog.json")).jsonObject["models"]!!.jsonArray.map { it.jsonObject }
         return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
             val f = File(files, m["filename"]!!.jsonPrimitive.content)
-            if (f.isFile) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
+            val size = m["sizeBytes"]?.jsonPrimitive?.content?.toLongOrNull() ?: 0L
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), size)) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
         } + discoveredModels() + labEngineModels()
     }
 
@@ -108,7 +113,7 @@ class DeviceEvalRunner(
         val services = team.sopa.boar.app.BoarServices.get(context)
         services.catalog.models.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && it.id.startsWith("hf-") }.mapNotNull { a ->
             val f = services.fileOf(a)
-            if (f.isFile && f.length() == a.sizeBytes) ModelRef(a.id, a.shortName) to f else null
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), a.sizeBytes)) ModelRef(a.id, a.shortName) to f else null
         }
     }.getOrDefault(emptyList())
 
@@ -118,7 +123,7 @@ class DeviceEvalRunner(
         if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
         return team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
             val f = a.externalPath?.let(::File) ?: File(files, a.filename)
-            if (f.isFile) ModelRef(a.id, a.label) to f else null
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), a.sizeBytes)) ModelRef(a.id, a.label) to f else null
         }
     }
 
