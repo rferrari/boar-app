@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.lunar
 
+import team.sopa.boar.engine.labs.MoonPhase
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable

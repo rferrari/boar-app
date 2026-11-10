@@ -24,14 +24,31 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
 
+/**
+ * The labs a release build includes (src/labs/released.txt, rc3): "id: TestClass…" lines. Release builds are the ones
+ * whose task names say Release (assembleRelease, bundleRelease); -Pboar.labs.released=true or false overrides that.
+ */
+val releasedLabs: Set<String> = file("src/labs/released.txt").takeIf { it.isFile }?.readLines().orEmpty()
+    .map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }.map { it.substringBefore(':').trim() }.toSet()
+val releaseLabsOnly: Boolean = (providers.gradleProperty("boar.labs.released").orNull?.trim()?.toBoolean())
+    ?: gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+/** In this build: every lab, or on a release build the listed ones and the code-free teasers. */
+fun LabPluginDir.inBuild(): Boolean = !releaseLabsOnly || id in releasedLabs || obj == null
+
 // The registry the app reads (LabRegistry.ALL), written from the plugin folders: no shared list to edit.
 val labsRegistryDir = layout.buildDirectory.dir("generated/labsRegistry")
 val generateLabsRegistry by tasks.registering {
     // Labs a builder brings out of classified: -Pboar.labs.declassify=dailyQuiz (comma-separated ids).
     val declassified = (providers.gradleProperty("boar.labs.declassify").orNull ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-    val entries = labPlugins.map { p ->
-        // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
-        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (p.obj != null) ", ${p.obj}" else ""})" else p.obj!!
+    val entries = labPlugins.mapNotNull { p ->
+        // A release build: a classified lab with code that isn't listed ships as a teaser only, without its code.
+        val code = p.obj?.takeIf { !releaseLabsOnly || p.id in releasedLabs }
+        when {
+            // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
+            p.classified != null && (code == null || p.id !in declassified) -> "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (code != null) ", $code" else ""})"
+            p.inBuild() -> p.obj!!
+            else -> null
+        }
     }
     inputs.property("entries", entries)
     outputs.dir(labsRegistryDir)
@@ -171,7 +188,8 @@ android {
     for (plugin in labPlugins) {
         sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
         sourceSets["main"].res.srcDir(plugin.dir.resolve("res"))
-        if (labsExecutables && !plugin.review) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
+        // A release build packs only the listed labs' executables (released.txt).
+        if (labsExecutables && !plugin.review && plugin.inBuild()) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
     }
 }
 

@@ -1,4 +1,4 @@
-package team.sopa.boar.labs.lunar
+package team.sopa.boar.engine.labs
 
 import kotlin.math.PI
 import kotlin.math.cos

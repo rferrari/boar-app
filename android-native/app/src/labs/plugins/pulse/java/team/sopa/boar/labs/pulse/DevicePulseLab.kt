@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.pulse
 
+import team.sopa.boar.engine.labs.Vitals
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -79,16 +80,15 @@ object DevicePulseLab : LabPlugin {
 
     private fun read(ctx: Context): Sample {
         val battery = ctx.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val temp = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)?.takeIf { it != Int.MIN_VALUE }?.div(10.0)
+        val temp = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)?.let(Vitals::batteryTempC)
         val level = battery?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale = battery?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val plugged = (battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
         val thermal = if (Build.VERSION.SDK_INT >= 29) (ctx.getSystemService(Context.POWER_SERVICE) as PowerManager).currentThermalStatus else null
         val mem = ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(it) }
         // The phone's own core ids (cpu0…cpuN, not always without gaps), not the count of online cores.
-        val cores = File("/sys/devices/system/cpu").listFiles { f -> f.name.matches(Regex("cpu\\d+")) }.orEmpty()
-            .map { it.name.removePrefix("cpu").toInt() }.sorted()
-        fun khz(core: Int, file: String) = runCatching { File("/sys/devices/system/cpu/cpu$core/cpufreq/$file").readText().trim().toInt() / 1000 }.getOrNull()
+        val cores = Vitals.coreIds(File("/sys/devices/system/cpu").list().orEmpty().toList())
+        fun khz(core: Int, file: String) = Vitals.mhzOf(runCatching { File("/sys/devices/system/cpu/cpu$core/cpufreq/$file").readText() }.getOrNull())
         return Sample(
             tempC = temp,
             thermal = thermal,
@@ -97,7 +97,7 @@ object DevicePulseLab : LabPlugin {
             ramFree = mem.availMem,
             ramTotal = mem.totalMem,
             boar = AppMemory.breakdown(),
-            batteryPct = if (level >= 0 && scale > 0) level * 100 / scale else null,
+            batteryPct = Vitals.batteryPercent(level, scale),
             charging = plugged,
         )
     }
@@ -159,11 +159,11 @@ object DevicePulseLab : LabPlugin {
     private fun gb(b: Long) = String.format(Locale.US, "%.1f", b / 1073741824.0)
 
     @Composable
-    private fun heatColor(t: Double?): Color = when {
-        t == null -> Boar.colors.textDim
-        t < 38 -> Boar.colors.textAccentEmerald
-        t < 42 -> Color(0xFFF5B83D)
-        else -> Boar.colors.crimson500
+    private fun heatColor(t: Double?): Color = when (Vitals.heat(t)) {
+        Vitals.Heat.UNKNOWN -> Boar.colors.textDim
+        Vitals.Heat.COOL -> Boar.colors.textAccentEmerald
+        Vitals.Heat.WARM -> Color(0xFFF5B83D)
+        Vitals.Heat.HOT -> Boar.colors.crimson500
     }
 
     @Composable

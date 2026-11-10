@@ -11,6 +11,12 @@ go there, which `LabDefaultsTest` checks. A switch the user flipped stays as the
 menu item, the list, setup's Labs page, the tour card, its settings) show in the Pro profile only; a lab that is on
 works in every profile. A build without the flag has none of this.
 
+A release build (a task name with Release, or `-Pboar.labs.released=true`) includes only the labs listed in
+`android-native/app/src/labs/released.txt`, each with the engine tests that cover it (`id: TestClass TestClass`); its
+executables (jniLibs) ship only for those. A classified teaser with no code always ships; one with code ships as a
+teaser only unless listed. `LabManifestTest` fails when a listed lab has no tests, a named test doesn't exist, or a lab
+that starts on isn't listed. A new lab ships once it has tests and a line there; debug builds keep every lab.
+
 ## The rules every lab follows
 - Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
   Designer). No uploads, no share buttons: anything that leaves the phone goes through Android's Save-as, where the

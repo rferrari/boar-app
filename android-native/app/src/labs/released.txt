@@ -1,0 +1,20 @@
+# Boar Labs a release build includes (rc3), each with the engine tests that cover it: "id: TestClass TestClass".
+# - A lab not listed here is left out of release builds; debug builds keep every lab.
+# - A classified teaser with no code always ships as a teaser. One with code (the Daily Quiz) ships as a teaser only,
+#   with its code left out, unless it is listed.
+# - LabManifestTest fails when a listed lab has no tests, a test named here doesn't exist, or a lab that starts on
+#   (LabDefaults.ON, or the ALPHA ones waiting in PENDING_ALPHA) isn't listed.
+# Not listed: bmoe (Big Boar, no tests yet), colibri (Boar Wisp, under review).
+pulse: VitalsTest
+image: ImageSafetyTest
+printer: ChatExportTest
+polyglot: LanguageGateTest
+calc: LabToolsCombinationTest LabToolsCompoundTest
+distance: TravelDistanceTest
+facts: FactsTest
+cohazard: CoHazardTest CoHazardPtEsTest
+compass: CompassTest
+lunar: MoonPhaseTest
+guard: NumGuardTest VerdictGuardTest
+staged: StagedAnswerTest
+canvas: CanvasTest
