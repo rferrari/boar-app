@@ -142,7 +142,8 @@ class MainActivity : ComponentActivity() {
         services.pinLock.onChange = { runOnUiThread { applySecure() } }
         team.sopa.boar.labs.LabHooks.init(this)
         // An install from before profiles (rc2) gets its profile once, from its tweaks and its labs (UserProfile.forUpdate).
-        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyEnabled())
+        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyChosenOn())
+        team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(services.settings.userProfile)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }
@@ -294,7 +295,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     }
     if (team.sopa.boar.labs.LabHooks.handles(screen)) {
         // Back in the chat from Labs: a lab may have changed the answer model (Big Boar's "Answer with this model").
-        BackHandler { if (screen == "labs") { vm.refreshSettings(); screen = "chat" } else screen = "labs" }
+        BackHandler { val to = team.sopa.boar.labs.LabHooks.backFrom(screen); if (to == "chat") vm.refreshSettings(); screen = to }
         team.sopa.boar.labs.LabHooks.Screen(screen) { if (it == "chat") vm.refreshSettings(); screen = it }
         return
     }

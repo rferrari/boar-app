@@ -2,7 +2,9 @@ package team.sopa.boar.labs
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.setValue
 import team.sopa.boar.BuildConfig
 import team.sopa.boar.plugins.AnswerRef
 
@@ -146,9 +148,14 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // Every lab starts off (owner, Oct 24; the instant ones started on since Oct 20): the user picks them, from
-        // setup's Labs page or the grid. A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", false); unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false) }
+        // rc3: the labs on adam's list start on, the rest off (LabDefaults); a switch the user flipped stays as they set it.
+        // A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
+        LabRegistry.ALL.forEach {
+            val stored = if (p.contains("enabled.${it.id}")) p.getBoolean("enabled.${it.id}", false) else null
+            if (stored == true) chosenOn = true
+            switches[it.id] = team.sopa.boar.engine.labs.LabDefaults.switchOf(it.id, stored)
+            unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false)
+        }
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         restart.value = p.getBoolean("autoRestart", true)
     }
@@ -166,8 +173,15 @@ object LabPrefs {
 
     fun enabled(id: String) = switches[id] ?: false
 
-    /** Any lab switched on (master switch aside): an rc2 install that used Boar Labs becomes Pro (UserProfile.forUpdate). */
-    fun anyEnabled() = LabRegistry.ALL.any { enabled(it.id) }
+    /**
+     * The user switched a lab on themselves (not a default): an rc2 install that used Boar Labs becomes Pro
+     * (UserProfile.forUpdate). Default-on labs don't count, or every update would become Pro.
+     */
+    fun anyChosenOn() = chosenOn
+    private var chosenOn = false
+
+    /** The user is on Pro: Boar Labs' own places (menu, list, setup page, tour card) show (LabDefaults.managementShown). */
+    var proProfile by androidx.compose.runtime.mutableStateOf(false)
 
     /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
     private val reveals = mutableStateMapOf<String, Boolean>()

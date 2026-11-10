@@ -73,7 +73,8 @@ fun TourScreen(
     progress: TourProgress?, index: Int, onIndex: (Int) -> Unit, themeId: String?, onTheme: (String) -> Unit,
     onReady: (() -> Unit)?, onClose: () -> Unit,
 ) {
-    val cards = tourCards(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES)
+    // The Labs and adaptive routing cards are Pro's (rc3 profiles).
+    val cards = tourCards(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && team.sopa.boar.labs.LabPrefs.proProfile)
     val i = index.coerceIn(0, cards.lastIndex)
     val card = cards[i]
     var picked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(themeId) }

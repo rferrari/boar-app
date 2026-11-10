@@ -84,9 +84,22 @@ object LabHooks {
     }
 
     /** route to label key; empty while Labs is off. */
-    fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn) listOf("labs" to "native.labs.drawer") else emptyList()
+    // rc3: the menu item, the list and the tiles are Pro's; a lab's own page (lab:<id>, from its header badge) opens in
+    // every profile, since an enabled lab keeps working everywhere.
+    fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn && LabPrefs.proProfile) listOf("labs" to "native.labs.drawer") else emptyList()
 
-    fun handles(route: String) = LabPrefs.labsOn && (route == "labs" || route.startsWith("lab:"))
+    fun handles(route: String) = LabPrefs.labsOn && ((route == "labs" || route == TILES) && LabPrefs.proProfile || route.startsWith("lab:"))
+
+    /** Where Back goes from a Labs route: the tiles and a lab's page back to the list on Pro, else to the chat. */
+    fun backFrom(route: String): String = when {
+        route == "labs" -> "chat"
+        route == TILES -> "labs"
+        LabPrefs.proProfile -> "labs"
+        else -> "chat"
+    }
+
+    /** The old tile grid, kept one tap away from the list (its classified tiles still answer to taps). */
+    const val TILES = "labs/tiles"
 
     /** Settings → Advanced tweaks, at the very bottom: the switch builders find. */
     @Composable
@@ -227,9 +240,10 @@ object LabHooks {
         Init()
         // Leaving Boar Labs (back to the chat) covers the leaked teasers again; moving between labs keeps them.
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { LabPrefs.coverAll() } }
-        if (route == "labs") return LabsScreen(onOpen = go) { go("chat") }
+        if (route == "labs") return LabsList(onOpen = go, onTiles = { go(TILES) }) { go("chat") }
+        if (route == TILES) return LabsScreen(onOpen = go) { go("labs") }
         val lab = LabRegistry.byId(route.removePrefix("lab:"))
-        if (lab == null) LabsScreen(onOpen = go) { go("chat") } else LabScaffold(lab) { go("labs") }
+        if (lab == null) androidx.compose.runtime.LaunchedEffect(route) { go(backFrom(route)) } else LabScaffold(lab) { go(backFrom(route)) }
     }
 
     /** One 🧩 in the answer's footer; it opens a sheet with every active lab's actions for this answer. */

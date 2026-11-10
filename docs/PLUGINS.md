@@ -5,8 +5,11 @@ finds by itself. Adding a lab is adding a folder; removing it is deleting the fo
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
-**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. Every lab
-starts off: the user turns on the ones they want, on setup's Labs page or in the grid. A build without the flag has none of this.
+**Settings → Experimental → Boar Labs** starts on, and each lab has an on/off switch in the Boar Labs list and on its
+page. A lab is off unless it is in the default-on list (`engine/.../labs/LabDefaults.kt`, `ON`): only LIVE or BETA labs
+go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. Boar Labs' own places (the
+menu item, the list, setup's Labs page, the tour card, its settings) show in the Pro profile only; a lab that is on
+works in every profile. A build without the flag has none of this.
 
 ## The rules every lab follows
 - Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
@@ -152,7 +155,7 @@ file.
 |---|---|---|
 | `LIVE` | green | It works well |
 | `BETA` | cyan | It works, still rough |
-| `ALPHA` | amber | Early; starts off |
+| `ALPHA` | amber | Early; starts off (never in the default-on list) |
 | `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal, unless it also sets `review=true`: then its engine is left out, the page stays open to read, and it can't answer. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 

@@ -39,4 +39,7 @@
     <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
     <string name="native_labs_section_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_section_testing" formatted="false">IN TESTING · NO RELEASE DATE</string>
+    <string name="native_labs_listNote" formatted="false">Switch a lab on or off right here. Tap a lab for its page and its own settings. A lab that is on works in every profile.</string>
+    <string name="native_labs_showTiles" formatted="false">Show as tiles</string>
+    <string name="native_labs_openList" formatted="false">Open Boar Labs</string>
 </resources>
