@@ -9,7 +9,7 @@
     <string name="native_labs_canvas_example" formatted="false">Por exemplo, a partir de uma resposta sobre as montanhas mais altas:</string>
     <string name="native_labs_canvas_exampleTitle" formatted="false">Picos mais altos</string>
     <string name="native_labs_canvas_credit" formatted="false">A ideia vem do Open Intelligent UI da CopilotKit (MIT). Aqui roda no seu celular, sem servidor.</string>
-    <string name="native_labs_canvas_make_card" formatted="false">Mostrar como cartão</string>
+    <string name="native_labs_canvas_make_card" formatted="false">Criar um cartão</string>
     <string name="native_labs_canvas_make_widget" formatted="false">Montar um widget</string>
     <string name="native_labs_canvas_again_card" formatted="false">Refazer o cartão</string>
     <string name="native_labs_canvas_again_widget" formatted="false">Montar o widget de novo</string>
