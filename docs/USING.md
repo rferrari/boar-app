@@ -10,7 +10,7 @@ Setup downloads the answer model, the search model and, when there is room, the
 Wikipedia Vital Articles pack. While it downloads, a "While you wait" card opens a
 short BOAR tour: themes, answer styles, Deep Research, sources, your library and
 documents, models, the PIN, Boar Labs and adaptive routing. Each page says where the
-feature lives. See it again any time in Settings → System Recovery & Danger Zone → See
+feature lives. See it again any time in Settings → Start over → See
 the tour.
 
 ## How BOAR answers
@@ -139,13 +139,16 @@ If a model fails to load (a damaged download, a missing file), the chat shows a 
 message instead of a raw error. If loading a model closed the app, BOAR doesn't load it
 again on its own: the chat says so and offers to try again with less memory.
 
-Settings → System Recovery & Danger Zone has:
+Settings → Start over has:
 
-- **Relaunch Setup Wizard**: back into first-run setup to change the model or the
+- **Run setup again**: back into first-run setup to change the model or the
   knowledge package, without losing anything else.
 - **See the tour**: the BOAR tour again.
-- **Purge All Data & Reset App**: clears all of BOAR's data on the phone (models, the
-  knowledge base, your documents, chats and settings), the same as Android's "Clear
+- **Reset settings**: theme, answer style, Deep Research, Advanced tweaks and display
+  options back to their defaults, then setup opens; models, packs, chats, PIN and
+  language stay.
+- **Erase everything**: clears all of BOAR's data on the phone (models, the knowledge
+  base, your documents, chats, settings and the PIN), the same as Android's "Clear
   storage", then setup starts again.
 
 ## The offline APK
