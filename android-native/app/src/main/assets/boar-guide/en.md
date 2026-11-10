@@ -7,13 +7,13 @@ BOAR is an AI research assistant that runs entirely on your phone. It answers fr
 BOAR uses the internet only to download what it needs: during setup (the answer model, the search model and a knowledge pack), and later only if you choose to download another model or pack, or search Hugging Face for models. After that, everything runs on the phone, and airplane mode is fine. The ONLINE / OFFLINE pill next to "BOAR" at the top of the chat shows whether the phone has a connection; BOAR answers the same either way.
 
 ## Setting up BOAR
-The first launch has three steps: Welcome (pick your language, then Get started), Choose the answer model (one is recommended for your phone's memory) and Choose your knowledge (Encyclopedia or Essential). Then tap Download to fetch them. While it downloads, a short guide walks you through: Make it yours, Your own files, How BOAR answers, How to ask, Your first question, a PIN, Notifications, Privacy and memory, and Boar Labs. Every page has Not now, and every choice can be changed later in Settings. If the downloads stop moving, tap Restart downloads; if the phone went offline, tap Try again once it is back. If you close BOAR before setup finishes, setup starts again from the first step with your choices kept, and the download continues where it stopped. When everything is in, tap Open BOAR. You can run setup again from Settings → Start over → Run setup again.
+The first launch asks two things: your language (then Get started) and the answer model (one is recommended for your phone's memory). Tap Continue: when there is room, BOAR downloads the Encyclopedia knowledge package straight away. Only when space is short does it ask you to choose between Encyclopedia and Essential, and it says what the bigger one adds (about 164 MB, 50,000 more Wikipedia articles; the models are the same). While it downloads, a short guide walks you through: Make it yours, Your own files, How BOAR answers, How to ask, Your first question, a PIN, Notifications and Privacy and memory. Every page has Not now, and every choice can be changed later. If the downloads stop moving, tap Restart downloads; if the phone went offline, tap Try again once it is back. If you close BOAR before setup finishes, setup starts again from the first step with your choices kept, and the download continues where it stopped. When everything is in, tap Open BOAR. You can run setup again from Settings → Start over → Run setup again.
 
 ## Asking questions
 Type a question at the bottom of the chat and tap send. Ask in English or Portuguese. Clear, specific questions work best: name the thing you mean ("How do I treat a minor burn?", "When was the Eiffel Tower built?"). An empty chat suggests Research Topics to try. While BOAR works, a line under the question says what it is doing (searching, reasoning, writing) and for how long. Tap stop to end the answer early; what was written and the sources found so far stay. Start a new chat with + at the top of the chat or New Research Session in the menu. Press and hold one of your own messages to put it back in the box.
 
 ## Answer styles
-The style button left of where you type, or Settings → How BOAR answers, picks how BOAR answers:
+The style button left of where you type picks how BOAR answers (also in Settings → How BOAR answers, from the Explorer profile):
 - Succinct & Direct: short replies.
 - Thorough & Detailed: full explanations. This is the default.
 - Personal Files: answers only from your own files.
@@ -26,16 +26,16 @@ Deep Research is for big questions. Turn it on with the 🔬 button at the top o
 Personal Files lets BOAR answer from your own documents: notes, PDFs and spreadsheets (.txt, .md, .csv, .json, and .pdf with selectable text; scanned and password-protected PDFs can't be read, and very large files are refused). In the menu, open Knowledge → Personal Files and tap Pick Files & Import, or add files during setup. Files go into collections, each with its own switch: only switched-on collections are searched. Tap Ask about them, or pick the Personal Files style, and ask: about one file by name, or for a summary of all your files. If your files don't hold the answer, BOAR says "I couldn't find this in your Personal Files." instead of guessing. Your files stay on the phone.
 
 ## Knowledge packs
-Knowledge packs are the libraries BOAR searches, stored on the phone. The Wikipedia Vital Articles pack holds more than 50,000 articles (about 164 MB). Manage them in the menu → Knowledge → BOAR Knowledge (also Settings → Knowledge): see what is installed, Download or Remove a pack. A pack is downloaded once; after that it works offline.
+Knowledge packs are the libraries BOAR searches, stored on the phone. The Wikipedia Vital Articles pack holds more than 50,000 articles (about 164 MB). Manage them in the menu → Knowledge → BOAR Knowledge: see what is installed, Download or Remove a pack. A pack is downloaded once; after that it works offline.
 
 ## Sources under an answer
-Under each answer that used the library, Retrieved sources lists them, numbered, with how well each one matched: articles from the library, or "Your documents" with Personal Files. Tap a source to see the passage. "Read the whole article ›" opens the full article or file, offline, with the part BOAR used marked. Quick replies such as greetings and the labs' instant answers have no sources.
+Under each answer that used the library, Retrieved sources lists them, numbered, with how well each one matched: articles from the library, or "Your documents" with Personal Files. Tap a source to see the passage. "Read the whole article ›" opens the full article or file, offline, with the part BOAR used marked. Quick replies such as greetings and the labs' instant answers have no sources. In the Pro profile, Settings → Advanced tweaks → Sources layout can put the sources above the answer instead: one row per article with the sentence that answers best, the question's words in bold; tap a row or a [n] in the answer to read the passage.
 
 ## Under an answer
 Each finished answer shows how long it took and how fast it was written. Below it: ▲ and ▼ to rate it, ⧉ to copy it, 💭 to see the model's reasoning when it has some, and 🧩 for the actions of the labs you have switched on.
 
 ## Models
-The answer model writes the answers. Setup recommends one for your phone's memory: Qwen3 4B (about 2.5 GB) on phones with 12 GB of memory, Qwen3 1.7B (about 1.1 GB) on smaller phones. On 12 GB phones, LFM2.5 8B is marked as the fast pick. Open Model Catalog in the menu, or Settings → Models: see what is installed, Select & Use another model, Download one, or Remove one you don't need. A colored badge shows how well each model fits the phone's memory. Bigger models answer better but more slowly and need more memory. The name of the model answering shows under "BOAR" at the top of the chat.
+The answer model writes the answers. Setup recommends one for your phone's memory: Qwen3 4B (about 2.5 GB) on phones with 12 GB of memory, Qwen3 1.7B (about 1.1 GB) on smaller phones. On 12 GB phones, LFM2.5 8B is marked as the fast pick. Open Model Catalog in the menu: see what is installed, Select & Use another model, Download one, or Remove one you don't need. A colored badge shows how well each model fits the phone's memory. If BOAR's search model is missing, a warning at the top of the Model Catalog says so. Bigger models answer better but more slowly and need more memory. The name of the model answering shows under "BOAR" at the top of the chat.
 
 ## Finding more models
 Discover GGUF models, in the Model Catalog and in setup, searches Hugging Face for more models. It needs internet only while it searches and downloads, and your search words go to Hugging Face. These models are not vetted by BOAR. Models that need a Hugging Face account can't be downloaded by BOAR. If a model may not fit the phone's memory, BOAR warns before loading it and offers Load anyway or Pick another model.
@@ -50,13 +50,13 @@ If you forget your PIN, tap "Forgot the PIN?" on the PIN screen. Without the PIN
 While BOAR writes an answer, it shows a "BOAR is answering…" notification; tap it to come back. Android asks your permission once, during setup or in the chat. Without it, answers still keep going when you switch apps; you just won't see that BOAR is working. Turn it on later with Allow notifications or in Android's settings for BOAR.
 
 ## Look and text size
-Settings → Display & theme changes the theme, the text size (Compact, Standard, Large) and the screen rotation (Auto, Portrait, Landscape; Portrait by default). Moonlight (the default) and Campfire are always available; more themes open as you use BOAR with Boarverse on. Haptic feedback, off by default, is here too.
+Settings → Display & theme changes the theme and the text size (Compact, Standard, Large). From the Explorer profile it also has the screen rotation (Auto, Portrait, Landscape; Portrait by default) and Haptic feedback (off by default). Moonlight (the default) and Campfire are always available; more themes open as you use BOAR with Boarverse on.
 
 ## Boarverse and Boar Avatars
-Boarverse is an optional, playful layer, off by default: Settings → Experimental → Boarverse. With it on, using BOAR unlocks Boar Avatars, characters you can use as BOAR's picture in the chat and the menu. Some avatars also bring new themes. When you unlock one, BOAR says "New avatar unlocked". See yours and pick one in Settings → Boar Avatars. Everything is counted on the phone and never leaves it. Turning Boarverse off brings back BOAR's own picture; your avatars stay waiting.
+Boarverse is an optional, playful layer, off by default: Settings → Experimental → Boarverse (from the Explorer profile). With it on, using BOAR unlocks Boar Avatars, characters you can use as BOAR's picture in the chat and the menu. Some avatars also bring new themes. When you unlock one, BOAR says "New avatar unlocked". See yours and pick one in Settings → Boar Avatars. Everything is counted on the phone and never leaves it. Turning Boarverse off brings back BOAR's own picture; your avatars stay waiting.
 
 ## Boar Labs
-Boar Labs is a set of experiments: open Boar Labs in the menu, or Settings → Experimental → Boar Labs. Every lab starts off; open one to read what it does and switch it on with Enabled. Each lab shows its status: LIVE, BETA (tested on phones), ALPHA (early) or UNDER REVIEW (visible but parked). Some tiles are CLASSIFIED: in testing, with no release date. Some labs answer instantly without the model, and then the answer offers "Ask BOAR instead". Labs with actions add them to 🧩 under answers. If a lab misbehaves, switch it off: it disappears from the chat too.
+Boar Labs is a set of experiments. In the Pro profile, open Boar Labs in the menu, or Settings → Experimental → Open Boar Labs: one row per lab with what it does, its status and a switch to turn it on or off right there. Tap a lab for its page and its own settings; Show as tiles shows them as a grid. The tested labs start on (Vitals, Designer, Press, Polyglot, Calculator, Distance, Facts, Cohazard); the rest start off. A lab that is on works in every profile. Each lab shows its status: LIVE, BETA (tested on phones), ALPHA (early) or UNDER REVIEW (visible but parked). Some tiles are CLASSIFIED: in testing, with no release date. Some labs answer instantly without the model, and then the answer offers "Ask BOAR instead". Labs with actions add them to 🧩 under answers. The Labs settings also pick the waiting animation: Boar trail or Matrix rain.
 
 ## The labs
 - Boar Vitals: watch the phone work: heat, each core's clock, memory and the chip.
@@ -68,30 +68,31 @@ Boar Labs is a set of experiments: open Boar Labs in the menu, or Settings → E
 - Boar Designer: draws an illustration from a few words, offline. It downloads its drawing model (683 MB) the first time.
 - Boar Press: collect answers into a basket and compile them into a PDF or a Markdown file.
 - Boar Staged Answers: the answer arrives in steps: what the sources say, a short answer, the details, then a check of the numbers. Stop when you have enough.
-- Boar Canvas: turns an answer into a card (a table, chart, steps or key facts) or a small interactive widget, from 🧩 under the answer: Show as a card or Build a widget.
-- Big Boar: runs a very large (35B) model from the phone's storage. Slow, and a 12.3 GB download.
+- Boar Canvas: from 🧩 under an answer, Make a visual: the model picks a bar, line or pie chart, a table, steps, a comparison or key facts, from the answer, earlier answers in the chat and the answer's sources, and BOAR draws it. Every number must be in one of those; anything that isn't is left out and listed. Switch the same data between bars, line, pie and table, copy it, or open it full screen. Build a widget makes a small interactive page instead.
 - Boar Nomad: a compass from the phone's sensors, offline, no location needed.
 - Boar Lunar: the moon tonight and this month: phase, lit share, next full and new moon.
 - Boar Guard: fixes a yes/no or winner that the model's own figures or dates contradict.
-- Boar Wisp: a tiny engine for a small model; under review and parked in this version.
 
 ## Settings
-Settings has these sections, folded: How BOAR answers, Models, Knowledge, Chats & history, Display & theme, Boar Avatars (with Boarverse on), Language, PIN lock, Voice input, This phone (with Show technical details on), Advanced tweaks, Experimental, and Start over. Advanced tweaks holds presets for speed, battery and heat, and Show technical details, which adds live speed at the top of the chat, memory and storage bars in the menu, and the This phone section.
+Settings starts with Profile, then the sections your profile shows, folded: How BOAR answers, Chats & history, Display & theme, Boar Avatars (with Boarverse on), Language and voice, PIN lock, This phone (with Show technical details on), Advanced tweaks, Experimental, and Start over. Models and Knowledge are in the menu (Model Catalog, Knowledge). Advanced tweaks (Pro) holds presets for speed, battery and heat, Free memory when I leave BOAR and how soon, Sources layout, and Show technical details, which adds live speed at the top of the chat, memory and storage bars in the menu, and the This phone section.
+
+## Profiles
+Settings → Profile picks how much Settings shows. Simple: language, look, PIN and starting over. Explorer adds how BOAR answers, chats and history, voice, Boarverse, rotation and haptics. Pro adds Advanced tweaks, technical details and Boar Labs. Below Pro, Advanced tweaks and technical details go back to Auto; your choices return when you pick Pro again. A new install starts on Simple; after an update BOAR picks the profile that shows everything you had changed, and says so once.
 
 ## Chats and history
-Your chats are kept on the phone and listed under Recent sessions in the menu. Settings → Chats & history sets how many chats BOAR keeps, whether it names them by itself, whether it summarizes long chats in the background, whether deleting a chat asks first, and clears the history. Delete a single chat from the menu. While BOAR is answering, stop the answer to switch chats. With a PIN on, chats are stored encrypted.
+Your chats are kept on the phone and listed under Recent sessions in the menu. Settings → Chats & history (from the Explorer profile) sets how many chats BOAR keeps, whether it names them by itself, whether it summarizes long chats in the background, whether deleting a chat asks first, and clears the history. Delete a single chat from the menu. While BOAR is answering, stop the answer to switch chats. With a PIN on, chats are stored encrypted.
 
 ## Voice input
-Tap the microphone inside the box where you type to speak a question. BOAR uses the phone's own on-device speech recognition; on a phone without it, the microphone doesn't show. Turn voice input on or off in Settings → Voice input.
+Tap the microphone inside the box where you type to speak a question. BOAR uses the phone's own on-device speech recognition, in the app's language (with System, your phone's); a phone without that language's speech pack listens in its own. On a phone without on-device recognition, the microphone doesn't show. Turn voice input on or off in Settings → Language and voice (from the Explorer profile).
 
 ## Language
-BOAR's screens come in English and Portuguese: pick System, English or Português in Settings → Language. You can ask in either language; for a Portuguese question, BOAR also searches the English library.
+BOAR's screens come in English and Portuguese: pick System, English or Português in Settings → Language and voice. You can ask in either language; for a Portuguese question, BOAR also searches the English library.
 
 ## Privacy
 BOAR runs on the phone: questions, answers, files and chats stay there. It contacts the internet only to download models and packs you choose, and to send your search words to Hugging Face when you use Discover GGUF models. It never sends your questions anywhere.
 
 ## Close BOAR
-Close BOAR (frees memory), in the menu, frees the memory the model uses and closes the app; if an answer is still being written, it asks first. By default, BOAR also frees the model as soon as you leave the app and no answer is running, so other apps have room: Settings → Models → Free memory when I leave BOAR.
+Close BOAR, in the menu, frees the memory the model uses and closes the app; if an answer is still being written, it asks first. By default, BOAR also frees the model as soon as you leave the app and no answer is running, so other apps have room: Settings → Advanced tweaks → Free memory when I leave BOAR.
 
 ## Starting over
 Settings → Start over has: Run setup again, See the tour, Reset settings, and Erase everything. Reset settings puts the theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults and opens setup; models, packs, chats, PIN and language stay. Erase everything deletes models, packs, your files, all chats, settings and the PIN, closes BOAR, and the next launch starts setup; it can't be undone.
