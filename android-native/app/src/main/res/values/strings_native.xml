@@ -698,4 +698,5 @@
     <string name="native_settings_languageVoice" formatted="false">Language and voice</string>
     <string name="native_voice_followsApp" formatted="false">Voice listens in the app\'s language. A phone without that speech pack listens in its own language.</string>
     <string name="native_voice_followsPhone" formatted="false">Voice listens in your phone\'s speech language.</string>
+    <string name="native_setup_encyclopediaExtra" formatted="false">+{{size}} over Essential: 50,000 more Wikipedia articles. The answer and search models are the same.</string>
 </resources>

@@ -363,6 +363,22 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun next() = setStep(minOf(_state.value.step + 1, 3))
+
+    /**
+     * Step 2's Continue (rc3, spec §7): with room for the Encyclopedia there's nothing to choose, so it downloads it
+     * straight away; without room, step 3 offers the packages, the difference spelled out.
+     */
+    fun continueFromModel() {
+        refreshPlans()
+        val encyclopedia = _state.value.plans.firstOrNull { it.pkg == SetupPackage.ENCYCLOPEDIA }
+        if (team.sopa.boar.engine.models.SetupKnowledge.skipChoice(encyclopedia?.shortfallBytes)) {
+            _state.update { it.copy(packageId = SetupPackage.ENCYCLOPEDIA) }
+            install()
+        } else next()
+    }
+
+    /** What the Encyclopedia adds over Essential (the Wikipedia pack): the low-space choice's only real difference. */
+    fun encyclopediaExtraBytes(): Long = team.sopa.boar.engine.models.SetupKnowledge.extraBytes(assetsOf(SetupPackage.ESSENTIAL), assetsOf(SetupPackage.ENCYCLOPEDIA))
     fun back() = setStep(maxOf(_state.value.step - 1, 1))
 
     /** A model added from Hugging Face in setup's Discover page: listed with the suggested ones and chosen. */

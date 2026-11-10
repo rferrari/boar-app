@@ -275,7 +275,7 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
 private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
-        PrimaryButton(t("flows.onboarding.continue"), enabled = state.chosenId != null, trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.next() }
+        PrimaryButton(t("flows.onboarding.continue"), enabled = state.chosenId != null, trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.continueFromModel() }
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
         StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
@@ -330,6 +330,8 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
                         "speed" to Units.formatBytes(REFERENCE_BYTES_PER_SEC)) else null,
                 )
                 if (meta.isNotEmpty()) Meta(meta.joinToString(" · "))
+                // The choice shows only when space is short: say what the bigger one really adds (the models are the same).
+                if (p.pkg == SetupPackage.ENCYCLOPEDIA) Meta(t("native.setup.encyclopediaExtra", "size" to Units.formatBytes(vm.encyclopediaExtraBytes())), c.textAccentEmerald)
                 if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), c.crimson400)
             }
         }
