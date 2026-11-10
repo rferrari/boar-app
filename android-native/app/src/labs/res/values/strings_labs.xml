@@ -42,4 +42,7 @@
     <string name="native_labs_listNote" formatted="false">Switch a lab on or off right here. Tap a lab for its page and its own settings. A lab that is on works in every profile.</string>
     <string name="native_labs_showTiles" formatted="false">Show as tiles</string>
     <string name="native_labs_openList" formatted="false">Open Boar Labs</string>
+    <string name="native_labs_wait_setting" formatted="false">Waiting animation</string>
+    <string name="native_labs_wait_trail" formatted="false">Boar trail</string>
+    <string name="native_labs_wait_matrix" formatted="false">Matrix rain</string>
 </resources>

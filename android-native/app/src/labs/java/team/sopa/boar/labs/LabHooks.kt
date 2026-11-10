@@ -124,6 +124,11 @@ object LabHooks {
                 colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
         }
         if (LabPrefs.labsOn) Column(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.wait.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
+            team.sopa.boar.ui.models.ChipRow("", listOf(LabPrefs.WAIT_TRAIL to team.sopa.boar.ui.t("native.labs.wait.trail"), LabPrefs.WAIT_MATRIX to team.sopa.boar.ui.t("native.labs.wait.matrix")),
+                LabPrefs.waitAnimation) { LabPrefs.waitAnimation = it }
+        }
+        if (LabPrefs.labsOn) Column(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.storage.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
             var limit by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(LabPrefs.string(STORAGE_LIMIT) ?: "auto") }
             team.sopa.boar.ui.models.ChipRow("", listOf(
@@ -202,7 +207,7 @@ object LabHooks {
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
                         .border(1.dp, rainColor(c).copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(18.dp)),
                 ) {
-                    MatrixRain(androidx.compose.ui.Modifier.fillMaxSize())
+                    WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize())
                     Column(
                         androidx.compose.ui.Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f)).padding(horizontal = 20.dp, vertical = 18.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),

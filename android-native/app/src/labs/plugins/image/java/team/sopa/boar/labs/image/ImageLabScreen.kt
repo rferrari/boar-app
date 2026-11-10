@@ -218,7 +218,7 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
             state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
             // The picture's square is always there: raining code while empty or drawing, so nothing moves when a picture lands.
             val image = state.image.takeIf { !busy }
-            if (image == null) team.sopa.boar.labs.MatrixRain(Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
+            if (image == null) team.sopa.boar.labs.WaitingAnimation(Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
                 label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
             image?.let { f ->
                 // At the drawing's own shape: a portrait or banner isn't cropped to a square.

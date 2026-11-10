@@ -160,6 +160,7 @@ object LabPrefs {
             unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false)
         }
         restart.value = p.getBoolean("autoRestart", true)
+        wait.value = p.getString("waitAnimation", WAIT_TRAIL) ?: WAIT_TRAIL
     }
 
     /** The master switch at the bottom of Advanced tweaks: on by default in the Labs build; off, no lab shows anywhere. */
@@ -174,6 +175,14 @@ object LabPrefs {
     private val restart = androidx.compose.runtime.mutableStateOf(true)
 
     fun enabled(id: String) = switches[id] ?: false
+
+    /** The waiting animation (rc3 slice 4): the boar's trail, or the matrix rain as before. */
+    const val WAIT_TRAIL = "trail"
+    const val WAIT_MATRIX = "matrix"
+    var waitAnimation: String
+        get() = wait.value
+        set(v) { wait.value = v; prefs?.edit()?.putString("waitAnimation", v)?.apply() }
+    private val wait = androidx.compose.runtime.mutableStateOf(WAIT_TRAIL)
 
     /**
      * The user switched a lab on themselves (not a default): an rc2 install that used Boar Labs becomes Pro

@@ -42,4 +42,7 @@
     <string name="native_labs_listNote" formatted="false">Ligue ou desligue um lab aqui mesmo. Toque num lab para abrir a página dele e as configurações próprias. Um lab ligado funciona em qualquer perfil.</string>
     <string name="native_labs_showTiles" formatted="false">Mostrar em cartões</string>
     <string name="native_labs_openList" formatted="false">Abrir o Boar Labs</string>
+    <string name="native_labs_wait_setting" formatted="false">Animação de espera</string>
+    <string name="native_labs_wait_trail" formatted="false">Rastro do javali</string>
+    <string name="native_labs_wait_matrix" formatted="false">Chuva da Matrix</string>
 </resources>
