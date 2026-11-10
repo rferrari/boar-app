@@ -718,9 +718,8 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     val c = Boar.colors
     val tail = thinking.takeLast(400).let { t -> if (t.length < thinking.length) t.substringAfter(' ', t) else t }.replace(Regex("\\s+"), " ").trim()
     val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
-    // 💭 stays put at the top left while it reasons; only the text beside it scrolls.
-    Row(modifier.fillMaxWidth().height(box), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("💭", fontSize = 12.sp, lineHeight = 17.sp)
+    // One 💭 only: the wait line above already says "💭 Reasoning…" (two balloons, X6, Nov 10). Only the text scrolls.
+    Row(modifier.fillMaxWidth().height(box)) {
         Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
             // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
             Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,

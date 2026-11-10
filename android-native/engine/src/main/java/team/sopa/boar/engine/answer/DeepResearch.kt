@@ -71,9 +71,12 @@ class DeepResearch(
         previousAnswer: String? = null,
         /** Every earlier exchange, oldest first (history keeps only the last few): what a conversation recap is written from. */
         conversation: List<Exchange> = emptyList(),
+        /** The write-up streamed so far is thrown away and a new one starts (the fallback answer): clear what's shown. */
+        onRestart: () -> Unit = {},
     ): ResearchResult {
         timedOut = false
         lastMetrics = null
+        answerBudget = maxTokens
         // "Summarize our conversation in 3 bullet points" covered only the last two topics of nine (X6, Oct 16).
         // Earlier recaps and summaries are left out: read back, the next recap copied them instead of the topics (X6, Oct 16).
         val topics = conversation.filterNot { isConversationRecap(it.question) || isSummaryFollowUp(it.question) }
@@ -119,18 +122,46 @@ class DeepResearch(
             all = merged.sources
             if (grew) onPartialSources(all, i, subQuestions.size)
             onProgress(ResearchProgress(ResearchStage.RESEARCHING, i, subQuestions.size, sub, answering = true))
-            subResults += sub to researchSubQuestion(sub, chunks, merged.indexMaps[i], systemPrompt, history)
+            // A sub-question with nothing written (only reasoning, twice) is left out: an empty perspective gave the
+            // write-up nothing but its label, and it wrote the sub-questions back as the answer (X6, Nov 10).
+            researchSubQuestion(sub, chunks, merged.indexMaps[i], systemPrompt, history).takeIf { it.isNotBlank() }?.let { subResults += sub to it }
         }
         onSources(all)
         if (shouldStop()) return ResearchResult("", subQuestions, all, full(), timedOut)
         onProgress(ResearchProgress(ResearchStage.SYNTHESIZING))
+        // No perspective at all: one answer straight from every source found, as a normal answer would be.
+        if (subResults.isEmpty()) {
+            val answer = directAnswer(query, all, systemPrompt, maxTokens, onToken, answerLanguage)
+            return ResearchResult(answer, subQuestions, all, full(), timedOut, metrics = lastMetrics)
+        }
         val answer = synthesize(query, subResults, systemPrompt, maxTokens, onToken, answerLanguage, exchange?.let { it to asked })
+        // A write-up with nothing in it, or only the sub-questions read back, is not an answer: write one from the sources.
+        if (!shouldStop() && onlyRepeats(AnswerText.stripThinking(answer), subQuestions)) {
+            onRestart()
+            val again = directAnswer(query, all, systemPrompt, maxTokens, onToken, answerLanguage)
+            return ResearchResult(again, subQuestions, all, full(), timedOut, metrics = lastMetrics)
+        }
         return ResearchResult(answer, subQuestions, all, full(), timedOut, metrics = lastMetrics)
     }
 
     private var timedOut = false
     /** The latest stage's numbers: after the write-up, the write-up's. */
     private var lastMetrics: GenerationMetrics? = null
+
+    /** The answer's budget for this run: the extra room an internal step gets when a model spent its own on reasoning. */
+    private var answerBudget = 0
+
+    /**
+     * An internal step (not shown while it's written): its reasoning left out of what it returns, since the next step
+     * reads it as plain text. A model that reasons first (LFM2.5) can spend a small budget inside <think> and return
+     * nothing after it (X6, Nov 10): then the step is asked once more with room for the answer too. "" when it still
+     * has nothing; each caller has its own fallback.
+     */
+    private suspend fun internal(system: String, user: String, nPredict: Int, temperature: Float): String {
+        val first = AnswerText.splitThinking(stage(system, user, nPredict, temperature, null))
+        if (first.answer.isNotBlank() || (first.thinking == null && !first.thinkingInProgress)) return first.answer.trim()
+        return AnswerText.stripThinking(stage(system, user, nPredict + answerBudget.coerceAtLeast(nPredict), temperature, null)).trim()
+    }
 
     private suspend fun stage(system: String, user: String, nPredict: Int, temperature: Float, onToken: ((String) -> Unit)?, timeoutMs: Long? = timeoutFor(nPredict)): String {
         val r = generator.generate(system, user, nPredict, temperature, timeoutMs, onToken)
@@ -144,7 +175,7 @@ class DeepResearch(
             "together cover it well (e.g. technical analysis, counter-arguments, " +
             "practical implications — whichever fit this question). One per line, " +
             "no numbering, no extra commentary.\n\nQuestion: $query\n\nSub-questions:"
-        return parseSubQuestions(stage("You plan research.", prompt, 150, 0.4f, null), query)
+        return parseSubQuestions(internal("You plan research.", prompt, 150, 0.4f), query)
     }
 
     /** A meta follow-up written from the previous answer alone: one generation, no splitting, no search. */
@@ -182,7 +213,7 @@ class DeepResearch(
             "Follow-up: $query\n\nRewrite the follow-up as one standalone question that names its subject, in the " +
             "follow-up's language. If it asks to continue, conclude or expand, ask for that about the previous topic. " +
             "Reply with the question only.\n\nStandalone question:"
-        val text = stage("You rewrite follow-up questions.", prompt, 80, 0.2f, null)
+        val text = internal("You rewrite follow-up questions.", prompt, 80, 0.2f)
         return text.split("\n").map { Js.trim(it.replaceFirst(LIST_MARK, "")).trim('"') }
             .firstOrNull { it.length > 8 && !REFUSAL.containsMatchIn(it) } ?: query
     }
@@ -193,7 +224,17 @@ class DeepResearch(
         val system = "${instructionOf(systemPrompt)} Answer the question in a short paragraph using the context. " +
             "Cite sources with the exact bracket numbers shown in the context, like [3]. " +
             "If the context does not cover it, say so."
-        return stage(system, "$summary${context}Question: $sub", 300, 0.6f, null)
+        return internal(system, "$summary${context}Question: $sub", 300, 0.6f)
+    }
+
+    /** The fallback write-up: the question answered from every source found, numbered as they're shown, streamed. */
+    private suspend fun directAnswer(query: String, sources: List<Chunk>, systemPrompt: String?, maxTokens: Int, onToken: (String) -> Unit, answerLanguage: String?): String {
+        val context = if (sources.isNotEmpty()) "Context:\n${numberedContext(sources, sources.indices.toList())}\n\n" else ""
+        val system = "${instructionOf(systemPrompt)} Answer the question using the context. " +
+            "Cite sources with the exact bracket numbers shown in the context, like [3]. If the context does not cover it, say so. " +
+            team.sopa.boar.engine.rag.RagPure.GROUNDING_INSTRUCTION
+        val language = answerLanguage?.let { Js.trim(it) }?.takeIf { it.isNotEmpty() }?.let { "\n\n($it)" } ?: ""
+        return stage(system, "${context}Question: $query$language", maxTokens, 0.6f, onToken, writeUpTimeoutFor(maxTokens))
     }
 
     /** [followUp]: the last exchange and the follow-up as the user wrote it, when [query] was rewritten from them. */
@@ -335,6 +376,22 @@ class DeepResearch(
             } ?: return null
             val answer = answerAfter(i)
             return Exchange(Js.trim(turns[i].text), if (answer.length > PREVIOUS_ANSWER_CHARS) answer.take(PREVIOUS_ANSWER_CHARS) + "…" else answer)
+        }
+
+        /**
+         * A write-up that isn't an answer: empty, or the [subQuestions] read back with next to nothing else (one at least
+         * found in it, and fewer than 20 letters or digits left once they're taken out). A short real answer stays.
+         */
+        fun onlyRepeats(answer: String, subQuestions: List<String>): Boolean {
+            fun norm(s: String) = s.lowercase().replace(Regex("[^\\p{L}\\p{N}]+"), " ").trim()
+            val whole = norm(answer)
+            if (whole.isEmpty()) return true
+            var rest = " $whole "
+            var found = false
+            for (q in subQuestions.map(::norm).filter { it.isNotEmpty() }.sortedByDescending { it.length }) {
+                if (" $q " in rest) { found = true; rest = rest.replace(" $q ", " ") }
+            }
+            return found && rest.count { it.isLetterOrDigit() } < 20
         }
 
         /** The decomposition's lines as sub-questions (at most 3), refusals dropped; the question itself when none is usable. */
