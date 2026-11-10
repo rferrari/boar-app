@@ -89,6 +89,9 @@ interface LabPlugin {
     /** The answer-mode slot: the chat answers in steps, sources first (team.sopa.boar.plugins.AnswerModes). */
     val stagedAnswers: Boolean get() = false
 
+    /** This lab shows an answer's sources itself: the chat hides its own list under the answers this lab drew. */
+    val ownsSources: Boolean get() = false
+
     /**
      * adb only (BenchActivity run=labtest): exercises this lab without its screen, reporting each check through [say] as
      * "ok …" or "FAIL …". False when the lab has no self-test.

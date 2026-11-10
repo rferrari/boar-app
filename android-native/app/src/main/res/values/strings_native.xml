@@ -704,4 +704,6 @@
     <string name="native_tweaks_sourcesLayout" formatted="false">Sources layout</string>
     <string name="native_tweaks_sourcesToday" formatted="false">Under the answer</string>
     <string name="native_tweaks_sourcesAbove" formatted="false">Above the answer</string>
+    <string name="native_staged_moreSources" formatted="false">+{{count}} sources</string>
+    <string name="native_staged_lessSources" formatted="false">Fewer sources ‹</string>
 </resources>

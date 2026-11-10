@@ -219,6 +219,16 @@ class StagedAnswer(
         /** The details' turn: the intro above is the model's own. */
         const val DETAILS_ASK = "Now give the details your short answer above left out, from the context, citing [n]. Don't repeat the short answer."
 
+        /**
+         * One source's line for the "+N sources" list (adam, Nov 10): its best answering sentence, or its first sentence
+         * when none holds a word of the question; cut like the key facts.
+         */
+        fun factOf(query: String, source: Chunk): String {
+            val best = team.sopa.boar.engine.rag.Compress.scoreSentences(query, listOf(source)).filter { it.score > 0 }.maxByOrNull { it.score }?.text
+            val text = (best ?: team.sopa.boar.engine.rag.Compress.splitSentences(source.body).firstOrNull() ?: source.body).trim()
+            return if (text.length > KEY_FACT_CHARS) text.take(KEY_FACT_CHARS).trimEnd() + "…" else text
+        }
+
         /** The best answering sentence of each source, best first, at most [KEY_FACTS]; none when no word of the question is in it. */
         fun keyFacts(query: String, sources: List<Chunk>): List<KeyFact> =
             Compress.scoreSentences(query, sources).filter { it.score > 0 }

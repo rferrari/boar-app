@@ -704,4 +704,6 @@
     <string name="native_tweaks_sourcesLayout" formatted="false">Posição das fontes</string>
     <string name="native_tweaks_sourcesToday" formatted="false">Embaixo da resposta</string>
     <string name="native_tweaks_sourcesAbove" formatted="false">Acima da resposta</string>
+    <string name="native_staged_moreSources" formatted="false">+{{count}} fontes</string>
+    <string name="native_staged_lessSources" formatted="false">Menos fontes ‹</string>
 </resources>
