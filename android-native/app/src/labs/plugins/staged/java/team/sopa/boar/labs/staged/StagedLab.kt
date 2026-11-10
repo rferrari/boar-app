@@ -33,6 +33,8 @@ object StagedLab : LabPlugin {
     override val stagedAnswers = true
     /** The engine code this switch turns on (the chat runs it through AnswerModes); named so the release manifest can tie its tests to it. */
     internal val engineCode = team.sopa.boar.engine.answer.StagedAnswer::class
+    // Its quotes and "+N sources" show every source above the answer: no second list under it.
+    override val ownsSources = true
 
     @Composable
     override fun Content() {

@@ -575,7 +575,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             passage?.let { n -> PassageSheet(question, m.sources, n, onReadSource) { passage = null } }
             // Boar Staged answers: what the sources say comes first, before and above the answer's text (with B+ the block
             // above says it, so Staged's quote cards don't show).
-            if (!above) m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource) }
+            if (!above) m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource, key = m.id) }
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
                     if (state.stopping) null else activityDetail(state.activity), startedAt)
@@ -607,7 +607,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
             if (!streaming) m.staged?.let { StagedCheck(it) }
-            if (m.sources.isNotEmpty() && !above) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
+            // A lab that shows the sources itself (Staged Answers) asks the chat to leave its list out; off, it's back.
+            val sourcesShownAbove = m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()
+            if (m.sources.isNotEmpty() && !above && !sourcesShownAbove) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource, key = m.id)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
