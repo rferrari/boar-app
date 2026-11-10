@@ -10,9 +10,18 @@ import java.io.File
 class LabDefaultsTest {
     private val plugins = File("../app/src/labs/plugins")
 
-    /** A plugin's status as its code declares it (LabStatus.X in its sources), or null for a classified teaser. */
-    private fun status(id: String): String? = File(plugins, id).walk().filter { it.extension == "kt" }
-        .flatMap { Regex("""LabStatus\.([A-Z]+)""").findAll(it.readText()).map { m -> m.groupValues[1] } }.firstOrNull()
+    /**
+     * A plugin's statuses as its code declares them: every `override val status = …LabStatus.X` outside comments (the
+     * image lab writes it fully qualified). Empty for a classified teaser with no code.
+     */
+    private fun statuses(id: String): List<String> = File(plugins, id).walk().filter { it.extension == "kt" }.flatMap { declaredStatuses(it.readText()) }.toList()
+
+    private fun declaredStatuses(source: String): List<String> {
+        val code = source.replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), "").replace(Regex("""//[^\n]*"""), "")
+        return Regex("""override\s+val\s+status\s*(?::\s*[\w.]+\s*)?=\s*(?:[\w.]+\.)?LabStatus\.([A-Z]+)""").findAll(code).map { it.groupValues[1] }.toList()
+    }
+
+    private fun startsOnAllowed(statuses: List<String>) = statuses.isNotEmpty() && statuses.all { it == "LIVE" || it == "BETA" }
 
     @Test fun `the default-on set is adam's list without the ALPHA labs still pending`() {
         assertEquals(setOf("pulse", "image", "printer", "polyglot", "calc", "distance", "facts", "cohazard"), LabDefaults.ON)
@@ -25,8 +34,8 @@ class LabDefaultsTest {
     }
 
     @Test fun `no ALPHA, under-review or classified lab starts on`() {
-        for (id in LabDefaults.ON) assertTrue("$id is ${status(id)}", status(id) == "LIVE" || status(id) == "BETA")
-        for (id in LabDefaults.PENDING_ALPHA) assertEquals("$id", "ALPHA", status(id))
+        for (id in LabDefaults.ON) assertTrue("$id is ${statuses(id)}", startsOnAllowed(statuses(id)))
+        for (id in LabDefaults.PENDING_ALPHA) assertEquals(id, listOf("ALPHA"), statuses(id))
     }
 
     @Test fun `the labs adam keeps off start off`() {
@@ -66,6 +75,27 @@ class LabDefaultsTest {
             val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
             assertTrue(id, src.contains("override val art = team.sopa.boar.R.drawable.$art"))
         }
+    }
+
+    @Test fun `the status guard reads the declaration, not a comment or another mention`() {
+        val alpha = "// LabStatus.BETA, once tested\n/* override val status = LabStatus.LIVE */\nval x = LabStatus.BETA\n    override val status = LabStatus.ALPHA\n"
+        assertEquals(listOf("ALPHA"), declaredStatuses(alpha))
+        assertFalse(startsOnAllowed(declaredStatuses(alpha)))
+        assertEquals(listOf("BETA"), declaredStatuses("    override val status = team.sopa.boar.labs.LabStatus.BETA"))
+        assertEquals(listOf("LIVE"), declaredStatuses("    override val status: LabStatus = LabStatus.LIVE"))
+        assertFalse("no declaration", startsOnAllowed(declaredStatuses("val s = LabStatus.BETA")))
+        assertFalse("one of two is ALPHA", startsOnAllowed(listOf("BETA", "ALPHA")))
+    }
+
+    @Test fun `every plugin with code declares its status once`() {
+        for (dir in plugins.listFiles().orEmpty().filter { File(it, "plugin.properties").isFile && File(it, "java").isDirectory })
+            assertEquals(dir.name, 1, statuses(dir.name).size)
+    }
+
+    @Test fun `a lab left on counts only while Boar Labs is on`() {
+        assertTrue(LabDefaults.userChoseOn(true, listOf(null, true, false)))
+        assertFalse(LabDefaults.userChoseOn(false, listOf(true)))
+        assertFalse(LabDefaults.userChoseOn(true, listOf(null, false)))
     }
 
     @Test fun `only Pro manages labs`() {

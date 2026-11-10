@@ -21,9 +21,18 @@ import java.io.File
  */
 class AppSettings(private val file: File) {
     private val json = Json { prettyPrint = false }
+    /** The file is there but couldn't be read as settings (truncated, not an object): settling then writes nothing. */
+    @Volatile private var loadFailed = false
     @Volatile private var data: JsonObject = load()
 
-    private fun load(): JsonObject = runCatching { json.parseToJsonElement(file.readText()).jsonObject }.getOrDefault(JsonObject(emptyMap()))
+    private fun load(): JsonObject {
+        val text = runCatching { file.readText() }.getOrNull()
+        if (text.isNullOrBlank()) return JsonObject(emptyMap())
+        return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { loadFailed = true; JsonObject(emptyMap()) }
+    }
+
+    /** The profile settled for a file that couldn't be read: kept for this run only, never written over the file. */
+    @Volatile private var unsavedProfile: UserProfile? = null
 
     /** Told after each saved change: the key, its old and new value (null when unset). The app's debug log listens. */
     @Volatile var onChange: ((key: String, old: JsonElement?, new: JsonElement?) -> Unit)? = null
@@ -38,11 +47,11 @@ class AppSettings(private val file: File) {
 
     /** Settings → Profile. Simple until set; see [UserProfile]. */
     var userProfile: UserProfile
-        get() = UserProfile.of(str(PROFILE_KEY)) ?: UserProfile.DEFAULT
+        get() = UserProfile.of(str(PROFILE_KEY)) ?: unsavedProfile ?: UserProfile.DEFAULT
         set(v) = set(PROFILE_KEY, JsonPrimitive(v.key))
 
     /** False on an install from before profiles until [settleProfile] runs. */
-    val profileSettled: Boolean get() = UserProfile.of(str(PROFILE_KEY)) != null
+    val profileSettled: Boolean get() = UserProfile.of(str(PROFILE_KEY)) != null || unsavedProfile != null
 
     /**
      * Gives the install its profile, once, at launch after the labs are loaded: from what is stored, not from the
@@ -58,6 +67,9 @@ class AppSettings(private val file: File) {
             bool("showDrawerStats") == true || bool("debugLogEnabled") == true || anyLabOn
         val explorerChanged = boarverseOn || EXPLORER_CHANGES.any { (key, isDefault) -> data[key]?.let { it !is JsonNull && !isDefault(it) } == true }
         val p = UserProfile.forUpdate(proChanged, explorerChanged)
+        // A file that couldn't be read is left for recovery: the profile holds for this run, and the next setting the
+        // user changes writes the file as before.
+        if (loadFailed) { unsavedProfile = p; return p }
         update { put(PROFILE_KEY, JsonPrimitive(p.key)); if (!fresh) put("profileNotePending", JsonPrimitive(true)) }
         return p
     }

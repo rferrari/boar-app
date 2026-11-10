@@ -148,15 +148,17 @@ object LabPrefs {
     fun init(context: Context) {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
+        // The master switch first: chosenOn below counts a lab only while Boar Labs is on.
+        on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         // rc3: the labs on adam's list start on, the rest off (LabDefaults); a switch the user flipped stays as they set it.
         // A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
+        val stored = LabRegistry.ALL.associate { it.id to if (p.contains("enabled.${it.id}")) p.getBoolean("enabled.${it.id}", false) else null }
+        chosenOn = team.sopa.boar.engine.labs.LabDefaults.userChoseOn(labsOn, stored.values)
         LabRegistry.ALL.forEach {
-            val stored = if (p.contains("enabled.${it.id}")) p.getBoolean("enabled.${it.id}", false) else null
-            if (stored == true) chosenOn = true
+            val stored = stored[it.id]
             switches[it.id] = team.sopa.boar.engine.labs.LabDefaults.switchOf(it.id, stored)
             unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false)
         }
-        on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         restart.value = p.getBoolean("autoRestart", true)
     }
 

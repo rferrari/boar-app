@@ -22,6 +22,12 @@ object LabDefaults {
      */
     fun turnedOnByUpdate(ids: List<String>, stored: (String) -> Boolean?): List<String> = ids.filter { it in ON && stored(it) == null }
 
+    /**
+     * The user switched a lab on themselves (a stored true), counted only while Boar Labs is on and built: a switch
+     * left on behind a master switch that's off shows nowhere, so it must not make the install Pro.
+     */
+    fun userChoseOn(labsOn: Boolean, stored: Iterable<Boolean?>): Boolean = labsOn && stored.any { it == true }
+
     /** The switch a lab shows: the user's own choice when there is one, else the default. */
     fun switchOf(id: String, stored: Boolean?): Boolean = stored ?: (id in ON)
 

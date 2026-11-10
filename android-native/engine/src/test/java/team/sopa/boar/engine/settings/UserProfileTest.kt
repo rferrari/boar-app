@@ -73,6 +73,20 @@ class UserProfileTest {
         }
     }
 
+    // F4 residual: settling a file it couldn't read keeps the profile for this run and leaves the file as it was.
+    @Test fun `settling a file it can't read writes nothing`() {
+        for (text in listOf("{\"themeId\":\"camp", "[]")) {
+            val f = file(text)
+            val s = AppSettings(f)
+            assertEquals(UserProfile.SIMPLE, s.settleProfile(anyLabOn = false))
+            assertTrue(s.profileSettled)
+            assertEquals(text, f.readText())
+        }
+        val s = AppSettings(file("[]"))
+        assertEquals(UserProfile.PRO, s.settleProfile(anyLabOn = true))
+        assertEquals(UserProfile.PRO, s.userProfile)
+    }
+
     // F1: the menu's bars and the debug log are Pro-only switches; an rc2 user with one on keeps it.
     @Test fun `an rc2 install with the menu's bars or the debug log on becomes Pro`() {
         assertEquals(UserProfile.PRO, AppSettings(file("""{"activeModelId":{"llm":"m"},"showDrawerStats":true}""")).settleProfile(false))
