@@ -14,23 +14,28 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import team.sopa.boar.app.BoarServices
 import team.sopa.boar.engine.answer.SessionEngine
-import team.sopa.boar.engine.canvas.CardSpec
+import team.sopa.boar.engine.canvas.Visual
+import team.sopa.boar.engine.canvas.VisualContext
 import team.sopa.boar.engine.canvas.WidgetHtml
 import team.sopa.boar.plugins.AnswerRef
 import java.io.File
 
 /**
  * What Boar Canvas made for each answer, and making it: the chat model, given the question and the finished answer,
- * writes a card spec (CardSpec) or a widget page (WidgetHtml). Only the model's reply is kept, in files/canvas/<answer
+ * writes a visual (Visual: the model picks the type and the data, the app checks and draws it) or a widget page (WidgetHtml). Only the model's reply is kept, in files/canvas/<answer
  * id>.json, so a reopened chat shows it again; erased with the chats.
  */
 internal object Canvas {
-    enum class Kind { CARD, WIDGET }
+    /** VISUAL: the merged visual (Visual). CARD: one made before the merge, drawn by the same code. WIDGET: model-written HTML. */
+    enum class Kind { CARD, WIDGET, VISUAL }
 
     sealed interface Status {
         data class Making(val kind: Kind) : Status
-        /** [raw]: the model's reply, parsed again when drawn (cheap, and a parser fix applies to old ones). */
-        data class Done(val kind: Kind, val raw: String, val seconds: Double) : Status
+        /**
+         * [raw]: the model's reply, parsed again when drawn (cheap, and a parser fix applies to old ones). [context]: the
+         * earlier answers' sentences the model read (VisualContext), kept so the grounding check reads the same text later.
+         */
+        data class Done(val kind: Kind, val raw: String, val seconds: Double, val context: String = "") : Status
         data class Failed(val key: String) : Status
     }
 
@@ -52,17 +57,18 @@ internal object Canvas {
         status[a.id] = Status.Making(kind)
         jobs[a.id] = scope.launch {
             val started = System.nanoTime()
-            val r = runCatching { generate(ctx, a, kind) }
+            val earlier = if (kind == Kind.WIDGET) VisualContext.Earlier(emptyList(), "") else runCatching { earlier(ctx, a) }.getOrDefault(VisualContext.Earlier(emptyList(), ""))
+            val r = runCatching { generate(ctx, a, kind, earlier) }
             // Forgotten (✕) while it was being made.
             if (status[a.id] !is Status.Making) return@launch
             val raw = r.getOrNull()
             val rejected = when {
                 raw == null -> if (r.exceptionOrNull() != null) "native.labs.canvas.failed" else "native.labs.canvas.noModel"
-                kind == Kind.CARD -> (CardSpec.parse(raw, a.text) as? CardSpec.Parsed.Rejected)?.let(::rejectedKey)
+                kind != Kind.WIDGET -> (Visual.parse(raw, grounding(a, earlier.sourceText), a.question) as? Visual.Parsed.Rejected)?.let(::rejectedKey)
                 else -> "native.labs.canvas.noWidget".takeIf { WidgetHtml.extract(raw) == null }
             }
             status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed")
-            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9).also { save(ctx, a.id, it) }
+            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, earlier.sourceText).also { save(ctx, a.id, it) }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[a.id]?.javaClass?.simpleName}")
             jobs.remove(a.id)
@@ -82,18 +88,44 @@ internal object Canvas {
         dir(ctx).deleteRecursively()
     }
 
-    private fun rejectedKey(r: CardSpec.Parsed.Rejected) = when (r.reason) {
-        CardSpec.Reason.NOTHING -> "native.labs.canvas.nothing"
-        CardSpec.Reason.INVENTED_NUMBERS -> "native.labs.canvas.invented"
+    private fun rejectedKey(r: Visual.Parsed.Rejected) = when (r.reason) {
+        Visual.Reason.NOTHING -> "native.labs.canvas.nothing"
+        Visual.Reason.INVENTED_NUMBERS -> "native.labs.canvas.invented"
+        Visual.Reason.UNGROUNDED_LABELS -> "native.labs.canvas.ungrounded"
         else -> "native.labs.canvas.noCard"
     }
 
+    /** What a visual's numbers and labels are checked against: the answer and the earlier facts the model read. */
+    fun grounding(a: AnswerRef, context: String): String = if (context.isBlank()) a.text else a.text + "\n" + context
+
+    /**
+     * Step one of a visual, no model: the earlier exchanges of this chat, before this answer (VisualContext keeps the
+     * ones on the same topic and their sentences with numbers).
+     */
+    private fun earlier(ctx: Context, a: AnswerRef): VisualContext.Earlier {
+        val session = a.sessionId ?: return VisualContext.Earlier(emptyList(), "")
+        val messages = BoarServices.get(ctx).chats.messages(session).takeWhile { it.id != a.id }
+        val exchanges = ArrayList<VisualContext.Exchange>()
+        var question: String? = null
+        for (m in messages) {
+            if (m.role == "user") question = m.text
+            else if (m.role == "assistant" && question != null) {
+                exchanges += VisualContext.Exchange(question, team.sopa.boar.engine.answer.AnswerText.stripThinking(m.text))
+                question = null
+            }
+        }
+        // The last one is this answer's own question, already in the prompt.
+        return VisualContext.earlier(VisualContext.Exchange(a.question, a.text), exchanges)
+    }
+
     /** The model's reply; null when no model is loaded. No session.cancel() of its own: the chat's Stop cancels it. */
-    private suspend fun generate(ctx: Context, a: AnswerRef, kind: Kind): String? {
+    private suspend fun generate(ctx: Context, a: AnswerRef, kind: Kind, earlier: VisualContext.Earlier): String? {
         val session = BoarServices.get(ctx).activeSession() ?: return null
-        val user = "QUESTION: ${a.question.take(400)}\n\nANSWER:\n${a.text.take(3000)}"
+        val user = if (kind == Kind.WIDGET) "QUESTION: ${a.question.take(400)}\n\nANSWER:\n${a.text.take(3000)}"
+        else VisualContext.prompt(a.question, a.text, earlier)
         val r = when (kind) {
-            Kind.CARD -> SessionEngine(session).generate(CARD_SYSTEM, user, nPredict = 700, temperature = 0.2f, timeoutMs = 180_000, onToken = null)
+            // The merged visual's prompt for a card too: CARD is only for ones saved before the merge.
+            Kind.VISUAL, Kind.CARD -> SessionEngine(session).generate(Visual.PROMPT, user, nPredict = 700, temperature = 0.2f, timeoutMs = 180_000, onToken = null)
             Kind.WIDGET -> SessionEngine(session).generate(WIDGET_SYSTEM, user, nPredict = 2000, temperature = 0.3f, timeoutMs = 360_000, onToken = null)
         }
         return r.text
@@ -104,24 +136,15 @@ internal object Canvas {
 
     private fun save(ctx: Context, id: String, d: Status.Done) = runCatching {
         dir(ctx).mkdirs()
-        file(ctx, id).writeText(JsonObject(mapOf("kind" to JsonPrimitive(d.kind.name), "raw" to JsonPrimitive(d.raw), "seconds" to JsonPrimitive(d.seconds))).toString())
+        file(ctx, id).writeText(JsonObject(mapOf("kind" to JsonPrimitive(d.kind.name), "raw" to JsonPrimitive(d.raw), "seconds" to JsonPrimitive(d.seconds),
+            "context" to JsonPrimitive(d.context))).toString())
     }
 
     private fun load(ctx: Context, id: String): Status.Done? = runCatching {
         val o = Json.parseToJsonElement(file(ctx, id).takeIf { it.isFile }?.readText() ?: return null).jsonObject
-        Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0)
+        Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0,
+            (o["context"] as? JsonPrimitive)?.contentOrNull ?: "")
     }.getOrNull()
-
-    // Grounded like BOAR's answers: only what the answer says. "none" is a fine reply, better than a forced card.
-    private const val CARD_SYSTEM = "You turn an encyclopedia answer into ONE visual card for a phone screen. Reply with ONE JSON object and nothing else.\n" +
-        "Pick the kind that fits the ANSWER best:\n" +
-        "- several things with the same properties: {\"type\":\"table\",\"title\":\"...\",\"columns\":[\"...\",\"...\"],\"rows\":[[\"...\",\"...\"]]}\n" +
-        "- several numbers of the same kind: {\"type\":\"bars\",\"title\":\"...\",\"unit\":\"...\",\"items\":[{\"label\":\"...\",\"value\":123}]}\n" +
-        "- a process or how-to: {\"type\":\"steps\",\"title\":\"...\",\"steps\":[\"...\",\"...\"]}\n" +
-        "- two to four options side by side: {\"type\":\"compare\",\"title\":\"...\",\"items\":[{\"name\":\"...\",\"points\":[\"...\",\"...\"]}]}\n" +
-        "- key facts about one thing: {\"type\":\"facts\",\"title\":\"...\",\"facts\":[{\"label\":\"...\",\"value\":\"...\"}]}\n" +
-        "Use ONLY facts and numbers written in the ANSWER; never add or guess any. Keep every text short (under 12 words). " +
-        "If no card would help, reply {\"type\":\"none\"}."
 
     // The page runs with no network: everything inline, and the app's colors as CSS variables.
     private const val WIDGET_SYSTEM = "You build ONE small interactive web widget that helps a reader explore an encyclopedia answer on a phone: " +

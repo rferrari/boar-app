@@ -19,8 +19,21 @@
     <string name="native_labs_canvas_madeBy" formatted="false">made in {{seconds}} s from this answer</string>
     <string name="native_labs_canvas_noModel" formatted="false">No answer model is loaded. Ask something first, then try again.</string>
     <string name="native_labs_canvas_failed" formatted="false">The model stopped before it finished. Try again.</string>
-    <string name="native_labs_canvas_noCard" formatted="false">The model didn\'t write a card BOAR can draw. Try again, or build a widget.</string>
-    <string name="native_labs_canvas_nothing" formatted="false">The model found nothing in this answer worth a card.</string>
-    <string name="native_labs_canvas_invented" formatted="false">The chart had a number that isn\'t in the answer, so BOAR threw it away.</string>
+    <string name="native_labs_canvas_noCard" formatted="false">The model didn\'t write a visual BOAR can draw. Try again, or build a widget.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">The model found nothing in this answer worth a visual.</string>
+    <string name="native_labs_canvas_invented" formatted="false">The visual had a number that isn\'t in the answer, so BOAR threw it away.</string>
     <string name="native_labs_canvas_noWidget" formatted="false">The model didn\'t write a page BOAR can show. Try again; bigger models do better.</string>
+    <string name="native_labs_canvas_make_visual" formatted="false">Make a visual</string>
+    <string name="native_labs_canvas_again_visual" formatted="false">Make the visual again</string>
+    <string name="native_labs_canvas_makingVisual" formatted="false">📊 Making a visual from this answer…</string>
+    <string name="native_labs_canvas_howVisual" formatted="false">📊 Visual: the model picks what fits the answer, a bar, line or pie chart, a table, steps, a side-by-side comparison or key facts, and BOAR draws it. Numbers from earlier answers in the chat can join in. Switch the same data between bars, line, pie and table, copy it, or open it full screen.</string>
+    <string name="native_labs_canvas_ungrounded" formatted="false">The visual named something that isn\'t in the answer, so BOAR threw it away.</string>
+    <string name="native_labs_canvas_withEarlier" formatted="false">with earlier answers</string>
+    <string name="native_labs_canvas_view_bars" formatted="false">Bars</string>
+    <string name="native_labs_canvas_view_line" formatted="false">Line</string>
+    <string name="native_labs_canvas_view_share" formatted="false">Pie</string>
+    <string name="native_labs_canvas_view_table" formatted="false">Table</string>
+    <string name="native_labs_canvas_copy" formatted="false">Copy</string>
+    <string name="native_labs_canvas_copied" formatted="false">Copied</string>
+    <string name="native_labs_canvas_expand" formatted="false">Expand</string>
 </resources>

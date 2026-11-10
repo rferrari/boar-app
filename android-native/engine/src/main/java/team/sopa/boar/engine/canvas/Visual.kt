@@ -120,7 +120,9 @@ sealed interface Visual {
             "- a process or how-to: {\"type\":\"steps\",\"title\":\"...\",\"steps\":[\"...\",\"...\"]}\n" +
             "- two to four options side by side: {\"type\":\"compare\",\"title\":\"...\",\"items\":[{\"name\":\"...\",\"points\":[\"...\",\"...\"]}]}\n" +
             "- key facts about one thing: {\"type\":\"facts\",\"title\":\"...\",\"facts\":[{\"label\":\"...\",\"value\":\"...\"}]}\n" +
-            "Copy labels and numbers exactly as the ANSWER writes them; \"value\" is a plain number. Never add, guess, round or " +
+            "Use the ANSWER first; facts listed under EARLIER IN THIS CHAT may be added when they measure the same thing (for " +
+            "example the same quantity for another country). " +
+            "Copy labels and numbers exactly as they are written; \"value\" is a plain number. Never add, guess, round or " +
             "compute a number (no totals, no percentages: the app does that). At most 8 items or rows. Keep every text short " +
             "(under 12 words). If no visual would help, reply {\"type\":\"none\"}."
 
