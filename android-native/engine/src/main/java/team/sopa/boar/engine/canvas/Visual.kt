@@ -47,7 +47,7 @@ sealed interface Visual {
      * NOTHING: the model said a visual wouldn't help. RESERVED: an interactive kind not built yet. INVENTED_NUMBERS and
      * UNGROUNDED_LABELS: something not in the answer (or the user's own message). BAD_SHARE: parts that can't make a whole.
      */
-    enum class Reason { NO_JSON, UNKNOWN_TYPE, RESERVED, EMPTY, INVENTED_NUMBERS, UNGROUNDED_LABELS, BAD_SHARE, NOTHING }
+    enum class Reason { NO_JSON, UNKNOWN_TYPE, RESERVED, EMPTY, INVENTED_NUMBERS, UNGROUNDED_LABELS, UNPAIRED, BAD_SHARE, NOTHING }
 
     companion object {
         const val MAX_ROWS = 20
@@ -79,13 +79,17 @@ sealed interface Visual {
                 "bars", "bar", "line", "share", "pie" -> {
                     val kind = when (type) { "line" -> SeriesKind.LINE; "share", "pie" -> SeriesKind.SHARE; else -> SeriesKind.BARS }
                     val items = (o["items"] as? JsonArray ?: o["data"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }.mapNotNull { i ->
-                        val v = (i["value"] as? JsonPrimitive)?.let { it.doubleOrNull ?: VisualCheck.valuesOf(it.contentOrNull ?: "").firstOrNull() }
+                        // A value written as text ("3,5") is read by its form (VisualCheck.readings), never the English way first.
+                        val v = (i["value"] as? JsonPrimitive)?.let { if (!it.isString) it.doubleOrNull else VisualCheck.valuesOf(it.content).singleOrNull() }
                             ?: return@mapNotNull null
                         (i.text("label") ?: return@mapNotNull null) to v
-                    }.filter { it.second.isFinite() }.take(if (kind == SeriesKind.SHARE) MAX_SHARE_PARTS else MAX_ITEMS)
-                    if (items.size < 2) return Parsed.Rejected(Reason.EMPTY)
-                    if (kind == SeriesKind.SHARE && !VisualScale.canShare(items.map { it.second })) return Parsed.Rejected(Reason.BAD_SHARE)
-                    Series(title, kind, o.text("unit")?.takeIf { it.isNotBlank() }, items)
+                    }.filter { it.second.isFinite() }
+                    // More parts than a pie can show is refused, not cut and drawn as if the rest were the whole (V-7).
+                    if (kind == SeriesKind.SHARE && items.size > MAX_SHARE_PARTS) return Parsed.Rejected(Reason.BAD_SHARE, "${items.size}")
+                    val kept = items.take(MAX_ITEMS)
+                    if (kept.size < 2) return Parsed.Rejected(Reason.EMPTY)
+                    if (kind == SeriesKind.SHARE && !VisualScale.canShare(kept.map { it.second })) return Parsed.Rejected(Reason.BAD_SHARE)
+                    Series(title, kind, o.text("unit")?.takeIf { it.isNotBlank() }, kept)
                 }
                 "steps" -> o.strings("steps").take(MAX_ITEMS).takeIf { it.size >= 2 }?.let { Steps(title, it) } ?: return Parsed.Rejected(Reason.EMPTY)
                 "compare" -> {
@@ -232,11 +236,16 @@ object VisualCheck {
         fun fault(text: String, checkWords: Boolean = true): Pair<String, Visual.Reason>? =
             g.badNumber(text)?.let { it to Visual.Reason.INVENTED_NUMBERS }
                 ?: if (checkWords && !g.wordsOk(text)) text to Visual.Reason.UNGROUNDED_LABELS else null
+        // The title and the unit are the model's words, but a number in them is a claim too (validator V-4).
+        g.badNumber(v.title)?.let { return Pruned(null, listOf(it), Visual.Reason.INVENTED_NUMBERS) }
         val left: Visual? = when (v) {
             is Visual.Series -> {
+                v.unit?.let { u -> g.badNumber(u)?.let { return Pruned(null, listOf(it), Visual.Reason.INVENTED_NUMBERS) } }
                 v.unit?.let { u -> if (!unitOk(u, g.source)) return Pruned(null, listOf(u), Visual.Reason.UNGROUNDED_LABELS) }
+                val labels = v.items.map { it.first }
                 val kept = v.items.filter { (l, x) ->
-                    val f = if (!g.grounded(x)) VisualScale.format(x) to Visual.Reason.INVENTED_NUMBERS else fault(l)
+                    val f = if (!g.grounded(x)) VisualScale.format(x) to Visual.Reason.INVENTED_NUMBERS
+                        else fault(l) ?: if (!g.paired(l, x, labels)) "$l ${VisualScale.format(x)}" to Visual.Reason.UNPAIRED else null
                     f?.let { note(it.first, it.second) }
                     f == null
                 }
@@ -247,8 +256,14 @@ object VisualCheck {
                     if (c == 0) true else g.badNumber(v.columns[c]).also { b -> b?.let { note(it, Visual.Reason.INVENTED_NUMBERS) } } == null
                 }
                 var rows = v.rows.filter { r -> fault(r.getOrElse(0) { "" })?.also { note(it.first, it.second) } == null && r.getOrElse(0) { "" }.isNotBlank() }
-                // A cell is bad when it's empty or holds something not in the texts; each round removes the worst line.
-                fun bad(r: List<String>, c: Int): Boolean = r.getOrElse(c) { "" }.let { it.isBlank() || fault(it) != null }
+                // A cell is bad when it's empty, holds something not in the texts, or a number the answer gives another
+                // row's name (V-3); each round removes the worst line.
+                val names = v.rows.map { it.getOrElse(0) { "" } }
+                fun unpaired(r: List<String>, cell: String): Boolean = tokens(cell).any { t -> valuesOf(t).none { x -> g.paired(r.getOrElse(0) { "" }, x, names) } }
+                fun bad(r: List<String>, c: Int): Boolean = r.getOrElse(c) { "" }.let { it.isBlank() || fault(it) != null || unpaired(r, it) }
+                /** Why a cell that comes out came out: its own fault, or a number that belongs to another row. */
+                fun cellFault(r: List<String>, cell: String): Pair<String, Visual.Reason>? =
+                    fault(cell) ?: if (unpaired(r, cell)) "${r.getOrElse(0) { "" }} $cell" to Visual.Reason.UNPAIRED else null
                 while (true) {
                     val dataCols = cols.filter { it > 0 }
                     if (rows.isEmpty() || dataCols.isEmpty()) break
@@ -263,10 +278,10 @@ object VisualCheck {
                     // On a tie, a column goes: the rows are the things compared.
                     val dropCol = colScore >= rowScore
                     if (dropCol) {
-                        rows.forEach { r -> r.getOrElse(worstCol.first) { "" }.takeIf { it.isNotBlank() }?.let { fault(it) }?.let { note(it.first, it.second) } }
+                        rows.forEach { r -> r.getOrElse(worstCol.first) { "" }.takeIf { it.isNotBlank() }?.let { cellFault(r, it) }?.let { note(it.first, it.second) } }
                         cols = cols - worstCol.first
                     } else {
-                        dataCols.forEach { c -> worstRow.first.getOrElse(c) { "" }.takeIf { it.isNotBlank() }?.let { fault(it) }?.let { note(it.first, it.second) } }
+                        dataCols.forEach { c -> worstRow.first.getOrElse(c) { "" }.takeIf { it.isNotBlank() }?.let { cellFault(worstRow.first, it) }?.let { note(it.first, it.second) } }
                         rows = rows.filter { it !== worstRow.first }
                     }
                 }
@@ -293,6 +308,37 @@ object VisualCheck {
         private val written = numbersIn(source)
         private val words = wordsOf(source)
         fun grounded(x: Double) = written.any { kotlin.math.abs(it - x) <= 1e-9 * maxOf(1.0, kotlin.math.abs(x)) }
+
+        /** Where each number is written in the source (its start), by value. */
+        private val at: List<Pair<Int, List<Double>>> = TOKEN.findAll(source).map { it.range.first to valuesOf(it.value.trim()) }.toList()
+        private val foldedSource = fold(source)
+
+        /** Where [label]'s words (2 characters or more, letters or digits: "K2" too) are written in the source. */
+        private fun placesOf(label: String): List<Int> =
+            Regex("[\\p{L}\\p{N}]{2,}").findAll(fold(label)).map { it.value }.filter { it !in STOP && it.any(Char::isLetter) }.flatMap { w ->
+                Regex("(?<![\\p{L}\\p{N}])${Regex.escape(stem(w))}").findAll(foldedSource).map { it.range.first }.toList()
+            }.toList()
+
+        /**
+         * The value [x] stands next to [label] in the source, not next to another of the visual's [labels] (validator V-3:
+         * "Paris 2.1 million, Lyon 0.5 million" drawn swapped passed): for some place [x] is written, the nearest label
+         * (one before it counts at half the distance of one after) is [label]. True when no label is near any place
+         * [x] is written, so a number the answer gives without naming its item isn't refused for that.
+         */
+        fun paired(label: String, x: Double, labels: List<String>): Boolean {
+            val near = 400
+            val places = at.filter { (_, vs) -> vs.any { kotlin.math.abs(it - x) <= 1e-9 * maxOf(1.0, kotlin.math.abs(x)) } }.map { it.first }
+            if (places.isEmpty()) return false
+            val byLabel = labels.distinct().associateWith(::placesOf)
+            var anyNear = false
+            for (p in places) {
+                val nearest = byLabel.mapValues { (_, ws) -> ws.minOfOrNull { w -> if (w <= p) (p - w) / 2 else (w - p) } ?: Int.MAX_VALUE }
+                    .filterValues { it <= near }.minByOrNull { it.value } ?: continue
+                anyNear = true
+                if (nearest.key == label) return true
+            }
+            return !anyNear
+        }
         fun badNumber(text: String): String? = tokens(text).firstOrNull { t -> valuesOf(t).none(::grounded) }
         fun wordsOk(text: String): Boolean = contentWords(text).let { it.isEmpty() || it.any { w -> w in words } }
     }
@@ -316,7 +362,7 @@ object VisualCheck {
      * ("1913, 1914") stays two numbers.
      */
     private val TOKEN = Regex(
-        "(?<![\\p{N}.,])(?:(?<![\\p{L}\\p{N}])[-−])?(?:\\d{1,3}(?:[.,\\u00a0\\u202f ]\\d{3})+(?:[.,]\\d+)?|\\d+(?:[.,]\\d+)?)" +
+        "(?<![\\p{N}.,])(?:(?<![\\p{L}\\p{N}])[-−])?(?:\\d{1,3}(?:[.,\\u00a0\\u202f]\\d{3})+(?:[.,]\\d+)?|\\d+(?:[.,]\\d+)?)" +
             "(?:\\s*(?:%|million|millions|billion|billions|thousand|trillion|mil|milhão|milhões|bilhão|bilhões|bi|mi|k)(?![\\p{L}]))?",
         RegexOption.IGNORE_CASE,
     )
@@ -333,16 +379,8 @@ object VisualCheck {
     fun valuesOf(token: String): List<Double> {
         val t = token.trim().replace("−", "-")
         val word = Regex("[\\p{L}%]+$").find(t)?.value?.lowercase()
-        val digits = (if (word != null) t.removeSuffix(Regex("[\\p{L}%]+$").find(t)!!.value) else t).trim().replace(" ", " ").replace(" ", " ")
-        val compact = digits.replace(" ", "")
-        val reads = LinkedHashSet<Double>()
-        fun add(s: String) = s.toDoubleOrNull()?.let { reads += it }
-        // EN: , thousands and . decimal.
-        add(compact.replace(",", ""))
-        // PT: . thousands and , decimal.
-        add(compact.replace(".", "").replace(",", "."))
-        // A plain decimal comma with no thousands ("3,5").
-        if (compact.count { it == ',' } == 1 && '.' !in compact) add(compact.replace(",", "."))
+        val digits = (if (word != null) t.removeSuffix(Regex("[\\p{L}%]+$").find(t)!!.value) else t).trim()
+        val reads = readings(digits.replace("\u00a0", "").replace("\u202f", "").replace(" ", ""))
         val mult = when (word) {
             "thousand", "mil", "k" -> 1e3
             "million", "millions", "milhão", "milhões", "mi" -> 1e6
@@ -350,9 +388,33 @@ object VisualCheck {
             "trillion" -> 1e12
             else -> null
         }
-        if (mult != null) reads.toList().forEach { reads += it * mult }
-        return reads.toList()
+        return if (mult != null) reads + reads.map { it * mult } else reads
     }
+
+    /**
+     * How a number is read from the way it's written, one reading where the form says which (validator V-2: "3,5" was
+     * also 35, "1,5 milhão" 15): both separators, the last one is the decimal; several of one, thousands; one comma
+     * before exactly three digits ("1,234"), thousands, else a decimal ("3,5"); one dot before anything but exactly three
+     * digits ("1.5", "8,849.0"), a decimal. Only one dot before exactly three digits ("1.234": EN 1.234, PT 1234) keeps
+     * both readings.
+     */
+    fun readings(n: String): List<Double> {
+        val neg = n.startsWith("-")
+        val d = n.removePrefix("-")
+        val commas = d.count { it == ',' }
+        val dots = d.count { it == '.' }
+        fun num(x: String) = x.toDoubleOrNull()?.let { if (neg) -it else it }
+        val three = Regex("^\\d{1,3}[.,]\\d{3}$").matches(d)
+        return when {
+            commas > 0 && dots > 0 -> listOfNotNull(if (d.lastIndexOf(',') > d.lastIndexOf('.')) num(d.replace(".", "").replace(",", ".")) else num(d.replace(",", "")))
+            commas > 1 -> listOfNotNull(num(d.replace(",", "")))
+            dots > 1 -> listOfNotNull(num(d.replace(".", "")))
+            commas == 1 -> listOfNotNull(if (three) num(d.replace(",", "")) else num(d.replace(",", ".")))
+            dots == 1 && three -> listOfNotNull(num(d), num(d.replace(".", "")))
+            else -> listOfNotNull(num(d))
+        }
+    }
+
 
     private val STOP = setOf(
         "the", "and", "for", "with", "from", "that", "this", "are", "was", "were", "has", "have", "its", "into", "than", "per", "about",
@@ -412,11 +474,14 @@ object VisualScale {
         return p * when { f <= 1 -> 1.0; f <= 2 -> 2.0; f <= 2.5 -> 2.5; f <= 5 -> 5.0; else -> 10.0 }
     }
 
-    /** The views a series can switch to with no new model call: bars and a table always, a line from 3 points, a share for parts of a whole. */
+    /**
+     * The views a series can switch to with no new model call: bars and a table always, a line from 3 points, and a pie
+     * only when the model said the numbers are parts of one whole (validator V-6: a pie of unrelated heights).
+     */
     fun kinds(s: Visual.Series): List<String> = listOfNotNull(
         "bars",
         "line".takeIf { s.items.size >= 3 },
-        "share".takeIf { canShare(s.items.map { it.second }) },
+        "share".takeIf { s.kind == Visual.SeriesKind.SHARE && canShare(s.items.map { it.second }) },
         "table",
     )
 

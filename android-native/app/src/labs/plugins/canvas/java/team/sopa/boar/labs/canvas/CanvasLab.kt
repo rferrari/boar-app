@@ -120,13 +120,15 @@ object CanvasLab : LabPlugin {
             is Canvas.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 when (st.kind) {
                     // A card saved before the merge reads as a visual (Visual is a superset of CardSpec).
-                    Canvas.Kind.CARD, Canvas.Kind.VISUAL ->
-                        (Visual.parse(st.raw, Canvas.grounding(a, st.context), a.question) as? Visual.Parsed.Ok)?.let { ok ->
+                    Canvas.Kind.CARD, Canvas.Kind.VISUAL -> {
+                        val context = remember(a.id, a.text, a.passages.size) { if (st.context.isNotEmpty()) st.context else Canvas.contextFor(ctx, a) }
+                        (Visual.parse(st.raw, Canvas.grounding(a, context), a.question) as? Visual.Parsed.Ok)?.let { ok ->
                             VisualView(ok.visual)
                             // What came out because neither the answer, the earlier answers nor the sources have it.
                             if (ok.leftOut.isNotEmpty()) Text(t("native.labs.canvas.leftOut", "what" to ok.leftOut.take(8).joinToString(", ")),
                                 style = Boar.type.caption, color = c.amber400)
                         }
+                    }
                     Canvas.Kind.WIDGET -> WidgetHtml.extract(st.raw)?.let { WidgetView(it) }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -140,6 +142,8 @@ object CanvasLab : LabPlugin {
     }
 
     override fun eraseUserData(context: Context, scope: UserData.Scope) = Canvas.eraseAll(context)
+
+    override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach { Canvas.forget(context, it) }
 
     @Composable
     override fun Content() {

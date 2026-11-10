@@ -470,7 +470,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Not the chat still being answered: its answer would be saved into a deleted session.
         if (job?.isActive == true && _state.value.sessionId == id) return
         // A database error (disk full, a damaged file) is told in a toast; uncaught here it would close the app.
-        safeScope.launch(Dispatchers.IO) { runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") } }
+        safeScope.launch(Dispatchers.IO) {
+            // What the labs made for this chat's answers goes first, while the answers can still be listed.
+            runCatching { team.sopa.boar.plugins.UserData.eraseAnswers(services.chats.messages(id).filter { it.role == "assistant" }.map { it.id }) }
+            runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") }
+        }
         if (_state.value.sessionId == id) newChat()
     }
 

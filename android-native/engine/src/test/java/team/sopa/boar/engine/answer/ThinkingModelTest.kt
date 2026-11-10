@@ -178,4 +178,17 @@ class ThinkingModelTest {
         assertEquals("Keihanshin is short.\n\nMore details here.", shown)
         assertEquals(1, Regex("\n\n").findAll(shown).count())
     }
+
+    @Test fun `F-1 the validator's two probes`() {
+        // (a) The question is one of two sub-questions and the write-up reads both back: caught through the other one.
+        val q = "Why did Australia build Canberra as a new capital?"
+        assertTrue(DeepResearch.onlyRepeats("Why did Australia build Canberra as a new capital?\nWhat security concerns motivated the decision?",
+            listOf(q, "What security concerns motivated the decision?"), q))
+        // (b) One sub-question, and the write-up is only the question.
+        assertTrue(DeepResearch.onlyRepeats("Capital of Australia?", listOf("Capital of Australia?"), "Capital of Australia?"))
+        // Still kept: a short answer that restates the unsplit question.
+        val c = "What is the capital of Australia?"
+        assertFalse(DeepResearch.onlyRepeats("The capital of Australia is Canberra.", listOf(c), c))
+        assertFalse(DeepResearch.onlyRepeats("What is the capital of Australia? Canberra, chosen in 1908.", listOf(c), c))
+    }
 }

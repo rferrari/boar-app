@@ -60,8 +60,8 @@ class VisualTest {
         assertEquals(Visual.Reason.BAD_SHARE, reason("""{"type":"share","items":[{"label":"Everest","value":-8849},{"label":"K2","value":8611}]}""", "Everest -8849 K2 8611"))
         assertEquals(Visual.Reason.BAD_SHARE, reason("""{"type":"share","items":[{"label":"Everest","value":0},{"label":"K2","value":0}]}""", "Everest 0 K2 0"))
         val nine = (1..9).joinToString(",") { """{"label":"Everest","value":$it}""" }
-        assertTrue(Visual.parse("""{"type":"share","items":[$nine]}""", "Everest 1 2 3 4 5 6 7 8 9") is Visual.Parsed.Ok)  // cut to 8 parts
-        assertEquals(8, (ok("""{"type":"share","items":[$nine]}""", "Everest 1 2 3 4 5 6 7 8 9") as Visual.Series).items.size)
+        // More than 8 parts is refused, not cut and drawn as the whole (V-7).
+        assertEquals(Visual.Reason.BAD_SHARE, reason("""{"type":"share","items":[$nine]}""", "Everest 1 2 3 4 5 6 7 8 9"))
     }
 
     // ── Grounding: numbers ──
@@ -88,7 +88,9 @@ class VisualTest {
         assertTrue(203.1 in ns); assertTrue(203_100_000.0 in ns)
         assertTrue(146.4 in ns); assertTrue(146_400_000.0 in ns)
         assertTrue(17_098_246.0 in ns)
-        assertTrue(1234.0 in VisualCheck.numbersIn("1 234 people"))
+        // A plain space doesn't join numbers ("K2 8611", validator V-1); a no-break space does.
+        assertFalse(1234.0 in VisualCheck.numbersIn("1 234 people"))
+        assertTrue(1234.0 in VisualCheck.numbersIn("1\u00a0234 people"))
         assertTrue(1234.0 in VisualCheck.numbersIn("1,234 people"))
         assertTrue(3.5 in VisualCheck.numbersIn("3,5 graus"))
         assertTrue(12.0 in VisualCheck.numbersIn("12% of it"))
@@ -160,8 +162,10 @@ class VisualTest {
 
     @Test fun `the same data switches view with no new model call`() {
         val s = Visual.Series("Peaks", Visual.SeriesKind.BARS, "m", listOf("Everest" to 8849.0, "K2" to 8611.0, "Kangchenjunga" to 8586.0))
-        assertEquals(listOf("bars", "line", "share", "table"), VisualScale.kinds(s))
-        assertEquals(listOf("bars", "share", "table"), VisualScale.kinds(s.copy(items = s.items.take(2))))
+        // A pie only for parts of a whole the model named (V-6): heights aren't shares.
+        assertEquals(listOf("bars", "line", "table"), VisualScale.kinds(s))
+        assertEquals(listOf("bars", "line", "share", "table"), VisualScale.kinds(s.copy(kind = Visual.SeriesKind.SHARE)))
+        assertEquals(listOf("bars", "share", "table"), VisualScale.kinds(s.copy(kind = Visual.SeriesKind.SHARE, items = s.items.take(2))))
         assertEquals(listOf("bars", "line", "table"), VisualScale.kinds(s.copy(items = listOf("a" to -1.0, "b" to 2.0, "c" to 3.0))))
         assertEquals(Visual.SeriesKind.LINE, VisualScale.asKind(s, Visual.SeriesKind.LINE)?.kind)
         assertNull(VisualScale.asKind(s.copy(items = listOf("a" to -1.0, "b" to 2.0)), Visual.SeriesKind.SHARE))
@@ -254,5 +258,53 @@ class VisualTest {
         assertTrue(Visual.PROMPT.contains("no percentages"))
         assertTrue(Visual.PROMPT.contains("{\"type\":\"none\"}"))
         assertFalse(Visual.PROMPT.contains("timeline"))
+    }
+
+    // ── Validator gate, Nov 10 ──
+
+    @Test fun `V-1 a space doesn't join two numbers`() {
+        val ns = VisualCheck.numbersIn("K2 8611 m and Apollo 11 1969")
+        assertTrue(8611.0 in ns && 2.0 in ns && 11.0 in ns && 1969.0 in ns)
+        assertFalse(2861.0 in ns)
+        assertTrue(1234.0 in VisualCheck.numbersIn("1\u00a0234 people"))
+        assertTrue(1234.0 in VisualCheck.numbersIn("1\u202f234 people"))
+        // The old saved K2 card reads again.
+        assertTrue(Visual.parse("""{"type":"bars","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""",
+            "Everest is 8,849 m and K2 8611 m.") is Visual.Parsed.Ok)
+    }
+
+    @Test fun `V-2 a number is read the way it's written`() {
+        assertEquals(listOf(3.5), VisualCheck.readings("3,5"))
+        assertEquals(listOf(1234.0), VisualCheck.readings("1,234"))
+        assertEquals(listOf(1.5), VisualCheck.readings("1.5"))
+        assertEquals(listOf(1.234, 1234.0), VisualCheck.readings("1.234"))
+        assertEquals(listOf(1234567.0), VisualCheck.readings("1.234.567"))
+        assertEquals(listOf(1234.5), VisualCheck.readings("1.234,5"))
+        assertFalse(35.0 in VisualCheck.numbersIn("3,5 graus"))
+        assertFalse(15.0 in VisualCheck.numbersIn("1,5 milhão"))
+        assertTrue(1_500_000.0 in VisualCheck.numbersIn("1,5 milhão"))
+        assertFalse(15_000_000.0 in VisualCheck.numbersIn("1.5 million"))
+        // A value written as text in the reply is read the same way.
+        val v = (Visual.parse("""{"type":"bars","unit":"graus","items":[{"label":"Lisboa","value":"3,5"},{"label":"Porto","value":"2,5"}]}""", "Lisboa 3,5 graus, Porto 2,5 graus.") as Visual.Parsed.Ok).visual as Visual.Series
+        assertEquals(listOf(3.5, 2.5), v.items.map { it.second })
+    }
+
+    @Test fun `V-3 a number must stand by its own label`() {
+        val answer = "Paris has 2.1 million people, Lyon 0.5 million."
+        val swapped = """{"type":"bars","unit":"million","items":[{"label":"Paris","value":0.5},{"label":"Lyon","value":2.1}]}"""
+        assertEquals(Visual.Reason.UNPAIRED, reason(swapped, answer))
+        val right = """{"type":"bars","unit":"million","items":[{"label":"Paris","value":2.1},{"label":"Lyon","value":0.5}]}"""
+        assertTrue(Visual.parse(right, answer) is Visual.Parsed.Ok)
+        // The X6 table still keeps Brazil's row: "It has 210 million" names Brazil a sentence before.
+        assertTrue(((Visual.parse(x6Table, x6Answer) as Visual.Parsed.Ok).visual as Visual.Table).rows.single().first() == "Brazil")
+        // A table row swapped with another's number is left out.
+        val t = """{"type":"table","columns":["City","People"],"rows":[["Paris","0.5 million"],["Lyon","2.1 million"],["Marseille","0.9 million"]]}"""
+        assertEquals(Visual.Reason.UNPAIRED, reason(t, answer + " Marseille 0.9 million."))
+    }
+
+    @Test fun `V-4 a number in the title or the unit must be backed too`() {
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"bars","title":"Peaks in 2099","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""", peaks))
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"bars","unit":"per 2099 m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""", peaks))
+        assertTrue(Visual.parse("""{"type":"bars","title":"Climbed since 1953","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""", peaks) is Visual.Parsed.Ok)
     }
 }
