@@ -29,7 +29,7 @@ class SourcesLayoutTest {
 
     @Test fun `with B+ the block is above, the list under the answer and Staged's cards are not drawn`() {
         assertTrue(chat.contains("if (above) SourcesAbove("))
-        assertTrue(chat.contains("if (m.sources.isNotEmpty() && !above) SourceFootnotes("))
+        assertTrue(chat.contains("if (m.sources.isNotEmpty() && !above && !sourcesShownAbove) SourceFootnotes("))
         assertTrue(chat.contains("if (!above) m.staged?.let { StagedCard("))
         // Drawn from the sources alone, whether the answer streams or not: it isn't removed when the answer starts.
         assertTrue(chat.indexOf("if (above) SourcesAbove(") < chat.indexOf("MarkdownMessage(shown, streaming"))
