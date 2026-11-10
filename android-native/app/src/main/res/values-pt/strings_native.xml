@@ -54,7 +54,7 @@
     <string name="native_about_siteBody" formatted="false">Novidades e atualizações saem no nosso site oficial. Cuidado com golpes: confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
     <string name="native_about_verify" formatted="false">Não confie, verifique.</string>
     <string name="native_about_copied" formatted="false">Copiado</string>
-    <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar.</string>
+    <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar, ou a versão para copiá-la com os plugins ligados, para relatar um problema.</string>
     <string name="native_receipt_mode" formatted="false">Modo</string>
     <string name="native_receipt_style_succinct" formatted="false">Sucinto e direto</string>
     <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
@@ -698,4 +698,6 @@
     <string name="native_settings_languageVoice" formatted="false">Idioma e voz</string>
     <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
     <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>
+    <string name="native_about_plugins" formatted="false">Plugins ({{count}}): {{list}}</string>
+    <string name="native_about_noPlugins" formatted="false">Plugins: nenhum</string>
 </resources>

@@ -87,12 +87,9 @@ fun AboutScreen(onClose: () -> Unit) {
                 Text(t("native.about.post.credits"), style = Boar.type.body, color = c.textPrimary)
                 Credits()
             }
-            Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 4.dp))
-            Text(
-                t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) + " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}",
-                style = Boar.type["mono.xs"], color = c.textSecondary,
-                modifier = Modifier.padding(start = 56.dp, top = 12.dp).background(Boar.colors.wash(0.06f), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp),
-            )
+            VersionInfo(info, debug)
+            // Last, as the footer: how the addresses and the version copy (adam, Nov 10).
+            Text(t("native.about.holdToCopy"), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(start = 56.dp, top = 16.dp))
         }
     }
 }
@@ -163,6 +160,33 @@ private fun Credits() {
                 Text(license, style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
+    }
+}
+
+/**
+ * The version, build and engine, then the enabled plugins. Press and hold copies all of it with the phone's model and
+ * Android version, for a bug report (adam, Nov 10). Only the clipboard: nothing is sent.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun VersionInfo(info: String, debug: Boolean) {
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    val copied = t("native.about.copied")
+    val labs = team.sopa.boar.labs.LabHooks.enabledLabs()
+    val version = t("aboutScreen.versionBadge", "version" to info, "build" to t(if (debug) "aboutScreen.buildDevelopment" else "aboutScreen.buildRelease")) +
+        " • llama.cpp · ${BoarEngine.loadedVariant ?: "—"}"
+    val plugins = if (labs.isEmpty()) t("native.about.noPlugins") else t("native.about.plugins", "count" to labs.size, "list" to labs.joinToString(", ") { it.first })
+    val report = AboutDebug.report(version, "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}", android.os.Build.VERSION.RELEASE,
+        android.os.Build.VERSION.SDK_INT, labs.map { it.second })
+    Column(Modifier.padding(start = 56.dp, top = 12.dp).clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.06f))
+        .combinedClickable(onClick = {}, onLongClick = {
+            (ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+                .setPrimaryClip(android.content.ClipData.newPlainText("BOAR", report))
+            android.widget.Toast.makeText(ctx, copied, android.widget.Toast.LENGTH_SHORT).show()
+        }).padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(version, style = Boar.type["mono.xs"], color = c.textSecondary)
+        Text(plugins, style = Boar.type["mono.xs"], color = c.textDim)
     }
 }
 
