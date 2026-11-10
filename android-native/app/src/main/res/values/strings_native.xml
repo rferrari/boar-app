@@ -60,6 +60,22 @@
     <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
     <string name="native_receipt_style_personal" formatted="false">Personal Files</string>
     <string name="native_receipt_style_custom" formatted="false">Custom</string>
+    <string name="native_receipt_path_staged" formatted="false">Staged answer</string>
+    <string name="native_receipt_stages" formatted="false">Steps</string>
+    <string name="native_receipt_stage_sources" formatted="false">sources</string>
+    <string name="native_receipt_stage_introFirst" formatted="false">first word</string>
+    <string name="native_receipt_stage_detailsFirst" formatted="false">details</string>
+    <string name="native_staged_facts" formatted="false">FROM THE SOURCES ({{count}})</string>
+    <string name="native_staged_factsNote" formatted="false">Quoted from the sources, not BOAR\'s answer. Tap one for its passage.</string>
+    <string name="native_staged_readArticle" formatted="false">Read the whole article ›</string>
+    <string name="native_staged_added" formatted="false">+{{count}} sources found while answering</string>
+    <string name="native_staged_step_sources" formatted="false">Searching the library…</string>
+    <string name="native_staged_step_intro" formatted="false">Writing a short answer…</string>
+    <string name="native_staged_step_research" formatted="false">Looking for more sources…</string>
+    <string name="native_staged_step_details" formatted="false">Adding the details…</string>
+    <string name="native_staged_step_check" formatted="false">Checking the numbers…</string>
+    <string name="native_staged_checkOk" formatted="false">Every number in this answer is in its sources.</string>
+    <string name="native_staged_checkMissing" formatted="false">Not found in the sources: {{numbers}}. Check them before you rely on them.</string>
     <string name="native_receipt_path_deep" formatted="false">Deep Research</string>
     <string name="native_receipt_path_chat" formatted="false">From this chat</string>
     <string name="native_receipt_path_adaptive" formatted="false">Adaptive routing</string>

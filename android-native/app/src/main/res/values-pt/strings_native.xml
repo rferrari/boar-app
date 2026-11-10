@@ -60,6 +60,22 @@
     <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
     <string name="native_receipt_style_personal" formatted="false">Arquivos pessoais</string>
     <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
+    <string name="native_receipt_path_staged" formatted="false">Resposta em etapas</string>
+    <string name="native_receipt_stages" formatted="false">Etapas</string>
+    <string name="native_receipt_stage_sources" formatted="false">fontes</string>
+    <string name="native_receipt_stage_introFirst" formatted="false">primeira palavra</string>
+    <string name="native_receipt_stage_detailsFirst" formatted="false">detalhes</string>
+    <string name="native_staged_facts" formatted="false">DAS FONTES ({{count}})</string>
+    <string name="native_staged_factsNote" formatted="false">Citado das fontes, não é a resposta do BOAR. Toque em uma para ver o trecho.</string>
+    <string name="native_staged_readArticle" formatted="false">Ler o artigo inteiro ›</string>
+    <string name="native_staged_added" formatted="false">+{{count}} fontes encontradas durante a resposta</string>
+    <string name="native_staged_step_sources" formatted="false">Buscando na biblioteca…</string>
+    <string name="native_staged_step_intro" formatted="false">Escrevendo uma resposta curta…</string>
+    <string name="native_staged_step_research" formatted="false">Procurando mais fontes…</string>
+    <string name="native_staged_step_details" formatted="false">Acrescentando os detalhes…</string>
+    <string name="native_staged_step_check" formatted="false">Conferindo os números…</string>
+    <string name="native_staged_checkOk" formatted="false">Todos os números desta resposta estão nas fontes.</string>
+    <string name="native_staged_checkMissing" formatted="false">Não encontrado nas fontes: {{numbers}}. Confira antes de confiar.</string>
     <string name="native_receipt_path_deep" formatted="false">Pesquisa Profunda</string>
     <string name="native_receipt_path_chat" formatted="false">Desta conversa</string>
     <string name="native_receipt_path_adaptive" formatted="false">Roteamento adaptativo</string>
