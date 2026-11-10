@@ -387,17 +387,20 @@ class DeepResearch(
             fun norm(s: String) = s.lowercase().replace(Regex("[^\\p{L}\\p{N}]+"), " ").trim()
             val whole = norm(answer)
             if (whole.isEmpty()) return true
+            val asked = query?.let(::norm)?.takeIf { it.isNotEmpty() }
             var rest = " $whole "
             var found = false
-            // A sub-question that is the question itself (one that wasn't split) doesn't count: a short real answer often
-            // restates it ("The capital of Australia is Canberra.").
-            val asked = query?.let(::norm)
-            for (q in subQuestions.map(::norm).filter { it.isNotEmpty() && it != asked }.sortedByDescending { it.length }) {
-                if (" $q " in rest) { found = true; rest = rest.replace(" $q ", " ") }
+            var askedBack = false
+            // Every sub-question read back comes out of the remainder; the one that is the question itself (not split)
+            // doesn't count as found on its own: a short real answer often restates it (validator T-1, F-1).
+            for (q in subQuestions.map(::norm).filter { it.isNotEmpty() }.distinct().sortedByDescending { it.length }) {
+                if (" $q " in rest) { rest = rest.replace(" $q ", " "); if (q != asked) found = true else askedBack = true }
             }
+            if (asked != null && " $asked " in rest) { rest = rest.replace(" $asked ", " "); askedBack = true }
+            // The question read back alone ("Capital of Australia?") is no answer either.
+            if (askedBack && rest.count { it.isLetterOrDigit() } < 3) return true
             return found && rest.count { it.isLetterOrDigit() } < 20
         }
-
         /** The decomposition's lines as sub-questions (at most 3), refusals dropped; the question itself when none is usable. */
         fun parseSubQuestions(text: String, query: String): List<String> {
             val lines = text.split("\n").map { Js.trim(it.replaceFirst(LIST_MARK, "")) }.filter { it.length > 8 && !REFUSAL.containsMatchIn(it) }
