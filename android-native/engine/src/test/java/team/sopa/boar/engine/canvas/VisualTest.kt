@@ -183,6 +183,34 @@ class VisualTest {
         assertEquals("-4", VisualScale.format(-4.0))
     }
 
+    @Test fun `an empty cell makes no claim and passes, an invented one doesn't`() {
+        val t = """{"type":"table","title":"Brazil and Russia","columns":["Country","Population (millions)","Area (km²)"],"rows":[["Brazil","210",""],["Russia","",""]]}"""
+        val answer = "Brazil has a population of approximately 210 million. Russia is larger but has fewer people."
+        assertTrue(Visual.parse(t, answer) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.INVENTED_NUMBERS, reason(t.replace("\"210\",\"\"]", "\"210\",\"8.5\"]"), answer))
+    }
+
+    @Test fun `a unit must come from the answer too`() {
+        val answer = "Brazil's GDP was $2.642 trillion and Russia's $2.2 trillion. Brazil covers 8,515,767 km²."
+        val gdp = """{"type":"bars","title":"GDP","unit":"trillion US$","items":[{"label":"Brazil","value":2.642},{"label":"Russia","value":2.2}]}"""
+        assertTrue(Visual.parse(gdp.replace("trillion US$", "trillion $"), answer) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNGROUNDED_LABELS, reason(gdp.replace("trillion US$", "billion $"), answer))
+        assertEquals(Visual.Reason.UNGROUNDED_LABELS, reason(gdp.replace("trillion US$", "trillion €"), answer))
+        assertTrue(VisualCheck.unitOk("km²", answer))
+        assertTrue(VisualCheck.unitOk("trillion", answer))
+        assertFalse(VisualCheck.unitOk("million km²", answer))
+        assertTrue(VisualCheck.unitOk("milhões", "A população é de 203,1 milhões."))
+        assertTrue(VisualCheck.unitOk("m", "Mount Everest is 8,849 m high."))
+    }
+
+    @Test fun `the prompt puts the rules first, units included, and lets a missing value stay empty`() {
+        assertTrue(Visual.PROMPT.indexOf("STRICT RULES") < Visual.PROMPT.indexOf("\"type\":\"bars\""))
+        assertTrue(Visual.PROMPT.contains("empty string"))
+        assertTrue(Visual.PROMPT.contains("at most 3 columns"))
+        assertTrue(Visual.PROMPT.contains("Never convert units"))
+        assertFalse(Visual.PROMPT.contains("another country"))
+    }
+
     @Test fun `the prompt asks for data, never for computed numbers`() {
         assertTrue(Visual.PROMPT.contains("\"type\":\"line\""))
         assertTrue(Visual.PROMPT.contains("\"type\":\"share\""))

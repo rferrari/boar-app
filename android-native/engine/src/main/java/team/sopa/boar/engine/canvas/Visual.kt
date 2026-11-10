@@ -111,20 +111,30 @@ sealed interface Visual {
          * The prompt: the model extracts and picks, the app computes and draws. "none" is a fine reply, better than a
          * forced visual. Short texts keep the JSON small (a 1.7B model writes 150 tokens in 11 to 15 s on the X6).
          */
-        const val PROMPT = "You turn an encyclopedia answer into ONE visual for a phone screen. Reply with ONE JSON object and nothing else.\n" +
-            "Pick the type that fits the ANSWER best:\n" +
+        const val PROMPT = "You extract structured data from an encyclopedia ANSWER into ONE visual for a phone screen. " +
+            "Reply with ONE JSON object and nothing else.\n" +
+            // Rules before the examples: a 1.7B model weighs what it reads first (X6, Nov 10: a 6-column table filled from
+            // memory, and an area of 8.5 under "km²" that meant 8.5 million km²).
+            "STRICT RULES:\n" +
+            "1. Use ONLY facts and numbers written in the ANSWER (or EARLIER IN THIS CHAT), copied exactly as written there.\n" +
+            "2. NEVER add, invent, estimate, round, convert or compute a number, and never fill missing data from memory " +
+            "(no totals, no percentages: the app does that).\n" +
+            "3. Units: write the unit exactly as the ANSWER does, with its scale word, so the number and unit read as in the " +
+            "ANSWER (\"2.642\" with \"trillion US$\", \"210\" with \"million\", \"8,515,767\" with \"km²\"). Never convert units. " +
+            "In one chart or column, every value has the same unit.\n" +
+            "4. If a value or cell is missing from the ANSWER, use an empty string (\"\") or leave the item out.\n" +
+            "5. Keep text short (under 8 words per label). Tables: at most 3 columns. At most 6 rows or items.\n" +
+            "6. Facts under EARLIER IN THIS CHAT may join only when the ANSWER measures the same thing.\n" +
+            "7. If fewer than 2 numbers, steps or facts come from the ANSWER, reply {\"type\":\"none\"}.\n" +
+            "Pick ONE type that fits:\n" +
             "- numbers to compare across things: {\"type\":\"bars\",\"title\":\"...\",\"unit\":\"...\",\"items\":[{\"label\":\"...\",\"value\":123}]}\n" +
             "- numbers that change over time, in order: {\"type\":\"line\",\"title\":\"...\",\"unit\":\"...\",\"items\":[{\"label\":\"1990\",\"value\":5}]}\n" +
             "- parts of one whole: {\"type\":\"share\",\"title\":\"...\",\"unit\":\"...\",\"items\":[{\"label\":\"...\",\"value\":40}]}\n" +
-            "- several things with the same properties: {\"type\":\"table\",\"title\":\"...\",\"columns\":[\"...\",\"...\"],\"rows\":[[\"...\",\"...\"]]}\n" +
+            "- a table (at most 3 columns): {\"type\":\"table\",\"title\":\"...\",\"columns\":[\"...\",\"...\",\"...\"],\"rows\":[[\"...\",\"...\",\"...\"]]}\n" +
             "- a process or how-to: {\"type\":\"steps\",\"title\":\"...\",\"steps\":[\"...\",\"...\"]}\n" +
             "- two to four options side by side: {\"type\":\"compare\",\"title\":\"...\",\"items\":[{\"name\":\"...\",\"points\":[\"...\",\"...\"]}]}\n" +
             "- key facts about one thing: {\"type\":\"facts\",\"title\":\"...\",\"facts\":[{\"label\":\"...\",\"value\":\"...\"}]}\n" +
-            "Use the ANSWER first; facts listed under EARLIER IN THIS CHAT may be added when they measure the same thing (for " +
-            "example the same quantity for another country). " +
-            "Copy labels and numbers exactly as they are written; \"value\" is a plain number. Never add, guess, round or " +
-            "compute a number (no totals, no percentages: the app does that). At most 8 items or rows. Keep every text short " +
-            "(under 12 words). If no visual would help, reply {\"type\":\"none\"}."
+            "\"value\" in bars, line and share is a plain number. If no visual would help, reply {\"type\":\"none\"}."
 
         private fun firstObject(s: String): JsonObject? {
             var start = s.indexOf('{')
@@ -183,6 +193,8 @@ object VisualCheck {
             is Visual.Series -> {
                 v.items.firstOrNull { (_, x) -> !grounded(x) }?.let { return Visual.Reason.INVENTED_NUMBERS to VisualScale.format(it.second) }
                 v.items.forEach { (l, _) -> texts += l; labels += l }
+                // The unit is a claim too: its words come from the answer ("million", "km²"), not from the model's memory.
+                v.unit?.let { u -> texts += u; if (!unitOk(u, source)) return Visual.Reason.UNGROUNDED_LABELS to u }
             }
             is Visual.Steps -> { texts += v.steps; labels += v.steps }
             is Visual.Compare -> v.items.forEach { (n, ps) -> texts += n; labels += n; texts += ps; labels += ps }
@@ -191,6 +203,19 @@ object VisualCheck {
         texts.forEach { t -> numbersOk(t)?.let { return Visual.Reason.INVENTED_NUMBERS to it } }
         labels.firstOrNull { !labelOk(it) }?.let { return Visual.Reason.UNGROUNDED_LABELS to it }
         return null
+    }
+
+    /**
+     * A unit the answer uses: each of its words (3 letters or more: "million", "trillion", "milhões") is in the answer,
+     * and each symbol or short unit (km², %, US$, °C, m) appears in it as written.
+     */
+    fun unitOk(unit: String, source: String): Boolean {
+        val src = fold(source)
+        val have = contentWords(source).toSet()
+        val words = Regex("\\p{L}{3,}").findAll(fold(unit)).map { it.value }.filter { it !in STOP }.toList()
+        if (words.any { w -> stem(w) !in have }) return false
+        val symbols = Regex("[^\\p{L}\\p{N}\\s()/.,-]+|(?<!\\p{L})\\p{L}{1,2}[²³]?(?!\\p{L})").findAll(fold(unit)).map { it.value.trim() }.filter { it.isNotEmpty() }.toList()
+        return symbols.all { it in src }
     }
 
     /**
