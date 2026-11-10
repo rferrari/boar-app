@@ -37,7 +37,7 @@ internal object Canvas {
          */
         data class Done(val kind: Kind, val raw: String, val seconds: Double, val context: String = "") : Status
         /** [detail]: what was refused (a number, a label), shown after the message so the user sees what the model got wrong. */
-        data class Failed(val key: String, val detail: String? = null) : Status
+        data class Failed(val key: String, val detail: String? = null, val raw: String? = null) : Status
     }
 
     private val status = mutableStateMapOf<String, Status>()
@@ -71,7 +71,7 @@ internal object Canvas {
             }
             // The reason in the log (never the answer's text); the refused number or label only on screen.
             refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
-            status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60))
+            status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
             else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, earlier.sourceText).also { save(ctx, a.id, it) }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[a.id]?.javaClass?.simpleName}")

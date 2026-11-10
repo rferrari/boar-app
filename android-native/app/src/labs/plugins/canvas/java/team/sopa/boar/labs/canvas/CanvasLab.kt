@@ -97,10 +97,23 @@ object CanvasLab : LabPlugin {
             null -> {}
             is Canvas.Status.Making -> Text(t(if (st.kind == Canvas.Kind.WIDGET) "native.labs.canvas.makingWidget" else "native.labs.canvas.makingVisual"),
                 style = Boar.type.caption, color = c.textAccentEmerald)
-            is Canvas.Status.Failed -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(t(st.key) + (st.detail?.let { " (" + t("native.labs.canvas.refused", "what" to it) + ")" } ?: ""),
-                    style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
-                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
+            is Canvas.Status.Failed -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
+                }
+                // What was refused, set apart so it isn't read as the answer's own number check above.
+                st.detail?.let { Text(t("native.labs.canvas.refused", "what" to it), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold) }
+                // The model's whole reply, to see what it picked and where it went wrong (kept for this run only).
+                st.raw?.takeIf { it.isNotBlank() }?.let { raw ->
+                    var open by remember(a.id) { mutableStateOf(false) }
+                    Text(t(if (open) "native.labs.canvas.hideReply" else "native.labs.canvas.showReply"), style = Boar.type["mono.xs"], color = c.textAccentCyan,
+                        fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !open }.padding(vertical = 2.dp))
+                    if (open) androidx.compose.foundation.text.selection.SelectionContainer {
+                        Text(raw.take(4000), style = Boar.type["mono.xs"], color = c.textSecondary,
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgSubtle).padding(8.dp))
+                    }
+                }
             }
             is Canvas.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 when (st.kind) {

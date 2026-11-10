@@ -36,5 +36,7 @@
     <string name="native_labs_canvas_copy" formatted="false">Copiar</string>
     <string name="native_labs_canvas_copied" formatted="false">Copiado</string>
     <string name="native_labs_canvas_expand" formatted="false">Ampliar</string>
-    <string name="native_labs_canvas_refused" formatted="false">recusado: {{what}}</string>
+    <string name="native_labs_canvas_refused" formatted="false">Recusado: {{what}} (não está na resposta)</string>
+    <string name="native_labs_canvas_showReply" formatted="false">Mostrar o que o modelo escreveu</string>
+    <string name="native_labs_canvas_hideReply" formatted="false">Ocultar o que o modelo escreveu</string>
 </resources>
