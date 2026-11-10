@@ -212,8 +212,10 @@ private fun WidgetView(page: String) {
                 settings.safeBrowsingEnabled = false
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = true
-                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest) =
-                        WebResourceResponse("text/plain", "utf-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+                    // The widget's own page passes (WidgetHtml.allowedUrl); everything else gets an empty 403.
+                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                        if (team.sopa.boar.engine.canvas.WidgetHtml.allowedUrl(request.url?.toString())) null
+                        else WebResourceResponse("text/plain", "utf-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(ByteArray(0)))
                 }
                 setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 loadDataWithBaseURL(null, doc, "text/html", "utf-8", null)
