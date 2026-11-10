@@ -36,7 +36,8 @@ internal object Canvas {
          * earlier answers' sentences the model read (VisualContext), kept so the grounding check reads the same text later.
          */
         data class Done(val kind: Kind, val raw: String, val seconds: Double, val context: String = "") : Status
-        data class Failed(val key: String) : Status
+        /** [detail]: what was refused (a number, a label), shown after the message so the user sees what the model got wrong. */
+        data class Failed(val key: String, val detail: String? = null) : Status
     }
 
     private val status = mutableStateMapOf<String, Status>()
@@ -62,12 +63,15 @@ internal object Canvas {
             // Forgotten (✕) while it was being made.
             if (status[a.id] !is Status.Making) return@launch
             val raw = r.getOrNull()
+            val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, earlier.sourceText), a.question) as? Visual.Parsed.Rejected else null
             val rejected = when {
                 raw == null -> if (r.exceptionOrNull() != null) "native.labs.canvas.failed" else "native.labs.canvas.noModel"
-                kind != Kind.WIDGET -> (Visual.parse(raw, grounding(a, earlier.sourceText), a.question) as? Visual.Parsed.Rejected)?.let(::rejectedKey)
+                kind != Kind.WIDGET -> refusal?.let(::rejectedKey)
                 else -> "native.labs.canvas.noWidget".takeIf { WidgetHtml.extract(raw) == null }
             }
-            status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed")
+            // The reason in the log (never the answer's text); the refused number or label only on screen.
+            refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
+            status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60))
             else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, earlier.sourceText).also { save(ctx, a.id, it) }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[a.id]?.javaClass?.simpleName}")

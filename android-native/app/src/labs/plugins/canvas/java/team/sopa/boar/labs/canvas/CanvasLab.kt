@@ -98,7 +98,8 @@ object CanvasLab : LabPlugin {
             is Canvas.Status.Making -> Text(t(if (st.kind == Canvas.Kind.WIDGET) "native.labs.canvas.makingWidget" else "native.labs.canvas.makingVisual"),
                 style = Boar.type.caption, color = c.textAccentEmerald)
             is Canvas.Status.Failed -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
+                Text(t(st.key) + (st.detail?.let { " (" + t("native.labs.canvas.refused", "what" to it) + ")" } ?: ""),
+                    style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
                 Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
             }
             is Canvas.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -36,4 +36,5 @@
     <string name="native_labs_canvas_copy" formatted="false">Copy</string>
     <string name="native_labs_canvas_copied" formatted="false">Copied</string>
     <string name="native_labs_canvas_expand" formatted="false">Expand</string>
+    <string name="native_labs_canvas_refused" formatted="false">refused: {{what}}</string>
 </resources>
