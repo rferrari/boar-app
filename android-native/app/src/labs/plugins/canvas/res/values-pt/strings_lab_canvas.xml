@@ -9,7 +9,7 @@
     <string name="native_labs_canvas_example" formatted="false">Por exemplo, a partir de uma resposta sobre as montanhas mais altas:</string>
     <string name="native_labs_canvas_exampleTitle" formatted="false">Picos mais altos</string>
     <string name="native_labs_canvas_credit" formatted="false">A ideia vem do Open Intelligent UI da CopilotKit (MIT). Aqui roda no seu celular, sem servidor.</string>
-    <string name="native_labs_canvas_make_card" formatted="false">Mostrar como cartão</string>
+    <string name="native_labs_canvas_make_card" formatted="false">Criar um cartão</string>
     <string name="native_labs_canvas_make_widget" formatted="false">Montar um widget</string>
     <string name="native_labs_canvas_again_card" formatted="false">Refazer o cartão</string>
     <string name="native_labs_canvas_again_widget" formatted="false">Montar o widget de novo</string>
@@ -19,8 +19,26 @@
     <string name="native_labs_canvas_madeBy" formatted="false">feito em {{seconds}} s a partir desta resposta</string>
     <string name="native_labs_canvas_noModel" formatted="false">Nenhum modelo de resposta está carregado. Pergunte algo primeiro e tente de novo.</string>
     <string name="native_labs_canvas_failed" formatted="false">O modelo parou antes de terminar. Tente de novo.</string>
-    <string name="native_labs_canvas_noCard" formatted="false">O modelo não escreveu um cartão que o BOAR consiga desenhar. Tente de novo, ou monte um widget.</string>
-    <string name="native_labs_canvas_nothing" formatted="false">O modelo não achou nada nesta resposta que valha um cartão.</string>
-    <string name="native_labs_canvas_invented" formatted="false">O gráfico tinha um número que não está na resposta, então o BOAR descartou.</string>
+    <string name="native_labs_canvas_noCard" formatted="false">O modelo não escreveu um visual que o BOAR consiga desenhar. Tente de novo, ou monte um widget.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">O modelo não achou nada nesta resposta que valha um visual.</string>
+    <string name="native_labs_canvas_invented" formatted="false">O visual tinha um número que não está na resposta, então o BOAR descartou.</string>
     <string name="native_labs_canvas_noWidget" formatted="false">O modelo não escreveu uma página que o BOAR consiga mostrar. Tente de novo; modelos maiores se saem melhor.</string>
+    <string name="native_labs_canvas_make_visual" formatted="false">Criar um visual</string>
+    <string name="native_labs_canvas_again_visual" formatted="false">Refazer o visual</string>
+    <string name="native_labs_canvas_makingVisual" formatted="false">📊 Criando um visual a partir desta resposta…</string>
+    <string name="native_labs_canvas_howVisual" formatted="false">📊 Visual: o modelo escolhe o que combina com a resposta, um gráfico de barras, linha ou pizza, uma tabela, passos, uma comparação lado a lado ou fatos principais, e o BOAR desenha. Números de respostas anteriores da conversa podem entrar. Troque os mesmos dados entre barras, linha, pizza e tabela, copie ou abra em tela cheia.</string>
+    <string name="native_labs_canvas_ungrounded" formatted="false">O visual citou algo que não está na resposta, então o BOAR descartou.</string>
+    <string name="native_labs_canvas_withEarlier" formatted="false">com respostas anteriores</string>
+    <string name="native_labs_canvas_view_bars" formatted="false">Barras</string>
+    <string name="native_labs_canvas_view_line" formatted="false">Linha</string>
+    <string name="native_labs_canvas_view_share" formatted="false">Pizza</string>
+    <string name="native_labs_canvas_view_table" formatted="false">Tabela</string>
+    <string name="native_labs_canvas_copy" formatted="false">Copiar</string>
+    <string name="native_labs_canvas_copied" formatted="false">Copiado</string>
+    <string name="native_labs_canvas_expand" formatted="false">Ampliar</string>
+    <string name="native_labs_canvas_refused" formatted="false">Recusado: {{what}} (não está na resposta)</string>
+    <string name="native_labs_canvas_showReply" formatted="false">Mostrar o que o modelo escreveu</string>
+    <string name="native_labs_canvas_hideReply" formatted="false">Ocultar o que o modelo escreveu</string>
+    <string name="native_labs_canvas_leftOut" formatted="false">⚠ Deixado de fora, não está na resposta, nas respostas anteriores nem nas fontes: {{what}}. Confira as fontes antes de confiar neste visual.</string>
+    <string name="native_labs_canvas_withMore" formatted="false">com respostas anteriores ou fontes</string>
 </resources>

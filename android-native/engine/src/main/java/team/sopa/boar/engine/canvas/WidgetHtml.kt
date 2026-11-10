@@ -7,6 +7,16 @@ package team.sopa.boar.engine.canvas
  * policy and the theme. The WebView's own settings (no network, no files, no bridge) are the second wall.
  */
 object WidgetHtml {
+    /**
+     * What a widget's WebView may load: its own page (a data: URL, or about:blank) and nothing else. data: carries its
+     * content inline and never reaches the network. The lock answered every request with a 403, the page itself too,
+     * so Android showed "Web page not available" instead of the widget (X6, Nov 10).
+     */
+    fun allowedUrl(url: String?): Boolean {
+        val u = url?.trim()?.lowercase() ?: return false
+        return u.startsWith("data:") || u == "about:blank"
+    }
+
     /** A widget is a few kilobytes; a longer reply is a model that didn't stop. */
     const val MAX_CHARS = 24_000
 
