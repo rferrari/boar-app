@@ -49,7 +49,24 @@ private fun parseBlocks(text: String): List<MdBlock> {
 }
 
 @Composable
-private fun inline(text: String): AnnotatedString {
+private fun inline(text: String, onCite: ((Int) -> Unit)? = null): AnnotatedString {
+    val built = inlineStyled(text)
+    if (onCite == null) return built
+    // Layout B+: a tap on [n] opens that source's passage (the marks stay as written, now tappable).
+    return buildAnnotatedString {
+        append(built)
+        for (m in CITE.findAll(built.text)) {
+            val n = m.groupValues[1].toIntOrNull() ?: continue
+            addLink(androidx.compose.ui.text.LinkAnnotation.Clickable("cite-$n", androidx.compose.ui.text.TextLinkStyles(SpanStyle(color = Boar.colors.textAccentCyan))) { onCite(n) },
+                m.range.first, m.range.last + 1)
+        }
+    }
+}
+
+private val CITE = Regex("\\[(\\d{1,3})]")
+
+@Composable
+private fun inlineStyled(text: String): AnnotatedString {
     val c = Boar.colors
     return buildAnnotatedString {
         var last = 0
@@ -70,7 +87,7 @@ private fun inline(text: String): AnnotatedString {
 }
 
 @Composable
-fun MarkdownMessage(content: String, streaming: Boolean, modifier: Modifier = Modifier) {
+fun MarkdownMessage(content: String, streaming: Boolean, modifier: Modifier = Modifier, onCite: ((Int) -> Unit)? = null) {
     val c = Boar.colors
     val type = Boar.type
     SelectionContainer {
@@ -90,9 +107,9 @@ fun MarkdownMessage(content: String, streaming: Boolean, modifier: Modifier = Mo
                         t.startsWith("# ") -> Text(t.drop(2), style = type.titleLg, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
                         t.startsWith("- ") || t.startsWith("* ") -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("•", style = type.body, color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
-                            Text(inline(t.drop(2)), style = type.bodyLg, color = c.textPrimary)
+                            Text(inline(t.drop(2), onCite), style = type.bodyLg, color = c.textPrimary)
                         }
-                        else -> Text(inline(line), style = type.bodyLg, color = c.textPrimary)
+                        else -> Text(inline(line, onCite), style = type.bodyLg, color = c.textPrimary)
                     }
                 }
             }

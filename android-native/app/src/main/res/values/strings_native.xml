@@ -699,4 +699,9 @@
     <string name="native_voice_followsApp" formatted="false">Voice listens in the app\'s language. A phone without that speech pack listens in its own language.</string>
     <string name="native_voice_followsPhone" formatted="false">Voice listens in your phone\'s speech language.</string>
     <string name="native_setup_encyclopediaExtra" formatted="false">+{{size}} over Essential: 50,000 more Wikipedia articles. The answer and search models are the same.</string>
+    <string name="native_sources_title" formatted="false">Sources ({{count}})</string>
+    <string name="native_sources_passages" formatted="false">{{count}} passages</string>
+    <string name="native_tweaks_sourcesLayout" formatted="false">Sources layout</string>
+    <string name="native_tweaks_sourcesToday" formatted="false">Under the answer</string>
+    <string name="native_tweaks_sourcesAbove" formatted="false">Above the answer</string>
 </resources>

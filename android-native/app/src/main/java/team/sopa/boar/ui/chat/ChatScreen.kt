@@ -566,8 +566,16 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
-            // Boar Staged answers: what the sources say comes first, before and above the answer's text.
-            m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource) }
+            // Layout B+ (Advanced tweaks → Sources layout): the sources open above the answer, never removed when it starts;
+            // a tap there or on an [n] in the answer opens the passage in a sheet.
+            val question = state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty()
+            var passage by remember(m.id) { mutableStateOf<Int?>(null) }
+            val above = state.sourcesAbove && m.sources.isNotEmpty()
+            if (above) SourcesAbove(m.id, question, m.sources) { passage = it }
+            passage?.let { n -> PassageSheet(question, m.sources, n, onReadSource) { passage = null } }
+            // Boar Staged answers: what the sources say comes first, before and above the answer's text (with B+ the block
+            // above says it, so Staged's quote cards don't show).
+            if (!above) m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource) }
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
                     if (state.stopping) null else activityDetail(state.activity), startedAt)
@@ -581,7 +589,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming)
+                    MarkdownMessage(shown, streaming, onCite = if (above && !streaming) ({ n -> if (n in 1..m.sources.size) passage = n }) else null)
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
@@ -599,7 +607,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
             if (!streaming) m.staged?.let { StagedCheck(it) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
+            if (m.sources.isNotEmpty() && !above) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).

@@ -699,4 +699,9 @@
     <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
     <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>
     <string name="native_setup_encyclopediaExtra" formatted="false">+{{size}} a mais que o Essencial: 50.000 artigos da Wikipédia a mais. Os modelos de resposta e de busca são os mesmos.</string>
+    <string name="native_sources_title" formatted="false">Fontes ({{count}})</string>
+    <string name="native_sources_passages" formatted="false">{{count}} trechos</string>
+    <string name="native_tweaks_sourcesLayout" formatted="false">Posição das fontes</string>
+    <string name="native_tweaks_sourcesToday" formatted="false">Embaixo da resposta</string>
+    <string name="native_tweaks_sourcesAbove" formatted="false">Acima da resposta</string>
 </resources>

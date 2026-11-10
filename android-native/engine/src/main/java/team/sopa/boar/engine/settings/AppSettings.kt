@@ -153,9 +153,11 @@ class AppSettings(private val file: File) {
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
-            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter",
+            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout",
         )
         const val PROFILE_KEY = "userProfile"
+        const val SOURCES_TODAY = "today"
+        const val SOURCES_ABOVE = "above"
 
         /**
          * Settings Explorer shows, each with what its default looks like: one stored away from its default means the
@@ -253,6 +255,13 @@ class AppSettings(private val file: File) {
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))
     /** The question picked on setup's "How to ask" page: in the chat's input once setup ends, not sent; then cleared. */
     var pendingFirstQuestion: String? get() = str("pendingFirstQuestion"); set(v) = set("pendingFirstQuestion", v?.takeIf { it.isNotBlank() }?.let(::JsonPrimitive))
+
+    /**
+     * Advanced tweaks → Sources layout (an experiment to compare on the phone, adam, Nov 10): "today" (the list under
+     * the answer) or "above" (B+: the sources open above it). Pro's, like the other tweaks: below Pro it reads "today".
+     */
+    var sourcesLayout: String get() = if (proActive) str("sourcesLayout") ?: SOURCES_TODAY else SOURCES_TODAY
+        set(v) = set("sourcesLayout", v.takeIf { it != SOURCES_TODAY }?.let(::JsonPrimitive))
 
     /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
     var showDrawerStats: Boolean get() = proActive && (bool("showDrawerStats") ?: false); set(v) = set("showDrawerStats", JsonPrimitive(v))

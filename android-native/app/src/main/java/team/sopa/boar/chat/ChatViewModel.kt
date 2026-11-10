@@ -137,6 +137,8 @@ data class ChatState(
     val deepResearch: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
+    /** Advanced tweaks → Sources layout "above" (B+): the sources open above each answer, not listed under it. */
+    val sourcesAbove: Boolean = false,
     val error: String? = null,
     /** The answer model's memory note (StartLoad): it closed the app last time, or may not fit; with its actions. */
     val loadNote: LoadNote? = null,
@@ -380,7 +382,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshSettings() {
         refreshTone()
         refreshModel()
-        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
+        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+            sourcesAbove = services.settings.sourcesLayout == team.sopa.boar.engine.settings.AppSettings.SOURCES_ABOVE) }
         // Setup's "How to ask" page: its question waits in the input, once.
         services.settings.pendingFirstQuestion?.let { q -> services.settings.pendingFirstQuestion = null; _state.update { it.copy(prefill = q) } }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
