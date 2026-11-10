@@ -4,7 +4,8 @@
 #   with its code left out, unless it is listed.
 # - LabManifestTest fails when a listed lab has no tests, a test named here doesn't exist, or a lab that starts on
 #   (LabDefaults.ON, or the ALPHA ones waiting in PENDING_ALPHA) isn't listed.
-# Not listed: bmoe (Big Boar, no tests yet), colibri (Boar Wisp, under review).
+# Not listed: bmoe (Big Boar) and colibri (Boar Wisp). adam, 2026-11-10: out of releases for now, results weren't good
+# enough; they're for advanced users, in debug and Labs builds (-Pboar.labs.released=false), not for everyone.
 pulse: VitalsTest
 image: ImageSafetyTest
 printer: ChatExportTest
