@@ -10,4 +10,10 @@ object UserData {
 
     /** Set by Boar Labs at start; runs every lab's eraser, switched on or not. */
     @Volatile var erase: (Scope) -> Unit = {}
+
+    /**
+     * One chat deleted (the drawer's 🗑️): what the plugins made for its answers ([answerIds]) goes with it, as the chat's
+     * own messages do (validator P-1: a visual's file stayed). Set by Boar Labs at start.
+     */
+    @Volatile var eraseAnswers: (answerIds: List<String>) -> Unit = {}
 }

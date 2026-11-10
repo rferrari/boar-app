@@ -71,6 +71,9 @@ interface LabPlugin {
      */
     fun eraseUserData(context: Context, scope: team.sopa.boar.plugins.UserData.Scope) {}
 
+    /** Erases what this lab made for these answers, when their chat is deleted (UserData.eraseAnswers). Runs even when off. */
+    fun eraseAnswers(context: Context, answerIds: List<String>) {}
+
     /** The search slot: a step after search for every answer (a reranker); see team.sopa.boar.plugins.SearchStage. */
     val searchStage: team.sopa.boar.plugins.SearchStage? get() = null
 
