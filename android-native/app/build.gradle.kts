@@ -33,7 +33,10 @@ val releasedLabs: Set<String> = file("src/labs/released.txt").takeIf { it.isFile
     .map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }.map { it.substringBefore(':').trim() }.toSet()
 val releaseLabsOnly: Boolean = (providers.gradleProperty("boar.labs.released").orNull?.trim()?.toBoolean())
     ?: gradle.startParameter.taskNames.let { tasks ->
-        tasks.isEmpty() || !tasks.all { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) }
+        // `clean assembleDebug` and `aD` stay full debug builds (validator R-1): a task naming Release, or none naming
+        // Debug or Devtest (assemble, build, bundle, aR, no task at all).
+        tasks.any { it.contains("Release", ignoreCase = true) || it == "aR" || it.endsWith(":aR") } ||
+            tasks.none { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) || t == "aD" || t.endsWith(":aD") }
     }
 /** In this build: every lab, or on a release build the listed ones and the code-free teasers. */
 fun LabPluginDir.inBuild(): Boolean = !releaseLabsOnly || id in releasedLabs || obj == null
