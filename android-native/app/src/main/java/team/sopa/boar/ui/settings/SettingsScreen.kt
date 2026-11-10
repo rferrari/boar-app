@@ -89,12 +89,13 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), auto) { auto = it; s.autoSummarize = it }
                 var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                 SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
+                // The switches together, the choices under them (adam, Nov 10).
+                var confirmDelete by remember { mutableStateOf(s.confirmChatDelete) }
+                SwitchRow(t("native.settings.confirmChatDelete"), t("native.settings.confirmChatDeleteNote"), confirmDelete) { confirmDelete = it; s.confirmChatDelete = it }
                 var turns by remember { mutableStateOf(s.historyTurnThreshold) }
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
                 Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
-                var confirmDelete by remember { mutableStateOf(s.confirmChatDelete) }
-                SwitchRow(t("native.settings.confirmChatDelete"), t("native.settings.confirmChatDeleteNote"), confirmDelete) { confirmDelete = it; s.confirmChatDelete = it }
                 ClearChats(services)
             }
             val avatarsOn by services.vault.enabled.collectAsState()
@@ -497,6 +498,10 @@ private fun ProfileSection(services: BoarServices, profile: UserProfile, onPick:
 private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit) {
     Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
         Note(t("native.settings.experimentalNote"))
+        // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default. First: it was BOAR's first experiment (adam, Nov 10).
+        val s = services.settings
+        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
+        if (shown(SettingsPart.ADAPTIVE_ROUTING)) SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
         // Boarverse: Boar Avatars to unlock and wear, off by default (back Oct 24; TruffleVault.SWITCH_SHOWN).
         if (team.sopa.boar.appearance.TruffleVault.SWITCH_SHOWN && shown(SettingsPart.BOARVERSE_SWITCH)) {
             val avatarsOn by services.vault.enabled.collectAsState()
@@ -507,10 +512,6 @@ private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) ->
             // Pro → Boar Labs: the compact list with a switch per lab (rc3).
             if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
         }
-        // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default.
-        val s = services.settings
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        if (shown(SettingsPart.ADAPTIVE_ROUTING)) SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
     }
 }
 
