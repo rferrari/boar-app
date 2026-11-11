@@ -519,8 +519,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val maxW = maxWidth * 0.92f
-        var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW).clip(shape)
-            .background(if (user) c.bgCardHover else c.bgSurface)
+        // The shape is drawn, not clipped: a clip on a very tall answer (Staged's quotes open) stopped taps on its lower
+        // half, the 🧩, Copy and rating row included (X6, Nov 10). Nothing inside draws past the padding.
+        var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW)
+            .background(if (user) c.bgCardHover else c.bgSurface, shape)
         // A Deep Research answer keeps its mark in the history: the border and the header in the mode's color.
         val researched = !user && m.receipt?.path == "deep"
         if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) c.frontierBadgeBorder else c.borderDefault, shape)
