@@ -115,4 +115,12 @@ class StagedAnswerTest {
         assertTrue(chat.contains("m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()"))
         assertTrue(java.io.File("../app/src/labs/plugins/staged/java/team/sopa/boar/labs/staged/StagedLab.kt").readText().contains("override val ownsSources = true"))
     }
+
+    @Test fun `a tall answer keeps its taps, the bubble's shape is drawn and never clipped`() {
+        // X6, Nov 10: with Staged's quotes open, a clip on the answer stopped every tap on its lower half (🧩, Copy, rating).
+        val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        val bubble = chat.substringAfter("private fun Bubble(").substringBefore("Column(mod.padding(")
+        assertTrue(bubble.contains(".background(if (user) c.bgCardHover else c.bgSurface, shape)"))
+        assertTrue(!bubble.contains(".clip(shape)"))
+    }
 }
