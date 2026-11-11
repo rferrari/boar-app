@@ -121,13 +121,22 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         when (val st = Illustrator.status(ctx, a.id)) {
             null -> {}
             Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))
-            is Illustrator.Status.Drawing -> Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
+            is Illustrator.Status.Drawing -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                team.sopa.boar.labs.DesignerWait(st.style, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)))
+                Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
+            }
             is Illustrator.Status.Failed -> Text(st.message, style = Boar.type.caption, color = c.crimson400)
             // What was drawn and the style, at a glance; ⓘ opens the exact prompt, size, seed and time (Oct 18).
             is Illustrator.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 var details by remember(a.id) { mutableStateOf(false) }
                 val style = st.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } }
-                Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)).clickable { details = !details })
+                // Fresh from the sketch: the lines fade into the picture (a reopened chat shows it at once).
+                var drawn by remember(st.file) { mutableStateOf(!Illustrator.justDrawn(a.id)) }
+                androidx.compose.runtime.LaunchedEffect(st.file) { drawn = true }
+                androidx.compose.animation.Crossfade(drawn, animationSpec = androidx.compose.animation.core.tween(team.sopa.boar.labs.revealMs()), label = "reveal") { done ->
+                    if (done) Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)).clickable { details = !details })
+                    else team.sopa.boar.labs.DesignerWait(st.style, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)))
+                }
                 // Only ⓘ and ✕ under the picture (adam, Nov 11); what was drawn, the style, the prompt, size, seed and time are in ⓘ.
                 Row(Modifier.widthIn(max = 240.dp).fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                     Text("ⓘ", style = Boar.type.body, color = if (details) c.textAccentCyan else c.textMuted,
@@ -228,11 +237,14 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
             state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
             // The picture's square is always there: raining code while empty or drawing, so nothing moves when a picture lands.
             val image = state.image.takeIf { !busy }
-            if (image == null) team.sopa.boar.labs.WaitingAnimation(Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
-                label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
-            image?.let { f ->
+            // The sketch while it draws, then the picture takes its place (a crossfade; instant with animations off).
+            androidx.compose.animation.Crossfade(image, animationSpec = androidx.compose.animation.core.tween(team.sopa.boar.labs.revealMs()), label = "reveal") { shownImage ->
+                if (shownImage == null) team.sopa.boar.labs.DesignerWait(state.style.key, Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
+                    label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
                 // At the drawing's own shape: a portrait or banner isn't cropped to a square.
-                Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
+                else Picture(shownImage, Modifier.fillMaxWidth().aspectRatio(aspectOf(shownImage)).clip(RoundedCornerShape(10.dp)))
+            }
+            image?.let { f ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     state.seconds?.let { Text(String.format(Locale.US, "%.1f s", it), style = Boar.type["mono.xs"], color = c.textAccentCyan, modifier = Modifier.weight(1f)) }
                         ?: Box(Modifier.weight(1f))

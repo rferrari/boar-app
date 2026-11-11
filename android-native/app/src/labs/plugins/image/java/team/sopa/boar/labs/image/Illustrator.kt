@@ -23,7 +23,8 @@ import java.io.File
 object Illustrator {
     sealed interface Status {
         data object Choosing : Status
-        data class Drawing(val subject: String) : Status
+        /** [style]: the style key it's drawn in, for the sketch shown while it waits. */
+        data class Drawing(val subject: String, val style: String? = null) : Status
         /** [style], [size] and [seed]: what it was drawn with, for the card's details (null on drawings saved before Oct 18). */
         data class Done(val file: File, val subject: String, val seconds: Double?, val style: String? = null, val size: String? = null, val seed: Int? = null) : Status
         data class Failed(val message: String) : Status
@@ -31,6 +32,12 @@ object Illustrator {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val status = mutableStateMapOf<String, Status>()
+
+    /** Answers whose drawing just finished in this run: their picture fades in from the sketch once, then never again. */
+    private val fresh = java.util.Collections.synchronizedSet(HashSet<String>())
+
+    /** True once for an answer whose drawing just finished; a reopened chat's drawings show at once. */
+    fun justDrawn(id: String): Boolean = fresh.remove(id)
     private val jobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
     private var store: File? = null
 
@@ -77,12 +84,13 @@ object Illustrator {
             val subject = team.sopa.boar.engine.routing.ImageSafety.safeSubject(fromModel?.takeIf { !repeated } ?: fallback(a))
             // No question or answer text in the log: only whether the model picked the subject.
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: from model=${fromModel != null} repeated=$repeated")
-            status[a.id] = Status.Drawing(subject)
+            status[a.id] = Status.Drawing(subject, style.key)
             runCatching { SdRunner.draw(ctx, subject, style, canvas) }
                 .onSuccess { d ->
                     // Forgotten (✕) while it drew: the result has no answer to go to.
                     if (status[a.id] !is Status.Drawing) { d.file.delete(); return@onSuccess }
-                    status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
+                    fresh.add(a.id)
+            status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
                 }
                 .onFailure { if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.drawFailed")) }
             jobs.remove(a.id)
