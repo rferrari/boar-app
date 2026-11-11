@@ -47,4 +47,5 @@
     <string name="native_labs_wait_matrix" formatted="false">Chuva da Matrix</string>
     <string name="native_labs_search" formatted="false">Buscar plugins</string>
     <string name="native_labs_searchNone" formatted="false">Nenhum plugin encontrado.</string>
+    <string name="native_labs_editAction" formatted="false">Mudar as configurações antes</string>
 </resources>

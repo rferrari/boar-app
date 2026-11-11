@@ -9,8 +9,11 @@ class IllustrateSheetTest {
     private val lab = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLab.kt").readText()
     private val sheet = screen.substringAfter("private fun IllustrateSheet(")
 
-    @Test fun `Pro gets the sheet, below Pro draws at once`() {
-        assertTrue(screen.contains("if (team.sopa.boar.labs.LabPrefs.proProfile) Illustrator.asking = a.id else Illustrator.start(ctx, a, notReady)"))
+    @Test fun `the row draws with the defaults, the edit button opens the sheet, in every profile`() {
+        assertTrue(screen.contains("onEdit = { Illustrator.asking = a.id }) { Illustrator.start(ctx, a, notReady) }"))
+        assertTrue(!screen.contains("LabPrefs.proProfile) Illustrator.asking"))
+        val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+        assertTrue(hooks.contains("if (edit != null) androidx.compose.material3.Text(\"✎\""))
     }
 
     @Test fun `the first button draws with the defaults`() {

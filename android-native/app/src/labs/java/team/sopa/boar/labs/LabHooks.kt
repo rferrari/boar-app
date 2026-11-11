@@ -3,6 +3,7 @@ package team.sopa.boar.labs
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -259,8 +260,18 @@ object LabHooks {
                 androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.sheetTitle"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
                 owned.forEach { (labId, act) ->
+                    val edit = act.onEdit
                     SheetRow(act.art, act.emoji, act.label, null, LabRegistry.byId(labId)?.status, act.enabled,
-                        trailing = if (act.done) ({ team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald) }) else null) {
+                        trailing = if (act.done || edit != null) ({
+                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (act.done) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
+                                // ✎: the settings first (Designer's style and size), the row itself acts with the defaults.
+                                if (edit != null) androidx.compose.material3.Text("✎", style = team.sopa.boar.ui.theme.Boar.type.title, color = if (act.enabled) c.textAccentCyan else c.textDim,
+                                    modifier = androidx.compose.ui.Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                                        .clickable(enabled = act.enabled, onClickLabel = team.sopa.boar.ui.t("native.labs.editAction")) { LabPrefs.used(labId); open = false; edit() }
+                                        .wrapContentSize(androidx.compose.ui.Alignment.Center))
+                            }
+                        }) else null) {
                         LabPrefs.used(labId); act.onClick(); open = false
                     }
                 }

@@ -291,7 +291,7 @@ private val MOON = Color(0xFF9EC7F0)
 
 /**
  * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", for about 2 s when BOAR opens and when the
- * connection really changes, then a small dot (moon-blue ring offline, muted dot online). A tap shows the pill again with
+ * connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). A tap shows the pill again with
  * what the connection is used for. With animations off the swap is instant. Shown once per state for the process
  * (ConnectionPill), so redraws and coming back to the chat don't repeat it.
  */
@@ -329,7 +329,8 @@ private fun ConnectionDot(online: Boolean) {
         ) {
             Box(Modifier.size(5.dp).background(tint, CircleShape))
             Text(label, fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false)
-        } else Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.textDim, CircleShape) else Modifier.border(1.5.dp, MOON, CircleShape)))
+        // The dot keeps the pill's colors (adam, Nov 11): amber online, a greyed moon-blue ring offline.
+        } else Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
     }
     if (info) androidx.compose.material3.AlertDialog(onDismissRequest = { info = false }, containerColor = c.bgCardElevated,
         confirmButton = { androidx.compose.material3.TextButton({ info = false }) { Text(t("common.done"), color = c.textAccentCyan) } },

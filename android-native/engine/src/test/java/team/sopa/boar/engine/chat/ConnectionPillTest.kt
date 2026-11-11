@@ -20,4 +20,9 @@ class ConnectionPillTest {
         assertTrue(dot.contains("ANIMATOR_DURATION_SCALE"))
         assertTrue(!chat.contains("offlineReady"))
     }
+
+    @Test fun `the dot is amber online and a greyed blue ring offline`() {
+        val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        assertTrue(chat.contains("if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)"))
+    }
 }

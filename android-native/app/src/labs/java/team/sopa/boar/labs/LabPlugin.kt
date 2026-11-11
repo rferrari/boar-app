@@ -103,7 +103,9 @@ interface LabPlugin {
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
-class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null, val onClick: () -> Unit)
+/** [onEdit]: a ✎ on the action's row that opens its settings first (Designer: style and size, adam Nov 11); the row itself acts at once. */
+class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null,
+                val onEdit: (() -> Unit)? = null, val onClick: () -> Unit)
 
 /** A tile for something in testing: no screen, no slots. Its boar shows as a silhouette until it launches. */
 /**

@@ -47,4 +47,5 @@
     <string name="native_labs_wait_matrix" formatted="false">Matrix rain</string>
     <string name="native_labs_search" formatted="false">Search plugins</string>
     <string name="native_labs_searchNone" formatted="false">No plugin matches.</string>
+    <string name="native_labs_editAction" formatted="false">Change the settings first</string>
 </resources>
