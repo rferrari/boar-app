@@ -166,6 +166,8 @@ data class ChatState(
     val suggestions: List<String> = emptyList(),
     /** The question picked in setup, for the input box once (not sent). */
     val prefill: String? = null,
+    /** A chat just deleted from the menu, still undoable (id to title); really deleted when its time runs out. */
+    val pendingDelete: Pair<String, String>? = null,
     /** Questions sent while BOAR was answering, waiting their turn (PromptQueue), first to run first. */
     val queued: List<QueuedPrompt> = emptyList(),
 )
@@ -232,6 +234,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch {
             services.pinLock.erased.drop(1).collect {
                 queue.clear(); publishQueue()
+                // Forgot PIN erased every chat: an undoable delete has nothing left to undo.
+                pendingDeleteJob?.cancel(); pendingDeleteJob = null; _state.update { it.copy(pendingDelete = null) }
                 job?.cancel()
                 _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
             }
@@ -449,6 +453,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct()
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
+        // Ideas whose source is a pack the user downloaded (not the built-in library) come up more often (IdeaPicker).
+        val packs = installed.toSet()
+        ideaFromPacks = tested.filter { k -> suggestionData.sources.firstOrNull { it.key == k }?.corpus?.any { it in packs && it != "builtin" } == true }.toSet()
         // The pick is held back (its last load closed the app): the note says so for as long as it is, not only once after
         // the crash, so the header naming another model than the Model Catalog's pick is never left unexplained (X6, Nov 4).
         val heldBack = services.activeModel()?.takeIf { services.answeringInstead() && it.id != heldBackClosed }
@@ -485,11 +492,55 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(deepResearch = on) }
     }
 
-    private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
+    private var ideaFromPacks: Set<String> = emptySet()
+
+    /** Three ideas, never the three shown last (kept across launches), packs' ideas weighted up (adam, Nov 12). */
+    private fun pickIdeas(): List<String> {
+        val prefs = getApplication<Application>().getSharedPreferences("ideas", android.content.Context.MODE_PRIVATE)
+        val last = prefs.getString("last", null)?.split('\n')?.toSet().orEmpty()
+        val picked = team.sopa.boar.engine.chat.IdeaPicker.pick(ideaPool, ideaFromPacks, last, IDEAS_SHOWN)
+        prefs.edit().putString("last", picked.joinToString("\n")).apply()
+        return picked
+    }
 
     fun newChat() {
         if (job?.isActive == true) return
         _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
+    }
+
+    /**
+     * Delete from the menu with Undo (adam, Nov 12): the chat leaves the list at once and is really deleted
+     * (deleteSession, plugin files included) after ChatList.UNDO_MS. Undo in that time leaves everything as it was. A
+     * second delete first finishes the one before. If BOAR is closed in that time, the chat stays (the safe side).
+     */
+    fun deleteWithUndo(id: String, title: String) {
+        if (job?.isActive == true && _state.value.sessionId == id) return
+        finishPendingDelete()
+        if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }
+        _state.update { it.copy(pendingDelete = id to title) }
+        pendingDeleteJob = safeScope.launch {
+            kotlinx.coroutines.delay(team.sopa.boar.engine.chat.ChatList.UNDO_MS)
+            finishPendingDelete()
+        }
+    }
+
+    fun undoDelete() {
+        pendingDeleteJob?.cancel(); pendingDeleteJob = null
+        _state.update { it.copy(pendingDelete = null) }
+    }
+
+    private var pendingDeleteJob: kotlinx.coroutines.Job? = null
+
+    private fun finishPendingDelete() {
+        val (id, _) = _state.value.pendingDelete ?: return
+        pendingDeleteJob?.cancel(); pendingDeleteJob = null
+        _state.update { it.copy(pendingDelete = null) }
+        deleteSession(id)
+    }
+
+    fun renameSession(id: String, title: String) {
+        val t = title.trim().take(80).ifEmpty { return }
+        safeScope.launch(Dispatchers.IO) { runCatching { services.chats.setTitle(id, t) }.onFailure { showToast("native.chat.dbFailed") } }
     }
 
     /** The drawer's 🗑️: the chat and its messages; the open one becomes a new chat. */

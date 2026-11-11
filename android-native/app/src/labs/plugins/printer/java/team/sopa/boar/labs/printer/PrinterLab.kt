@@ -108,6 +108,23 @@ object PrinterLab : LabPlugin {
         })
     }
 
+    /** "Add to Press" on a chat in the menu (adam, Nov 12): every answer of the chat, with its question and sources. */
+    override val chatActions = listOf(team.sopa.boar.plugins.ChatAction("native.labs.printer.addChat") { ctx, sessionId, title ->
+        Thread {
+            val msgs = runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.messages(sessionId) }.getOrDefault(emptyList())
+            var question = ""
+            for (m in msgs) {
+                if (m.role == "user") { question = m.text; continue }
+                if (m.role != "assistant" || m.text.isBlank()) continue
+                val sources = runCatching {
+                    val arr = org.json.JSONObject(m.meta ?: "{}").optJSONArray("sources") ?: org.json.JSONArray()
+                    (0 until arr.length()).map { i -> arr.getJSONObject(i).let { o -> Basket.Source(o.optString("title"), o.optString("source").takeIf { it.isNotEmpty() }) } }
+                }.getOrDefault(emptyList())
+                Basket.add(ctx, Basket.Item(m.id, title, question, m.text, sources, System.currentTimeMillis()))
+            }
+        }.start()
+    })
+
     /** The basket's size, on the chat header's plugins icon and beside Press in its list (it was its own 📎 n badge). */
     @Composable
     override fun headerCount(): Int {

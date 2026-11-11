@@ -24,6 +24,9 @@ data class DocumentsState(
     val error: String? = null,
     /** The collection just imported, for "Ask about them" (Personal Files); null once dismissed or on the next import. */
     val imported: String? = null,
+    /** The collection being added now, and those waiting (adam, Nov 12): name and file count. */
+    val running: String? = null,
+    val waiting: List<Triple<Long, String, Int>> = emptyList(),
 )
 
 /** My Documents (port of PersonalDocumentsManager.tsx): import files into a collection, switch it on or off, remove it. */
@@ -39,9 +42,31 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun refresh() = _state.update { it.copy(collections = services.knowledgeBase.collections()) }
 
+    private val queue = team.sopa.boar.engine.rag.ImportQueue<List<Uri>>()
+
+    /** While a collection is being added, another waits its turn (up to five); otherwise it starts now. */
     fun import(uris: List<Uri>, name: String) {
-        if (uris.isEmpty() || _state.value.stage != null) return
-        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0, imported = null) }
+        if (uris.isEmpty()) return
+        if (_state.value.stage != null) {
+            if (!queue.add(name, uris.size, uris)) _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.docs.queueFull")) }
+            publishQueue()
+            return
+        }
+        start(uris, name)
+    }
+
+    fun removeWaiting(id: Long) { queue.remove(id); publishQueue() }
+
+    private fun publishQueue() = _state.update { it.copy(waiting = queue.waiting.map { w -> Triple(w.id, w.name, w.files) }) }
+
+    private fun runNextImport() {
+        val next = queue.next() ?: return
+        publishQueue()
+        start(next.payload, next.name)
+    }
+
+    private fun start(uris: List<Uri>, name: String) {
+        _state.update { it.copy(stage = "reading", error = null, done = 0, total = 0, imported = null, running = name) }
         safeScope.launch(Dispatchers.IO) {
             try {
                 val files = uris.map { reader.read(it) }
@@ -52,10 +77,13 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
                 services.vault.record { f -> f.copy(documents = f.documents + files.size) }
                 _state.update { it.copy(imported = name) }
             } catch (e: Exception) {
-                _state.update { it.copy(error = reader.messageFor(e)) }
+                _state.update { it.copy(error = "$name: " + reader.messageFor(e)) }
+            } finally {
+                _state.update { it.copy(stage = null, running = null) }
+                refresh()
+                // Worked or failed, the next waiting collection starts (on the main thread, which owns the queue).
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) { runNextImport() }
             }
-            _state.update { it.copy(stage = null) }
-            refresh()
         }
     }
 

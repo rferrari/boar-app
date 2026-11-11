@@ -87,15 +87,13 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (shown(SettingsPart.TONE)) ToneSection(services)
             // Models and Knowledge are in the menu (Model Catalog, Knowledge): not repeated here (rc3, slice 5).
             if (shown(SettingsPart.MEMORY)) Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
-                t("native.settings.summary.memory", "max" to s.maxSavedSessions) + if (s.confirmChatDelete) " · " + t("native.settings.summary.confirmDelete") else ""
+                t("native.settings.summary.memory", "max" to s.maxSavedSessions)
             }) {
                 var auto by remember { mutableStateOf(s.autoSummarize) }
                 SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), auto) { auto = it; s.autoSummarize = it }
                 var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                 SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
-                // The switches together, the choices under them (adam, Nov 10).
-                var confirmDelete by remember { mutableStateOf(s.confirmChatDelete) }
-                SwitchRow(t("native.settings.confirmChatDelete"), t("native.settings.confirmChatDeleteNote"), confirmDelete) { confirmDelete = it; s.confirmChatDelete = it }
+                // No "Ask before deleting a chat" since Nov 12: deleting has Undo instead.
                 var turns by remember { mutableStateOf(s.historyTurnThreshold) }
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }

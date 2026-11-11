@@ -40,4 +40,5 @@
     <string name="native_labs_printer_pickTitle" formatted="false">Drawing for this answer</string>
     <string name="native_labs_printer_noDrawing" formatted="false">✕ No drawing</string>
     <string name="native_labs_printer_about" formatted="false">Collect answers from any chat into a basket, then compile them into a PDF or a Markdown file.</string>
+    <string name="native_labs_printer_addChat" formatted="false">Add to Press</string>
 </resources>

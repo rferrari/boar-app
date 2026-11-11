@@ -40,4 +40,5 @@
     <string name="native_labs_printer_pickTitle" formatted="false">Desenho desta resposta</string>
     <string name="native_labs_printer_noDrawing" formatted="false">✕ Sem desenho</string>
     <string name="native_labs_printer_about" formatted="false">Junte respostas de qualquer conversa numa cesta e compile tudo em um PDF ou arquivo Markdown.</string>
+    <string name="native_labs_printer_addChat" formatted="false">Adicionar ao Press</string>
 </resources>

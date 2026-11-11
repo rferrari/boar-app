@@ -77,7 +77,8 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
                     if (name.isEmpty()) Text(t("personalDocumentsManager.namePlaceholder"), style = Boar.type.body, color = c.textDim)
                     BasicTextField(name, { name = it }, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
-                val busy = state.stage != null
+                // While one is being added, the button still works: the next collection waits its turn (adam, Nov 12).
+                val busy = false
                 Text(t("personalDocumentsManager.pickButton"), style = Boar.type.title, color = if (busy) c.textDim else c.textInverse,
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (busy) c.bgCard else c.emerald600)
                         .clickable(enabled = !busy) {
@@ -90,8 +91,19 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
                         "chunking" -> t("personalDocumentsManager.stageChunking")
                         else -> t("personalDocumentsManager.stageEmbedding", "current" to state.done, "total" to state.total)
                     }
+                    state.running?.let { Text(t("native.docs.running", "name" to it), style = Boar.type.caption, color = c.textHeading) }
                     Text(label, style = Boar.type["mono.xs"], color = c.textAccentCyan)
                     LinearProgressIndicator(progress = { if (state.total > 0) state.done.toFloat() / state.total else 0f }, modifier = Modifier.fillMaxWidth(), color = c.emerald500, trackColor = c.bgSubtle)
+                }
+                if (state.waiting.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    state.waiting.forEachIndexed { i, (id, n, files) ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("⏳ ${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald)
+                            Text(t("native.docs.waiting", "name" to n, "count" to files), style = Boar.type.caption, color = c.textSecondary, modifier = Modifier.weight(1f))
+                            Text("✕", style = Boar.type.body, color = c.textDim, modifier = Modifier.clip(RoundedCornerShape(50)).clickable { vm.removeWaiting(id) }.padding(10.dp))
+                        }
+                    }
+                    Text(t("native.docs.queueNote"), style = Boar.type.caption, color = c.textMuted)
                 }
                 state.error?.let { Text("${t("personalDocumentsManager.importFailedTitle")}: $it", style = Boar.type.subtext, color = c.crimson400) }
                 // After an import: the default styles answer from everything, so point to the style that answers from the files.

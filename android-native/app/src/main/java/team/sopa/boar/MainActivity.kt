@@ -331,7 +331,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     val activity = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
     var confirmClose by remember { mutableStateOf(false) }
     // The chat the menu's 🗑️ is about to delete, while Settings asks to confirm first.
-    var confirmDelete by remember { mutableStateOf<String?>(null) }
     var closing by remember { mutableStateOf(false) }
     // Boar Labs: green rain with each closing step for a moment, so closing reads as BOAR putting things away.
     var closeStage by remember { mutableStateOf<String?>(null) }
@@ -351,15 +350,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         text = { Text(t("native.drawer.closeConfirm")) },
         confirmButton = { androidx.compose.material3.TextButton({ confirmClose = false; closeBoar() }) { Text(t("native.drawer.closeButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ confirmClose = false }) { Text(t("common.cancel")) } })
-    confirmDelete?.let { id ->
-        val c = Boar.colors
-        androidx.compose.material3.AlertDialog({ confirmDelete = null },
-            title = { Text(t("native.drawer.deleteConfirm")) },
-            text = { Text(t("native.drawer.deleteConfirmMessage", "title" to (sessions.firstOrNull { it.id == id }?.title ?: ""))) },
-            containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
-            confirmButton = { androidx.compose.material3.TextButton({ vm.deleteSession(id); sessions = sessions.filter { it.id != id }; confirmDelete = null }) { Text(t("native.drawer.deleteButton"), color = Boar.colors.crimson400) } },
-            dismissButton = { androidx.compose.material3.TextButton({ confirmDelete = null }) { Text(t("common.cancel")) } })
-    }
     ModalNavigationDrawer(
         drawerState = drawer,
         drawerContent = {
@@ -393,7 +383,11 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                     answering = state.answeringId != null,
                     onNewChat = { go { vm.newChat() } },
                     onSelect = { id -> go { vm.openSession(id) } },
-                    onDelete = { id -> if (services.settings.confirmChatDelete) confirmDelete = id else { vm.deleteSession(id); sessions = sessions.filter { it.id != id } } },
+                    // Delete with Undo, no confirm dialog (adam, Nov 12); the list hides it at once and drops it after the delete.
+                    onDelete = { id -> vm.deleteWithUndo(id, sessions.firstOrNull { it.id == id }?.title.orEmpty()) },
+                    onRename = { id, title -> vm.renameSession(id, title); sessions = sessions.map { if (it.id == id) it.copy(title = title.trim()) else it } },
+                    pendingDelete = state.pendingDelete,
+                    onUndo = vm::undoDelete,
                 )
             }
         },

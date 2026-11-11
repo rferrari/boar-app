@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +73,10 @@ fun BoarDrawer(
     onNewChat: () -> Unit,
     onSelect: (String) -> Unit,
     onDelete: (String) -> Unit,
+    /** Long-press sheet (adam, Nov 12): rename a chat; plugins' rows (Press: Add to Press); the delete's Undo bar. */
+    onRename: (String, String) -> Unit = { _, _ -> },
+    pendingDelete: Pair<String, String>? = null,
+    onUndo: () -> Unit = {},
     /** The BOAR mark and name at the top open About. */
     onAbout: () -> Unit = {},
     /** The gear beside the BOAR name (adam, Nov 11): Settings left the list below. */
@@ -105,21 +110,49 @@ fun BoarDrawer(
             }
             Text(t("drawer.recentSessions"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
             if (answering) Text(t("native.drawer.answeringHint"), style = Boar.type.caption, color = c.textAccentAmber, modifier = Modifier.padding(bottom = 6.dp))
+            // Search above ChatList.SEARCH_FROM chats; grouped Today / Yesterday / Earlier; the chat being deleted is hidden.
+            var query by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
+            if (sessions.size > team.sopa.boar.engine.chat.ChatList.SEARCH_FROM) androidx.compose.foundation.text.BasicTextField(query, { query = it }, singleLine = true,
+                textStyle = Boar.type.caption.copy(color = c.textPrimary), cursorBrush = androidx.compose.ui.graphics.SolidColor(c.textAccentEmerald),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp),
+                decorationBox = { inner -> if (query.isEmpty()) Text(t("native.drawer.searchChats"), style = Boar.type.caption, color = c.textMuted); inner() })
+            val now = remember { System.currentTimeMillis() }
+            val shown = sessions.filter { it.id != pendingDelete?.first && team.sopa.boar.engine.chat.ChatList.matches(query, it.title) }
+            var sheetFor by remember { mutableStateOf<ChatSession?>(null) }
             LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
-                    items(sessions, key = { it.id }) { s ->
+                    var lastGroup: team.sopa.boar.engine.chat.ChatList.Group? = null
+                    for (s in shown) {
+                        val g = team.sopa.boar.engine.chat.ChatList.groupOf(s.updatedAt, now)
+                        if (g != lastGroup) { lastGroup = g; item(key = "g-$g") {
+                            Text(t("native.drawer.group.${g.name.lowercase()}"), style = Boar.type.caption, color = c.textMuted, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp, start = 4.dp))
+                        } }
+                        item(key = s.id) {
                         val active = s.id == activeSessionId
+                        // No bin on the row (adam, Nov 12): a tap opens the chat, a long press its sheet (Rename, Delete, plugins).
+                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
                         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp))
                             .then(if (active) Modifier.background(c.cyanBgSubtle).border(1.dp, c.cyanBorder, RoundedCornerShape(6.dp)) else Modifier)
-                            .alpha(if (answering && !active) 0.4f else 1f).clickable(enabled = !answering) { onSelect(s.id) }.padding(horizontal = 8.dp, vertical = 9.dp),
+                            .alpha(if (answering && !active) 0.4f else 1f)
+                            .combinedClickable(enabled = !answering, onLongClickLabel = t("native.drawer.chatActions"), onClick = { onSelect(s.id) }, onLongClick = { sheetFor = s })
+                            .padding(horizontal = 8.dp, vertical = 9.dp),
                             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(Modifier.weight(1f)) {
                                 Text(s.title, style = Boar.type.caption, color = c.textPrimary, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(relativeTime(s.updatedAt), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 2.dp))
                             }
-                            if (!answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 18.dp, c.textMuted, Modifier.clickable { onDelete(s.id) }.padding(4.dp), t("native.a11y.deleteChat"))
+                        }
                         }
                     }
                 }
+            pendingDelete?.let { (_, title) ->
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(8.dp)).background(c.bgCard).padding(start = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(t("native.drawer.deleted", "title" to title), style = Boar.type.caption, color = c.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Text(t("native.drawer.undo"), style = Boar.type.body, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable(onClick = onUndo).padding(horizontal = 14.dp, vertical = 12.dp))
+                }
+            }
+            sheetFor?.let { s -> ChatSheet(s, { sheetFor = null }, onRename, onDelete) }
             Box(Modifier.fillMaxWidth().padding(vertical = 12.dp).height(1.dp).background(c.borderSubtle))
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items.forEach { item ->
@@ -248,3 +281,31 @@ private fun drawerIcon(key: String): Int? = when {
     key.startsWith("lab") -> team.sopa.boar.R.drawable.ic_settings_experimental
     else -> null
 }
+
+/** A chat's long-press sheet (adam, Nov 12): Rename, the plugins' rows (Press: Add to Press), Delete (with Undo). */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun ChatSheet(s: ChatSession, onClose: () -> Unit, onRename: (String, String) -> Unit, onDelete: (String) -> Unit) {
+    val c = Boar.colors
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    var renaming by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(s.title) }
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(s.title, style = Boar.type.title, color = c.textHeading, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 6.dp))
+            if (renaming) {
+                androidx.compose.foundation.text.BasicTextField(name, { name = it }, singleLine = true,
+                    textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = androidx.compose.ui.graphics.SolidColor(c.textAccentEmerald),
+                    modifier = Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderElevated, RoundedCornerShape(8.dp)).padding(12.dp))
+                SheetRow(t("native.drawer.saveName")) { onRename(s.id, name); onClose() }
+            } else SheetRow(t("native.drawer.rename")) { renaming = true }
+            for (a in team.sopa.boar.plugins.ChatActions.actions()) SheetRow(t(a.labelKey)) { a.run(ctx, s.id, s.title); team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(ctx, "native.drawer.added")); onClose() }
+            SheetRow(t("native.drawer.deleteChat"), danger = true) { onDelete(s.id); onClose() }
+        }
+    }
+}
+
+@Composable
+private fun SheetRow(label: String, danger: Boolean = false, onClick: () -> Unit) =
+    Text(label, style = Boar.type.body, color = if (danger) Boar.colors.crimson400 else Boar.colors.textPrimary,
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 14.dp))

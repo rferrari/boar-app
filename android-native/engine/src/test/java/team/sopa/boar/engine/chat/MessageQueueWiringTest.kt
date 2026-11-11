@@ -29,7 +29,7 @@ class MessageQueueWiringTest {
 
     @Test fun `deleting the open chat, or the PIN's erase, drops its queue`() {
         assertTrue(vm.contains("if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }"))
-        assertTrue(vm.contains("queue.clear(); publishQueue()\n                job?.cancel()"))
+        assertTrue(vm.contains("queue.clear(); publishQueue()\n                // Forgot PIN erased every chat"))
     }
 
     @Test fun `a closed app says what it dropped`() {

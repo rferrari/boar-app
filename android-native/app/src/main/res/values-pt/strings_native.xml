@@ -731,4 +731,19 @@
     <string name="native_settings_profile_explorerShort" formatted="false">Explorador: mais controle, plugins, memória, voz.</string>
     <string name="native_settings_profile_proShort" formatted="false">Pro: tudo, com Ajustes avançados e configurações de plugins.</string>
     <string name="native_settings_profile_downNote" formatted="false">Plugins e Ajustes avançados pausam abaixo do Pro. Suas configurações ficam salvas.</string>
+    <string name="native_drawer_searchChats" formatted="false">Buscar conversas</string>
+    <string name="native_drawer_group_today" formatted="false">Hoje</string>
+    <string name="native_drawer_group_yesterday" formatted="false">Ontem</string>
+    <string name="native_drawer_group_earlier" formatted="false">Antes</string>
+    <string name="native_drawer_deleted" formatted="false">Apagada: {{title}}</string>
+    <string name="native_drawer_undo" formatted="false">Desfazer</string>
+    <string name="native_drawer_chatActions" formatted="false">Opções da conversa</string>
+    <string name="native_drawer_rename" formatted="false">Renomear</string>
+    <string name="native_drawer_saveName" formatted="false">Salvar o nome</string>
+    <string name="native_drawer_deleteChat" formatted="false">Apagar</string>
+    <string name="native_drawer_added" formatted="false">Adicionado</string>
+    <string name="native_docs_queueFull" formatted="false">Até 5 coleções podem esperar. Adicione esta quando uma terminar.</string>
+    <string name="native_docs_running" formatted="false">Adicionando: {{name}}</string>
+    <string name="native_docs_waiting" formatted="false">{{name}} · {{count}} arquivos</string>
+    <string name="native_docs_queueNote" formatted="false">Elas são adicionadas uma de cada vez. Fechar o BOAR descarta as que ainda esperam.</string>
 </resources>

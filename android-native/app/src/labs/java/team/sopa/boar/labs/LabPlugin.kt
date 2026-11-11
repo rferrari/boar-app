@@ -86,6 +86,9 @@ interface LabPlugin {
     /** The tool slot: looks at the question before the model and answers it or adds context (team.sopa.boar.plugins.AnswerTools). */
     val answerTool: team.sopa.boar.plugins.AnswerTool? get() = null
 
+    /** Rows in a chat's long-press sheet in the menu (Press: Add to Press). */
+    val chatActions: List<team.sopa.boar.plugins.ChatAction> get() = emptyList()
+
     /** The check slot: reads a model's finished answer and may repair it (team.sopa.boar.plugins.AnswerChecks). */
     val answerCheck: team.sopa.boar.plugins.AnswerCheck? get() = null
 
