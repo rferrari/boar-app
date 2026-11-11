@@ -34,8 +34,11 @@ class MessageQueueWiringTest {
         assertTrue(vm.contains("\"native.chat.queueDropped\""))
     }
 
-    @Test fun `Send queues while answering, Stop only with nothing typed, the strip has remove and Clear queue`() {
-        assertTrue(screen.contains("val stops = answering && !canSend"))
+    @Test fun `while answering the round button stops, a separate button queues, the strip has remove and Clear queue`() {
+        // While answering the round button is only Stop; the queue has its own button, so a second tap can't stop the answer.
+        assertTrue(screen.contains("val stops = answering\n"))
+        assertTrue(screen.contains("if (answering && canSend) Box("))
+        assertTrue(!screen.contains("val stops = answering && !canSend"))
         assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)"))
     }
 

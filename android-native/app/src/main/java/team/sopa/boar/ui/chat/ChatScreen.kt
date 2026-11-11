@@ -823,9 +823,15 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
             }
             if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
-        // While BOAR answers, a typed question is sent to the queue (Send); with nothing typed the button stops.
         val canSend = text.isNotBlank()
-        val stops = answering && !canSend
+        // While BOAR answers, the round button is always Stop, and a typed question goes to the queue with its own
+        // button beside it. One button that turned from Send into Stop once the question left the box stopped the
+        // answer on a second tap, and the queued one ran at once (adam, Nov 11).
+        val stops = answering
+        if (answering && canSend) Box(
+            Modifier.size(40.dp).clip(CircleShape).background(c.emerald600).clickable(onClickLabel = t("native.chat.queueSend"), onClick = onSend),
+            contentAlignment = Alignment.Center,
+        ) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 18.dp, c.textInverse, description = t("native.chat.queueSend")) }
         val bg = if (stops) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
         // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
         val transition = rememberInfiniteTransition(label = "stopping")
