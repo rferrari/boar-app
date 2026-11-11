@@ -50,8 +50,11 @@ interface LabPlugin {
     /** Content under a finished answer, above its footer. */
     @Composable fun AnswerExtra(a: AnswerRef) {}
 
-    /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
-    @Composable fun HeaderBadge(go: (String) -> Unit) {}
+    /** What this lab holds for the user (Press: pages in the basket), counted on the chat header's plugins icon; 0 for none. */
+    @Composable fun headerCount(): Int = 0
+
+    /** How [headerCount] reads beside the lab in the header's list ("3 in the basket"). */
+    @Composable fun headerCountLabel(n: Int): String = "$n"
 
     /** Rows on a model's card in the Model Catalog, under its memory badge (Big Boar's engine choice). */
     @Composable fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {}

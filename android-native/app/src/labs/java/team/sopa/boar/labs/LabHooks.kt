@@ -310,10 +310,60 @@ object LabHooks {
     fun browseHint(repoId: String, architecture: String?): String? =
         LabRegistry.active.firstNotNullOfOrNull { runCatching { it.browseHint(repoId, architecture) }.getOrNull() }
 
+    /**
+     * One plugins icon in the chat header (t9, Nov 10: it replaces each lab's own badge). Shown in every profile while a
+     * lab is on; a tap lists the labs that are on, each opening its page. Managing them (the on/off list) stays in Pro.
+     * Labs that wait on the user (Press's basket) add to the count on the icon.
+     */
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
     @Composable
     fun HeaderBadges(go: (String) -> Unit) {
         Init()
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { LabRegistry.active.forEach { it.HeaderBadge(go) } }
+        val labs = LabRegistry.active
+        if (labs.isEmpty()) return
+        val c = team.sopa.boar.ui.theme.Boar.colors
+        val counts = labs.associate { it.id to it.headerCount() }
+        val waiting = counts.values.sum()
+        var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        androidx.compose.foundation.layout.Box {
+            androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.size(42.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                .background(team.sopa.boar.ui.theme.Boar.colors.let { it.emeraldBgSubtle }).border(1.dp, c.emeraldBorder, androidx.compose.foundation.shape.CircleShape)
+                .clickable(onClickLabel = team.sopa.boar.ui.t("native.labs.headerIcon")) { open = true },
+                contentAlignment = androidx.compose.ui.Alignment.Center) {
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_settings_experimental, 22.dp, c.textAccentEmerald, description = team.sopa.boar.ui.t("native.labs.headerIcon"))
+            }
+            // Never wider than "9+": the header is tight with Large text.
+            if (waiting > 0) androidx.compose.material3.Text(if (waiting > 9) "9+" else "$waiting", style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
+                color = c.textInverse, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, maxLines = 1, softWrap = false,
+                modifier = androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.TopEnd)
+                    .background(c.emerald500, androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).padding(horizontal = 4.dp))
+        }
+        if (open) androidx.compose.material3.ModalBottomSheet(onDismissRequest = { open = false }, containerColor = c.bgCardElevated) {
+            Column(androidx.compose.ui.Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.headerSheet"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
+                labs.forEach { lab ->
+                    Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+                        .clickable { open = false; go("lab:${lab.id}") }.padding(horizontal = 8.dp, vertical = 10.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null,
+                            androidx.compose.ui.Modifier.size(32.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                            ?: androidx.compose.material3.Text(lab.emoji, fontSize = 22.sp)
+                        Column(androidx.compose.ui.Modifier.weight(1f)) {
+                            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.title"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary, maxLines = 1)
+                            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.body"), style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted, maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                        counts[lab.id]?.takeIf { it > 0 }?.let { n -> androidx.compose.material3.Text(lab.headerCountLabel(n), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
+                            color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                    }
+                }
+                // Turning labs on and off is Pro's (the list in the menu).
+                if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.manage") + " ›", style = team.sopa.boar.ui.theme.Boar.type.body,
+                    color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    modifier = androidx.compose.ui.Modifier.clickable { open = false; go("labs") }.padding(horizontal = 8.dp, vertical = 10.dp))
+            }
+        }
     }
 
     /** About's version block: each enabled lab as (name, "id status"); empty while Boar Labs is off. */

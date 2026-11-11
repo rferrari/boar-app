@@ -107,19 +107,16 @@ object PrinterLab : LabPlugin {
         })
     }
 
-    /** 📎 n in the chat header while the basket has something: opens the Printer. */
+    /** The basket's size, on the chat header's plugins icon and beside Press in its list (it was its own 📎 n badge). */
     @Composable
-    override fun HeaderBadge(go: (String) -> Unit) {
-        val c = Boar.colors
+    override fun headerCount(): Int {
         val ctx = LocalContext.current
         remember { Basket.load(ctx) }
-        val n = Basket.items.collectAsState().value.size
-        if (n == 0) return
-        // Never wider than "9+" and never on two lines: the header is tight with Large text.
-        Text("📎 " + if (n > 9) "9+" else "$n", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false,
-            modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(12.dp))
-                .clickable { go("lab:$id") }.padding(horizontal = 8.dp, vertical = 5.dp))
+        return Basket.items.collectAsState().value.size
     }
+
+    @Composable
+    override fun headerCountLabel(n: Int): String = t("native.labs.printer.inBasketCount", "count" to n)
 
     @Composable
     override fun Content() {
