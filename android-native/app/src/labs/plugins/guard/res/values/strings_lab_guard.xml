@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_guard_title" formatted="false">Boar Guard</string>
+    <string name="native_labs_guard_title" formatted="false">Guard</string>
     <string name="native_labs_guard_body" formatted="false">Fixes a Yes, No or winner that the model\'s own figures or dates contradict, after it answers.</string>
     <string name="native_labs_guard_answers" formatted="false">CHECKS</string>
     <string name="native_labs_guard_answersList" formatted="false">• Before or after a year: a No next to the answer\'s own first date that says Yes\n• Which is bigger, denser, taller or heavier, A or B: a winner the answer\'s own numbers in the same unit disagree with\n• Which are bigger than X: \"none\" next to \"X is the seventh-largest\"</string>

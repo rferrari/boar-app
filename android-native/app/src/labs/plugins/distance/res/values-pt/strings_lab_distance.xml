@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_distance_title" formatted="false">Boar Distância</string>
+    <string name="native_labs_distance_title" formatted="false">Distância</string>
     <string name="native_labs_distance_body" formatted="false">A distância entre duas cidades, e quanto tempo a pé, de bicicleta ou de carro, como estimativa e sem o modelo.</string>
     <string name="native_labs_distance_answers" formatted="false">RESPONDE SOZINHO</string>
     <string name="native_labs_distance_answersList" formatted="false">• A distância em linha reta entre duas cidades, em km e milhas\n• Quanto dá, mais ou menos, por estrada ou trilha: a pé cerca de 30% a mais, de bicicleta e de carro cerca de 25%\n• Quantos dias a pé ou de bicicleta, ou horas de carro\n• Ida e volta, quando você pergunta pelos dois trechos</string>

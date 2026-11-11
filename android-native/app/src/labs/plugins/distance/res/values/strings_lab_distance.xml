@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_distance_title" formatted="false">Boar Distance</string>
+    <string name="native_labs_distance_title" formatted="false">Distance</string>
     <string name="native_labs_distance_body" formatted="false">How far apart two cities are, and how long to walk, cycle or drive it, as an estimate and without the model.</string>
     <string name="native_labs_distance_answers" formatted="false">ANSWERS ON ITS OWN</string>
     <string name="native_labs_distance_answersList" formatted="false">• The straight-line distance between two cities, in km and miles\n• Roughly how far by road or trail: walking about 30% longer, cycling and driving about 25%\n• How many days to walk or cycle it, or hours to drive\n• There and back, when you ask for the round trip</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_polyglot_title" formatted="false">Boar Polyglot</string>
+    <string name="native_labs_polyglot_title" formatted="false">Polyglot</string>
     <string name="native_labs_polyglot_body" formatted="false">Avisa na hora quando você pergunta numa língua que o BOAR ainda não fala, em vez de uma resposta confusa.</string>
     <string name="native_labs_polyglot_reply" formatted="false">Desculpe, o BOAR ainda não fala {{language}}. Pergunte em inglês.</string>
     <string name="native_labs_polyglot_answers" formatted="false">RESPONDE SOZINHO</string>

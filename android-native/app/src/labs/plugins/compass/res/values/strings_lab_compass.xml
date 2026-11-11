@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_compass_title" formatted="false">Boar Nomad</string>
+    <string name="native_labs_compass_title" formatted="false">Nomad</string>
     <string name="native_labs_compass_body" formatted="false">A compass from the phone\'s own sensors, offline, no location needed.</string>
     <string name="native_labs_compass_noSensor" formatted="false">This phone has no magnetometer, so it can\'t show a compass.</string>
     <string name="native_labs_compass_calibrate" formatted="false">Low accuracy: move the phone in a figure 8 a few times, away from metal and magnets.</string>

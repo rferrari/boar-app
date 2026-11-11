@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_guard_title" formatted="false">Boar Guarda</string>
+    <string name="native_labs_guard_title" formatted="false">Guarda</string>
     <string name="native_labs_guard_body" formatted="false">Corrige um Sim, Não ou vencedor que os próprios números ou datas do modelo contradizem, depois que ele responde.</string>
     <string name="native_labs_guard_answers" formatted="false">VERIFICA</string>
     <string name="native_labs_guard_answersList" formatted="false">• Antes ou depois de um ano: um Não ao lado da primeira data da própria resposta, que diz Sim\n• Qual é maior, mais denso, mais alto ou mais pesado, A ou B: um vencedor que os próprios números da resposta, na mesma unidade, desmentem\n• Quais são maiores que X: \"nenhum\" ao lado de \"X é o sétimo maior\"</string>

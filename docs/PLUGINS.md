@@ -1,13 +1,13 @@
-# Boar Labs plugins
+# Plugins
 
-Boar Labs is the native app's room for experiments. Each experiment ("lab") is a **plugin**: one folder that the build
+Plugins (code name: labs; ids, folders, classes and `plugin.properties` keep it) is the native app's room for experiments. Each experiment ("lab") is a **plugin**: one folder that the build
 finds by itself. Adding a lab is adding a folder; removing it is deleting the folder. Nothing outside the folder changes.
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
-**Settings → Experimental → Boar Labs** starts on, and each lab has an on/off switch in the Boar Labs list and on its
+**Settings → Experimental → Plugins** starts on, and each lab has an on/off switch in the Plugins list and on its
 page. A lab is off unless it is in the default-on list (`engine/.../labs/LabDefaults.kt`, `ON`): only LIVE or BETA labs
-go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. Boar Labs' own places (the
+go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. Plugins' own places (the
 menu item, the list, setup's Labs page, the tour card, its settings) show in the Pro profile only; a lab that is on
 works in every profile. A build without the flag has none of this.
 
@@ -39,7 +39,7 @@ The order in `ChatViewModel.send` (`android-native/app/src/main/java/team/sopa/b
    Then Deep Research if it is on; then a recap of the chat; then adaptive routing if it is on (and the active model
    runs on BOAR's own engine); else the default path (the plain pipeline: search, then the model).
 3. **The check slot.** After the model, on the default and adaptive paths only, the enabled labs' `answerCheck`s
-   (Boar Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
+   (Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
    stopped, timed-out, failed or empty answer.
 
 **Personal Files** (the answer style `personal`, `engine/…/answer/PersonalFiles.kt`) changes all three: in the tool slot
@@ -127,7 +127,7 @@ object MyLab : LabPlugin {
 | Member | Slot | What it does |
 |---|---|---|
 | `id`, `emoji`, `status` | — | Identity; `id` is the route (`lab:<id>`), the string prefix, the switch key |
-| `Content()` | **Page** | The lab's screen inside Boar Labs, under the shared header (title, status, Enabled switch) |
+| `Content()` | **Page** | The lab's screen inside Plugins, under the shared header (title, status, Enabled switch) |
 | `answerActions(a: AnswerRef)` | **🧩 under an answer** | Rows in the one 🧩 sheet under each finished answer. Return `LabAction(emoji, label, done, enabled, onClick)` |
 | `AnswerExtra(a: AnswerRef)` | **Under an answer** | Something shown under a finished answer, above its footer (e.g. an illustration) |
 | `HeaderBadge(go)` | **Chat header** | A small badge at the top of the chat; `go("lab:<id>")` opens the lab |
@@ -169,13 +169,13 @@ The grid shows live, then beta, alpha, under review and classified labs, in plug
 
 ## Executables
 
-Some labs run a program of their own (Boar Designer's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
+Some labs run a program of their own (Designer's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
 files it extracted from its native library folder, so they ship as `lib<name>.so` in the lab's
 `jniLibs/arm64-v8a/`, which is gitignored and built by a script:
 
 | Script | Builds |
 |---|---|
-| `scripts/build-sd-cli.sh` | Boar Designer's `libsdcli.so`, `libsdcli_i8mm.so` |
+| `scripts/build-sd-cli.sh` | Designer's `libsdcli.so`, `libsdcli_i8mm.so` |
 | `scripts/build-lab-engines.sh` | `libbmoe_cli.so` (Big Boar), `libcolibri_olmoe.so` (Boar Wisp) |
 
 Rules:
@@ -236,7 +236,7 @@ cd android-native
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-On the phone, check that Settings → Experimental → Boar Labs is on, then open the menu → Boar Labs ⚛️ → your lab.
+On the phone, check that Settings → Experimental → Plugins is on, then open the menu → Plugins ⚛️ → your lab.
 
 To leave a lab out of one build without deleting it, use `-Pboar.labs.hide=<id>,<id>`. To park it, rename its folder to
 start with `_`.
@@ -244,5 +244,5 @@ start with `_`.
 ## Shared pieces
 - `LabsScreen.kt`: the grid, the console, `LabScaffold` (each lab's header and Enabled switch), `StatusChip`.
 - `LabHooks.kt`: what the app calls (menu entry, routes, Settings row, the slots, the engine and erase hooks).
-- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Boar Designer uses it while drawing).
+- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Designer uses it while drawing).
 - Framework strings: `src/labs/res/values{,-pt}/strings_labs.xml`.

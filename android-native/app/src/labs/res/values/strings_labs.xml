@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Boar Labs texts (src/labs). -->
 <resources>
-    <string name="native_labs_drawer" formatted="false">Boar Labs</string>
-    <string name="native_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_labs_drawer" formatted="false">Plugins</string>
+    <string name="native_labs_title" formatted="false">Plugins</string>
     <string name="native_labs_classifiedNote" formatted="false">{{name}} is classified: still in testing. Check back soon.</string>
     <string name="native_labs_declassifiedNote" formatted="false">{{name}} leaked. Still in testing, with no release date.</string>
     <string name="native_labs_unlockedNote" formatted="false">{{name}} leaked, and it\'s yours: tap it to open it and switch it on. Still in testing.</string>
@@ -15,7 +15,7 @@
     <string name="native_labs_status_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_status_leaked" formatted="false">LEAKED</string>
     <string name="native_labs_status_classified" formatted="false">CLASSIFIED</string>
-    <string name="native_labs_settingsTitle" formatted="false">Boar Labs</string>
+    <string name="native_labs_settingsTitle" formatted="false">Plugins</string>
     <string name="native_labs_crash_setting" formatted="false">Restart BOAR after a crash</string>
     <string name="native_labs_crash_settingNote" formatted="false">If BOAR closes because of an error in its own code, it opens again by itself, at most once a minute.</string>
     <string name="native_labs_crash_restarted" formatted="false">BOAR restarted after an error.</string>
@@ -33,15 +33,15 @@
     <string name="native_labs_close_closing" formatted="false">Off to the den</string>
     <string name="native_labs_settingsNote" formatted="false">Unfinished experiments in the menu and under answers. They may be slow, rough or change without notice.</string>
     <string name="native_labs_enabled" formatted="false">Enabled</string>
-    <string name="native_labs_enabledNote" formatted="false">Off: this lab disappears from the chat too.</string>
-    <string name="native_labs_disabled" formatted="false">This lab is off. Turn it on above.</string>
+    <string name="native_labs_enabledNote" formatted="false">Off: this plugin disappears from the chat too.</string>
+    <string name="native_labs_disabled" formatted="false">This plugin is off. Turn it on above.</string>
     <string name="native_labs_off" formatted="false">OFF</string>
     <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
     <string name="native_labs_section_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_section_testing" formatted="false">IN TESTING · NO RELEASE DATE</string>
-    <string name="native_labs_listNote" formatted="false">Switch a lab on or off right here. Tap a lab for its page and its own settings. A lab that is on works in every profile.</string>
+    <string name="native_labs_listNote" formatted="false">Switch a plugin on or off right here. Tap a plugin for its page and its own settings. A plugin that is on works in every profile.</string>
     <string name="native_labs_showTiles" formatted="false">Show as tiles</string>
-    <string name="native_labs_openList" formatted="false">Open Boar Labs</string>
+    <string name="native_labs_openList" formatted="false">Open Plugins</string>
     <string name="native_labs_wait_setting" formatted="false">Waiting animation</string>
     <string name="native_labs_wait_trail" formatted="false">Boar trail</string>
     <string name="native_labs_wait_matrix" formatted="false">Matrix rain</string>

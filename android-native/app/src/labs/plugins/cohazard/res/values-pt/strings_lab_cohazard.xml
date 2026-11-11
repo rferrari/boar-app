@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_cohazard_title" formatted="false">Boar Cohazard</string>
+    <string name="native_labs_cohazard_title" formatted="false">Cohazard</string>
     <string name="native_labs_cohazard_body" formatted="false">Uma resposta fixa de segurança sobre monóxido de carbono quando você planeja usar um aparelho a combustível em lugar fechado, sem o modelo.</string>
     <string name="native_labs_cohazard_answers" formatted="false">RESPONDE SOZINHO</string>
     <string name="native_labs_cohazard_answersList" formatted="false">• Gerador, churrasqueira a carvão ou a gás, fogareiro ou lampião de camping, ou aquecedor a combustível dentro de casa, garagem, porão, depósito, barraca ou trailer\n• Carro ou outro motor ligado na garagem\n• Aquecer a casa com o forno ou o fogão a gás\n• A distância que um gerador precisa ficar de portas, janelas e respiros</string>

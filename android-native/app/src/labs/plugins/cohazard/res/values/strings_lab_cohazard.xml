@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_cohazard_title" formatted="false">Boar Cohazard</string>
+    <string name="native_labs_cohazard_title" formatted="false">Cohazard</string>
     <string name="native_labs_cohazard_body" formatted="false">A fixed carbon monoxide safety answer when you plan to run a fuel-burning device indoors, without the model.</string>
     <string name="native_labs_cohazard_answers" formatted="false">ANSWERS ON ITS OWN</string>
     <string name="native_labs_cohazard_answersList" formatted="false">• A generator, charcoal or gas grill, camping stove or lantern, or fuel heater in a home, garage, carport, basement, shed, tent or camper\n• A car or other engine left running in a garage\n• Heating a home with a gas oven or stove\n• How far a generator must be from doors, windows and vents</string>

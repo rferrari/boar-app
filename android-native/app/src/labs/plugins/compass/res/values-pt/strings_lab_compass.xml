@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_compass_title" formatted="false">Boar Nomad</string>
+    <string name="native_labs_compass_title" formatted="false">Nomad</string>
     <string name="native_labs_compass_body" formatted="false">Uma bússola com os sensores do próprio celular, offline, sem precisar de localização.</string>
     <string name="native_labs_compass_noSensor" formatted="false">Este celular não tem magnetômetro, então não pode mostrar uma bússola.</string>
     <string name="native_labs_compass_calibrate" formatted="false">Precisão baixa: mova o celular em forma de 8 algumas vezes, longe de metal e ímãs.</string>

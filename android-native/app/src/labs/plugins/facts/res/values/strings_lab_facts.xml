@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_facts_title" formatted="false">Boar Facts</string>
+    <string name="native_labs_facts_title" formatted="false">Facts</string>
     <string name="native_labs_facts_body" formatted="false">One fact about a country, city, mountain, river, landmark or award, from a Wikidata table, without the model.</string>
     <string name="native_labs_facts_answers" formatted="false">ANSWERS ON ITS OWN</string>
     <string name="native_labs_facts_answersList" formatted="false">• Population, area, capital, currency, official languages, continent and borders\n• Height or elevation, length and depth\n• When a landmark was built or came down\n• Plug types and mains voltage\n• Where an event was held, and an award\'s winner in a given year\n• Two places compared: which is bigger, taller, longer or has more people</string>

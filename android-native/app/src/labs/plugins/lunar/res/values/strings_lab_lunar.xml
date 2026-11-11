@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_lunar_title" formatted="false">Boar Lunar</string>
+    <string name="native_labs_lunar_title" formatted="false">Lunar</string>
     <string name="native_labs_lunar_body" formatted="false">The moon tonight and this month, offline: phase, lit share, the next full and new moon.</string>
     <string name="native_labs_lunar_lit" formatted="false">{{pct}}% lit · day {{age}} of the cycle</string>
     <string name="native_labs_lunar_nextFull" formatted="false">NEXT FULL MOON</string>

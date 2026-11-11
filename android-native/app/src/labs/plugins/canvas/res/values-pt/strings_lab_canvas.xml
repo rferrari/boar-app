@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_canvas_title" formatted="false">Boar Canvas</string>
+    <string name="native_labs_canvas_title" formatted="false">Canvas</string>
     <string name="native_labs_canvas_body" formatted="false">Transforme uma resposta num cartão para ler de relance, ou numa pequena ferramenta para mexer. Feito neste celular, offline.</string>
     <string name="native_labs_canvas_intro" formatted="false">Algumas respostas ficam melhores como imagem ou funcionam melhor como ferramenta. Em qualquer resposta, abra o 🧩 e escolha. O modelo que respondeu monta a partir da resposta, depois que ela termina.</string>
     <string name="native_labs_canvas_howCard" formatted="false">📊 Cartão: uma tabela, um gráfico de barras, passos, uma comparação lado a lado ou fatos principais, desenhados pelo BOAR.</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_polyglot_title" formatted="false">Boar Polyglot</string>
+    <string name="native_labs_polyglot_title" formatted="false">Polyglot</string>
     <string name="native_labs_polyglot_body" formatted="false">Says so at once when you ask in a language BOAR doesn\'t speak yet, instead of a confused answer.</string>
     <string name="native_labs_polyglot_reply" formatted="false">Sorry, BOAR doesn\'t speak {{language}} yet. Ask in English.</string>
     <string name="native_labs_polyglot_answers" formatted="false">REPLIES ON ITS OWN</string>

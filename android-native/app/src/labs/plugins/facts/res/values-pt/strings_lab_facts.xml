@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_facts_title" formatted="false">Boar Fatos</string>
+    <string name="native_labs_facts_title" formatted="false">Fatos</string>
     <string name="native_labs_facts_body" formatted="false">Um dado sobre um país, cidade, montanha, rio, monumento ou prêmio, de uma tabela da Wikidata, sem o modelo.</string>
     <string name="native_labs_facts_answers" formatted="false">RESPONDE SOZINHO</string>
     <string name="native_labs_facts_answersList" formatted="false">• População, área, capital, moeda, línguas oficiais, continente e fronteiras\n• Altura ou altitude, comprimento e profundidade\n• Quando um monumento foi construído ou derrubado\n• Tipos de tomada e voltagem\n• Onde um evento aconteceu, e quem ganhou um prêmio em um ano\n• Dois lugares comparados: qual é maior, mais alto, mais longo ou tem mais gente</string>

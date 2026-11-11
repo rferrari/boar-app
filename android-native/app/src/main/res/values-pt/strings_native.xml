@@ -90,13 +90,13 @@
     <string name="native_about_post_budget" formatted="false">Antes de carregar um modelo, o BOAR confere se ele cabe na memória do seu celular. Os downloads ficam dentro de um limite de 50 GB.</string>
     <string name="native_about_post_open" formatted="false">Código aberto, MIT. O código, a lista de modelos e os scripts que montam os pacotes de conhecimento:</string>
     <string name="native_about_post_verify" formatted="false">As novidades saem só destes endereços. Confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
-    <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Lab do R4to:</string>
+    <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Labs do R4to:</string>
     <string name="native_about_post_team" formatted="false">Equipe principal, no X:</string>
     <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença:</string>
     <string name="native_about_creditWikipedia" formatted="false">Wikipédia (a biblioteca embutida e o pacote Vital Articles)</string>
     <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (de onde os modelos do BOAR são baixados)</string>
     <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
-    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to.</string>
+    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Labs do R4to.</string>
     <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
     <string name="native_about_teamBody" formatted="false">No X:</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
@@ -255,9 +255,9 @@
     <string name="native_vault_equip" formatted="false">Usar</string>
     <string name="native_vault_unlockedOn" formatted="false">Liberado em {{date}}</string>
     <string name="native_vault_fresh" formatted="false">Novo avatar: {{name}}</string>
-    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos Labs e pelos avatares.</string>
+    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos plugins e pelos avatares.</string>
     <string name="native_vault_themes" formatted="false">Temas</string>
-    <string name="native_vault_labClue" formatted="false">Liberado por um Lab</string>
+    <string name="native_vault_labClue" formatted="false">Liberado por um plugin</string>
     <string name="native_rule_ALWAYS" formatted="false">Óculos de visão noturna, para todos.</string>
     <string name="native_rule_FIRST_ANSWER" formatted="false">Faça sua primeira pergunta ao BOAR.</string>
     <string name="native_rule_FIRST_SOURCED" formatted="false">Receba uma resposta com uma fonte.</string>
@@ -279,8 +279,8 @@
     <string name="native_rule_CHATS_100" formatted="false">Comece 100 conversas.</string>
     <string name="native_rule_DOCUMENT" formatted="false">Dê ao BOAR um documento seu.</string>
     <string name="native_rule_EXPORT" formatted="false">Exporte uma coleção.</string>
-    <string name="native_rule_QUIZ_FIRST" formatted="false">Em algum lugar do Boar Labs, uma pergunta está esperando.</string>
-    <string name="native_rule_QUIZ_DAYS_7" formatted="false">Responda às perguntas do mesmo lab durante uma semana.</string>
+    <string name="native_rule_QUIZ_FIRST" formatted="false">Em algum lugar dos Plugins, uma pergunta está esperando.</string>
+    <string name="native_rule_QUIZ_DAYS_7" formatted="false">Responda às perguntas do mesmo plugin durante uma semana.</string>
     <string name="native_rule_PACK" formatted="false">Baixe um pacote de conhecimento.</string>
     <string name="native_rule_PACKS_2" formatted="false">Tenha dois pacotes de conhecimento.</string>
     <string name="native_rule_HF_MODEL" formatted="false">Adicione um modelo do Hugging Face.</string>
@@ -305,7 +305,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Libere avatares de javali enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com os labs testados ligados e os outros desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Os Plugins já vêm ligados, com os plugins testados ligados e os outros desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
     <string name="native_debugLog_title" formatted="false">Log de depuração</string>
     <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>
@@ -327,9 +327,9 @@
     <string name="native_tweaks_preset_coolNote" formatted="false">Para um celular quente: 1 thread, lotes pequenos, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. O mais lento.</string>
     <string name="native_tweaks_presetCustom" formatted="false">Personalizado: seus próprios ajustes abaixo. Escolha uma predefinição para recomeçar a partir dela.</string>
     <string name="native_tweaks_drawerStats" formatted="false">Memória e armazenamento no menu</string>
-    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor do Labs, como o Big Boar) e o espaço dos modelos.</string>
+    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor de plugin, como o Big Boar) e o espaço dos modelos.</string>
     <string name="native_models_engineTag" formatted="false">motor {{engine}} · lê do armazenamento</string>
-    <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Boar Labs → {{engine}})</string>
+    <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Plugins → {{engine}})</string>
     <string name="native_models_selectUseEngine" formatted="false">Selecionar e Usar · motor {{engine}}</string>
     <string name="native_tweaks_evaluation" formatted="false">Avaliação (para quem desenvolve)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Roda o conjunto de avaliação do BOAR neste celular e envia o relatório. Versões para quem desenvolve também a mostram no menu.</string>
@@ -519,7 +519,7 @@
     <string name="native_tour_again" formatted="false">Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_whileYouWait" formatted="false">Enquanto espera</string>
     <string name="native_tour_cardTitle" formatted="false">Faça o tour de 2 minutos</string>
-    <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Labs</string>
+    <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Plugins</string>
     <string name="native_tour_start" formatted="false">Começar o tour</string>
     <string name="native_tour_seeTour" formatted="false">Ver o tour</string>
     <string name="native_tour_lineDownloading" formatted="false">Baixando · {{pct}}%</string>
@@ -548,9 +548,9 @@
     <string name="native_tour_pin_title" formatted="false">PIN</string>
     <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
     <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
-    <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.\n\nExperimente também o Boar Designer, que desenha uma imagem a partir da resposta; o Boar Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs labs não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
-    <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
+    <string name="native_tour_labs_title" formatted="false">Plugins</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.\n\nExperimente também o Designer, que desenha uma imagem a partir da resposta; o Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs plugins não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Plugins</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_linePaused" formatted="false">Configuração pausada · toque para ver</string>
@@ -642,11 +642,11 @@
     <string name="native_setupGuide_privacy_title" formatted="false">Privacidade e memória</string>
     <string name="native_setupGuide_privacy_sub" formatted="false">Como o BOAR trata suas conversas e a memória do celular.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">Tudo isso também está nas Configurações.</string>
-    <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_setupGuide_labs_title" formatted="false">Plugins</string>
     <string name="native_setupGuide_labs_sub" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.</string>
     <string name="native_setupGuide_labs_beta" formatted="false">Beta: testados em celulares</string>
     <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: no começo, menos testados</string>
-    <string name="native_setupGuide_labs_note" formatted="false">Os Labs não deixam as respostas mais lentas. Os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Todos ficam em Configurações → Experimental → Boar Labs.</string>
+    <string name="native_setupGuide_labs_note" formatted="false">Os plugins não deixam as respostas mais lentas. Os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Todos ficam em Configurações → Experimental → Plugins.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Quase lá</string>
     <string name="native_setupGuide_ready_sub" formatted="false">O BOAR abre assim que o download e o índice terminarem.</string>
     <string name="native_setupGuide_ready_choices" formatted="false">Suas escolhas</string>
@@ -691,10 +691,10 @@
     <string name="native_settings_profile_explorer" formatted="false">Explorador</string>
     <string name="native_settings_profile_explorerNote" formatted="false">O Simples, mais como o BOAR responde, conhecimento, conversas, voz e Boarverse.</string>
     <string name="native_settings_profile_pro" formatted="false">Pro</string>
-    <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações do Boar Labs. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
+    <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações dos Plugins. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
     <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Os detalhes técnicos (a velocidade ao vivo no topo da conversa, os detalhes de desempenho da resposta, as barras de memória e armazenamento do menu) agora ficam no Pro.</string>
-    <string name="native_settings_profile_labsOn" formatted="false">Estes labs agora estão ligados: {{labs}}. Desligue no Boar Labs, no perfil Pro.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">Estes plugins agora estão ligados: {{labs}}. Desligue nos Plugins, no perfil Pro.</string>
     <string name="native_settings_languageVoice" formatted="false">Idioma e voz</string>
     <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
     <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>

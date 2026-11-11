@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_staged_title" formatted="false">Boar Staged Answers</string>
+    <string name="native_labs_staged_title" formatted="false">Staged answers</string>
     <string name="native_labs_staged_body" formatted="false">The answer arrives in steps: what the sources say first, then a short answer, then the details, then a check of the numbers. Stop whenever you have enough.</string>
     <string name="native_labs_staged_steps" formatted="false">THE STEPS</string>
     <string name="native_labs_staged_stepsList" formatted="false">1. From the sources: the sentences that answer your question, quoted, before the model has even loaded. Tap one for its passage and the whole article.\n2. A short answer: two or three sentences.\n3. More sources: a second search with what the short answer said.\n4. The details: what the short answer left out, from every source.\n5. The check: each number in the answer must be in a source; the ones that aren\'t are listed under it.\nStop at any step: what is on screen is kept as the answer.</string>

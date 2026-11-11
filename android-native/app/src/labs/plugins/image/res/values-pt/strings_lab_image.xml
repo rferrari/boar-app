@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_image_title" formatted="false">Boar Designer</string>
+    <string name="native_labs_image_title" formatted="false">Designer</string>
     <string name="native_labs_image_intro" formatted="false">Experimental. Desenha uma ilustração neste celular, offline. Escolha um estilo e digite o que desenhar.</string>
     <string name="native_labs_image_noEngine" formatted="false">Este build não tem o motor de imagem. Gere com -Pboar.labs=true depois de scripts/build-sd-cli.sh.</string>
     <string name="native_labs_image_needModel" formatted="false">O modelo de imagem (SDXS-512, 683 MB) ainda não está no celular. Precisa de internet uma vez para baixar; depois, desenha offline. A licença (CreativeML Open RAIL++-M) proíbe alguns usos, como prejudicar ou assediar pessoas, conteúdo enganoso para causar dano e aconselhamento médico: huggingface.co/IDKiro/sdxs-512-0.9</string>
@@ -24,7 +24,7 @@
     <string name="native_labs_image_fromChat" formatted="false">↳ Da sua última conversa: “{{title}}”</string>
     <string name="native_labs_image_setDefault" formatted="false">★ Usar {{combo}} como padrão, também na conversa</string>
     <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} é seu padrão, também no 🎨 da conversa</string>
-    <string name="native_labs_image_illustrateNotReady" formatted="false">Para ilustrar respostas, baixe o modelo de imagem em Boar Labs → Boar Designer.</string>
+    <string name="native_labs_image_illustrateNotReady" formatted="false">Para ilustrar respostas, baixe o modelo de imagem em Plugins → Designer.</string>
     <string name="native_labs_image_illustrateChoosing" formatted="false">Escolhendo o que desenhar…</string>
     <string name="native_labs_image_illustrateDrawing" formatted="false">Desenhando: {{subject}}…</string>
     <string name="native_labs_image_illustrate" formatted="false">Ilustrar esta resposta</string>
@@ -35,7 +35,7 @@
     <string name="native_labs_image_managerCount" formatted="false">{{count}} imagens · {{mb}} MB</string>
     <string name="native_labs_image_selectAll" formatted="false">Selecionar tudo</string>
     <string name="native_labs_image_selectNone" formatted="false">Limpar</string>
-    <string name="native_labs_image_managerNote" formatted="false">Imagens feitas no Boar Labs ficam no Boar Labs. Toque para selecionar e apague.</string>
+    <string name="native_labs_image_managerNote" formatted="false">Imagens feitas nos Plugins ficam nos Plugins. Toque para selecionar e apague.</string>
     <string name="native_labs_image_managerEmpty" formatted="false">Nenhuma imagem ainda.</string>
     <string name="native_labs_image_deleteSelected" formatted="false">Apagar {{count}}</string>
     <string name="native_labs_image_deleteConfirm" formatted="false">Apagar {{count}} imagens de vez?</string>
@@ -54,7 +54,7 @@
     <string name="native_labs_image_shape_square" formatted="false">Quadrado</string>
     <string name="native_labs_image_shape_portrait" formatted="false">Retrato</string>
     <string name="native_labs_image_shape_banner" formatted="false">Banner</string>
-    <string name="native_labs_image_illustrateNeedsModel" formatted="false">Ilustrar (baixe antes o modelo de desenho em Boar Labs, Boar Designer)</string>
+    <string name="native_labs_image_illustrateNeedsModel" formatted="false">Ilustrar (baixe antes o modelo de desenho em Plugins, Designer)</string>
     <string name="native_labs_image_removeModel" formatted="false">Remover o modelo de imagem (683 MB)</string>
     <string name="native_labs_image_removeConfirm" formatted="false">Remover o modelo de imagem? Seus desenhos ficam. Para desenhar de novo, o BOAR baixa ele outra vez (683 MB, internet uma vez).</string>
     <string name="native_labs_image_remove" formatted="false">Remover</string>
@@ -62,7 +62,7 @@
     <string name="native_labs_image_lowMemory" formatted="false">Memória livre insuficiente para desenhar agora. Feche outros apps ou libere a memória do BOAR e tente de novo.</string>
     <string name="native_labs_image_seed" formatted="false">semente {{seed}}</string>
     <string name="native_labs_image_downloadFailed" formatted="false">O download parou. Confira a conexão e tente de novo.</string>
-    <string name="native_labs_image_refused" formatted="false">O Boar Designer não desenha isso.</string>
+    <string name="native_labs_image_refused" formatted="false">O Designer não desenha isso.</string>
     <string name="native_labs_image_sheetTitle" formatted="false">ILUSTRAR ESTA RESPOSTA</string>
     <string name="native_labs_image_drawDefault" formatted="false">Desenhar · {{style}}, {{size}}</string>
     <string name="native_labs_image_orPick" formatted="false">Ou escolha um estilo e um tamanho:</string>

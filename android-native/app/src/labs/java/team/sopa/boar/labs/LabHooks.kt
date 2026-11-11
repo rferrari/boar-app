@@ -58,10 +58,10 @@ object LabHooks {
         // About → credits: the engines Boar Labs ships and the models its labs use (android-native/NOTICE lists them too).
         team.sopa.boar.ui.about.AboutCredits.extra = {
             listOf(
-                "stable-diffusion.cpp (Boar Designer)" to "MIT",
+                "stable-diffusion.cpp (Designer)" to "MIT",
                 "BigMoeOnEdge (Big Boar)" to "Apache-2.0",
                 "colibri (Boar Wisp)" to "Apache-2.0",
-                "SDXS-512 image model (Boar Designer)" to "OpenRAIL++-M",
+                "SDXS-512 image model (Designer)" to "OpenRAIL++-M",
                 "Qwen3.6-35B-A3B (Big Boar)" to "Apache-2.0",
                 "OLMoE-1B-7B (Boar Wisp)" to "Apache-2.0",
                 "r4to's calculator, BOAR R&D (Boar Calculator)" to "MIT",
