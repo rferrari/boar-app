@@ -452,11 +452,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
         // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
-        // B+ (adam, Nov 10): the sources open above the answer instead of the list under it, to compare on the phone.
-        var layout by remember { mutableStateOf(s.sourcesLayout) }
-        Choices(t("native.tweaks.sourcesLayout"), listOf(AppSettings.SOURCES_TODAY to t("native.tweaks.sourcesToday"), AppSettings.SOURCES_ABOVE to t("native.tweaks.sourcesAbove")), layout) {
-            layout = it; s.sourcesLayout = it
-        }
+        // No Sources layout choice since Nov 12: one design for everyone (the block above the answer, or Staged's quotes).
         // Moved from Settings → Models (rc3, slice 5); stays in effect in every profile, its default on.
         var free by remember { mutableStateOf(s.freeMemoryInBackground) }
         SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }

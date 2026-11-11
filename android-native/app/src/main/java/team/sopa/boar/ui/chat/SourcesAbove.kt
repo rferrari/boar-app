@@ -49,7 +49,7 @@ internal object SourcesFold {
  * passage in a sheet ([onOpen]).
  */
 @Composable
-internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>, onReadTop: (Source) -> Unit, onOpen: (Int) -> Unit) {
+internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>, onOpen: (Int) -> Unit) {
     val c = Boar.colors
     val rows = remember(sources, query) { SourceDigest.rows(query, sources.map { Triple(it.title, it.docId ?: it.title, it.body) }) }
     val open = SourcesFold.isOpen(answerId)
@@ -67,8 +67,6 @@ internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>
                     Text(r.passages.joinToString(" ") { "[${it.number}]" }, style = Boar.type["mono.xs"], color = c.textDim)
                     Text(r.title, style = Boar.type.caption, color = c.textHeading, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     if (r.passages.size > 1) Text(t("native.sources.passages", "count" to r.passages.size), style = Boar.type["mono.xs"], color = c.textMuted)
-                    // The whole article from its top: an empty passage gives the reader nothing to jump to or mark.
-                    sources.getOrNull(r.best.number - 1)?.let { src -> ReadArticle { onReadTop(src.copy(body = "")) } }
                 }
                 Text(sentence(r.best), style = Boar.type.caption, color = c.textSecondary)
             }

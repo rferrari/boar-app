@@ -27,22 +27,6 @@ class SourcesLayoutTest {
         assertEquals(AppSettings.SOURCES_TODAY, AppSettings(f).sourcesLayout)
     }
 
-    @Test fun `with B+ the block is above, the list under the answer and Staged's cards are not drawn`() {
-        assertTrue(chat.contains("if (above) SourcesAbove("))
-        assertTrue(chat.contains("if (m.sources.isNotEmpty() && !above && !sourcesShownAbove) SourceFootnotes("))
-        assertTrue(chat.contains("if (!above) m.staged?.let { StagedCard("))
-        // Drawn from the sources alone, whether the answer streams or not: it isn't removed when the answer starts.
-        assertTrue(chat.indexOf("if (above) SourcesAbove(") < chat.indexOf("MarkdownMessage(shown, streaming"))
-    }
-
-    @Test fun `the block is capped at 35 percent of the screen, folds per answer, and n opens the passage`() {
-        assertTrue(above.contains("screenHeightDp * 0.35f"))
-        assertTrue(above.contains("heightIn(max = cap)"))
-        assertTrue(above.contains("SourcesFold.isOpen(answerId)"))
-        assertTrue(chat.contains("onCite = if (above && !streaming)"))
-        assertTrue(File("../app/src/main/java/team/sopa/boar/ui/chat/Markdown.kt").readText().contains("LinkAnnotation.Clickable"))
-    }
-
     @Test fun `its strings are in English and Portuguese`() {
         for (dir in listOf("values", "values-pt")) {
             val xml = File("../app/src/main/res/$dir/strings_native.xml").readText()
@@ -51,14 +35,29 @@ class SourcesLayoutTest {
         }
     }
 
-    @Test fun `the sheet goes on from the row, the article opens from its top, back still lands as left`() {
-        val sheet = above.substringAfter("internal fun PassageSheet(").substringBefore("internal fun ReadArticle(")
-        assertTrue(sheet.contains("SourceDigest.sheet(passage)") && sheet.contains("SourceDigest.others(rows, number)"))
-        // No "Read the whole article" button; ↗ opens the article with no passage to jump to.
-        assertTrue(!sheet.contains("sourceFootnotes.readAll\"), style"))
-        assertTrue(above.contains("ReadArticle { onReadTop(src.copy(body = \"\")) }"))
-        assertTrue(sheet.contains("onRead(source.copy(body = \"\"))"))
-        // The block's fold is kept per answer (SourcesFold), as before.
-        assertTrue(above.contains("SourcesFold.isOpen(answerId)"))
+
+    // adam, Nov 12: one design for everyone; a tap goes straight to the article at the passage; nothing shown twice.
+    @Test fun `one sources design, the block above the answer unless Staged shows its quotes, no list under the answer`() {
+        assertTrue(chat.contains("val above = m.sources.isNotEmpty() && m.staged == null"))
+        assertTrue(chat.contains("if (above) SourcesAbove(m.id, question, m.sources) { read(it) }"))
+        assertTrue(!chat.contains("SourceFootnotes(") && !chat.contains("PassageSheet("))
+        assertTrue(chat.indexOf("if (above) SourcesAbove(") < chat.indexOf("MarkdownMessage(shown, streaming"))
+    }
+
+    @Test fun `a tap on a source, a quote or an n opens the article at the passage`() {
+        assertTrue(chat.contains("fun read(n: Int) { m.sources.getOrNull(n - 1)?.let(onReadSource) }"))
+        assertTrue(chat.contains("onCite = if (m.sources.isNotEmpty() && !streaming) ({ n -> if (n in 1..m.sources.size) read(n) }) else null"))
+        val staged = File("../app/src/main/java/team/sopa/boar/ui/chat/StagedCard.kt").readText()
+        assertTrue(staged.contains(".clickable { onRead(k.source) }"))
+        // The reader scrolls to the passage it's given and marks it.
+        val reader = File("../app/src/main/java/team/sopa/boar/ui/chat/SourceReader.kt").readText()
+        assertTrue(reader.contains("SourceArticle.passageAt(a.text, passage)") && reader.contains("scroll.animateScrollTo("))
+        assertTrue(above.contains("SourcesFold.isOpen(answerId)") && above.contains("screenHeightDp * 0.35f"))
+    }
+
+    @Test fun `back from the article, the chat is where it was`() {
+        assertTrue(chat.contains("val returning = remember { ChatScroll.restore(state.sessionId) }"))
+        assertTrue(chat.contains("rememberLazyListState(returning?.first ?: 0, returning?.second ?: 0)"))
+        assertTrue(chat.contains("var follow by remember { mutableStateOf(returning == null) }"))
     }
 }

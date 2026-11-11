@@ -112,7 +112,6 @@ class StagedAnswerTest {
         assertTrue(card.contains("val factsOpen = open ?: true"))
         assertTrue(card.contains("native.staged.moreSources"))
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
-        assertTrue(chat.contains("m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()"))
         assertTrue(java.io.File("../app/src/labs/plugins/staged/java/team/sopa/boar/labs/staged/StagedLab.kt").readText().contains("override val ownsSources = true"))
     }
 

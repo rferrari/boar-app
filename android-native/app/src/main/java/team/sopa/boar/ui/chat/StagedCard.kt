@@ -80,15 +80,12 @@ internal fun StagedCheck(v: StagedView) {
 private fun KeyFact(k: KeyFactView, withPassage: Boolean, onRead: (Source) -> Unit, key: String?) {
     val c = Boar.colors
     // A health answer shows each sentence with its passage: a sentence alone, out of context, can mislead.
-    var passage by ChatFolds.remember(key, withPassage)
-    Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).clickable { passage = !passage }.padding(10.dp),
+    val passage = withPassage
+    // A tap opens the article at this passage (adam, Nov 12); a health answer still shows the passage under the quote.
+    Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).clickable { onRead(k.source) }.padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("“${k.sentence}”", style = Boar.type.body, color = c.textPrimary)
         Text("— ${k.source.title}", style = Boar.type.subtext, color = c.textSecondary)
-        if (passage) {
-            Text(k.passage, style = Boar.type.subtext, color = c.textMuted)
-            Text(t("native.staged.readArticle"), style = Boar.type.subtext, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { onRead(k.source) }.padding(vertical = 2.dp))
-        }
+        if (passage) Text(k.passage, style = Boar.type.subtext, color = c.textMuted)
     }
 }

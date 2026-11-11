@@ -134,7 +134,10 @@ fun ChatScreen(
     onMergeQueue: () -> Unit = {},
 ) {
     val c = Boar.colors
-    val list = rememberLazyListState()
+    // Back from the article reader (or any page), the chat is where it was (adam, Nov 12): the same answer in view.
+    val returning = remember { ChatScroll.restore(state.sessionId) }
+    val list = rememberLazyListState(returning?.first ?: 0, returning?.second ?: 0)
+    androidx.compose.runtime.DisposableEffect(state.sessionId) { onDispose { ChatScroll.save(state.sessionId, list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, list.canScrollForward) } }
     var input by remember { mutableStateOf("") }
     LaunchedEffect(state.prefill) { state.prefill?.let { input = it; onPrefilled() } }
     // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
@@ -149,11 +152,13 @@ fun ChatScreen(
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
-    var follow by remember { mutableStateOf(true) }
+    var follow by remember { mutableStateOf(returning == null) }
     LaunchedEffect(list) {
         snapshotFlow { list.isScrollInProgress }.collect { moving -> if (!moving) follow = !list.canScrollForward }
     }
-    LaunchedEffect(state.messages.size) { follow = true }
+    // A new message follows the end; coming back to the same chat doesn't.
+    var seenSize by remember { mutableStateOf(if (returning != null) state.messages.size else -1) }
+    LaunchedEffect(state.messages.size) { if (state.messages.size != seenSize) { seenSize = state.messages.size; follow = true } }
     LaunchedEffect(state.messages.size, last?.text?.length, list.isScrollInProgress) {
         // Jump to the end of the last message (the offset is clamped to the list's end); not animated, since this
         // runs on every streamed token.
@@ -553,10 +558,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Layout B+ (Advanced tweaks → Sources layout): the sources open above the answer, never removed when it starts;
             // a tap there or on an [n] in the answer opens the passage in a sheet.
             val question = state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty()
-            var passage by remember(m.id) { mutableStateOf<Int?>(null) }
-            val above = state.sourcesAbove && m.sources.isNotEmpty()
-            if (above) SourcesAbove(m.id, question, m.sources, onReadTop = onReadSource) { passage = it }
-            passage?.let { n -> PassageSheet(question, m.sources, n, onReadSource) { passage = null } }
+            // One sources design for everyone (adam, Nov 12): the block above the answer, or Staged's quote cards when Staged
+            // shows them. A tap on a source, a quote or an [n] opens the article at the passage that backs the answer.
+            fun read(n: Int) { m.sources.getOrNull(n - 1)?.let(onReadSource) }
+            val above = m.sources.isNotEmpty() && m.staged == null
+            if (above) SourcesAbove(m.id, question, m.sources) { read(it) }
             // Boar Staged answers: what the sources say comes first, before and above the answer's text (with B+ the block
             // above says it, so Staged's quote cards don't show).
             if (!above) m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource, key = m.id) }
@@ -573,7 +579,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming, onCite = if (above && !streaming) ({ n -> if (n in 1..m.sources.size) passage = n }) else null)
+                    MarkdownMessage(shown, streaming, onCite = if (m.sources.isNotEmpty() && !streaming) ({ n -> if (n in 1..m.sources.size) read(n) }) else null)
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
@@ -591,9 +597,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
             if (!streaming) m.staged?.let { StagedCheck(it) }
-            // A lab that shows the sources itself (Staged Answers) asks the chat to leave its list out; off, it's back.
-            val sourcesShownAbove = m.staged != null && team.sopa.boar.plugins.AnswerModes.ownsSources()
-            if (m.sources.isNotEmpty() && !above && !sourcesShownAbove) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource, key = m.id)
+            // No list under the answer any more: the sources are shown once, above it (adam, Nov 12).
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
@@ -877,3 +881,19 @@ private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) 
 /** One spoken label for the whole button, in place of its symbol. */
 private fun Modifier.spokenAs(label: String): Modifier =
     this.then(Modifier.clearAndSetSemantics { contentDescription = label; role = androidx.compose.ui.semantics.Role.Button })
+
+/**
+ * The chat's scroll for the open chat, kept while BOAR runs: back from the reader (or another page), the same answer is
+ * in view instead of the end of the chat (adam, Nov 12). At the end already: nothing kept, it follows as before.
+ */
+internal object ChatScroll {
+    private var session: String? = null
+    private var at: Pair<Int, Int>? = null
+
+    fun save(sessionId: String?, index: Int, offset: Int, notAtEnd: Boolean) {
+        session = sessionId
+        at = if (notAtEnd) index to offset else null
+    }
+
+    fun restore(sessionId: String?): Pair<Int, Int>? = at.takeIf { sessionId != null && sessionId == session }.also { at = null }
+}
