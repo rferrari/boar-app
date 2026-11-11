@@ -118,10 +118,7 @@ fun VaultScreen(vault: TruffleVault, onBack: () -> Unit) {
     val icon by vault.icon.collectAsState()
     val dates = DateFormat.getDateInstance(DateFormat.MEDIUM)
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
-            Text(t("native.vault.title"), style = Boar.type.titleLg, color = c.textHeading)
-        }
+        team.sopa.boar.ui.PageHeader(t("native.vault.title"), onBack)
         LazyVerticalGrid(GridCells.Adaptive(150.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
