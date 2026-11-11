@@ -21,7 +21,7 @@ class PluginsSmallsTest {
 
     @Test fun `the Plugins page has a search, and using a plugin is remembered`() {
         assertTrue(list.contains("RecentPlugins.matches(query"))
-        assertTrue(hooks.contains("LaunchedEffect(lab.id) { LabPrefs.used(lab.id) }") && hooks.contains("LabPrefs.used(it.first)"))
+        assertTrue(hooks.contains("LaunchedEffect(lab.id) { LabPrefs.used(lab.id) }") && hooks.contains("LabPrefs.used(labId); act.onClick()"))
     }
 
     @Test fun `strings in English and Portuguese`() {

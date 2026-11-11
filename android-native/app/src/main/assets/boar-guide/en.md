@@ -16,20 +16,20 @@ Type a question at the bottom of the chat and tap send. Ask in English or Portug
 The style button left of where you type picks how BOAR answers (also in Settings → How BOAR answers, from the Explorer profile):
 - Succinct & Direct: short replies.
 - Thorough & Detailed: full explanations. This is the default.
-- Personal Files: answers only from your own files.
+- Local Files: answers only from your own files.
 The style applies to the next questions until you change it. Health and seed-phrase questions always get a short answer, with a note under it, and greetings get a short reply. Settings → How BOAR answers also sets Max output tokens, the longest an answer can be; if an answer stops at that limit, it offers to allow more and redo it.
 
 ## Deep Research
-Deep Research is for big questions. Turn it on with the 🔬 button at the top of the chat, in the style button's sheet, or in Settings → How BOAR answers (Deep Research Mode). BOAR splits the question into 2 or 3 smaller ones, searches the library for each, then writes one longer answer with sources. While it is on, the box says "Deep Research question…". It is slower than a normal answer, a few minutes on the smaller model. It works with Succinct & Direct and Thorough & Detailed; with Personal Files, BOAR answers normally.
+Deep Research is for big questions. Turn it on with the 🔬 button at the top of the chat, in the style button's sheet, or in Settings → How BOAR answers (Deep Research Mode). BOAR splits the question into 2 or 3 smaller ones, searches the library for each, then writes one longer answer with sources. While it is on, the box says "Deep Research question…". It is slower than a normal answer, a few minutes on the smaller model. It works with Succinct & Direct and Thorough & Detailed; with Local Files, BOAR answers normally.
 
-## Personal Files
-Personal Files lets BOAR answer from your own documents: notes, PDFs and spreadsheets (.txt, .md, .csv, .json, and .pdf with selectable text; scanned and password-protected PDFs can't be read, and very large files are refused). In the menu, open Knowledge → Personal Files and tap Pick Files & Import, or add files during setup. Files go into collections, each with its own switch: only switched-on collections are searched. Tap Ask about them, or pick the Personal Files style, and ask: about one file by name, or for a summary of all your files. If your files don't hold the answer, BOAR says "I couldn't find this in your Personal Files." instead of guessing. Your files stay on the phone.
+## Local Files
+Local Files lets BOAR answer from your own documents: notes, PDFs and spreadsheets (.txt, .md, .csv, .json, and .pdf with selectable text; scanned and password-protected PDFs can't be read, and very large files are refused). In the menu, open Knowledge → Local Files and tap Pick Files & Import, or add files during setup. Files go into collections, each with its own switch: only switched-on collections are searched. Tap Ask about them, or pick the Local Files style, and ask: about one file by name, or for a summary of all your files. If your files don't hold the answer, BOAR says "I couldn't find this in your Local Files." instead of guessing. Your files stay on the phone.
 
 ## Knowledge packs
 Knowledge packs are the libraries BOAR searches, stored on the phone. The Wikipedia Vital Articles pack holds more than 50,000 articles (about 164 MB). Manage them in the menu → Knowledge → BOAR Knowledge: see what is installed, Download or Remove a pack. A pack is downloaded once; after that it works offline.
 
 ## Sources under an answer
-Under each answer that used the library, Retrieved sources lists them, numbered, with how well each one matched: articles from the library, or "Your documents" with Personal Files. Tap a source to see the passage. "Read the whole article ›" opens the full article or file, offline, with the part BOAR used marked. Quick replies such as greetings and the plugins' instant answers have no sources. In the Pro profile, Settings → Advanced tweaks → Sources layout can put the sources above the answer instead: one row per article with the sentence that answers best, the question's words in bold; tap a row or a [n] in the answer to read the passage.
+Under each answer that used the library, Retrieved sources lists them, numbered, with how well each one matched: articles from the library, or "Your documents" with Local Files. Tap a source to see the passage. "Read the whole article ›" opens the full article or file, offline, with the part BOAR used marked. Quick replies such as greetings and the plugins' instant answers have no sources. In the Pro profile, Settings → Advanced tweaks → Sources layout can put the sources above the answer instead: one row per article with the sentence that answers best, the question's words in bold; tap a row or a [n] in the answer to read the passage.
 
 ## Under an answer
 Each finished answer shows how long it took and how fast it was written. Below it: ▲ and ▼ to rate it, ⧉ to copy it, 💭 to see the model's reasoning when it has some, and 🧩 for the actions of the plugins you have switched on.
@@ -44,7 +44,7 @@ Discover GGUF models, in the Model Catalog and in setup, searches Hugging Face f
 A PIN (4 to 8 digits) locks BOAR and protects your chats. Set it in Settings → PIN lock (Set a PIN, Change PIN, Remove PIN), or during setup. With a PIN on, BOAR asks for it when you open the app and again after a minute in the background, your chats are stored encrypted with a key that only your PIN can open, and BOAR's screen is blank in recent apps, screenshots and screen recordings. After several wrong tries, BOAR makes you wait before trying again, longer each time.
 
 ## Forgot the PIN
-If you forget your PIN, tap "Forgot the PIN?" on the PIN screen. Without the PIN, your chats can't be opened, not even by us, so BOAR offers to erase them, together with your Personal Files and what the plugins made, and then removes the PIN. Tap Erase chats and files before the countdown ends to confirm; otherwise nothing is erased. Models and knowledge packs stay. If the erase can't finish, the PIN stays on so you can try again.
+If you forget your PIN, tap "Forgot the PIN?" on the PIN screen. Without the PIN, your chats can't be opened, not even by us, so BOAR offers to erase them, together with your Local Files and what the plugins made, and then removes the PIN. Tap Erase chats and files before the countdown ends to confirm; otherwise nothing is erased. Models and knowledge packs stay. If the erase can't finish, the PIN stays on so you can try again.
 
 ## Notifications
 While BOAR writes an answer, it shows a "BOAR is answering…" notification; tap it to come back. Android asks your permission once, during setup or in the chat. Without it, answers still keep going when you switch apps; you just won't see that BOAR is working. Turn it on later with Allow notifications or in Android's settings for BOAR.

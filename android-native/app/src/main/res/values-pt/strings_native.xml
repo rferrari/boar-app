@@ -58,7 +58,7 @@
     <string name="native_receipt_mode" formatted="false">Modo</string>
     <string name="native_receipt_style_succinct" formatted="false">Sucinto e direto</string>
     <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
-    <string name="native_receipt_style_personal" formatted="false">Arquivos pessoais</string>
+    <string name="native_receipt_style_personal" formatted="false">Arquivos locais</string>
     <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
     <string name="native_receipt_path_staged" formatted="false">Resposta em etapas</string>
     <string name="native_receipt_stages" formatted="false">Etapas</string>
@@ -130,8 +130,8 @@
     <string name="native_pin_wrong" formatted="false">PIN errado.</string>
     <string name="native_pin_wait" formatted="false">Tentativas demais. Espere {{seconds}} s.</string>
     <string name="native_pin_forgot" formatted="false">Esqueceu o PIN?</string>
-    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas e arquivos pessoais?</string>
-    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagar remove também seus Arquivos pessoais e o PIN. Modelos e pacotes de conhecimento ficam.</string>
+    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas e arquivos locais?</string>
+    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagar remove também seus Arquivos locais e o PIN. Modelos e pacotes de conhecimento ficam.</string>
     <string name="native_pin_forgotConfirm" formatted="false">Apagar conversas e arquivos</string>
     <string name="native_pin_forgotCountdown" formatted="false">Fecha em {{seconds}} s</string>
     <string name="native_pin_forgotFailed" formatted="false">Não deu para apagar tudo. Seu PIN continua ativo: tente de novo.</string>
@@ -154,12 +154,12 @@
     <string name="native_settings_clearChatsDone" formatted="false">Histórico de conversas apagado.</string>
     <string name="native_settings_openCatalog" formatted="false">Abrir o catálogo de modelos</string>
     <string name="native_settings_openKnowledge" formatted="false">Abrir Conhecimento BOAR</string>
-    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos pessoais</string>
+    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos locais</string>
     <string name="native_settings_activeModel" formatted="false">Respondendo com: {{model}}</string>
     <string name="native_settings_installedCount" formatted="false">{{count}} instalados</string>
     <string name="native_settings_packsInstalled" formatted="false">Pacotes de conhecimento no celular: {{packs}}</string>
     <string name="native_settings_noPacks" formatted="false">Nenhum pacote ainda: só a biblioteca embutida.</string>
-    <string name="native_settings_documents" formatted="false">Arquivos pessoais: {{count}} coleções</string>
+    <string name="native_settings_documents" formatted="false">Arquivos locais: {{count}} coleções</string>
     <string name="native_telemetry_device" formatted="false">Aparelho</string>
     <string name="native_telemetry_chip" formatted="false">Chip</string>
     <string name="native_telemetry_cores" formatted="false">Núcleos</string>
@@ -481,7 +481,7 @@
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
-    <string name="native_documents_importedHint" formatted="false">Importado em \"{{name}}\". Para perguntar sobre esses arquivos, mude o estilo de resposta para Arquivos pessoais: ele responde só a partir dos seus arquivos.</string>
+    <string name="native_documents_importedHint" formatted="false">Importado em \"{{name}}\". Para perguntar sobre esses arquivos, mude o estilo de resposta para Arquivos locais: ele responde só a partir dos seus arquivos.</string>
     <string name="native_documents_askAboutThem" formatted="false">Perguntar sobre eles</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" e as respostas dele somem. Não dá para desfazer.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
@@ -531,7 +531,7 @@
     <string name="native_tour_theme_body" formatted="false">Escolha um tema. Ele muda na hora, e dá para trocar de novo quando quiser.</string>
     <string name="native_tour_theme_where" formatted="false">Configurações → Exibição e tema</string>
     <string name="native_tour_styles_title" formatted="false">Escolha como o BOAR responde</string>
-    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Arquivos pessoais para responder só a partir dos seus documentos.</string>
+    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Arquivos locais para responder só a partir dos seus documentos.</string>
     <string name="native_tour_styles_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
     <string name="native_tour_deep_title" formatted="false">Pesquisa Profunda</string>
     <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo. Quando está ligada, o chat brilha e o 🔬 acende, então você sempre sabe.</string>
@@ -539,8 +539,8 @@
     <string name="native_tour_sources_title" formatted="false">Fontes e recibos</string>
     <string name="native_tour_sources_body" formatted="false">Uma resposta da biblioteca lista os artigos que usou: toque em um para ler. Um recibo mostra o modelo, a velocidade e o tempo.</string>
     <string name="native_tour_sources_where" formatted="false">Embaixo de cada resposta</string>
-    <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos pessoais</string>
-    <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos pessoais e pergunte sobre eles com o estilo Arquivos pessoais.</string>
+    <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos locais</string>
+    <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos locais e pergunte sobre eles com o estilo Arquivos locais.</string>
     <string name="native_tour_knowledge_where" formatted="false">Menu → Conhecimento</string>
     <string name="native_tour_models_title" formatted="false">Modelos</string>
     <string name="native_tour_models_body" formatted="false">Troque o modelo de resposta, encontre outros no Hugging Face e deixe o BOAR liberar a memória quando você sair dele.</string>
@@ -561,8 +561,8 @@
     <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
     <string name="native_tour_sample_styleButton" formatted="false">O botão de estilo, ao lado de onde você digita</string>
     <string name="native_tour_sample_doc" formatted="false">manual-de-campo.pdf</string>
-    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Arquivos pessoais</string>
-    <string name="native_tour_sample_ask" formatted="false">Pergunte com 🗂️ Arquivos pessoais</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Arquivos locais</string>
+    <string name="native_tour_sample_ask" formatted="false">Pergunte com 🗂️ Arquivos locais</string>
     <string name="native_tour_adaptive_title" formatted="false">Roteamento adaptativo</string>
     <string name="native_tour_adaptive_body" formatted="false">Vem desligado. Ligue e o BOAR escolhe qual dos seus modelos instalados responde cada pergunta, e como. Vale a pena quando você tem mais de um modelo.</string>
     <string name="native_tour_adaptive_where" formatted="false">Configurações → Experimental</string>
@@ -572,13 +572,13 @@
     <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai liberar avatares: cada um é um javali para usar, e alguns liberam novos temas. Descobrir o que libera cada um faz parte da graça.</string>
     <string name="native_documents_moreFiles" formatted="false">+{{count}} outros</string>
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
-    <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos pessoais.</string>
-    <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos pessoais.</string>
+    <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos locais.</string>
+    <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos locais.</string>
     <string name="native_personal_notFoundAskHint" formatted="false">Tente perguntar sobre algo que seus arquivos dizem, com as palavras deles, ou peça um resumo dos seus arquivos.</string>
-    <string name="native_documents_personalTitle" formatted="false">Arquivos pessoais</string>
-    <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
-    <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
-    <string name="native_documents_personalFolded_other" formatted="false">Arquivos pessoais · {{count}} coleções</string>
+    <string name="native_documents_personalTitle" formatted="false">Arquivos locais</string>
+    <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos locais.</string>
+    <string name="native_documents_personalFolded_one" formatted="false">Arquivos locais · {{count}} coleção</string>
+    <string name="native_documents_personalFolded_other" formatted="false">Arquivos locais · {{count}} coleções</string>
     <!-- A source read whole (ui/chat/SourceReader.kt) -->
     <string name="native_sourceFootnotes_readAll" formatted="false">Ler o artigo inteiro ›</string>
     <string name="native_reader_loading" formatted="false">Abrindo…</string>
@@ -619,21 +619,21 @@
     <string name="native_setupGuide_files_added" formatted="false">Adicionado</string>
     <string name="native_setupGuide_files_queued" formatted="false">A seguir</string>
     <string name="native_setupGuide_files_collection" formatted="false">Arquivos da configuração</string>
-    <string name="native_setupGuide_files_where" formatted="false">Depois: Menu → Conhecimento → Arquivos pessoais</string>
+    <string name="native_setupGuide_files_where" formatted="false">Depois: Menu → Conhecimento → Arquivos locais</string>
     <string name="native_setupGuide_ask_title" formatted="false">Como perguntar</string>
     <string name="native_setupGuide_ask_sub" formatted="false">O BOAR busca sua pergunta na biblioteca e responde com o que encontrou.</string>
     <string name="native_setupGuide_ask_tip1" formatted="false">Faça a pergunta inteira: \"Como deixar a água boa para beber?\" encontra mais que \"água\".</string>
     <string name="native_setupGuide_ask_tip2" formatted="false">Continue como faria com uma pessoa: \"e se eu não puder ferver?\" mantém o assunto.</string>
     <string name="native_setupGuide_ask_tip3" formatted="false">Os artigos que a resposta usou aparecem embaixo dela: toque em um para ler. Segure sua pergunta para copiá-la de volta.</string>
-    <string name="native_setupGuide_ask_tipFiles" formatted="false">Para responder só com seus arquivos, escolha o estilo Arquivos pessoais no botão de estilo.</string>
+    <string name="native_setupGuide_ask_tipFiles" formatted="false">Para responder só com seus arquivos, escolha o estilo Arquivos locais no botão de estilo.</string>
     <string name="native_setupGuide_ask_pick" formatted="false">Sua primeira pergunta</string>
     <string name="native_setupGuide_ask_pickNote" formatted="false">Ela vai estar esperando na conversa quando o BOAR abrir. Você envia quando quiser.</string>
     <string name="native_setupGuide_ask_own" formatted="false">Ou escreva a sua…</string>
-    <string name="native_setupGuide_files_howToAsk" formatted="false">Para perguntar sobre eles, mude o estilo da conversa para Arquivos pessoais (o botão de estilo, ao lado de onde você digita). Aí o BOAR responde só com seus arquivos, e avisa quando eles não têm a resposta.</string>
+    <string name="native_setupGuide_files_howToAsk" formatted="false">Para perguntar sobre eles, mude o estilo da conversa para Arquivos locais (o botão de estilo, ao lado de onde você digita). Aí o BOAR responde só com seus arquivos, e avisa quando eles não têm a resposta.</string>
     <string name="native_setupGuide_pin_title" formatted="false">Trancar o BOAR com um PIN?</string>
     <string name="native_setupGuide_pin_sub" formatted="false">Só para o BOAR: o bloqueio de tela do seu celular não muda.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN ativado. O BOAR vai pedir o PIN a partir de agora.</string>
-    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, o BOAR apaga suas conversas e Arquivos pessoais para recomeçar; modelos e pacotes de conhecimento ficam.</string>
+    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, o BOAR apaga suas conversas e Arquivos locais para recomeçar; modelos e pacotes de conhecimento ficam.</string>
     <string name="native_setupGuide_notify_title" formatted="false">Notificações</string>
     <string name="native_setupGuide_notify_sub" formatted="false">Uma notificação, só enquanto o BOAR responde.</string>
     <string name="native_setupGuide_notify_why" formatted="false">Por que o Android pede: desde o Android 13, um app precisa da sua permissão para mostrar qualquer notificação. O BOAR pede uma vez, aqui. Ele nunca manda anúncios nem lembretes: só avisa que está respondendo.</string>
@@ -666,7 +666,7 @@
     <string name="native_setupGuide_files_remove" formatted="false">Remover {{name}}</string>
     <string name="native_setupGuide_answers_personalLater" formatted="false">Responde só com seus próprios arquivos. Toque para adicionar alguns primeiro.</string>
     <string name="native_setupGuide_answers_addFilesTitle" formatted="false">Adicionar seus arquivos primeiro?</string>
-    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos pessoais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
+    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos locais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">Na conversa, o botão de estilo ao lado de onde você digita mostra este ícone e troca quando quiser.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“O BOAR está respondendo…”</string>
     <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, esta notificação mostra que ele continua trabalhando, mesmo se você trocar de app ou bloquear o celular. Toque nela para voltar. Ela some quando a resposta termina.</string>
@@ -721,4 +721,9 @@
     <string name="native_chat_queueNote" formatted="false">Elas rodam uma de cada vez, depois desta resposta.</string>
     <string name="native_chat_queueSend" formatted="false">Enviar para a fila</string>
     <string name="native_chat_toBottom" formatted="false">Ir para a última resposta</string>
+    <string name="native_a11y_reasoning" formatted="false">Mostrar ou esconder o raciocínio</string>
+    <string name="native_a11y_copyAnswer" formatted="false">Copiar a resposta</string>
+    <string name="native_a11y_rateUp" formatted="false">Boa resposta</string>
+    <string name="native_a11y_rateDown" formatted="false">Resposta ruim</string>
+    <string name="native_a11y_pluginActions" formatted="false">Plugins para esta resposta</string>
 </resources>

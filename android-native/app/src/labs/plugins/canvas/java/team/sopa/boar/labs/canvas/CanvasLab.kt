@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.canvas
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import android.annotation.SuppressLint
 import android.content.Context
 import android.webkit.WebResourceRequest
@@ -118,7 +119,7 @@ object CanvasLab : LabPlugin {
             is Canvas.Status.Failed -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, key) }.padding(4.dp))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("native.a11y.close")) { Canvas.forget(ctx, key) }.padding(4.dp))
                 }
                 // What was refused, set apart so it isn't read as the answer's own number check above.
                 st.detail?.let { Text(t("native.labs.canvas.refused", "what" to it), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold) }
@@ -151,7 +152,7 @@ object CanvasLab : LabPlugin {
                     Text((if (st.kind == Canvas.Kind.WIDGET) "🧪 " else "📊 ") + t("native.labs.canvas.madeBy", "seconds" to String.format(Locale.US, "%.0f", st.seconds)) +
                         if (st.context.isNotBlank()) " · " + t("native.labs.canvas.withMore") else "",
                         style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, key) }.padding(4.dp))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("native.a11y.close")) { Canvas.forget(ctx, key) }.padding(4.dp))
                 }
             }
         }

@@ -1,5 +1,9 @@
 package team.sopa.boar.ui.chat
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.material3.minimumInteractiveComponentSize
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.animation.core.RepeatMode
@@ -251,7 +255,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
-                RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
+                RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald, modifier = Modifier.spokenAs(t("chatHeader.newChatSession"))) }
             }
         }
         // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
@@ -587,19 +591,19 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     // Rating hidden (adam, Nov 11): nothing uses ratings yet. The code stays for when something does.
                     if (SHOW_RATING) {
-                        FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
-                        FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
+                        FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.rateUp")) { onRate(m.id, "up") }
+                        FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder, t("native.a11y.rateDown")) { onRate(m.id, "down") }
                     }
                     // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
-                    if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
+                    if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.reasoning")) { reasoningShown = !reasoningShown }
                     team.sopa.boar.labs.LabHooks.AnswerActions(ref)
                     var copied by remember { mutableStateOf(false) }
                     // With 💭 open, the reasoning is copied too: reviewing a thinking model needs both.
-                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
+                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.copyAnswer")) {
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
                     }
                 }
@@ -744,11 +748,13 @@ internal fun ActionButton(glyph: String?, label: String, art: Int? = null, onCli
 }
 
 @Composable
-internal fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
+internal fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, description: String? = null, onClick: () -> Unit) {
     val c = Boar.colors
     Row(
         Modifier.clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))
-            .clickable(onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp),
+            .clickable(onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp)
+            // What TalkBack says for a symbol-only button (UX review B1): "Copy the answer", not "white square".
+            .then(if (description != null) Modifier.spokenAs(description) else Modifier),
         horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(glyph, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold, color = if (on) onColor else c.textDim)
@@ -820,13 +826,13 @@ private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove:
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(t("native.chat.queueNote"), style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.weight(1f))
             Text(t("native.chat.clearQueue"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(onClick = onClear).padding(horizontal = 6.dp, vertical = 4.dp))
+                modifier = Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(4.dp)).clickable(onClick = onClear).padding(horizontal = 6.dp, vertical = 4.dp))
         }
         queued.forEachIndexed { i, q ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("⏳ " + t("native.chat.waiting", "n" to i + 1), style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
                 Text(q.text, style = Boar.type.caption, color = c.textSecondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clip(CircleShape).clickable { onRemove(q.id) }.padding(6.dp))
+                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable { onRemove(q.id) }.padding(6.dp))
             }
         }
     }
@@ -834,3 +840,7 @@ private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove:
 
 /** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
 private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) = team.sopa.boar.app.NotificationAsk.once(ctx, ask)
+
+/** One spoken label for the whole button, in place of its symbol. */
+private fun Modifier.spokenAs(label: String): Modifier =
+    this.then(Modifier.clearAndSetSemantics { contentDescription = label; role = androidx.compose.ui.semantics.Role.Button })

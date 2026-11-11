@@ -8,5 +8,5 @@
     <string name="native_labs_staged_example1" formatted="false">How do volcanoes form?</string>
     <string name="native_labs_staged_example2" formatted="false">How tall is Mount Everest, and who climbed it first?</string>
     <string name="native_labs_staged_example3" formatted="false">What causes the seasons?</string>
-    <string name="native_labs_staged_note" formatted="false">Only for the normal answer: Personal Files, Deep Research and small talk answer as usual. A health question stays short (no details step), and its quotes always show with their passages. Each answer\'s details list when each step showed up.</string>
+    <string name="native_labs_staged_note" formatted="false">Only for the normal answer: Local Files, Deep Research and small talk answer as usual. A health question stays short (no details step), and its quotes always show with their passages. Each answer\'s details list when each step showed up.</string>
 </resources>

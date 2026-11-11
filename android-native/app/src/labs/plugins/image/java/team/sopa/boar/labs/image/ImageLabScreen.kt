@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.image
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.remember
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -293,7 +294,7 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
             Text(t("native.labs.image.managerCount", "count" to files.size, "mb" to String.format(Locale.US, "%.1f", files.sumOf { it.length() } / 1048576.0)),
                 style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f))
             Text(t(if (picked.size == files.size && files.isNotEmpty()) "native.labs.image.selectNone" else "native.labs.image.selectAll"), style = Boar.type.caption, color = c.textAccentCyan,
-                modifier = Modifier.clickable { picked = if (picked.size == files.size) emptySet() else files.toSet() }.padding(4.dp))
+                modifier = Modifier.minimumInteractiveComponentSize().clickable { picked = if (picked.size == files.size) emptySet() else files.toSet() }.padding(4.dp))
         }
         Text(t("native.labs.image.managerNote"), style = Boar.type.caption, color = c.textMuted)
         if (files.isEmpty()) Text(t("native.labs.image.managerEmpty"), style = Boar.type.body, color = c.textSecondary)

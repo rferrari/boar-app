@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.printer
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.input.pointer.pointerInput
@@ -226,7 +227,7 @@ object PrinterLab : LabPlugin {
             else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Label(t("native.labs.printer.items", "count" to items.size), Modifier.weight(1f))
-                Text(t("native.labs.printer.clear"), style = Boar.type["mono.xs"], color = c.crimson400, modifier = Modifier.clickable { Basket.clear() }.padding(4.dp))
+                Text(t("native.labs.printer.clear"), style = Boar.type["mono.xs"], color = c.crimson400, modifier = Modifier.minimumInteractiveComponentSize().clickable { Basket.clear() }.padding(4.dp))
             }
             if (items.size > 1) Text(t("native.labs.printer.dragHint"), style = Boar.type.caption, color = c.textMuted)
             items.forEachIndexed { i, item -> androidx.compose.runtime.key(item.id) {

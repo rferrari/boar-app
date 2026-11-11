@@ -13,7 +13,7 @@
     <string name="time_hoursAgo" formatted="false">há {{count}}h</string>
     <string name="time_daysAgo" formatted="false">há {{count}}d</string>
     <string name="drawer_subtitle" formatted="false">Inteligência Local Adaptativa</string>
-    <string name="drawer_newChat" formatted="false">Nova Sessão de Pesquisa</string>
+    <string name="drawer_newChat" formatted="false">Nova conversa</string>
     <string name="drawer_recentSessions" formatted="false">Sessões recentes</string>
     <string name="modelCatalogScreen_title" formatted="false">Catálogo de Modelos</string>
     <string name="modelCatalogScreen_subtitle" formatted="false">Modelos que rodam offline, sem servidor</string>
@@ -240,7 +240,7 @@
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">NÚCLEO LLM LOCAL</string>
     <string name="chatHeader_cycleTone" formatted="false">Mudar como o BOAR responde</string>
-    <string name="chatHeader_newChatSession" formatted="false">Nova sessão de chat</string>
+    <string name="chatHeader_newChatSession" formatted="false">Nova conversa</string>
     <string name="chatHeader_deepResearch" formatted="false">Pesquisa Aprofundada</string>
     <string name="chatHeader_deepResearchActive" formatted="false">Pesquisa Aprofundada Ativa</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
@@ -308,7 +308,7 @@
     <string name="personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução. Padrão para celular.</string>
     <string name="personalities_detailed_label" formatted="false">Completo e Detalhado</string>
     <string name="personalities_detailed_description" formatted="false">Explicações estruturadas e completas, com comparações e raciocínio.</string>
-    <string name="personalities_personal_label" formatted="false">Arquivos pessoais</string>
+    <string name="personalities_personal_label" formatted="false">Arquivos locais</string>
     <string name="personalities_personal_description" formatted="false">Responde só a partir dos seus arquivos: notas, PDFs, planilhas.</string>
     <string name="personalities_custom_label" formatted="false">Personalizado</string>
     <string name="personalities_custom_description" formatted="false">Escreva seu próprio prompt de sistema.</string>

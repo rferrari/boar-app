@@ -108,23 +108,9 @@ object LabHooks {
     fun SettingsRow() {
         Init()
         val c = team.sopa.boar.ui.theme.Boar.colors
-        Row(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Column(androidx.compose.ui.Modifier.weight(1f)) {
-                // Same look as Boar Avatars just above (Settings' SwitchRow).
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsTitle"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.settingsNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
-            }
-            androidx.compose.material3.Switch(LabPrefs.labsOn, { LabPrefs.labsOn = it },
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
-        }
-        if (LabPrefs.labsOn) Row(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Column(androidx.compose.ui.Modifier.weight(1f)) {
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.crash.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
-                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.crash.settingNote"), style = team.sopa.boar.ui.theme.Boar.type.subtext, color = c.textMuted)
-            }
-            androidx.compose.material3.Switch(LabPrefs.autoRestart, { LabPrefs.autoRestart = it },
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
-        }
+        // The same switch row as the rest of Settings (UX review D2).
+        team.sopa.boar.ui.settings.SwitchRow(team.sopa.boar.ui.t("native.labs.settingsTitle"), team.sopa.boar.ui.t("native.labs.settingsNote"), LabPrefs.labsOn) { LabPrefs.labsOn = it }
+        if (LabPrefs.labsOn) team.sopa.boar.ui.settings.SwitchRow(team.sopa.boar.ui.t("native.labs.crash.setting"), team.sopa.boar.ui.t("native.labs.crash.settingNote"), LabPrefs.autoRestart) { LabPrefs.autoRestart = it }
         if (LabPrefs.labsOn) Column(androidx.compose.ui.Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.wait.setting"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary)
             team.sopa.boar.ui.models.ChipRow("", listOf(LabPrefs.WAIT_TRAIL to team.sopa.boar.ui.t("native.labs.wait.trail"), LabPrefs.WAIT_MATRIX to team.sopa.boar.ui.t("native.labs.wait.matrix")),
@@ -267,20 +253,15 @@ object LabHooks {
         if (actions.isEmpty()) return
         val c = team.sopa.boar.ui.theme.Boar.colors
         var open by androidx.compose.runtime.remember(a.id) { androidx.compose.runtime.mutableStateOf(false) }
-        team.sopa.boar.ui.chat.FooterButton("🧩", null, actions.any { it.done }, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { open = true }
+        team.sopa.boar.ui.chat.FooterButton("🧩", null, actions.any { it.done }, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, team.sopa.boar.ui.t("native.a11y.pluginActions")) { open = true }
         if (open) androidx.compose.material3.ModalBottomSheet(onDismissRequest = { open = false }, containerColor = c.bgCardElevated) {
             Column(androidx.compose.ui.Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.sheetTitle"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
-                actions.forEach { act ->
-                    Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-                        .clickable(enabled = act.enabled) { owned.firstOrNull { it.second === act }?.let { LabPrefs.used(it.first) }; act.onClick(); open = false }.padding(horizontal = 8.dp, vertical = 12.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // The lab's avatar when it has one, else the action's emoji.
-                        act.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, androidx.compose.ui.Modifier.size(28.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-                            ?: androidx.compose.material3.Text(act.emoji, fontSize = 20.sp)
-                        androidx.compose.material3.Text(act.label, style = team.sopa.boar.ui.theme.Boar.type.body, color = if (act.enabled) c.textPrimary else c.textDim, modifier = androidx.compose.ui.Modifier.weight(1f))
-                        if (act.done) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)
+                owned.forEach { (labId, act) ->
+                    SheetRow(act.art, act.emoji, act.label, null, LabRegistry.byId(labId)?.status, act.enabled,
+                        trailing = if (act.done) ({ team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald) }) else null) {
+                        LabPrefs.used(labId); act.onClick(); open = false
                     }
                 }
             }
@@ -351,20 +332,9 @@ object LabHooks {
                 val recent = LabPrefs.recentIds()
                 val shown = team.sopa.boar.engine.labs.RecentPlugins.pick(labs.map { it.id }, recent).mapNotNull { id -> labs.firstOrNull { it.id == id } }
                 shown.forEach { lab ->
-                    Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-                        .clickable { open = false; go("lab:${lab.id}") }.padding(horizontal = 8.dp, vertical = 10.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null,
-                            androidx.compose.ui.Modifier.size(32.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-                            ?: androidx.compose.material3.Text(lab.emoji, fontSize = 22.sp)
-                        Column(androidx.compose.ui.Modifier.weight(1f)) {
-                            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.title"), style = team.sopa.boar.ui.theme.Boar.type.body, color = c.textPrimary, maxLines = 1)
-                            androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.body"), style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted, maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        }
-                        counts[lab.id]?.takeIf { it > 0 }?.let { n -> androidx.compose.material3.Text(lab.headerCountLabel(n), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
-                            color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
-                    }
+                    SheetRow(lab.shownArt, lab.emoji, team.sopa.boar.ui.t("native.labs.${lab.id}.title"), team.sopa.boar.ui.t("native.labs.${lab.id}.body"), lab.status, true,
+                        trailing = counts[lab.id]?.takeIf { it > 0 }?.let { n -> { androidx.compose.material3.Text(lab.headerCountLabel(n), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
+                            color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) } }) { open = false; go("lab:${lab.id}") }
                 }
                 // Turning labs on and off is Pro's (the list in the menu).
                 if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.manage") + " ›", style = team.sopa.boar.ui.theme.Boar.type.body,
@@ -379,6 +349,33 @@ object LabHooks {
     fun enabledLabs(): List<Pair<String, String>> {
         Init()
         return LabRegistry.active.map { team.sopa.boar.ui.t("native.labs.${it.id}.title") to "${it.id} ${it.status.name.lowercase()}" }
+    }
+
+    /**
+     * One row of a plugins sheet, the same in the header's sheet and the answer's 🧩 sheet (UX review E2): a 32 dp
+     * picture, the name, an optional line under it, ALPHA or BETA when the plugin is (E3), and what's on the right.
+     */
+    @Composable
+    private fun SheetRow(art: Int?, emoji: String, title: String, line: String?, status: LabStatus?, enabled: Boolean,
+                         trailing: (@Composable () -> Unit)?, onClick: () -> Unit) {
+        val c = team.sopa.boar.ui.theme.Boar.colors
+        Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 8.dp, vertical = 10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null,
+                androidx.compose.ui.Modifier.size(32.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
+                ?: androidx.compose.material3.Text(emoji, fontSize = 22.sp)
+            Column(androidx.compose.ui.Modifier.weight(1f)) {
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.material3.Text(title, style = team.sopa.boar.ui.theme.Boar.type.body, color = if (enabled) c.textPrimary else c.textDim, maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = androidx.compose.ui.Modifier.weight(1f, fill = false))
+                    if (status == LabStatus.ALPHA || status == LabStatus.BETA) StatusChip(status)
+                }
+                line?.let { androidx.compose.material3.Text(it, style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+            }
+            trailing?.invoke()
+        }
     }
 
     @Composable

@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.setup
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -422,7 +423,7 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
                     Row(Modifier.fillMaxWidth().padding(start = 28.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(d.asset.label, style = Boar.type.subtext, color = c.textSecondary, modifier = Modifier.weight(1f), maxLines = 2)
                         if (d.error != null) Text(t("flows.row.retry"), style = Boar.type.caption, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { vm.retry() }.padding(6.dp))
+                            modifier = Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(6.dp)).clickable { vm.retry() }.padding(6.dp))
                         else Text(when {
                             d.done -> t("flows.onboarding.ready")
                             d.verifying -> t("flows.onboarding.checking")

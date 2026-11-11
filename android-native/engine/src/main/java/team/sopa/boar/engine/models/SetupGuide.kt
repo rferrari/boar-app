@@ -24,6 +24,9 @@ object SetupGuide {
             Page.PIN -> !pinSetBefore
             Page.NOTIFY -> notifications
             Page.LABS -> experimental
+            // "How to ask" and "Your first question" left the guide (adam, Nov 11); the values stay so a setup saved
+            // on one of them resumes from the start instead of failing.
+            Page.ASK, Page.FIRST -> false
             else -> true
         }
     }

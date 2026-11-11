@@ -90,8 +90,8 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
             Page.LOOK -> LookPage(services, themeId, onTheme, onFontScale)
             Page.ANSWERS -> AnswersPage(services, state) { vm.guideTo(Page.FILES) }
             Page.FILES -> FilesPage(state, vm)
-            Page.ASK -> AskPage(state)
-            Page.FIRST -> FirstQuestionPage(services)
+            // Not in the guide any more (SetupGuide.pages); never shown.
+            Page.ASK, Page.FIRST -> {}
             Page.PIN -> PinPage(services) { pinEntry = true }
             Page.NOTIFY -> NotifyPage(notifyGranted) { notifyGranted = it }
             Page.PRIVACY -> PrivacyPage(services)
@@ -250,42 +250,6 @@ private fun FilesPage(state: SetupState, vm: SetupViewModel) {
         Text(t("native.setupGuide.files.howToAsk"), style = Boar.type.body, color = c.textPrimary)
     }
     Meta(t("native.setupGuide.files.where"), c.textAccentCyan)
-}
-
-@Composable
-private fun AskPage(state: SetupState) {
-    val c = Boar.colors
-    Card {
-        // With files added, how to ask about them comes first.
-        listOfNotNull(if (state.files.isNotEmpty()) "tipFiles" else null, "tip1", "tip2", "tip3").forEach { k ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("•", style = Boar.type.body, color = c.textAccentEmerald)
-                Text(t("native.setupGuide.ask.$k"), style = Boar.type.body, color = c.textPrimary)
-            }
-        }
-    }
-    team.sopa.boar.ui.tour.TourPreview("sources")
-}
-
-/** The question waiting in the chat when BOAR opens: an example, or the user's own. */
-@Composable
-private fun FirstQuestionPage(services: BoarServices) {
-    val c = Boar.colors
-    val examples = listOf(t("chat.suggestions.q2"), t("chat.suggestions.q4"), t("chat.suggestions.q8"))
-    var question by remember { mutableStateOf(services.settings.pendingFirstQuestion.orEmpty()) }
-    val pick: (String) -> Unit = { q -> question = q; services.settings.pendingFirstQuestion = q }
-    for (q in examples) {
-        val on = q == question
-        Text(q, style = Boar.type.body, color = if (on) c.textAccentEmerald else c.textPrimary,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (on) c.emeraldBgSubtle else c.bgCard)
-                .border(if (on) 2.dp else 1.dp, if (on) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(12.dp))
-                .clickable { pick(if (on) "" else q) }.padding(12.dp))
-    }
-    Box(Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(12.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp)).padding(12.dp)) {
-        val own = question.takeIf { it !in examples }.orEmpty()
-        if (own.isEmpty()) Text(t("native.setupGuide.ask.own"), style = Boar.type.body, color = c.textDim)
-        BasicTextField(own, pick, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth())
-    }
 }
 
 @Composable
