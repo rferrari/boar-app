@@ -36,7 +36,7 @@
     <string name="native_labs_enabledNote" formatted="false">Off: this plugin disappears from the chat too.</string>
     <string name="native_labs_disabled" formatted="false">This plugin is off. Turn it on above.</string>
     <string name="native_labs_off" formatted="false">OFF</string>
-    <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_sheetTitle" formatted="false">PLUGINS</string>
     <string name="native_labs_section_review" formatted="false">UNDER REVIEW</string>
     <string name="native_labs_section_testing" formatted="false">IN TESTING · NO RELEASE DATE</string>
     <string name="native_labs_listNote" formatted="false">Switch a plugin on or off right here. Tap a plugin for its page and its own settings. A plugin that is on works in every profile.</string>

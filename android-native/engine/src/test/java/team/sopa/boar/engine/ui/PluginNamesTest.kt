@@ -20,7 +20,7 @@ class PluginNamesTest {
     @Test fun `no Labs left in what the user reads, but for names and code`() {
         for ((k, v) in strings()) {
             val text = v.replace(Regex("\\{\\{[^}]*\\}\\}|[\\w./-]*[/.-][\\w./-]*|R&amp;D Labs"), "")
-            assertTrue("$k = $v", !Regex("\\b[Ll]abs?\\b|Boar Labs").containsMatchIn(text))
+            assertTrue("$k = $v", !Regex("\\blabs?\\b|Boar Labs", RegexOption.IGNORE_CASE).containsMatchIn(text))
         }
     }
 }

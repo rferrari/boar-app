@@ -36,7 +36,7 @@
     <string name="native_labs_enabledNote" formatted="false">Desligado: este plugin some também da conversa.</string>
     <string name="native_labs_disabled" formatted="false">Este plugin está desligado. Ligue acima.</string>
     <string name="native_labs_off" formatted="false">DESL.</string>
-    <string name="native_labs_sheetTitle" formatted="false">BOAR LABS</string>
+    <string name="native_labs_sheetTitle" formatted="false">PLUGINS</string>
     <string name="native_labs_section_review" formatted="false">EM REVISÃO</string>
     <string name="native_labs_section_testing" formatted="false">EM TESTE · SEM DATA DE LANÇAMENTO</string>
     <string name="native_labs_listNote" formatted="false">Ligue ou desligue um plugin aqui mesmo. Toque num plugin para abrir a página dele e as configurações próprias. Um plugin ligado funciona em qualquer perfil.</string>
