@@ -71,44 +71,60 @@ object CanvasLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_pixel_hacker
     override val status = LabStatus.ALPHA
 
+    /** One "Create a card" (t9, Nov 10): the model picks the form; the interactive widget is offered under the card. */
     @Composable
     override fun answerActions(a: AnswerRef): List<LabAction> {
         val ctx = LocalContext.current
         if (!Canvas.allowed(a)) return emptyList()
         val st = Canvas.status(ctx, a.id)
-        val making = Canvas.busy()
-        val free = !making && !a.chatBusy
-        @Composable fun label(kind: Canvas.Kind, key: String) = when {
-            st is Canvas.Status.Making && st.kind == kind -> t("native.labs.canvas.making")
-            st is Canvas.Status.Done && st.kind == kind -> t("native.labs.canvas.again.$key")
-            else -> t("native.labs.canvas.make.$key")
+        val free = !Canvas.busy() && !a.chatBusy
+        val label = when (st) {
+            is Canvas.Status.Making -> t("native.labs.canvas.making")
+            is Canvas.Status.Done -> t("native.labs.canvas.again.card")
+            else -> t("native.labs.canvas.make.card")
         }
-        // One visual, the model picks its type; the free-form widget stays as a second, Labs-only way until the eval decides.
-        val visualDone = (st as? Canvas.Status.Done)?.kind.let { it == Canvas.Kind.VISUAL || it == Canvas.Kind.CARD }
-        return listOf(
-            LabAction("📊", label(Canvas.Kind.VISUAL, "visual"), done = visualDone, enabled = free) { Canvas.start(ctx, a, Canvas.Kind.VISUAL) },
-            LabAction("🧪", label(Canvas.Kind.WIDGET, "widget"), done = (st as? Canvas.Status.Done)?.kind == Canvas.Kind.WIDGET, enabled = free) { Canvas.start(ctx, a, Canvas.Kind.WIDGET) },
-        )
+        return listOf(LabAction("📊", label, done = st is Canvas.Status.Done, enabled = free) { Canvas.start(ctx, a, Canvas.Kind.VISUAL) })
     }
 
     @Composable
     override fun AnswerExtra(a: AnswerRef) {
         val ctx = LocalContext.current
         val c = Boar.colors
-        when (val st = Canvas.status(ctx, a.id)) {
-            null -> {}
+        val card = Canvas.status(ctx, a.id)
+        val widgetKey = Canvas.keyOf(a.id, Canvas.Kind.WIDGET)
+        val widget = Canvas.status(ctx, widgetKey)
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            card?.let { Slot(a, a.id, it) }
+            widget?.let { Slot(a, widgetKey, it) }
+            // The interactive form, only when asked: it's another model run, slower than the card (t9, Nov 10).
+            val legacyWidget = (card as? Canvas.Status.Done)?.kind == Canvas.Kind.WIDGET
+            if (widget == null && !legacyWidget && (card is Canvas.Status.Done || card is Canvas.Status.Failed) && Canvas.allowed(a)) {
+                val free = !Canvas.busy() && !a.chatBusy
+                Text("🧪 " + t("native.labs.canvas.interactive"), style = Boar.type["mono.xs"], color = if (free) c.textAccentCyan else c.textDim, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp))
+                        .clickable(enabled = free) { Canvas.start(ctx, a, Canvas.Kind.WIDGET) }.padding(horizontal = 10.dp, vertical = 5.dp))
+            }
+        }
+    }
+
+    /** One kind's state under the answer ([key]: Canvas.keyOf): making, refused with why, or drawn; ✕ forgets just it. */
+    @Composable
+    private fun Slot(a: AnswerRef, key: String, st: Canvas.Status) {
+        val ctx = LocalContext.current
+        val c = Boar.colors
+        when (st) {
             is Canvas.Status.Making -> Text(t(if (st.kind == Canvas.Kind.WIDGET) "native.labs.canvas.makingWidget" else "native.labs.canvas.makingVisual"),
                 style = Boar.type.caption, color = c.textAccentEmerald)
             is Canvas.Status.Failed -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, key) }.padding(4.dp))
                 }
                 // What was refused, set apart so it isn't read as the answer's own number check above.
                 st.detail?.let { Text(t("native.labs.canvas.refused", "what" to it), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold) }
                 // The model's whole reply, to see what it picked and where it went wrong (kept for this run only).
                 st.raw?.takeIf { it.isNotBlank() }?.let { raw ->
-                    var open by remember(a.id) { mutableStateOf(false) }
+                    var open by remember(key) { mutableStateOf(false) }
                     Text(t(if (open) "native.labs.canvas.hideReply" else "native.labs.canvas.showReply"), style = Boar.type["mono.xs"], color = c.textAccentCyan,
                         fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !open }.padding(vertical = 2.dp))
                     if (open) androidx.compose.foundation.text.selection.SelectionContainer {
@@ -135,7 +151,7 @@ object CanvasLab : LabPlugin {
                     Text((if (st.kind == Canvas.Kind.WIDGET) "🧪 " else "📊 ") + t("native.labs.canvas.madeBy", "seconds" to String.format(Locale.US, "%.0f", st.seconds)) +
                         if (st.context.isNotBlank()) " · " + t("native.labs.canvas.withMore") else "",
                         style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, a.id) }.padding(4.dp))
+                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Canvas.forget(ctx, key) }.padding(4.dp))
                 }
             }
         }
@@ -143,7 +159,9 @@ object CanvasLab : LabPlugin {
 
     override fun eraseUserData(context: Context, scope: UserData.Scope) = Canvas.eraseAll(context)
 
-    override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach { Canvas.forget(context, it) }
+    override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach {
+        Canvas.forget(context, it); Canvas.forget(context, Canvas.keyOf(it, Canvas.Kind.WIDGET))
+    }
 
     @Composable
     override fun Content() {

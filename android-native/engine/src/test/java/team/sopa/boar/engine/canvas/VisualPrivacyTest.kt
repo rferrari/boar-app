@@ -16,7 +16,9 @@ class VisualPrivacyTest {
         assertTrue(del.contains("UserData.eraseAnswers("))
         assertTrue(del.indexOf("eraseAnswers") < del.indexOf("services.chats.deleteSession(id)"))
         assertTrue(read("labs/java/team/sopa/boar/labs/LabHooks.kt").contains("UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach"))
-        assertTrue(read("labs/plugins/canvas/java/team/sopa/boar/labs/canvas/CanvasLab.kt").contains("override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach { Canvas.forget(context, it) }"))
+        // The card and the widget kept beside it (Canvas.keyOf) both go.
+        assertTrue(read("labs/plugins/canvas/java/team/sopa/boar/labs/canvas/CanvasLab.kt").contains(
+            "override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach {\n        Canvas.forget(context, it); Canvas.forget(context, Canvas.keyOf(it, Canvas.Kind.WIDGET))"))
     }
 
     @Test fun `a visual's file holds the model's reply only`() {

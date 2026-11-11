@@ -53,10 +53,18 @@ internal object Canvas {
 
     fun status(ctx: Context, id: String): Status? = status[id] ?: load(ctx, id)?.also { status[id] = it }
 
+    /**
+     * Where a kind is kept for an answer: the card (the model's pick: chart, table, steps…) under the answer's id, the
+     * interactive widget beside it (one "Create a card" since Nov 10, the widget built only when asked). A widget saved
+     * before the merge sits under the answer's id and is still drawn.
+     */
+    fun keyOf(id: String, kind: Kind): String = if (kind == Kind.WIDGET) "$id~widget" else id
+
     fun start(ctx: Context, a: AnswerRef, kind: Kind) {
         if (busy() || a.chatBusy) return
-        status[a.id] = Status.Making(kind)
-        jobs[a.id] = scope.launch {
+        val key = keyOf(a.id, kind)
+        status[key] = Status.Making(kind)
+        jobs[key] = scope.launch {
             val started = System.nanoTime()
             val none = VisualContext.Earlier(emptyList(), "")
             val earlier = if (kind == Kind.WIDGET) none else runCatching { earlier(ctx, a) }.getOrDefault(none)
@@ -65,7 +73,7 @@ internal object Canvas {
             val context = listOf(earlier.sourceText, fromSources.sourceText).filter { it.isNotBlank() }.joinToString("\n")
             val r = runCatching { generate(ctx, a, kind, earlier, fromSources) }
             // Forgotten (✕) while it was being made.
-            if (status[a.id] !is Status.Making) return@launch
+            if (status[key] !is Status.Making) return@launch
             val raw = r.getOrNull()
             val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, context), a.question) as? Visual.Parsed.Rejected else null
             val rejected = when {
@@ -75,11 +83,11 @@ internal object Canvas {
             }
             // The reason in the log (never the answer's text); the refused number or label only on screen.
             refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
-            status[a.id] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
-            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, a.id, it) }
+            status[key] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
+            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, key, it) }
             // No question or answer text in the log, as the other labs.
-            android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[a.id]?.javaClass?.simpleName}")
-            jobs.remove(a.id)
+            android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[key]?.javaClass?.simpleName}")
+            jobs.remove(key)
         }
     }
 

@@ -4,7 +4,7 @@
     <string name="native_labs_canvas_body" formatted="false">Turn an answer into a card to read at a glance, or a small tool to play with. Made on this phone, offline.</string>
     <string name="native_labs_canvas_intro" formatted="false">Some answers read better as a picture or work better as a tool. Under any answer, open 🧩 and pick one. The model that answered makes it from the answer, after the answer is done.</string>
     <string name="native_labs_canvas_howCard" formatted="false">📊 Card: a table, a bar chart, steps, a side-by-side comparison or key facts, drawn by BOAR.</string>
-    <string name="native_labs_canvas_howWidget" formatted="false">🧪 Widget: a small interactive page, like a converter, a quiz or a slider. Small models often get these wrong; bigger models do better.</string>
+    <string name="native_labs_canvas_howWidget" formatted="false">🧪 Make it interactive (under a card): a small page, like a converter, a quiz or a slider. Slower than the card. Small models often get these wrong; bigger models do better.</string>
     <string name="native_labs_canvas_safety" formatted="false">Cards use only what the answer says: a chart with a number the answer doesn\'t have is thrown away. Widgets run locked: no internet, no files, no access to BOAR or your chats. Nothing for health or seed-phrase questions.</string>
     <string name="native_labs_canvas_example" formatted="false">For example, from an answer about the highest mountains:</string>
     <string name="native_labs_canvas_exampleTitle" formatted="false">Highest peaks</string>
@@ -42,4 +42,5 @@
     <string name="native_labs_canvas_leftOut" formatted="false">⚠ Left out, not in the answer, earlier answers or sources: {{what}}. Check the sources before you rely on this visual.</string>
     <string name="native_labs_canvas_withMore" formatted="false">with earlier answers or sources</string>
     <string name="native_labs_canvas_unpaired" formatted="false">A number in the visual belongs to another item in the answer, so BOAR threw it away.</string>
+    <string name="native_labs_canvas_interactive" formatted="false">Make it interactive · slower</string>
 </resources>
