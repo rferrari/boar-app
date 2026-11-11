@@ -165,7 +165,11 @@ data class ChatState(
     val suggestions: List<String> = emptyList(),
     /** The question picked in setup, for the input box once (not sent). */
     val prefill: String? = null,
+    /** Questions sent while BOAR was answering, waiting their turn (PromptQueue), first to run first. */
+    val queued: List<QueuedPrompt> = emptyList(),
 )
+
+data class QueuedPrompt(val id: Long, val text: String)
 
 /**
  * The chat (port of ChatScreen.tsx's send flow): Deep Research when it's on, adaptive routing when that's on, the
@@ -217,9 +221,15 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.addBusyCheck(busy)
         services.addStopper(stopper)
         services.addForegroundHook(onForeground)
+        // Questions that were waiting when the app was closed are gone: say so, once.
+        queuePrefs().getInt(QUEUE_WAITING, 0).takeIf { it > 0 }?.let { n ->
+            queuePrefs().edit().putInt(QUEUE_WAITING, 0).apply()
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(app, "native.chat.queueDropped", "count" to n))
+        }
         // "Forgot PIN" erased the chats: the one open here goes too (it stayed on screen above an empty history, X6).
         safeScope.launch {
             services.pinLock.erased.drop(1).collect {
+                queue.clear(); publishQueue()
                 job?.cancel()
                 _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
             }
@@ -480,7 +490,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             runCatching { team.sopa.boar.plugins.UserData.eraseAnswers(services.chats.messages(id).filter { it.role == "assistant" }.map { it.id }) }
             runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") }
         }
-        if (_state.value.sessionId == id) newChat()
+        if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }
     }
 
     fun openSession(id: String) {
@@ -519,6 +529,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** Asks the question of [answerId] again (an answer that came back empty). */
     /** Asks the question of [answerId] again with the Labs plugins skipped, so the model answers it ("Ask BOAR instead"). */
     fun askModel(answerId: String) {
+        // Not queued: the "skip the plugins" flag belongs to this question only.
+        if (job?.isActive == true) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -530,6 +542,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var skipToolsOnce = false
 
     fun retry(answerId: String) {
+        if (job?.isActive == true) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -538,6 +551,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
     fun redoWithLimit(answerId: String, limit: Int) {
+        if (job?.isActive == true) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -545,12 +559,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** [limit] overrides the answer's token limit (the "Allow more and redo" note); null uses the setting. */
-    fun send(query: String, limit: Int? = null) {
+    fun send(query: String, limit: Int? = null) = send(query, limit, fromQueue = false)
+
+    /**
+     * While BOAR answers, a question waits its turn (PromptQueue, adam Nov 10) and runs after, as the chat's next turn.
+     * [fromQueue]: the queue starting it; the answer notification is still up from the answer before.
+     */
+    private fun send(query: String, limit: Int?, fromQueue: Boolean) {
         val q = query.trim()
-        if (q.isEmpty() || job?.isActive == true) return
+        if (q.isEmpty()) return
+        if (job?.isActive == true) {
+            if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
+            return
+        }
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
         gateNote()?.let { n ->
             heldQuestion = q
+            // A waiting question that stops here ends the answer notification the queue kept up.
+            if (fromQueue) team.sopa.boar.app.AnswerService.stop(getApplication())
             _state.update { it.copy(loadNote = n) }
             return
         }
@@ -559,7 +585,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         routedModelId = null
         answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
-        team.sopa.boar.app.AnswerService.start(getApplication())
+        if (!fromQueue) team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
@@ -844,8 +870,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
-        job?.invokeOnCompletion { team.sopa.boar.app.AnswerService.stop(getApplication()) }
+        // The next waiting question then starts; Stop ends only the answer in progress, not the queue.
+        job?.invokeOnCompletion {
+            safeScope.launch(Dispatchers.Main) {
+                val next = queue.next()
+                if (next == null) team.sopa.boar.app.AnswerService.stop(getApplication())
+                else { publishQueue(); send(next.text, null, fromQueue = true) }
+            }
+        }
     }
+
+    private val queue = team.sopa.boar.engine.chat.PromptQueue()
+
+    private fun queuePrefs() = getApplication<Application>().getSharedPreferences("chat_queue", android.content.Context.MODE_PRIVATE)
+
+    /** The queue on screen, and its size kept so a closed app can say what it dropped. */
+    private fun publishQueue() {
+        _state.update { it.copy(queued = queue.waiting.map { q -> QueuedPrompt(q.id, q.text) }) }
+        queuePrefs().edit().putInt(QUEUE_WAITING, queue.size).apply()
+    }
+
+    fun removeQueued(id: Long) { queue.remove(id); publishQueue() }
+
+    fun clearQueue() { queue.clear(); publishQueue() }
 
     /**
      * Stops a title or summary still being written, as ChatScreen.tsx does (cancelBackgroundTask), instead of making the
@@ -1077,6 +1124,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
         /** Prompt ideas shown in an empty chat, drawn again for each new chat. */
         const val IDEAS_SHOWN = 3
+        /** How many questions were waiting (PromptQueue), so a closed app can say it dropped them. */
+        private const val QUEUE_WAITING = "waiting"
 
         /**
          * Short questions (two lines at most) from the evaluations: b1…b9 from BOAR's 17-question set (eval-set.json),

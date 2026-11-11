@@ -122,6 +122,9 @@ fun ChatScreen(
     voiceEnabled: Boolean = false,
     /** A source's "Read the whole article": the reader page for it. */
     onReadSource: (team.sopa.boar.chat.Source) -> Unit = {},
+    /** The queue's ✕ and Clear queue. */
+    onRemoveQueued: (Long) -> Unit = {},
+    onClearQueue: () -> Unit = {},
 ) {
     val c = Boar.colors
     val list = rememberLazyListState()
@@ -172,6 +175,7 @@ fun ChatScreen(
                     items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource) }
                 }
             }
+            if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
@@ -819,16 +823,38 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
             }
             if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
-        val canSend = text.isNotBlank() && !answering
-        val bg = if (answering) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
+        // While BOAR answers, a typed question is sent to the queue (Send); with nothing typed the button stops.
+        val canSend = text.isNotBlank()
+        val stops = answering && !canSend
+        val bg = if (stops) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
         // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
         val transition = rememberInfiniteTransition(label = "stopping")
         val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
         val pulse = if (stopping) blink else 1f
         Box(
-            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
+            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (stops) onStop() else onSend() },
             contentAlignment = Alignment.Center,
-        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
+        ) { if (stops) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
+    }
+}
+
+/** The questions waiting their turn, above the input: "Waiting 1 · …" with ✕ each, and Clear queue. */
+@Composable
+private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove: (Long) -> Unit, onClear: () -> Unit) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(t("native.chat.queueNote"), style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.weight(1f))
+            Text(t("native.chat.clearQueue"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable(onClick = onClear).padding(horizontal = 6.dp, vertical = 4.dp))
+        }
+        queued.forEachIndexed { i, q ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("⏳ " + t("native.chat.waiting", "n" to i + 1), style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+                Text(q.text, style = Boar.type.caption, color = c.textSecondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clip(CircleShape).clickable { onRemove(q.id) }.padding(6.dp))
+            }
+        }
     }
 }
 
