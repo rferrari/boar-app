@@ -211,7 +211,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
     /** Leaving the screen during a Labs engine answer stops it, as Stop does (BoarServices.onBackground). Declared before init. */
-    private val stopper: () -> Unit = { stop() }
+    /** Ends everything before the model is unloaded, switched or its engine closed: the queue goes too (validator Q-1). */
+    private val stopper: () -> Unit = { stopAll() }
 
     init {
         refreshModel()
@@ -250,7 +251,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun closeAndFreeMemory(onStage: suspend (String) -> Unit = {}): Boolean {
         // Each step as it really happens, for the closing animation (Boar Labs): stopping, saving, freeing.
         if (_state.value.answeringId != null) onStage("stopping")
-        stop()
+        // Closing: nothing waiting may start on the model being freed (validator Q-1).
+        stopAll()
         onStage("saving")
         // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
         if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
@@ -351,6 +353,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
     fun openedCatalog() {
         heldQuestion = null
+        dropQueueWithNote()
         heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
@@ -367,7 +370,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 refreshModel()
                 // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
                 _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
-                if (loaded && held != null) send(held)
+                // The held question keeps its place: first, before any that waited behind it.
+                if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
+                // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
+                else if (loaded) runNext(fresh = true)
+                else dropQueueWithNote()
             }
         }
     }
@@ -464,6 +471,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun dismissLoadNote() {
         heldQuestion = null
+        dropQueueWithNote()
         heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
@@ -520,6 +528,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Stop and clear the queue: for the paths that end everything and then unload, switch or close the model (Close
+     * BOAR, the Model Catalog's switch or delete, leaving during a Labs engine answer). The Stop button uses [stop],
+     * which ends only the answer in progress (validator Q-1).
+     */
+    fun stopAll() {
+        if (!queue.isEmpty()) { queue.clear(); publishQueue() }
+        stop()
+    }
+
     fun stop() {
         stopRequested = true
         if (_state.value.answeringId != null) _state.update { it.copy(stopping = true) }
@@ -559,24 +577,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** [limit] overrides the answer's token limit (the "Allow more and redo" note); null uses the setting. */
-    fun send(query: String, limit: Int? = null) = send(query, limit, fromQueue = false)
+    fun send(query: String, limit: Int? = null) = send(query, limit, fromQueue = false, serviceUp = false)
 
     /**
      * While BOAR answers, a question waits its turn (PromptQueue, adam Nov 10) and runs after, as the chat's next turn.
-     * [fromQueue]: the queue starting it; the answer notification is still up from the answer before.
+     * [fromQueue]: the queue starting it (it doesn't join the queue again). [serviceUp]: the answer notification is still
+     * up from the answer before.
      */
-    private fun send(query: String, limit: Int?, fromQueue: Boolean) {
+    private fun send(query: String, limit: Int?, fromQueue: Boolean, serviceUp: Boolean) {
         val q = query.trim()
         if (q.isEmpty()) return
-        if (job?.isActive == true) {
+        // While an answer runs, or between its end and the next waiting question's start, or while questions wait: the
+        // question joins the end of the queue, so nothing jumps it (validator Q-2).
+        if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {
             if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
+            // Waiting with nothing running (behind a note the user answered): start the oldest one now.
+            if (job?.isActive != true && !handoff && _state.value.loadNote == null) runNext(fresh = true)
             return
         }
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
         gateNote()?.let { n ->
             heldQuestion = q
             // A waiting question that stops here ends the answer notification the queue kept up.
-            if (fromQueue) team.sopa.boar.app.AnswerService.stop(getApplication())
+            if (serviceUp) team.sopa.boar.app.AnswerService.stop(getApplication())
             _state.update { it.copy(loadNote = n) }
             return
         }
@@ -585,7 +608,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         routedModelId = null
         answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
-        if (!fromQueue) team.sopa.boar.app.AnswerService.start(getApplication())
+        if (!serviceUp) team.sopa.boar.app.AnswerService.start(getApplication())
         job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
@@ -852,7 +875,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 // Always written: it replaces the interrupted mark of the partial saves.
                 chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey, stagedView))
                 afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
-                chats.prune(settings.maxSavedSessions)
+                // Older chats over the limit go, and what the plugins made for their answers goes with them (validator P-1).
+                chats.prune(settings.maxSavedSessions) { id ->
+                    team.sopa.boar.plugins.UserData.eraseAnswers(chats.messages(id).filter { it.role == "assistant" }.map { it.id })
+                }
                 // Boar Polyglot's "doesn't speak it yet" reply isn't an answer.
                 if (text.isNotBlank() && tool?.tool != team.sopa.boar.engine.routing.LanguageGate.TOOL) services.vault.answered(
                     sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
@@ -872,12 +898,37 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
         // The next waiting question then starts; Stop ends only the answer in progress, not the queue.
         job?.invokeOnCompletion {
+            // From here until the next waiting question has started, a new question joins the queue (validator Q-2).
+            handoff = true
             safeScope.launch(Dispatchers.Main) {
-                val next = queue.next()
-                if (next == null) team.sopa.boar.app.AnswerService.stop(getApplication())
-                else { publishQueue(); send(next.text, null, fromQueue = true) }
+                handoff = false
+                runNext(fresh = false)
             }
         }
+    }
+
+    /** True between an answer's end and the next waiting question's start. */
+    @Volatile private var handoff = false
+
+    /**
+     * Starts the oldest waiting question, or ends the answer notification when none waits. [fresh]: nothing kept the
+     * notification up (a start after the load note), so the question starts it as a typed one does.
+     */
+    private fun runNext(fresh: Boolean) {
+        val next = queue.next()
+        if (next == null) { if (!fresh) team.sopa.boar.app.AnswerService.stop(getApplication()); return }
+        publishQueue()
+        // Defensive: something started meanwhile; the question goes back to the front, not the end.
+        if (job?.isActive == true) { queue.pushFront(next); publishQueue(); return }
+        send(next.text, null, fromQueue = true, serviceUp = !fresh)
+    }
+
+    /** The load note closed, or the model didn't load: the waiting questions need that model too, so they go, said once. */
+    private fun dropQueueWithNote() {
+        if (queue.isEmpty()) return
+        val n = queue.size
+        queue.clear(); publishQueue()
+        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.queueDroppedNote", "count" to n))
     }
 
     private val queue = team.sopa.boar.engine.chat.PromptQueue()

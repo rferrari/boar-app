@@ -62,4 +62,13 @@ class ChatStoreTest {
         s.clearAll()
         assertTrue(s.listSessions().isEmpty())
     }
+
+    @Test fun `prune tells which chats go before deleting them, while their answers can still be read`() {
+        val s = store()
+        val ids = (1..3).map { i -> s.createSession("s$i").also { s.addMessage(it.id, "assistant", "a$i", "a$i") }.id }
+        val seen = ArrayList<Pair<String, List<String>>>()
+        s.prune(1) { id -> seen += id to s.messages(id).map { it.id } }
+        assertEquals(setOf(ids[0] to listOf("a1"), ids[1] to listOf("a2")), seen.toSet())
+        assertEquals(listOf(ids[2]), s.listSessions().map { it.id })
+    }
 }

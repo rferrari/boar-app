@@ -51,14 +51,25 @@ internal object Canvas {
         !team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(a.question) &&
         !team.sopa.boar.engine.routing.QueryContext.isSeedPhraseQuestion(a.question)
 
-    fun status(ctx: Context, id: String): Status? = status[id] ?: load(ctx, id)?.also { status[id] = it }
+    fun status(ctx: Context, id: String): Status? = status[id] ?: load(ctx, id)?.let { done ->
+        // A widget saved before the merge sits under the answer's own id: moved to the widget's place the first time
+        // it's read, so "Create a card" makes a card beside it instead of writing over it (validator C-1).
+        if (done.kind == Kind.WIDGET && !id.endsWith(WIDGET_SUFFIX)) {
+            val widgetKey = keyOf(id, Kind.WIDGET)
+            if (load(ctx, widgetKey) == null) save(ctx, widgetKey, done)
+            file(ctx, id).delete()
+            status[widgetKey] = done
+            null
+        } else done.also { status[id] = it }
+    }
 
     /**
      * Where a kind is kept for an answer: the card (the model's pick: chart, table, steps…) under the answer's id, the
      * interactive widget beside it (one "Create a card" since Nov 10, the widget built only when asked). A widget saved
      * before the merge sits under the answer's id and is still drawn.
      */
-    fun keyOf(id: String, kind: Kind): String = if (kind == Kind.WIDGET) "$id~widget" else id
+    fun keyOf(id: String, kind: Kind): String = if (kind == Kind.WIDGET) "$id$WIDGET_SUFFIX" else id
+    private const val WIDGET_SUFFIX = "~widget"
 
     fun start(ctx: Context, a: AnswerRef, kind: Kind) {
         if (busy() || a.chatBusy) return
@@ -171,7 +182,11 @@ internal object Canvas {
 
     private fun load(ctx: Context, id: String): Status.Done? = runCatching {
         val o = Json.parseToJsonElement(file(ctx, id).takeIf { it.isFile }?.readText() ?: return null).jsonObject
-        Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0)
+        val done = Status.Done(Kind.valueOf((o["kind"] as JsonPrimitive).content), (o["raw"] as JsonPrimitive).content, (o["seconds"] as? JsonPrimitive)?.contentOrNull?.toDoubleOrNull() ?: 0.0)
+        // A file from the x6-visual build (fcb6c1ae) still holds the earlier answers' text: written again without it
+        // the first time it's read (validator P-1).
+        if ("context" in o) save(ctx, id, done)
+        done
     }.getOrNull()
 
     // The page runs with no network: everything inline, and the app's colors as CSS variables.

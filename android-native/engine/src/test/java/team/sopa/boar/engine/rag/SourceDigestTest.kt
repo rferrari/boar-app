@@ -94,4 +94,24 @@ class SourceDigestTest {
         assertEquals(listOf(1), SourceDigest.others(rows, 3).map { it.number })
         assertTrue(SourceDigest.others(rows, 2).isEmpty())
     }
+
+    // The validator's four cases (S-1, Nov 11), and the sentence written twice.
+    @Test fun `the card's sentence isn't repeated when the passage has a newline, a double space or a no-break space in it`() {
+        fun norm(x: String) = x.replace(Regex("[\\s\u00A0]+"), " ").trim()
+        val words = (1..40).joinToString(" ") { "capital$it" }
+        for ((name, body) in listOf(
+            "newline in a long sentence" to words.replaceFirst("capital5 ", "capital5\n") + ". Next sentence here.",
+            "double space in a long sentence" to words.replaceFirst("capital5 ", "capital5  ") + ". Next sentence here.",
+            "double space in a short one" to "The capital of  Australia is Canberra. It was chosen in 1908.",
+            "newline in a short one" to "The capital of Australia\nis Canberra. It was chosen in 1908.",
+            "no-break space" to "The capital of\u00A0Australia is Canberra. It was chosen in 1908.",
+            "the same sentence twice" to "The capital of Australia is Canberra. It was chosen in 1908. The capital of Australia is Canberra.",
+        )) {
+            val p = SourceDigest.rows("capital of Australia capital1", listOf(Triple("T", "t", body))).single().best
+            val sheet = SourceDigest.sheet(p)
+            val key = norm(p.sentence.removeSuffix("…"))
+            assertTrue("$name: <${sheet.after}>", !norm(sheet.after).contains(key) && !norm(sheet.before ?: "").contains(key))
+            assertTrue("$name: empty", sheet.after.isNotEmpty() || sheet.before != null)
+        }
+    }
 }

@@ -23,4 +23,13 @@ class PluginNamesTest {
             assertTrue("$k = $v", !Regex("\\blabs?\\b|Boar Labs", RegexOption.IGNORE_CASE).containsMatchIn(text))
         }
     }
+
+    @Test fun `About's credits and the user guide don't name a plugin with Boar (validator R-A)`() {
+        val names = Regex("Boar (Calculator|Distance|Facts|Guard|Cohazard|Vitals|Designer|Press|Polyglot|Nomad|Lunar|Canvas|Labs)")
+        val credits = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+        // What the user reads: the quoted strings (comments keep the code name).
+        val quoted = Regex("\"[^\"\\n]*\"").findAll(credits).map { it.value }.filter { names.containsMatchIn(it) }.toList()
+        assertTrue(quoted.toString(), quoted.isEmpty())
+        assertTrue(names.find(java.io.File("../../docs/USING.md").readText())?.value ?: "", !names.containsMatchIn(java.io.File("../../docs/USING.md").readText()))
+    }
 }

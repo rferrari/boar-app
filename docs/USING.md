@@ -1,7 +1,7 @@
 # Using BOAR
 
 How to use BOAR 2.0 (the native Android app): the tour, answer styles, Deep Research,
-sources, Boar Labs, the PIN, your own documents, more models, and recovering from a
+sources, Plugins, the PIN, your own documents, more models, and recovering from a
 bad model load.
 
 ## The tour
@@ -9,7 +9,7 @@ bad model load.
 Setup downloads the answer model, the search model and, when there is room, the
 Wikipedia Vital Articles pack. While it downloads, a "While you wait" card opens a
 short BOAR tour: themes, answer styles, Deep Research, sources, your library and
-documents, models, the PIN, Boar Labs and adaptive routing. Each page says where the
+documents, models, the PIN, Plugins and adaptive routing. Each page says where the
 feature lives. See it again any time in Settings → Start over → See
 the tour.
 
@@ -20,10 +20,10 @@ answers:
 
 - **Thorough & Detailed**, the default: full explanations.
 - **Succinct & Direct**: quick replies.
-- **Personal Files**: answers only from your own files (notes, PDFs, spreadsheets), the
+- **Local Files**: answers only from your own files (notes, PDFs, spreadsheets), the
   exact fact first, quoted as the file writes it, then a few sentences. If your files don't
-  hold the answer, it says "I couldn't find this in your Personal Files." instead of
-  answering from memory. Deep Research, adaptive routing and Boar Labs tools step aside in
+  hold the answer, it says "I couldn't find this in your Local Files." instead of
+  answering from memory. Deep Research, adaptive routing and Plugins tools step aside in
   this style; the safety cards still answer.
 
 Under every answer from the library, BOAR lists the articles it used. Tap one to read
@@ -39,30 +39,30 @@ the style button in the chat. When it is on, the chat glows and the 🔬 lights 
   it is slower than a normal reply.
 - It works with any style. The style sets the tone: Deep Research with Succinct & Direct
   still gives a short answer.
-- With Deep Research on, the quick-answer tools of Boar Labs (Calculator, Facts,
+- With Deep Research on, the quick-answer tools of Plugins (Calculator, Facts,
   Distance and others) step aside and the question goes to Deep Research. Only the safety
-  tools (`safety-*`, for example Boar Cohazard) still answer at once.
+  tools (`safety-*`, for example Cohazard) still answer at once.
 - Small talk ("hi", "thanks") never starts a Deep Research.
 
 ## Ask BOAR instead
 
-When a Boar Labs tool answers a question without the model, the answer shows "Ask BOAR
+When a Plugins tool answers a question without the model, the answer shows "Ask BOAR
 instead". Tap it to ask the same question again with the tools skipped, so the model
-answers. It applies to that question only. A safety answer (Boar Cohazard) has no such
+answers. It applies to that question only. A safety answer (Cohazard) has no such
 button.
 
-## Boar Labs
+## Plugins
 
-Boar Labs is a set of experiments, in builds made with the experimental flag (the 2.0.0
-releases are). Find it in Settings → Experimental → Boar Labs, and in the menu.
+Plugins is a set of experiments, in builds made with the experimental flag (the 2.0.0
+releases are). Find it in Settings → Experimental → Plugins, and in the menu.
 
-- Boar Labs starts on. If one lab misbehaves, switch it off there. If you can, open an
+- Plugins starts on. If one lab misbehaves, switch it off there. If you can, open an
   issue on GitHub.
 - On from the start, labelled beta: Calculator, Facts, Cohazard, Distance and Polyglot.
   They answer some questions at once, from fixed formulas and tables, without the model.
   Facts holds driving side, calling codes, mains frequency and emergency numbers for 195
   countries (table r9.1).
-- Boar Vitals is live and on from the start.
+- Vitals is live and on from the start.
 - Off from the start, labelled alpha: Guard, Press (answers into a PDF), Designer (draws
   a picture from an answer), Big Boar, Nomad and Lunar. Boar Wisp is in review.
 - Big Boar runs Qwen3.6 35B (12.3 GB) from storage. Download it in the app, or copy it
@@ -87,9 +87,9 @@ PIN?" erases them and removes the PIN, and keeps models, packs and documents.
 
 ## Your own documents
 
-Settings → Knowledge → Personal Files (BOAR Knowledge, the packs, is the section below it;
+Settings → Knowledge → Local Files (BOAR Knowledge, the packs, is the section below it;
 tap a section's title to fold it). Import your own files into the same local search the
-app uses everywhere, and ask about them with the Personal Files style:
+app uses everywhere, and ask about them with the Local Files style:
 
 - **Formats:** `.txt`, `.md`, `.csv` (a plain comma split, no quoted fields), `.json`
   (a list of `{title, source, body}` documents, or any other JSON imported as text) and
@@ -154,7 +154,7 @@ Settings → Start over has:
 ## The offline APK
 
 For a phone that never goes online, not even once, there are offline APKs. They carry the
-answer model, the search model, the Wikipedia Vital Articles pack and Boar Designer's drawing
+answer model, the search model, the Wikipedia Vital Articles pack and Designer's drawing
 model inside. First launch unpacks and checks them (it needs a few GB of free space for that),
 with no download:
 

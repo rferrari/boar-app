@@ -129,8 +129,13 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
     }
 
     /** Keeps the [maxSessions] most recently used sessions. */
-    fun prune(maxSessions: Int) {
+    /**
+     * Keeps the newest [maxSessions] chats. [beforeDelete] gets each older chat's id first, while its messages can
+     * still be read: what the plugins made for its answers is erased there too (validator P-1).
+     */
+    fun prune(maxSessions: Int, beforeDelete: (String) -> Unit = {}) {
         if (maxSessions <= 0) return
-        db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }.forEach(::deleteSession)
+        db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }
+            .forEach { id -> runCatching { beforeDelete(id) }; deleteSession(id) }
     }
 }

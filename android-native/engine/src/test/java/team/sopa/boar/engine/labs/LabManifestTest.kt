@@ -135,6 +135,10 @@ class LabManifestTest {
         assertTrue("colibri" !in manifest)
     }
 
+    @Test fun `Canvas stays out of releases until it's gated (t9, Nov 11)`() {
+        assertTrue("canvas is back in released.txt", "canvas" !in manifest)
+    }
+
     @Test fun `every lab that starts on, or waits to, ships in a release`() {
         for (id in LabDefaults.ON + LabDefaults.PENDING_ALPHA) assertTrue("$id starts on but isn't in released.txt", id in manifest)
     }

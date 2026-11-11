@@ -32,4 +32,11 @@ class VisualPrivacyTest {
         val lab = read("labs/plugins/canvas/java/team/sopa/boar/labs/canvas/CanvasLab.kt")
         assertTrue(lab.contains("override fun eraseUserData(context: Context, scope: UserData.Scope) = Canvas.eraseAll(context)"))
     }
+
+    @Test fun `old files with the context text are rewritten without it, and auto-pruned chats are erased too`() {
+        val canvas = read("labs/plugins/canvas/java/team/sopa/boar/labs/canvas/Canvas.kt")
+        assertTrue(canvas.contains("if (\"context\" in o) save(ctx, id, done)"))
+        val vm = read("main/java/team/sopa/boar/chat/ChatViewModel.kt")
+        assertTrue(vm.contains("chats.prune(settings.maxSavedSessions) { id ->\n                    team.sopa.boar.plugins.UserData.eraseAnswers("))
+    }
 }

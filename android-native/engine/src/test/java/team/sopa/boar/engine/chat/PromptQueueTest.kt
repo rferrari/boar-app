@@ -39,4 +39,12 @@ class PromptQueueTest {
         assertTrue(q.add("c"))
         assertEquals(listOf("b", "c"), q.waiting.map { it.text })
     }
+
+    @Test fun `a question taken off goes back to the front, not the end`() {
+        val q = PromptQueue()
+        q.add("a"); q.add("b"); q.add("c")
+        val first = q.next()!!
+        q.pushFront(first)
+        assertEquals(listOf("a", "b", "c"), q.waiting.map { it.text })
+    }
 }

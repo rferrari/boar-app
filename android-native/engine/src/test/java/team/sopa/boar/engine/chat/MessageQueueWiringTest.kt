@@ -9,20 +9,22 @@ class MessageQueueWiringTest {
     private val screen = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
 
     @Test fun `a question sent while answering waits, at most five`() {
-        assertTrue(vm.contains("if (job?.isActive == true) {\n            if (queue.add(q)) publishQueue() else showToast(\"native.chat.queueFull\")"))
+        assertTrue(vm.contains("if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {\n            if (queue.add(q)) publishQueue() else showToast(\"native.chat.queueFull\")"))
         assertTrue(vm.contains("private val queue = team.sopa.boar.engine.chat.PromptQueue()"))
     }
 
     @Test fun `the next one starts however the answer ended, stopped or failed included`() {
         // invokeOnCompletion runs on done, Stop (cancel) and failure alike; Stop doesn't touch the queue.
         val done = vm.substringAfter("job?.invokeOnCompletion {").substringBefore("private val queue")
-        assertTrue(done.contains("val next = queue.next()") && done.contains("send(next.text, null, fromQueue = true)"))
+        assertTrue(done.contains("runNext(fresh = false)"))
+        val next = vm.substringAfter("private fun runNext(").substringBefore("\n    }\n")
+        assertTrue(next.contains("val next = queue.next()") && next.contains("send(next.text, null, fromQueue = true, serviceUp = !fresh)"))
         assertTrue(!vm.substringAfter("fun stop() {").substringBefore("\n    }").contains("queue"))
     }
 
     @Test fun `the notification stays up between queued answers and goes with the last`() {
-        assertTrue(vm.contains("if (next == null) team.sopa.boar.app.AnswerService.stop(getApplication())"))
-        assertTrue(vm.contains("if (!fromQueue) team.sopa.boar.app.AnswerService.start(getApplication())"))
+        assertTrue(vm.contains("if (next == null) { if (!fresh) team.sopa.boar.app.AnswerService.stop(getApplication()); return }"))
+        assertTrue(vm.contains("if (!serviceUp) team.sopa.boar.app.AnswerService.start(getApplication())"))
     }
 
     @Test fun `deleting the open chat, or the PIN's erase, drops its queue`() {
@@ -45,7 +47,28 @@ class MessageQueueWiringTest {
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
-            for (k in listOf("queueFull", "queueDropped", "waiting", "clearQueue", "queueNote")) assertTrue("$d $k", s.contains("name=\"native_chat_$k\""))
+            for (k in listOf("queueFull", "queueDropped", "queueDroppedNote", "waiting", "clearQueue", "queueNote")) assertTrue("$d $k", s.contains("name=\"native_chat_$k\""))
         }
+    }
+
+    @Test fun `Close BOAR, a model switch or delete, and leaving during a Labs engine answer clear the queue (Q-1)`() {
+        assertTrue(vm.contains("private val stopper: () -> Unit = { stopAll() }"))
+        assertTrue(vm.substringAfter("suspend fun closeAndFreeMemory(").substringBefore("onStage(\"saving\")").contains("stopAll()"))
+        assertTrue(vm.substringAfter("fun stopAll() {").substringBefore("\n    }").contains("queue.clear()"))
+        // stopAnswersAndWait and onBackground call the stoppers, so they clear it too.
+        val services = java.io.File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText()
+        assertTrue(services.substringAfter("fun stopAnswersAndWait(").substringBefore("\n    }").contains("stoppers.forEach"))
+    }
+
+    @Test fun `a question sent between an answer's end and the next start waits its turn (Q-2)`() {
+        val done = vm.substringAfter("job?.invokeOnCompletion {").substringBefore("private val queue")
+        assertTrue(done.indexOf("handoff = true") in 0 until done.indexOf("safeScope.launch(Dispatchers.Main)"))
+        assertTrue(vm.contains("if (job?.isActive == true) { queue.pushFront(next); publishQueue(); return }"))
+    }
+
+    @Test fun `a queue behind the load note starts when the model loads, or goes with the note (Q-3)`() {
+        assertTrue(vm.contains("else if (loaded) runNext(fresh = true)"))
+        for (f in listOf("fun dismissLoadNote()", "fun openedCatalog()")) assertTrue(f, vm.substringAfter(f).substringBefore("\n    }").contains("dropQueueWithNote()"))
+        assertTrue(vm.contains("if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)"))
     }
 }

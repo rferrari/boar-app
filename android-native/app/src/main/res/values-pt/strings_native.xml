@@ -726,4 +726,5 @@
     <string name="native_a11y_rateUp" formatted="false">Boa resposta</string>
     <string name="native_a11y_rateDown" formatted="false">Resposta ruim</string>
     <string name="native_a11y_pluginActions" formatted="false">Plugins para esta resposta</string>
+    <string name="native_chat_queueDroppedNote" formatted="false">{{count}} perguntas na fila foram descartadas: elas também precisam desse modelo.</string>
 </resources>

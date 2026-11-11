@@ -93,6 +93,7 @@ object CanvasLab : LabPlugin {
         val c = Boar.colors
         val card = Canvas.status(ctx, a.id)
         val widgetKey = Canvas.keyOf(a.id, Canvas.Kind.WIDGET)
+        // Read after the card: an old widget under the card's key has just moved here (C-1).
         val widget = Canvas.status(ctx, widgetKey)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             card?.let { Slot(a, a.id, it) }
@@ -139,7 +140,13 @@ object CanvasLab : LabPlugin {
                     // A card saved before the merge reads as a visual (Visual is a superset of CardSpec).
                     Canvas.Kind.CARD, Canvas.Kind.VISUAL -> {
                         val context = remember(a.id, a.text, a.passages.size) { if (st.context.isNotEmpty()) st.context else Canvas.contextFor(ctx, a) }
-                        (Visual.parse(st.raw, Canvas.grounding(a, context), a.question) as? Visual.Parsed.Ok)?.let { ok ->
+                        // Parsed once per reply and its grounding, off the main thread: the table check grows with rows × columns ×
+                        // the answer's length, and ran on every redraw of the answer (validator N-1).
+                        val grounding = remember(a.text, context) { Canvas.grounding(a, context) }
+                        val parsed by androidx.compose.runtime.produceState<Visual.Parsed?>(null, st.raw, grounding, a.question) {
+                            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { Visual.parse(st.raw, grounding, a.question) }
+                        }
+                        (parsed as? Visual.Parsed.Ok)?.let { ok ->
                             VisualView(ok.visual)
                             // What came out because neither the answer, the earlier answers nor the sources have it.
                             if (ok.leftOut.isNotEmpty()) Text(t("native.labs.canvas.leftOut", "what" to ok.leftOut.take(8).joinToString(", ")),

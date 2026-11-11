@@ -245,7 +245,7 @@ object VisualCheck {
                 val labels = v.items.map { it.first }
                 val kept = v.items.filter { (l, x) ->
                     val f = if (!g.grounded(x)) VisualScale.format(x) to Visual.Reason.INVENTED_NUMBERS
-                        else fault(l) ?: if (!g.paired(l, x, labels)) "$l ${VisualScale.format(x)}" to Visual.Reason.UNPAIRED else null
+                        else fault(l) ?: if (!g.paired(l, x, labels, v.items)) "$l ${VisualScale.format(x)}" to Visual.Reason.UNPAIRED else null
                     f?.let { note(it.first, it.second) }
                     f == null
                 }
@@ -259,7 +259,9 @@ object VisualCheck {
                 // A cell is bad when it's empty, holds something not in the texts, or a number the answer gives another
                 // row's name (V-3); each round removes the worst line.
                 val names = v.rows.map { it.getOrElse(0) { "" } }
-                fun unpaired(r: List<String>, cell: String): Boolean = tokens(cell).any { t -> valuesOf(t).none { x -> g.paired(r.getOrElse(0) { "" }, x, names) } }
+                // Every (row name, number) of the table, for which side of a number its name is written on.
+                val cellItems = v.rows.flatMap { r -> r.drop(1).flatMap { c -> tokens(c).mapNotNull { t -> valuesOf(t).firstOrNull()?.let { r.getOrElse(0) { "" } to it } } } }
+                fun unpaired(r: List<String>, cell: String): Boolean = tokens(cell).any { t -> valuesOf(t).none { x -> g.paired(r.getOrElse(0) { "" }, x, names, cellItems) } }
                 fun bad(r: List<String>, c: Int): Boolean = r.getOrElse(c) { "" }.let { it.isBlank() || fault(it) != null || unpaired(r, it) }
                 /** Why a cell that comes out came out: its own fault, or a number that belongs to another row. */
                 fun cellFault(r: List<String>, cell: String): Pair<String, Visual.Reason>? =
@@ -316,8 +318,23 @@ object VisualCheck {
         /** Where [label]'s words (2 characters or more, letters or digits: "K2" too) are written in the source. */
         private fun placesOf(label: String): List<Int> =
             Regex("[\\p{L}\\p{N}]{2,}").findAll(fold(label)).map { it.value }.filter { it !in STOP && it.any(Char::isLetter) }.flatMap { w ->
-                Regex("(?<![\\p{L}\\p{N}])${Regex.escape(stem(w))}").findAll(foldedSource).map { it.range.first }.toList()
+                // A word with a digit ends there: "Part1" isn't "Part10" (validator V-3).
+                val end = if (w.any(Char::isDigit)) "(?![\\p{N}])" else ""
+                Regex("(?<![\\p{L}\\p{N}])${Regex.escape(stem(w))}$end").findAll(foldedSource).map { it.range.first }.toList()
             }.toList()
+
+        /**
+         * [label]'s places, without those inside a longer label of the same visual that contains it: "Sudan" isn't
+         * where "South Sudan" is written (validator V-3).
+         */
+        private fun placesAmong(label: String, labels: List<String>): List<Int> {
+            val own = fold(label).trim()
+            val covered = labels.map { fold(it).trim() }.filter { it != own && it.length > own.length && Regex("(?<![\\p{L}\\p{N}])${Regex.escape(own)}(?![\\p{L}\\p{N}])").containsMatchIn(it) }
+                .flatMap { longer -> Regex(Regex.escape(longer)).findAll(foldedSource).map { it.range }.toList() }
+            return placesOf(label).filter { p -> covered.none { p in it } }
+        }
+
+        private val orderCache = HashMap<List<Pair<String, Double>>, Boolean>()
 
         /**
          * The value [x] stands next to [label] in the source, not next to another of the visual's [labels] (validator V-3:
@@ -325,15 +342,30 @@ object VisualCheck {
          * (one before it counts at half the distance of one after) is [label]. True when no label is near any place
          * [x] is written, so a number the answer gives without naming its item isn't refused for that.
          */
-        fun paired(label: String, x: Double, labels: List<String>): Boolean {
+        fun paired(label: String, x: Double, labels: List<String>, items: List<Pair<String, Double>> = emptyList()): Boolean {
+            // Which side of its number a name is written on, read from this answer and this visual (validator V-3): the
+            // reading under which more of the visual's items stand by their own name. "Paris has 2.1 million" puts the
+            // name first; "2.1 million in Paris" puts it after. A swap fits neither reading, so it's still refused.
+            val numbersFirst = items.size >= 2 && orderCache.getOrPut(items) {
+                items.count { (l, v) -> pairedAs(l, v, labels, true) } > items.count { (l, v) -> pairedAs(l, v, labels, false) }
+            }
+            return pairedAs(label, x, labels, numbersFirst)
+        }
+
+        /**
+         * [numbersFirst] false: the name before the number counts, at half the distance of one after (the original
+         * rule). True: the name after the number counts, at half the distance of one before.
+         */
+        private fun pairedAs(label: String, x: Double, labels: List<String>, numbersFirst: Boolean): Boolean {
             val near = 400
             val places = at.filter { (_, vs) -> vs.any { kotlin.math.abs(it - x) <= 1e-9 * maxOf(1.0, kotlin.math.abs(x)) } }.map { it.first }
             if (places.isEmpty()) return false
-            val byLabel = labels.distinct().associateWith(::placesOf)
+            val byLabel = labels.distinct().associateWith { placesAmong(it, labels) }
             var anyNear = false
             for (p in places) {
-                val nearest = byLabel.mapValues { (_, ws) -> ws.minOfOrNull { w -> if (w <= p) (p - w) / 2 else (w - p) } ?: Int.MAX_VALUE }
-                    .filterValues { it <= near }.minByOrNull { it.value } ?: continue
+                val nearest = byLabel.mapValues { (_, ws) ->
+                    ws.minOfOrNull { w -> if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p)) } ?: Int.MAX_VALUE
+                }.filterValues { it <= near }.minByOrNull { it.value } ?: continue
                 anyNear = true
                 if (nearest.key == label) return true
             }

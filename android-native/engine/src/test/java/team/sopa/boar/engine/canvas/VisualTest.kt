@@ -302,6 +302,35 @@ class VisualTest {
         assertEquals(Visual.Reason.UNPAIRED, reason(t, answer + " Marseille 0.9 million."))
     }
 
+    // Validator, Nov 11: correct data written number-first was refused, and so were labels that are prefixes of others.
+    @Test fun `V-3 the number before its name is paired with that name, and a swap is still refused`() {
+        fun bars(a: Double, b: Double, la: String = "Paris", lb: String = "Lyon", unit: String = "million") =
+            """{"type":"bars","unit":"$unit","items":[{"label":"$la","value":$a},{"label":"$lb","value":$b}]}"""
+        for (answer in listOf(
+            "2.1 million people live in Paris and 0.5 million in Lyon.",
+            "2.1 million (Paris), 0.5 million (Lyon).",
+        )) {
+            assertTrue(answer, Visual.parse(bars(2.1, 0.5), answer) is Visual.Parsed.Ok)
+            assertEquals(answer, Visual.Reason.UNPAIRED, reason(bars(0.5, 2.1), answer))
+        }
+        val pt = "2,1 milhões de pessoas vivem em Paris e 0,5 milhão em Lyon."
+        assertTrue(Visual.parse(bars(2.1, 0.5, unit = "milhões"), pt) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars(0.5, 2.1, unit = "milhões"), pt))
+        // Name first still works both ways.
+        val nameFirst = "Paris has 2.1 million people, Lyon 0.5 million."
+        assertTrue(Visual.parse(bars(2.1, 0.5), nameFirst) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars(0.5, 2.1), nameFirst))
+    }
+
+    @Test fun `V-3 a label inside a longer one isn't confused with it`() {
+        val sudan = "South Sudan has 11 million people and Sudan has 48 million."
+        assertTrue(Visual.parse("""{"type":"bars","unit":"million","items":[{"label":"Sudan","value":48},{"label":"South Sudan","value":11}]}""", sudan) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason("""{"type":"bars","unit":"million","items":[{"label":"Sudan","value":11},{"label":"South Sudan","value":48}]}""", sudan))
+        val parts = "Part10 weighs 40 kg and Part1 weighs 7 kg."
+        assertTrue(Visual.parse("""{"type":"bars","unit":"kg","items":[{"label":"Part1","value":7},{"label":"Part10","value":40}]}""", parts) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason("""{"type":"bars","unit":"kg","items":[{"label":"Part1","value":40},{"label":"Part10","value":7}]}""", parts))
+    }
+
     @Test fun `V-4 a number in the title or the unit must be backed too`() {
         assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"bars","title":"Peaks in 2099","unit":"m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""", peaks))
         assertEquals(Visual.Reason.INVENTED_NUMBERS, reason("""{"type":"bars","unit":"per 2099 m","items":[{"label":"Everest","value":8849},{"label":"K2","value":8611}]}""", peaks))

@@ -64,13 +64,13 @@ object LabHooks {
                 "SDXS-512 image model (Designer)" to "OpenRAIL++-M",
                 "Qwen3.6-35B-A3B (Big Boar)" to "Apache-2.0",
                 "OLMoE-1B-7B (Boar Wisp)" to "Apache-2.0",
-                "r4to's calculator, BOAR R&D (Boar Calculator)" to "MIT",
-                "r4to's travel distance, BOAR R&D (Boar Distance)" to "MIT",
-                "GeoNames cities15000 (Boar Distance)" to "CC BY 4.0",
-                "r4to's offline facts, BOAR R&D (Boar Facts)" to "MIT",
-                "Wikidata facts table (Boar Facts)" to "CC0",
-                "r4to's verdict guard, BOAR R&D (Boar Guard)" to "MIT",
-                "r4to's CO hazard check, BOAR R&D (Boar Cohazard)" to "MIT",
+                "r4to's calculator, BOAR R&D (Calculator)" to "MIT",
+                "r4to's travel distance, BOAR R&D (Distance)" to "MIT",
+                "GeoNames cities15000 (Distance)" to "CC BY 4.0",
+                "r4to's offline facts, BOAR R&D (Facts)" to "MIT",
+                "Wikidata facts table (Facts)" to "CC0",
+                "r4to's verdict guard, BOAR R&D (Guard)" to "MIT",
+                "r4to's CO hazard check, BOAR R&D (Cohazard)" to "MIT",
             )
         }
         team.sopa.boar.plugins.PipelineStages.search = { LabRegistry.active.mapNotNull { it.searchStage } }

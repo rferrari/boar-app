@@ -65,11 +65,21 @@ object SourceDigest {
     data class Sheet(val after: String, val before: String?)
 
     fun sheet(p: Passage): Sheet {
-        val key = p.sentence.removeSuffix("…").trimEnd()
-        val at = if (key.isEmpty()) -1 else p.body.indexOf(key)
-        if (at < 0) return Sheet(p.body.trim(), null)
-        val after = p.body.substring(at + key.length).trim()
-        return if (after.isNotEmpty()) Sheet(after, null) else Sheet("", p.body.substring(0, at).trim().ifEmpty { null })
+        val key = p.sentence.removeSuffix("…").trim()
+        // Found by its words, whatever the spaces between them: the card's sentence has single spaces, the passage may
+        // have a newline, a double space or a no-break space inside it (validator S-1).
+        val find = keyPattern(key) ?: return Sheet(p.body.trim(), null)
+        val m = find.find(p.body) ?: return Sheet(p.body.trim(), null)
+        // The same sentence written twice in the passage: both go, the card already shows it.
+        val after = find.replace(p.body.substring(m.range.last + 1), " ").replace(Regex("[ \t]{2,}"), " ").trim()
+        return if (after.isNotEmpty()) Sheet(after, null) else Sheet("", p.body.substring(0, m.range.first).trim().ifEmpty { null })
+    }
+
+    /** [key]'s words in order, any run of spaces, newlines or no-break spaces between them. */
+    private fun keyPattern(key: String): Regex? {
+        val words = key.split(Regex("[\\s\u00A0\u202F]+")).filter { it.isNotEmpty() }
+        if (words.isEmpty()) return null
+        return Regex(words.joinToString("[\\s\u00A0\u202F]+") { Regex.escape(it) })
     }
 
     /** The same article's other passages for the sheet of passage [number], best first; empty when it's the only one. */

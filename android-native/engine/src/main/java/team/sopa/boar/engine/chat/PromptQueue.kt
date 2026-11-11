@@ -29,6 +29,9 @@ class PromptQueue(val limit: Int = LIMIT) {
 
     fun remove(id: Long): Boolean = items.removeAll { it.id == id }
 
+    /** Puts a question taken by [next] back at the front, as it was. */
+    fun pushFront(item: Item) { items.add(0, item) }
+
     fun clear() = items.clear()
 
     companion object { const val LIMIT = 5 }
