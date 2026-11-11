@@ -36,11 +36,13 @@ class MessageQueueWiringTest {
         assertTrue(vm.contains("\"native.chat.queueDropped\""))
     }
 
-    @Test fun `while answering the round button stops, a separate button queues, the strip has remove and Clear queue`() {
-        // While answering the round button is only Stop; the queue has its own button, so a second tap can't stop the answer.
-        assertTrue(screen.contains("val stops = answering\n"))
-        assertTrue(screen.contains("if (answering && canSend) Box("))
-        assertTrue(!screen.contains("val stops = answering && !canSend"))
+    @Test fun `one button that stops or queues, resting after a send, the strip has remove and Clear queue`() {
+        // One button: Stop while answering with nothing typed, Send (to the queue) while something is typed; after a send it
+        // rests, dimmed, so a second tap can't stop the answer (adam, Nov 12).
+        assertTrue(screen.contains("val stops = answering && !canSend"))
+        assertTrue(!screen.contains("if (answering && canSend) Box("))
+        assertTrue(screen.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); if (answering) resting = true } }"))
+        assertTrue(screen.contains("private const val SEND_REST_MS = 500L"))
         assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)"))
     }
 

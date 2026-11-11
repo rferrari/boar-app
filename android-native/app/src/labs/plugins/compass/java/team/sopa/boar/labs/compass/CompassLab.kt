@@ -54,6 +54,15 @@ object CompassLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_nomad
     override val status = LabStatus.ALPHA
 
+    /** "Which way is north?": answered from the compass sensor, with "hold the phone flat" when it's tilted (adam, Nov 12). */
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        if (!team.sopa.boar.engine.labs.PluginAnswers.isDirectionQuestion(query)) null
+        else {
+            val (heading, tilt) = team.sopa.boar.labs.LabPrefs.appContext?.let { team.sopa.boar.labs.PhoneReads.heading(it) } ?: (null to null)
+            team.sopa.boar.plugins.ToolResult.Instant("compass-heading", team.sopa.boar.engine.labs.PluginAnswers.directionAnswer(query, heading, tilt))
+        }
+    }
+
     /** How much of each new reading goes into the shown heading: smooth enough to read, quick enough to follow. */
     private const val SMOOTHING = 0.15f
     /** The fallback's raw accelerometer and magnetometer readings are noisy: each new one counts this much. */

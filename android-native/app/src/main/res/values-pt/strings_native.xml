@@ -719,7 +719,6 @@
     <string name="native_chat_waiting" formatted="false">Na fila {{n}}</string>
     <string name="native_chat_clearQueue" formatted="false">Limpar fila</string>
     <string name="native_chat_queueNote" formatted="false">Elas rodam uma de cada vez, depois desta resposta.</string>
-    <string name="native_chat_queueSend" formatted="false">Enviar para a fila</string>
     <string name="native_chat_toBottom" formatted="false">Ir para a última resposta</string>
     <string name="native_a11y_reasoning" formatted="false">Mostrar ou esconder o raciocínio</string>
     <string name="native_a11y_copyAnswer" formatted="false">Copiar a resposta</string>

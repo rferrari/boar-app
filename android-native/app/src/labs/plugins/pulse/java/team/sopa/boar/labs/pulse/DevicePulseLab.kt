@@ -64,6 +64,13 @@ object DevicePulseLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_synthetic
     override val status = LabStatus.LIVE
 
+    /** "How hot is my phone?": answered from the battery and memory, read now (adam, Nov 12). */
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        val ctx = team.sopa.boar.labs.LabPrefs.appContext
+        if (ctx == null || !team.sopa.boar.engine.labs.PluginAnswers.isPhoneQuestion(query)) null
+        else team.sopa.boar.plugins.ToolResult.Instant("vitals-phone", team.sopa.boar.engine.labs.PluginAnswers.phoneAnswer(query, team.sopa.boar.labs.PhoneReads.phone(ctx)))
+    }
+
     private const val HISTORY = 120
 
     private data class Sample(

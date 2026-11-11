@@ -152,12 +152,15 @@ object LabRegistry {
 
 /** Per-lab switches and small settings, in SharedPreferences "labs". The switches are Compose state. */
 object LabPrefs {
+    /** For the answer tools that read the phone (Nomad, Vitals): set at the first init. */
+    @Volatile var appContext: Context? = null
     private var prefs: android.content.SharedPreferences? = null
     private val switches = mutableStateMapOf<String, Boolean>()
     private val on = androidx.compose.runtime.mutableStateOf(false)
 
     fun init(context: Context) {
         if (prefs != null) return
+        appContext = context.applicationContext
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
         // The master switch first: chosenOn below counts a lab only while Boar Labs is on.
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on

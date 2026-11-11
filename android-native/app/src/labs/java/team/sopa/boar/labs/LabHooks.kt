@@ -45,6 +45,9 @@ object LabHooks {
                 tool.startsWith("calculator-") -> "calc"
                 tool.startsWith("facts-") -> "facts"
                 tool == team.sopa.boar.engine.routing.LanguageGate.TOOL -> "polyglot"
+                tool.startsWith("lunar-") -> "lunar"
+                tool.startsWith("compass-") -> "compass"
+                tool.startsWith("vitals-") -> "pulse"
                 else -> null
             }
             // Each speaks by its tile's name, so the chat and the switch to turn it off say the same thing.

@@ -23,6 +23,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import team.sopa.boar.app.BoarServices
+import team.sopa.boar.engine.chat.AskModelContext
 import team.sopa.boar.engine.GenerationMetrics
 import team.sopa.boar.engine.answer.AnswerEvent
 import team.sopa.boar.engine.answer.AnswerPipeline
@@ -553,8 +554,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
         skipToolsOnce = true
+        // The plugin's answer stays in the chat, and its result goes to the model to explain, numbers unchanged (adam, Nov 12).
+        val instant = messages.getOrNull(i)
+        bypassed = instant?.receipt?.tool?.let { tool -> ToolResult.Context(tool, AskModelContext.of(instant.text)) }
         send(q)
     }
+
+    /** What the bypassed plugin answered, for the model's prompt on [askModel]'s question only. */
+    @Volatile private var bypassed: ToolResult.Context? = null
 
     /** Set by [askModel] for the next question only. */
     @Volatile private var skipToolsOnce = false
@@ -673,7 +680,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
             // Research only a safety answer (Boar Cohazard): the CO question went to the model there (F3, Oct 19).
             val skipTools = skipToolsOnce.also { skipToolsOnce = false }
-            val tool = if (skipTools || aboutConversation(q, history, conversation)) null
+            val bypass = bypassed.also { bypassed = null }
+            val tool = if (skipTools) bypass?.takeIf { !(deep || personal) }
+            else if (aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
                 ?.takeIf { !(deep || personal) || PersonalFiles.keepsTool(it.tool) }
             val instant = tool as? ToolResult.Instant
@@ -865,7 +874,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
                 r.copy(style = style, path = path, task = task, checked = checked, stages = stagedTimes,
-                    tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
+                    // The model's own answer on "Ask BOAR instead": the plugin's result it read isn't its speaker.
+                    tool = listOfNotNull(tool?.tool?.takeIf { tool !== bypass }, repair?.tool).joinToString("+").ifEmpty { null },
                     styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }

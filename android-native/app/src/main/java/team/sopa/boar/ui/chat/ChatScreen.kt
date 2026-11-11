@@ -203,6 +203,9 @@ fun ChatScreen(
 /** The answer's ▲ ▼ rating, hidden until ratings are used for something (adam, Nov 11). */
 private const val SHOW_RATING = false
 
+/** After a send while BOAR answers, the round button rests this long before it can stop the answer. */
+private const val SEND_REST_MS = 500L
+
 /** The chat column's widest: about 75 characters of body text. */
 private val MAX_CHAT_WIDTH = 720.dp
 
@@ -824,21 +827,20 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
             if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
         val canSend = text.isNotBlank()
-        // While BOAR answers, the round button is always Stop, and a typed question goes to the queue with its own
-        // button beside it. One button that turned from Send into Stop once the question left the box stopped the
-        // answer on a second tap, and the queued one ran at once (adam, Nov 11).
-        val stops = answering
-        if (answering && canSend) Box(
-            Modifier.size(40.dp).clip(CircleShape).background(c.emerald600).clickable(onClickLabel = t("native.chat.queueSend"), onClick = onSend),
-            contentAlignment = Alignment.Center,
-        ) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 18.dp, c.textInverse, description = t("native.chat.queueSend")) }
+        // One round button that follows what the user does (adam, Nov 12): while BOAR answers it's Stop, and Send (to the
+        // queue) while something is typed. After a send it ignores taps for half a second, dimmed, so a second tap meant
+        // for Send can't land on the Stop it turns back into (the bug of Nov 11).
+        val stops = answering && !canSend
+        var resting by remember { mutableStateOf(false) }
+        LaunchedEffect(resting) { if (resting) { kotlinx.coroutines.delay(SEND_REST_MS); resting = false } }
         val bg = if (stops) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
         // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
         val transition = rememberInfiniteTransition(label = "stopping")
         val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
         val pulse = if (stopping) blink else 1f
         Box(
-            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (stops) onStop() else onSend() },
+            Modifier.size(48.dp).alpha(if (resting) 0.45f else if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg)
+                .clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); if (answering) resting = true } },
             contentAlignment = Alignment.Center,
         ) { if (stops) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
     }

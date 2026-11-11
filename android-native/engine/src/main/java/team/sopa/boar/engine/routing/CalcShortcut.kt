@@ -18,6 +18,8 @@ object CalcShortcut {
         val pt = QueryContext.isPortugueseQuestion(query)
         Calculators.calculate(query, pt)?.let { return Hit(if (it.kind == "temperature") "temperature-conversion" else "calculator-${it.kind}", it.text) }
         if (pt || QueryContext.isSpanishQuestion(query)) return null
-        return Arithmetic.answer(query)?.let { Hit("calculator-${it.kind}", it.text) }
+        // Miles and kilometres mixed in a rate-and-time question: converted first, the conversion said (UnitBridge).
+        val bridged = UnitBridge.prepare(query)
+        return Arithmetic.answer(bridged.query)?.let { Hit("calculator-${it.kind}", if (bridged.note != null) "${it.text} (${bridged.note}.)" else it.text) }
     }
 }

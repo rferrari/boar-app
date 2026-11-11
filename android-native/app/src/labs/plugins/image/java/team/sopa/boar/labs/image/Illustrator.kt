@@ -44,7 +44,8 @@ object Illustrator {
     fun busy() = status.values.any { it is Status.Choosing || it is Status.Drawing }
 
     /** Whether 🎨 is offered: not on a tool's fixed answer, a short health or seed-phrase answer, or such a question. */
-    fun drawable(a: AnswerRef): Boolean = a.tool == null && a.styleNote == null &&
+    // The Calculator's and Facts' answers may be drawn too (adam, Nov 12); other tool answers and warnings stay out (IllustrateGate).
+    fun drawable(a: AnswerRef): Boolean = team.sopa.boar.engine.labs.IllustrateGate.allowed(a.tool, a.text) && a.styleNote == null &&
         !team.sopa.boar.engine.routing.QueryContext.isHealthQuestion(a.question) &&
         !team.sopa.boar.engine.routing.QueryContext.isSeedPhraseQuestion(a.question)
 

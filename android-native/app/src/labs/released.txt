@@ -6,15 +6,15 @@
 #   (LabDefaults.ON, or the ALPHA ones waiting in PENDING_ALPHA) isn't listed.
 # Not listed: canvas (ALPHA, off; t9 Nov 11: out of the release until it's gated). bmoe (Big Boar) and colibri (Boar Wisp). adam, 2026-11-10: out of releases for now, results weren't good
 # enough; they're for advanced users, in debug and Labs builds (-Pboar.labs.released=false), not for everyone.
-pulse: VitalsTest
-image: ImageSafetyTest
+pulse: VitalsTest PluginAnswersTest
+image: ImageSafetyTest IllustrateGateTest
 printer: ChatExportTest
 polyglot: LanguageGateTest
-calc: LabToolsCombinationTest LabToolsCompoundTest
+calc: LabToolsCombinationTest LabToolsCompoundTest UnitBridgeTest
 distance: TravelDistanceTest
 facts: FactsTest
 cohazard: CoHazardTest CoHazardPtEsTest
-compass: CompassTest
-lunar: MoonPhaseTest
+compass: CompassTest PluginAnswersTest
+lunar: MoonPhaseTest PluginAnswersTest
 guard: NumGuardTest VerdictGuardTest
 staged: StagedAnswerTest
