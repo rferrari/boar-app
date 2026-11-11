@@ -311,6 +311,10 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { screen = if (it == "about") "about:settings" else it }) { vm.refreshSettings(); screen = "chat" }
         return
     }
+    // A plugin page's Try row: a new chat that asks it, or the question in the input box to edit (adam, Nov 12).
+    androidx.compose.runtime.SideEffect {
+        team.sopa.boar.plugins.AskFromPlugin.handler = { q, send -> vm.newChat(); if (send) vm.send(q) else vm.prefillWith(q); screen = "chat" }
+    }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     // Back with the menu open closes the menu, not BOAR (#93): ModalNavigationDrawer doesn't handle Back itself.

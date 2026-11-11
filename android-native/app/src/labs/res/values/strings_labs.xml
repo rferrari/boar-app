@@ -49,4 +49,15 @@
     <string name="native_labs_searchNone" formatted="false">No plugin matches.</string>
     <string name="native_labs_editAction" formatted="false">Change the settings first</string>
     <string name="native_labs_aboutPlugin" formatted="false">About this plugin</string>
+    <string name="native_labs_offInList" formatted="false">Off · turn it on in the Plugins list</string>
+    <string name="native_labs_offPage" formatted="false">This plugin is off.</string>
+    <string name="native_labs_offSettings" formatted="false">Settings you change here are kept and apply when it\'s on.</string>
+    <string name="native_labs_tryAsk" formatted="false">Ask it in a new chat</string>
+    <string name="native_labs_tryEdit" formatted="false">Put it in the box to edit</string>
+    <string name="native_labs_tryCopy" formatted="false">Copy the question</string>
+    <string name="native_labs_page_before" formatted="false">BEFORE</string>
+    <string name="native_labs_page_after" formatted="false">AFTER</string>
+    <string name="native_labs_page_try" formatted="false">TRY IT</string>
+    <string name="native_labs_page_tryHint" formatted="false">Tap to ask it in a new chat. Hold to edit it first.</string>
+    <string name="native_labs_page_how" formatted="false">How it works</string>
 </resources>

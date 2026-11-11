@@ -415,6 +415,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun hideToast() = _state.update { it.copy(toast = null) }
     fun prefilled() = _state.update { it.copy(prefill = null) }
 
+    /** A plugin page's Try row, long-pressed: the question waits in the input box to edit (AskFromPlugin). */
+    fun prefillWith(q: String) = _state.update { it.copy(prefill = q) }
+
     /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
     private fun watchConnectivity(app: Application) {
         val cm = app.getSystemService(android.net.ConnectivityManager::class.java) ?: return

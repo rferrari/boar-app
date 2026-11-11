@@ -46,6 +46,7 @@ class PluginAnswersTest {
     @Test fun `the phone answer reads what it has`() {
         val a = PluginAnswers.phoneAnswer("how hot is my phone?", PluginAnswers.PhoneNow(81, true, 39.4, 4300, 11400, 8))
         assertTrue(a, a.contains("Battery at 81%, charging") && a.contains("39.4 °C (warm)") && a.contains("4.2 GB of 11.1 GB memory free") && a.contains("8 processor cores"))
-        assertTrue(PluginAnswers.phoneAnswer("qual a temperatura do meu celular?", PluginAnswers.PhoneNow(50, false, 30.0, null, null, null)).contains("(fria)"))
+        val pt = PluginAnswers.phoneAnswer("qual a temperatura do meu celular?", PluginAnswers.PhoneNow(50, false, 30.0, null, null, null))
+        assertTrue(pt, pt.contains("30,0 °C (fria)"))
     }
 }

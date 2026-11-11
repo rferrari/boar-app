@@ -42,7 +42,7 @@ object StagedLab : LabPlugin {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.staged.steps")) { Text(t("native.labs.staged.stepsList"), style = Boar.type.body, color = c.textPrimary) }
             Card(t("native.labs.staged.try")) {
-                for (i in 1..3) Text("“${t("native.labs.staged.example$i")}”", style = Boar.type.caption, color = c.textSecondary)
+                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.staged.example$i"))
             }
             Text(t("native.labs.staged.note"), style = Boar.type["mono.xs"], color = c.textDim)
         }

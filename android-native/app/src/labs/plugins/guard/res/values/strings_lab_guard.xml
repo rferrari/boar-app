@@ -10,4 +10,7 @@
     <string name="native_labs_guard_example3" formatted="false">Which countries are bigger than India by area?</string>
     <string name="native_labs_guard_note" formatted="false">It only reads the finished answer, so you see the model\'s text while it is written and the fixed one when it ends. The facts stay and the wrong verdict is rewritten from them, with the model\'s own corrections and restatements removed; nothing is generated again. It leaves the answer alone when it isn\'t sure: mixed units, overlapping ranges, a number that may belong to something else. Never on health questions, instant answers or Deep Research. The answer\'s details say Tool when it changed something. English only. Ported from r4to\'s verdict guard (BOAR R&amp;D).</string>
     <string name="native_labs_guard_about" formatted="false">Fixes a Yes, No or winner that the model\'s own figures or dates contradict, after it answers.</string>
+    <string name="native_labs_guard_summary" formatted="false">Guard checks a finished answer against its own numbers and fixes a Yes, No or winner that they contradict.</string>
+    <string name="native_labs_guard_before" formatted="false">“Did astronauts walk on the Moon before 1970?” → “No. Apollo 11 landed on the Moon on July 20, 1969.”</string>
+    <string name="native_labs_guard_after" formatted="false">“Yes. Apollo 11 landed on the Moon on July 20, 1969.” The answer’s own date says Yes, so Guard fixes the No.</string>
 </resources>

@@ -89,11 +89,12 @@ object PluginAnswers {
         val pt = QueryContext.isPortugueseQuestion(q)
         val parts = ArrayList<String>()
         p.batteryPct?.let { parts += if (pt) "bateria em $it%" + (if (p.charging == true) ", carregando" else "") else "battery at $it%" + (if (p.charging == true) ", charging" else "") }
+        val loc = if (pt) Locale("pt", "BR") else Locale.US
         p.batteryTempC?.let { t ->
             val heat = Vitals.heat(t).name.lowercase()
-            parts += if (pt) "temperatura da bateria ${"%.1f".format(Locale.US, t)} °C (${HEAT_PT[heat] ?: heat})" else "battery temperature ${"%.1f".format(Locale.US, t)} °C ($heat)"
+            parts += if (pt) "temperatura da bateria ${"%.1f".format(loc, t)} °C (${HEAT_PT[heat] ?: heat})" else "battery temperature ${"%.1f".format(Locale.US, t)} °C ($heat)"
         }
-        if (p.ramFreeMb != null && p.ramTotalMb != null) parts += if (pt) "${"%.1f".format(Locale.US, p.ramFreeMb / 1024.0)} GB de memória livres de ${"%.1f".format(Locale.US, p.ramTotalMb / 1024.0)} GB"
+        if (p.ramFreeMb != null && p.ramTotalMb != null) parts += if (pt) "${"%.1f".format(loc, p.ramFreeMb / 1024.0)} GB de memória livres de ${"%.1f".format(loc, p.ramTotalMb / 1024.0)} GB"
             else "${"%.1f".format(Locale.US, p.ramFreeMb / 1024.0)} GB of ${"%.1f".format(Locale.US, p.ramTotalMb / 1024.0)} GB memory free"
         p.cores?.let { parts += if (pt) "$it núcleos de processador" else "$it processor cores" }
         if (parts.isEmpty()) return if (pt) "O Vitals não conseguiu ler o celular agora." else "Vitals couldn't read the phone just now."

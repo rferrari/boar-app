@@ -10,4 +10,7 @@
     <string name="native_labs_guard_example3" formatted="false">Which countries are bigger than India by area?</string>
     <string name="native_labs_guard_note" formatted="false">Ele só lê a resposta pronta: você vê o texto do modelo enquanto ele escreve e o corrigido no fim. Os fatos ficam e o veredito errado é reescrito a partir deles, sem as autocorreções e repetições do modelo; nada é gerado de novo. Quando não tem certeza, deixa a resposta como está: unidades diferentes, faixas que se sobrepõem, um número que pode ser de outra coisa. Nunca em perguntas de saúde, respostas instantâneas ou Pesquisa Profunda. Os detalhes da resposta mostram Ferramenta quando ele mudou algo. Só em inglês. Portado do verificador de veredito de r4to (BOAR R&amp;D).</string>
     <string name="native_labs_guard_about" formatted="false">Corrige um Sim, Não ou vencedor que os próprios números ou datas do modelo contradizem, depois que ele responde.</string>
+    <string name="native_labs_guard_summary" formatted="false">O Guarda confere uma resposta pronta com os próprios números dela e corrige um Sim, Não ou vencedor que eles contradizem.</string>
+    <string name="native_labs_guard_before" formatted="false">“Astronautas pisaram na Lua antes de 1970?” → “Não. A Apollo 11 pousou na Lua em 20 de julho de 1969.”</string>
+    <string name="native_labs_guard_after" formatted="false">“Sim. A Apollo 11 pousou na Lua em 20 de julho de 1969.” A própria data da resposta diz Sim, então o Guarda corrige o Não.</string>
 </resources>

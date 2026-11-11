@@ -51,7 +51,7 @@ object FactsLab : LabPlugin {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.facts.answers")) { Text(t("native.labs.facts.answersList"), style = Boar.type.body, color = c.textPrimary) }
             Card(t("native.labs.facts.try")) {
-                for (i in 1..3) Text("“${t("native.labs.facts.example$i")}”", style = Boar.type.caption, color = c.textSecondary)
+                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.facts.example$i"))
             }
             Text(t("native.labs.facts.note"), style = Boar.type["mono.xs"], color = c.textDim)
         }

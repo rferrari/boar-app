@@ -133,14 +133,6 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
             }
         }
-        Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(t("native.labs.enabled"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading)
-                Text(t("native.labs.enabledNote"), style = Boar.type["mono.xs"], color = c.textDim)
-            }
-            androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500))
-        }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
         if (lab.status == LabStatus.REVIEW) Row(Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
@@ -148,7 +140,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             ReviewMark(20.dp)
             Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
         }
-        if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
+        // The switch is in the Plugins list only (adam, Nov 12). Off, the page still shows everything: an alert on top, the
+        // settings editable (saved for when it's on; editing never turns it on, and an off plugin fills no slot).
+        // In Pro, Back goes to the Plugins list (LabHooks.backFrom), so the alert's link is the same way back.
+        if (!LabPrefs.enabled(lab.id)) OffAlert(if (LabPrefs.proProfile) onClose else null)
+        lab.Content()
         AboutPlugin(lab)
     }
 }
@@ -333,7 +329,9 @@ fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit)
         val open = allOpen.filter { team.sopa.boar.engine.labs.RecentPlugins.matches(query, t("native.labs.${it.id}.title"), t("native.labs.${it.id}.body")) }
         for (lab in open) LabRow(lab, onOpen)
         if (open.isEmpty()) Text(t("native.labs.searchNone"), style = Boar.type.caption, color = c.textMuted)
-        if (classified.isNotEmpty() && query.isBlank()) {
+        // Plugins in testing with no release date are hidden (adam, Nov 12); PluginsUi.SHOW_UPCOMING brings them back to
+        // promote what's next.
+        if (PluginsUi.SHOW_UPCOMING && classified.isNotEmpty() && query.isBlank()) {
             Text(t("native.labs.section.testing"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
             for (lab in classified) Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -345,7 +343,8 @@ fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit)
                 StatusChip(lab.status)
             }
         }
-        Text(t("native.labs.showTiles"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+        // The list is the only view (adam, Nov 12); the tiles stay behind PluginsUi.SHOW_TILES.
+        if (PluginsUi.SHOW_TILES) Text(t("native.labs.showTiles"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable(onClick = onTiles).padding(vertical = 6.dp))
     }
 }
@@ -381,5 +380,24 @@ private fun LabArt(lab: LabPlugin, locked: Boolean) {
             androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
         } ?: Text(lab.emoji, fontSize = 24.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
+    }
+}
+
+/** What hides upcoming plugins and the tile view, kept so they can come back (adam, Nov 12). */
+object PluginsUi {
+    /** Plugins in testing with no release date (the classified teasers): hidden until there's something to promote. */
+    const val SHOW_UPCOMING = false
+    /** The tile view of the Plugins page: the list is the only view. */
+    const val SHOW_TILES = false
+}
+
+/** On a plugin's page while it's off: it's off, where to turn it on, and that settings changed now apply then. */
+@Composable
+private fun OffAlert(onList: (() -> Unit)?) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).then(if (onList != null) Modifier.clickable(onClick = onList) else Modifier).background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(t(if (LabPrefs.proProfile) "native.labs.offInList" else "native.labs.offPage"), style = Boar.type.body, color = c.textAccentAmber, fontWeight = FontWeight.SemiBold)
+        Text(t("native.labs.offSettings"), style = Boar.type.caption, color = c.textSecondary)
     }
 }

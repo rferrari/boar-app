@@ -50,7 +50,7 @@ object DistanceLab : LabPlugin {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.distance.answers")) { Text(t("native.labs.distance.answersList"), style = Boar.type.body, color = c.textPrimary) }
             Card(t("native.labs.distance.try")) {
-                for (i in 1..3) Text("“${t("native.labs.distance.example$i")}”", style = Boar.type.caption, color = c.textSecondary)
+                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.distance.example$i"))
             }
             Text(t("native.labs.distance.note"), style = Boar.type["mono.xs"], color = c.textDim)
         }

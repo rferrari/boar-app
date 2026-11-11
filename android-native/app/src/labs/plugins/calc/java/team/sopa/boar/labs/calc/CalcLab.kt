@@ -41,7 +41,7 @@ object CalcLab : LabPlugin {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(t("native.labs.calc.answers")) { Text(t("native.labs.calc.answersList"), style = Boar.type.body, color = c.textPrimary) }
             Card(t("native.labs.calc.try")) {
-                for (i in 1..3) Text("“${t("native.labs.calc.example$i")}”", style = Boar.type.caption, color = c.textSecondary)
+                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.calc.example$i"))
             }
             Text(t("native.labs.calc.note"), style = Boar.type["mono.xs"], color = c.textDim)
         }
