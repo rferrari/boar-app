@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_pulse_title" formatted="false">Vitals</string>
-    <string name="native_labs_pulse_body" formatted="false">Veja o celular trabalhar: calor, o clock de cada núcleo, a memória e o chip em que o BOAR roda.</string>
+    <string name="native_labs_pulse_body" formatted="false">Veja o celular trabalhar: calor, bateria, núcleos e memória.</string>
     <string name="native_labs_pulse_heat" formatted="false">CALOR</string>
     <string name="native_labs_pulse_heatNote" formatted="false">últimos {{seconds}} s · mín {{min}} °C · máx {{max}} °C</string>
     <string name="native_labs_pulse_cores" formatted="false">NÚCLEOS</string>
@@ -21,4 +21,5 @@
     <string name="native_labs_pulse_ramApp" formatted="false">app</string>
     <string name="native_labs_pulse_ramMapped" formatted="false">arquivo do modelo {{size}} GB</string>
     <string name="native_labs_pulse_ramEngine" formatted="false">motor {{name}}</string>
+    <string name="native_labs_pulse_about" formatted="false">Veja o celular trabalhar: calor, o clock de cada núcleo, a memória e o chip em que o BOAR roda.</string>
 </resources>

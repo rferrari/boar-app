@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_lunar_title" formatted="false">Lunar</string>
-    <string name="native_labs_lunar_body" formatted="false">A lua hoje e neste mês, offline: fase, quanto está iluminada, a próxima lua cheia e nova.</string>
+    <string name="native_labs_lunar_body" formatted="false">A fase da lua hoje, e a próxima lua cheia e nova.</string>
     <string name="native_labs_lunar_lit" formatted="false">{{pct}}% iluminada · dia {{age}} do ciclo</string>
     <string name="native_labs_lunar_nextFull" formatted="false">PRÓXIMA LUA CHEIA</string>
     <string name="native_labs_lunar_nextNew" formatted="false">PRÓXIMA LUA NOVA</string>
@@ -16,4 +16,5 @@
     <string name="native_labs_lunar_phase_waningGibbous" formatted="false">Minguante gibosa</string>
     <string name="native_labs_lunar_phase_lastQuarter" formatted="false">Quarto minguante</string>
     <string name="native_labs_lunar_phase_waningCrescent" formatted="false">Minguante</string>
+    <string name="native_labs_lunar_about" formatted="false">A lua hoje e neste mês, offline: fase, quanto está iluminada, a próxima lua cheia e nova.</string>
 </resources>

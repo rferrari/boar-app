@@ -149,6 +149,26 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
         }
         if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
+        AboutPlugin(lab)
+    }
+}
+
+/**
+ * The same footer on every plugin page (adam, Nov 12): "About this plugin", folded, with the longer explanation the
+ * list's two-sentence line leaves out.
+ */
+@Composable
+private fun AboutPlugin(lab: LabPlugin) {
+    val c = Boar.colors
+    val key = "native.labs.${lab.id}.about"
+    val about = t(key).takeIf { it != key && it.isNotBlank() } ?: return
+    var open by androidx.compose.runtime.saveable.rememberSaveable(lab.id) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(10.dp)).background(c.bgCard), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("ⓘ " + t("native.labs.aboutPlugin"), style = Boar.type.body, color = c.textHeading, modifier = Modifier.weight(1f))
+            Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)
+        }
+        if (open) Text(about, style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp))
     }
 }
 

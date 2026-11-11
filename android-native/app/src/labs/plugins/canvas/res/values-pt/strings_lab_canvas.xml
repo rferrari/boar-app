@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_canvas_title" formatted="false">Canvas</string>
-    <string name="native_labs_canvas_body" formatted="false">Transforme uma resposta num cartão para ler de relance, ou numa pequena ferramenta para mexer. Feito neste celular, offline.</string>
+    <string name="native_labs_canvas_body" formatted="false">Transforma uma resposta num cartão ou numa pequena ferramenta. Feito no celular.</string>
     <string name="native_labs_canvas_intro" formatted="false">Algumas respostas ficam melhores como imagem ou funcionam melhor como ferramenta. Em qualquer resposta, abra o 🧩 e escolha. O modelo que respondeu monta a partir da resposta, depois que ela termina.</string>
     <string name="native_labs_canvas_howCard" formatted="false">📊 Cartão: uma tabela, um gráfico de barras, passos, uma comparação lado a lado ou fatos principais, desenhados pelo BOAR.</string>
     <string name="native_labs_canvas_howWidget" formatted="false">🧪 Tornar interativo (embaixo de um cartão): uma pequena página, como um conversor, um quiz ou um controle deslizante. Mais lento que o cartão. Modelos pequenos erram muito; modelos maiores se saem melhor.</string>
@@ -43,4 +43,5 @@
     <string name="native_labs_canvas_withMore" formatted="false">com respostas anteriores ou fontes</string>
     <string name="native_labs_canvas_unpaired" formatted="false">Um número do visual pertence a outro item da resposta, então o BOAR descartou.</string>
     <string name="native_labs_canvas_interactive" formatted="false">Tornar interativo · mais lento</string>
+    <string name="native_labs_canvas_about" formatted="false">Transforme uma resposta num cartão para ler de relance, ou numa pequena ferramenta para mexer. Feito neste celular, offline.</string>
 </resources>

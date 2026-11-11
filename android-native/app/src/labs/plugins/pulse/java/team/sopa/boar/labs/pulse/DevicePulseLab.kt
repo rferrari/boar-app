@@ -125,7 +125,9 @@ object DevicePulseLab : LabPlugin {
         }
         val s = now ?: return
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.pulse.heat")) {
+            // Heat and battery side by side (adam, Nov 12): heat takes three quarters, battery one.
+            Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Card(t("native.labs.pulse.heat"), Modifier.weight(3f).fillMaxHeight()) {
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(s.tempC?.let { String.format(Locale.US, "%.1f °C", it) } ?: "—", style = Boar.type.headline, color = heatColor(s.tempC), fontWeight = FontWeight.ExtraBold)
                     Text(thermalLabel(s.thermal), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(bottom = 4.dp))
@@ -134,10 +136,25 @@ object DevicePulseLab : LabPlugin {
                 Text(t("native.labs.pulse.heatNote", "min" to (temps.minOrNull()?.let { String.format(Locale.US, "%.1f", it) } ?: "—"),
                     "max" to (temps.maxOrNull()?.let { String.format(Locale.US, "%.1f", it) } ?: "—"), "seconds" to temps.size), style = Boar.type["mono.xs"], color = c.textDim)
             }
-            Card(t("native.labs.pulse.cores")) {
-                s.coresMhz.forEachIndexed { i, mhz ->
-                    val max = s.coresMaxMhz.getOrNull(i)
-                    Meter("cpu$i", mhz?.let { "$it MHz" } ?: "—", if (mhz != null && max != null && max > 0) mhz.toFloat() / max else 0f, c.cyan400)
+            Card(t("native.labs.pulse.battery"), Modifier.weight(1f).fillMaxHeight()) {
+                Text(s.batteryPct?.let { "$it%" } ?: "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
+                if (s.charging) Text("⚡", style = Boar.type.title, color = c.textAccentAmber)
+            }
+            }
+            // The cores as vertical bars, side by side (adam, Nov 12): the unit said once in the title, each bar its GHz and number.
+            Card(t("native.labs.pulse.cores") + " · GHz") {
+                Row(Modifier.fillMaxWidth().height(110.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
+                    s.coresMhz.forEachIndexed { i, mhz ->
+                        val max = s.coresMaxMhz.getOrNull(i)
+                        val frac = if (mhz != null && max != null && max > 0) mhz.toFloat() / max else 0f
+                        Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(mhz?.let { String.format(Locale.US, "%.1f", it / 1000.0) } ?: "—", style = Boar.type["mono.xs"], color = c.textSecondary, maxLines = 1, softWrap = false)
+                            Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(3.dp)).background(Boar.colors.track(0.4f)), contentAlignment = Alignment.BottomCenter) {
+                                Box(Modifier.fillMaxWidth().fillMaxHeight(frac.coerceIn(0f, 1f)).background(c.cyan400))
+                            }
+                            Text("$i", style = Boar.type["mono.xs"], color = c.textMuted)
+                        }
+                    }
                 }
             }
             Card(t("native.labs.pulse.memory")) {
@@ -152,7 +169,6 @@ object DevicePulseLab : LabPlugin {
             Card(t("native.labs.pulse.chip")) {
                 Line(t("native.labs.pulse.engine"), BoarEngine.loadedVariant ?: "—")
                 Line(t("native.labs.pulse.features"), CpuVariants.readFeatures().filter { it in KEY_FEATURES }.sorted().joinToString(" ").ifEmpty { "—" })
-                Line(t("native.labs.pulse.battery"), (s.batteryPct?.let { "$it%" } ?: "—") + if (s.charging) " ⚡" else "")
                 Line(t("native.labs.pulse.device"), "${Build.MANUFACTURER} ${Build.MODEL} · ${socName()}")
             }
             Text(t("native.labs.pulse.tip"), style = Boar.type.caption, color = c.textMuted)
@@ -183,9 +199,9 @@ object DevicePulseLab : LabPlugin {
     }
 
     @Composable
-    private fun Card(title: String, content: @Composable () -> Unit) {
+    private fun Card(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
         val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
+        Column(modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             content()

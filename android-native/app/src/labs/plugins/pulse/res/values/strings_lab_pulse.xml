@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_pulse_title" formatted="false">Vitals</string>
-    <string name="native_labs_pulse_body" formatted="false">Watch your phone work: heat, every core\'s clock, memory and the chip BOAR runs on.</string>
+    <string name="native_labs_pulse_body" formatted="false">Watch your phone work: heat, battery, cores and memory.</string>
     <string name="native_labs_pulse_heat" formatted="false">HEAT</string>
     <string name="native_labs_pulse_heatNote" formatted="false">last {{seconds}} s · min {{min}} °C · max {{max}} °C</string>
     <string name="native_labs_pulse_cores" formatted="false">CORES</string>
@@ -21,4 +21,5 @@
     <string name="native_labs_pulse_ramApp" formatted="false">app</string>
     <string name="native_labs_pulse_ramMapped" formatted="false">model file {{size}} GB</string>
     <string name="native_labs_pulse_ramEngine" formatted="false">{{name}} engine</string>
+    <string name="native_labs_pulse_about" formatted="false">Watch your phone work: heat, every core\'s clock, memory and the chip BOAR runs on.</string>
 </resources>

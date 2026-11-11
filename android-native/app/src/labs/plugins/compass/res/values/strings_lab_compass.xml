@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_compass_title" formatted="false">Nomad</string>
-    <string name="native_labs_compass_body" formatted="false">A compass from the phone\'s own sensors, offline, no location needed.</string>
+    <string name="native_labs_compass_body" formatted="false">A compass from your phone\'s sensors. No location needed.</string>
     <string name="native_labs_compass_noSensor" formatted="false">This phone has no magnetometer, so it can\'t show a compass.</string>
     <string name="native_labs_compass_calibrate" formatted="false">Low accuracy: move the phone in a figure 8 a few times, away from metal and magnets.</string>
     <string name="native_labs_compass_note" formatted="false">Points to magnetic north, worked out on this phone with no internet. True north differs by a few degrees depending on where you are; it would need your location, which BOAR doesn\'t ask for. Hold the phone flat.</string>
@@ -13,4 +13,5 @@
     <string name="native_labs_compass_dir_sw" formatted="false">SW</string>
     <string name="native_labs_compass_dir_w" formatted="false">W</string>
     <string name="native_labs_compass_dir_nw" formatted="false">NW</string>
+    <string name="native_labs_compass_about" formatted="false">A compass from the phone\'s own sensors, offline, no location needed.</string>
 </resources>

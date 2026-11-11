@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_staged_title" formatted="false">Staged answers</string>
-    <string name="native_labs_staged_body" formatted="false">The answer arrives in steps: what the sources say first, then a short answer, then the details, then a check of the numbers. Stop whenever you have enough.</string>
+    <string name="native_labs_staged_body" formatted="false">Answers in steps: the sources first, then the answer. Stop when you have enough.</string>
     <string name="native_labs_staged_steps" formatted="false">THE STEPS</string>
     <string name="native_labs_staged_stepsList" formatted="false">1. From the sources: the sentences that answer your question, quoted, before the model has even loaded. Tap one for its passage and the whole article.\n2. A short answer: two or three sentences.\n3. More sources: a second search with what the short answer said.\n4. The details: what the short answer left out, from every source.\n5. The check: each number in the answer must be in a source; the ones that aren\'t are listed under it.\nStop at any step: what is on screen is kept as the answer.</string>
     <string name="native_labs_staged_try" formatted="false">TRY</string>
@@ -9,4 +9,5 @@
     <string name="native_labs_staged_example2" formatted="false">How tall is Mount Everest, and who climbed it first?</string>
     <string name="native_labs_staged_example3" formatted="false">What causes the seasons?</string>
     <string name="native_labs_staged_note" formatted="false">Only for the normal answer: Local Files, Deep Research and small talk answer as usual. A health question stays short (no details step), and its quotes always show with their passages. Each answer\'s details list when each step showed up.</string>
+    <string name="native_labs_staged_about" formatted="false">The answer arrives in steps: what the sources say first, then a short answer, then the details, then a check of the numbers. Stop whenever you have enough.</string>
 </resources>

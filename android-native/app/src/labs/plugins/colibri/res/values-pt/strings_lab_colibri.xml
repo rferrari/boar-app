@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_colibri_title" formatted="false">Boar Wisp</string>
-    <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B no colibri, um motor minúsculo em C puro: um quarto dos especialistas de cada camada fica na memória, o resto vem do armazenamento.</string>
+    <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B num motor minúsculo em C que lê os especialistas do armazenamento.</string>
     <string name="native_labs_colibri_engine" formatted="false">MOTOR</string>
     <string name="native_labs_colibri_engineOk" formatted="false">O colibri está nesta versão</string>
     <string name="native_labs_colibri_engineMissing" formatted="false">Não está nesta versão: estacionado enquanto está em revisão</string>
@@ -13,4 +13,5 @@
     <string name="native_labs_colibri_note" formatted="false">Sem raciocínio, só inglês e um modelo pequeno: mais um experimento de motor do que um assistente. O roteamento adaptativo fica desligado enquanto ele estiver selecionado.</string>
     <string name="native_labs_colibri_review" formatted="false">Lento demais para um assistente nos nossos celulares de teste: uma resposta curta leva minutos. O Big Boar roda um modelo 5× maior, mais rápido. Estacionado enquanto está em revisão: o motor não está nesta versão.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">menos de 1 tok/s</string>
+    <string name="native_labs_colibri_about" formatted="false">OLMoE-1B-7B no colibri, um motor minúsculo em C puro: um quarto dos especialistas de cada camada fica na memória, o resto vem do armazenamento.</string>
 </resources>

@@ -20,7 +20,7 @@
     <string name="native_labs_image_phase_decoding" formatted="false">Finishing the picture…</string>
     <string name="native_labs_image_delete" formatted="false">Delete</string>
     <string name="native_labs_image_gallery" formatted="false">ON THIS PHONE</string>
-    <string name="native_labs_image_body" formatted="false">Draw an illustration from a few words, offline, on this phone.</string>
+    <string name="native_labs_image_body" formatted="false">Draws a picture from a few words, on this phone.</string>
     <string name="native_labs_image_fromChat" formatted="false">↳ From your last chat: “{{title}}”</string>
     <string name="native_labs_image_setDefault" formatted="false">★ Make {{combo}} my default, also in the chat</string>
     <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} is your default, also for 🎨 in the chat</string>
@@ -72,4 +72,5 @@
     <string name="native_labs_image_reset" formatted="false">Reset</string>
     <string name="native_labs_image_drawPicked" formatted="false">Draw · {{style}}, {{size}}</string>
     <string name="native_labs_image_details" formatted="false">Details</string>
+    <string name="native_labs_image_about" formatted="false">Draw an illustration from a few words, offline, on this phone.</string>
 </resources>

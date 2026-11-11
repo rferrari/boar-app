@@ -20,7 +20,7 @@
     <string name="native_labs_image_phase_decoding" formatted="false">Finalizando a imagem…</string>
     <string name="native_labs_image_delete" formatted="false">Apagar</string>
     <string name="native_labs_image_gallery" formatted="false">NESTE CELULAR</string>
-    <string name="native_labs_image_body" formatted="false">Desenhe uma ilustração com poucas palavras, offline, neste celular.</string>
+    <string name="native_labs_image_body" formatted="false">Desenha uma imagem com poucas palavras, no celular.</string>
     <string name="native_labs_image_fromChat" formatted="false">↳ Da sua última conversa: “{{title}}”</string>
     <string name="native_labs_image_setDefault" formatted="false">★ Usar {{combo}} como padrão, também na conversa</string>
     <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} é seu padrão, também no 🎨 da conversa</string>
@@ -72,4 +72,5 @@
     <string name="native_labs_image_reset" formatted="false">Redefinir</string>
     <string name="native_labs_image_drawPicked" formatted="false">Desenhar · {{style}}, {{size}}</string>
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
+    <string name="native_labs_image_about" formatted="false">Desenhe uma ilustração com poucas palavras, offline, neste celular.</string>
 </resources>
