@@ -34,13 +34,37 @@ object Sketch {
         }
     }
 
+    /** How long a stroke stays drawn before it starts to fade, and how long the fade takes (seconds). */
+    const val HOLD_S = 4.0
+    const val FADE_S = 1.2
+
     /**
-     * How much of each stroke shows at [seconds] (0..1), within the cycle. [still]: animations off, a calm half-drawn
-     * frame that doesn't change.
+     * Each stroke at [seconds], written into [progress] (how much is drawn, 0..1) and [alpha] (0..1), with no allocation:
+     * every stroke runs its own draw, hold and fade on a [CYCLE_S] period from its own start, and the starts are spread
+     * over the cycle, so some strokes draw while others fade and the loop never restarts all at once (adam, Nov 12).
+     * [still]: animations off, one calm frame.
      */
+    fun frame(strokes: List<Stroke>, seconds: Double, still: Boolean, progress: FloatArray, alpha: FloatArray) {
+        val t = if (still) CYCLE_S * 0.5 else seconds
+        for (i in strokes.indices) {
+            val s = strokes[i]
+            if (t < s.start) { progress[i] = 0f; alpha[i] = 0f; continue }
+            val local = (t - s.start) % CYCLE_S
+            progress[i] = (local / s.draw).coerceIn(0.0, 1.0).toFloat()
+            val fadeAt = s.draw + HOLD_S
+            alpha[i] = when {
+                local < fadeAt -> 1f
+                local < fadeAt + FADE_S -> (1.0 - (local - fadeAt) / FADE_S).toFloat()
+                else -> 0f
+            }
+        }
+    }
+
+    /** [frame] as new lists, for tests and one-off use. */
     fun progress(strokes: List<Stroke>, seconds: Double, still: Boolean): List<Float> {
-        val t = if (still) CYCLE_S * 0.5 else seconds % CYCLE_S
-        return strokes.map { s -> ((t - s.start) / s.draw).coerceIn(0.0, 1.0).toFloat() }
+        val p = FloatArray(strokes.size); val a = FloatArray(strokes.size)
+        frame(strokes, seconds, still, p, a)
+        return p.indices.map { p[it] * a[it] }
     }
 
     /** The ink and paper for a style key (ImageLab.Style): dark ink on paper for the drawn styles, light lines on dark for the night ones. */

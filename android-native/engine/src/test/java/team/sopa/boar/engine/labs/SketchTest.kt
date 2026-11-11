@@ -32,4 +32,31 @@ class SketchTest {
         assertTrue(wait.contains("LabPrefs.WAIT_MATRIX) MatrixRain(") && wait.contains("ANIMATOR_DURATION_SCALE"))
         assertTrue(wait.contains("fun revealMs(): Int = if (animationsOff()) 0 else REVEAL_MS"))
     }
+
+    @Test fun `the loop never restarts all at once, past the first seconds there is always ink, and no frame jumps`() {
+        val s = Sketch.strokes()
+        val p = FloatArray(s.size); val a = FloatArray(s.size)
+        var last = -1f
+        var t = 3.0
+        while (t < Sketch.CYCLE_S * 4) {
+            Sketch.frame(s, t, still = false, progress = p, alpha = a)
+            val ink = p.indices.sumOf { (p[it] * a[it]).toDouble() }.toFloat()
+            assertTrue("no ink at $t", ink > 1f)
+            // 60 fps: from one frame to the next the total ink moves only a little (no reset frame at the seam).
+            if (last >= 0f) assertTrue("jump at $t: $last -> $ink", kotlin.math.abs(ink - last) < 0.6f)
+            last = ink
+            t += 1.0 / 60
+        }
+    }
+
+    @Test fun `the frame writes into the given arrays and allocates no list`() {
+        val code = java.io.File("src/main/java/team/sopa/boar/engine/labs/Sketch.kt").readText()
+        val frame = code.substringAfter("fun frame(").substringBefore("\n    }\n")
+        assertTrue(!frame.contains("map {") && !frame.contains("List(") && !frame.contains("listOf("))
+    }
+
+    @Test fun `the sketch sits on a dark background with light ink tinted by the style`() {
+        val wait = java.io.File("../app/src/labs/java/team/sopa/boar/labs/SketchWait.kt").readText()
+        assertTrue(wait.contains("background(Color.Black)") && wait.contains("lerp(Color(palette.ink), Color.White"))
+    }
 }
