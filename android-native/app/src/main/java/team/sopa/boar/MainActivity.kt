@@ -299,14 +299,16 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         team.sopa.boar.labs.LabHooks.Screen(screen) { if (it == "chat") vm.refreshSettings(); screen = it }
         return
     }
-    if (screen == "about") {
-        BackHandler { screen = "chat" }
-        AboutScreen { screen = "chat" }
+    if (screen == "about" || screen == "about:settings") {
+        // From Settings' About row, Done goes back to Settings; from the menu, to the chat.
+        val back = if (screen == "about:settings") "settings" else "chat"
+        BackHandler { screen = back }
+        AboutScreen { screen = back }
         return
     }
     if (screen == "settings") {
         BackHandler { vm.refreshSettings(); screen = "chat" }
-        SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { screen = it }) { vm.refreshSettings(); screen = "chat" }
+        SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { screen = if (it == "about") "about:settings" else it }) { vm.refreshSettings(); screen = "chat" }
         return
     }
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -367,7 +369,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                     items = listOf(
                         DrawerItem("knowledge", t("nav.knowledge")) { go { screen = "documents" } },
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
-                        DrawerItem("settings", t("chatScreen.drawerItems.settings")) { go { screen = "settings" } },
                         DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
                     ).let { items ->
                         // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
@@ -380,6 +381,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         items.filter { it.key !in last } + labs + items.filter { it.key in last }
                     },
                     onAbout = { go { screen = "about" } },
+                    onSettings = { go { screen = "settings" } },
                     storageUsed = { services.storageUsedBytes() },
                     downloading = { team.sopa.boar.engine.models.AssetStore.downloadingBytes(services.filesDir) },
                     storageBudgetBytes = team.sopa.boar.engine.models.StorageBudget.limit(services.catalog.storageBudgetBytes),

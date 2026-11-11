@@ -74,6 +74,8 @@ fun BoarDrawer(
     onDelete: (String) -> Unit,
     /** The BOAR mark and name at the top open About. */
     onAbout: () -> Unit = {},
+    /** The gear beside the BOAR name (adam, Nov 11): Settings left the list below. */
+    onSettings: () -> Unit = {},
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxHeight().widthIn(max = 310.dp).background(c.bgCardElevated).statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp).padding(top = 16.dp)) {
@@ -81,13 +83,19 @@ fun BoarDrawer(
         // it, so the menu doesn't move when the sessions load.
         Column(Modifier.weight(1f)) {
             val aboutLabel = t("chatScreen.drawerItems.about")
+            Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(bottom = 16.dp).clip(RoundedCornerShape(10.dp)).clickable(onClickLabel = aboutLabel, onClick = onAbout)) {
+                modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable(onClickLabel = aboutLabel, onClick = onAbout)) {
                 Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(team.sopa.boar.appearance.LocalTruffle.current, R.drawable.boar)), aboutLabel, Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)))
                 Column {
                     Text("BOAR", style = Boar.type.title, color = c.textHeading)
                     Text(t("drawer.subtitle"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textAccentEmerald, modifier = Modifier.padding(top = 1.dp))
                 }
+            }
+            val settingsLabel = t("chatScreen.drawerItems.settings")
+            Box(Modifier.size(48.dp).clip(androidx.compose.foundation.shape.CircleShape).clickable(onClickLabel = settingsLabel, onClick = onSettings), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(painterResource(team.sopa.boar.R.drawable.ic_style_custom), settingsLabel, Modifier.size(24.dp), tint = c.textHeading)
+            }
             }
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp).clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
                 .alpha(if (answering) 0.4f else 1f).clickable(enabled = !answering, onClick = onNewChat).padding(horizontal = 12.dp, vertical = 10.dp),

@@ -720,4 +720,5 @@
     <string name="native_chat_clearQueue" formatted="false">Clear queue</string>
     <string name="native_chat_queueNote" formatted="false">They run one at a time, after this answer.</string>
     <string name="native_chat_queueSend" formatted="false">Send to the queue</string>
+    <string name="native_chat_toBottom" formatted="false">Go to the latest answer</string>
 </resources>

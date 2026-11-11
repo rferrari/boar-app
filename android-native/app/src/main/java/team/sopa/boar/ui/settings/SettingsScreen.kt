@@ -133,6 +133,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (shown(SettingsPart.TWEAKS)) TweaksSection(services, tech, shown(SettingsPart.TECHNICAL_DETAILS), { tech = it }, onOpen)
             if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen)
             if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
+            // The last row, in every profile: About BOAR (also on the BOAR mark in the menu).
+            LinkButton(t("chatScreen.drawerItems.about") + " ›") { onOpen("about") }
         }
     }
 }

@@ -694,4 +694,5 @@
     <string name="flows_knowledge_topicPacksTitle" formatted="false">BOAR Knowledge</string>
     <string name="flows_knowledge_topicPacksFooter" formatted="false">Collections on one subject, readable without internet. Each file is checked before use.</string>
     <string name="nav_knowledge" formatted="false">Knowledge</string>
+    <string name="chatHeader_offlineReady" formatted="false">Offline ready</string>
 </resources>

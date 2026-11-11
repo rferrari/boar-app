@@ -166,13 +166,23 @@ fun ChatScreen(
                     EmptyState(state.suggestions, onAsk = { send(it) }, onFill = { input = it })
                 }
             } else {
+                Box(Modifier.weight(1f).fillMaxWidth()) {
                 LazyColumn(
                     // A readable line length on a wide screen (landscape, tablets), centred; a phone held upright is narrower.
-                    Modifier.weight(1f).background(researchTint).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
+                    Modifier.fillMaxSize().background(researchTint).widthIn(max = MAX_CHAT_WIDTH).align(Alignment.TopCenter), state = list,
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource) }
+                }
+                // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                if (list.canScrollForward) Box(
+                    Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 12.dp).size(44.dp).clip(CircleShape)
+                        .background(c.bgCardElevated).border(1.dp, c.borderElevated, CircleShape)
+                        .clickable(onClickLabel = t("native.chat.toBottom")) { scope.launch { list.animateScrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2) } },
+                    contentAlignment = Alignment.Center,
+                ) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_down, 22.dp, c.textHeading, description = t("native.chat.toBottom")) }
                 }
             }
             if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)
@@ -183,6 +193,9 @@ fun ChatScreen(
         }
     }
 }
+
+/** The answer's ▲ ▼ rating, hidden until ratings are used for something (adam, Nov 11). */
+private const val SHOW_RATING = false
 
 /** The chat column's widest: about 75 characters of body text. */
 private val MAX_CHAT_WIDTH = 720.dp
@@ -229,7 +242,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                        StatusPill(state.online)
+                        ConnectionDot(state.online)
                     }
                     // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
                     val headerModel = team.sopa.boar.engine.chat.HeaderModel.label(state.answeringId != null, state.answeringModel, state.modelLabel)
@@ -238,7 +251,6 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
-                DeepResearchButton(state.deepResearch, onSetDeepResearch)
                 RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
             }
         }
@@ -261,36 +273,6 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
 }
 
-/**
- * Deep Research beside New chat: 🔬 lit when on, dim when off. A tap opens what it does and its switch, so it's found
- * and understood in one place (the style sheet has the same switch).
- */
-@Composable
-private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
-    val c = Boar.colors
-    var open by remember { mutableStateOf(false) }
-    Box {
-        RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f), t("personalitySettings.deepResearchTitle"))
-        }
-        androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp)
-                            Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
-                        }
-                        Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
-                    }
-                    androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
-                }
-                Text(t("native.chat.deepResearchExplain"), style = Boar.type.subtext, color = c.textSecondary)
-            }
-        }
-    }
-}
-
 @Composable
 private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content: @Composable () -> Unit) {
     var m = Modifier.size(42.dp).clip(CircleShape).background(bg)
@@ -298,49 +280,32 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
     Box(m.clickable(onClick = onClick), contentAlignment = Alignment.Center) { content() }
 }
 
-/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill. */
+/** The brand's moon blue (brand book: moonlight means no signal), for the offline ring. */
 private val MOON = Color(0xFF9EC7F0)
 
+/**
+ * The connection, quietly (adam, Nov 11): a small dot, moon-blue ring offline, a muted filled dot online. BOAR doesn't
+ * need the internet, so it no longer draws attention. A tap says what the connection is used for. The words "Offline
+ * ready" show beside it until the user has seen them once (first launch).
+ */
 @Composable
-private fun StatusPill(online: Boolean) {
+private fun ConnectionDot(online: Boolean) {
     val c = Boar.colors
-    // The word shows only when it fits: with Large text and Labs badges the header is tight ("ONLIN / E", then "ONL").
-    // Without room the pill is just its dot. Told apart by hue and by shape (Oct 16, both were yellow in Moonlight):
-    // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
-    var fits by remember { mutableStateOf(true) }
-    val tint = if (online) c.amber400 else MOON
-    // One warm glow when the signal comes back (OFFLINE to ONLINE), then the pill rests: not at app start, never
-    // repeating, and none when Android's animations are off (Settings, Accessibility, Remove animations).
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val glow = remember { androidx.compose.animation.core.Animatable(0f) }
-    var was by remember { mutableStateOf(online) }
-    LaunchedEffect(online) {
-        val back = online && !was
-        was = online
-        if (!back) { glow.snapTo(0f); return@LaunchedEffect }
-        val animOff = android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-        if (animOff) return@LaunchedEffect
-        glow.animateTo(1f, androidx.compose.animation.core.tween(250))
-        glow.animateTo(0f, androidx.compose.animation.core.tween(1200))
+    val prefs = remember { ctx.getSharedPreferences("ui_once", android.content.Context.MODE_PRIVATE) }
+    val firstTime = remember { !prefs.getBoolean("offlineReadySeen", false) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { if (firstTime) prefs.edit().putBoolean("offlineReadySeen", true).apply() } }
+    var info by remember { mutableStateOf(false) }
+    val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
+    Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { info = true }.padding(horizontal = 6.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.textDim, CircleShape) else Modifier.border(1.5.dp, MOON, CircleShape)))
+        if (firstTime) Text(t("chatHeader.offlineReady"), style = Boar.type["mono.xs"], color = c.textMuted, maxLines = 1, softWrap = false)
     }
-    Row(
-        Modifier.drawBehind {
-            val g = glow.value
-            if (g > 0f) drawRoundRect(
-                brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                    listOf(c.amber400.copy(alpha = 0.55f * g), Color.Transparent), center = center, radius = size.maxDimension * 0.9f),
-                topLeft = androidx.compose.ui.geometry.Offset(-size.width * 0.35f, -size.height * 1.2f),
-                size = androidx.compose.ui.geometry.Size(size.width * 1.7f, size.height * 3.4f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height * 1.7f))
-        }.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
-            .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        Box(Modifier.size(5.dp).background(tint, CircleShape))
-        if (fits) Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
-            fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false,
-            onTextLayout = { if (it.hasVisualOverflow) fits = false })
-    }
+    if (info) androidx.compose.material3.AlertDialog(onDismissRequest = { info = false }, containerColor = c.bgCardElevated,
+        confirmButton = { androidx.compose.material3.TextButton({ info = false }) { Text(t("common.done"), color = c.textAccentCyan) } },
+        title = { Text(label.lowercase().replaceFirstChar { it.uppercase() }, style = Boar.type.title, color = c.textHeading) },
+        text = { Text(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody"), style = Boar.type.body, color = c.textSecondary) })
 }
 
 @Composable
@@ -350,7 +315,7 @@ private fun DeepResearchBanner(onClose: () -> Unit) {
         team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 12.dp, c.frontierText)
         Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
-        // Closed for good: the header chip still shows Deep Research is on.
+        // Closed for good: the input's border and the chat's tint still show Deep Research is on (no header button since Nov 11).
         Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
             team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText, description = t("native.a11y.close"))
         }
@@ -620,8 +585,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
-                    FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
+                    // Rating hidden (adam, Nov 11): nothing uses ratings yet. The code stays for when something does.
+                    if (SHOW_RATING) {
+                        FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
+                        FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
+                    }
                     // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
                     Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
