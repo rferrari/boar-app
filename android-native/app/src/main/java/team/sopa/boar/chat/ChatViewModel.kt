@@ -955,6 +955,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearQueue() { queue.clear(); publishQueue() }
 
+    /** The waiting questions become one, answered together (adam, Nov 12). */
+    fun mergeQueue() { if (queue.merge()) publishQueue() }
+
     /**
      * Stops a title or summary still being written, as ChatScreen.tsx does (cancelBackgroundTask), instead of making the
      * question wait for it: a summary reads every older turn first, which on a slow phone held the next question for tens

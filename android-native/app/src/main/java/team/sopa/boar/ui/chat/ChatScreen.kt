@@ -131,6 +131,7 @@ fun ChatScreen(
     /** The queue's ✕ and Clear queue. */
     onRemoveQueued: (Long) -> Unit = {},
     onClearQueue: () -> Unit = {},
+    onMergeQueue: () -> Unit = {},
 ) {
     val c = Boar.colors
     val list = rememberLazyListState()
@@ -191,7 +192,7 @@ fun ChatScreen(
                 ) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_down, 22.dp, c.textHeading, description = t("native.chat.toBottom")) }
                 }
             }
-            if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)
+            if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue, onMergeQueue)
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
@@ -848,17 +849,21 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
 
 /** The questions waiting their turn, above the input: "Waiting 1 · …" with ✕ each, and Clear queue. */
 @Composable
-private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove: (Long) -> Unit, onClear: () -> Unit) {
+private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove: (Long) -> Unit, onClear: () -> Unit, onMerge: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(t("native.chat.queueNote"), style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.weight(1f))
-            Text(t("native.chat.clearQueue"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                modifier = Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(4.dp)).clickable(onClick = onClear).padding(horizontal = 6.dp, vertical = 4.dp))
+            // Icons (adam, Nov 12): merge the waiting questions into one (two or more), and clear the queue.
+            if (queued.size >= 2) Text("⇉", style = Boar.type.title, color = c.textAccentCyan,
+                modifier = Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable(onClickLabel = t("native.chat.mergeQueue"), onClick = onMerge).padding(6.dp))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textMuted,
+                Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable(onClickLabel = t("native.chat.clearQueue"), onClick = onClear).padding(6.dp), t("native.chat.clearQueue"))
         }
         queued.forEachIndexed { i, q ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("⏳ " + t("native.chat.waiting", "n" to i + 1), style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+                // Just the hourglass and the place in line (adam, Nov 12): "⏳ 1", not "Waiting 1" on every row.
+                Text("⏳ ${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
                 Text(q.text, style = Boar.type.caption, color = c.textSecondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                 Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable { onRemove(q.id) }.padding(6.dp))
             }

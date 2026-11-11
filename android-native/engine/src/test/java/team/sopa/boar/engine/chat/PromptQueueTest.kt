@@ -47,4 +47,14 @@ class PromptQueueTest {
         q.pushFront(first)
         assertEquals(listOf("a", "b", "c"), q.waiting.map { it.text })
     }
+
+    @Test fun `merge turns the waiting questions into one, numbered, in their language`() {
+        val q = PromptQueue()
+        q.add("Why is the sky blue?"); q.add("How far is the sun?"); q.add("What is a nebula?")
+        assertTrue(q.merge())
+        val one = q.waiting.single().text
+        assertTrue(one, one.startsWith("Answer these questions together") && one.contains("1. Why is the sky blue?") && one.contains("3. What is a nebula?"))
+        assertFalse(q.merge())
+        assertTrue(PromptMerge.of(listOf("Por que o céu é azul?", "Qual a distância até o sol?")).startsWith("Responda a estas perguntas juntas"))
+    }
 }

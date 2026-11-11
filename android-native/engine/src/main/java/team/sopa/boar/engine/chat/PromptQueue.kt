@@ -34,5 +34,13 @@ class PromptQueue(val limit: Int = LIMIT) {
 
     fun clear() = items.clear()
 
+    /** The waiting questions as one (PromptMerge), first in line; false with fewer than two. */
+    fun merge(): Boolean {
+        if (items.size < 2) return false
+        val one = Item(nextId++, PromptMerge.of(items.map { it.text }))
+        items.clear(); items += one
+        return true
+    }
+
     companion object { const val LIMIT = 5 }
 }

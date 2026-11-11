@@ -43,13 +43,13 @@ class MessageQueueWiringTest {
         assertTrue(!screen.contains("if (answering && canSend) Box("))
         assertTrue(screen.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); if (answering) resting = true } }"))
         assertTrue(screen.contains("private const val SEND_REST_MS = 500L"))
-        assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue)"))
+        assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue, onMergeQueue)"))
     }
 
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
-            for (k in listOf("queueFull", "queueDropped", "queueDroppedNote", "waiting", "clearQueue", "queueNote")) assertTrue("$d $k", s.contains("name=\"native_chat_$k\""))
+            for (k in listOf("queueFull", "queueDropped", "queueDroppedNote", "mergeQueue", "clearQueue", "queueNote")) assertTrue("$d $k", s.contains("name=\"native_chat_$k\""))
         }
     }
 
@@ -72,5 +72,11 @@ class MessageQueueWiringTest {
         assertTrue(vm.contains("else if (loaded) runNext(fresh = true)"))
         for (f in listOf("fun dismissLoadNote()", "fun openedCatalog()")) assertTrue(f, vm.substringAfter(f).substringBefore("\n    }").contains("dropQueueWithNote()"))
         assertTrue(vm.contains("if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)"))
+    }
+
+    @Test fun `each waiting row is the hourglass and its number, clear and merge are icons`() {
+        assertTrue(screen.contains("Text(\"⏳ \${i + 1}\""))
+        assertTrue(screen.contains("onClickLabel = t(\"native.chat.mergeQueue\"), onClick = onMerge") && screen.contains("if (queued.size >= 2) Text(\"⇉\""))
+        assertTrue(vm.contains("fun mergeQueue() { if (queue.merge()) publishQueue() }"))
     }
 }
