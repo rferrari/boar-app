@@ -124,8 +124,29 @@ private fun sizeLabel(s: HfQuery.Size): String = when (s) {
 }
 
 @Composable
-internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
+internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) = ChipRow(label, options, selected, false, onSelect)
+
+@Composable
+internal fun <T> ChipRow(label: String, options: List<Pair<T, String>>, selected: T, sideways: Boolean, onSelect: (T) -> Unit) {
     val c = Boar.colors
+    // [sideways] (Designer's sheet, adam Nov 11): the label above, the chips in one row that scrolls, with room at both
+    // ends so the first and last chips aren't cut at the edge.
+    if (sideways) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(label, style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp)) {
+                items(options.size) { i ->
+                    val (value, text) = options[i]
+                    val on = value == selected
+                    Text(text, style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
+                        modifier = Modifier.background(if (on) c.emerald600 else c.bgCard, RoundedCornerShape(16.dp))
+                            .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(16.dp))
+                            .clickable { onSelect(value) }.padding(horizontal = 12.dp, vertical = 9.dp))
+                }
+            }
+        }
+        return
+    }
     // Wraps: scrolling sideways cut the first and last chips at the edges (Large text, Oct 15).
     @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

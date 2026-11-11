@@ -309,9 +309,17 @@ fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit)
     val labs = LabRegistry.visible
     Shell(t("native.labs.title"), onClose) {
         Text(t("native.labs.listNote"), style = Boar.type.caption, color = c.textMuted)
-        val (open, classified) = labs.partition { LabRegistry.opened(it) != null }
+        // Search (adam, Nov 11): by name or the line under it; the teasers hide while searching.
+        var query by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+        androidx.compose.foundation.text.BasicTextField(query, { query = it }, singleLine = true,
+            textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = androidx.compose.ui.graphics.SolidColor(c.textAccentEmerald),
+            modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderElevated, RoundedCornerShape(8.dp)).padding(12.dp),
+            decorationBox = { inner -> if (query.isEmpty()) Text(t("native.labs.search"), style = Boar.type.body, color = c.textMuted); inner() })
+        val (allOpen, classified) = labs.partition { LabRegistry.opened(it) != null }
+        val open = allOpen.filter { team.sopa.boar.engine.labs.RecentPlugins.matches(query, t("native.labs.${it.id}.title"), t("native.labs.${it.id}.body")) }
         for (lab in open) LabRow(lab, onOpen)
-        if (classified.isNotEmpty()) {
+        if (open.isEmpty()) Text(t("native.labs.searchNone"), style = Boar.type.caption, color = c.textMuted)
+        if (classified.isNotEmpty() && query.isBlank()) {
             Text(t("native.labs.section.testing"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
             for (lab in classified) Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {

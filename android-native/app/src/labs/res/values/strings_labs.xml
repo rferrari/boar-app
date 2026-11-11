@@ -45,4 +45,6 @@
     <string name="native_labs_wait_setting" formatted="false">Waiting animation</string>
     <string name="native_labs_wait_trail" formatted="false">Boar trail</string>
     <string name="native_labs_wait_matrix" formatted="false">Matrix rain</string>
+    <string name="native_labs_search" formatted="false">Search plugins</string>
+    <string name="native_labs_searchNone" formatted="false">No plugin matches.</string>
 </resources>

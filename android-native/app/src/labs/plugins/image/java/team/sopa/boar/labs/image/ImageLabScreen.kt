@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -126,19 +128,23 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
                 var details by remember(a.id) { mutableStateOf(false) }
                 val style = st.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } }
                 Picture(st.file, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)).clickable { details = !details })
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🎨 " + st.subject, style = Boar.type["mono.xs"], color = c.textSecondary, modifier = Modifier.weight(1f, fill = false))
-                    if (style != null && style != ImageLab.Style.NONE) Text(t("native.labs.image.style.${style.key}"), style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = c.textAccentCyan,
-                        modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 2.dp))
-                    Text("ⓘ", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { details = !details }.padding(4.dp))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.clickable { Illustrator.forget(a.id) }.padding(4.dp))
+                // Only ⓘ and ✕ under the picture (adam, Nov 11); what was drawn, the style, the prompt, size, seed and time are in ⓘ.
+                Row(Modifier.widthIn(max = 240.dp).fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    Text("ⓘ", style = Boar.type.body, color = if (details) c.textAccentCyan else c.textMuted,
+                        modifier = Modifier.clip(CircleShape).clickable(onClickLabel = t("native.labs.image.details")) { details = !details }.padding(horizontal = 12.dp, vertical = 8.dp))
+                    Text("✕", style = Boar.type.body, color = c.textMuted,
+                        modifier = Modifier.clip(CircleShape).clickable(onClickLabel = t("native.a11y.close")) { Illustrator.forget(a.id) }.padding(horizontal = 12.dp, vertical = 8.dp))
                 }
-                if (details) Text(listOfNotNull(
-                    style?.prompt(st.subject) ?: st.subject,
-                    st.size?.let { ImageLab.Canvas.of(it)?.label ?: it },
-                    st.seed?.let { t("native.labs.image.seed", "seed" to it) },
-                    st.seconds?.let { String.format(Locale.US, "%.1f s", it) },
-                ).joinToString(" · "), style = Boar.type["mono.xs"], color = c.textDim)
+                if (details) Column(Modifier.widthIn(max = 240.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("🎨 " + st.subject, style = Boar.type.caption, color = c.textSecondary)
+                    if (style != null && style != ImageLab.Style.NONE) Text(t("native.labs.image.style.${style.key}"), style = Boar.type.caption, color = c.textAccentCyan)
+                    Text(listOfNotNull(
+                        style?.prompt(st.subject) ?: st.subject,
+                        st.size?.let { ImageLab.Canvas.of(it)?.label ?: it },
+                        st.seed?.let { t("native.labs.image.seed", "seed" to it) },
+                        st.seconds?.let { String.format(Locale.US, "%.1f s", it) },
+                    ).joinToString(" · "), style = Boar.type["mono.xs"], color = c.textDim)
+                }
             }
         }
     }
@@ -381,8 +387,8 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
                 onClose(); Illustrator.start(ctx, a, notReady, defStyle, defSize)
             }
             Text(t("native.labs.image.orPick"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 4.dp))
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it) }, style) { style = it }
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.sizeLabel"), (ImageLab.ILLUSTRATE_SIZES + listOf(defSize)).distinct().map { it to it.label }, size) { size = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it) }, style, sideways = true) { style = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.sizeLabel"), (ImageLab.ILLUSTRATE_SIZES + listOf(defSize)).distinct().map { it to it.label }, size, sideways = true) { size = it }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 androidx.compose.material3.Checkbox(keep, { keep = it })
                 Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })

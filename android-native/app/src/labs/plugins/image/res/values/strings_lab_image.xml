@@ -71,4 +71,5 @@
     <string name="native_labs_image_remember" formatted="false">Remember as the default</string>
     <string name="native_labs_image_reset" formatted="false">Reset</string>
     <string name="native_labs_image_drawPicked" formatted="false">Draw · {{style}}, {{size}}</string>
+    <string name="native_labs_image_details" formatted="false">Details</string>
 </resources>

@@ -251,6 +251,8 @@ object LabHooks {
         if (route == "labs") return LabsList(onOpen = go, onTiles = { go(TILES) }) { go("chat") }
         if (route == TILES) return LabsScreen(onOpen = go) { go("labs") }
         val lab = LabRegistry.byId(route.removePrefix("lab:"))
+        // Opening a plugin's page counts as using it (the header's sheet shows the last five used).
+        if (lab != null) androidx.compose.runtime.LaunchedEffect(lab.id) { LabPrefs.used(lab.id) }
         if (lab == null) androidx.compose.runtime.LaunchedEffect(route) { go(backFrom(route)) } else LabScaffold(lab) { go(backFrom(route)) }
     }
 
@@ -259,7 +261,9 @@ object LabHooks {
     @Composable
     fun AnswerActions(a: AnswerRef) {
         Init()
-        val actions = LabRegistry.active.flatMap { it.answerActions(a) }
+        // Each action with its plugin, so a tap counts as using that plugin.
+        val owned = LabRegistry.active.flatMap { lab -> lab.answerActions(a).map { lab.id to it } }
+        val actions = owned.map { it.second }
         if (actions.isEmpty()) return
         val c = team.sopa.boar.ui.theme.Boar.colors
         var open by androidx.compose.runtime.remember(a.id) { androidx.compose.runtime.mutableStateOf(false) }
@@ -270,7 +274,7 @@ object LabHooks {
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
                 actions.forEach { act ->
                     Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
-                        .clickable(enabled = act.enabled) { act.onClick(); open = false }.padding(horizontal = 8.dp, vertical = 12.dp),
+                        .clickable(enabled = act.enabled) { owned.firstOrNull { it.second === act }?.let { LabPrefs.used(it.first) }; act.onClick(); open = false }.padding(horizontal = 8.dp, vertical = 12.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         // The lab's avatar when it has one, else the action's emoji.
                         act.art?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, androidx.compose.ui.Modifier.size(28.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(6.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
@@ -343,7 +347,10 @@ object LabHooks {
             Column(androidx.compose.ui.Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.headerSheet"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
-                labs.forEach { lab ->
+                // The last five used, newest first (adam, Nov 11); the rest are one tap away in Manage plugins (Pro).
+                val recent = LabPrefs.recentIds()
+                val shown = team.sopa.boar.engine.labs.RecentPlugins.pick(labs.map { it.id }, recent).mapNotNull { id -> labs.firstOrNull { it.id == id } }
+                shown.forEach { lab ->
                     Row(androidx.compose.ui.Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
                         .clickable { open = false; go("lab:${lab.id}") }.padding(horizontal = 8.dp, vertical = 10.dp),
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

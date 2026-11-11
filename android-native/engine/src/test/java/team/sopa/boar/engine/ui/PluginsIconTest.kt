@@ -12,8 +12,8 @@ class PluginsIconTest {
         assertTrue(icon.contains("val labs = LabRegistry.active\n        if (labs.isEmpty()) return"))
     }
 
-    @Test fun `the list holds only the labs that are on, each opening its page`() {
-        assertTrue(icon.contains("labs.forEach { lab ->"))
+    @Test fun `the list holds the last five used among the labs that are on, each opening its page`() {
+        assertTrue(icon.contains("RecentPlugins.pick(labs.map { it.id }, recent)") && icon.contains("shown.forEach { lab ->"))
         assertTrue(icon.contains("go(\"lab:\${lab.id}\")"))
     }
 

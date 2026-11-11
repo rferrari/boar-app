@@ -236,6 +236,22 @@ object LabPrefs {
 
     fun string(key: String): String? = prefs?.getString(key, null)
 
+    /** The plugins used last, newest first (RecentPlugins): kept apart from settings, not logged as one. */
+    val recent = androidx.compose.runtime.mutableStateListOf<String>()
+
+    fun used(id: String) {
+        val next = team.sopa.boar.engine.labs.RecentPlugins.used(recent.ifEmpty { string(RECENT)?.split(',')?.filter { it.isNotBlank() }.orEmpty() }, id)
+        recent.clear(); recent.addAll(next)
+        prefs?.edit()?.putString(RECENT, next.joinToString(","))?.apply()
+    }
+
+    fun recentIds(): List<String> {
+        if (recent.isEmpty()) string(RECENT)?.split(',')?.filter { it.isNotBlank() }?.let { recent.addAll(it) }
+        return recent.toList()
+    }
+
+    private const val RECENT = "recent"
+
     fun putString(key: String, value: String) {
         // Measurements the labs keep (image.times.*) are not settings.
         if (!key.startsWith("image.times.")) team.sopa.boar.app.DebugLog.settingChanged("labs.$key", string(key)?.take(80), value.take(80))

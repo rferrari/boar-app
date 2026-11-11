@@ -155,12 +155,14 @@ object PdfCompiler {
             val bmp = BitmapFactory.decodeFile(file.path) ?: return
             float?.let { y = maxOf(y, it.bottom) }
             float = null
-            val size = if (side == Placement.CENTER) 300f else SIDE_IMAGE
-            if (H - M - y < size + 16) newPage()
-            val left = when (side) { Placement.RIGHT -> W - M - size; Placement.LEFT -> M; else -> (W - size) / 2 }
-            canvas.drawBitmap(bmp, null, RectF(left, y, left + size, y + size), Paint(Paint.FILTER_BITMAP_FLAG))
-            if (side == Placement.CENTER) y += size + 20
-            else float = Beside(side == Placement.LEFT, size, y + size + 12)
+            // The picture in its own shape (adam, Nov 11): its longer side takes the box, the other side follows.
+            val box = if (side == Placement.CENTER) 300f else SIDE_IMAGE
+            val (w, h) = team.sopa.boar.engine.labs.PictureFit.fit(bmp.width, bmp.height, box)
+            if (H - M - y < h + 16) newPage()
+            val left = when (side) { Placement.RIGHT -> W - M - w; Placement.LEFT -> M; else -> (W - w) / 2 }
+            canvas.drawBitmap(bmp, null, RectF(left, y, left + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG))
+            if (side == Placement.CENTER) y += h + 20
+            else float = Beside(side == Placement.LEFT, w, y + h + 12)
             bmp.recycle()
         }
 

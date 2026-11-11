@@ -390,7 +390,7 @@ object PrinterLab : LabPlugin {
     }
 
     @Composable
-    private fun PreviewImage(f: File) = Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Box(Modifier.size(180.dp)) { Thumb(f) } }
+    private fun PreviewImage(f: File) = Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Box(Modifier.size(180.dp)) { Thumb(f, whole = true) } }
 
     /**
      * A drawing on the right or left with the text beside it, as in the PDF (200 of the 483 pt column, 14 pt gutter): the
@@ -415,7 +415,7 @@ object PrinterLab : LabPlugin {
             val rest = body.substring(cut).trimStart()
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(gutter)) {
-                    val image = @Composable { Box(Modifier.size(imageW)) { Thumb(f) } }
+                    val image = @Composable { Box(Modifier.size(imageW)) { Thumb(f, whole = true) } }
                     if (left) image()
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         heading?.let { Text(it, style = headingStyle) }
@@ -489,8 +489,10 @@ object PrinterLab : LabPlugin {
     }
 
     @Composable
-    private fun Thumb(f: File) {
+    private fun Thumb(f: File, whole: Boolean = false) {
         val bmp by produceState<ImageBitmap?>(null, f.path) { value = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(f.path)?.asImageBitmap() }.getOrNull() } }
-        bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
+        // [whole]: the page preview shows the picture in its own shape, as the PDF prints it (adam, Nov 11); the small
+        // chooser thumbnail stays a cropped square.
+        bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = if (whole) ContentScale.Fit else ContentScale.Crop) }
     }
 }
