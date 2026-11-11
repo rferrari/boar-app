@@ -203,54 +203,54 @@
     <string name="native_browse_kindMoe" formatted="false">Mistura de especialistas</string>
     <string name="native_browse_files" formatted="false">Arquivos</string>
     <!-- Truffle Vault -->
-    <string name="native_truffle_cosmo" formatted="false">Javali Cósmico</string>
-    <string name="native_truffle_quantum" formatted="false">Javali Quântico</string>
-    <string name="native_truffle_tactical" formatted="false">Javali Tático</string>
-    <string name="native_truffle_hacker" formatted="false">Javali Código</string>
-    <string name="native_truffle_solarpunk" formatted="false">Javali Solarpunk</string>
-    <string name="native_truffle_nomad" formatted="false">Javali Nômade</string>
-    <string name="native_truffle_synthetic" formatted="false">Javali Ciber</string>
-    <string name="native_truffle_senior" formatted="false">Javali Sênior</string>
-    <string name="native_truffle_mecha" formatted="false">Javali Mecha</string>
-    <string name="native_truffle_plasma" formatted="false">Javali Plasma</string>
-    <string name="native_truffle_steampunk" formatted="false">Javali Steampunk</string>
-    <string name="native_truffle_retrowave" formatted="false">Javali Retrowave</string>
-    <string name="native_truffle_ice" formatted="false">Javali Gélido</string>
-    <string name="native_truffle_volcanic" formatted="false">Javali Magma</string>
-    <string name="native_truffle_astronaut" formatted="false">Javali Astro</string>
-    <string name="native_truffle_stealth" formatted="false">Javali Furtivo</string>
-    <string name="native_truffle_biolum" formatted="false">Javali Neon</string>
-    <string name="native_truffle_knight" formatted="false">Javali Cavaleiro</string>
-    <string name="native_truffle_void" formatted="false">Javali Vazio</string>
-    <string name="native_truffle_atomic" formatted="false">Javali Atômico</string>
-    <string name="native_truffle_lunar" formatted="false">Javali Lunar</string>
+    <string name="native_truffle_cosmo" formatted="false">Boar Cósmico</string>
+    <string name="native_truffle_quantum" formatted="false">Boar Quântico</string>
+    <string name="native_truffle_tactical" formatted="false">Boar Tático</string>
+    <string name="native_truffle_hacker" formatted="false">Boar Código</string>
+    <string name="native_truffle_solarpunk" formatted="false">Boar Solarpunk</string>
+    <string name="native_truffle_nomad" formatted="false">Boar Nômade</string>
+    <string name="native_truffle_synthetic" formatted="false">Boar Ciber</string>
+    <string name="native_truffle_senior" formatted="false">Boar Sênior</string>
+    <string name="native_truffle_mecha" formatted="false">Boar Mecha</string>
+    <string name="native_truffle_plasma" formatted="false">Boar Plasma</string>
+    <string name="native_truffle_steampunk" formatted="false">Boar Steampunk</string>
+    <string name="native_truffle_retrowave" formatted="false">Boar Retrowave</string>
+    <string name="native_truffle_ice" formatted="false">Boar Gélido</string>
+    <string name="native_truffle_volcanic" formatted="false">Boar Magma</string>
+    <string name="native_truffle_astronaut" formatted="false">Boar Astro</string>
+    <string name="native_truffle_stealth" formatted="false">Boar Furtivo</string>
+    <string name="native_truffle_biolum" formatted="false">Boar Neon</string>
+    <string name="native_truffle_knight" formatted="false">Boar Cavaleiro</string>
+    <string name="native_truffle_void" formatted="false">Boar Vazio</string>
+    <string name="native_truffle_atomic" formatted="false">Boar Atômico</string>
+    <string name="native_truffle_lunar" formatted="false">Boar Lunar</string>
     <string name="native_truffle_digital_nomad" formatted="false">Nômade Digital</string>
-    <string name="native_truffle_chrono" formatted="false">Javali Crono</string>
-    <string name="native_truffle_ethereal" formatted="false">Javali Etéreo</string>
-    <string name="native_truffle_sovereign" formatted="false">Javali Soberano</string>
+    <string name="native_truffle_chrono" formatted="false">Boar Crono</string>
+    <string name="native_truffle_ethereal" formatted="false">Boar Etéreo</string>
+    <string name="native_truffle_sovereign" formatted="false">Boar Soberano</string>
     <string name="native_truffle_guardian" formatted="false">Guardião Solar</string>
-    <string name="native_truffle_tactical_city" formatted="false">Javali Urbano</string>
-    <string name="native_truffle_pixel_hacker" formatted="false">Javali Pixel</string>
-    <string name="native_truffle_moe" formatted="false">Javali Tensor</string>
-    <string name="native_truffle_explorer" formatted="false">Javali Explorador</string>
-    <string name="native_truffle_spirit" formatted="false">Javali Espírito</string>
-    <string name="native_truffle_planter" formatted="false">Javali Floresta</string>
-    <string name="native_truffle_cloud" formatted="false">Javali Airgap</string>
-    <string name="native_truffle_elder" formatted="false">Javali Ancião</string>
-    <string name="native_truffle_fomo_unicorn" formatted="false">Javali Unicórnio</string>
-    <string name="native_truffle_tactical_ii" formatted="false">Javali SpecOps</string>
-    <string name="native_truffle_totem" formatted="false">Javali Totem</string>
-    <string name="native_truffle_hammock" formatted="false">Javali Descanso</string>
-    <string name="native_truffle_snow" formatted="false">Javali Neve</string>
-    <string name="native_truffle_hacker_ii" formatted="false">Javali Kernel</string>
+    <string name="native_truffle_tactical_city" formatted="false">Boar Urbano</string>
+    <string name="native_truffle_pixel_hacker" formatted="false">Boar Pixel</string>
+    <string name="native_truffle_moe" formatted="false">Boar Tensor</string>
+    <string name="native_truffle_explorer" formatted="false">Boar Explorador</string>
+    <string name="native_truffle_spirit" formatted="false">Boar Espírito</string>
+    <string name="native_truffle_planter" formatted="false">Boar Floresta</string>
+    <string name="native_truffle_cloud" formatted="false">Boar Airgap</string>
+    <string name="native_truffle_elder" formatted="false">Boar Ancião</string>
+    <string name="native_truffle_fomo_unicorn" formatted="false">Boar Unicórnio</string>
+    <string name="native_truffle_tactical_ii" formatted="false">Boar SpecOps</string>
+    <string name="native_truffle_totem" formatted="false">Boar Totem</string>
+    <string name="native_truffle_hammock" formatted="false">Boar Descanso</string>
+    <string name="native_truffle_snow" formatted="false">Boar Neve</string>
+    <string name="native_truffle_hacker_ii" formatted="false">Boar Kernel</string>
     <string name="native_vault_title" formatted="false">Avatares do Boar</string>
     <string name="native_vault_intro" formatted="false">Você libera avatares usando o BOAR. Tudo é contado neste celular e nunca sai dele.</string>
     <string name="native_vault_card" formatted="false">{{n}} de {{total}} avatares liberados</string>
     <string name="native_vault_open" formatted="false">Abrir Avatares do Boar →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
-    <string name="native_vault_iconNote" formatted="false">Muda o javali da conversa e do menu.</string>
-    <string name="native_vault_iconNoteLauncher" formatted="false">Muda o javali da conversa agora, e o ícone do app quando você sai do BOAR.</string>
+    <string name="native_vault_iconNote" formatted="false">Muda o Boar da conversa e do menu.</string>
+    <string name="native_vault_iconNoteLauncher" formatted="false">Muda o Boar da conversa agora, e o ícone do app quando você sai do BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Em uso</string>
     <string name="native_vault_equip" formatted="false">Usar</string>
     <string name="native_vault_unlockedOn" formatted="false">Liberado em {{date}}</string>
@@ -303,7 +303,7 @@
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 dias fora da rede, em qualquer ordem.</string>
     <string name="native_vault_section" formatted="false">Boarverse</string>
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
-    <string name="native_vault_experimentalNote" formatted="false">Libere avatares de javali enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
+    <string name="native_vault_experimentalNote" formatted="false">Libere avatares do Boar enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
     <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Os Plugins já vêm ligados, com os plugins testados ligados e os outros desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
@@ -569,7 +569,7 @@
     <string name="native_models_compat_streamed" formatted="false">Maior que a RAM · o {{engine}} lê do armazenamento</string>
     <string name="native_download_errorGated" formatted="false">Este modelo exige uma conta no Hugging Face e aceitar a licença. O BOAR baixa sem conta, então não consegue baixar este.</string>
     <string name="native_browse_gated" formatted="false">Exige uma conta no Hugging Face: o BOAR não consegue baixar.</string>
-    <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai liberar avatares: cada um é um javali para usar, e alguns liberam novos temas. Descobrir o que libera cada um faz parte da graça.</string>
+    <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai liberar avatares: cada um é um Boar para usar, e alguns liberam novos temas. Descobrir o que libera cada um faz parte da graça.</string>
     <string name="native_documents_moreFiles" formatted="false">+{{count}} outros</string>
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
     <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos locais.</string>

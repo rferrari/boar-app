@@ -599,17 +599,17 @@
     <string name="flows_onboarding_compactLowRam" formatted="false">Este celular tem {{ram}} de memória ou menos, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.</string>
     <string name="flows_onboarding_canLeaveTitle" formatted="false">Pode sair do BOAR</string>
     <string name="flows_onboarding_indexReading" formatted="false">Arquivando: {{title}}</string>
-    <string name="flows_onboarding_loadingLines_l1" formatted="false">Alimentando o javali…</string>
-    <string name="flows_onboarding_loadingLines_l2" formatted="false">O javali parou para farejar uma trufa…</string>
+    <string name="flows_onboarding_loadingLines_l1" formatted="false">Alimentando o Boar…</string>
+    <string name="flows_onboarding_loadingLines_l2" formatted="false">O Boar parou para farejar uma trufa…</string>
     <string name="flows_onboarding_loadingLines_l3" formatted="false">Afiando as presas…</string>
     <string name="flows_onboarding_loadingLines_l4" formatted="false">Separando as bolotas por assunto…</string>
-    <string name="flows_onboarding_loadingLines_l5" formatted="false">Ensinando o javali a ler notas de rodapé…</string>
+    <string name="flows_onboarding_loadingLines_l5" formatted="false">Ensinando o Boar a ler notas de rodapé…</string>
     <string name="flows_onboarding_loadingLines_l6" formatted="false">Cavando fatos debaixo do carvalho…</string>
-    <string name="flows_onboarding_loadingLines_l7" formatted="false">O javali está lendo a enciclopédia inteira. Devagar.</string>
+    <string name="flows_onboarding_loadingLines_l7" formatted="false">O Boar está lendo a enciclopédia inteira. Devagar.</string>
     <string name="flows_onboarding_loadingLines_l8" formatted="false">Arrumando lanches para a viagem sem internet…</string>
     <string name="flows_onboarding_loadingLines_l9" formatted="false">Conferindo cada fonte duas vezes…</string>
     <string name="flows_onboarding_loadingLines_l10" formatted="false">Rolando na lama do conhecimento…</string>
-    <string name="flows_onboarding_loadingLines_l11" formatted="false">O javali achou um atalho. Era uma árvore.</string>
+    <string name="flows_onboarding_loadingLines_l11" formatted="false">O Boar achou um atalho. Era uma árvore.</string>
     <string name="flows_onboarding_loadingLines_l12" formatted="false">Contando páginas com os cascos…</string>
     <string name="flows_onboarding_modelTitle" formatted="false">Escolha o modelo de respostas</string>
     <string name="flows_onboarding_modelSub" formatted="false">Ele escreve as respostas neste celular. Você pode trocar depois em Modelos.</string>

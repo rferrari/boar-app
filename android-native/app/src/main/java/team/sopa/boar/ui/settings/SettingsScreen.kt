@@ -62,6 +62,11 @@ interface DisplayPrefs {
  */
 @Composable
 fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) -> Unit, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
+    // Back from a page Settings opened (a sub page, the PIN, About), Settings is where it was: the same scroll and the
+    // same sections open (adam, Nov 11). Back to the chat, the next visit starts at the top, folded.
+    androidx.compose.runtime.remember { SettingsMemory.enter() }
+    val onOpen: (String) -> Unit = { route -> SettingsMemory.keep = true; onOpen(route) }
+    val onPin: (String) -> Unit = { flow -> SettingsMemory.keep = true; onPin(flow) }
     val c = Boar.colors
     val s = services.settings
     // rc3 profiles: each section (or row) shows from its profile on (SettingsPart). Pro's values count only in Pro.
@@ -70,7 +75,9 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
         team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack)
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        val scroll = rememberScrollState(SettingsMemory.scroll)
+        androidx.compose.runtime.DisposableEffect(Unit) { onDispose { SettingsMemory.scroll = scroll.value } }
+        Column(Modifier.fillMaxWidth().verticalScroll(scroll).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
             // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
             if (shown(SettingsPart.PROFILE)) ProfileSection(services, profile) {
@@ -553,7 +560,8 @@ private fun DebugLogRows() {
 @Composable
 private fun Section(title: String, icon: Int? = null, startOpen: Boolean = false, summary: (@Composable () -> String?)? = null,
     iconTint: androidx.compose.ui.graphics.Color? = null, content: @Composable () -> Unit) {
-    var open by androidx.compose.runtime.saveable.rememberSaveable(title) { mutableStateOf(startOpen) }
+    var open by androidx.compose.runtime.saveable.rememberSaveable(title) { mutableStateOf(SettingsMemory.open[title] ?: startOpen) }
+    androidx.compose.runtime.SideEffect { SettingsMemory.open[title] = open }
     team.sopa.boar.ui.BoarSection(title, open, { open = !open }, if (open) null else summary?.invoke(), icon, iconTint) { content() }
 }
 
@@ -615,5 +623,20 @@ private fun Field(value: String, placeholder: String, onChange: (String) -> Unit
     androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp)) {
         if (value.isEmpty()) Text(placeholder, style = Boar.type.body, color = c.textDim)
         BasicTextField(value, onChange, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/**
+ * Where Settings was when it opened another page: its scroll and the sections open. [keep] is set by that page's link;
+ * coming back restores it once. Any other way in (from the menu) starts at the top, folded.
+ */
+internal object SettingsMemory {
+    @Volatile var keep = false
+    var scroll = 0
+    val open = HashMap<String, Boolean>()
+
+    fun enter() {
+        if (!keep) { scroll = 0; open.clear() }
+        keep = false
     }
 }

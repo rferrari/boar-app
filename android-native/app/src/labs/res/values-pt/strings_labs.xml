@@ -43,7 +43,7 @@
     <string name="native_labs_showTiles" formatted="false">Mostrar em cartões</string>
     <string name="native_labs_openList" formatted="false">Abrir os Plugins</string>
     <string name="native_labs_wait_setting" formatted="false">Animação de espera</string>
-    <string name="native_labs_wait_trail" formatted="false">Rastro do javali</string>
+    <string name="native_labs_wait_trail" formatted="false">Rastro do Boar</string>
     <string name="native_labs_wait_matrix" formatted="false">Chuva da Matrix</string>
     <string name="native_labs_search" formatted="false">Buscar plugins</string>
     <string name="native_labs_searchNone" formatted="false">Nenhum plugin encontrado.</string>
