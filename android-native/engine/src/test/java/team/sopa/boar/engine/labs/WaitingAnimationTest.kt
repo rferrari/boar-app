@@ -10,14 +10,14 @@ class WaitingAnimationTest {
     private fun read(p: String) = File(labs, p).readText()
 
     @Test fun `the closing screen and Designer's wait use the picked animation`() {
-        assertTrue(read("java/team/sopa/boar/labs/LabHooks.kt").contains("WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize())"))
+        assertTrue(read("java/team/sopa/boar/labs/LabHooks.kt").contains("WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize(), showBoar = false)"))
         assertTrue(read("plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").contains("team.sopa.boar.labs.WaitingAnimation("))
     }
 
     @Test fun `the matrix rain stays, as the other choice, and the trail is the default`() {
         assertTrue(read("java/team/sopa/boar/labs/MatrixRain.kt").contains("fun MatrixRain("))
         val trail = read("java/team/sopa/boar/labs/BoarTrail.kt")
-        assertTrue(trail.contains("LabPrefs.WAIT_MATRIX) MatrixRain(modifier, label) else BoarTrail(modifier, label)"))
+        assertTrue(trail.contains("LabPrefs.WAIT_MATRIX) MatrixRain(modifier, label) else BoarTrail(modifier, label, showBoar)"))
         assertTrue(read("java/team/sopa/boar/labs/LabPlugin.kt").contains("mutableStateOf(WAIT_TRAIL)"))
     }
 
