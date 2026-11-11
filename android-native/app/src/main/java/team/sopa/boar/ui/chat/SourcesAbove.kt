@@ -49,7 +49,7 @@ internal object SourcesFold {
  * passage in a sheet ([onOpen]).
  */
 @Composable
-internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>, onOpen: (Int) -> Unit) {
+internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>, onReadTop: (Source) -> Unit, onOpen: (Int) -> Unit) {
     val c = Boar.colors
     val rows = remember(sources, query) { SourceDigest.rows(query, sources.map { Triple(it.title, it.docId ?: it.title, it.body) }) }
     val open = SourcesFold.isOpen(answerId)
@@ -65,8 +65,10 @@ internal fun SourcesAbove(answerId: String, query: String, sources: List<Source>
                 verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(r.passages.joinToString(" ") { "[${it.number}]" }, style = Boar.type["mono.xs"], color = c.textDim)
-                    Text(r.title, style = Boar.type.caption, color = c.textHeading, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f, fill = false))
+                    Text(r.title, style = Boar.type.caption, color = c.textHeading, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     if (r.passages.size > 1) Text(t("native.sources.passages", "count" to r.passages.size), style = Boar.type["mono.xs"], color = c.textMuted)
+                    // The whole article from its top: an empty passage gives the reader nothing to jump to or mark.
+                    sources.getOrNull(r.best.number - 1)?.let { src -> ReadArticle { onReadTop(src.copy(body = "")) } }
                 }
                 Text(sentence(r.best), style = Boar.type.caption, color = c.textSecondary)
             }
@@ -88,32 +90,50 @@ private fun sentence(p: SourceDigest.Passage) = buildAnnotatedString {
     append(p.sentence.substring(last))
 }
 
-/** The passage [number] of an answer, in a sheet: its title, the text with the key sentence marked, and the whole article. */
+/**
+ * The passage [number] of an answer, in a sheet. It goes on from the row (t9, Nov 10): the row's sentence once, dimmed,
+ * for context, then what follows it in the passage (or what came before, when the sentence ends it), then the same
+ * article's other passages. ↗ beside the title opens the whole article from its top, as on the row.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PassageSheet(query: String, sources: List<Source>, number: Int, onRead: (Source) -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     val source = sources.getOrNull(number - 1) ?: return onClose()
-    val passage = remember(source, query) {
-        SourceDigest.rows(query, listOf(Triple(source.title, source.docId ?: source.title, source.body))).single().best
-    }
+    // The same rows as the block above, so the sentence here is the one the row showed.
+    val rows = remember(sources, query) { SourceDigest.rows(query, sources.map { Triple(it.title, it.docId ?: it.title, it.body) }) }
+    val passage = rows.flatMap { it.passages }.firstOrNull { it.number == number } ?: return onClose()
+    val sheet = remember(passage) { SourceDigest.sheet(passage) }
+    val others = remember(rows, number) { SourceDigest.others(rows, number) }
     ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("[$number] " + source.title, style = Boar.type.title, color = c.textHeading)
-            SelectionContainer {
-                Text(buildAnnotatedString {
-                    val key = passage.sentence.removeSuffix("…")
-                    val at = if (passage.lead) -1 else source.body.indexOf(key)
-                    if (at < 0) append(source.body) else {
-                        append(source.body.substring(0, at))
-                        withStyle(SpanStyle(background = c.amberBgSubtle, fontWeight = FontWeight.SemiBold, color = c.textPrimary)) { append(source.body.substring(at, at + key.length)) }
-                        append(source.body.substring(at + key.length))
-                    }
-                }, style = Boar.type.body, color = c.textSecondary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("[$number] " + source.title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
+                ReadArticle { onClose(); onRead(source.copy(body = "")) }
             }
-            Text(t("sourceFootnotes.readAll"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onClose(); onRead(source) }.padding(vertical = 6.dp))
+            Text(passage.sentence, style = Boar.type.caption, color = c.textDim, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            SelectionContainer {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (sheet.after.isNotEmpty()) Text(sheet.after, style = Boar.type.body, color = c.textSecondary)
+                    sheet.before?.let {
+                        Text(t("native.sources.earlier"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
+                        Text(it, style = Boar.type.body, color = c.textSecondary)
+                    }
+                    if (others.isNotEmpty()) {
+                        Text(t("native.sources.sameArticle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
+                        others.forEach { o -> Text("[${o.number}] " + o.body.trim(), style = Boar.type.body, color = c.textSecondary) }
+                    }
+                }
+            }
         }
     }
+}
+
+/** ↗: the whole article from its top (no jump to the passage), in place of the "Read the whole article" button. */
+@Composable
+internal fun ReadArticle(onClick: () -> Unit) {
+    val c = Boar.colors
+    Text("↗", style = Boar.type.body, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+        modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClickLabel = t("sourceFootnotes.readAll"), onClick = onClick).padding(horizontal = 8.dp, vertical = 2.dp))
 }

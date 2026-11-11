@@ -50,4 +50,15 @@ class SourcesLayoutTest {
                 assertTrue("$dir $k", xml.contains("name=\"$k\""))
         }
     }
+
+    @Test fun `the sheet goes on from the row, the article opens from its top, back still lands as left`() {
+        val sheet = above.substringAfter("internal fun PassageSheet(").substringBefore("internal fun ReadArticle(")
+        assertTrue(sheet.contains("SourceDigest.sheet(passage)") && sheet.contains("SourceDigest.others(rows, number)"))
+        // No "Read the whole article" button; ↗ opens the article with no passage to jump to.
+        assertTrue(!sheet.contains("sourceFootnotes.readAll\"), style"))
+        assertTrue(above.contains("ReadArticle { onReadTop(src.copy(body = \"\")) }"))
+        assertTrue(sheet.contains("onRead(source.copy(body = \"\"))"))
+        // The block's fold is kept per answer (SourcesFold), as before.
+        assertTrue(above.contains("SourcesFold.isOpen(answerId)"))
+    }
 }

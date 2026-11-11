@@ -712,4 +712,6 @@
     <string name="native_labs_headerSheet" formatted="false">PLUGINS LIGADOS</string>
     <string name="native_labs_manage" formatted="false">Gerenciar plugins</string>
     <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} na cesta</string>
+    <string name="native_sources_earlier" formatted="false">ANTES NO TRECHO</string>
+    <string name="native_sources_sameArticle" formatted="false">MAIS DESTE ARTIGO</string>
 </resources>

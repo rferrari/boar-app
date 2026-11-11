@@ -57,4 +57,41 @@ class SourceDigestTest {
         val p = SourceDigest.rows("Qual é a populacao do Brasil?", listOf(pt)).single().best
         assertTrue(p.marks.map { p.sentence.substring(it) }.containsAll(listOf("população", "Brasil")))
     }
+
+    @Test fun `the sheet goes on after the card's sentence, never repeating it`() {
+        val body = "Canberra is the capital of Australia. It was chosen in 1908 as a compromise between Sydney and Melbourne. Building began in 1913."
+        val rows = SourceDigest.rows("why was Canberra chosen as capital", listOf(Triple("Canberra", "canberra", body)))
+        val p = rows.single().best
+        val sheet = SourceDigest.sheet(p)
+        assertTrue(!sheet.after.contains(p.sentence.removeSuffix("…")))
+        assertTrue(sheet.after.isNotEmpty() || sheet.before != null)
+    }
+
+    @Test fun `a sentence that ends the passage shows what came before it`() {
+        val p = SourceDigest.Passage(1, "Brasília was built in 41 months. It became the capital in 1960.", "It became the capital in 1960.", false, emptyList())
+        assertEquals(SourceDigest.Sheet("", "Brasília was built in 41 months."), SourceDigest.sheet(p))
+    }
+
+    @Test fun `a lead shows the passage after its first sentence, in Portuguese too`() {
+        val body = "Brasília é a capital do Brasil. Foi inaugurada em 1960 por Juscelino Kubitschek."
+        val p = SourceDigest.rows("xyz", listOf(Triple("Brasília", "brasilia", body))).single().best
+        assertTrue(p.lead)
+        assertEquals("Foi inaugurada em 1960 por Juscelino Kubitschek.", SourceDigest.sheet(p).after)
+    }
+
+    @Test fun `a cut sentence is found by its start and not repeated`() {
+        val long = (1..40).joinToString(" ") { "word$it" } + "."
+        val p = SourceDigest.Passage(1, "$long Next sentence.", SourceDigest.cut(long), false, emptyList())
+        val after = SourceDigest.sheet(p).after
+        assertTrue(!after.contains("word1 word2"))
+        assertTrue(after.endsWith("Next sentence."))
+    }
+
+    @Test fun `the same article's other passages exclude the one shown`() {
+        val rows = SourceDigest.rows("capital", listOf(Triple("Canberra", "c", "Canberra is the capital."), Triple("Sydney", "s", "Sydney is big."),
+            Triple("Canberra", "c", "The capital moved in 1927.")))
+        assertEquals(listOf(3), SourceDigest.others(rows, 1).map { it.number })
+        assertEquals(listOf(1), SourceDigest.others(rows, 3).map { it.number })
+        assertTrue(SourceDigest.others(rows, 2).isEmpty())
+    }
 }

@@ -552,7 +552,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             val question = state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty()
             var passage by remember(m.id) { mutableStateOf<Int?>(null) }
             val above = state.sourcesAbove && m.sources.isNotEmpty()
-            if (above) SourcesAbove(m.id, question, m.sources) { passage = it }
+            if (above) SourcesAbove(m.id, question, m.sources, onReadTop = onReadSource) { passage = it }
             passage?.let { n -> PassageSheet(question, m.sources, n, onReadSource) { passage = null } }
             // Boar Staged answers: what the sources say comes first, before and above the answer's text (with B+ the block
             // above says it, so Staged's quote cards don't show).

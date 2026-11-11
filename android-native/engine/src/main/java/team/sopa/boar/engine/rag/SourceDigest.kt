@@ -56,4 +56,22 @@ object SourceDigest {
     /** The character ranges of the words in [sentence] whose term is one of the question's ([qTerms], stemmed and folded). */
     fun marks(sentence: String, qTerms: Set<String>): List<IntRange> =
         Regex("[\\p{L}\\p{N}]+").findAll(sentence).filter { m -> Compress.tokenizeTerms(m.value).any { it in qTerms } }.map { it.range }.toList()
+
+    /**
+     * What the passage sheet shows under the row's key sentence (t9, Nov 10: never the card's text again): the passage
+     * after that sentence. When the sentence ends the passage, [before] holds what came before it instead, so the
+     * sheet is never empty. A sentence not found in the passage leaves the whole passage in [after].
+     */
+    data class Sheet(val after: String, val before: String?)
+
+    fun sheet(p: Passage): Sheet {
+        val key = p.sentence.removeSuffix("…").trimEnd()
+        val at = if (key.isEmpty()) -1 else p.body.indexOf(key)
+        if (at < 0) return Sheet(p.body.trim(), null)
+        val after = p.body.substring(at + key.length).trim()
+        return if (after.isNotEmpty()) Sheet(after, null) else Sheet("", p.body.substring(0, at).trim().ifEmpty { null })
+    }
+
+    /** The same article's other passages for the sheet of passage [number], best first; empty when it's the only one. */
+    fun others(rows: List<Row>, number: Int): List<Passage> = rowOf(rows, number)?.passages?.filter { it.number != number }.orEmpty()
 }

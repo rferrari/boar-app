@@ -712,4 +712,6 @@
     <string name="native_labs_headerSheet" formatted="false">PLUGINS ON</string>
     <string name="native_labs_manage" formatted="false">Manage plugins</string>
     <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} in the basket</string>
+    <string name="native_sources_earlier" formatted="false">EARLIER IN THE PASSAGE</string>
+    <string name="native_sources_sameArticle" formatted="false">MORE FROM THIS ARTICLE</string>
 </resources>
