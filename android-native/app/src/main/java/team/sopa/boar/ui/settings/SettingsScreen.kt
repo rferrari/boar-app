@@ -69,10 +69,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     fun shown(part: SettingsPart) = part.shownIn(profile)
     var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_arrow_back, 24.dp, c.textPrimary, Modifier.clickable(onClick = onBack).padding(4.dp), t("native.a11y.back"))
-            Text(t("modelSetupScreen.header.title"), style = Boar.type.titleLg, color = c.textHeading)
-        }
+        team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack)
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
             // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.

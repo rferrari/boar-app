@@ -61,14 +61,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
     val c = Boar.colors
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
-            Column {
-                Text(t("modelCatalogScreen.title"), style = Boar.type.titleLg, color = c.textHeading)
-                Text(t("modelCatalogScreen.subtitle"), style = Boar.type.caption, color = c.textMuted)
-            }
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        team.sopa.boar.ui.PageHeader(t("modelCatalogScreen.title"), onBack, subtitle = t("modelCatalogScreen.subtitle"))
         // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
         // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
         // below); the embedding model is BOAR's own search engine, not a choice: only a warning when it's missing.
