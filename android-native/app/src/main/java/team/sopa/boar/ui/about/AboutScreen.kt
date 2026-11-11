@@ -58,12 +58,7 @@ fun AboutScreen(onClose: () -> Unit) {
     val info = versionName(ctx)
     val debug = (ctx.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(t("aboutScreen.title"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
-            Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        team.sopa.boar.ui.PageHeader(t("aboutScreen.title"), onClose)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 16.dp).padding(bottom = 28.dp)) {
             Profile()
             // Three posts: about BOAR, its addresses, the open work it stands on.

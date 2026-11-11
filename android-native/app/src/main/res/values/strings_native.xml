@@ -726,4 +726,5 @@
     <string name="native_a11y_pluginActions" formatted="false">Plugins for this answer</string>
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} waiting questions were dropped: they need that model too.</string>
     <string name="native_chat_mergeQueue" formatted="false">Merge into one question</string>
+    <string name="native_nav_chat" formatted="false">Chat</string>
 </resources>

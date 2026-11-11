@@ -726,4 +726,5 @@
     <string name="native_a11y_pluginActions" formatted="false">Plugins para esta resposta</string>
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} perguntas na fila foram descartadas: elas também precisam desse modelo.</string>
     <string name="native_chat_mergeQueue" formatted="false">Juntar numa só pergunta</string>
+    <string name="native_nav_chat" formatted="false">Conversa</string>
 </resources>

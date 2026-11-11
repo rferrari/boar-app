@@ -377,7 +377,7 @@ private fun Busy(label: String) = Row(verticalAlignment = Alignment.CenterVertic
 }
 
 /**
- * Illustrate's sheet (Pro, t9 Nov 10): the first button draws with the defaults in one tap; under it, a style and a
+ * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style and a size to pick, one Draw button that uses them, and
  * size to pick, and "Remember" to keep them as the next default. Reset goes back to Engraving at 384 px.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -395,10 +395,7 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
-            SheetButton(t("native.labs.image.drawDefault", "style" to styleName(defStyle), "size" to defSize.label), primary = true) {
-                onClose(); Illustrator.start(ctx, a, notReady, defStyle, defSize)
-            }
-            Text(t("native.labs.image.orPick"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 4.dp))
+            // One Draw button, with what's picked here (adam, Nov 12): the defaults are the one-tap row in the plugins sheet.
             team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it) }, style, sideways = true) { style = it }
             team.sopa.boar.ui.models.ChipRow(t("native.labs.image.sizeLabel"), (ImageLab.ILLUSTRATE_SIZES + listOf(defSize)).distinct().map { it to it.label }, size, sideways = true) { size = it }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -407,7 +404,7 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
                 Text(t("native.labs.image.reset"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { ImageLab.resetDefaults(); defStyle = ImageLab.defaultStyle(); defSize = ImageLab.defaultCanvas(); style = defStyle; size = defSize }.padding(6.dp))
             }
-            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style), "size" to size.label), primary = false) {
+            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style), "size" to size.label), primary = true) {
                 if (keep) { ImageLab.setDefaultStyle(style); ImageLab.setDefaultCanvas(size) }
                 onClose(); Illustrator.start(ctx, a, notReady, style, size)
             }

@@ -77,17 +77,9 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
     val export: (String) -> Unit = { format -> scope.launch { vm.exportIntent(format)?.let(ctx::startActivity) } }
 
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(t("evaluation.title"), style = Boar.type.titleSm.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textDim)
-            }
-            if (!state.running) {
-                Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
-            }
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        // The app's page header; Back waits while a run is going (as Done did).
+        team.sopa.boar.ui.PageHeader(t("evaluation.title"), { if (!state.running) onClose() },
+            subtitle = t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion())
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp, 12.dp, 12.dp, 40.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val configs = state.configs
             item {

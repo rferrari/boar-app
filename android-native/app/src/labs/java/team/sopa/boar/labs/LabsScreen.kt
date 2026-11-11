@@ -63,7 +63,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     // Back from a lab's page (Done) to the grid where it was: the grid leaves the screen while a lab is open.
     val scroll = rememberScrollState(gridScroll)
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { gridScroll = scroll.value } }
-    Shell(t("native.labs.title"), onClose, scroll = scroll) {
+    Shell(t("native.labs.title"), onClose, scroll = scroll, backTo = t("native.labs.title")) {
         Hero(labs)
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
         // under review, and the locked ones still in testing with no release date.
@@ -119,7 +119,8 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
     // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
     // grid, and the on/off switch, all in one block; the page below is the lab's.
-    Shell(t("native.labs.${lab.id}.title"), onClose, header = {
+    // Back names where it goes: the Plugins list in Pro, the chat below Pro (LabHooks.backFrom).
+    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), header = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 ?: Text(lab.emoji, fontSize = 36.sp)
@@ -131,7 +132,6 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
                 }
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
             }
-            DoneButton(onClose)
         }
         Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -157,25 +157,19 @@ private fun Shell(
     title: String, onClose: () -> Unit,
     header: (@Composable ColumnScope.() -> Unit)? = null,
     scroll: androidx.compose.foundation.ScrollState? = null,
+    backTo: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        if (header != null) Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
-        else Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
-            DoneButton(onClose)
+        // The app's page header (t9, Nov 12: the Plugins pages had their own); a plugin's own block comes under it.
+        team.sopa.boar.ui.PageHeader(title, onClose, backTo = backTo)
+        if (header != null) {
+            Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
+            Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
-}
-
-@Composable
-private fun DoneButton(onClose: () -> Unit) {
-    val c = Boar.colors
-    Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
 }
 
 /** The lab's console: the lines type themselves once, with a blinking cursor after. */

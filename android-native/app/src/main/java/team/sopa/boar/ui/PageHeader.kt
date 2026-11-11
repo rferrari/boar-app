@@ -23,11 +23,12 @@ import team.sopa.boar.ui.theme.Boar
  * that open over the chat (About, Boar Labs, the tour, Evaluation) close with Done instead.
  */
 @Composable
-fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxTitleLines: Int = 1) {
+fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxTitleLines: Int = 1, backTo: String? = null) {
     val c = Boar.colors
     Row(Modifier.fillMaxWidth().background(c.bgSurface).heightIn(min = 72.dp).padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
+        // [backTo] names where Back goes when it isn't obvious: "‹ Plugins", "‹ Chat" (t9, Nov 12).
+        Text("‹ " + (backTo ?: t("common.back")), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
         Column(Modifier.weight(1f)) {
             Text(title, style = Boar.type.titleLg, color = c.textHeading, maxLines = maxTitleLines,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)

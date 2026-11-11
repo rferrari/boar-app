@@ -16,8 +16,10 @@ class IllustrateSheetTest {
         assertTrue(hooks.contains("if (edit != null) androidx.compose.material3.Text(\"✎\""))
     }
 
-    @Test fun `the first button draws with the defaults`() {
-        assertTrue(sheet.indexOf("Illustrator.start(ctx, a, notReady, defStyle, defSize)") in 0 until sheet.indexOf("ChipRow("))
+    @Test fun `the edit sheet has one Draw button, with the style and size picked there`() {
+        assertTrue(!sheet.contains("Illustrator.start(ctx, a, notReady, defStyle, defSize)"))
+        assertTrue(Regex("SheetButton\\(").findAll(sheet.substringBefore("private fun SheetButton(")).count() == 1)
+        assertTrue(sheet.contains("Illustrator.start(ctx, a, notReady, style, size)"))
     }
 
     @Test fun `the pick is kept only when asked, and reset goes back to Engraving at the first size`() {
@@ -28,7 +30,7 @@ class IllustrateSheetTest {
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/labs/plugins/image/res/$d").listFiles()!!.joinToString("") { it.readText() }
-            for (k in listOf("sheetTitle", "drawDefault", "orPick", "styleLabel", "sizeLabel", "remember", "reset", "drawPicked"))
+            for (k in listOf("sheetTitle", "styleLabel", "sizeLabel", "remember", "reset", "drawPicked"))
                 assertTrue("$d $k", s.contains("name=\"native_labs_image_$k\""))
         }
     }
