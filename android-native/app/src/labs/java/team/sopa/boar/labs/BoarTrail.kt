@@ -38,7 +38,7 @@ import team.sopa.boar.ui.theme.Boar
  * on screen, and holds one calm frame when Android's animations are off.
  */
 @Composable
-fun BoarTrail(modifier: Modifier = Modifier, label: String? = null) {
+fun BoarTrail(modifier: Modifier = Modifier, label: String? = null, showBoar: Boolean = true) {
     val c = Boar.colors
     val ink = rainColor(c)
     val ctx = LocalContext.current
@@ -61,7 +61,8 @@ fun BoarTrail(modifier: Modifier = Modifier, label: String? = null) {
             }
         }
         val side = minOf(maxWidth, maxHeight) * 0.22f
-        Image(painterResource(team.sopa.boar.R.drawable.mascot), null, Modifier.size(side)
+        // The closing screen shows the hoofprints alone (adam, Nov 10); Designer's wait keeps the boar.
+        if (showBoar) Image(painterResource(team.sopa.boar.R.drawable.mascot), null, Modifier.size(side)
             .offset(x = maxWidth * frame.boar.x - side / 2, y = maxHeight * frame.boar.y - side * 0.8f))
         label?.let {
             Text(it, style = Boar.type["mono.xs"], color = ink, fontWeight = FontWeight.Bold,
@@ -72,7 +73,7 @@ fun BoarTrail(modifier: Modifier = Modifier, label: String? = null) {
 
 /** The waiting animation the user picked (Boar Labs settings, Pro): the boar's trail by default, the matrix rain as before. */
 @Composable
-fun WaitingAnimation(modifier: Modifier = Modifier, label: String? = null) {
+fun WaitingAnimation(modifier: Modifier = Modifier, label: String? = null, showBoar: Boolean = true) {
     LabPrefs.init(LocalContext.current)
-    if (LabPrefs.waitAnimation == LabPrefs.WAIT_MATRIX) MatrixRain(modifier, label) else BoarTrail(modifier, label)
+    if (LabPrefs.waitAnimation == LabPrefs.WAIT_MATRIX) MatrixRain(modifier, label) else BoarTrail(modifier, label, showBoar)
 }

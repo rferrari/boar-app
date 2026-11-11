@@ -209,7 +209,8 @@ object LabHooks {
                         .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
                         .border(1.dp, rainColor(c).copy(alpha = 0.6f), androidx.compose.foundation.shape.RoundedCornerShape(18.dp)),
                 ) {
-                    WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize())
+                    // Closing BOAR: only the hoofprints, no boar (adam, Nov 10); Matrix rain unchanged.
+                    WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize(), showBoar = false)
                     Column(
                         androidx.compose.ui.Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f)).padding(horizontal = 20.dp, vertical = 18.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),

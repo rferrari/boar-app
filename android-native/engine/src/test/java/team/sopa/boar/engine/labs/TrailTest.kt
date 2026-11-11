@@ -34,4 +34,15 @@ class TrailTest {
         assertEquals(a, b)
         assertTrue(a.prints.all { it.alpha == 1f })
     }
+
+    @Test fun `closing BOAR shows only the hoofprints, Designer's wait keeps the boar`() {
+        val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+        assertTrue(hooks.contains("WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize(), showBoar = false)"))
+        val trail = java.io.File("../app/src/labs/java/team/sopa/boar/labs/BoarTrail.kt").readText()
+        assertTrue(trail.contains("if (showBoar) Image("))
+        // Matrix rain takes no boar either way.
+        assertTrue(trail.contains("MatrixRain(modifier, label) else BoarTrail(modifier, label, showBoar)"))
+        val designer = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").readText()
+        assertTrue(!designer.contains("showBoar = false"))
+    }
 }
