@@ -100,6 +100,12 @@ object ImageLab {
 
     fun setDefaultCanvas(c: Canvas) = team.sopa.boar.labs.LabPrefs.putString("image.size", c.key)
 
+    /** Illustrate's choice of sizes: the ones timed on the X6 (Oct 13–16), square, portrait and banner. */
+    val ILLUSTRATE_SIZES = listOf(Canvas(384, 384), Canvas(512, 512), Canvas(384, 512), Canvas(640, 320))
+
+    /** Reset in Illustrate's sheet: back to Engraving at the first size. */
+    fun resetDefaults() { setDefaultStyle(Style.ENGRAVING); setDefaultCanvas(CANVASES.first()) }
+
     private const val TIMES_KEPT = 10
 
     /** A finished drawing's time, tap to picture (model load included), kept per size: the last [TIMES_KEPT]. */

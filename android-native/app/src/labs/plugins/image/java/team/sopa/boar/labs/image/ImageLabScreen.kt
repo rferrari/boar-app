@@ -104,7 +104,10 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         // No drawing model (or engine) on the phone yet: 🎨 is greyed out and says where to get it, instead of failing on tap.
         val ready = SdRunner.ready(ctx) // a file check, read each time the sheet is drawn so a fresh download counts
         val label = t(when { !ready -> "native.labs.image.illustrateNeedsModel"; running -> "native.labs.image.illustrateRunning"; st is Illustrator.Status.Done -> "native.labs.image.illustrateAgain"; else -> "native.labs.image.illustrate" })
-        return listOf(team.sopa.boar.labs.LabAction("🎨", label, done = st is Illustrator.Status.Done, enabled = ready && !running, art = art) { Illustrator.start(ctx, a, notReady) })
+        return listOf(team.sopa.boar.labs.LabAction("🎨", label, done = st is Illustrator.Status.Done, enabled = ready && !running, art = art) {
+            // Pro picks the style and size first (one tap still draws with the defaults); below Pro it draws at once.
+            if (team.sopa.boar.labs.LabPrefs.proProfile) Illustrator.asking = a.id else Illustrator.start(ctx, a, notReady)
+        })
     }
 
     /** The drawing (or its progress) under the answer, with what was drawn and how long it took. */
@@ -112,6 +115,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override fun AnswerExtra(a: team.sopa.boar.plugins.AnswerRef) {
         val c = Boar.colors
         val ctx = LocalContext.current
+        if (Illustrator.asking == a.id) IllustrateSheet(a) { Illustrator.asking = null }
         when (val st = Illustrator.status(ctx, a.id)) {
             null -> {}
             Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))
@@ -352,4 +356,51 @@ private fun Button(label: String, enabled: Boolean = true, onClick: () -> Unit) 
 private fun Busy(label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
     CircularProgressIndicator(Modifier.size(16.dp), color = Boar.colors.emerald400, strokeWidth = 1.5.dp)
     Text(label, style = Boar.type.caption, color = Boar.colors.textAccentEmerald)
+}
+
+/**
+ * Illustrate's sheet (Pro, t9 Nov 10): the first button draws with the defaults in one tap; under it, a style and a
+ * size to pick, and "Remember" to keep them as the next default. Reset goes back to Engraving at 384 px.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> Unit) {
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    val notReady = t("native.labs.image.illustrateNotReady")
+    var defStyle by remember { mutableStateOf(ImageLab.defaultStyle()) }
+    var defSize by remember { mutableStateOf(ImageLab.defaultCanvas()) }
+    var style by remember { mutableStateOf(defStyle) }
+    var size by remember { mutableStateOf(defSize) }
+    var keep by remember { mutableStateOf(false) }
+    fun styleName(s: ImageLab.Style) = team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.style.${s.key}")
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
+            SheetButton(t("native.labs.image.drawDefault", "style" to styleName(defStyle), "size" to defSize.label), primary = true) {
+                onClose(); Illustrator.start(ctx, a, notReady, defStyle, defSize)
+            }
+            Text(t("native.labs.image.orPick"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 4.dp))
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it) }, style) { style = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.sizeLabel"), (ImageLab.ILLUSTRATE_SIZES + listOf(defSize)).distinct().map { it to it.label }, size) { size = it }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                androidx.compose.material3.Checkbox(keep, { keep = it })
+                Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })
+                Text(t("native.labs.image.reset"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { ImageLab.resetDefaults(); defStyle = ImageLab.defaultStyle(); defSize = ImageLab.defaultCanvas(); style = defStyle; size = defSize }.padding(6.dp))
+            }
+            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style), "size" to size.label), primary = false) {
+                if (keep) { ImageLab.setDefaultStyle(style); ImageLab.setDefaultCanvas(size) }
+                onClose(); Illustrator.start(ctx, a, notReady, style, size)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SheetButton(label: String, primary: Boolean, onClick: () -> Unit) {
+    val c = Boar.colors
+    Text(label, style = Boar.type.body, color = if (primary) c.textInverse else c.textAccentEmerald, fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (primary) c.emerald500 else c.emeraldBgSubtle)
+            .border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp)).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 12.dp))
 }

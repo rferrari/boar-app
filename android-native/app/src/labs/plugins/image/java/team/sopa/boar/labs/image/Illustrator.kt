@@ -1,5 +1,7 @@
 package team.sopa.boar.labs.image
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import android.content.Context
 import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +55,13 @@ object Illustrator {
         android.app.ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager).getMemoryInfo(it) }.availMem
     }.getOrDefault(Long.MAX_VALUE)
 
-    fun start(ctx: Context, a: AnswerRef, notReady: String) {
+    /**
+     * The answer whose Illustrate is asking for its style and size (Pro, t9 Nov 10): its sheet shows under that answer.
+     * Below Pro, Illustrate draws at once with the defaults, as before.
+     */
+    var asking by androidx.compose.runtime.mutableStateOf<String?>(null)
+
+    fun start(ctx: Context, a: AnswerRef, notReady: String, style: ImageLab.Style = ImageLab.defaultStyle(), canvas: ImageLab.Canvas = ImageLab.defaultCanvas()) {
         load(ctx)
         if (busy()) return
         if (!SdRunner.ready(ctx)) { status[a.id] = Status.Failed(notReady); return }
@@ -69,8 +77,6 @@ object Illustrator {
             // No question or answer text in the log: only whether the model picked the subject.
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: from model=${fromModel != null} repeated=$repeated")
             status[a.id] = Status.Drawing(subject)
-            val style = ImageLab.defaultStyle()
-            val canvas = ImageLab.defaultCanvas()
             runCatching { SdRunner.draw(ctx, subject, style, canvas) }
                 .onSuccess { d ->
                     // Forgotten (✕) while it drew: the result has no answer to go to.

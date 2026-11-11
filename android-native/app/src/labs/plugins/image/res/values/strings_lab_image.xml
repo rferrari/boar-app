@@ -63,4 +63,12 @@
     <string name="native_labs_image_seed" formatted="false">seed {{seed}}</string>
     <string name="native_labs_image_downloadFailed" formatted="false">The download stopped. Check the connection and try again.</string>
     <string name="native_labs_image_refused" formatted="false">Boar Designer doesn\'t draw that.</string>
+    <string name="native_labs_image_sheetTitle" formatted="false">ILLUSTRATE THIS ANSWER</string>
+    <string name="native_labs_image_drawDefault" formatted="false">Draw · {{style}}, {{size}}</string>
+    <string name="native_labs_image_orPick" formatted="false">Or pick a style and a size:</string>
+    <string name="native_labs_image_styleLabel" formatted="false">Style</string>
+    <string name="native_labs_image_sizeLabel" formatted="false">Size</string>
+    <string name="native_labs_image_remember" formatted="false">Remember as the default</string>
+    <string name="native_labs_image_reset" formatted="false">Reset</string>
+    <string name="native_labs_image_drawPicked" formatted="false">Draw · {{style}}, {{size}}</string>
 </resources>
