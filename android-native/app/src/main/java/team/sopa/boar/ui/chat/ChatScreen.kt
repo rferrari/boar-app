@@ -1,6 +1,8 @@
 package team.sopa.boar.ui.chat
 
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import team.sopa.boar.engine.chat.ConnectionPill
+import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -288,23 +290,46 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
 private val MOON = Color(0xFF9EC7F0)
 
 /**
- * The connection, quietly (adam, Nov 11): a small dot, moon-blue ring offline, a muted filled dot online. BOAR doesn't
- * need the internet, so it no longer draws attention. A tap says what the connection is used for. The words "Offline
- * ready" show beside it until the user has seen them once (first launch).
+ * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", for about 2 s when BOAR opens and when the
+ * connection really changes, then a small dot (moon-blue ring offline, muted dot online). A tap shows the pill again with
+ * what the connection is used for. With animations off the swap is instant. Shown once per state for the process
+ * (ConnectionPill), so redraws and coming back to the chat don't repeat it.
  */
 @Composable
 private fun ConnectionDot(online: Boolean) {
     val c = Boar.colors
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val prefs = remember { ctx.getSharedPreferences("ui_once", android.content.Context.MODE_PRIVATE) }
-    val firstTime = remember { !prefs.getBoolean("offlineReadySeen", false) }
-    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { if (firstTime) prefs.edit().putBoolean("offlineReadySeen", true).apply() } }
+    val animate = remember { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f }
+    var expanded by remember { mutableStateOf(false) }
     var info by remember { mutableStateOf(false) }
+    var tapped by remember { mutableStateOf(0) }
+    LaunchedEffect(online) {
+        // On open at once; a change only once it has held, so a flapping signal doesn't flash the pill.
+        if (ConnectionPill.lastShown != null) kotlinx.coroutines.delay(ConnectionPill.SETTLE_MS)
+        if (!ConnectionPill.shouldShow(online)) return@LaunchedEffect
+        ConnectionPill.lastShown = online
+        expanded = true
+        kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
+        expanded = false
+    }
+    LaunchedEffect(tapped) {
+        if (tapped == 0) return@LaunchedEffect
+        expanded = true
+        kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
+        expanded = false
+    }
+    val tint = if (online) c.amber400 else MOON
     val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
-    Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { info = true }.padding(horizontal = 6.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.textDim, CircleShape) else Modifier.border(1.5.dp, MOON, CircleShape)))
-        if (firstTime) Text(t("chatHeader.offlineReady"), style = Boar.type["mono.xs"], color = c.textMuted, maxLines = 1, softWrap = false)
+    Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { tapped++; info = true }.padding(horizontal = 4.dp, vertical = 8.dp)
+        .then(if (animate) Modifier.animateContentSize() else Modifier), verticalAlignment = Alignment.CenterVertically) {
+        if (expanded) Row(
+            Modifier.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
+                .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Box(Modifier.size(5.dp).background(tint, CircleShape))
+            Text(label, fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false)
+        } else Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.textDim, CircleShape) else Modifier.border(1.5.dp, MOON, CircleShape)))
     }
     if (info) androidx.compose.material3.AlertDialog(onDismissRequest = { info = false }, containerColor = c.bgCardElevated,
         confirmButton = { androidx.compose.material3.TextButton({ info = false }) { Text(t("common.done"), color = c.textAccentCyan) } },

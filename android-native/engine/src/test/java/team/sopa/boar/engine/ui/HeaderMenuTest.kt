@@ -15,10 +15,10 @@ class HeaderMenuTest {
         assertTrue(header.contains("LabHooks.HeaderBadges(onOpenRoute)") && header.contains("onNewChat"))
     }
 
-    @Test fun `the connection is a quiet dot, with Offline ready only the first time`() {
+    @Test fun `the connection is a pill for a moment, then a quiet dot`() {
         assertTrue(!chat.contains("StatusPill"))
         assertTrue(header.contains("ConnectionDot(state.online)"))
-        assertTrue(chat.contains("if (firstTime) Text(t(\"chatHeader.offlineReady\")"))
+        assertTrue(chat.contains("ConnectionPill.shouldShow(online)"))
     }
 
     @Test fun `Settings is a gear by the BOAR name, not a row, About is also the last row of Settings`() {
@@ -38,7 +38,7 @@ class HeaderMenuTest {
         for (d in listOf("values", "values-pt")) {
             val a = java.io.File("../app/src/main/res/$d/strings.xml").readText()
             val b = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
-            assertTrue(d, a.contains("name=\"chatHeader_offlineReady\"") && b.contains("name=\"native_chat_toBottom\""))
+            assertTrue(d, b.contains("name=\"native_chat_toBottom\""))
         }
     }
 }
