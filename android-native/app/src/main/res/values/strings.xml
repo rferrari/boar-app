@@ -284,18 +284,9 @@
     <string name="chatScreen_stageTimedOut" formatted="false">A research step took too long and was cut short</string>
     <string name="chatScreen_interruptedByBackground" formatted="false">Paused — app was backgrounded. Ask again to continue.</string>
     <string name="aboutScreen_title" formatted="false">About BOAR</string>
-    <string name="aboutScreen_heroSubtitle" formatted="false">Adaptive local intelligence</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
     <string name="aboutScreen_buildDevelopment" formatted="false">Development build</string>
     <string name="aboutScreen_buildRelease" formatted="false">Release build</string>
-    <string name="aboutScreen_airGappedTitle" formatted="false">Air-gapped sovereign AI</string>
-    <string name="aboutScreen_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It performs local LLM inference via llama.rn / llama.cpp and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
-    <string name="aboutScreen_hardwareTitle" formatted="false">Hardware architecture &amp; budget</string>
-    <string name="aboutScreen_hardwareBody" formatted="false">Complies with strict mobile field constraints: resident memory remains capped under 12GB RAM using memory-mapped weights (mmap), and total storage is audited against a 50GB storage envelope.</string>
-    <string name="aboutScreen_benchmarkTitle" formatted="false">Benchmark it yourself</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
-    <string name="aboutScreen_repoTitle" formatted="false">Open source repository</string>
-    <string name="aboutScreen_repoBody" formatted="false">Source code, quantized model manifests, and offline indexing scripts are available at:</string>
     <string name="sourceFootnotes_title" formatted="false">Retrieved sources</string>
     <string name="sourceFootnotes_localIndex" formatted="false">LOCAL INDEX</string>
     <string name="promptIdeasCarousel_title" formatted="false">Research prompt benchmarks</string>

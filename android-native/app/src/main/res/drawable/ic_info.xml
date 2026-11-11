@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An info mark (a circle with an i), for About in Settings (Nov 12); stroke style like the pack's other icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,2.75a9.25,9.25 0,1 0,0 18.5a9.25,9.25 0,1 0,0 -18.5z"
+        android:strokeWidth="1.75"
+        android:strokeColor="#FFFFFFFF"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M12,10.75v6.5"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFFFFFF" />
+    <path
+        android:pathData="M12,7.25m-1.15,0a1.15,1.15 0,1 1,2.3 0a1.15,1.15 0,1 1,-2.3 0"
+        android:fillColor="#FFFFFFFF" />
+</vector>

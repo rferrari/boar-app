@@ -80,7 +80,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
         Column(Modifier.fillMaxWidth().verticalScroll(scroll).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
             // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
-            if (shown(SettingsPart.PROFILE)) ProfileSection(services, profile) {
+            if (shown(SettingsPart.PROFILE)) ProfilePills(services, profile) {
                 profile = it; s.userProfile = it; tech = s.showLiveStats
                 team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(it)
             }
@@ -141,7 +141,13 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen)
             if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
             // The last row, in every profile: About BOAR (also on the BOAR mark in the menu).
-            LinkButton(t("chatScreen.drawerItems.about") + " ›") { onOpen("about") }
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Boar.colors.bgCard).clickable { onOpen("about") }.padding(horizontal = 14.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Like the sections' rows: the pack's icon in the heading colour, the name, the chevron (adam, Nov 12).
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_info, 22.dp, Boar.colors.textHeading)
+                Text(t("chatScreen.drawerItems.about"), style = Boar.type.title, color = Boar.colors.textHeading, modifier = Modifier.weight(1f))
+                team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_right, 20.dp, Boar.colors.textMuted)
+            }
         }
     }
 }
@@ -479,19 +485,35 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
  * profile, it opens once with a note saying which one and why.
  */
 @Composable
-private fun ProfileSection(services: BoarServices, profile: UserProfile, onPick: (UserProfile) -> Unit) {
+/**
+ * The profile as three pills at the top of Settings (adam, Nov 12), the current one filled, one tap to switch, with one
+ * short line on what the picked one adds. Going down says once that Plugins and Advanced tweaks pause; the values are
+ * kept (as before). The update note, when there is one, sits under them.
+ */
+private fun ProfilePills(services: BoarServices, profile: UserProfile, onPick: (UserProfile) -> Unit) {
+    val c = Boar.colors
     val s = services.settings
     val note = remember { s.profileNotePending }
     if (note) androidx.compose.runtime.LaunchedEffect(Unit) { s.profileNotePending = false }
-    Section(t("native.settings.profile.title"), team.sopa.boar.R.drawable.ic_settings_avatars, startOpen = note, summary = { t("native.settings.profile.${profile.key}") }) {
+    var wentDown by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (p in UserProfile.entries) {
+                val on = p == profile
+                Text(t("native.settings.profile.${p.key}"), style = Boar.type.body, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
+                        .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
+                        .clickable(enabled = !on) { wentDown = p.ordinal < profile.ordinal; onPick(p) }.padding(horizontal = 6.dp, vertical = 10.dp))
+            }
+        }
+        Text(t("native.settings.profile.${profile.key}Short"), style = Boar.type.caption, color = c.textMuted)
+        if (wentDown) Text(t("native.settings.profile.downNote"), style = Boar.type.caption, color = c.textAccentAmber)
         if (note) Note(t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
-            // Below Pro, say what moved out of sight: rc2 showed technical details by default.
             if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "")
-        // An update switches on the default-on labs nobody had switched: name them, and say where to turn them off.
         val updatedLabs = remember { team.sopa.boar.labs.LabPrefs.turnedOnByUpdate() }
         if (note && updatedLabs.isNotEmpty()) Note(t("native.settings.profile.labsOn", "labs" to updatedLabs.map { t("native.labs.$it.title") }.joinToString(", ")))
-        Choices(null, UserProfile.entries.map { it to t("native.settings.profile.${it.key}") }, profile) { onPick(it) }
-        Note(t("native.settings.profile.${profile.key}Note"))
     }
 }
 

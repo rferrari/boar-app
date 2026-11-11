@@ -86,8 +86,8 @@
     <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
     <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
     <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
-    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Menu → Evaluation.</string>
-    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget.</string>
+    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Settings → Advanced tweaks → Evaluation (Pro).</string>
+    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget; in Pro you can change it in the plugin settings.</string>
     <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
     <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
     <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Labs:</string>
@@ -727,4 +727,8 @@
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} waiting questions were dropped: they need that model too.</string>
     <string name="native_chat_mergeQueue" formatted="false">Merge into one question</string>
     <string name="native_nav_chat" formatted="false">Chat</string>
+    <string name="native_settings_profile_simpleShort" formatted="false">Simple: the essentials, nothing to set up.</string>
+    <string name="native_settings_profile_explorerShort" formatted="false">Explorer: more control, plugins, memory, voice.</string>
+    <string name="native_settings_profile_proShort" formatted="false">Pro: everything, with Advanced tweaks and plugin settings.</string>
+    <string name="native_settings_profile_downNote" formatted="false">Plugins and Advanced tweaks pause below Pro. Your settings are kept.</string>
 </resources>

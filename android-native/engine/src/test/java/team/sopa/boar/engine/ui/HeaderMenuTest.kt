@@ -25,7 +25,7 @@ class HeaderMenuTest {
         assertTrue(!main.contains("DrawerItem(\"settings\""))
         assertTrue(main.contains("onSettings = { go { screen = \"settings\" } }") && drawer.contains("onClick = onSettings"))
         val settings = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
-        assertTrue(settings.contains("LinkButton(t(\"chatScreen.drawerItems.about\") + \" ›\") { onOpen(\"about\") }"))
+        assertTrue(settings.contains("clickable { onOpen(\"about\") }") && settings.contains("Text(t(\"chatScreen.drawerItems.about\")"))
         assertTrue(main.contains("val back = if (screen == \"about:settings\") \"settings\" else \"chat\""))
     }
 
