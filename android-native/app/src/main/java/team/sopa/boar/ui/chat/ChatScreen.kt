@@ -596,7 +596,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // Stopped before writing anything: these are what the search found, not what the answer cites.
             // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
             if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
-            if (!streaming) m.staged?.let { StagedCheck(it) }
+            // "Every number … is in its sources" only when there are sources to check against.
+            if (!streaming && m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
             // No list under the answer any more: the sources are shown once, above it (adam, Nov 12).
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))

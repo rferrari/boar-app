@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import team.sopa.boar.chat.KeyFactView
 import team.sopa.boar.chat.Source
 import team.sopa.boar.chat.StagedView
+import team.sopa.boar.engine.answer.StagedShown
 import team.sopa.boar.engine.answer.StagedStep
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
@@ -40,6 +41,8 @@ internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onR
     // Open, and kept open when the model starts answering (adam, Nov 10); a tap on the heading folds it.
     val factsOpen = open ?: true
     var moreOpen by ChatFolds.remember(key?.let { "$it/staged/more" }, false)
+    // No sources, no block (adam, Nov 12): nothing to quote and no step line, so no empty area and no gap.
+    if (!StagedShown.any(v.keyFacts.size, v.more.size, v.added, streaming && written && v.step != null)) return
     Column(Modifier.fillMaxWidth().padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (v.keyFacts.isNotEmpty()) {
             Text(t("native.staged.facts", "count" to v.keyFacts.size) + if (factsOpen) "" else " ›", style = Boar.type["mono.xs"], color = c.textDim,
