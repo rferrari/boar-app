@@ -55,6 +55,8 @@ Configurações → Exibição e tema muda o tema e o tamanho do texto (Compacto
 ## Boarverse e Avatares do Boar
 O Boarverse é uma camada opcional e divertida, desligada por padrão: Configurações → Experimental → Boarverse (a partir do perfil Explorador). Com ele ligado, usar o BOAR libera Avatares do Boar, personagens que você pode usar como a imagem do BOAR na conversa e no menu. Alguns avatares também trazem temas novos. Quando você libera um, o BOAR avisa "Novo avatar". Veja os seus e escolha um em Configurações → Avatares do Boar. Tudo é contado no celular e nunca sai dele. Desligar o Boarverse traz de volta a imagem original do BOAR; seus avatares continuam guardados.
 
+As respostas chegam em etapas (Respostas em etapas, já embutido): primeiro as citações das fontes, depois uma resposta curta, os detalhes e a conferência dos números. Pare quando bastar. No Pro, Configurações → Ajustes avançados → Citações em etapas desliga.
+
 ## Plugins
 Os Plugins são um conjunto de experimentos. No perfil Pro, abra Plugins no menu, ou Configurações → Experimental → Abrir os Plugins: uma linha por plugin com o que ele faz, o status e um interruptor para ligar ou desligar ali mesmo. Toque num plugin para a página dele e as configurações próprias; Mostrar em cartões mostra em grade. Os plugins testados começam ligados (Vitals, Designer, Press, Polyglot, Calculadora, Distância, Fatos, Cohazard); os outros começam desligados. Um plugin ligado funciona em qualquer perfil. Cada plugin mostra seu status: ATIVO, BETA (testado em celulares), ALPHA (inicial) ou EM REVISÃO (visível, mas parado). Alguns cartões são CONFIDENCIAIS: em teste, sem data de lançamento. Alguns plugins respondem na hora, sem o modelo, e aí a resposta oferece "Perguntar ao BOAR". Plugins com ações as colocam no 🧩 embaixo das respostas. As configurações de plugin também escolhem a animação de espera: Rastro do Boar ou Chuva da Matrix.
 
@@ -67,7 +69,6 @@ Os Plugins são um conjunto de experimentos. No perfil Pro, abra Plugins no menu
 - Polyglot: avisa na hora quando você pergunta numa língua que o BOAR ainda não fala.
 - Designer: desenha uma ilustração a partir de poucas palavras, offline. Baixa o modelo de desenho (683 MB) na primeira vez.
 - Press: junte respostas numa cesta e compile tudo num PDF ou arquivo Markdown.
-- Respostas em etapas: a resposta chega em etapas: o que as fontes dizem, uma resposta curta, os detalhes e a conferência dos números. Pare quando tiver o suficiente.
 - Canvas: pelo 🧩 embaixo de uma resposta, Criar um cartão: o modelo escolhe um gráfico de barras, linha ou pizza, uma tabela, passos, uma comparação ou fatos principais, a partir da resposta, de respostas anteriores da conversa e das fontes da resposta, e o BOAR desenha. Todo número precisa estar em uma delas; o que não estiver fica de fora e é listado. Troque os mesmos dados entre barras, linha, pizza e tabela, copie ou abra em tela cheia. Embaixo do cartão, Tornar interativo cria uma pequena página interativa a partir da resposta; demora mais.
 - Nomad: uma bússola com os sensores do celular, offline, sem precisar de localização.
 - Lunar: a lua hoje e neste mês: fase, quanto está iluminada, a próxima lua cheia e nova.

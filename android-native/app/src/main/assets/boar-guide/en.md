@@ -55,6 +55,8 @@ Settings → Display & theme changes the theme and the text size (Compact, Stand
 ## Boarverse and Boar Avatars
 Boarverse is an optional, playful layer, off by default: Settings → Experimental → Boarverse (from the Explorer profile). With it on, using BOAR unlocks Boar Avatars, characters you can use as BOAR's picture in the chat and the menu. Some avatars also bring new themes. When you unlock one, BOAR says "New avatar unlocked". See yours and pick one in Settings → Boar Avatars. Everything is counted on the phone and never leaves it. Turning Boarverse off brings back BOAR's own picture; your avatars stay waiting.
 
+Answers come in steps (Staged answers, built in): the quotes from the sources first, then a short answer, the details and a check of the numbers. Stop when you have enough. In Pro, Settings → Advanced tweaks → Staged quotes turns it off.
+
 ## Plugins
 Plugins is a set of experiments. In the Pro profile, open Plugins in the menu, or Settings → Experimental → Open Plugins: one row per plugin with what it does, its status and a switch to turn it on or off right there. Tap a plugin for its page and its own settings; Show as tiles shows them as a grid. The tested plugins start on (Vitals, Designer, Press, Polyglot, Calculator, Distance, Facts, Cohazard); the rest start off. A plugin that is on works in every profile. Each plugin shows its status: LIVE, BETA (tested on phones), ALPHA (early) or UNDER REVIEW (visible but parked). Some tiles are CLASSIFIED: in testing, with no release date. Some plugins answer instantly without the model, and then the answer offers "Ask BOAR instead". Plugins with actions add them to 🧩 under answers. The Plugins settings also pick the waiting animation: Boar trail or Matrix rain.
 
@@ -67,7 +69,6 @@ Plugins is a set of experiments. In the Pro profile, open Plugins in the menu, o
 - Polyglot: says so at once when you ask in a language BOAR doesn't speak yet.
 - Designer: draws an illustration from a few words, offline. It downloads its drawing model (683 MB) the first time.
 - Press: collect answers into a basket and compile them into a PDF or a Markdown file.
-- Staged answers: the answer arrives in steps: what the sources say, a short answer, the details, then a check of the numbers. Stop when you have enough.
 - Canvas: from 🧩 under an answer, Create a card: the model picks a bar, line or pie chart, a table, steps, a comparison or key facts, from the answer, earlier answers in the chat and the answer's sources, and BOAR draws it. Every number must be in one of those; anything that isn't is left out and listed. Switch the same data between bars, line, pie and table, copy it, or open it full screen. Under the card, Make it interactive builds a small interactive page from the answer; it takes longer.
 - Nomad: a compass from the phone's sensors, offline, no location needed.
 - Lunar: the moon tonight and this month: phase, lit share, next full and new moon.
