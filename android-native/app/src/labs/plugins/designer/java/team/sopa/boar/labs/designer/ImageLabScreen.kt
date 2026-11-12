@@ -43,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -212,7 +213,8 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     val c = Boar.colors
     val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
-    var drawer by rememberSaveable { mutableStateOf(false) }
+    // Not saved and restored: the drawer opens only from its button, never by itself (t9 1721).
+    var drawer by remember { mutableStateOf(false) }
     var info by rememberSaveable { mutableStateOf(false) }
     var full by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf(false) }
@@ -410,7 +412,13 @@ private fun HistoryStrip(state: ImageLabState, onShow: (File) -> Unit, onManage:
 private fun DesignerDrawer(state: ImageLabState, vm: ImageLabViewModel, onClose: () -> Unit) {
     val c = Boar.colors
     val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
-    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+    // Fully open or closed, never half: half open put the Quality chips over the input bar, so a tap meant for the field
+    // could pick a quality (the F3, Nov 12: a drawing came out with settings nobody chose). While it closes, its chips
+    // take no taps, so a tap on a closing sheet never reaches a chip.
+    val sheet = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val live = sheet.targetValue != androidx.compose.material3.SheetValue.Hidden
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, sheetState = sheet, containerColor = c.bgCardElevated) {
+        Box {
         Column(Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(t("native.labs.image.drawer"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
@@ -424,6 +432,10 @@ private fun DesignerDrawer(state: ImageLabState, vm: ImageLabViewModel, onClose:
                     DesignerCanvas.Section.QUALITY -> QualitySection(state, vm)
                 }
             }
+        }
+        if (!live) Box(Modifier.matchParentSize().pointerInput(Unit) {
+            awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
+        })
         }
     }
 }

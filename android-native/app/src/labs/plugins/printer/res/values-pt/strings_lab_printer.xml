@@ -107,4 +107,5 @@
     <string name="native_labs_printer_rwMarks" formatted="false">Algumas marcas de fonte mudaram</string>
     <string name="native_labs_printer_rwFailed" formatted="false">O BOAR não conseguiu reescrever. Seu texto está como estava.</string>
     <string name="native_labs_printer_rwUpdated" formatted="false">Texto atualizado.</string>
+    <string name="native_labs_printer_rwNoChange" formatted="false">Nada mudou. Tente de novo ou escreva o que quer mudar.</string>
 </resources>

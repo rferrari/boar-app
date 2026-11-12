@@ -14,6 +14,8 @@ internal object PressRewriter {
         object Busy : Outcome
         object NoModel : Outcome
         object Failed : Outcome
+        /** The model gave the text back as it was: "No change", not NOW / REWRITTEN twice the same (t9 1721). */
+        object Unchanged : Outcome
         data class Done(val text: String, val marksChanged: Boolean) : Outcome
     }
 
@@ -39,6 +41,7 @@ internal object PressRewriter {
             } ?: return Outcome.Failed
             val out = PressRewrite.clean(r.text)
             if (out.isBlank()) return Outcome.Failed
+            if (PressRewrite.unchanged(text, out)) return Outcome.Unchanged
             return Outcome.Done(out, PressRewrite.marksChanged(text, out))
         } finally {
             services.removeBusyCheck(busy)

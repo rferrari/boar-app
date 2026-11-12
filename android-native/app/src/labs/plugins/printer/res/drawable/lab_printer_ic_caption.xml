@@ -1,29 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Press (Nov 13): a line icon from adam's mock-up, stroke style like ic_info; tinted where it's drawn. -->
+<!-- Press caption (t9 1721): a "T" with text lines, its own glyph, so it never looks like "place in the center" (a frame). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path
-        android:pathData="M5.5,4h13a1.5,1.5 0,0 1,1.5 1.5v7a1.5,1.5 0,0 1,-1.5 1.5h-13a1.5,1.5 0,0 1,-1.5 -1.5v-7a1.5,1.5 0,0 1,1.5 -1.5z"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeColor="#FFFFFFFF"
-        android:fillColor="#00000000" />
-    <path
-        android:pathData="M6,18h12"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeColor="#FFFFFFFF"
-        android:fillColor="#00000000" />
-    <path
-        android:pathData="M8,21h8"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeColor="#FFFFFFFF"
-        android:fillColor="#00000000" />
+    <path android:pathData="M4,5h10M9,5v10" android:strokeWidth="1.9" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M15,12h5M15,15.5h5M4,19.5h16" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:fillColor="#00000000" />
 </vector>

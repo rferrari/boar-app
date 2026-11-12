@@ -23,10 +23,23 @@ object PressRewrite {
         "sem aspas, sem notas. Escreva em português, como o trecho. Mantenha cada marca de fonte como [1] ou [2] exatamente como está, " +
         "depois da mesma afirmação; não acrescente, não tire e não renumere nenhuma. Não acrescente fatos que não estejam no trecho."
 
-    fun instruction(option: Option, own: String?, pt: Boolean): String = when (option) {
-        Option.SHORTER -> if (pt) "Deixe mais curto: mais ou menos metade do tamanho, com os pontos principais." else "Make it shorter: about half the length, keeping the main points."
-        Option.SIMPLER -> if (pt) "Use palavras mais simples e frases mais curtas, para um leitor jovem. Mantenha o sentido." else "Use simpler words and shorter sentences, for a young reader. Keep the meaning."
-        Option.FIX -> if (pt) "Corrija a gramática, a ortografia e a redação. Mude o mínimo possível." else "Fix the grammar, spelling and wording. Change as little as possible."
+    /** Words in [text], [n] marks not counted. */
+    fun words(text: String): Int = text.replace(MARK, " ").split(Regex("\\s+")).count { it.any(Char::isLetterOrDigit) }
+
+    /** "Shorter": at most half the words (and never under 8), a number the model can aim at (t9 1721: "about half" came back unchanged). */
+    fun shorterTarget(text: String): Int = maxOf(8, words(text) / 2)
+
+    /**
+     * Each quick action with a concrete target (t9 1721, after "Shorter" returned the same text on the F3): Shorter = at most
+     * half the words; Simpler words = short everyday words, the same facts; Fix the wording = the same length.
+     */
+    fun instruction(option: Option, own: String?, pt: Boolean, text: String = ""): String = when (option) {
+        Option.SHORTER -> shorterTarget(text).let { n -> if (pt) "Reescreva em no máximo $n palavras (hoje são ${words(text)}). Fique só com os pontos principais e corte o resto."
+            else "Rewrite it in at most $n words (it has ${words(text)} now). Keep only the main points and cut the rest." }
+        Option.SIMPLER -> if (pt) "Reescreva com palavras curtas do dia a dia e frases curtas, como para uma criança de 10 anos. Os mesmos fatos, nenhum fato novo. Troque toda palavra difícil."
+            else "Rewrite it with short, everyday words and short sentences, as for a 10-year-old. The same facts, no new ones. Replace every hard word."
+        Option.FIX -> words(text).let { n -> if (pt) "Corrija só a gramática, a ortografia e a redação. Mesmo tamanho (cerca de $n palavras) e os mesmos fatos."
+            else "Fix only the grammar, spelling and wording. The same length (about $n words) and the same facts." }
         Option.LIST -> if (pt) "Transforme em uma lista, um ponto por linha, cada linha começando com \"- \"." else "Turn it into a list, one point per line, each line starting with \"- \"."
         Option.OWN -> (if (pt) "Reescreva assim: " else "Rewrite it this way: ") + own.orEmpty().trim().take(200)
     }
@@ -37,7 +50,7 @@ object PressRewrite {
      */
     fun prompt(option: Option, text: String, own: String? = null, languageOf: String = text): Prompt {
         val pt = portuguese(languageOf)
-        val user = instruction(option, own, pt) + "\n\n" + (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim()
+        val user = instruction(option, own, pt, text) + "\n\n" + (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim()
         val tokens = text.length / 3
         val n = when (option) { Option.SHORTER -> tokens; Option.LIST -> tokens * 2; else -> tokens * 3 / 2 } + 64
         return Prompt(if (pt) SYSTEM_PT else SYSTEM_EN, user, n.coerceIn(96, 1024))
@@ -57,6 +70,12 @@ object PressRewrite {
     }
 
     private val MARK = Regex("\\[(\\d{1,3})]")
+
+    /** The rewrite says the same as the text (spaces and case aside): the screen says "No change" instead of NOW / REWRITTEN. */
+    fun unchanged(before: String, after: String): Boolean {
+        fun norm(x: String) = x.trim().replace(Regex("\\s+"), " ").lowercase()
+        return norm(before) == norm(after)
+    }
 
     /** The source marks in a text, each once. */
     fun marks(text: String): Set<Int> = MARK.findAll(text).map { it.groupValues[1].toInt() }.toSet()

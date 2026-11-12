@@ -107,4 +107,5 @@
     <string name="native_labs_printer_rwMarks" formatted="false">Some source marks changed</string>
     <string name="native_labs_printer_rwFailed" formatted="false">BOAR could not rewrite it. Your text is as it was.</string>
     <string name="native_labs_printer_rwUpdated" formatted="false">Text updated.</string>
+    <string name="native_labs_printer_rwNoChange" formatted="false">No change. Try again or write your own words.</string>
 </resources>

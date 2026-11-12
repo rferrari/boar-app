@@ -81,7 +81,21 @@ object PdfCompiler {
     /** "How this document was made", always at the end. */
     private fun receipt(p: Pager, page: PressPage) {
         val rows = page.rows
-        p.keepRoom(Paper.RECEIPT_TITLE * 2 + Paper.RECEIPT * 4)
+        // Kept together (t9 1721: a page break ran through it): the whole receipt's height, measured as it will be drawn;
+        // a receipt taller than a page starts on a fresh one and continues.
+        val label0 = sans(Paper.RECEIPT, bold = true, color = Paper.LABEL_INK)
+        val value0 = sans(Paper.RECEIPT, color = Paper.RECEIPT_INK)
+        val w = (Paper.INNER - Paper.RECEIPT_LABEL_W).toInt()
+        var total = 6f + 2f + Paper.RECEIPT_TITLE * 1.4f + 6f + 10f + Paper.FOOT * 1.6f
+        for (row in rows) {
+            row.lines.forEachIndexed { i, line ->
+                val text = if (row.numbered) "${i + 1}. $line" else line
+                total += maxOf(StaticLayout.Builder.obtain(text, 0, text.length, value0, w).setLineSpacing(0f, 1.15f).build().height,
+                    if (i == 0) StaticLayout.Builder.obtain(row.label, 0, row.label.length, label0, (Paper.RECEIPT_LABEL_W - 6).toInt()).build().height else 0).toFloat()
+            }
+            total += 4f
+        }
+        p.keepRoom(minOf(total, Paper.H - 2 * Paper.M))
         p.gap(6f)
         p.rule()
         p.text(page.labels.title, sans(Paper.RECEIPT_TITLE, bold = true, color = Paper.INK).apply { letterSpacing = 0.06f }, after = 6f)

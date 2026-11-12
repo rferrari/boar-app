@@ -21,9 +21,9 @@ class PressRewriteTest {
             assertTrue(o.name, q.system.contains("Mantenha cada marca de fonte"))
             assertTrue(o.name, q.user.endsWith("TRECHO:\n$pt"))
         }
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.SHORTER, en).user.startsWith("Make it shorter"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en).user.startsWith("Use simpler words"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, en).user.startsWith("Fix the grammar"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.SHORTER, en).user.startsWith("Rewrite it in at most"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en).user.startsWith("Rewrite it with short, everyday words"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, en).user.startsWith("Fix only the grammar"))
         assertTrue(PressRewrite.prompt(PressRewrite.Option.LIST, pt).user.startsWith("Transforme em uma lista"))
         assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, en, own = "  for a 10-year-old ").user.startsWith("Rewrite it this way: for a 10-year-old\n"))
         // The language can come from the answer's question when the text alone is too short to tell.

@@ -49,6 +49,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -359,7 +361,7 @@ private fun InboxBanner(n: Int, onShow: () -> Unit) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, onClick: () -> Unit) {
+private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
     val tint = when { danger -> c.crimson400; on -> GOLD; else -> c.textHeading }
     Box(Modifier.size(44.dp).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
@@ -368,6 +370,8 @@ private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Bo
         .combinedClickable(enabled = enabled, role = Role.Button, onClickLabel = label, onLongClick = { Toasts.show(label) }, onClick = onClick),
         contentAlignment = Alignment.Center) {
         Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)
+        // Open (the caption being typed): a small dot, so the gold ring stays the current placement's alone (t9 1721).
+        if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 6.dp).size(7.dp).background(GOLD, CircleShape))
     }
 }
 
@@ -388,7 +392,7 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
             if (b is Block.Picture) {
                 Sep()
                 // The caption, typed under the picture on the page; then where it sits (left and right: the next text beside it).
-                IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), on = editing, onClick = onCaption)
+                IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), dot = editing, onClick = onCaption)
                 for ((place, icon, key) in listOf(Triple(PressDoc.Place.LEFT, R.drawable.lab_printer_ic_left, "placeLeft"),
                         Triple(PressDoc.Place.CENTER, R.drawable.lab_printer_ic_center, "placeCenter"), Triple(PressDoc.Place.RIGHT, R.drawable.lab_printer_ic_right, "placeRight")))
                     IconAction(icon, t("native.labs.printer.$key"), on = b.place == place) { onPlace(place) }
@@ -558,6 +562,7 @@ private fun EditSheet(block: Block, onSelf: () -> Unit, onClose: () -> Unit) {
                 PressRewriter.Outcome.Busy -> { chatBusy = true; line = I18n.t(ctx, "native.labs.printer.rwBusy") }
                 PressRewriter.Outcome.NoModel -> line = I18n.t(ctx, "native.labs.printer.rwNoModel")
                 PressRewriter.Outcome.Failed -> line = I18n.t(ctx, "native.labs.printer.rwFailed")
+                PressRewriter.Outcome.Unchanged -> line = I18n.t(ctx, "native.labs.printer.rwNoChange")
                 is PressRewriter.Outcome.Done -> result = o
             }
         }
@@ -684,6 +689,9 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
         val s = remember(maxWidth, density) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density) }
         val measurer = rememberTextMeasurer()
         val pageLabel = t("native.labs.printer.page", "n" to "{{n}}")
+        // The receipt's top and bottom on the paper (px): it is kept whole in the PDF, so a break inside it is drawn above it.
+        var receiptTop by remember { mutableStateOf(Float.NaN) }
+        var receiptBottom by remember { mutableStateOf(Float.NaN) }
         val breakColor = Color(0xFFB9BFD3)
         Column(Modifier.fillMaxWidth().shadow(6.dp, RoundedCornerShape(2.dp)).background(Color.White, RoundedCornerShape(2.dp))
             // Where the A4 pages end, about: every page's text height, from the top margin. Blocks that jump to the next
@@ -696,6 +704,9 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
                 var n = 2
                 val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
                 while (y < size.height - m) {
+                    // A break inside the receipt: the PDF starts the receipt on the next page (kept together), so the marker
+                    // sits above it and no text is under it (t9 1721).
+                    if (!receiptTop.isNaN() && y > receiptTop && y < receiptBottom) y = receiptTop - 4.dp.toPx()
                     drawLine(breakColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
                     val text = measurer.measure(pageLabel.replace("{{n}}", n.toString()), TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1D1D1F)))
                     val w = text.size.width + 12.dp.toPx()
@@ -727,7 +738,9 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
                     }
                 }
             }
-            ReceiptView(page, s)
+            Box(Modifier.onGloballyPositioned { c -> c.positionInParent().y.let { top -> receiptTop = top; receiptBottom = top + c.size.height } }) {
+                ReceiptView(page, s)
+            }
         }
     }
 }
