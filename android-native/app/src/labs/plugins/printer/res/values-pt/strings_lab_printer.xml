@@ -84,4 +84,27 @@
     <string name="native_labs_printer_placeCenter" formatted="false">No centro, na largura toda</string>
     <string name="native_labs_printer_placeRight" formatted="false">À direita, com o texto ao lado</string>
     <string name="native_labs_printer_mdPhoto" formatted="false">Foto</string>
+    <string name="native_labs_printer_editTitle" formatted="false">Editar este texto</string>
+    <string name="native_labs_printer_editSelf" formatted="false">Editar você mesmo</string>
+    <string name="native_labs_printer_editSelfSmall" formatted="false">digite na página</string>
+    <string name="native_labs_printer_askTitle" formatted="false">Pedir ao BOAR para reescrever</string>
+    <string name="native_labs_printer_rwShorter" formatted="false">Mais curto</string>
+    <string name="native_labs_printer_rwSimpler" formatted="false">Palavras mais simples</string>
+    <string name="native_labs_printer_rwFix" formatted="false">Corrigir a redação</string>
+    <string name="native_labs_printer_rwList" formatted="false">Em lista</string>
+    <string name="native_labs_printer_rwOwnHint" formatted="false">Ou diga o que mudar, por exemplo: para uma criança de 10 anos</string>
+    <string name="native_labs_printer_rwAsk" formatted="false">Pedir ao BOAR</string>
+    <string name="native_labs_printer_rwHint" formatted="false">O BOAR reescreve neste celular com o seu modelo. Você vê as duas versões antes de qualquer mudança.</string>
+    <string name="native_labs_printer_rwNow" formatted="false">AGORA</string>
+    <string name="native_labs_printer_rwRewriting" formatted="false">O BOAR ESTÁ REESCREVENDO…</string>
+    <string name="native_labs_printer_rwRewritten" formatted="false">REESCRITO</string>
+    <string name="native_labs_printer_rwUse" formatted="false">Usar o texto novo</string>
+    <string name="native_labs_printer_rwKeep" formatted="false">Manter o meu</string>
+    <string name="native_labs_printer_rwStop" formatted="false">Parar</string>
+    <string name="native_labs_printer_rwStopped" formatted="false">Parado. Seu texto está como estava.</string>
+    <string name="native_labs_printer_rwBusy" formatted="false">Uma resposta do chat está sendo escrita. Tente de novo quando ela terminar.</string>
+    <string name="native_labs_printer_rwNoModel" formatted="false">Para reescrever é preciso um modelo de resposta neste celular.</string>
+    <string name="native_labs_printer_rwMarks" formatted="false">Algumas marcas de fonte mudaram</string>
+    <string name="native_labs_printer_rwFailed" formatted="false">O BOAR não conseguiu reescrever. Seu texto está como estava.</string>
+    <string name="native_labs_printer_rwUpdated" formatted="false">Texto atualizado.</string>
 </resources>

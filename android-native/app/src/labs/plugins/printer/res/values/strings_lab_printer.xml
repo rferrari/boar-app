@@ -84,4 +84,27 @@
     <string name="native_labs_printer_placeCenter" formatted="false">Place in the center, full width</string>
     <string name="native_labs_printer_placeRight" formatted="false">Place right, text beside</string>
     <string name="native_labs_printer_mdPhoto" formatted="false">Photo</string>
+    <string name="native_labs_printer_editTitle" formatted="false">Edit this text</string>
+    <string name="native_labs_printer_editSelf" formatted="false">Edit it yourself</string>
+    <string name="native_labs_printer_editSelfSmall" formatted="false">type on the page</string>
+    <string name="native_labs_printer_askTitle" formatted="false">Ask BOAR to rewrite it</string>
+    <string name="native_labs_printer_rwShorter" formatted="false">Shorter</string>
+    <string name="native_labs_printer_rwSimpler" formatted="false">Simpler words</string>
+    <string name="native_labs_printer_rwFix" formatted="false">Fix the wording</string>
+    <string name="native_labs_printer_rwList" formatted="false">As a list</string>
+    <string name="native_labs_printer_rwOwnHint" formatted="false">Or say what to change, for example: for a 10-year-old</string>
+    <string name="native_labs_printer_rwAsk" formatted="false">Ask BOAR</string>
+    <string name="native_labs_printer_rwHint" formatted="false">BOAR rewrites it on this phone with your model. You see both versions before anything changes.</string>
+    <string name="native_labs_printer_rwNow" formatted="false">NOW</string>
+    <string name="native_labs_printer_rwRewriting" formatted="false">BOAR IS REWRITING…</string>
+    <string name="native_labs_printer_rwRewritten" formatted="false">REWRITTEN</string>
+    <string name="native_labs_printer_rwUse" formatted="false">Use the new text</string>
+    <string name="native_labs_printer_rwKeep" formatted="false">Keep mine</string>
+    <string name="native_labs_printer_rwStop" formatted="false">Stop</string>
+    <string name="native_labs_printer_rwStopped" formatted="false">Stopped. Your text is as it was.</string>
+    <string name="native_labs_printer_rwBusy" formatted="false">A chat answer is being written. Try again when it ends.</string>
+    <string name="native_labs_printer_rwNoModel" formatted="false">Rewriting needs an answer model on this phone.</string>
+    <string name="native_labs_printer_rwMarks" formatted="false">Some source marks changed</string>
+    <string name="native_labs_printer_rwFailed" formatted="false">BOAR could not rewrite it. Your text is as it was.</string>
+    <string name="native_labs_printer_rwUpdated" formatted="false">Text updated.</string>
 </resources>

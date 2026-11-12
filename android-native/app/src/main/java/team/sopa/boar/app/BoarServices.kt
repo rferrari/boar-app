@@ -462,6 +462,8 @@ class BoarServices private constructor(private val context: Context) {
     fun addStopper(stop: () -> Unit) { stoppers += stop }
     fun removeStopper(stop: () -> Unit) { stoppers -= stop }
     private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
+    /** Read-only: the chat (or anything that registered a busy check) is using the model now; Press's rewrite waits for it. */
+    val isModelBusy: Boolean get() = modelBusy()
 
     /** Stops every answer, title and summary and waits up to [timeoutMs] for them to end; true when nothing runs. Blocking. */
     fun stopAnswersAndWait(timeoutMs: Long = 15_000): Boolean {

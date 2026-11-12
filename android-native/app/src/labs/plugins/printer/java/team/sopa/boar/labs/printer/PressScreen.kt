@@ -98,6 +98,7 @@ import team.sopa.boar.engine.labs.PressDoc
 import team.sopa.boar.engine.labs.PressDoc.Block
 import team.sopa.boar.engine.labs.PressLayout
 import team.sopa.boar.engine.labs.PressReceipt
+import team.sopa.boar.engine.labs.PressRewrite
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.ui.I18n
 import team.sopa.boar.ui.Toasts
@@ -110,7 +111,7 @@ import java.io.File
  * bottom bar, Add and Save PDF. Tapping a block selects it; an icon bar above the bottom bar moves, edits (on the page,
  * text blocks), removes (with Undo) or lets go of it.
  */
-private enum class Sheet { PROJECTS, ADD, DRAWINGS }
+private enum class Sheet { PROJECTS, ADD, DRAWINGS, EDIT }
 
 private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
@@ -245,7 +246,8 @@ internal fun PressScreen(lab: LabPlugin) {
         val i = project.blocks.indexOfFirst { it.id == selected }
         if (i >= 0) ActionBar(project.blocks[i], i, project.blocks.size, editing == selected,
             onMove = { by -> PressStore.change { it.move(project.blocks[i].id, by) }; editing = null },
-            onEdit = { editing = if (editing == selected) null else selected },
+            onEdit = { if (editing == selected) editing = null else sheet = Sheet.EDIT },
+            onCaption = { editing = if (editing == selected) null else selected },
             onPlace = { place -> PressStore.change { it.place(project.blocks[i].id, place) } },
             onRemove = {
                 val b = project.blocks[i]
@@ -287,6 +289,11 @@ internal fun PressScreen(lab: LabPlugin) {
                             sheet = null
                             pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         })
+                    Sheet.EDIT -> {
+                        val target = project.blocks.firstOrNull { it.id == selected && textOf(it) != null }
+                        if (target == null) LaunchedEffect(Unit) { sheet = null }
+                        else EditSheet(target, onSelf = { sheet = null; editing = target.id }, onClose = { sheet = null })
+                    }
                     Sheet.DRAWINGS -> DrawingsSheet { f ->
                         sheet = null
                         scope.launch {
@@ -361,7 +368,7 @@ private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Bo
 }
 
 @Composable
-private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
+private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onCaption: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
                       onRemove: () -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
@@ -377,7 +384,7 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
             if (b is Block.Picture) {
                 Sep()
                 // The caption, typed under the picture on the page; then where it sits (left and right: the next text beside it).
-                IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), on = editing, onClick = onEdit)
+                IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), on = editing, onClick = onCaption)
                 for ((place, icon, key) in listOf(Triple(PressDoc.Place.LEFT, R.drawable.lab_printer_ic_left, "placeLeft"),
                         Triple(PressDoc.Place.CENTER, R.drawable.lab_printer_ic_center, "placeCenter"), Triple(PressDoc.Place.RIGHT, R.drawable.lab_printer_ic_right, "placeRight")))
                     IconAction(icon, t("native.labs.printer.$key"), on = b.place == place) { onPlace(place) }
@@ -472,6 +479,133 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
     }
     Spacer(Modifier.height(8.dp))
     team.sopa.boar.labs.AboutPluginFold(lab)
+}
+
+/** The text "Ask BOAR to rewrite it" works on: a heading's or note's text, an answer's text (not its heading). */
+private fun textOf(b: Block): String? = when (b) {
+    is Block.Heading -> b.text
+    is Block.Note -> b.text
+    is Block.Answer -> b.text
+    else -> null
+}
+
+/** One version of the text in the edit sheet: NOW or REWRITTEN, with a warning line under it if any. */
+@Composable
+private fun Version(label: String, text: String, new: Boolean, warning: String? = null) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(10.dp)).background(c.bgCard)
+        .border(1.dp, if (new) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp)) {
+        Text(label, style = Boar.type["mono.xs"], color = c.textMuted, fontWeight = FontWeight.Bold)
+        Text(text, style = Boar.type.body, color = c.textPrimary, modifier = Modifier.padding(top = 4.dp))
+        warning?.let { Text(it, style = Boar.type.caption, color = c.amber400, modifier = Modifier.padding(top = 6.dp)) }
+    }
+}
+
+@Composable
+private fun SheetButton(text: String, primary: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
+    val c = Boar.colors
+    Text(text, style = Boar.type.body, color = if (primary) GOLD_INK else c.textPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp).alpha(if (enabled) 1f else 0.4f).clip(RoundedCornerShape(12.dp))
+            .background(if (primary) GOLD else c.bgCard).border(1.dp, if (primary) GOLD else c.borderSubtle, RoundedCornerShape(12.dp))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(vertical = 14.dp))
+}
+
+/**
+ * The pencil on a text block (adam's mock-up): "Edit it yourself" (type on the page) or "Ask BOAR to rewrite it" (Shorter,
+ * Simpler words, Fix the wording, As a list, or the user's own words). The rewrite streams, then NOW and REWRITTEN side by
+ * side; nothing in the block changes before "Use the new text". Keep mine, Stop, Back and closing the sheet leave it as it
+ * was. Not while a chat answer is being written.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun EditSheet(block: Block, onSelf: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val current = textOf(block).orEmpty()
+    val languageOf = if (block is Block.Answer) block.question + "\n" + block.text else current
+    var own by remember { mutableStateOf("") }
+    var running by remember { mutableStateOf(false) }
+    var streamed by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf<PressRewriter.Outcome.Done?>(null) }
+    var line by remember { mutableStateOf<String?>(null) }
+    var job by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    // Leaving the sheet (Back, a tap outside) stops a rewrite still running; the block stays as it was.
+    DisposableEffect(block.id) { onDispose { job?.cancel() } }
+    // The chat writing an answer: say so, and the options wait.
+    var chatBusy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        val services = team.sopa.boar.app.BoarServices.get(ctx)
+        while (true) { if (!running) chatBusy = services.isModelBusy; delay(1000) }
+    }
+    fun ask(option: PressRewrite.Option, ownText: String?) {
+        if (running) return
+        line = null; result = null; streamed = ""; running = true
+        job = scope.launch {
+            val o = try {
+                PressRewriter.run(ctx, current, option, ownText, languageOf) { streamed = it }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                PressRewriter.Outcome.Failed
+            }
+            running = false
+            when (o) {
+                PressRewriter.Outcome.Busy -> { chatBusy = true; line = I18n.t(ctx, "native.labs.printer.rwBusy") }
+                PressRewriter.Outcome.NoModel -> line = I18n.t(ctx, "native.labs.printer.rwNoModel")
+                PressRewriter.Outcome.Failed -> line = I18n.t(ctx, "native.labs.printer.rwFailed")
+                is PressRewriter.Outcome.Done -> result = o
+            }
+        }
+    }
+    val done = result
+    when {
+        running -> {
+            SheetTitle(t("native.labs.printer.askTitle"))
+            Version(t("native.labs.printer.rwNow"), PressReceipt.plain(current), new = false)
+            Version(t("native.labs.printer.rwRewriting"), streamed, new = true)
+            SheetButton(t("native.labs.printer.rwStop"), primary = false) {
+                job?.cancel()
+                running = false
+                line = I18n.t(ctx, "native.labs.printer.rwStopped")
+            }
+        }
+        done != null -> {
+            SheetTitle(t("native.labs.printer.askTitle"))
+            Version(t("native.labs.printer.rwNow"), PressReceipt.plain(current), new = false)
+            Version(t("native.labs.printer.rwRewritten"), PressReceipt.plain(done.text), new = true,
+                warning = if (done.marksChanged) t("native.labs.printer.rwMarks") else null)
+            // The one place the rewrite reaches the block.
+            SheetButton(t("native.labs.printer.rwUse"), primary = true) {
+                PressStore.change { it.editText(block.id, PressDoc.Field.TEXT, done.text) }
+                Toasts.show(I18n.t(ctx, "native.labs.printer.rwUpdated"))
+                onClose()
+            }
+            SheetButton(t("native.labs.printer.rwKeep"), primary = false, onClick = onClose)
+        }
+        else -> {
+            SheetTitle(t("native.labs.printer.editTitle"))
+            SheetRow(t("native.labs.printer.editSelf"), t("native.labs.printer.editSelfSmall"), icon = R.drawable.lab_printer_ic_edit, onClick = onSelf)
+            Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+            Text(t("native.labs.printer.askTitle"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
+            if (chatBusy) Text(t("native.labs.printer.rwBusy"), style = Boar.type.caption, color = c.amber400, modifier = Modifier.padding(bottom = 6.dp))
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((option, key) in listOf(PressRewrite.Option.SHORTER to "native.labs.printer.rwShorter", PressRewrite.Option.SIMPLER to "native.labs.printer.rwSimpler",
+                        PressRewrite.Option.FIX to "native.labs.printer.rwFix", PressRewrite.Option.LIST to "native.labs.printer.rwList"))
+                    Text(t(key), style = Boar.type.body, color = c.textPrimary,
+                        modifier = Modifier.alpha(if (chatBusy) 0.4f else 1f).clip(RoundedCornerShape(999.dp)).background(c.bgCard)
+                            .border(1.dp, c.borderSubtle, RoundedCornerShape(999.dp)).clickable(enabled = !chatBusy, role = Role.Button) { ask(option, null) }
+                            .padding(horizontal = 14.dp, vertical = 9.dp))
+            }
+            BasicTextField(own, { own = it.take(120) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(GOLD),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp).background(c.bgCard, RoundedCornerShape(10.dp))
+                    .border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp),
+                decorationBox = { inner -> if (own.isEmpty()) Text(t("native.labs.printer.rwOwnHint"), style = Boar.type.body, color = c.textDim); inner() })
+            SheetButton(t("native.labs.printer.rwAsk"), primary = false, enabled = !chatBusy && own.isNotBlank()) { ask(PressRewrite.Option.OWN, own) }
+            line?.let { Text(it, style = Boar.type.caption, color = c.amber400, modifier = Modifier.padding(top = 8.dp)) }
+            Text(t("native.labs.printer.rwHint"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 8.dp))
+        }
+    }
 }
 
 @Composable
