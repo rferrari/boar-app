@@ -44,6 +44,14 @@ interface LabPlugin {
     /** The experiment's page, below the shared header (LabScaffold). */
     @Composable fun Content() {}
 
+    /**
+     * The plugin's [Content] fills the page under the header (adam, Nov 13: Designer and Press are canvases): no header
+     * block with the art and description, no page scroll, no padding and no "About this plugin" fold. The plugin lays out
+     * its own space (it gets the whole height, already inside the page) and shows [AboutPluginFold] where it keeps its
+     * settings (a sheet). The off alert and the review note still show above it.
+     */
+    val fullPage: Boolean get() = false
+
     /** Rows in the 🧩 sheet a finished answer's footer opens: one button there however many labs add actions. */
     @Composable fun answerActions(a: AnswerRef): List<LabAction> = emptyList()
 

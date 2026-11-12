@@ -14,6 +14,7 @@ import team.sopa.boar.app.BoarServices
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.AssetStore
 import team.sopa.boar.engine.models.CatalogAsset
+import team.sopa.boar.engine.labs.DesignerCanvas
 import java.io.File
 
 /**
@@ -23,14 +24,6 @@ import java.io.File
  * freed when it exits.
  */
 object ImageLab {
-    /** Measured on the X6 Pro, Oct 13 2026 (CPU, 4 fast cores): 384 px ~5.5 s, 512 px ~9.5 s; the labels promise ~15 s and ~20 s, untested on other phones. 256 px breaks the shapes. The first is the default. */
-    val SIZES = listOf(384, 512)
-
-    /**
-     * A drawing's size in pixels: square, portrait (taller) or banner (wider), sides in multiples of 64. The portrait and
-     * banner sizes are candidates to time on the X6 (Oct 16) before the list is cut to the ones kept; 256 px broke the
-     * shapes on Oct 13, so 576×256 is the low end.
-     */
     /** What a drawing was made from, kept beside it as <image>.png.json: subject, style key, size key, seed. */
     data class Recipe(val subject: String, val style: String, val size: String, val seed: Int)
 
@@ -48,20 +41,34 @@ object ImageLab {
     /** Deletes a drawing and its recipe. */
     fun deleteDrawing(image: java.io.File) { image.delete(); recipeFile(image).delete() }
 
+    /**
+     * A drawing's size in pixels, sides in multiples of 64. Only sd-cli, the file name and the recipe see the numbers: the
+     * screen says its shape (Square, Portrait, Wide) and its speed (Fast, Slow), DesignerCanvas (adam, Nov 13).
+     */
     data class Canvas(val w: Int, val h: Int) {
-        /** "384" for a square (the key older saves and times used), "384x512" otherwise. */
-        val key: String get() = if (w == h) "$w" else "${w}x$h"
-        val shape: String get() = when { w == h -> "square"; h > w -> "portrait"; else -> "banner" }
-        val label: String get() = if (w == h) "$w px" else "$w×$h"
-        companion object { fun of(key: String?): Canvas? = CANVASES.firstOrNull { it.key == key } }
+        val size: DesignerCanvas.Size get() = DesignerCanvas.Size(w, h)
+        /** "512" for a square (the key older saves and times used), "384x512" otherwise. */
+        val key: String get() = size.key
+        val shape: DesignerCanvas.Shape get() = size.shape
+        val tier: DesignerCanvas.Tier get() = size.tier
+        companion object {
+            /** Any saved key, offered or not (a recipe from before Nov 13 may hold a removed size). */
+            fun of(key: String?): Canvas? = DesignerCanvas.parse(key)?.let { Canvas(it.w, it.h) }
+            fun of(shape: DesignerCanvas.Shape, tier: DesignerCanvas.Tier): Canvas = DesignerCanvas.size(shape, tier).let { Canvas(it.w, it.h) }
+            /** A saved key as a size the screen offers: a removed small size becomes Fast of its shape. */
+            fun offered(key: String?): Canvas? = DesignerCanvas.migrate(key)?.let { Canvas(it.w, it.h) }
+        }
     }
 
-    /** Small, medium and high per shape (Oct 16): 768×320 drew in 13 s on the X6, so the high sizes are worth timing. */
-    val CANVASES = listOf(
-        Canvas(384, 384), Canvas(512, 512), Canvas(640, 640),
-        Canvas(320, 448), Canvas(384, 512), Canvas(448, 640),
-        Canvas(576, 256), Canvas(640, 320), Canvas(768, 320),
-    )
+    /**
+     * What the screen offers (Nov 13): per shape, Fast (the middle size) and Slow (the largest). Square 512 and 640,
+     * portrait 384×512 and 448×640, wide 640×320 and 768×320 (13 s on the X6, Oct 16). The smallest of each shape
+     * (384, 320×448, 576×256) left the screen; a default saved at one moves to its shape's Fast.
+     */
+    val CANVASES = DesignerCanvas.OFFERED.map { Canvas(it.w, it.h) }
+
+    /** The size a saved drawing was drawn at, from its file name ("…-512.png", "…-384x512.png"); null for an odd name. */
+    fun canvasOf(image: File): Canvas? = Regex("-(\\d+(?:x\\d+)?)\\.png$").find(image.name)?.groupValues?.get(1)?.let { Canvas.of(it) }
 
     /**
      * The styles chosen on Oct 14 from 22 drawn on the X6 (same subject and seed, 384 px; docs/…image-gen-styles):
@@ -90,21 +97,17 @@ object ImageLab {
         fun prompt(subject: String) = template.replace("{s}", subject.trim())
     }
 
-    /** The user's pick ("Set as default"), else engraving. */
-    fun defaultStyle(): Style = team.sopa.boar.labs.LabPrefs.string("image.style")?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
+    /** The user's pick ("★ Default"), else engraving. */
+    fun defaultStyle(): Style = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).first?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
 
-    fun setDefaultStyle(s: Style) = team.sopa.boar.labs.LabPrefs.putString("image.style", s.key)
+    /** The user's shape and speed ("★ Default" saves them with the style), else Square, Fast; a removed size reads as its shape's Fast. */
+    fun defaultCanvas(): Canvas = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second.let { Canvas(it.w, it.h) }
 
-    /** The user's size ("Set as default" saves style and size together), else the first of [CANVASES]. */
-    fun defaultCanvas(): Canvas = Canvas.of(team.sopa.boar.labs.LabPrefs.string("image.size")) ?: CANVASES.first()
+    /** "★ Default" in Designer and "Remember" in Illustrate: style, shape and speed together, for both. */
+    fun setDefaults(style: Style, canvas: Canvas) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)
 
-    fun setDefaultCanvas(c: Canvas) = team.sopa.boar.labs.LabPrefs.putString("image.size", c.key)
-
-    /** Illustrate's choice of sizes: the ones timed on the X6 (Oct 13–16), square, portrait and banner. */
-    val ILLUSTRATE_SIZES = listOf(Canvas(384, 384), Canvas(512, 512), Canvas(384, 512), Canvas(640, 320))
-
-    /** Reset in Illustrate's sheet: back to Engraving at the first size. */
-    fun resetDefaults() { setDefaultStyle(Style.ENGRAVING); setDefaultCanvas(CANVASES.first()) }
+    /** Reset in Illustrate's sheet: back to Engraving, Square, Fast. */
+    fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Tier.FAST))
 
     private const val TIMES_KEPT = 10
 
@@ -142,6 +145,7 @@ data class ImageLabState(
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultSize: ImageLab.Canvas = ImageLab.CANVASES.first(),
+    /** The shape and speed picked in the Shape tray: always one the screen offers. */
     val size: ImageLab.Canvas = ImageLab.CANVASES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -151,11 +155,15 @@ data class ImageLabState(
     val gallery: List<File> = emptyList(),
     /** The latest chat's title, offered as a subject. */
     val lastChat: String? = null,
-    /** What the shown picture was drawn from, for Regenerate. */
+    /** What the shown picture was drawn from, for Draw again. */
     val subject: String? = null,
-    /** The shown picture's seed, and whether the next drawing reuses it (same composition, new words). */
+    /** The shown picture's seed (kept for its recipe; the seed lock is hidden, adam Nov 13). */
     val seed: Int? = null,
     val seedLocked: Boolean = false,
+    /** The shown picture's recipe (its style and size for the caption and the "i" sheet); null for an older drawing. */
+    val recipe: ImageLab.Recipe? = null,
+    /** "4 variations": the ones drawn so far, shown as a 2×2 on the canvas while the run lasts and after; null otherwise. */
+    val variations: List<File>? = null,
 )
 
 class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
@@ -184,7 +192,8 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     /** The gallery as it is on disk now (pictures may have been erased while the screen was closed). */
     fun reload() {
         refresh()
-        _state.value.image?.takeIf { !it.isFile }?.let { _state.update { s -> s.copy(image = null, seconds = null, subject = null) } }
+        _state.value.image?.takeIf { !it.isFile }?.let { _state.update { s -> s.copy(image = null, seconds = null, subject = null, recipe = null) } }
+        _state.value.variations?.let { v -> _state.update { s -> s.copy(variations = v.filter { it.isFile }.ifEmpty { null }) } }
     }
 
     /** Deletes the image model (its 683 MB come back); the drawings stay. Not while drawing or downloading. */
@@ -213,74 +222,114 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setStyle(s: ImageLab.Style) = _state.update { it.copy(style = s) }
-    fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c) }
-    /** Shows [f] and puts back what it was drawn from (style, size, seed) when it has a recipe; the screen fills the subject. */
+    fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c, error = null) }
+    fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.tier))
+    fun setTier(tier: DesignerCanvas.Tier) = setSize(ImageLab.Canvas.of(_state.value.size.shape, tier))
+
+    /**
+     * Shows [f] and puts back what it was drawn from (style, shape and speed, seed) when it has a recipe; the screen fills
+     * the subject. A drawing made at a removed small size puts back its shape's Fast.
+     */
     fun show(f: File) {
         val r = ImageLab.recipeOf(f)
         _state.update { s ->
-            s.copy(image = f, seconds = null, error = null, subject = r?.subject ?: s.subject, seed = r?.seed,
+            s.copy(image = f, seconds = null, error = null, subject = r?.subject ?: s.subject, seed = r?.seed, recipe = r, variations = null,
                 style = r?.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } } ?: s.style,
-                size = r?.size?.let { ImageLab.Canvas.of(it) } ?: s.size)
+                size = (r?.size ?: ImageLab.canvasOf(f)?.key)?.let { ImageLab.Canvas.offered(it) } ?: s.size)
         }
     }
 
     fun setSeedLocked(on: Boolean) = _state.update { it.copy(seedLocked = on && it.seed != null) }
 
+    /** What the user typed is checked too (ImageSafety), on every way to draw: refused with a plain line, nothing drawn. */
+    private fun refused(subject: String): Boolean {
+        if (!team.sopa.boar.engine.routing.ImageSafety.blocked(subject)) return false
+        _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.refused")) }
+        return true
+    }
+
     fun generate(subject: String) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
-        // What the user typed is checked too (ImageSafety): refused with a plain line, nothing drawn.
-        if (team.sopa.boar.engine.routing.ImageSafety.blocked(subject)) {
-            _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.refused")) }
-            return
-        }
+        if (refused(subject)) { regenerating = false; return }
         val s = _state.value
         val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating }
         regenerating = false
-        // The old picture goes: its square shows the drawing in progress until the new one arrives.
-        _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null) }
+        // The old picture goes: its frame shows the drawing in progress until the new one arrives.
+        _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null, variations = null) }
         job = viewModelScope.launch {
             runCatching { SdRunner.draw(getApplication(), subject, s.style, s.size, seed = s.seed.takeIf { s.seedLocked }) { ph -> _state.update { it.copy(phase = ph) } } }
                 .onSuccess { d ->
-                    // Regenerate: the new picture takes the old one's place, which is deleted, not kept in the gallery.
+                    // Draw again: the new picture takes the old one's place, which is deleted, not kept in the gallery.
                     replacing?.takeIf { it != d.file }?.let { ImageLab.deleteDrawing(it) }
-                    _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim(), seed = d.seed) }
+                    _state.update { it.copy(phase = null, image = d.file, seconds = d.seconds, subject = subject.trim(), seed = d.seed, recipe = ImageLab.recipeOf(d.file)) }
                 }
                 .onFailure { e -> if (e !is kotlinx.coroutines.CancellationException) _state.update { it.copy(phase = null, error = team.sopa.boar.ui.I18n.t(getApplication(), "native.labs.image.drawFailed")) } }
             refresh()
         }
     }
 
-    /** The style and size Illustrate (in the chat) and a new Image Gen session use. */
+    /**
+     * "4 variations" in the "i" sheet: the shown picture's words, style and size, four new seeds, drawn one after another
+     * (DesignerCanvas.variations). Each waits for enough free memory (Illustrator's gate); the first failure stops the run
+     * and what was drawn stays, in the gallery and on the canvas. Stop and Back cancel it the same way.
+     */
+    fun variations() {
+        val s = _state.value
+        val subject = s.subject ?: return
+        if (s.phase != null || SdRunner.engine(getApplication()) == null || refused(subject)) return
+        val style = s.recipe?.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } } ?: s.style
+        val size = s.image?.let { ImageLab.canvasOf(it) }?.key?.let { ImageLab.Canvas.offered(it) } ?: s.size
+        val app = getApplication<Application>()
+        _state.update { it.copy(phase = "loading", error = null, variations = emptyList()) }
+        job = viewModelScope.launch {
+            val out = DesignerCanvas.variations(
+                enoughMemory = { Illustrator.enoughMemory(app) },
+                onDrawn = { f: File -> _state.update { it.copy(variations = it.variations.orEmpty() + f) }; refresh() },
+            ) { _ -> SdRunner.draw(app, subject, style, size) { ph -> _state.update { it.copy(phase = ph) } }.file }
+            val error = when (out.stop) {
+                DesignerCanvas.Stop.DONE -> null
+                DesignerCanvas.Stop.FAILED -> team.sopa.boar.ui.I18n.t(app, "native.labs.image.drawFailed")
+                DesignerCanvas.Stop.LOW_MEMORY -> team.sopa.boar.ui.I18n.t(app, "native.labs.image.lowMemory")
+            }
+            _state.update { it.copy(phase = null, error = error, variations = it.variations?.ifEmpty { null }) }
+            refresh()
+        }
+    }
+
+    /** "★ Default": the style, shape and speed Illustrate (in the chat) and a new Designer session use. */
     fun setDefaults() {
         val s = _state.value
-        ImageLab.setDefaultStyle(s.style)
-        ImageLab.setDefaultCanvas(s.size)
+        ImageLab.setDefaults(s.style, s.size)
         _state.update { it.copy(defaultStyle = s.style, defaultSize = s.size) }
     }
 
-    fun cancel() { SdRunner.cancel(); job?.cancel(); _state.update { it.copy(phase = null) } }
+    /** Stop (the Draw button while drawing) and Back: stops sd-cli; variations already drawn stay. */
+    fun cancel() { SdRunner.cancel(); job?.cancel(); _state.update { it.copy(phase = null, variations = it.variations?.ifEmpty { null }) } }
 
     fun deleteAll(files: Collection<File>) {
         files.forEach { ImageLab.deleteDrawing(it) }
-        if (_state.value.image in files) _state.update { it.copy(image = null, seconds = null) }
+        if (_state.value.image in files) _state.update { it.copy(image = null, seconds = null, recipe = null) }
+        _state.value.variations?.let { v -> _state.update { s -> s.copy(variations = (v - files.toSet()).ifEmpty { null }) } }
         refresh()
     }
 
     private var regenerating = false
 
-    /** Draws the shown picture's subject again (same style and size) and replaces it. */
+    /** Draw again: the shown picture's words, style and size (a removed small size draws as its shape's Fast), and it replaces it. */
     fun regenerate() {
-        val subject = _state.value.subject ?: return
+        val s = _state.value
+        val subject = s.subject ?: return
+        if (s.phase != null) return
+        s.recipe?.let { r ->
+            _state.update { st -> st.copy(style = ImageLab.Style.entries.firstOrNull { it.key == r.style } ?: st.style, size = ImageLab.Canvas.offered(r.size) ?: st.size) }
+        }
         regenerating = true
         generate(subject)
     }
 
     fun delete(f: File) {
         ImageLab.deleteDrawing(f)
-        if (_state.value.image == f) _state.update { it.copy(image = null, seconds = null) }
+        if (_state.value.image == f) _state.update { it.copy(image = null, seconds = null, recipe = null) }
         refresh()
     }
-
-
-
 }

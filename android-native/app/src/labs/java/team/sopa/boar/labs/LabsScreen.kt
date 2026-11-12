@@ -117,6 +117,14 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 @Composable
 fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
+    if (lab.fullPage) {
+        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true) {
+            if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
+            if (!LabPrefs.enabled(lab.id)) Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) { OffAlert(if (LabPrefs.proProfile) onClose else null) }
+            Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
+        }
+        return
+    }
     // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
     // grid, and the on/off switch, all in one block; the page below is the lab's.
     // Back names where it goes: the Plugins list in Pro, the chat below Pro (LabHooks.backFrom).
@@ -154,7 +162,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
  * list's two-sentence line leaves out.
  */
 @Composable
-private fun AboutPlugin(lab: LabPlugin) {
+private fun AboutPlugin(lab: LabPlugin) = AboutPluginFold(lab)
+
+/** "About this plugin", folded: a full-page plugin (LabPlugin.fullPage) shows it in its own settings sheet. */
+@Composable
+fun AboutPluginFold(lab: LabPlugin) {
     val c = Boar.colors
     val key = "native.labs.${lab.id}.about"
     val about = t(key).takeIf { it != key && it.isNotBlank() } ?: return
@@ -175,6 +187,8 @@ private fun Shell(
     scroll: androidx.compose.foundation.ScrollState? = null,
     backTo: String? = null,
     subtitle: String? = null,
+    /** The plugin lays out the whole height itself (LabPlugin.fullPage): no scroll, no padding. */
+    full: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
@@ -185,7 +199,8 @@ private fun Shell(
             Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         }
-        Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+        if (full) Column(Modifier.weight(1f).fillMaxWidth(), content = content)
+        else Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
 }
 
