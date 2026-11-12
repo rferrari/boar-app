@@ -52,6 +52,9 @@ interface LabPlugin {
      */
     val fullPage: Boolean get() = false
 
+    /** A full page's subtitle in the page header (Press: the open project's name; adam, Nov 12). Null: none. */
+    @Composable fun pageSubtitle(): String? = null
+
     /** Rows in the 🧩 sheet a finished answer's footer opens: one button there however many labs add actions. */
     @Composable fun answerActions(a: AnswerRef): List<LabAction> = emptyList()
 

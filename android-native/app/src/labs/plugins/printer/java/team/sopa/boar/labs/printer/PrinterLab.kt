@@ -70,6 +70,14 @@ object PrinterLab : LabPlugin {
         PressStore.addChat(ctx, sessionId, title)
     })
 
+    /** The open project's name under "Press" in the page header, so the page itself needs no project bar. */
+    @Composable
+    override fun pageSubtitle(): String? {
+        val ctx = LocalContext.current
+        remember { PressStore.load(ctx) }
+        return PressStore.library.collectAsState().value?.current?.name
+    }
+
     /** The open project's answers, on the chat header's plugins icon and beside Press in its list. */
     @Composable
     override fun headerCount(): Int {

@@ -118,7 +118,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     val c = Boar.colors
     if (lab.fullPage) {
-        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true) {
+        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle()) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
             if (!LabPrefs.enabled(lab.id)) Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) { OffAlert(if (LabPrefs.proProfile) onClose else null) }
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
