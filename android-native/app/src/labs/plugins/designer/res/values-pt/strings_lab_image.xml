@@ -5,7 +5,6 @@
     <string name="native_labs_image_needModel" formatted="false">O modelo de imagem (SDXS-512, 683 MB) ainda não está no celular. Baixe uma vez com internet; depois, desenha offline. A licença (CreativeML Open RAIL++-M) proíbe alguns usos, como prejudicar ou assediar pessoas, conteúdo enganoso para causar dano e aconselhamento médico: huggingface.co/IDKiro/sdxs-512-0.9</string>
     <string name="native_labs_image_download" formatted="false">Baixar (683 MB)</string>
     <string name="native_labs_image_downloading" formatted="false">Baixando… {{pct}}%</string>
-    <string name="native_labs_image_style" formatted="false">ESTILO</string>
     <string name="native_labs_image_style_engraving" formatted="false">Gravura</string>
     <string name="native_labs_image_style_scientific" formatted="false">Científico</string>
     <string name="native_labs_image_placeholder" formatted="false">O que devo desenhar?</string>
@@ -56,25 +55,13 @@
     <string name="native_labs_image_drawPicked" formatted="false">Desenhar · {{style}}, {{size}}</string>
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
     <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
-    <string name="native_labs_image_tool_style" formatted="false">Estilo</string>
-    <string name="native_labs_image_tool_shape" formatted="false">Formato</string>
-    <string name="native_labs_image_shapeTitle" formatted="false">FORMATO</string>
     <string name="native_labs_image_shapeLabel" formatted="false">Formato</string>
-    <string name="native_labs_image_speedLabel" formatted="false">Velocidade</string>
-    <string name="native_labs_image_tier_fast" formatted="false">Rápido</string>
-    <string name="native_labs_image_tier_slow" formatted="false">Lento</string>
-    <string name="native_labs_image_tierSeconds" formatted="false">{{tier}} · ~{{s}} s</string>
-    <string name="native_labs_image_shapeTier" formatted="false">{{shape}}, {{tier}}</string>
-    <string name="native_labs_image_shapeHint" formatted="false">Os segundos são a média deste celular. O mais lento desenha uma imagem maior.</string>
-    <string name="native_labs_image_shapeHintUntimed" formatted="false">Ainda sem tempo medido neste celular: os segundos aparecem depois do primeiro desenho. O mais lento desenha uma imagem maior.</string>
     <string name="native_labs_image_default" formatted="false">★ Padrão</string>
-    <string name="native_labs_image_done" formatted="false">Pronto</string>
     <string name="native_labs_image_styleHint" formatted="false">Toque de novo no estilo escolhido para ficar sem estilo.</string>
     <string name="native_labs_image_styleHintNone" formatted="false">Sem estilo: suas palavras são o pedido inteiro.</string>
     <string name="native_labs_image_emptyCanvas" formatted="false">Digite um tema e toque em Desenhar para preencher este formato.</string>
     <string name="native_labs_image_noModelTitle" formatted="false">O Designer precisa do modelo</string>
     <string name="native_labs_image_noModelCaption" formatted="false">O modelo ainda não está neste celular.</string>
-    <string name="native_labs_image_stop" formatted="false">Parar</string>
     <string name="native_labs_image_all" formatted="false">Todas ({{count}}) ›</string>
     <string name="native_labs_image_next" formatted="false">Próximo: {{style}}</string>
     <string name="native_labs_image_infoButton" formatted="false">Detalhes e ações da imagem</string>
@@ -92,4 +79,19 @@
     <string name="native_labs_image_variationOpen" formatted="false">Mostrar a variação {{n}}</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Ajustes do Designer</string>
     <string name="native_labs_image_waitSketch" formatted="false">Esboço</string>
+    <string name="native_labs_image_qualityLabel" formatted="false">Qualidade</string>
+    <string name="native_labs_image_quality_low" formatted="false">Baixa</string>
+    <string name="native_labs_image_quality_medium" formatted="false">Média</string>
+    <string name="native_labs_image_quality_high" formatted="false">Alta</string>
+    <string name="native_labs_image_qualityLong_low" formatted="false">Qualidade baixa</string>
+    <string name="native_labs_image_qualityLong_medium" formatted="false">Qualidade média</string>
+    <string name="native_labs_image_qualityLong_high" formatted="false">Qualidade alta</string>
+    <string name="native_labs_image_qualitySeconds" formatted="false">{{level}} · ~{{s}} s</string>
+    <string name="native_labs_image_shapeQuality" formatted="false">{{shape}}, {{quality}}</string>
+    <string name="native_labs_image_qualityHint" formatted="false">Qualidade maior desenha uma imagem maior e demora mais. Os segundos são a média deste celular.</string>
+    <string name="native_labs_image_qualityHintUntimed" formatted="false">Qualidade maior desenha uma imagem maior e demora mais. {{level}} ainda não tem tempo medido neste celular: os segundos aparecem depois do primeiro desenho nela.</string>
+    <string name="native_labs_image_drawer" formatted="false">Estilo, formato e qualidade</string>
+    <string name="native_labs_image_section_style" formatted="false">ESTILO</string>
+    <string name="native_labs_image_section_shape" formatted="false">FORMATO</string>
+    <string name="native_labs_image_section_quality" formatted="false">QUALIDADE</string>
 </resources>

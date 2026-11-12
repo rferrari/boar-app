@@ -22,21 +22,21 @@ class IllustrateSheetTest {
         assertTrue(sheet.contains("Illustrator.start(ctx, a, notReady, style, size)"))
     }
 
-    @Test fun `the pick is kept only when asked, and reset goes back to Engraving, Square, Fast`() {
-        // Style, shape and speed together, as "★ Default" on the canvas (Nov 13).
+    @Test fun `the pick is kept only when asked, and reset goes back to Engraving, Square, Medium`() {
+        // Style, shape and quality together, as "★ Default" on the canvas.
         assertTrue(sheet.contains("if (keep) ImageLab.setDefaults(style, size)"))
-        assertTrue(lab.contains("fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Tier.FAST))"))
+        assertTrue(lab.contains("fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Quality.MEDIUM))"))
     }
 
-    @Test fun `the sheet says shape and speed in words, like the canvas, never pixels`() {
-        assertTrue(sheet.contains("DesignerCanvas.Shape.entries.map { it to shapeName(it) }") && sheet.contains("DesignerCanvas.Tier.entries.map { it to tierLabel("))
-        assertTrue(sheet.contains("\"size\" to shapeTier(size)") && !sheet.contains(".label"))
+    @Test fun `the sheet says shape and quality in words, like the canvas, never pixels`() {
+        assertTrue(sheet.contains("DesignerCanvas.Shape.entries.map { it to shapeName(it) }") && sheet.contains("DesignerCanvas.Quality.entries.map { it to qualityLabel("))
+        assertTrue(sheet.contains("\"size\" to shapeQuality(size)") && !sheet.contains(".label"))
     }
 
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/labs/plugins/designer/res/$d").listFiles()!!.joinToString("") { it.readText() }
-            for (k in listOf("sheetTitle", "styleLabel", "shapeLabel", "speedLabel", "remember", "reset", "drawPicked"))
+            for (k in listOf("sheetTitle", "styleLabel", "shapeLabel", "qualityLabel", "remember", "reset", "drawPicked"))
                 assertTrue("$d $k", s.contains("name=\"native_labs_image_$k\""))
         }
     }
