@@ -60,4 +60,5 @@
     <string name="native_labs_page_try" formatted="false">TRY IT</string>
     <string name="native_labs_page_tryHint" formatted="false">Tap to ask it in a new chat. Hold to edit it first.</string>
     <string name="native_labs_page_how" formatted="false">How it works</string>
+    <string name="native_labs_listSubtitle" formatted="false">Switch them on or off; tap one to open it.</string>
 </resources>

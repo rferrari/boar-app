@@ -174,12 +174,13 @@ private fun Shell(
     header: (@Composable ColumnScope.() -> Unit)? = null,
     scroll: androidx.compose.foundation.ScrollState? = null,
     backTo: String? = null,
+    subtitle: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
         // The app's page header (t9, Nov 12: the Plugins pages had their own); a plugin's own block comes under it.
-        team.sopa.boar.ui.PageHeader(title, onClose, backTo = backTo)
+        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo)
         if (header != null) {
             Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -317,8 +318,8 @@ private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.mat
 fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     val labs = LabRegistry.visible
-    Shell(t("native.labs.title"), onClose) {
-        Text(t("native.labs.listNote"), style = Boar.type.caption, color = c.textMuted)
+    // The page's intro is the header's subtitle (adam, Nov 12: subtitles only where a first-timer needs one).
+    Shell(t("native.labs.title"), onClose, subtitle = t("native.labs.listSubtitle")) {
         // Search (adam, Nov 11): by name or the line under it; the teasers hide while searching.
         var query by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
         androidx.compose.foundation.text.BasicTextField(query, { query = it }, singleLine = true,

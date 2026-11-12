@@ -62,7 +62,7 @@ fun DocumentsScreen(state: DocumentsState, vm: DocumentsViewModel, focus: String
     val ctx = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.import(uris, name.trim()); name = "" }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        team.sopa.boar.ui.PageHeader(t("nav.knowledge"), onBack)
+        team.sopa.boar.ui.PageHeader(t("nav.knowledge"), onBack, subtitle = t("native.docs.subtitle"))
         Column(Modifier.verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // BOAR Knowledge first, the library everyone has; then the user's own files.
             packs()

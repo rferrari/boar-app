@@ -78,8 +78,10 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
 
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
         // The app's page header; Back waits while a run is going (as Done did).
-        team.sopa.boar.ui.PageHeader(t("evaluation.title"), { if (!state.running) onClose() },
-            subtitle = t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion())
+        team.sopa.boar.ui.PageHeader(t("evaluation.title"), { if (!state.running) onClose() })
+        // The set and app version under the header, not in it (header subtitles only where a first-timer needs one).
+        Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion(),
+            style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp, 12.dp, 12.dp, 40.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val configs = state.configs
             item {
