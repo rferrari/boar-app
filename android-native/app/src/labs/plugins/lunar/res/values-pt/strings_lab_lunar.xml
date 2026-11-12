@@ -7,7 +7,6 @@
     <string name="native_labs_lunar_nextNew" formatted="false">PRÓXIMA LUA NOVA</string>
     <string name="native_labs_lunar_north" formatted="false">Hemisfério Norte</string>
     <string name="native_labs_lunar_south" formatted="false">Hemisfério Sul</string>
-    <string name="native_labs_lunar_note" formatted="false">Calculado a partir da data deste celular, sem internet e sem localização. O hemisfério só muda qual lado da lua aparece iluminado. Nascer e pôr da lua precisam da sua localização, por isso não aparecem.</string>
     <string name="native_labs_lunar_phase_new" formatted="false">Lua nova</string>
     <string name="native_labs_lunar_phase_waxingCrescent" formatted="false">Crescente</string>
     <string name="native_labs_lunar_phase_firstQuarter" formatted="false">Quarto crescente</string>
@@ -16,5 +15,8 @@
     <string name="native_labs_lunar_phase_waningGibbous" formatted="false">Minguante gibosa</string>
     <string name="native_labs_lunar_phase_lastQuarter" formatted="false">Quarto minguante</string>
     <string name="native_labs_lunar_phase_waningCrescent" formatted="false">Minguante</string>
-    <string name="native_labs_lunar_about" formatted="false">A lua hoje e neste mês, offline: fase, quanto está iluminada, a próxima lua cheia e nova.</string>
+    <string name="native_labs_lunar_exampleQ" formatted="false">Qual a fase da lua hoje?</string>
+    <string name="native_labs_lunar_example1" formatted="false">Qual a fase da lua hoje?</string>
+    <string name="native_labs_lunar_example2" formatted="false">Quando é a próxima lua cheia?</string>
+    <string name="native_labs_lunar_how" formatted="false">Calculado pela data do celular, sem internet e sem localização. O hemisfério só muda o lado que aparece iluminado. Nascer e pôr da lua precisam da sua localização, por isso não aparecem. Você também pode perguntar na conversa.</string>
 </resources>

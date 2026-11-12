@@ -17,9 +17,13 @@
     <string name="native_labs_pulse_thermal_light" formatted="false">morno</string>
     <string name="native_labs_pulse_thermal_moderate" formatted="false">quente: o Android pode reduzir a velocidade</string>
     <string name="native_labs_pulse_thermal_severe" formatted="false">quente demais: o Android está reduzindo a velocidade</string>
-    <string name="native_labs_pulse_tip" formatted="false">Deixe aberto, pergunte algo ao BOAR ou desenhe uma imagem, e volte para ver quanto custou.</string>
+    <string name="native_labs_pulse_tip" formatted="false">Deixe aberto, pergunte algo ou desenhe, e volte para ver quanto custou.</string>
     <string name="native_labs_pulse_ramApp" formatted="false">app</string>
     <string name="native_labs_pulse_ramMapped" formatted="false">arquivo do modelo {{size}} GB</string>
     <string name="native_labs_pulse_ramEngine" formatted="false">motor {{name}}</string>
-    <string name="native_labs_pulse_about" formatted="false">Veja o celular trabalhar: calor, o clock de cada núcleo, a memória e o chip em que o BOAR roda.</string>
+    <string name="native_labs_pulse_exampleQ" formatted="false">Meu celular está esquentando?</string>
+    <string name="native_labs_pulse_exampleA" formatted="false">Bateria em 64%, carregando; temperatura da bateria 33,0 °C (fria); 3,1 GB de memória livres de 11,2 GB; 8 núcleos de processador. Lido agora no celular; o Vitals mostra mais.</string>
+    <string name="native_labs_pulse_example1" formatted="false">Meu celular está esquentando?</string>
+    <string name="native_labs_pulse_example2" formatted="false">Quanta memória livre tem o celular?</string>
+    <string name="native_labs_pulse_how" formatted="false">Calor, bateria, o clock de cada núcleo, a memória e o chip em que o BOAR roda, lidos neste celular. Você também pode perguntar na conversa se o celular está quente.</string>
 </resources>

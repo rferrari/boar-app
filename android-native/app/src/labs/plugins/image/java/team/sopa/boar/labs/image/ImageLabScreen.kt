@@ -91,7 +91,13 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         if (managing) {
             androidx.activity.compose.BackHandler { managing = false }
             MediaManager(state.gallery, vm) { managing = false }
-        } else ImageLabScreen(state, vm) { managing = true }
+        } else Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            ImageLabScreen(state, vm) { managing = true }
+            // The page template under the drawing tool (Nov 12): one real example, and the rest folded. Try is the
+            // subject chips under WHAT TO DRAW.
+            team.sopa.boar.labs.PluginPage(null, null, t("native.labs.image.exampleA"), emptyList(), t("native.labs.image.how"),
+                exampleLabel = t("native.labs.page.example"))
+        }
     }
 
     /** 🎨 in the answer's 🧩 sheet: Illustrator picks what to draw and draws it below the answer. */
@@ -215,6 +221,10 @@ fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> 
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go), keyboardActions = KeyboardActions(onGo = { vm.generate(subject) }),
                         modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(8.dp)).padding(12.dp),
                         decorationBox = { inner -> if (subject.isEmpty()) Text(t("native.labs.image.placeholder"), style = Boar.type.body, color = c.textDim); inner() })
+                    // Try (the plugin page template, Nov 12): Designer has no chat question, so three subjects fill the box.
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (i in 1..3) t("native.labs.image.try$i").let { s -> Chip(s, s == subject, Modifier.weight(1f), lines = 2) { if (!busy) subject = s } }
+                    }
                     state.lastChat?.takeIf { it != subject && !busy }?.let { title ->
                         Text(t("native.labs.image.fromChat", "title" to title), style = Boar.type.caption, color = c.textAccentCyan,
                             modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { subject = title }.padding(vertical = 4.dp))

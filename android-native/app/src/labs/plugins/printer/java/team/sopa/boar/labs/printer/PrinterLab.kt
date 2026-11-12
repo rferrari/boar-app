@@ -205,159 +205,164 @@ object PrinterLab : LabPlugin {
             team.sopa.boar.labs.LabPrefs.putString("printer.drawingPos", if (m.drawingFirst) "before" else "after")
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (items.isEmpty()) {
-                Text(t("native.labs.printer.empty"), style = Boar.type.body, color = c.textSecondary)
-                Text(t("native.labs.printer.howTo"), style = Boar.type.caption, color = c.textMuted)
-                return@Column
-            }
-            Label(t("native.labs.printer.docTitle"))
-            BasicTextField(title, { title = it }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
-                modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(8.dp)).padding(12.dp),
-                decorationBox = { inner -> if (title.isEmpty()) Text(defaultTitle, style = Boar.type.body, color = c.textDim); inner() })
-
-            Label(t("native.labs.printer.include"))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Toggle("📅 " + t("native.labs.printer.metaDate"), meta.date, Modifier.weight(1f)) { setMeta(meta.copy(date = it)) }
-                Toggle("🧠 " + t("native.labs.printer.metaModel"), meta.model, Modifier.weight(1f)) { setMeta(meta.copy(model = it)) }
-                Toggle("📚 " + t("native.labs.printer.metaSources"), meta.sources, Modifier.weight(1f)) { setMeta(meta.copy(sources = it)) }
-            }
-            // Drawings off skips them all for this print, without losing what each answer has picked.
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Toggle("🖼 " + t("native.labs.printer.metaDrawings"), meta.drawings, Modifier.weight(1f)) { setMeta(meta.copy(drawings = it)) }
-            }
-            // Where the drawings go; right and left wrap the answer's text beside its drawing.
-            if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
-                    Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
-            }
-            // The drawing above its heading, or the heading first with the text starting beside the drawing.
-            if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Toggle(t("native.labs.printer.pos.after"), !meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = false)) }
-                Toggle(t("native.labs.printer.pos.before"), meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = true)) }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Toggle(t("native.labs.printer.arrange"), !preview, Modifier.weight(1f)) { preview = false }
-                Toggle(t("native.labs.printer.preview"), preview, Modifier.weight(1f)) { preview = true }
-            }
-            if (preview) Preview(title.ifBlank { defaultTitle }, items, { drawingOf(it, own) }, meta)
-            else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Label(t("native.labs.printer.items", "count" to items.size), Modifier.weight(1f))
-                Text(t("native.labs.printer.clear"), style = Boar.type["mono.xs"], color = c.crimson400, modifier = Modifier.minimumInteractiveComponentSize().clickable { Basket.clear() }.padding(4.dp))
-            }
-            if (items.size > 1) Text(t("native.labs.printer.dragHint"), style = Boar.type.caption, color = c.textMuted)
-            items.forEachIndexed { i, item -> androidx.compose.runtime.key(item.id) {
-                val open = editing == item.id
-                val dragging = dragId == item.id
-                val upLabel = t("native.labs.printer.moveUp")
-                val downLabel = t("native.labs.printer.moveDown")
-                Column(Modifier.fillMaxWidth()
-                    .onGloballyPositioned { heights[item.id] = it.size.height }
-                    .zIndex(if (dragging) 1f else 0f)
-                    .graphicsLayer { if (dragging) { translationY = dragDy; shadowElevation = 12f; scaleX = 1.02f; scaleY = 1.02f } }
-                    .background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, if (open || dragging) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("⠿", fontSize = 18.sp, color = if (dragging) c.textAccentEmerald else c.textDim,
-                            modifier = Modifier
-                                .semantics {
-                                    customActions = listOf(
-                                        CustomAccessibilityAction(upLabel) { Basket.move(item.id, -1); true },
-                                        CustomAccessibilityAction(downLabel) { Basket.move(item.id, 1); true },
-                                    )
-                                }
-                                .pointerInput(item.id) {
-                                    detectDragGesturesAfterLongPress(
-                                        onDragStart = { dragId = item.id; dragDy = 0f },
-                                        onDragEnd = { dragId = null; dragDy = 0f },
-                                        onDragCancel = { dragId = null; dragDy = 0f },
-                                    ) { change, amount ->
-                                        change.consume()
-                                        dragDy += amount.y
-                                        val list = Basket.items.value
-                                        val at = list.indexOfFirst { it.id == item.id }
-                                        if (dragDy > 0 && at in 0 until list.size - 1) {
-                                            val step = (heights[list[at + 1].id] ?: 0) + gapPx
-                                            if (dragDy > step / 2) { Basket.move(item.id, 1); dragDy -= step }
-                                        } else if (dragDy < 0 && at > 0) {
-                                            val step = (heights[list[at - 1].id] ?: 0) + gapPx
-                                            if (-dragDy > step / 2) { Basket.move(item.id, -1); dragDy += step }
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (items.isEmpty()) {
+                    Text(t("native.labs.printer.empty"), style = Boar.type.body, color = c.textSecondary)
+                    Text(t("native.labs.printer.howTo"), style = Boar.type.caption, color = c.textMuted)
+                    return@Column
+                }
+                Label(t("native.labs.printer.docTitle"))
+                BasicTextField(title, { title = it }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
+                    modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(8.dp)).padding(12.dp),
+                    decorationBox = { inner -> if (title.isEmpty()) Text(defaultTitle, style = Boar.type.body, color = c.textDim); inner() })
+    
+                Label(t("native.labs.printer.include"))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Toggle("📅 " + t("native.labs.printer.metaDate"), meta.date, Modifier.weight(1f)) { setMeta(meta.copy(date = it)) }
+                    Toggle("🧠 " + t("native.labs.printer.metaModel"), meta.model, Modifier.weight(1f)) { setMeta(meta.copy(model = it)) }
+                    Toggle("📚 " + t("native.labs.printer.metaSources"), meta.sources, Modifier.weight(1f)) { setMeta(meta.copy(sources = it)) }
+                }
+                // Drawings off skips them all for this print, without losing what each answer has picked.
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Toggle("🖼 " + t("native.labs.printer.metaDrawings"), meta.drawings, Modifier.weight(1f)) { setMeta(meta.copy(drawings = it)) }
+                }
+                // Where the drawings go; right and left wrap the answer's text beside its drawing.
+                if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for ((p, key) in listOf(PdfCompiler.Placement.CENTER to "center", PdfCompiler.Placement.RIGHT to "right", PdfCompiler.Placement.LEFT to "left", PdfCompiler.Placement.ALTERNATE to "alternate"))
+                        Toggle(t("native.labs.printer.place.$key"), meta.images == p, Modifier.weight(1f)) { setMeta(meta.copy(images = p)) }
+                }
+                // The drawing above its heading, or the heading first with the text starting beside the drawing.
+                if (meta.drawings && items.any { drawingOf(it, own) != null }) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Toggle(t("native.labs.printer.pos.after"), !meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = false)) }
+                    Toggle(t("native.labs.printer.pos.before"), meta.drawingFirst, Modifier.weight(1f)) { setMeta(meta.copy(drawingFirst = true)) }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Toggle(t("native.labs.printer.arrange"), !preview, Modifier.weight(1f)) { preview = false }
+                    Toggle(t("native.labs.printer.preview"), preview, Modifier.weight(1f)) { preview = true }
+                }
+                if (preview) Preview(title.ifBlank { defaultTitle }, items, { drawingOf(it, own) }, meta)
+                else Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Label(t("native.labs.printer.items", "count" to items.size), Modifier.weight(1f))
+                    Text(t("native.labs.printer.clear"), style = Boar.type["mono.xs"], color = c.crimson400, modifier = Modifier.minimumInteractiveComponentSize().clickable { Basket.clear() }.padding(4.dp))
+                }
+                if (items.size > 1) Text(t("native.labs.printer.dragHint"), style = Boar.type.caption, color = c.textMuted)
+                items.forEachIndexed { i, item -> androidx.compose.runtime.key(item.id) {
+                    val open = editing == item.id
+                    val dragging = dragId == item.id
+                    val upLabel = t("native.labs.printer.moveUp")
+                    val downLabel = t("native.labs.printer.moveDown")
+                    Column(Modifier.fillMaxWidth()
+                        .onGloballyPositioned { heights[item.id] = it.size.height }
+                        .zIndex(if (dragging) 1f else 0f)
+                        .graphicsLayer { if (dragging) { translationY = dragDy; shadowElevation = 12f; scaleX = 1.02f; scaleY = 1.02f } }
+                        .background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, if (open || dragging) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("⠿", fontSize = 18.sp, color = if (dragging) c.textAccentEmerald else c.textDim,
+                                modifier = Modifier
+                                    .semantics {
+                                        customActions = listOf(
+                                            CustomAccessibilityAction(upLabel) { Basket.move(item.id, -1); true },
+                                            CustomAccessibilityAction(downLabel) { Basket.move(item.id, 1); true },
+                                        )
+                                    }
+                                    .pointerInput(item.id) {
+                                        detectDragGesturesAfterLongPress(
+                                            onDragStart = { dragId = item.id; dragDy = 0f },
+                                            onDragEnd = { dragId = null; dragDy = 0f },
+                                            onDragCancel = { dragId = null; dragDy = 0f },
+                                        ) { change, amount ->
+                                            change.consume()
+                                            dragDy += amount.y
+                                            val list = Basket.items.value
+                                            val at = list.indexOfFirst { it.id == item.id }
+                                            if (dragDy > 0 && at in 0 until list.size - 1) {
+                                                val step = (heights[list[at + 1].id] ?: 0) + gapPx
+                                                if (dragDy > step / 2) { Basket.move(item.id, 1); dragDy -= step }
+                                            } else if (dragDy < 0 && at > 0) {
+                                                val step = (heights[list[at - 1].id] ?: 0) + gapPx
+                                                if (-dragDy > step / 2) { Basket.move(item.id, -1); dragDy += step }
+                                            }
                                         }
                                     }
-                                }
-                                .padding(horizontal = 4.dp))
-                        Text("${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
-                        Text(item.question.ifBlank { item.chatTitle }, style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                        Icon(if (open) "✓" else "✎", true) { editing = if (open) null else item.id }
-                        Icon("✕", true) { Basket.remove(item.id) }
-                    }
-                    if (open) {
-                        // The heading printed above this answer, then its text; both saved as you type.
-                        var heading by remember(item.id) { mutableStateOf(item.question.ifBlank { item.chatTitle }) }
-                        Label(t("native.labs.printer.heading"))
-                        BasicTextField(heading, { heading = it; Basket.editHeading(item.id, it) }, singleLine = true, textStyle = Boar.type.titleSm.copy(fontSize = 13.sp, color = c.textHeading), cursorBrush = SolidColor(c.textAccentEmerald),
-                            modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
-                        var draft by remember(item.id) { mutableStateOf(item.text) }
-                        BasicTextField(draft, { draft = it; Basket.edit(item.id, it) }, textStyle = Boar.type.caption.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
-                            modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
-                    } else Text(PdfCompiler.plain(item.text), style = Boar.type.caption, color = c.textMuted, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (item.sources.isNotEmpty()) Text(t("native.labs.printer.sources", "count" to item.sources.size), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f))
-                        else androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-                        // At most one drawing per answer: tap to choose, ✕ for none.
-                        val drawing = drawingOf(item, own)
-                        if (drawing != null) {
-                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp)).clickable { choosing = item.id }) { Thumb(drawing) }
-                            Icon("✕", true) { Basket.setImage(item.id, null) }
-                        } else Text("＋ 🖼", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(6.dp)).clickable { choosing = item.id }.padding(horizontal = 8.dp, vertical = 6.dp))
-                    }
-                }
-            } }
-
-            }
-
-            choosing?.let { id ->
-                val item = items.firstOrNull { it.id == id }
-                if (item == null) { choosing = null; return@let }
-                DrawingPicker(own[id], gallery, drawingOf(item, own), onPick = { f -> Basket.setImage(id, f?.path); choosing = null }) { choosing = null }
-            }
-            error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
-            saved?.let { Text(t("native.labs.printer.saved", "name" to it), style = Boar.type.caption, color = c.textAccentEmerald) }
-            // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
-            if (compiling) androidx.compose.ui.window.Dialog(
-                onDismissRequest = {},
-                properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-            ) {
-                Box(Modifier.background(Boar.colors.bgCard, RoundedCornerShape(16.dp)).border(1.dp, Boar.colors.borderDefault, RoundedCornerShape(16.dp)).padding(24.dp)) {
-                    PrintingAnimation()
-                }
-            }
-            else Text(t("native.labs.printer.compile"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textAccentEmerald,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
-                    .clickable {
-                        compiling = true; error = null; saved = null
-                        val docTitle = title.ifBlank { defaultTitle }
-                        val footer = I18n.t(ctx, "native.labs.printer.footer")
-                        scope.launch {
-                            val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
-                            // The print run takes at least as long as the animation: the sheet comes out whole.
-                            val started = System.currentTimeMillis()
-                            val ok = withContext(Dispatchers.IO) { runCatching { PdfCompiler.compile(out, docTitle, items, { drawingOf(it, own) }, footer, meta) } }
-                            kotlinx.coroutines.delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
-                            compiling = false
-                            ok.onSuccess { draft = out; saveAs.launch(slug(docTitle) + ".pdf") }.onFailure { error = it.message }
+                                    .padding(horizontal = 4.dp))
+                            Text("${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.ExtraBold)
+                            Text(item.question.ifBlank { item.chatTitle }, style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            Icon(if (open) "✓" else "✎", true) { editing = if (open) null else item.id }
+                            Icon("✕", true) { Basket.remove(item.id) }
                         }
-                    }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            if (!compiling) Text(t("native.labs.printer.markdown"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textSecondary,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp))
-                    .clickable {
-                        error = null; saved = null
-                        val docTitle = title.ifBlank { defaultTitle }
-                        markdown = MarkdownCompiler.compile(docTitle, items, I18n.t(ctx, "native.labs.printer.footer"), meta, mdLabels)
-                        saveMd.launch(slug(docTitle) + ".md")
-                    }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        if (open) {
+                            // The heading printed above this answer, then its text; both saved as you type.
+                            var heading by remember(item.id) { mutableStateOf(item.question.ifBlank { item.chatTitle }) }
+                            Label(t("native.labs.printer.heading"))
+                            BasicTextField(heading, { heading = it; Basket.editHeading(item.id, it) }, singleLine = true, textStyle = Boar.type.titleSm.copy(fontSize = 13.sp, color = c.textHeading), cursorBrush = SolidColor(c.textAccentEmerald),
+                                modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
+                            var draft by remember(item.id) { mutableStateOf(item.text) }
+                            BasicTextField(draft, { draft = it; Basket.edit(item.id, it) }, textStyle = Boar.type.caption.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
+                                modifier = Modifier.fillMaxWidth().background(c.bgSurface, RoundedCornerShape(6.dp)).padding(8.dp))
+                        } else Text(PdfCompiler.plain(item.text), style = Boar.type.caption, color = c.textMuted, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (item.sources.isNotEmpty()) Text(t("native.labs.printer.sources", "count" to item.sources.size), style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f))
+                            else androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                            // At most one drawing per answer: tap to choose, ✕ for none.
+                            val drawing = drawingOf(item, own)
+                            if (drawing != null) {
+                                Box(Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).border(1.dp, c.emeraldBorder, RoundedCornerShape(6.dp)).clickable { choosing = item.id }) { Thumb(drawing) }
+                                Icon("✕", true) { Basket.setImage(item.id, null) }
+                            } else Text("＋ 🖼", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(6.dp)).clickable { choosing = item.id }.padding(horizontal = 8.dp, vertical = 6.dp))
+                        }
+                    }
+                } }
+    
+                }
+    
+                choosing?.let { id ->
+                    val item = items.firstOrNull { it.id == id }
+                    if (item == null) { choosing = null; return@let }
+                    DrawingPicker(own[id], gallery, drawingOf(item, own), onPick = { f -> Basket.setImage(id, f?.path); choosing = null }) { choosing = null }
+                }
+                error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
+                saved?.let { Text(t("native.labs.printer.saved", "name" to it), style = Boar.type.caption, color = c.textAccentEmerald) }
+                // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
+                if (compiling) androidx.compose.ui.window.Dialog(
+                    onDismissRequest = {},
+                    properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+                ) {
+                    Box(Modifier.background(Boar.colors.bgCard, RoundedCornerShape(16.dp)).border(1.dp, Boar.colors.borderDefault, RoundedCornerShape(16.dp)).padding(24.dp)) {
+                        PrintingAnimation()
+                    }
+                }
+                else Text(t("native.labs.printer.compile"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textAccentEmerald,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp))
+                        .clickable {
+                            compiling = true; error = null; saved = null
+                            val docTitle = title.ifBlank { defaultTitle }
+                            val footer = I18n.t(ctx, "native.labs.printer.footer")
+                            scope.launch {
+                                val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
+                                // The print run takes at least as long as the animation: the sheet comes out whole.
+                                val started = System.currentTimeMillis()
+                                val ok = withContext(Dispatchers.IO) { runCatching { PdfCompiler.compile(out, docTitle, items, { drawingOf(it, own) }, footer, meta) } }
+                                kotlinx.coroutines.delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
+                                compiling = false
+                                ok.onSuccess { draft = out; saveAs.launch(slug(docTitle) + ".pdf") }.onFailure { error = it.message }
+                            }
+                        }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                if (!compiling) Text(t("native.labs.printer.markdown"), style = Boar.type.titleSm.copy(fontSize = 14.sp), color = c.textSecondary,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp))
+                        .clickable {
+                            error = null; saved = null
+                            val docTitle = title.ifBlank { defaultTitle }
+                            markdown = MarkdownCompiler.compile(docTitle, items, I18n.t(ctx, "native.labs.printer.footer"), meta, mdLabels)
+                            saveMd.launch(slug(docTitle) + ".md")
+                        }.padding(vertical = 14.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+            // The page template under the basket (Nov 12): one real example, and the rest folded. No Try: Press has no question.
+            team.sopa.boar.labs.PluginPage(null, null, t("native.labs.printer.exampleA"), emptyList(), t("native.labs.printer.how"),
+                exampleLabel = t("native.labs.page.example"))
         }
     }
 

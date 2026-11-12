@@ -102,7 +102,10 @@ object LunarLab : LabPlugin {
                 }
             }
             Month(now, monthOffset, isSouth, onMove = { monthOffset += it })
-            Text(t("native.labs.lunar.note"), style = Boar.type["mono.xs"], color = c.textDim)
+            // The page template under the live moon (Nov 12). The example's reply is the chat's own answer, worked out now.
+            val q = t("native.labs.lunar.exampleQ")
+            team.sopa.boar.labs.AnswerPage(null, q, team.sopa.boar.engine.labs.PluginAnswers.moonAnswer(q, now),
+                (1..2).map { t("native.labs.lunar.example$it") }, t("native.labs.lunar.how"))
         }
     }
 

@@ -2,12 +2,10 @@
 <resources>
     <string name="native_labs_distance_title" formatted="false">Distance</string>
     <string name="native_labs_distance_body" formatted="false">How far apart two cities are, and how long the trip takes.</string>
-    <string name="native_labs_distance_answers" formatted="false">ANSWERS ON ITS OWN</string>
-    <string name="native_labs_distance_answersList" formatted="false">• The straight-line distance between two cities, in km and miles\n• Roughly how far by road or trail: walking about 30% longer, cycling and driving about 25%\n• How many days to walk or cycle it, or hours to drive\n• There and back, when you ask for the round trip</string>
-    <string name="native_labs_distance_try" formatted="false">TRY</string>
     <string name="native_labs_distance_example1" formatted="false">How far is it to walk from Paris to Rome and back?</string>
     <string name="native_labs_distance_example2" formatted="false">How long would it take to bike from Vienna to Budapest?</string>
-    <string name="native_labs_distance_example3" formatted="false">What\'s the distance between Madrid and Barcelona?</string>
-    <string name="native_labs_distance_note" formatted="false">It knows the 6,000 largest cities (GeoNames, CC BY 4.0) and works from their coordinates, so every answer is an estimate, not a mapped route: it can\'t know roads, borders, ferries or closures. A place that isn\'t one of those cities (a hotel, a beach, a small town) goes to the model as usual, and so does a chat about health, an injury or danger. Questions in English only. Ported from r4to\'s travel distance (BOAR R&amp;D).</string>
-    <string name="native_labs_distance_about" formatted="false">How far apart two cities are, and how long to walk, cycle or drive it, as an estimate and without the model.</string>
+    <string name="native_labs_distance_example3" formatted="false">How long to drive from Berlin to Prague?</string>
+    <string name="native_labs_distance_exampleQ" formatted="false">What\'s the distance between Madrid and Barcelona?</string>
+    <string name="native_labs_distance_exampleA" formatted="false">Madrid and Barcelona are about 504 km (313 miles) apart in a straight line. Roads and trails are usually longer than the straight line, by about a quarter, so expect roughly 630 km by land. This is an estimate from the cities\' coordinates, not a mapped route; the real route can differ.</string>
+    <string name="native_labs_distance_how" formatted="false">It knows the 6,000 largest cities (GeoNames, CC BY 4.0) and works from their coordinates: the straight-line distance in km and miles; roughly how far by land (walking about 30% longer, cycling and driving about 25%); days to walk or cycle, hours to drive; there and back when you ask.\n\nEvery answer is an estimate, not a route: it can\'t know roads, borders, ferries or closures. A place that isn\'t one of those cities (a hotel, a beach, a small town) goes to the model, and so does a chat about health, an injury or danger. English only. Based on r4to\'s travel distance (BOAR R&amp;D).</string>
 </resources>

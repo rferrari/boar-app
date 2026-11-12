@@ -2,12 +2,11 @@
 <resources>
     <string name="native_labs_calc_title" formatted="false">Calculator</string>
     <string name="native_labs_calc_body" formatted="false">Exact answers to everyday sums: fuel, battery, currency and more. No model needed.</string>
-    <string name="native_labs_calc_answers" formatted="false">ANSWERS ON ITS OWN</string>
-    <string name="native_labs_calc_answersList" formatted="false">• A battery\'s watt-hours, and whether it can fly\n• Fuel economy: L/100 km and miles per gallon\n• Hiking time by Naismith\'s rule\n• Currency at the rate you give, with a tip\n• Water for a trip: people × days × litres\n• Temperature: Celsius and Fahrenheit\n• How long: an amount at a rate (MB at MB/s, km at km/h, pages per hour)\n• How many: containers, trips or buses for a total, rounded up</string>
-    <string name="native_labs_calc_try" formatted="false">TRY</string>
     <string name="native_labs_calc_example1" formatted="false">I have 23 L of water and 5 L jerrycans. How many jerrycans do I need?</string>
     <string name="native_labs_calc_example2" formatted="false">How long to drive 240 miles at 60 mph?</string>
-    <string name="native_labs_calc_example3" formatted="false">My power bank is 5,000 mAh at 3.85 V. How many watt-hours is that, and can I take it on a plane?</string>
-    <string name="native_labs_calc_note" formatted="false">It works out the answer from the numbers in your question and shows the formula. Anything else goes to the model as usual. A message about health, an injury, danger or a person (or a chat that was) never gets a calculator answer. The answer\'s details say Tool when the calculator wrote it. Word problems are English only. Ported from r4to\'s calculator (BOAR R&amp;D).</string>
-    <string name="native_labs_calc_about" formatted="false">Exact answers to a few everyday calculations (battery, fuel, hiking, currency, water, temperature, how long, how many), instantly and without the model. Plain sums and percentages still go to the model.</string>
+    <string name="native_labs_calc_example3" formatted="false">What is 30 °C in Fahrenheit?</string>
+    <string name="native_labs_calc_summary" formatted="false">Exact answers to everyday sums, with the formula. No model needed.</string>
+    <string name="native_labs_calc_exampleQ" formatted="false">My power bank is 5,000 mAh at 3.85 V. Can I take it on a plane?</string>
+    <string name="native_labs_calc_exampleA" formatted="false">5,000 mAh × 3.85 V ÷ 1000 = 19.25 Wh. Yes, you can take it on a plane: up to 100 Wh is allowed in carry-on baggage (not in checked bags).</string>
+    <string name="native_labs_calc_how" formatted="false">It works out the answer from the numbers in your question and shows the formula. It knows: a battery\'s watt-hours and whether it can fly; fuel economy (L/100 km, mpg); hiking time (Naismith\'s rule); currency at your rate, with a tip; water for a trip; Celsius and Fahrenheit; how long at a rate; how many containers, trips or buses, rounded up.\n\nPlain sums and percentages still go to the model. Calculator stays out of conversations about health, injuries, danger or people, and goes to the model instead. The answer\'s details say Tool when it wrote it. Word problems (how long, how many) are English only. Based on r4to\'s calculator (BOAR R&amp;D).</string>
 </resources>

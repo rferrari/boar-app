@@ -1,16 +1,6 @@
 package team.sopa.boar.labs.calc
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import team.sopa.boar.engine.routing.LabTools
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
@@ -37,22 +27,8 @@ object CalcLab : LabPlugin {
 
     @Composable
     override fun Content() {
-        val c = Boar.colors
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.calc.answers")) { Text(t("native.labs.calc.answersList"), style = Boar.type.body, color = c.textPrimary) }
-            Card(t("native.labs.calc.try")) {
-                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.calc.example$i"))
-            }
-            Text(t("native.labs.calc.note"), style = Boar.type["mono.xs"], color = c.textDim)
-        }
-    }
-
-    @Composable
-    private fun Card(label: String, content: @Composable () -> Unit) {
-        val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(label, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
-            content()
-        }
+        // The plugin page template (Nov 12): what it does, a real example (Calculators.battery), Try, and the rest folded.
+        team.sopa.boar.labs.AnswerPage(t("native.labs.calc.summary"), t("native.labs.calc.exampleQ"), t("native.labs.calc.exampleA"),
+            (1..3).map { t("native.labs.calc.example$it") }, t("native.labs.calc.how"))
     }
 }

@@ -1,14 +1,9 @@
 package team.sopa.boar.labs.facts
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import team.sopa.boar.R
@@ -48,21 +43,18 @@ object FactsLab : LabPlugin {
     @Composable
     override fun Content() {
         val c = Boar.colors
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.facts.answers")) { Text(t("native.labs.facts.answersList"), style = Boar.type.body, color = c.textPrimary) }
-            Card(t("native.labs.facts.try")) {
-                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.facts.example$i"))
+        // The plugin page template (Nov 12), with what it knows in three groups (adam): Places, Measures, Other.
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(t("native.labs.facts.summary"), style = Boar.type.bodyLg, color = c.textPrimary)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (g in listOf("places", "measures", "other")) Column {
+                    Text(t("native.labs.facts.$g"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
+                    Text(t("native.labs.facts.${g}List"), style = Boar.type.body, color = c.textSecondary)
+                }
             }
-            Text(t("native.labs.facts.note"), style = Boar.type["mono.xs"], color = c.textDim)
-        }
-    }
-
-    @Composable
-    private fun Card(label: String, content: @Composable () -> Unit) {
-        val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(label, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
-            content()
+            Text(t("native.labs.facts.source"), style = Boar.type.caption, color = c.textMuted)
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.facts.exampleQ"), t("native.labs.facts.exampleA"),
+                (1..3).map { t("native.labs.facts.example$it") }, t("native.labs.facts.how"))
         }
     }
 }
