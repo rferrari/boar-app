@@ -108,4 +108,7 @@
     <string name="native_labs_printer_rwFailed" formatted="false">BOAR could not rewrite it. Your text is as it was.</string>
     <string name="native_labs_printer_rwUpdated" formatted="false">Text updated.</string>
     <string name="native_labs_printer_rwNoChange" formatted="false">No change. Try again or write your own words.</string>
+    <string name="native_labs_printer_pageBreaks" formatted="false">Show page breaks</string>
+    <string name="native_labs_printer_on" formatted="false">On</string>
+    <string name="native_labs_printer_off" formatted="false">Off</string>
 </resources>

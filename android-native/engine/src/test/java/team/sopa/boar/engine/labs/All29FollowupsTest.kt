@@ -60,7 +60,23 @@ class All29FollowupsTest {
         val r = pdf.substringAfter("private fun receipt(").substringBefore("p.gap(6f)")
         assertTrue(r.contains("p.keepRoom(minOf(total, Paper.H - 2 * Paper.M))") && r.contains("for (row in rows)"))
         val s = app("printer/java/team/sopa/boar/labs/printer/PressScreen.kt")
-        assertTrue(s.contains("if (!receiptTop.isNaN() && y > receiptTop && y < receiptBottom) y = receiptTop - 4.dp.toPx()"))
-        assertTrue(s.contains("receiptTop = top; receiptBottom = top + c.size.height"))
+        assertTrue(s.contains("Box(Modifier.unit(PdfCompiler.RECEIPT))"))
+    }
+
+    @Test fun `the page lines on the paper are the PDF's own breaks, and they can be switched off`() {
+        val pdf = app("printer/java/team/sopa/boar/labs/printer/PdfCompiler.kt")
+        // One layout for both: compile draws, pageStarts only measures (no picture decoded).
+        assertTrue(pdf.contains("layout(Pager(doc, dry = false), page, fileOf)") && pdf.contains("Pager(doc, dry = true).also { layout(it, page, fileOf) }.starts"))
+        assertTrue(pdf.contains("if (!dry) return BitmapFactory.decodeFile(file.path)") && pdf.contains("inJustDecodeBounds = true"))
+        val newPage = pdf.substringAfter("private fun newPage()").substringBefore("return doc.startPage(")
+        assertTrue(newPage.contains("starts += PageStart(unit, into)"))
+        for (b in listOf("p.begin(TITLE)", "p.begin(b.id)", "p.begin(item.picture.id)", "item.text?.let { p.begin(it.id)", "p.begin(RECEIPT)")) assertTrue(b, pdf.contains(b))
+        val s = app("printer/java/team/sopa/boar/labs/printer/PressScreen.kt")
+        assertTrue(s.contains("PdfCompiler.pageStarts(page) { b -> PressPictures.fileOf(ctx, page.project.id, b) }"))
+        assertTrue(s.contains("PaperView(page, if (showBreaks) pageStarts else emptyList(),"))
+        assertTrue(s.contains("val y = if (st.intoPt <= 1f) top - 4.dp.toPx() else top + minOf(st.intoPt * s.pxPerPt, height)"))
+        assertTrue(!s.contains("val step = (Paper.H - 2 * Paper.M) * s.pxPerPt"))
+        assertTrue(s.contains("team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) \"on\" else \"off\")"))
+        for (d in listOf("values", "values-pt")) assertTrue(d, app("printer/res/$d/strings_lab_printer.xml").contains("name=\"native_labs_printer_pageBreaks\""))
     }
 }

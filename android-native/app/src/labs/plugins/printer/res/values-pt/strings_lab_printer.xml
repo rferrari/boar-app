@@ -108,4 +108,7 @@
     <string name="native_labs_printer_rwFailed" formatted="false">O BOAR não conseguiu reescrever. Seu texto está como estava.</string>
     <string name="native_labs_printer_rwUpdated" formatted="false">Texto atualizado.</string>
     <string name="native_labs_printer_rwNoChange" formatted="false">Nada mudou. Tente de novo ou escreva o que quer mudar.</string>
+    <string name="native_labs_printer_pageBreaks" formatted="false">Mostrar quebras de página</string>
+    <string name="native_labs_printer_on" formatted="false">Ligado</string>
+    <string name="native_labs_printer_off" formatted="false">Desligado</string>
 </resources>

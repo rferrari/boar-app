@@ -235,6 +235,17 @@ internal fun PressScreen(lab: LabPlugin) {
         }
     }
 
+    var showBreaks by remember { mutableStateOf(team.sopa.boar.labs.LabPrefs.string(BREAKS_PREF) != "off") }
+    // The PDF's own page breaks (PdfCompiler.pageStarts, a layout without drawing), redone a moment after the document
+    // changes: the lines on the paper are where the PDF really breaks, not an estimate (adam, Nov 12).
+    var pageStarts by remember { mutableStateOf<List<PdfCompiler.PageStart>>(emptyList()) }
+    LaunchedEffect(page, showBreaks) {
+        if (!showBreaks) return@LaunchedEffect
+        delay(300)
+        pageStarts = withContext(Dispatchers.Default) {
+            runCatching { PdfCompiler.pageStarts(page) { b -> PressPictures.fileOf(ctx, page.project.id, b) } }.getOrDefault(emptyList())
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         ProjectBar(project) { sheet = Sheet.PROJECTS }
         if (project.unseen > 0) InboxBanner(project.unseen) {
@@ -243,7 +254,7 @@ internal fun PressScreen(lab: LabPlugin) {
         }
         Box(Modifier.fillMaxWidth().weight(1f).background(c.bgBlack)) {
             Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(14.dp)) {
-                PaperView(page, selected, editing, fresh, titleFocus,
+                PaperView(page, if (showBreaks) pageStarts else emptyList(), selected, editing, fresh, titleFocus,
                     onSelect = { id -> if (selected != id) { selected = id; editing = null } },
                     onTitleFocus = { if (it) { selected = null; editing = null } },
                     onFreshUsed = { fresh = null })
@@ -286,7 +297,8 @@ internal fun PressScreen(lab: LabPlugin) {
                             if (PressStore.deleteProject(ctx, project.id)) Toasts.show(I18n.t(ctx, "native.labs.printer.deleted", "name" to name))
                             sheet = null
                         },
-                        onMarkdown = { sheet = null; saveMarkdown() })
+                        onMarkdown = { sheet = null; saveMarkdown() },
+                        showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
                     Sheet.ADD -> AddSheet(
                         onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
                         onNote = { addBlock(Block.Note(PressStore.newId("n"), I18n.t(ctx, "native.labs.printer.newNote"))) },
@@ -449,7 +461,7 @@ private fun SheetRow(text: String, small: String? = null, icon: Int? = null, acc
 
 @Composable
 private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
-                          onDelete: () -> Unit, onMarkdown: () -> Unit) {
+                          onDelete: () -> Unit, onMarkdown: () -> Unit, showBreaks: Boolean = true, onBreaks: (Boolean) -> Unit = {}) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val current = library.current
@@ -462,6 +474,9 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
             accent = p.id == current.id) { onSwitch(p.id) }
     }
     SheetRow(t("native.labs.printer.markdown"), ".md", icon = R.drawable.lab_printer_ic_download, onClick = onMarkdown)
+    // Where the PDF's pages break, on the paper (adam, Nov 12: "maybe can be a on off switch").
+    SheetRow(t("native.labs.printer.pageBreaks"), t(if (showBreaks) "native.labs.printer.on" else "native.labs.printer.off"),
+        icon = R.drawable.lab_printer_ic_page) { onBreaks(!showBreaks) }
     if (!naming) SheetRow(t("native.labs.printer.newProject"), icon = R.drawable.lab_printer_ic_add) { naming = true }
     else {
         val focus = remember { FocusRequester() }
@@ -681,7 +696,7 @@ private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.un
 }
 
 @Composable
-private fun PaperView(page: PressPage, selected: String?, editing: String?, fresh: String?, titleFocus: FocusRequester,
+private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, selected: String?, editing: String?, fresh: String?, titleFocus: FocusRequester,
                       onSelect: (String) -> Unit, onTitleFocus: (Boolean) -> Unit, onFreshUsed: () -> Unit) {
     val project = page.project
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -689,36 +704,29 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
         val s = remember(maxWidth, density) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density) }
         val measurer = rememberTextMeasurer()
         val pageLabel = t("native.labs.printer.page", "n" to "{{n}}")
-        // The receipt's top and bottom on the paper (px): it is kept whole in the PDF, so a break inside it is drawn above it.
-        var receiptTop by remember { mutableStateOf(Float.NaN) }
-        var receiptBottom by remember { mutableStateOf(Float.NaN) }
+        // Each block's top and height on the paper (px), by the ids PdfCompiler.pageStarts uses.
+        val tops = remember { androidx.compose.runtime.mutableStateMapOf<String, Pair<Float, Float>>() }
+        fun Modifier.unit(vararg ids: String) = onGloballyPositioned { c -> val v = c.positionInParent().y to c.size.height.toFloat(); ids.forEach { tops[it] = v } }
         val breakColor = Color(0xFFB9BFD3)
         Column(Modifier.fillMaxWidth().shadow(6.dp, RoundedCornerShape(2.dp)).background(Color.White, RoundedCornerShape(2.dp))
-            // Where the A4 pages end, about: every page's text height, from the top margin. Blocks that jump to the next
-            // page in the PDF (a heading, a picture) move these a little.
+            // Where the PDF's pages start (PdfCompiler.pageStarts): a line at the top of the block that starts a page, or as far
+            // into a text block as the PDF got. Never through a picture or the receipt, which move whole.
             .drawWithContent {
                 drawContent()
-                val m = Paper.M * s.pxPerPt
-                val step = (Paper.H - 2 * Paper.M) * s.pxPerPt
-                var y = m + step
-                var n = 2
                 val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
-                while (y < size.height - m) {
-                    // A break inside the receipt: the PDF starts the receipt on the next page (kept together), so the marker
-                    // sits above it and no text is under it (t9 1721).
-                    if (!receiptTop.isNaN() && y > receiptTop && y < receiptBottom) y = receiptTop - 4.dp.toPx()
+                starts.forEachIndexed { i, st ->
+                    val (top, height) = tops[st.unit] ?: return@forEachIndexed
+                    val y = if (st.intoPt <= 1f) top - 4.dp.toPx() else top + minOf(st.intoPt * s.pxPerPt, height)
                     drawLine(breakColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
-                    val text = measurer.measure(pageLabel.replace("{{n}}", n.toString()), TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1D1D1F)))
+                    val text = measurer.measure(pageLabel.replace("{{n}}", (i + 2).toString()), TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1D1D1F)))
                     val w = text.size.width + 12.dp.toPx()
                     val h = text.size.height.toFloat()
                     drawRoundRect(breakColor, Offset(size.width - w - 8.dp.toPx(), y - h / 2), Size(w, h), CornerRadius(h / 2))
                     drawText(text, topLeft = Offset(size.width - w - 2.dp.toPx(), y - h / 2))
-                    y += step
-                    n++
                 }
             }
             .padding(s.dp(Paper.M))) {
-            TitleField(project, s, titleFocus, onTitleFocus)
+            Box(Modifier.unit(PdfCompiler.TITLE)) { TitleField(project, s, titleFocus, onTitleFocus) }
             Text(page.date.uppercase(), style = s.date, modifier = Modifier.padding(top = s.dp(4f), bottom = s.dp(Paper.GAP + 4f)))
             if (project.blocks.isEmpty()) {
                 Text(t("native.labs.printer.empty") + "\n" + t("native.labs.printer.howTo"), style = s.note, textAlign = TextAlign.Center,
@@ -729,16 +737,16 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
                 when (item) {
                     is PressLayout.Item.Single -> key(item.block.id) {
                         val b = item.block
-                        BlockView(b, page, s, selected == b.id, editing == b.id, fresh == b.id, onSelect = { onSelect(b.id) }, onFreshUsed = onFreshUsed)
+                        Box(Modifier.unit(b.id)) { BlockView(b, page, s, selected == b.id, editing == b.id, fresh == b.id, onSelect = { onSelect(b.id) }, onFreshUsed = onFreshUsed) }
                         Spacer(Modifier.height(s.dp(Paper.GAP)))
                     }
                     is PressLayout.Item.Beside -> key(item.picture.id) {
-                        BesideView(item, page, s, selected, editing, fresh, onSelect, onFreshUsed)
+                        Box(Modifier.unit(*listOfNotNull(item.picture.id, item.text?.id).toTypedArray())) { BesideView(item, page, s, selected, editing, fresh, onSelect, onFreshUsed) }
                         Spacer(Modifier.height(s.dp(Paper.GAP)))
                     }
                 }
             }
-            Box(Modifier.onGloballyPositioned { c -> c.positionInParent().y.let { top -> receiptTop = top; receiptBottom = top + c.size.height } }) {
+            Box(Modifier.unit(PdfCompiler.RECEIPT)) {
                 ReceiptView(page, s)
             }
         }
@@ -985,3 +993,6 @@ private fun PrintingAnimation() {
         Text(t("native.labs.printer.compiling"), style = Boar.type.caption, color = c.textAccentEmerald, modifier = Modifier.padding(top = 10.dp))
     }
 }
+
+/** "Show page breaks" (Press's project sheet): on unless switched off. */
+private const val BREAKS_PREF = "printer.pageBreaks"

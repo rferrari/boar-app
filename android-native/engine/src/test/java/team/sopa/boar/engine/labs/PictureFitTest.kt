@@ -26,10 +26,10 @@ class PictureFitTest {
     @Test fun `the PDF and the paper on screen use the same fit`() {
         val dir = "../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer"
         val pdf = java.io.File("$dir/PdfCompiler.kt").readText()
-        assertTrue(pdf.contains("PictureFit.within(bmp.width, bmp.height, Paper.INNER, Paper.PICTURE_MAX_H)"))
+        assertTrue(pdf.contains("PictureFit.within(size.first, size.second, Paper.INNER, Paper.PICTURE_MAX_H)"))
         val screen = java.io.File("$dir/PressScreen.kt").readText()
         // A centered picture gets the column, a side one its share (phase 2), through the same fit.
         assertTrue(screen.contains("PictureFit.within(pw, ph, maxW, Paper.PICTURE_MAX_H)") && screen.contains("PictureContent(b, project.id, s, Paper.INNER,"))
-        assertTrue(pdf.contains("PictureFit.within(bmp.width, bmp.height, box, Paper.PICTURE_MAX_H)"))
+        assertTrue(pdf.contains("PictureFit.within(size.first, size.second, box, Paper.PICTURE_MAX_H)"))
     }
 }

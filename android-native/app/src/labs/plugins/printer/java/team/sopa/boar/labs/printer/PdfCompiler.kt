@@ -21,11 +21,35 @@ import java.io.File
  * doesn't fit starts a new page.
  */
 object PdfCompiler {
+    /**
+     * Where a PDF page starts, for the paper on screen (adam, Nov 12: the screen's estimated "page 2" line crossed a
+     * picture that the PDF kept whole on page 1): the block it starts in ([unit], a block id, [TITLE] or [RECEIPT]) and how
+     * many points of that block came before it. 0 means the block itself starts the page.
+     */
+    data class PageStart(val unit: String, val intoPt: Float)
+    const val TITLE = "title"
+    const val RECEIPT = "receipt"
+
     /** [fileOf] is a picture's file, or null when it is gone (it is left out). */
     fun compile(out: File, page: PressPage, fileOf: (Block.Picture) -> File?) {
         val doc = PdfDocument()
         try {
-            val p = Pager(doc)
+            layout(Pager(doc, dry = false), page, fileOf)
+            out.parentFile?.mkdirs()
+            out.outputStream().use { doc.writeTo(it) }
+        } finally {
+            doc.close()
+        }
+    }
+
+    /** The same layout as [compile], nothing drawn and no picture decoded (sizes only): where each page after the first starts. */
+    fun pageStarts(page: PressPage, fileOf: (Block.Picture) -> File?): List<PageStart> {
+        val doc = PdfDocument()
+        return try { Pager(doc, dry = true).also { layout(it, page, fileOf) }.starts } finally { doc.close() }
+    }
+
+    private fun layout(p: Pager, page: PressPage, fileOf: (Block.Picture) -> File?) {
+            p.begin(TITLE)
             p.text(page.project.name.trim().ifEmpty { " " }, serif(Paper.TITLE, bold = true), after = 4f)
             p.text(page.date.uppercase(), sans(Paper.DATE, color = Paper.DATE_INK), after = Paper.GAP + 4f)
             val caption = { b: Block.Picture -> b.caption.trim().takeIf { it.isNotEmpty() }?.let { it to serif(Paper.CAPTION, italic = true, color = Paper.MUTED) } }
@@ -33,6 +57,7 @@ object PdfCompiler {
             for (item in PressLayout.plan(page.project.blocks)) when (item) {
                 is PressLayout.Item.Single -> {
                     val b = item.block
+                    p.begin(b.id)
                     if (b is Block.Picture) fileOf(b)?.let { f ->
                         // Empty captions don't print.
                         p.picture(f, caption(b))
@@ -41,20 +66,17 @@ object PdfCompiler {
                 }
                 is PressLayout.Item.Beside -> {
                     val f = fileOf(item.picture)
+                    p.begin(item.picture.id)
                     if (f != null) p.sidePicture(f, item.left, caption(item.picture))
-                    item.text?.let { block(p, page, it) }
+                    item.text?.let { p.begin(it.id); block(p, page, it) }
                     // What follows (a heading above all) starts below the picture.
                     p.endBeside()
                     p.gap(if (item.text == null) Paper.GAP else 0f)
                 }
             }
+            p.begin(RECEIPT)
             receipt(p, page)
             p.finish()
-            out.parentFile?.mkdirs()
-            out.outputStream().use { doc.writeTo(it) }
-        } finally {
-            doc.close()
-        }
     }
 
     /** A text block (or nothing for the others): beside a picture, the Pager narrows its lines. */
@@ -123,7 +145,25 @@ object PdfCompiler {
         typeface = Typeface.create(Typeface.SANS_SERIF, if (bold) Typeface.BOLD else Typeface.NORMAL)
     }
 
-    private class Pager(val doc: PdfDocument) {
+    /** [dry]: lay out only (pageStarts): pictures are measured from their size, nothing is decoded. */
+    private class Pager(val doc: PdfDocument, val dry: Boolean) {
+        /** Where each page after the first starts (PageStart). */
+        val starts = ArrayList<PageStart>()
+        private var unit = TITLE
+        private var unitTop = Paper.M
+        private var unitDone = 0f
+
+        /** The block being laid out now; a page that starts inside it is recorded with how far into it. */
+        fun begin(id: String) { unit = id; unitTop = y; unitDone = 0f }
+
+        /** A picture's pixel size: decoded for the PDF, read from the file's header in a dry run. */
+        fun bitmapOrSize(file: File): Pair<android.graphics.Bitmap?, Pair<Int, Int>>? {
+            if (!dry) return BitmapFactory.decodeFile(file.path)?.let { it to (it.width to it.height) }
+            val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.path, o)
+            return if (o.outWidth > 0 && o.outHeight > 0) null to (o.outWidth to o.outHeight) else null
+        }
+
         private var n = 0
         private var page: PdfDocument.Page? = null
         private var y = Paper.M
@@ -132,9 +172,15 @@ object PdfCompiler {
         private val canvas: Canvas get() = (page ?: newPage()).canvas
 
         private fun newPage(): PdfDocument.Page {
+            if (page != null) {
+                val into = unitDone + (y - unitTop).coerceAtLeast(0f)
+                starts += PageStart(unit, into)
+                unitDone = into
+            }
             page?.let { finishPage(it) }
             n++
             y = Paper.M
+            unitTop = Paper.M
             float = null
             return doc.startPage(PdfDocument.PageInfo.Builder(Paper.W.toInt(), Paper.H.toInt(), n).create()).also { page = it }
         }
@@ -208,10 +254,10 @@ object PdfCompiler {
          */
         fun sidePicture(file: File, left: Boolean, caption: Pair<String, TextPaint>?) {
             endBeside()
-            val bmp = BitmapFactory.decodeFile(file.path) ?: return
+            val (bmp, size) = bitmapOrSize(file) ?: return
             try {
                 val box = PressLayout.sideWidth(Paper.INNER)
-                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(bmp.width, bmp.height, box, Paper.PICTURE_MAX_H)
+                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(size.first, size.second, box, Paper.PICTURE_MAX_H)
                 val cap = caption?.let { (s, paint) -> StaticLayout.Builder.obtain(s, 0, s.length, paint, box.toInt()).setLineSpacing(0f, 1.1f).build() }
                 val total = h + (cap?.let { it.height + 4f } ?: 0f)
                 canvas
@@ -219,11 +265,11 @@ object PdfCompiler {
                 val x = if (left) Paper.M else Paper.W - Paper.M - box
                 // The picture to the outer edge of its box; a narrow (tall) one leaves no gap by the text.
                 val px = if (left) x else x + box - w
-                canvas.drawBitmap(bmp, null, RectF(px, y, px + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG))
+                bmp?.let { canvas.drawBitmap(it, null, RectF(px, y, px + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG)) }
                 cap?.let { c -> canvas.save(); canvas.translate(x, y + h + 4f); c.draw(canvas); canvas.restore() }
                 float = Beside(left, y + total + 8f)
             } finally {
-                bmp.recycle()
+                bmp?.recycle()
             }
         }
 
@@ -247,16 +293,16 @@ object PdfCompiler {
         /** A picture centered at the column's width in its own shape, no taller than half a page; its caption under it. */
         fun picture(file: File, caption: Pair<String, TextPaint>?) {
             endBeside()
-            val bmp = BitmapFactory.decodeFile(file.path) ?: return
+            val (bmp, size) = bitmapOrSize(file) ?: return
             try {
-                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(bmp.width, bmp.height, Paper.INNER, Paper.PICTURE_MAX_H)
+                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(size.first, size.second, Paper.INNER, Paper.PICTURE_MAX_H)
                 canvas
                 if (bottom - y < h + (if (caption != null) 24f else 0f)) newPage()
                 val left = (Paper.W - w) / 2
-                canvas.drawBitmap(bmp, null, RectF(left, y, left + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG))
+                bmp?.let { canvas.drawBitmap(it, null, RectF(left, y, left + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG)) }
                 y += h + 4f
             } finally {
-                bmp.recycle()
+                bmp?.recycle()
             }
             caption?.let { (s, paint) -> text(s, paint, after = 0f, center = true) }
         }
