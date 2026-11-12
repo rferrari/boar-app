@@ -94,8 +94,9 @@ object PressReceipt {
         val square: String = "square",
         val portrait: String = "portrait",
         val wide: String = "wide",
-        val fast: String = "fast",
-        val slow: String = "slow",
+        val low: String = "low quality",
+        val medium: String = "medium quality",
+        val high: String = "high quality",
         val styleName: (String) -> String = { k -> k.replaceFirstChar { it.titlecase(Locale.ROOT) } },
     )
 
@@ -113,9 +114,10 @@ object PressReceipt {
     fun drawingText(d: Drawing, l: Labels): String = listOfNotNull(
         l.designer,
         d.style?.takeIf { it.isNotBlank() }?.let(l.styleName),
-        // Shape and speed in words, as Designer says them; no pixel numbers (t9 0620/0625).
+        // Shape and quality in words, as Designer says them; no pixel numbers (t9 0620/0625, quality t9 0421).
         d.shape?.let { s -> (when (s) { Shape.SQUARE -> l.square; Shape.PORTRAIT -> l.portrait; Shape.WIDE -> l.wide }) +
-            (if (d.width > 0 && d.height > 0) ", " + (if (DesignerCanvas.Size(d.width, d.height).tier == DesignerCanvas.Tier.SLOW) l.slow else l.fast) else "") },
+            (if (d.width > 0 && d.height > 0) ", " + when (DesignerCanvas.Size(d.width, d.height).quality) {
+                DesignerCanvas.Quality.LOW -> l.low; DesignerCanvas.Quality.MEDIUM -> l.medium; DesignerCanvas.Quality.HIGH -> l.high } else "") },
         d.seed?.let { l.seed.replace("{{seed}}", it.toString()) },
     ).joinToString(" · ")
 

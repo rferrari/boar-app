@@ -43,27 +43,26 @@ object ImageLab {
 
     /**
      * A drawing's size in pixels, sides in multiples of 64. Only sd-cli, the file name and the recipe see the numbers: the
-     * screen says its shape (Square, Portrait, Wide) and its speed (Fast, Slow), DesignerCanvas (adam, Nov 13).
+     * screen says its shape (Square, Portrait, Wide) and its quality (Low, Medium, High), DesignerCanvas (adam, Nov 12-13).
      */
     data class Canvas(val w: Int, val h: Int) {
         val size: DesignerCanvas.Size get() = DesignerCanvas.Size(w, h)
         /** "512" for a square (the key older saves and times used), "384x512" otherwise. */
         val key: String get() = size.key
         val shape: DesignerCanvas.Shape get() = size.shape
-        val tier: DesignerCanvas.Tier get() = size.tier
+        val quality: DesignerCanvas.Quality get() = size.quality
         companion object {
-            /** Any saved key, offered or not (a recipe from before Nov 13 may hold a removed size). */
+            /** Any saved key, as it is. */
             fun of(key: String?): Canvas? = DesignerCanvas.parse(key)?.let { Canvas(it.w, it.h) }
-            fun of(shape: DesignerCanvas.Shape, tier: DesignerCanvas.Tier): Canvas = DesignerCanvas.size(shape, tier).let { Canvas(it.w, it.h) }
-            /** A saved key as a size the screen offers: a removed small size becomes Fast of its shape. */
+            fun of(shape: DesignerCanvas.Shape, quality: DesignerCanvas.Quality): Canvas = DesignerCanvas.size(shape, quality).let { Canvas(it.w, it.h) }
+            /** A saved key as a size the screen offers: each of the nine keeps its own level, any other becomes Medium. */
             fun offered(key: String?): Canvas? = DesignerCanvas.migrate(key)?.let { Canvas(it.w, it.h) }
         }
     }
 
     /**
-     * What the screen offers (Nov 13): per shape, Fast (the middle size) and Slow (the largest). Square 512 and 640,
-     * portrait 384×512 and 448×640, wide 640×320 and 768×320 (13 s on the X6, Oct 16). The smallest of each shape
-     * (384, 320×448, 576×256) left the screen; a default saved at one moves to its shape's Fast.
+     * What the screen offers (adam, Nov 12): per shape, Low, Medium and High quality, its three sizes. Square 384, 512
+     * and 640, portrait 320×448, 384×512 and 448×640, wide 576×256, 640×320 and 768×320 (13 s on the X6, Oct 16).
      */
     val CANVASES = DesignerCanvas.OFFERED.map { Canvas(it.w, it.h) }
 
@@ -100,14 +99,14 @@ object ImageLab {
     /** The user's pick ("★ Default"), else engraving. */
     fun defaultStyle(): Style = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).first?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
 
-    /** The user's shape and speed ("★ Default" saves them with the style), else Square, Fast; a removed size reads as its shape's Fast. */
+    /** The user's shape and quality ("★ Default" saves them with the style), else Square, Medium. */
     fun defaultCanvas(): Canvas = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second.let { Canvas(it.w, it.h) }
 
-    /** "★ Default" in Designer and "Remember" in Illustrate: style, shape and speed together, for both. */
+    /** "★ Default" in Designer and "Remember" in Illustrate: style, shape and quality together, for both. */
     fun setDefaults(style: Style, canvas: Canvas) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)
 
-    /** Reset in Illustrate's sheet: back to Engraving, Square, Fast. */
-    fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Tier.FAST))
+    /** Reset in Illustrate's sheet: back to Engraving, Square, Medium. */
+    fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Quality.MEDIUM))
 
     private const val TIMES_KEPT = 10
 
@@ -145,7 +144,7 @@ data class ImageLabState(
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultSize: ImageLab.Canvas = ImageLab.CANVASES.first(),
-    /** The shape and speed picked in the Shape tray: always one the screen offers. */
+    /** The shape and quality picked in the Shape and Quality trays: always one the screen offers. */
     val size: ImageLab.Canvas = ImageLab.CANVASES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -223,12 +222,13 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setStyle(s: ImageLab.Style) = _state.update { it.copy(style = s) }
     fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c, error = null) }
-    fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.tier))
-    fun setTier(tier: DesignerCanvas.Tier) = setSize(ImageLab.Canvas.of(_state.value.size.shape, tier))
+    /** Shape keeps the quality, Quality keeps the shape: the canvas reshapes at once. */
+    fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.quality))
+    fun setQuality(quality: DesignerCanvas.Quality) = setSize(ImageLab.Canvas.of(_state.value.size.shape, quality))
 
     /**
-     * Shows [f] and puts back what it was drawn from (style, shape and speed, seed) when it has a recipe; the screen fills
-     * the subject. A drawing made at a removed small size puts back its shape's Fast.
+     * Shows [f] and puts back what it was drawn from (style, shape and quality, seed) when it has a recipe; the screen fills
+     * the subject.
      */
     fun show(f: File) {
         val r = ImageLab.recipeOf(f)
@@ -296,7 +296,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** "★ Default": the style, shape and speed Illustrate (in the chat) and a new Designer session use. */
+    /** "★ Default": the style, shape and quality Illustrate (in the chat) and a new Designer session use. */
     fun setDefaults() {
         val s = _state.value
         ImageLab.setDefaults(s.style, s.size)
@@ -315,7 +315,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
 
     private var regenerating = false
 
-    /** Draw again: the shown picture's words, style and size (a removed small size draws as its shape's Fast), and it replaces it. */
+    /** Draw again: the shown picture's words, style and size, and it replaces it. */
     fun regenerate() {
         val s = _state.value
         val subject = s.subject ?: return

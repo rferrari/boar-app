@@ -60,7 +60,7 @@ class PressReceiptTest {
         val rows = PressReceipt.rows(r, PressReceipt.Labels(), "13 November 2026", "2.0.0-rc3")
         assertEquals(listOf("Made", "Answers", "Drawings", "Sources"), rows.map { it.label })
         assertEquals(listOf("4", "Qwen3-4B · 4.6–4.8 tok/s", "Qwen3-1.7B · 9.1 tok/s"), rows[1].lines)
-        assertEquals(listOf("Designer · Engraving · portrait, fast · seed 48213"), rows[2].lines)
+        assertEquals(listOf("Designer · Engraving · portrait, medium quality · seed 48213"), rows[2].lines)
         // Photos (phase 2) count on their own line.
         val withPhoto = project.copy(blocks = project.blocks + Block.Picture("ph", PressDoc.Kind.PHOTO, "photos/1.jpg"))
         assertEquals(listOf("1 from this phone"), PressReceipt.rows(PressReceipt.build(withPhoto), PressReceipt.Labels(), "d", "v").single { it.label == "Photos" }.lines)
@@ -69,10 +69,10 @@ class PressReceiptTest {
     @Test fun `a drawing without a recipe still counts, with what is known`() {
         val p = PressDoc.Project("p", "P", 0, listOf(Block.Picture("x", PressDoc.Kind.DRAWING, "/x.png")))
         val r = PressReceipt.build(p, recipeOf = { null }, sizeOf = { 640 to 320 })
-        assertEquals("Designer · wide, fast", PressReceipt.drawingText(r.drawings.single(), PressReceipt.Labels()))
+        assertEquals("Designer · wide, medium quality", PressReceipt.drawingText(r.drawings.single(), PressReceipt.Labels()))
         // The app's reader wins over the block's copy when it finds one.
         val r2 = PressReceipt.build(p, recipeOf = { PressDoc.Recipe(style = "watercolor", seed = 7) }, sizeOf = { 384 to 384 })
-        assertEquals("Designer · Watercolor · square, fast · seed 7", PressReceipt.drawingText(r2.drawings.single(), PressReceipt.Labels()))
+        assertEquals("Designer · Watercolor · square, low quality · seed 7", PressReceipt.drawingText(r2.drawings.single(), PressReceipt.Labels()))
     }
 
     @Test fun `the Markdown has the blocks, the refs and the same receipt`() {
@@ -100,11 +100,11 @@ class PressReceiptTest {
 }
 
 class PressReceiptWordsTest {
-    @Test fun `a drawing's line says its shape and speed, never pixels`() {
+    @Test fun `a drawing's line says its shape and quality, never pixels`() {
         val l = PressReceipt.Labels()
         val fast = PressReceipt.drawingText(PressReceipt.Drawing("photo", PressReceipt.Shape.SQUARE, 512, 512, 7), l)
         val slow = PressReceipt.drawingText(PressReceipt.Drawing("photo", PressReceipt.Shape.WIDE, 768, 320, null), l)
-        org.junit.Assert.assertTrue(fast, fast.contains("square, fast") && !Regex("\\d+\\s*[x×]\\s*\\d+").containsMatchIn(fast))
-        org.junit.Assert.assertTrue(slow, slow.contains("wide, slow"))
+        org.junit.Assert.assertTrue(fast, fast.contains("square, medium quality") && !Regex("\\d+\\s*[x×]\\s*\\d+").containsMatchIn(fast))
+        org.junit.Assert.assertTrue(slow, slow.contains("wide, high quality"))
     }
 }
