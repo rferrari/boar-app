@@ -42,7 +42,7 @@ class TrailTest {
         assertTrue(trail.contains("if (showBoar) Image("))
         // Matrix rain takes no boar either way.
         assertTrue(trail.contains("MatrixRain(modifier, label) else BoarTrail(modifier, label, showBoar)"))
-        val designer = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").readText()
+        val designer = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
         assertTrue(!designer.contains("showBoar = false"))
     }
 }

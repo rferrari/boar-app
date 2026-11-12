@@ -24,6 +24,6 @@ class Wave2Test {
     }
 
     @Test fun `Illustrate uses the gate`() {
-        assertTrue(read("labs/plugins/image/java/team/sopa/boar/labs/image/Illustrator.kt").contains("IllustrateGate.allowed(a.tool, a.text)"))
+        assertTrue(read("labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").contains("IllustrateGate.allowed(a.tool, a.text)"))
     }
 }

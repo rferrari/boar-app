@@ -18,7 +18,7 @@ import java.io.File
 class PluginExamplesTest {
     private fun strings(id: String, d: String): Map<String, String> =
         Regex("<string name=\"native_labs_${id}_([A-Za-z0-9_]+)\"[^>]*>(.*?)</string>", RegexOption.DOT_MATCHES_ALL)
-            .findAll(File("../app/src/labs/plugins/$id/res/$d/strings_lab_$id.xml").readText())
+            .findAll(File(team.sopa.boar.engine.labs.LabDirs.of(id), "res/$d/strings_lab_$id.xml").readText())
             .associate { it.groupValues[1] to unescape(it.groupValues[2]) }
 
     private fun unescape(s: String) = s.replace("\\n", "\n").replace("\\'", "'").replace("\\\"", "\"")

@@ -1,4 +1,4 @@
-package team.sopa.boar.labs.image
+package team.sopa.boar.labs.designer
 
 import android.content.Context
 import android.graphics.BitmapFactory

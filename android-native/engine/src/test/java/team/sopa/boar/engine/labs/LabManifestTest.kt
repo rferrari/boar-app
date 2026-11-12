@@ -17,7 +17,7 @@ class LabManifestTest {
     @Test fun `every listed lab is a plugin with code in this repo`() {
         assertTrue(manifest.isNotEmpty())
         for (id in manifest.keys) {
-            val props = File(plugins, "$id/plugin.properties")
+            val props = File(LabDirs.of(id), "plugin.properties")
             assertTrue("$id has no plugin folder", props.isFile)
             assertTrue("$id has no code (object=)", props.readLines().any { it.trim().startsWith("object=") })
         }
@@ -65,7 +65,7 @@ class LabManifestTest {
      * may name each other's tests (one engine area, accepted by the validator); nothing wider.
      */
     private fun engineReach(id: String): Set<String> {
-        val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { code(it.readText()) }
+        val src = LabDirs.of(id).walk().filter { it.extension == "kt" }.joinToString("\n") { code(it.readText()) }
         val direct = Regex("""team\.sopa\.boar\.engine\.[a-z.]+\.([A-Z]\w*)""").findAll(src).map { it.groupValues[1] }.toSet() - generic
         val ownFile = { n: String -> File("src/main/java").walk().any { it.name == "$n.kt" } }
         val viaHubs = direct.filter { it in hubs }.flatMap { hub ->
@@ -146,7 +146,7 @@ class LabManifestTest {
     @Test fun `a lab under review doesn't ship`() {
         for (dir in plugins.listFiles().orEmpty()) {
             val props = File(dir, "plugin.properties").takeIf { it.isFile }?.readLines() ?: continue
-            if (props.any { it.trim() == "review=true" }) assertTrue("${dir.name} is under review but listed", dir.name !in manifest)
+            if (props.any { it.trim() == "review=true" }) assertTrue("${dir.name} is under review but listed", LabDirs.idOf(dir) !in manifest)
         }
     }
 

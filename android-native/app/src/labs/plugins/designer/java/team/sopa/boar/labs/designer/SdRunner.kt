@@ -1,4 +1,4 @@
-package team.sopa.boar.labs.image
+package team.sopa.boar.labs.designer
 
 import kotlinx.coroutines.launch
 import android.content.Context

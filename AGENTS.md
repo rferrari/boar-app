@@ -11,7 +11,8 @@ BOAR 2.x is a native Android app:
   application id `team.sopa.aoair` (kept from 1.x so a release installs over it).
 - `android-native/engine`: llama.cpp, SQLite and zstd through JNI (`libboar_engine.so`),
   plus the retrieval, routing, model and evaluation code. Most unit tests live here.
-- `android-native/app/src/labs/plugins/<id>/`: Boar Labs plugins, one folder each
+- `android-native/app/src/labs/plugins/<folder>/`: Boar Labs plugins, one folder each, usually named by the
+  lab id (Designer: `plugins/designer`, id `image`)
   (`docs/PLUGINS.md`).
 
 The rest of the repo root:
@@ -124,7 +125,7 @@ A Labs build that installs beside the normal BOAR:
 
 Big Boar (`libbmoe_cli.so`), Boar Wisp (`libcolibri_olmoe.so`) and Boar Designer
 (`libsdcli.so`, `libsdcli_i8mm.so`) run their own executables. They are prebuilt into
-`android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a/`, which is gitignored, so a
+`android-native/app/src/labs/plugins/<folder>/jniLibs/arm64-v8a/` (Designer: `plugins/designer`), which is gitignored, so a
 fresh clone doesn't have them. They are packed into the APK only in experimental builds, and never for a lab under
 review (`review=true` in its `plugin.properties`: Boar Wisp). Google Play Protect blocks an APK with engines it
 doesn't trust ("Harmful app blocked"), so each engine that ships has to earn its place.

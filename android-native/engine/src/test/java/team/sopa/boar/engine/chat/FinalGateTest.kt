@@ -80,12 +80,12 @@ class InstantTypingEmojiTest {
 
 class FinalGatePrivacyTest {
     @Test fun `deleting a chat erases its Designer drawings, recipes included (D-1, D-2)`() {
-        val ill = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/Illustrator.kt").readText()
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
         val erase = ill.substringAfter("fun eraseAnswers(ctx: Context, ids: List<String>) {").substringBefore("\n    }")
         assertTrue(erase.contains("load(ctx)") && erase.contains("jobs.remove(id)?.cancel()") && erase.contains("ImageLab::deleteDrawing") && erase.contains("save()"))
         assertTrue(ill.substringAfter("fun forget(id: String)").substringBefore("\n    }").contains("ImageLab::deleteDrawing"))
         assertTrue(ill.substringAfter("fun eraseAll(ctx: Context)").substringBefore("\n    }").contains("ImageLab::deleteDrawing"))
-        val lab = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").readText()
+        val lab = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
         assertTrue(lab.contains("override fun eraseAnswers(context: android.content.Context, answerIds: List<String>) = Illustrator.eraseAnswers(context, answerIds)"))
     }
 

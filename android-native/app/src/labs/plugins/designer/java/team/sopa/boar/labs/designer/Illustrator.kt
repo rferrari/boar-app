@@ -1,4 +1,4 @@
-package team.sopa.boar.labs.image
+package team.sopa.boar.labs.designer
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue

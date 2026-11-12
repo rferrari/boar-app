@@ -14,7 +14,7 @@ class LabDefaultsTest {
      * A plugin's statuses as its code declares them: every `override val status = …LabStatus.X` outside comments (the
      * image lab writes it fully qualified). Empty for a classified teaser with no code.
      */
-    private fun statuses(id: String): List<String> = File(plugins, id).walk().filter { it.extension == "kt" }.flatMap { declaredStatuses(it.readText()) }.toList()
+    private fun statuses(id: String): List<String> = LabDirs.of(id).walk().filter { it.extension == "kt" }.flatMap { declaredStatuses(it.readText()) }.toList()
 
     private fun declaredStatuses(source: String): List<String> {
         val code = source.replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), "").replace(Regex("""//[^\n]*"""), "")
@@ -32,7 +32,7 @@ class LabDefaultsTest {
     }
 
     @Test fun `every lab in either list is a plugin in this build`() {
-        for (id in LabDefaults.ON + LabDefaults.PENDING_ALPHA) assertTrue("$id has no plugin folder", File(plugins, "$id/plugin.properties").isFile)
+        for (id in LabDefaults.ON + LabDefaults.PENDING_ALPHA) assertTrue("$id has no plugin folder", File(LabDirs.of(id), "plugin.properties").isFile)
     }
 
     @Test fun `no ALPHA, under-review or classified lab starts on`() {
@@ -45,7 +45,7 @@ class LabDefaultsTest {
     }
 
     @Test fun `a fresh install gets exactly the default set`() {
-        val all = plugins.listFiles().orEmpty().filter { File(it, "plugin.properties").isFile }.map { it.name }
+        val all = plugins.listFiles().orEmpty().filter { File(it, "plugin.properties").isFile }.map(LabDirs::idOf)
         assertEquals(LabDefaults.ON, all.filter { LabDefaults.switchOf(it, null) }.toSet())
     }
 
@@ -74,7 +74,7 @@ class LabDefaultsTest {
 
     @Test fun `Canvas shows an avatar until it has its own icon (Staged is core since Nov 12)`() {
         for ((id, art) in listOf("canvas" to "truffle_pixel_hacker")) {
-            val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
+            val src = LabDirs.of(id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
             assertTrue(id, src.contains("override val art = team.sopa.boar.R.drawable.$art"))
         }
     }
@@ -91,7 +91,7 @@ class LabDefaultsTest {
 
     @Test fun `every plugin with code declares its status once`() {
         for (dir in plugins.listFiles().orEmpty().filter { File(it, "plugin.properties").isFile && File(it, "java").isDirectory })
-            assertEquals(dir.name, 1, statuses(dir.name).size)
+            assertEquals(dir.name, 1, statuses(LabDirs.idOf(dir)).size)
     }
 
     @Test fun `a lab left on counts only while Boar Labs is on`() {

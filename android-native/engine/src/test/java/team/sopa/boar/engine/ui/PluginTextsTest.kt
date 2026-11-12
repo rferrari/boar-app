@@ -21,7 +21,7 @@ class PluginTextsTest {
         assertTrue(labs.contains("AboutPlugin(lab)") && labs.contains("t(\"native.labs.aboutPlugin\")"))
         // A page on the template (PluginPage, Nov 12) folds its `_how`; its `_about` is gone, so AboutPlugin hides itself.
         for ((id, _) in bodies("values")) {
-            val files = java.io.File("../app/src/labs/plugins/$id").walkTopDown().filter { it.isFile }.map { it.readText() }.toList()
+            val files = team.sopa.boar.engine.labs.LabDirs.of(id).walkTopDown().filter { it.isFile }.map { it.readText() }.toList()
             val about = files.any { it.contains("native_labs_${id}_about\"") }
             val how = files.any { it.contains("native_labs_${id}_how\"") } && files.any { it.contains("t(\"native.labs.$id.how\")") }
             assertTrue(id, about != how)

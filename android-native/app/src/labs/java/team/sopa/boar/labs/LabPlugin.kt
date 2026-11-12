@@ -12,7 +12,7 @@ import team.sopa.boar.plugins.AnswerRef
  * Boar Labs plugins (src/labs). Hidden until the user turns on Settings → Advanced tweaks → Boar Labs, at the very
  * bottom, which only builds with EXPERIMENTAL_FEATURES=true show (app/build.gradle.kts); off, no lab shows anywhere.
  *
- * Each lab is one folder, src/labs/plugins/<id>/ (plugin.properties, java/, res/), found by the build; see
+ * Each lab is one folder, src/labs/plugins/<folder>/ (usually its id; Designer is plugins/designer, id "image") (plugin.properties, java/, res/), found by the build; see
  * docs/PLUGINS.md and the _template folder:
  * - add: copy _template, rename it; nothing outside the folder changes;
  * - remove: delete the folder;

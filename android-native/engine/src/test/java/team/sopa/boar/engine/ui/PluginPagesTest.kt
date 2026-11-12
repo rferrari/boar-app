@@ -25,9 +25,9 @@ class PluginPagesTest {
         // On the page template (Nov 12) the Try rows are PluginPage's: each plugin hands it its examples.
         assertTrue(java.io.File("../app/src/labs/java/team/sopa/boar/labs/PluginPage.kt").readText().contains("for (q in tries) TryRow(q)"))
         for (id in listOf("cohazard", "calc", "polyglot", "distance", "facts"))
-            assertTrue(id, java.io.File("../app/src/labs/plugins/$id").walkTopDown().first { it.name.endsWith("Lab.kt") }.readText().contains("(1..3).map { t(\"native.labs.$id.example\$it\") }"))
+            assertTrue(id, team.sopa.boar.engine.labs.LabDirs.of(id).walkTopDown().first { it.name.endsWith("Lab.kt") }.readText().contains("(1..3).map { t(\"native.labs.$id.example\$it\") }"))
         for (id in listOf("compass", "lunar", "pulse"))
-            assertTrue(id, java.io.File("../app/src/labs/plugins/$id").walkTopDown().first { it.name.endsWith("Lab.kt") }.readText().contains("(1..2).map { t(\"native.labs.$id.example\$it\") }"))
+            assertTrue(id, team.sopa.boar.engine.labs.LabDirs.of(id).walkTopDown().first { it.name.endsWith("Lab.kt") }.readText().contains("(1..2).map { t(\"native.labs.$id.example\$it\") }"))
         val row = java.io.File("../app/src/labs/java/team/sopa/boar/labs/TryRow.kt").readText()
         assertTrue(row.contains("AskFromPlugin.ask(question, send = true)") && row.contains("AskFromPlugin.ask(question, send = false)") && row.contains("clipboard.setText(AnnotatedString(question))"))
         val main = java.io.File("../app/src/main/java/team/sopa/boar/MainActivity.kt").readText()

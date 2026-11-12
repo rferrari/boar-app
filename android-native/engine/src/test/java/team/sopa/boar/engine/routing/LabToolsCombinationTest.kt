@@ -56,7 +56,7 @@ class LabToolsCombinationTest {
 
         /** The labs in the order the tool slot tries them: LabTools.slotRank, then the grid's (plugin.properties order; all four are beta). */
         val slotOrder: List<String> = TOOLS.sortedBy { id ->
-            File("../app/src/labs/plugins/$id/plugin.properties").readLines().first { it.startsWith("order=") }.removePrefix("order=").toInt()
+            File(team.sopa.boar.engine.labs.LabDirs.of(id), "plugin.properties").readLines().first { it.startsWith("order=") }.removePrefix("order=").toInt()
         }.sortedBy(LabTools::slotRank)
 
         fun run(id: String, q: String, turns: List<String> = emptyList()): LabTools.Hit? = when (id) {

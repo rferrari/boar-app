@@ -52,7 +52,7 @@ without calling the model. Search stages (`PipelineStages`) still run; they only
 ## A lab's folder
 
 ```
-android-native/app/src/labs/plugins/<id>/
+android-native/app/src/labs/plugins/<folder>/        usually the id; Designer is plugins/designer with id=image
   plugin.properties                    required
   java/team/sopa/boar/labs/<id>/…      the lab's code (a LabPlugin object)
   res/values/strings_lab_<id>.xml      English strings
@@ -65,11 +65,16 @@ and, in experimental builds, `jniLibs/` to the app, and writes the registry the 
 `build/generated/labsRegistry`). **Folders whose name starts with `_` are skipped.** Use them for templates or for a lab
 you're parking.
 
+**Renaming a folder keeps the id.** The id is in users' saved preferences (`<id>.*`), the route `lab:<id>`,
+`released.txt`, evaluation requests (`"labs":[ids]`) and the string keys `native.labs.<id>.*`, so a rename moves the
+folder and the Kotlin package only. `plugins/designer` (Boar Designer) holds `id=image`. Its gitignored `jniLibs/`
+moves with the folder on disk (`git mv` takes it along); check that the script that builds it writes to the new path.
+
 ### plugin.properties
 
 ```properties
 # Boar Labs plugin (docs/PLUGINS.md)
-id=pulse                                         # must equal the folder name
+id=pulse                                         # unique; usually the folder name, kept when a folder is renamed
 object=team.sopa.boar.labs.pulse.DevicePulseLab  # the LabPlugin object…
 order=20                                         # grid position (lower first; ties by id)
 ```

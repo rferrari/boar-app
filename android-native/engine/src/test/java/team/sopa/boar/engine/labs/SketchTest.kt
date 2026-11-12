@@ -26,7 +26,7 @@ class SketchTest {
     }
 
     @Test fun `Designer waits with the sketch and reveals the picture by a crossfade, instant with animations off`() {
-        val page = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").readText()
+        val page = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
         assertTrue(page.contains("DesignerWait(") && page.contains("Crossfade("))
         val wait = java.io.File("../app/src/labs/java/team/sopa/boar/labs/SketchWait.kt").readText()
         assertTrue(wait.contains("LabPrefs.WAIT_MATRIX) MatrixRain(") && wait.contains("ANIMATOR_DURATION_SCALE"))

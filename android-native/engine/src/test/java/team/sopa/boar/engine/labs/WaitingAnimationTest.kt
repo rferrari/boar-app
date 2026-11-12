@@ -12,7 +12,7 @@ class WaitingAnimationTest {
     @Test fun `the closing screen uses the picked animation, Designer its sketch or the rain`() {
         assertTrue(read("java/team/sopa/boar/labs/LabHooks.kt").contains("WaitingAnimation(androidx.compose.ui.Modifier.fillMaxSize(), showBoar = false)"))
         // Designer has its own wait since Nov 12 (the sketch, or the Matrix rain when picked).
-        assertTrue(read("plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").contains("team.sopa.boar.labs.DesignerWait("))
+        assertTrue(read("plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").contains("team.sopa.boar.labs.DesignerWait("))
     }
 
     @Test fun `the matrix rain stays, as the other choice, and the trail is the default`() {

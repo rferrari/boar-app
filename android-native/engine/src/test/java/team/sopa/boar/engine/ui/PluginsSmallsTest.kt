@@ -5,7 +5,7 @@ import org.junit.Test
 
 /** adam's decisions, Nov 11, for the plugins and Designer. Read from the source. */
 class PluginsSmallsTest {
-    private val image = java.io.File("../app/src/labs/plugins/image/java/team/sopa/boar/labs/image/ImageLabScreen.kt").readText()
+    private val image = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
     private val list = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
     private val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
 

@@ -15,7 +15,8 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
     .map { dir ->
         val p = Properties().apply { dir.resolve("plugin.properties").reader(Charsets.UTF_8).use { load(it) } }
         val id = p.getProperty("id")?.trim() ?: error("${dir.name}/plugin.properties: no id")
-        require(id == dir.name) { "${dir.name}/plugin.properties: id=$id must match the folder name" }
+        // The folder may differ from the id (plugins/designer holds id=image, adam Nov 12: the id is in users' saved
+        // prefs, routes and eval requests); ids are unique, checked below.
         val obj = p.getProperty("object")?.trim()
         val classified = p.getProperty("classified")?.trim()
         // Both: a working lab kept as a teaser in normal builds, built as itself with -Pboar.labs.declassify=<id> (Oct 24).
@@ -23,6 +24,7 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
         LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100, p.getProperty("review")?.trim()?.toBoolean() ?: false)
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
+    .also { l -> l.groupBy { it.id }.filterValues { it.size > 1 }.keys.let { d -> require(d.isEmpty()) { "two plugin folders with the same id: $d" } } }
 
 /**
  * The labs a release build includes (src/labs/released.txt, rc3): "id: TestClass…" lines. Every build is a release

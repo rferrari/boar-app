@@ -1,4 +1,4 @@
-package team.sopa.boar.labs.image
+package team.sopa.boar.labs.designer
 
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.remember
