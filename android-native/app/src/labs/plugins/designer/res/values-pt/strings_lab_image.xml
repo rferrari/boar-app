@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_image_title" formatted="false">Designer</string>
-    <string name="native_labs_image_intro" formatted="false">Escolha um estilo e digite o que desenhar.</string>
     <string name="native_labs_image_noEngine" formatted="false">Esta versão não tem o motor de imagem.</string>
     <string name="native_labs_image_needModel" formatted="false">O modelo de imagem (SDXS-512, 683 MB) ainda não está no celular. Baixe uma vez com internet; depois, desenha offline. A licença (CreativeML Open RAIL++-M) proíbe alguns usos, como prejudicar ou assediar pessoas, conteúdo enganoso para causar dano e aconselhamento médico: huggingface.co/IDKiro/sdxs-512-0.9</string>
     <string name="native_labs_image_download" formatted="false">Baixar (683 MB)</string>
@@ -9,29 +8,20 @@
     <string name="native_labs_image_style" formatted="false">ESTILO</string>
     <string name="native_labs_image_style_engraving" formatted="false">Gravura</string>
     <string name="native_labs_image_style_scientific" formatted="false">Científico</string>
-    <string name="native_labs_image_size" formatted="false">TAMANHO</string>
-    <string name="native_labs_image_size_512" formatted="false">512 px · ~20s</string>
-    <string name="native_labs_image_size_384" formatted="false">384 px · ~15s</string>
-    <string name="native_labs_image_subject" formatted="false">O QUE DESENHAR</string>
-    <string name="native_labs_image_placeholder" formatted="false">um javali</string>
+    <string name="native_labs_image_placeholder" formatted="false">O que devo desenhar?</string>
     <string name="native_labs_image_generate" formatted="false">Desenhar</string>
     <string name="native_labs_image_phase_loading" formatted="false">Carregando o modelo…</string>
     <string name="native_labs_image_phase_drawing" formatted="false">Desenhando…</string>
     <string name="native_labs_image_phase_decoding" formatted="false">Finalizando a imagem…</string>
     <string name="native_labs_image_delete" formatted="false">Apagar</string>
-    <string name="native_labs_image_gallery" formatted="false">NESTE CELULAR</string>
     <string name="native_labs_image_body" formatted="false">Desenha uma imagem com poucas palavras, no celular.</string>
     <string name="native_labs_image_fromChat" formatted="false">↳ Da sua última conversa: “{{title}}”</string>
-    <string name="native_labs_image_setDefault" formatted="false">★ Usar {{combo}} como padrão, também na conversa</string>
-    <string name="native_labs_image_isDefault" formatted="false">★ {{combo}} é seu padrão, também no 🎨 da conversa</string>
     <string name="native_labs_image_illustrateNotReady" formatted="false">Para ilustrar respostas, baixe o modelo de imagem em Plugins → Designer.</string>
     <string name="native_labs_image_illustrateChoosing" formatted="false">Escolhendo o que desenhar…</string>
     <string name="native_labs_image_illustrateDrawing" formatted="false">Desenhando: {{subject}}…</string>
     <string name="native_labs_image_illustrate" formatted="false">Ilustrar esta resposta</string>
     <string name="native_labs_image_illustrateAgain" formatted="false">Desenhar de novo</string>
     <string name="native_labs_image_illustrateRunning" formatted="false">Desenhando…</string>
-    <string name="native_labs_image_showMore" formatted="false">Ver mais ({{count}}) →</string>
-    <string name="native_labs_image_manage" formatted="false">Gerenciar imagens ({{count}}) →</string>
     <string name="native_labs_image_managerCount" formatted="false">{{count}} imagens · {{mb}} MB</string>
     <string name="native_labs_image_selectAll" formatted="false">Selecionar tudo</string>
     <string name="native_labs_image_selectNone" formatted="false">Limpar</string>
@@ -41,18 +31,15 @@
     <string name="native_labs_image_deleteConfirm" formatted="false">Apagar {{count}} imagens de vez?</string>
     <string name="native_labs_image_style_photo" formatted="false">Foto</string>
     <string name="native_labs_image_style_cyber" formatted="false">Cyberpunk</string>
-    <string name="native_labs_image_regenerate" formatted="false">Gerar outra</string>
     <string name="native_labs_image_style_none" formatted="false">Nenhum</string>
     <string name="native_labs_image_style_solarpunk" formatted="false">Solarpunk</string>
     <string name="native_labs_image_style_y2k" formatted="false">Y2K</string>
     <string name="native_labs_image_style_lofi" formatted="false">Lo-fi</string>
     <string name="native_labs_image_style_watercolor" formatted="false">Aquarela</string>
-    <string name="native_labs_image_seedKeep" formatted="false">🔒 Mesma semente {{seed}}</string>
-    <string name="native_labs_image_seedNew" formatted="false">🎲 Nova semente</string>
     <string name="native_labs_image_showPage" formatted="false">Mostrar mais {{n}}</string>
     <string name="native_labs_image_shape_square" formatted="false">Quadrado</string>
     <string name="native_labs_image_shape_portrait" formatted="false">Retrato</string>
-    <string name="native_labs_image_shape_banner" formatted="false">Banner</string>
+    <string name="native_labs_image_shape_banner" formatted="false">Paisagem</string>
     <string name="native_labs_image_illustrateNeedsModel" formatted="false">Ilustrar (baixe antes o modelo de desenho em Plugins, Designer)</string>
     <string name="native_labs_image_removeModel" formatted="false">Remover o modelo de imagem (683 MB)</string>
     <string name="native_labs_image_removeConfirm" formatted="false">Remover o modelo de imagem? Seus desenhos ficam. Para desenhar de novo, o BOAR baixa ele outra vez (683 MB, internet uma vez).</string>
@@ -64,14 +51,45 @@
     <string name="native_labs_image_refused" formatted="false">O Designer não desenha isso.</string>
     <string name="native_labs_image_sheetTitle" formatted="false">ILUSTRAR ESTA RESPOSTA</string>
     <string name="native_labs_image_styleLabel" formatted="false">Estilo</string>
-    <string name="native_labs_image_sizeLabel" formatted="false">Tamanho</string>
     <string name="native_labs_image_remember" formatted="false">Lembrar como padrão</string>
     <string name="native_labs_image_reset" formatted="false">Redefinir</string>
     <string name="native_labs_image_drawPicked" formatted="false">Desenhar · {{style}}, {{size}}</string>
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
-    <string name="native_labs_image_exampleA" formatted="false">“uma coruja” · Gravura · 512 px: uma gravura de história natural em tinta preta, fundo branco, em cerca de 20 s.</string>
-    <string name="native_labs_image_try1" formatted="false">um farol numa tempestade</string>
-    <string name="native_labs_image_try2" formatted="false">o ciclo da água</string>
-    <string name="native_labs_image_try3" formatted="false">uma cabana na montanha ao amanhecer</string>
-    <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; gerencie ou apague abaixo.</string>
+    <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
+    <string name="native_labs_image_tool_style" formatted="false">Estilo</string>
+    <string name="native_labs_image_tool_shape" formatted="false">Formato</string>
+    <string name="native_labs_image_shapeTitle" formatted="false">FORMATO</string>
+    <string name="native_labs_image_shapeLabel" formatted="false">Formato</string>
+    <string name="native_labs_image_speedLabel" formatted="false">Velocidade</string>
+    <string name="native_labs_image_tier_fast" formatted="false">Rápido</string>
+    <string name="native_labs_image_tier_slow" formatted="false">Lento</string>
+    <string name="native_labs_image_tierSeconds" formatted="false">{{tier}} · ~{{s}} s</string>
+    <string name="native_labs_image_shapeTier" formatted="false">{{shape}}, {{tier}}</string>
+    <string name="native_labs_image_shapeHint" formatted="false">Os segundos são a média deste celular. O mais lento desenha uma imagem maior.</string>
+    <string name="native_labs_image_shapeHintUntimed" formatted="false">Ainda sem tempo medido neste celular: os segundos aparecem depois do primeiro desenho. O mais lento desenha uma imagem maior.</string>
+    <string name="native_labs_image_default" formatted="false">★ Padrão</string>
+    <string name="native_labs_image_done" formatted="false">Pronto</string>
+    <string name="native_labs_image_styleHint" formatted="false">Toque de novo no estilo escolhido para ficar sem estilo.</string>
+    <string name="native_labs_image_styleHintNone" formatted="false">Sem estilo: suas palavras são o pedido inteiro.</string>
+    <string name="native_labs_image_emptyCanvas" formatted="false">Digite um tema e toque em Desenhar para preencher este formato.</string>
+    <string name="native_labs_image_noModelTitle" formatted="false">O Designer precisa do modelo</string>
+    <string name="native_labs_image_noModelCaption" formatted="false">O modelo ainda não está neste celular.</string>
+    <string name="native_labs_image_stop" formatted="false">Parar</string>
+    <string name="native_labs_image_all" formatted="false">Todas ({{count}}) ›</string>
+    <string name="native_labs_image_next" formatted="false">Próximo: {{style}}</string>
+    <string name="native_labs_image_infoButton" formatted="false">Detalhes e ações da imagem</string>
+    <string name="native_labs_image_fullButton" formatted="false">Ver em tela cheia</string>
+    <string name="native_labs_image_infoTitle" formatted="false">Esta imagem</string>
+    <string name="native_labs_image_words" formatted="false">Palavras</string>
+    <string name="native_labs_image_time" formatted="false">Tempo</string>
+    <string name="native_labs_image_drawAgain" formatted="false">Desenhar de novo</string>
+    <string name="native_labs_image_drawAgainNote" formatted="false">substitui esta</string>
+    <string name="native_labs_image_variations" formatted="false">4 variações</string>
+    <string name="native_labs_image_variationsTime" formatted="false">~{{s}} s</string>
+    <string name="native_labs_image_variationsNote" formatted="false">mesmas palavras, quatro composições</string>
+    <string name="native_labs_image_variationOf" formatted="false">Desenhando {{n}} de {{total}}…</string>
+    <string name="native_labs_image_variationsPick" formatted="false">Toque em uma para vê-la sozinha.</string>
+    <string name="native_labs_image_variationOpen" formatted="false">Mostrar a variação {{n}}</string>
+    <string name="native_labs_image_settingsTitle" formatted="false">Ajustes do Designer</string>
+    <string name="native_labs_image_waitSketch" formatted="false">Esboço</string>
 </resources>

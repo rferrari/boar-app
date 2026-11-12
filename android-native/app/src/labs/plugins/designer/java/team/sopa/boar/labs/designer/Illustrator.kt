@@ -17,7 +17,7 @@ import java.io.File
 
 /**
  * Illustrate this answer: the chat model picks one concrete thing to draw (a few English words, never the whole
- * answer), then sd-cli draws it in the user's default style and size (Image Gen → Set as default). Without a free model (it's answering, or none is
+ * answer), then sd-cli draws it in the user's default style, shape and speed (Designer → ★ Default). Without a free model (it's answering, or none is
  * loaded) the question stands in for the subject. Results stay per message in files/labs/illustrations.json.
  */
 object Illustrator {
@@ -63,6 +63,9 @@ object Illustrator {
         android.app.ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager).getMemoryInfo(it) }.availMem
     }.getOrDefault(Long.MAX_VALUE)
 
+    /** Room to draw now: Illustrate and Designer's "4 variations" (before each one) wait below [MIN_FREE_BYTES]. */
+    fun enoughMemory(ctx: Context): Boolean = freeBytes(ctx) >= MIN_FREE_BYTES
+
     /**
      * The answer whose Illustrate is asking for its style and size (Pro, t9 Nov 10): its sheet shows under that answer.
      * Below Pro, Illustrate draws at once with the defaults, as before.
@@ -73,7 +76,7 @@ object Illustrator {
         load(ctx)
         if (busy()) return
         if (!SdRunner.ready(ctx)) { status[a.id] = Status.Failed(notReady); return }
-        if (freeBytes(ctx) < MIN_FREE_BYTES) { status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.lowMemory")); return }
+        if (!enoughMemory(ctx)) { status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.lowMemory")); return }
         status[a.id] = Status.Choosing
         jobs[a.id]?.cancel()
         jobs[a.id] = scope.launch {

@@ -10,16 +10,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -41,19 +43,30 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import team.sopa.boar.engine.labs.DesignerCanvas
+import team.sopa.boar.ui.PackIcon
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 import java.io.File
@@ -78,6 +91,9 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_retrowave
     override val status = team.sopa.boar.labs.LabStatus.BETA
 
+    /** The picture is the page (adam's mock-up, Nov 13): the canvas fills the space under the header and never scrolls. */
+    override val fullPage = true
+
     @Composable
     override fun Content() {
         val vm: ImageLabViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -89,17 +105,15 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             onDispose { view.keepScreenOn = false }
         }
         var managing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+        // Back while drawing stops the drawing (or the variations), as before the canvas.
         if (state.phase != null) androidx.activity.compose.BackHandler { vm.cancel() }
         if (managing) {
             androidx.activity.compose.BackHandler { managing = false }
-            MediaManager(state.gallery, vm) { managing = false }
-        } else Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            ImageLabScreen(state, vm) { managing = true }
-            // The page template under the drawing tool (Nov 12): one real example, and the rest folded. Try is the
-            // subject chips under WHAT TO DRAW.
-            team.sopa.boar.labs.PluginPage(null, null, t("native.labs.image.exampleA"), emptyList(), t("native.labs.image.how"),
-                exampleLabel = t("native.labs.page.example"))
-        }
+            // The media manager as it was; the full page doesn't scroll, so it brings its own scroll and margin.
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 24.dp)) {
+                MediaManager(state.gallery, vm) { managing = false }
+            }
+        } else DesignerCanvasScreen(state, vm) { managing = true }
     }
 
     /** 🎨 in the answer's 🧩 sheet: Illustrator picks what to draw and draws it below the answer. */
@@ -134,7 +148,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
                 Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
             }
             is Illustrator.Status.Failed -> Text(st.message, style = Boar.type.caption, color = c.crimson400)
-            // What was drawn and the style, at a glance; ⓘ opens the exact prompt, size, seed and time (Oct 18).
+            // What was drawn and the style, at a glance; ⓘ opens the exact prompt, shape and speed, seed and time (Oct 18).
             is Illustrator.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 var details by remember(a.id) { mutableStateOf(false) }
                 val style = st.style?.let { k -> ImageLab.Style.entries.firstOrNull { it.key == k } }
@@ -157,7 +171,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
                     if (style != null && style != ImageLab.Style.NONE) Text(t("native.labs.image.style.${style.key}"), style = Boar.type.caption, color = c.textAccentCyan)
                     Text(listOfNotNull(
                         style?.prompt(st.subject) ?: st.subject,
-                        st.size?.let { ImageLab.Canvas.of(it)?.label ?: it },
+                        st.size?.let { ImageLab.Canvas.of(it) }?.let { shapeTier(it) },
                         st.seed?.let { t("native.labs.image.seed", "seed" to it) },
                         st.seconds?.let { String.format(Locale.US, "%.1f s", it) },
                     ).joinToString(" · "), style = Boar.type["mono.xs"], color = c.textDim)
@@ -167,119 +181,446 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     }
 }
 
-/** Pick a style, type the subject, draw. The last images stay on the phone below. */
+/** "Square", "Portrait", "Wide". */
 @Composable
-fun ImageLabScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> Unit) {
+private fun shapeName(shape: DesignerCanvas.Shape) = t("native.labs.image.shape.${shape.key}")
+
+/** "Fast", "Slow". */
+@Composable
+private fun tierName(tier: DesignerCanvas.Tier) = t("native.labs.image.tier.${tier.key}")
+
+/** "Square, fast": a size in words, never in pixels (the "i" sheet, Illustrate, the media manager). */
+@Composable
+private fun shapeTier(c: ImageLab.Canvas) = t("native.labs.image.shapeTier", "shape" to shapeName(c.shape), "tier" to tierName(c.tier).lowercase(Locale.getDefault()))
+
+@Composable
+private fun styleName(key: String?) = t("native.labs.image.style.${key ?: "none"}")
+
+/**
+ * The canvas (adam's mock-up, Nov 13): the picture fills the space under the header at the picked shape, with one
+ * caption line under it; then the history strip and the prompt bar with one round Draw button (Stop while drawing),
+ * and the rail with its two tools, Style and Shape. A tool swaps the strip and the prompt bar for its tray, so the
+ * canvas never moves. The plugin's own settings are behind the settings icon at the end of the caption line.
+ */
+@Composable
+fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> Unit) {
     val c = Boar.colors
-    val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
+    var tray by rememberSaveable { mutableStateOf<String?>(null) }
+    var info by rememberSaveable { mutableStateOf(false) }
+    var full by rememberSaveable { mutableStateOf(false) }
+    var settings by rememberSaveable { mutableStateOf(false) }
     val busy = state.phase != null
+    val ready = state.engineFound && state.modelPresent
+    // A tray open: Back closes it first (a drawing in progress is stopped by Back before that, in Content).
+    if (tray != null && !busy) androidx.activity.compose.BackHandler { tray = null }
+    // A drawing started (Draw, or 4 variations from the "i" sheet): the strip and the prompt bar come back, with Stop.
+    androidx.compose.runtime.LaunchedEffect(busy) { if (busy) tray = null }
+    // Shown with what it was drawn from: tapping a drawing in the strip puts its words back in the prompt bar.
+    val showFile: (File) -> Unit = { f -> if (!busy) { vm.show(f); ImageLab.recipeOf(f)?.let { subject = it.subject } } }
+
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).fillMaxWidth().background(c.bgSubtle).padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CanvasArt(state, vm, ready, busy, onInfo = { info = true }, onFull = { full = true }, onShow = showFile)
+            }
+            Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(caption(state, ready), style = Boar.type.caption, color = if (state.error != null) c.crimson400 else c.textMuted,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                IconButton(team.sopa.boar.R.drawable.ic_settings_tweaks, t("native.labs.image.settingsTitle"), c.textMuted) { settings = true }
+            }
+        }
+        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        Column(Modifier.fillMaxWidth().background(c.bgCardElevated)) {
+            when (tray) {
+                DesignerCanvas.Tool.STYLE.key -> StyleTray(state, vm) { tray = null }
+                DesignerCanvas.Tool.SHAPE.key -> ShapeTray(state, vm) { tray = null }
+                else -> {
+                    if (state.gallery.isNotEmpty()) HistoryStrip(state, onShow = showFile, onManage = onManage)
+                    state.lastChat?.takeIf { subject.isBlank() && !busy && ready }?.let { title ->
+                        Text(t("native.labs.image.fromChat", "title" to title), style = Boar.type.caption, color = c.textAccentCyan, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 10.dp).clip(RoundedCornerShape(6.dp)).clickable { subject = title }.padding(horizontal = 6.dp, vertical = 6.dp))
+                    }
+                    PromptBar(subject, { subject = it }, busy, ready, onDraw = { vm.generate(subject) }, onStop = { vm.cancel() })
+                }
+            }
+            Rail(tray, enabled = ready && !busy) { tool -> tray = if (tray == tool.key) null else tool.key }
+        }
+    }
+    if (info) state.image?.let { f -> InfoSheet(f, state, vm) { info = false } } ?: run { info = false }
+    if (full) state.image?.let { f -> FullView(f) { full = false } } ?: run { full = false }
+    if (settings) SettingsSheet(state, vm) { settings = false }
+}
+
+/** The canvas's one line: "Style · Shape · N s" (this phone's average at that size, else the speed word), or what's happening. */
+@Composable
+private fun caption(state: ImageLabState, ready: Boolean): String {
+    state.error?.let { return it }
+    if (!state.engineFound) return t("native.labs.image.noEngine")
+    if (!state.modelPresent) return t("native.labs.image.noModelCaption")
+    val v = state.variations
+    if (state.phase != null) return if (v != null) t("native.labs.image.variationOf", "n" to (v.size + 1).coerceAtMost(DesignerCanvas.VARIATIONS), "total" to DesignerCanvas.VARIATIONS)
+        else t("native.labs.image.phase.${state.phase}")
+    if (v != null) return t("native.labs.image.variationsPick")
+    val shown = state.image?.let { ImageLab.canvasOf(it) }
+    return if (shown != null && shownFits(state)) DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), tierName(shown.tier))
+    else DesignerCanvas.caption(styleName(state.style.key), shapeName(state.size.shape), null, tierName(state.size.tier))
+}
+
+/** The shown picture has the picked shape and speed (a drawing from a removed small size counts as its shape's Fast). */
+private fun shownFits(state: ImageLabState): Boolean =
+    state.image?.let { ImageLab.canvasOf(it) }?.let { ImageLab.Canvas.offered(it.key) } == state.size
+
+/** What the canvas shows, for the crossfade from the sketch to the picture. */
+private sealed interface Art {
+    data object Waiting : Art
+    data class Shown(val file: File) : Art
+    data object Empty : Art
+}
+
+@Composable
+private fun CanvasArt(state: ImageLabState, vm: ImageLabViewModel, ready: Boolean, busy: Boolean, onInfo: () -> Unit, onFull: () -> Unit, onShow: (File) -> Unit) {
+    val c = Boar.colors
+    val frame = Modifier.aspectRatio(state.size.w.toFloat() / state.size.h)
+    when {
+        !state.engineFound -> EmptyFrame(frame) { Text(t("native.labs.image.noEngine"), style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center) }
+        // No model yet: the frame holds the download (one tap, its percentage), with the model's licence note.
+        !state.modelPresent -> EmptyFrame(frame) {
+            Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(t("native.labs.image.noModelTitle"), style = Boar.type.titleSm, color = c.textHeading, textAlign = TextAlign.Center)
+                Text(t("native.labs.image.needModel"), style = Boar.type.caption, color = c.textMuted, textAlign = TextAlign.Center)
+                if (state.downloadPct != null) Busy(t("native.labs.image.downloading", "pct" to state.downloadPct))
+                else Pill(t("native.labs.image.download"), primary = true) { vm.download() }
+            }
+        }
+        // 4 variations: a 2×2 that fills one by one; a finished one opens on the canvas when tapped.
+        state.variations != null -> {
+            val v = state.variations
+            Column(frame, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (row in 0 until 2) Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (col in 0 until 2) {
+                        val i = row * 2 + col
+                        val cell = Modifier.weight(1f).fillMaxSize().clip(RoundedCornerShape(6.dp))
+                        when {
+                            i < v.size -> Picture(v[i], cell.clickable(enabled = !busy, onClickLabel = t("native.labs.image.variationOpen", "n" to i + 1)) { onShow(v[i]) })
+                            busy -> team.sopa.boar.labs.DesignerWait(state.style.key, cell)
+                            else -> Box(cell.background(c.bgCard))
+                        }
+                    }
+                }
+            }
+        }
+        else -> {
+            val art: Art = when {
+                busy -> Art.Waiting
+                state.image != null && shownFits(state) -> Art.Shown(state.image)
+                else -> Art.Empty
+            }
+            // The sketch while it draws, then the picture takes its place (a crossfade; instant with animations off).
+            androidx.compose.animation.Crossfade(art, animationSpec = androidx.compose.animation.core.tween(team.sopa.boar.labs.revealMs()), label = "reveal") { a ->
+                when (a) {
+                    // The phase is in the caption line under it, so the sketch carries no label of its own.
+                    Art.Waiting -> team.sopa.boar.labs.DesignerWait(state.style.key, frame.clip(RoundedCornerShape(6.dp)))
+                    is Art.Shown -> Box(Modifier.aspectRatio(aspectOf(a.file)).clip(RoundedCornerShape(6.dp))) {
+                        Picture(a.file, Modifier.fillMaxSize())
+                        Row(Modifier.align(Alignment.BottomEnd).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            RoundOverlay(team.sopa.boar.R.drawable.ic_info, t("native.labs.image.infoButton"), onInfo)
+                            RoundOverlay(team.sopa.boar.R.drawable.ic_designer_full, t("native.labs.image.fullButton"), onFull)
+                        }
+                        // A style picked since: what the next drawing will be (the picture isn't redrawn).
+                        val drawnStyle = state.recipe?.style
+                        if (drawnStyle != null && drawnStyle != state.style.key) Text(t("native.labs.image.next", "style" to styleName(state.style.key)),
+                            style = Boar.type.caption, color = Color.White, modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
+                                .background(Color(0xB3080A18), RoundedCornerShape(50)).padding(horizontal = 9.dp, vertical = 3.dp))
+                    }
+                    Art.Empty -> EmptyFrame(frame) {
+                        Text(shapeName(state.size.shape) + " · " + tierName(state.size.tier),
+                            style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
+                        Text(t("native.labs.image.emptyCanvas"), style = Boar.type.caption, color = c.textMuted, textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** An empty artboard: a dashed outline at the picked shape, its words in the middle. */
+@Composable
+private fun EmptyFrame(modifier: Modifier, content: @Composable () -> Unit) {
+    val line = Boar.colors.borderDefault
+    Column(modifier.drawBehind {
+        drawRoundRect(line, cornerRadius = CornerRadius(6.dp.toPx()), style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))))
+    }.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically), horizontalAlignment = Alignment.CenterHorizontally) { content() }
+}
+
+/** The round "i" and full-screen buttons on the picture: light on a dark disc, so they read on any drawing. */
+@Composable
+private fun RoundOverlay(icon: Int, label: String, onClick: () -> Unit) {
+    Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0x99080A18)).border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
+        .clickable(onClickLabel = label, onClick = onClick), contentAlignment = Alignment.Center) {
+        PackIcon(icon, 20.dp, tint = Color.White, description = label)
+    }
+}
+
+@Composable
+private fun IconButton(icon: Int, label: String, tint: Color, onClick: () -> Unit) {
+    Box(Modifier.size(40.dp).clip(CircleShape).clickable(onClickLabel = label, onClick = onClick), contentAlignment = Alignment.Center) {
+        PackIcon(icon, 20.dp, tint = tint, description = label)
+    }
+}
+
+/** The latest 12 drawings; "All N ›" opens the media manager. */
+@Composable
+private fun HistoryStrip(state: ImageLabState, onShow: (File) -> Unit, onManage: () -> Unit) {
+    val c = Boar.colors
+    LazyRow(Modifier.fillMaxWidth().height(60.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
+        contentPadding = PaddingValues(horizontal = 10.dp)) {
+        items(state.gallery.take(STRIP), key = { it.path }) { f ->
+            val sel = f == state.image
+            Box(Modifier.size(48.dp).clip(RoundedCornerShape(6.dp))
+                .border(if (sel) 2.dp else 1.dp, if (sel) c.emerald400 else c.borderSubtle, RoundedCornerShape(6.dp))
+                .clickable(onClickLabel = ImageLab.recipeOf(f)?.subject) { onShow(f) }) {
+                Picture(f, Modifier.fillMaxSize(), thumb = true)
+            }
+        }
+        item {
+            Box(Modifier.height(48.dp).clip(RoundedCornerShape(6.dp)).background(c.bgCard).border(1.dp, c.borderSubtle, RoundedCornerShape(6.dp))
+                .clickable(onClick = onManage).padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
+                Text(t("native.labs.image.all", "count" to state.gallery.size), style = Boar.type.caption, color = c.textPrimary, maxLines = 1)
+            }
+        }
+    }
+}
+
+/** The words and one round button: Draw, which becomes Stop while it draws (as the chat's Send and Stop). */
+@Composable
+private fun PromptBar(subject: String, onSubject: (String) -> Unit, busy: Boolean, ready: Boolean, onDraw: () -> Unit, onStop: () -> Unit) {
+    val c = Boar.colors
+    Row(Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        BasicTextField(subject, onSubject, singleLine = true, enabled = !busy && ready,
+            textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go), keyboardActions = KeyboardActions(onGo = { if (subject.isNotBlank()) onDraw() }),
+            modifier = Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(22.dp)).background(c.bgInput).border(1.dp, c.borderDefault, RoundedCornerShape(22.dp)),
+            decorationBox = { inner ->
+                Box(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
+                    if (subject.isEmpty()) Text(t("native.labs.image.placeholder"), style = Boar.type.body, color = c.textDim, maxLines = 1)
+                    inner()
+                }
+            })
+        val canDraw = ready && subject.isNotBlank()
+        val label = if (busy) t("native.labs.image.stop") else t("native.labs.image.generate")
+        Box(Modifier.size(48.dp).clip(CircleShape).background(if (busy) c.crimson500 else if (canDraw) c.amber400 else c.bgCard)
+            .clickable(enabled = busy || canDraw, onClickLabel = label) { if (busy) onStop() else onDraw() }, contentAlignment = Alignment.Center) {
+            PackIcon(if (busy) team.sopa.boar.R.drawable.ic_stop else team.sopa.boar.R.drawable.ic_designer_draw, 22.dp,
+                tint = if (busy) Color.White else if (canDraw) c.textInverse else c.textDim, description = label)
+        }
+    }
+}
+
+/** The rail: exactly the tools in DesignerCanvas.Tool (Style and Shape). Off while drawing or without the model. */
+@Composable
+private fun Rail(open: String?, enabled: Boolean, onTool: (DesignerCanvas.Tool) -> Unit) {
+    val c = Boar.colors
+    Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+    Row(Modifier.fillMaxWidth().height(58.dp).background(c.bgCardElevated)) {
+        for (tool in DesignerCanvas.Tool.entries) {
+            val on = open == tool.key
+            val label = t("native.labs.image.tool.${tool.key}")
+            Column(Modifier.weight(1f).fillMaxSize().alpha(if (enabled) 1f else 0.35f)
+                .drawBehind { if (on) drawLine(c.amber400, Offset(0f, 1.dp.toPx()), Offset(size.width, 1.dp.toPx()), 2.dp.toPx()) }
+                .clickable(enabled = enabled, onClickLabel = label) { onTool(tool) },
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
+                PackIcon(if (tool == DesignerCanvas.Tool.STYLE) team.sopa.boar.R.drawable.ic_designer_style else team.sopa.boar.R.drawable.ic_designer_shape, 20.dp,
+                    tint = if (on) c.textHeading else c.textMuted)
+                Text(label, style = Boar.type.caption, color = if (on) c.textHeading else c.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+/** A tray's top line: its name, "★ Default" (lit when the pick already is the default) and Done. */
+@Composable
+private fun TrayHeader(title: String, state: ImageLabState, vm: ImageLabViewModel, onDone: () -> Unit) {
+    val c = Boar.colors
+    val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
+    Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(title, style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted, modifier = Modifier.weight(1f))
+        Pill(t("native.labs.image.default"), selected = isDefault) { vm.setDefaults() }
+        val done = t("native.labs.image.done")
+        Box(Modifier.heightIn(min = 36.dp).clip(RoundedCornerShape(50)).background(c.amber400).clickable(onClickLabel = done, onClick = onDone).padding(horizontal = 12.dp, vertical = 7.dp),
+            contentAlignment = Alignment.Center) { PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, tint = c.textInverse, description = done) }
+    }
+}
+
+/** Style: the real styles as a carousel of small tiles; tapping the selected one again leaves no style. */
+@Composable
+private fun StyleTray(state: ImageLabState, vm: ImageLabViewModel, onDone: () -> Unit) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().heightIn(min = 118.dp).padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 10.dp)) {
+        TrayHeader(t("native.labs.image.style"), state, vm, onDone)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }) { s ->
+                val on = s == state.style
+                val name = styleName(s.key)
+                Column(Modifier.width(72.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { vm.setStyle(if (on) ImageLab.Style.NONE else s) },
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    StyleSwatch(s.key, Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)).border(2.dp, if (on) c.emerald400 else Color.Transparent, RoundedCornerShape(8.dp)))
+                    Text(name, style = Boar.type.caption, color = if (on) c.textAccentEmerald else c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        Text(t(if (state.style == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted,
+            modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/** A style's tile, for now its paper and ink (Sketch.palette) with a sun and two hills: no picture assets yet. */
+@Composable
+private fun StyleSwatch(key: String, modifier: Modifier) {
+    val p = remember(key) { team.sopa.boar.engine.labs.Sketch.palette(key) }
+    androidx.compose.foundation.Canvas(modifier.background(Color(p.paper))) {
+        val ink = Color(p.ink)
+        val w = size.width; val h = size.height; val sw = w / 30f
+        drawCircle(ink, radius = w * 0.1f, center = Offset(w * 0.7f, h * 0.3f), style = Stroke(sw))
+        val far = androidx.compose.ui.graphics.Path().apply { moveTo(0f, h * 0.62f); quadraticTo(w * 0.3f, h * 0.42f, w * 0.55f, h * 0.6f); quadraticTo(w * 0.8f, h * 0.72f, w, h * 0.55f) }
+        val near = androidx.compose.ui.graphics.Path().apply { moveTo(0f, h * 0.82f); quadraticTo(w * 0.4f, h * 0.68f, w * 0.65f, h * 0.8f); quadraticTo(w * 0.85f, h * 0.88f, w, h * 0.78f) }
+        drawPath(far, ink.copy(alpha = 0.6f), style = Stroke(sw, cap = StrokeCap.Round))
+        drawPath(near, ink, style = Stroke(sw, cap = StrokeCap.Round))
+    }
+}
+
+/** Shape: Square, Portrait and Wide as frames, then Fast or Slow, with this phone's own seconds once measured. No pixel numbers. */
+@Composable
+private fun ShapeTray(state: ImageLabState, vm: ImageLabViewModel, onDone: () -> Unit) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().heightIn(min = 118.dp).padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 10.dp)) {
+        TrayHeader(t("native.labs.image.shapeTitle"), state, vm, onDone)
+        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Bottom) {
+            for (shape in DesignerCanvas.Shape.entries) {
+                val on = shape == state.size.shape
+                val (fw, fh) = when (shape) { DesignerCanvas.Shape.SQUARE -> 34 to 34; DesignerCanvas.Shape.PORTRAIT -> 28 to 38; DesignerCanvas.Shape.WIDE -> 52 to 24 }
+                val name = shapeName(shape)
+                Column(Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { vm.setShape(shape) }.padding(horizontal = 10.dp, vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Box(Modifier.size(fw.dp, fh.dp).background(if (on) c.emeraldBgSubtle else Color.Transparent, RoundedCornerShape(3.dp))
+                        .border(2.dp, if (on) c.emerald400 else c.textMuted, RoundedCornerShape(3.dp)))
+                    Text(name, style = Boar.type.caption, color = if (on) c.textAccentEmerald else c.textMuted)
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) {
+            for (tier in DesignerCanvas.Tier.entries) {
+                val size = ImageLab.Canvas.of(state.size.shape, tier)
+                Pill(tierLabel(size), selected = state.size == size) { vm.setTier(tier) }
+            }
+        }
+        Text(t(if (ImageLab.expectedSeconds(state.size) != null) "native.labs.image.shapeHint" else "native.labs.image.shapeHintUntimed"),
+            style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/** "Fast", or "Slow · ~14 s" once this phone has drawn at that size. */
+@Composable
+private fun tierLabel(size: ImageLab.Canvas): String =
+    ImageLab.expectedSeconds(size)?.let { t("native.labs.image.tierSeconds", "tier" to tierName(size.tier), "s" to it) } ?: tierName(size.tier)
+
+@Composable
+private fun Pill(label: String, selected: Boolean = false, primary: Boolean = false, onClick: () -> Unit) {
+    val c = Boar.colors
+    Text(label, style = Boar.type.caption, maxLines = 1, fontWeight = if (primary) FontWeight.Bold else null,
+        color = when { primary -> c.textInverse; selected -> c.textAccentEmerald; else -> c.textPrimary },
+        modifier = Modifier.heightIn(min = 36.dp).clip(RoundedCornerShape(50)).background(if (primary) c.amber400 else c.bgCard)
+            .border(1.dp, when { primary -> c.amber400; selected -> c.emerald400; else -> c.borderDefault }, RoundedCornerShape(50))
+            .clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp))
+}
+
+/**
+ * The "i" sheet: what the picture was drawn with (words, style, shape and speed, time), then Draw again (replaces it),
+ * 4 variations and Delete. Nothing leaves the plugin: no Share or Save to Photos (adam, Nov 13).
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun InfoSheet(f: File, state: ImageLabState, vm: ImageLabViewModel, onClose: () -> Unit) {
+    val c = Boar.colors
+    val r = state.recipe
+    val drawnAt = ImageLab.canvasOf(f)
+    val average = drawnAt?.let { ImageLab.expectedSeconds(it) }
+    // This drawing's own time when it was just made, else this phone's average at its size.
+    val seconds = state.seconds?.let { kotlin.math.ceil(it).toInt() } ?: average
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(t("native.labs.image.infoTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(bottom = 6.dp))
+            (r?.subject ?: state.subject)?.let { Fact(t("native.labs.image.words"), it) }
+            Fact(t("native.labs.image.styleLabel"), styleName(r?.style ?: state.style.key))
+            drawnAt?.let { Fact(t("native.labs.image.shapeLabel"), shapeTier(it)) }
+            seconds?.let { Fact(t("native.labs.image.time"), "$it s") }
+            Spacer(Modifier.height(6.dp))
+            if (state.subject != null) {
+                Action(t("native.labs.image.drawAgain"), t("native.labs.image.drawAgainNote")) { onClose(); vm.regenerate() }
+                Action(t("native.labs.image.variations"),
+                    DesignerCanvas.variationsSeconds(average)?.let { t("native.labs.image.variationsTime", "s" to it) } ?: t("native.labs.image.variationsNote")) { onClose(); vm.variations() }
+            }
+            Action(t("native.labs.image.delete"), null, danger = true) { onClose(); vm.delete(f) }
+        }
+    }
+}
+
+@Composable
+private fun Fact(label: String, value: String) = Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(label, style = Boar.type.body, color = Boar.colors.textMuted, modifier = Modifier.widthIn(min = 64.dp))
+    Text(value, style = Boar.type.body, color = Boar.colors.textPrimary, modifier = Modifier.weight(1f))
+}
+
+@Composable
+private fun Action(label: String, note: String?, danger: Boolean = false, onClick: () -> Unit) {
+    val c = Boar.colors
+    Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onClick).padding(vertical = 12.dp, horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, style = Boar.type.body, color = if (danger) c.crimson400 else c.textPrimary, modifier = Modifier.weight(1f))
+        note?.let { Text(it, style = Boar.type.caption, color = c.textMuted) }
+    }
+}
+
+/** The picture alone on black, at its own shape; a tap anywhere closes it. */
+@Composable
+private fun FullView(f: File, onClose: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(Color.Black).clickable(onClickLabel = t("native.a11y.close"), onClick = onClose), contentAlignment = Alignment.Center) {
+            Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)), fit = true)
+        }
+    }
+}
+
+/**
+ * The plugin's own settings, which sat on the page before the canvas (Nov 13): the waiting animation, removing the
+ * model, How it works, and About this plugin.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsSheet(state: ImageLabState, vm: ImageLabViewModel, onClose: () -> Unit) {
+    val c = Boar.colors
     var confirmRemove by rememberSaveable { mutableStateOf(false) }
     if (confirmRemove) androidx.compose.material3.AlertDialog({ confirmRemove = false },
         text = { Text(t("native.labs.image.removeConfirm")) },
         confirmButton = { androidx.compose.material3.TextButton({ confirmRemove = false; vm.removeModel() }) { Text(t("native.labs.image.remove"), color = c.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ confirmRemove = false }) { Text(t("common.cancel")) } })
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(t("native.labs.image.intro"), style = Boar.type.caption, color = c.textMuted)
-            when {
-                !state.engineFound -> Text(t("native.labs.image.noEngine"), style = Boar.type.body, color = c.textSecondary)
-                !state.modelPresent -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(t("native.labs.image.needModel"), style = Boar.type.body, color = c.textSecondary)
-                    if (state.downloadPct != null) Busy(t("native.labs.image.downloading", "pct" to state.downloadPct))
-                    else Button(t("native.labs.image.download")) { vm.download() }
-                }
-                else -> {
-                    Label(t("native.labs.image.style"))
-                    // Tapping the selected style turns it off (NONE): the subject is then the whole prompt.
-                    ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.chunked(4).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEach { s -> Chip(t("native.labs.image.style.${s.key}"), s == state.style, Modifier.weight(1f)) { vm.setStyle(if (s == state.style) ImageLab.Style.NONE else s) } }
-                            repeat(4 - row.size) { Box(Modifier.weight(1f)) } // a short last row keeps the chips' width
-                        }
-                    }
-                    Label(t("native.labs.image.size"))
-                    // One row per shape. The phone's own average once it has drawn at that size; until then a square shows the
-                    // conservative estimate and the new shapes their size alone.
-                    ImageLab.CANVASES.groupBy { it.shape }.forEach { (shape, canvases) ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(t("native.labs.image.shape.$shape"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(0.8f))
-                            canvases.forEach { cv ->
-                                val label = ImageLab.expectedSeconds(cv)?.let { "${cv.label}\n~${it}s" }
-                                    ?: if (cv.w == cv.h && cv.w in ImageLab.SIZES) t("native.labs.image.size.${cv.w}") else cv.label
-                                Chip(label, cv == state.size, Modifier.weight(1f), lines = 2) { vm.setSize(cv) }
-                            }
-                            repeat(3 - canvases.size) { Box(Modifier.weight(1f)) }
-                        }
-                    }
-                    // One line in one style either way, so picking a style or size never moves the screen.
-                    val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
-                    val combo = t("native.labs.image.style.${state.style.key}") + " · ${state.size.label}"
-                    Text(if (isDefault) t("native.labs.image.isDefault", "combo" to combo) else t("native.labs.image.setDefault", "combo" to combo),
-                        style = Boar.type.caption, color = if (isDefault) c.textDim else c.textAccentCyan, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable(enabled = !isDefault) { vm.setDefaults() }.padding(vertical = 4.dp))
-                    Label(t("native.labs.image.subject"))
-                    BasicTextField(subject, { subject = it }, singleLine = true, enabled = !busy,
-                        textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.textAccentEmerald),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go), keyboardActions = KeyboardActions(onGo = { vm.generate(subject) }),
-                        modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(8.dp)).padding(12.dp),
-                        decorationBox = { inner -> if (subject.isEmpty()) Text(t("native.labs.image.placeholder"), style = Boar.type.body, color = c.textDim); inner() })
-                    // Try (the plugin page template, Nov 12): Designer has no chat question, so three subjects fill the box.
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        for (i in 1..3) t("native.labs.image.try$i").let { s -> Chip(s, s == subject, Modifier.weight(1f), lines = 2) { if (!busy) subject = s } }
-                    }
-                    state.lastChat?.takeIf { it != subject && !busy }?.let { title ->
-                        Text(t("native.labs.image.fromChat", "title" to title), style = Boar.type.caption, color = c.textAccentCyan,
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { subject = title }.padding(vertical = 4.dp))
-                    }
-                    Text(state.style.prompt(subject.ifBlank { "…" }), style = Boar.type["mono.xs"], color = c.textDim)
-                    if (busy) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Busy(t("native.labs.image.phase.${state.phase}"))
-                        Button(t("common.cancel")) { vm.cancel() }
-                    } else Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Button(t("native.labs.image.generate"), enabled = subject.isNotBlank()) { vm.generate(subject) }
-                        // Seed lock: the next drawing reuses the shown one's seed, so changed words keep its composition.
-                        state.seed?.let { sd ->
-                            Chip(if (state.seedLocked) t("native.labs.image.seedKeep", "seed" to sd) else t("native.labs.image.seedNew"), state.seedLocked, Modifier.weight(1f)) {
-                                vm.setSeedLocked(!state.seedLocked)
-                            }
-                        }
-                    }
-                }
-            }
-            state.error?.let { Text(it, style = Boar.type.caption, color = c.crimson500) }
-            // The picture's square is always there: raining code while empty or drawing, so nothing moves when a picture lands.
-            val image = state.image.takeIf { !busy }
-            // The sketch while it draws, then the picture takes its place (a crossfade; instant with animations off).
-            androidx.compose.animation.Crossfade(image, animationSpec = androidx.compose.animation.core.tween(team.sopa.boar.labs.revealMs()), label = "reveal") { shownImage ->
-                if (shownImage == null) team.sopa.boar.labs.DesignerWait(state.style.key, Modifier.fillMaxWidth().aspectRatio(state.size.w.toFloat() / state.size.h).clip(RoundedCornerShape(10.dp)),
-                    label = if (busy) t("native.labs.image.phase.${state.phase}") else null)
-                // At the drawing's own shape: a portrait or banner isn't cropped to a square.
-                else Picture(shownImage, Modifier.fillMaxWidth().aspectRatio(aspectOf(shownImage)).clip(RoundedCornerShape(10.dp)))
-            }
-            image?.let { f ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    state.seconds?.let { Text(String.format(Locale.US, "%.1f s", it), style = Boar.type["mono.xs"], color = c.textAccentCyan, modifier = Modifier.weight(1f)) }
-                        ?: Box(Modifier.weight(1f))
-                    if (state.subject != null) Button(t("native.labs.image.regenerate")) { vm.regenerate() }
-                    Button(t("native.labs.image.delete")) { vm.delete(f) }
-                }
-            }
-            if (state.gallery.isNotEmpty()) {
-                Label(t("native.labs.image.gallery"))
-                // The latest 25 as a 5×5 grid; the rest, and deleting, in the media manager.
-                // Tapping a drawing puts back its subject, style, size and seed (prompt history).
-                Thumbs(state.gallery.take(GRID), columns = 5, selected = setOfNotNull(state.image)) { f -> vm.show(f); ImageLab.recipeOf(f)?.let { subject = it.subject } }
-                Text(t(if (state.gallery.size > GRID) "native.labs.image.showMore" else "native.labs.image.manage", "count" to state.gallery.size),
-                    style = Boar.type.caption, color = c.textAccentCyan, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onManage).padding(vertical = 6.dp))
-            }
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(t("native.labs.image.settingsTitle"), style = Boar.type.titleSm, color = c.textHeading)
+            // The same choice as Settings › Boar Labs: the sketch (Designer) and trail (elsewhere), or the Matrix rain everywhere.
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.wait.setting"),
+                listOf(team.sopa.boar.labs.LabPrefs.WAIT_TRAIL to t("native.labs.image.waitSketch"), team.sopa.boar.labs.LabPrefs.WAIT_MATRIX to t("native.labs.wait.matrix")),
+                team.sopa.boar.labs.LabPrefs.waitAnimation) { team.sopa.boar.labs.LabPrefs.waitAnimation = it }
             // Gives the model's space back; the drawings stay. Drawing again needs the download once more.
-            if (!busy && state.downloadPct == null) Text(t("native.labs.image.removeModel"), style = Boar.type.caption, color = c.textMuted,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { confirmRemove = true }.padding(vertical = 6.dp))
+            if (state.modelPresent && state.phase == null && state.downloadPct == null) Action(t("native.labs.image.removeModel"), null) { confirmRemove = true }
+            team.sopa.boar.labs.PluginPage(null, null, null, emptyList(), t("native.labs.image.how"))
+            team.sopa.boar.labs.AboutPluginFold(ImageGenLab)
         }
+    }
 }
 
-private const val GRID = 25
+/** Strip length: the latest drawings; the rest in the media manager. */
+private const val STRIP = 12
 /** Drawings per page in the media manager. */
 private const val PAGE = 40
 
@@ -341,7 +682,8 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
         viewing?.takeIf { it in picked && it.isFile }?.let { f ->
             Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
             ImageLab.recipeOf(f)?.let { r ->
-                Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${ImageLab.Canvas.of(r.size)?.label ?: r.size} · seed ${r.seed}",
+                // Shape and speed in words: no pixel numbers on screen (Nov 13).
+                Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${ImageLab.Canvas.of(r.size)?.let { shapeTier(it) } ?: ""} · ${t("native.labs.image.seed", "seed" to r.seed)}",
                     style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
@@ -349,30 +691,18 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
 }
 
 @Composable
-private fun Picture(f: File, modifier: Modifier, thumb: Boolean = false) {
+private fun Picture(f: File, modifier: Modifier, thumb: Boolean = false, fit: Boolean = false) {
     val bmp by produceState<ImageBitmap?>(null, f.path, f.lastModified(), thumb) {
         // A grid tile decodes at a quarter of the size (about 1/16 of the memory); the full view decodes it whole.
         val opts = BitmapFactory.Options().apply { if (thumb) inSampleSize = 4 }
         value = withContext(Dispatchers.IO) { runCatching { BitmapFactory.decodeFile(f.path, opts)?.asImageBitmap() }.getOrNull() }
     }
-    Box(modifier.background(Boar.colors.bgCard)) { bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) } }
+    Box(modifier.background(Boar.colors.bgCard)) { bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = if (fit) ContentScale.Fit else ContentScale.Crop) } }
 }
 
 /** Width over height of a saved drawing, from its file name ("…-384x512.png"); 1 for a square or an older file. */
 private fun aspectOf(f: File): Float =
     Regex("-(\\d+)x(\\d+)\\.png$").find(f.name)?.destructured?.let { (w, h) -> w.toFloat() / h.toFloat() } ?: 1f
-
-@Composable
-private fun Label(text: String) = Text(text, style = Boar.type["mono.xs"], color = Boar.colors.textDim, fontWeight = FontWeight.Bold)
-
-@Composable
-private fun Chip(label: String, selected: Boolean, modifier: Modifier, lines: Int = 1, onClick: () -> Unit) {
-    val c = Boar.colors
-    Text(label, style = Boar.type.caption.copy(fontSize = 12.sp), color = if (selected) c.textAccentEmerald else c.textSecondary, maxLines = lines, minLines = lines,
-        modifier = modifier.clip(RoundedCornerShape(8.dp)).background(if (selected) c.emeraldBgSubtle else c.bgCard)
-            .border(1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(horizontal = 6.dp, vertical = 10.dp),
-        textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-}
 
 @Composable
 private fun Button(label: String, enabled: Boolean = true, onClick: () -> Unit) {
@@ -389,8 +719,9 @@ private fun Busy(label: String) = Row(verticalAlignment = Alignment.CenterVertic
 }
 
 /**
- * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style and a size to pick, one Draw button that uses them, and
- * size to pick, and "Remember" to keep them as the next default. Reset goes back to Engraving at 384 px.
+ * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style, a shape and a speed to pick (the canvas's words, Nov 13: no
+ * pixel numbers), one Draw button that uses them, and "Remember" to keep them as the next default. Reset goes back to
+ * Engraving, Square, Fast.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -398,26 +729,26 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
     val c = Boar.colors
     val ctx = LocalContext.current
     val notReady = t("native.labs.image.illustrateNotReady")
-    var defStyle by remember { mutableStateOf(ImageLab.defaultStyle()) }
-    var defSize by remember { mutableStateOf(ImageLab.defaultCanvas()) }
-    var style by remember { mutableStateOf(defStyle) }
-    var size by remember { mutableStateOf(defSize) }
+    var style by remember { mutableStateOf(ImageLab.defaultStyle()) }
+    var shape by remember { mutableStateOf(ImageLab.defaultCanvas().shape) }
+    var tier by remember { mutableStateOf(ImageLab.defaultCanvas().tier) }
     var keep by remember { mutableStateOf(false) }
-    fun styleName(s: ImageLab.Style) = team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.style.${s.key}")
+    val size = ImageLab.Canvas.of(shape, tier)
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             // One Draw button, with what's picked here (adam, Nov 12): the defaults are the one-tap row in the plugins sheet.
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it) }, style, sideways = true) { style = it }
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.sizeLabel"), (ImageLab.ILLUSTRATE_SIZES + listOf(defSize)).distinct().map { it to it.label }, size, sideways = true) { size = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it.key) }, style, sideways = true) { style = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.shapeLabel"), DesignerCanvas.Shape.entries.map { it to shapeName(it) }, shape, sideways = true) { shape = it }
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.speedLabel"), DesignerCanvas.Tier.entries.map { it to tierLabel(ImageLab.Canvas.of(shape, it)) }, tier, sideways = true) { tier = it }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 androidx.compose.material3.Checkbox(keep, { keep = it })
                 Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })
                 Text(t("native.labs.image.reset"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { ImageLab.resetDefaults(); defStyle = ImageLab.defaultStyle(); defSize = ImageLab.defaultCanvas(); style = defStyle; size = defSize }.padding(6.dp))
+                    modifier = Modifier.clickable { ImageLab.resetDefaults(); style = ImageLab.defaultStyle(); shape = ImageLab.defaultCanvas().shape; tier = ImageLab.defaultCanvas().tier }.padding(6.dp))
             }
-            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style), "size" to size.label), primary = true) {
-                if (keep) { ImageLab.setDefaultStyle(style); ImageLab.setDefaultCanvas(size) }
+            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style.key), "size" to shapeTier(size)), primary = true) {
+                if (keep) ImageLab.setDefaults(style, size)
                 onClose(); Illustrator.start(ctx, a, notReady, style, size)
             }
         }
