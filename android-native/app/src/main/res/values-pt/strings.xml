@@ -284,8 +284,8 @@
     <string name="chatScreen_interruptedByBackground" formatted="false">Pausado — o app foi para segundo plano. Pergunte novamente para continuar.</string>
     <string name="aboutScreen_title" formatted="false">Sobre o BOAR</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
-    <string name="aboutScreen_buildDevelopment" formatted="false">Build de desenvolvimento</string>
-    <string name="aboutScreen_buildRelease" formatted="false">Build de release</string>
+    <string name="aboutScreen_buildDevelopment" formatted="false">Versão de desenvolvimento</string>
+    <string name="aboutScreen_buildRelease" formatted="false">Versão oficial</string>
     <string name="sourceFootnotes_title" formatted="false">Fontes consultadas</string>
     <string name="sourceFootnotes_localIndex" formatted="false">ÍNDICE LOCAL</string>
     <string name="promptIdeasCarousel_title" formatted="false">Prompts de pesquisa de referência</string>

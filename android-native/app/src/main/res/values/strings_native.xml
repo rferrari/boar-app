@@ -49,12 +49,10 @@
     <string name="native_settings_adaptiveTitle" formatted="false">Adaptive routing</string>
     <string name="native_settings_adaptiveNote" formatted="false">Picks a model per question from the ones installed.</string>
     <string name="native_drawer_settings" formatted="false">Settings</string>
-    <string name="native_about_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It runs local LLM inference with llama.cpp, built into the app, and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
     <string name="native_about_siteTitle" formatted="false">Official website</string>
-    <string name="native_about_siteBody" formatted="false">News and updates are posted on our official website. Don\'t fall for scams: check the address before you download anything that says it is BOAR.</string>
     <string name="native_about_verify" formatted="false">Don\'t trust, verify.</string>
     <string name="native_about_copied" formatted="false">Copied</string>
-    <string name="native_about_holdToCopy" formatted="false">Press and hold an address to copy it, or the version to copy it with the plugins that are on, for a bug report.</string>
+    <string name="native_about_holdToCopy" formatted="false">Tap or hold an address to copy it. Nothing opens from this page.</string>
     <string name="native_receipt_mode" formatted="false">Mode</string>
     <string name="native_receipt_style_succinct" formatted="false">Succinct &amp; Direct</string>
     <string name="native_receipt_style_detailed" formatted="false">Thorough &amp; Detailed</string>
@@ -83,22 +81,36 @@
     <string name="native_receipt_tool" formatted="false">Tool</string>
     <string name="native_receipt_instant" formatted="false">instant</string>
     <string name="native_about_tagline" formatted="false">Your questions.\nYour phone. Your AI.</string>
-    <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed. Open source (MIT).</string>
-    <string name="native_about_post_why" formatted="false">When AI lives only on someone else\'s server, whoever runs it holds a switch.\n\nWe\'d rather no one did. So the model lives on your phone, and no server receives your questions.</string>
-    <string name="native_about_post_offline" formatted="false">One download at setup. Then airplane mode is fine: BOAR answers from the library on your phone, with llama.cpp built in, and shows the articles it used.</string>
-    <string name="native_about_post_receipt" formatted="false">Every answer records how it ran: the model, time to the first word, tokens per second, memory and sources. Measure your own phone in Settings → Advanced tweaks → Evaluation (Pro).</string>
-    <string name="native_about_post_budget" formatted="false">Before a model loads, BOAR checks it against your phone\'s memory. Downloads stay within a 50 GB storage budget; in Pro you can change it in the plugin settings.</string>
-    <string name="native_about_post_open" formatted="false">Open source, MIT. The code, the model list and the scripts that build the knowledge packs:</string>
+    <string name="native_about_versionHold" formatted="false">Press and hold to copy for a bug report.</string>
+    <string name="native_about_copyAddress" formatted="false">Copy {{address}}</string>
+    <string name="native_about_section_what" formatted="false">What BOAR is</string>
+    <string name="native_about_section_privacy" formatted="false">Your privacy</string>
+    <string name="native_about_section_measure" formatted="false">Measure it yourself</string>
+    <string name="native_about_section_links" formatted="false">Links</string>
+    <string name="native_about_section_plugins" formatted="false">Plugins on</string>
+    <string name="native_about_section_credits" formatted="false">Credits</string>
+    <string name="native_about_privacy_model" formatted="false">The model lives on your phone</string>
+    <string name="native_about_privacy_modelNote" formatted="false">No server receives your questions, so no one holds a switch.</string>
+    <string name="native_about_privacy_offline" formatted="false">One download at setup</string>
+    <string name="native_about_privacy_offlineNote" formatted="false">Then airplane mode is fine: BOAR answers from the library on your phone and shows the articles it used.</string>
+    <string name="native_about_privacy_connection" formatted="false">The connection</string>
+    <string name="native_about_privacy_connectionNote" formatted="false">Only for downloading models or packs, searching Hugging Face and sharing evaluation results, if you turn that on.</string>
+    <string name="native_about_measure_receipt" formatted="false">Every answer records how it ran</string>
+    <string name="native_about_measure_receiptNote" formatted="false">The model, time to the first word, tokens per second, memory and sources.</string>
+    <string name="native_about_measure_eval" formatted="false">Measure your own phone</string>
+    <string name="native_about_measure_evalNote" formatted="false">Settings, Advanced tweaks, Evaluation (Pro profile).</string>
+    <string name="native_about_measure_budget" formatted="false">Checked before it loads</string>
+    <string name="native_about_measure_budgetNote" formatted="false">BOAR checks each model against your phone\'s memory. Downloads stay within a 50 GB storage budget; in Pro you can change it in the plugin settings.</string>
+    <string name="native_about_sourceTitle" formatted="false">Source code</string>
+    <string name="native_about_sourceNote" formatted="false">Open source, MIT.</string>
+    <string name="native_about_bio" formatted="false">Offline AI research on your phone. Answers with sources, no signal needed.</string>
     <string name="native_about_post_verify" formatted="false">News comes only from these addresses. Check the address before you download anything that says it is BOAR.</string>
-    <string name="native_about_post_packs" formatted="false">Knowledge packs from R4to\'s R&amp;D Labs:</string>
-    <string name="native_about_post_team" formatted="false">Core team, on X:</string>
-    <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license:</string>
+    <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license.</string>
     <string name="native_about_creditWikipedia" formatted="false">Wikipedia (the built-in library and the Vital Articles pack)</string>
     <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (where BOAR\'s models download from)</string>
     <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
-    <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Labs.</string>
-    <string name="native_about_teamTitle" formatted="false">Core team</string>
-    <string name="native_about_teamBody" formatted="false">On X:</string>
+    <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Labs</string>
+    <string name="native_about_teamTitle" formatted="false">Core team, on X</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Evaluation</string>
     <string name="native_eval_modelsTitle" formatted="false">Models ({{chosen}} of {{count}} chosen)</string>
     <string name="native_eval_answersTitle" formatted="false">Answers ({{count}})</string>
@@ -430,7 +442,6 @@
     <string name="native_chat_suggestions_b21" formatted="false">Dengue fever: symptoms, how it spreads, and why a second infection is riskier</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Health</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">When it doesn\'t fit</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to the first word, tokens per second, peak memory and which sources were used. Run the built-in evaluation from Settings → Advanced tweaks → Evaluation to compare installed models on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Fastest answers. The phone gets warmer and uses more battery, and answers have no time limit (use Stop). Best while charging.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">This phone has less than 8 GB of RAM: large models may run out of memory.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Run</string>
@@ -706,8 +717,8 @@
     <string name="native_tweaks_sourcesAbove" formatted="false">Above the answer</string>
     <string name="native_staged_moreSources" formatted="false">+{{count}} sources</string>
     <string name="native_staged_lessSources" formatted="false">Fewer sources ‹</string>
-    <string name="native_about_plugins" formatted="false">Plugins ({{count}}): {{list}}</string>
-    <string name="native_about_noPlugins" formatted="false">Plugins: none</string>
+    <string name="native_about_plugins" formatted="false">{{count}} on</string>
+    <string name="native_about_noPlugins" formatted="false">None on</string>
     <string name="native_labs_headerIcon" formatted="false">Plugins on</string>
     <string name="native_labs_headerSheet" formatted="false">RECENT PLUGINS</string>
     <string name="native_labs_manage" formatted="false">Manage plugins</string>
