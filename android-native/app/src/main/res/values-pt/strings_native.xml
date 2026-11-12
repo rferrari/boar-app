@@ -750,4 +750,6 @@
     <string name="native_receipt_instantTyped" formatted="false">instantânea · exibida em velocidade de digitação</string>
     <string name="native_chat_showAll" formatted="false">Mostrar tudo</string>
     <string name="native_docs_subtitle" formatted="false">Pacotes e arquivos que o BOAR consulta</string>
+    <string name="native_tweaks_stagedQuotes" formatted="false">Citações em etapas</string>
+    <string name="native_tweaks_stagedQuotesNote" formatted="false">Mostra as citações das fontes antes da resposta. Desligue se as respostas parecerem erradas no seu modelo.</string>
 </resources>

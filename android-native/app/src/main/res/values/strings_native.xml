@@ -750,4 +750,6 @@
     <string name="native_receipt_instantTyped" formatted="false">instant · shown at typing speed</string>
     <string name="native_chat_showAll" formatted="false">Show all</string>
     <string name="native_docs_subtitle" formatted="false">Packs and files BOAR can search</string>
+    <string name="native_tweaks_stagedQuotes" formatted="false">Staged quotes</string>
+    <string name="native_tweaks_stagedQuotesNote" formatted="false">Show the quotes from the sources before the answer. Turn it off if answers look wrong on your model.</string>
 </resources>

@@ -22,7 +22,7 @@ class PluginPagesTest {
     }
 
     @Test fun `examples are Try rows that ask, edit or copy, on every plugin that has them`() {
-        for (id in listOf("cohazard", "calc", "polyglot", "staged", "distance", "facts"))
+        for (id in listOf("cohazard", "calc", "polyglot", "distance", "facts"))
             assertTrue(id, java.io.File("../app/src/labs/plugins/$id").walkTopDown().first { it.name.endsWith("Lab.kt") }.readText().contains("team.sopa.boar.labs.TryRow(t(\"native.labs.$id.example\$i\"))"))
         val row = java.io.File("../app/src/labs/java/team/sopa/boar/labs/TryRow.kt").readText()
         assertTrue(row.contains("AskFromPlugin.ask(question, send = true)") && row.contains("AskFromPlugin.ask(question, send = false)") && row.contains("clipboard.setText(AnnotatedString(question))"))

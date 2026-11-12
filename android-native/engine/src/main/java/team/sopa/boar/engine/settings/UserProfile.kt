@@ -53,6 +53,8 @@ enum class SettingsPart(val from: UserProfile) {
     TECHNICAL_DETAILS(UserProfile.PRO),
     TELEMETRY(UserProfile.PRO),
     LABS_SETTINGS(UserProfile.PRO),
+    /** Advanced tweaks → Staged quotes: the fallback switch for Staged answers (core since Nov 12). */
+    STAGED_QUOTES(UserProfile.PRO),
     ADAPTIVE_ROUTING(UserProfile.PRO);
 
     fun shownIn(profile: UserProfile) = profile.includes(from)

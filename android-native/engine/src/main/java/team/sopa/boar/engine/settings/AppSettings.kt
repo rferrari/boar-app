@@ -153,7 +153,7 @@ class AppSettings(private val file: File) {
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
             "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
-            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout",
+            "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout", "stagedQuotes",
         )
         const val PROFILE_KEY = "userProfile"
         const val SOURCES_TODAY = "today"
@@ -223,6 +223,12 @@ class AppSettings(private val file: File) {
     /** Run Boar Run's heat and battery card was shown and accepted once: picking it again doesn't ask. */
     var runPresetWarned: Boolean get() = bool("runPresetWarned") ?: false; set(v) = set("runPresetWarned", JsonPrimitive(v))
     var adaptiveRoutingEnabled: Boolean get() = proActive && (bool("adaptiveRoutingEnabled") ?: false); set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
+
+    /**
+     * Staged answers, a core feature since Nov 12 (adam): the sources' quotes before the answer. On by default; the switch
+     * is Pro's (Advanced tweaks), but a stored off (Pro's choice, or an old plugin switched off) holds in every profile.
+     */
+    var stagedQuotes: Boolean get() = bool("stagedQuotes") ?: true; set(v) = set("stagedQuotes", JsonPrimitive(v))
     var routingPreset: String? get() = str("routingPreset"); set(v) = set("routingPreset", v?.let(::JsonPrimitive))
     /** "campfire" or "moonlight"; the theme's default when unset. */
     var themeId: String? get() = str("themeId"); set(v) = set("themeId", v?.let(::JsonPrimitive))

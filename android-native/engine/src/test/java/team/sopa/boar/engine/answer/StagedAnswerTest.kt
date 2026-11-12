@@ -112,7 +112,6 @@ class StagedAnswerTest {
         assertTrue(card.contains("val factsOpen = open ?: true"))
         assertTrue(card.contains("native.staged.moreSources"))
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
-        assertTrue(java.io.File("../app/src/labs/plugins/staged/java/team/sopa/boar/labs/staged/StagedLab.kt").readText().contains("override val ownsSources = true"))
     }
 
     @Test fun `a tall answer keeps its taps, the bubble's shape is drawn and never clipped`() {

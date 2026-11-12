@@ -17,7 +17,7 @@ object LabDefaults {
      * On adam's list but ALPHA: they start off until each has tests and a device pass, or is raised to BETA, or adam
      * writes an exception (t9, Nov 10). Moving one into [ON] is the whole change.
      */
-    val PENDING_ALPHA: Set<String> = setOf("compass", "lunar", "staged", "guard")
+    val PENDING_ALPHA: Set<String> = setOf("compass", "lunar", "guard")
 
     /**
      * The labs an update switched on: default-on labs the user never switched (no stored choice), in [ON]'s order of

@@ -86,7 +86,7 @@ object LabHooks {
         team.sopa.boar.plugins.AnswerTools.offPlugin = { q ->
             if (!LabPrefs.labsOn) null else LabRegistry.visible.mapNotNull(LabRegistry::opened).firstOrNull { !LabPrefs.enabled(it.id) && it.recognizes(q) }?.id
         }
-        team.sopa.boar.plugins.AnswerModes.staged = { LabRegistry.active.any { it.stagedAnswers } }
+        // Staged answers are core since Nov 12: AnswerModes.staged reads the setting (BoarServices), not a lab.
         team.sopa.boar.plugins.AnswerModes.ownsSources = { LabRegistry.active.any { it.ownsSources } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext

@@ -17,4 +17,3 @@ cohazard: CoHazardTest CoHazardPtEsTest
 compass: CompassTest PluginAnswersTest
 lunar: MoonPhaseTest PluginAnswersTest
 guard: NumGuardTest VerdictGuardTest
-staged: StagedAnswerTest

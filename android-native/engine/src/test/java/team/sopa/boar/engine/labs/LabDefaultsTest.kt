@@ -27,7 +27,7 @@ class LabDefaultsTest {
         assertEquals(setOf("pulse", "image", "printer", "calc", "distance", "facts", "cohazard"), LabDefaults.ON)
         // Polyglot starts off (adam, Nov 11) but ships: it stays in the release list.
         assertTrue("polyglot" !in LabDefaults.ON && File("../app/src/labs/released.txt").readText().contains("polyglot:"))
-        assertEquals(setOf("compass", "lunar", "staged", "guard"), LabDefaults.PENDING_ALPHA)
+        assertEquals(setOf("compass", "lunar", "guard"), LabDefaults.PENDING_ALPHA)
         assertTrue((LabDefaults.ON intersect LabDefaults.PENDING_ALPHA).isEmpty())
     }
 
@@ -72,8 +72,8 @@ class LabDefaultsTest {
         }
     }
 
-    @Test fun `Staged Answers and Canvas show an avatar until they have their own icon`() {
-        for ((id, art) in listOf("staged" to "truffle_elder", "canvas" to "truffle_pixel_hacker")) {
+    @Test fun `Canvas shows an avatar until it has its own icon (Staged is core since Nov 12)`() {
+        for ((id, art) in listOf("canvas" to "truffle_pixel_hacker")) {
             val src = File(plugins, id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
             assertTrue(id, src.contains("override val art = team.sopa.boar.R.drawable.$art"))
         }

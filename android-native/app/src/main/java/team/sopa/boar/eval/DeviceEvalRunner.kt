@@ -62,6 +62,7 @@ class DeviceEvalRunner(
     /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
     @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
     /** The request's labs ask for staged answers (Boar Staged Answers); null: the app's (AnswerModes). */
+    @Volatile private var runStagedRequested: Boolean? = null
     @Volatile private var runStaged: Boolean? = null
     private val appVersion: String = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?" 
 
@@ -148,11 +149,13 @@ class DeviceEvalRunner(
             team.sopa.boar.labs.LabPrefs.init(context)
             if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
         }
-        val labs = request.labs?.map { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
+        // "staged" in a request's labs still asks for Staged answers (core since Nov 12, no longer a lab).
+        runStagedRequested = request.labs?.contains("staged")
+        val labs = request.labs?.filter { it != "staged" }?.map { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
             writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
         } }
         runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
-        runStaged = labs?.any { it.stagedAnswers }
+        runStaged = runStagedRequested
         // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
         val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
             ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED

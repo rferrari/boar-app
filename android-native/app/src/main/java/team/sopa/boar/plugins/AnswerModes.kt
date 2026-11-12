@@ -6,7 +6,7 @@ package team.sopa.boar.plugins
  * lab on, the chat answers as usual.
  */
 object AnswerModes {
-    /** Set by Boar Labs at start: a switched-on lab asks for staged answers. */
+    /** Staged answers (core since Nov 12): set by BoarServices from Settings → Advanced tweaks → Staged quotes. */
     @Volatile var staged: () -> Boolean = { false }
 
     /**

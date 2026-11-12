@@ -41,6 +41,18 @@ class BoarServices private constructor(private val context: Context) {
     /** The app's files dir, where models, packs and the chat database live. */
     val filesDir: java.io.File get() = files
     val settings = AppSettings(File(files, "settings.json"))
+
+    init {
+        // Staged answers are core since Nov 12 (adam): the setting decides. The old plugin's switch, once: off stays off.
+        team.sopa.boar.plugins.AnswerModes.staged = { settings.stagedQuotes }
+        runCatching {
+            val labs = context.getSharedPreferences("labs", android.content.Context.MODE_PRIVATE)
+            if (labs.contains("enabled.staged")) {
+                team.sopa.boar.engine.answer.StagedMigration.settingFrom(labs.getBoolean("enabled.staged", false))?.let { settings.stagedQuotes = it }
+                labs.edit().remove("enabled.staged").apply()
+            }
+        }
+    }
     private val baseCatalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     private val discoveredFile = File(files, "discovered_models.json")
     private val discoveredJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }

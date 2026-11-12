@@ -457,6 +457,9 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
         )
         // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
         // No Sources layout choice since Nov 12: one design for everyone (the block above the answer, or Staged's quotes).
+        // Staged answers, core since Nov 12: on by default, this is the fallback switch (Pro).
+        var stagedOn by remember { mutableStateOf(s.stagedQuotes) }
+        if (SettingsPart.STAGED_QUOTES.shownIn(s.userProfile)) SwitchRow(t("native.tweaks.stagedQuotes"), t("native.tweaks.stagedQuotesNote"), stagedOn) { stagedOn = it; s.stagedQuotes = it }
         // Moved from Settings → Models (rc3, slice 5); stays in effect in every profile, its default on.
         var free by remember { mutableStateOf(s.freeMemoryInBackground) }
         SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
