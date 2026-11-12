@@ -75,6 +75,7 @@ class All29FollowupsTest {
         assertTrue(s.contains("PdfCompiler.pageStarts(page) { b -> PressPictures.fileOf(ctx, page.project.id, b) }"))
         assertTrue(s.contains("PaperView(page, if (showBreaks) pageStarts else emptyList(),"))
         assertTrue(s.contains("val y = if (st.intoPt <= 1f) top - 4.dp.toPx() else top + minOf(st.intoPt * s.pxPerPt, height)"))
+        assertTrue(s.contains("val top = inner + Paper.M * s.pxPerPt"))
         assertTrue(!s.contains("val step = (Paper.H - 2 * Paper.M) * s.pxPerPt"))
         assertTrue(s.contains("team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) \"on\" else \"off\")"))
         for (d in listOf("values", "values-pt")) assertTrue(d, app("printer/res/$d/strings_lab_printer.xml").contains("name=\"native_labs_printer_pageBreaks\""))

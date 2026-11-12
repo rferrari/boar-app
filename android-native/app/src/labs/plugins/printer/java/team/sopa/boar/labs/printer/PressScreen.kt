@@ -715,7 +715,9 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
                 drawContent()
                 val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
                 starts.forEachIndexed { i, st ->
-                    val (top, height) = tops[st.unit] ?: return@forEachIndexed
+                    val (inner, height) = tops[st.unit] ?: return@forEachIndexed
+                    // Block positions are inside the paper's margin; the lines are drawn from its outer edge.
+                    val top = inner + Paper.M * s.pxPerPt
                     val y = if (st.intoPt <= 1f) top - 4.dp.toPx() else top + minOf(st.intoPt * s.pxPerPt, height)
                     drawLine(breakColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
                     val text = measurer.measure(pageLabel.replace("{{n}}", (i + 2).toString()), TextStyle(fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1D1D1F)))
