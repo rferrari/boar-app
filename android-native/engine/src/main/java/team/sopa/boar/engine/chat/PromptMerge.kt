@@ -20,7 +20,8 @@ object PromptMerge {
         val qs = questions.flatMap(::parts).map { it.trim() }.filter { it.isNotEmpty() }
         if (qs.size <= 1) return qs.firstOrNull().orEmpty()
         val head = when {
-            qs.count(QueryContext::isPortugueseQuestion) * 2 > qs.size -> PT
+            // Half Portuguese and none Spanish: the Portuguese head (validator Q-9: a PT pair with one miss got English).
+            qs.count(QueryContext::isPortugueseQuestion).let { n -> n * 2 > qs.size || (n * 2 == qs.size && qs.none(QueryContext::isSpanishQuestion)) } -> PT
             qs.count(QueryContext::isSpanishQuestion) * 2 > qs.size -> ES
             else -> EN
         }

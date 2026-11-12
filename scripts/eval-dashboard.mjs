@@ -81,8 +81,9 @@ const data = rows.map((r) => Object.fromEntries(keep.filter((k) => r[k] !== unde
 const notes = Object.fromEntries(Object.values(questions).map((q) => [q.id, { query: q.query, category: q.category, notes: q.gradingNotes ?? "" }]));
 
 const html = readFileSync(join(repo, "scripts", "eval-dashboard.template.html"), "utf8")
-  .replace("/*DATA*/null", JSON.stringify(data).replace(/</g, "\\u003c"))
-  .replace("/*QUESTIONS*/null", JSON.stringify(notes).replace(/</g, "\\u003c"))
-  .replace("/*BUILT*/null", JSON.stringify(new Date().toISOString()));
+  // Function replacements: an answer containing "$&" or "$'" must not be read as a replacement pattern (validator).
+  .replace("/*DATA*/null", () => JSON.stringify(data).replace(/</g, "\\u003c"))
+  .replace("/*QUESTIONS*/null", () => JSON.stringify(notes).replace(/</g, "\\u003c"))
+  .replace("/*BUILT*/null", () => JSON.stringify(new Date().toISOString()));
 writeFileSync(join(out, "index.html"), html);
 console.log(`${data.length} answers from ${new Set(data.map((r) => r.runId)).size} runs (${files.length} files) -> ${join(out, "index.html")}`);

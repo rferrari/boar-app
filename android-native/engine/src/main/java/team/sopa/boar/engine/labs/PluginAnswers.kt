@@ -57,7 +57,7 @@ object PluginAnswers {
      * After the cardinal the question ends, or says "from here", "now"...: "North Carolina", "North Korea's capital",
      * "o Sul do Brasil" and "o Norte Shopping" are places, not headings (validator P-1).
      */
-    private const val HEADING_END = "(?=\\s*(?:$|[?.!,;]|(?:from here|right now|now|exactly|daqui|agora|exatamente)\\b))"
+    private const val HEADING_END = "(?=\\s*(?:$|[?.!,;]|(?:from here|right now|now|exactly|please|pls|here|today|on (?:my|this) (?:phone|map)|i'?m lost|i am lost|daqui|agora|exatamente|por favor|aqui|hoje)\\b|\\s*[-–—]))"
 
     private val DIRECTION = Regex(
         "\\b(which way is|which way'?s|where is|where'?s|what'?s|whats|what direction (is|am i)|which direction (is|am i)|point me|find) (to )?(the )?(north|south|east|west)$HEADING_END|" +
@@ -87,10 +87,12 @@ object PluginAnswers {
         val asked = askedCardinal(q)
         val target = mapOf("n" to 0, "e" to 90, "s" to 180, "w" to 270).getValue(asked)
         val north = ((target - deg) % 360 + 360) % 360
-        val turn = if (north <= 180) (if (pt) "$north° à direita" else "$north° to your right") else (if (pt) "${360 - north}° à esquerda" else "${360 - north}° to your left")
         val askedName = (if (pt) DIRS_PT else DIRS_EN).getValue(asked)
+        // Facing it already: "straight ahead", not "0° to your right" (validator M-5).
+        val turn = if (north == 0) (if (pt) "bem à sua frente" else "straight ahead")
+            else if (north <= 180) (if (pt) "$north° à direita" else "$north° to your right") else (if (pt) "${360 - north}° à esquerda" else "${360 - north}° to your left")
         val flat = tiltDeg != null && tiltDeg > FLAT_DEG
-        val base = if (pt) "O topo do celular aponta para $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} fica a $turn." else "The top of your phone points $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} is $turn."
+        val base = if (pt) "O topo do celular aponta para $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} fica ${if (north == 0) "" else "a "}$turn." else "The top of your phone points $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} is $turn."
         val hold = if (!flat) "" else if (pt) " Segure o celular deitado, na horizontal: inclinado, a bússola erra." else " Hold the phone flat: tilted, the compass reads wrong."
         val note = if (pt) " Norte magnético; afaste de ímãs e metais." else " Magnetic north; keep it away from magnets and metal."
         return base + hold + note

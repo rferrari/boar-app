@@ -15,9 +15,9 @@ class FinalGateTest {
         val remove = models.substringAfter("fun remove(a: CatalogAsset)").substringBefore("\n    fun ")
         assertTrue(remove.indexOf("services.stopAnswersAndWait()") in 0 until remove.indexOf("services.host.unload()"))
         val tweaks = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
-        assertTrue(tweaks.contains("services.stopAnswersAndWait(); services.host.unload()"))
+        assertTrue(tweaks.contains("if (services.stopAnswersAndWait()) services.host.unload()"))
         val eval = java.io.File("../app/src/main/java/team/sopa/boar/eval/EvaluationViewModel.kt").readText()
-        assertTrue(eval.contains("services.stopAnswersAndWait()\n                services.host.unload()"))
+        assertTrue(eval.contains("check(services.stopAnswersAndWait()) { \"an answer is still being written\" }\n                services.host.unload()"))
     }
 
     @Test fun `the queue takes a clear from another thread (Q-1b)`() {

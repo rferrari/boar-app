@@ -77,6 +77,6 @@ class MessageQueueWiringTest {
     @Test fun `each waiting row is the hourglass and its number, clear and merge are icons`() {
         assertTrue(screen.contains("Text(\"⏳ \${i + 1}\""))
         assertTrue(screen.contains("onClickLabel = t(\"native.chat.mergeQueue\"), onClick = onMerge") && screen.contains("if (queued.size >= 2) Text(\"⇉\""))
-        assertTrue(vm.contains("fun mergeQueue() { if (queue.merge()) publishQueue() }"))
+        assertTrue(vm.contains("fun mergeQueue() { if (queue.merge { team.sopa.boar.engine.routing.LabTools.coHazard(it) != null }) publishQueue() }"))
     }
 }

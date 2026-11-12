@@ -1047,7 +1047,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun clearQueue() { queue.clear(); publishQueue() }
 
     /** The waiting questions become one, answered together (adam, Nov 12). */
-    fun mergeQueue() { if (queue.merge()) publishQueue() }
+    /** A safety question (the CO card) stays its own turn, ahead of the merged one, whether Cohazard is on or not. */
+    fun mergeQueue() { if (queue.merge { team.sopa.boar.engine.routing.LabTools.coHazard(it) != null }) publishQueue() }
 
     /**
      * Stops a title or summary still being written, as ChatScreen.tsx does (cancelBackgroundTask), instead of making the

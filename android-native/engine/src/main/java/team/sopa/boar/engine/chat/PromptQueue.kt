@@ -34,11 +34,17 @@ class PromptQueue(val limit: Int = LIMIT) {
 
     @Synchronized fun clear() = items.clear()
 
-    /** The waiting questions as one (PromptMerge), first in line; false with fewer than two. */
-    @Synchronized fun merge(): Boolean {
-        if (items.size < 2) return false
-        val one = Item(nextId++, PromptMerge.of(items.map { it.text }))
-        items.clear(); items += one
+    /**
+     * The waiting questions as one (PromptMerge), first in line; false with fewer than two to merge. A question
+     * [keepApart] picks (a safety question: the CO card) is never merged: it stays its own turn, ahead, and gets its fixed
+     * answer as when asked alone (validator M-1/M-2, Nov 13: merged, the card could be dropped, or not matched at all).
+     */
+    @Synchronized fun merge(keepApart: (String) -> Boolean = { false }): Boolean {
+        val apart = items.filter { keepApart(it.text) }
+        val rest = items.filter { !keepApart(it.text) }
+        if (rest.size < 2) return false
+        val one = Item(nextId++, PromptMerge.of(rest.map { it.text }))
+        items.clear(); items += apart; items += one
         return true
     }
 

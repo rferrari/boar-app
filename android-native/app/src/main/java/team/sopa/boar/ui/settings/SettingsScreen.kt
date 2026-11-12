@@ -377,7 +377,8 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
         if (!next.isAuto) services.vault.record { f -> f.copy(tweaksChanged = true) }
         // The model reloads with the new settings on the next answer.
         // An answer being written stops first, so the unload doesn't cut it mid-sentence (validator Q-5).
-        scope.launch(kotlinx.coroutines.Dispatchers.Default) { services.stopAnswersAndWait(); services.host.unload() }
+        // Still answering after the wait: the model stays loaded and picks the new settings up on its next load (validator).
+        scope.launch(kotlinx.coroutines.Dispatchers.Default) { if (services.stopAnswersAndWait()) services.host.unload() }
     }
     val autoLabel = t("native.tweaks.auto")
     @Composable fun autoOf(value: Any) = t("native.tweaks.autoValue", "value" to value)

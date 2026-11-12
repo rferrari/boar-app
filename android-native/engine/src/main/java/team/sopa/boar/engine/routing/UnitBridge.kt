@@ -44,8 +44,18 @@ object UnitBridge {
     }
 
     /** For the sum itself: full precision, so 0.02 miles isn't "0 km" (CodeRabbit); [fmt] is only for the note. */
-    private fun exact(x: Double): String = if (kotlin.math.abs(x - Math.rint(x)) < 1e-9) Math.rint(x).toLong().toString()
-        else java.math.BigDecimal(x).round(java.math.MathContext(10)).stripTrailingZeros().toPlainString()
+    private fun exact(x: Double): String = when {
+        // A number too big for a Double (a 400-digit one) stays as it was printed before, never a throw (validator N-4).
+        !x.isFinite() -> x.toString()
+        kotlin.math.abs(x - Math.rint(x)) < 1e-9 && kotlin.math.abs(x) < 9e15 -> Math.rint(x).toLong().toString()
+        else -> java.math.BigDecimal(x).round(java.math.MathContext(15)).stripTrailingZeros().toPlainString()
+    }
 
-    private fun fmt(x: Double): String = if (kotlin.math.abs(x - Math.rint(x)) < 0.05) Math.rint(x).toLong().toString() else String.format(Locale.US, "%.1f", x)
+    /** The note: one decimal, or up to three significant digits under 1 ("0.02 miles = 0.032 km", not "0 miles = 0 km"). */
+    private fun fmt(x: Double): String = when {
+        !x.isFinite() -> x.toString()
+        x != 0.0 && kotlin.math.abs(x) < 1 -> java.math.BigDecimal(x).round(java.math.MathContext(2)).stripTrailingZeros().toPlainString()
+        kotlin.math.abs(x - Math.rint(x)) < 0.05 && kotlin.math.abs(x) < 9e15 -> Math.rint(x).toLong().toString()
+        else -> String.format(Locale.US, "%.1f", x)
+    }
 }
