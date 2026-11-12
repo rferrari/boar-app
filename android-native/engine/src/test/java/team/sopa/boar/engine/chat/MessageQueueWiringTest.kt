@@ -7,6 +7,8 @@ import org.junit.Test
 class MessageQueueWiringTest {
     private val vm = java.io.File("../app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
     private val screen = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+    /** The input bar, shared with Designer since Nov 12 (adam): the chat calls it with the queue on (queues = true by default). */
+    private val bar = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/PromptBar.kt").readText()
 
     @Test fun `a question sent while answering waits, at most five`() {
         assertTrue(vm.contains("if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {\n            if (queue.add(q)) publishQueue() else showToast(\"native.chat.queueFull\")"))
@@ -39,10 +41,11 @@ class MessageQueueWiringTest {
     @Test fun `one button that stops or queues, resting after a send, the strip has remove and Clear queue`() {
         // One button: Stop while answering with nothing typed, Send (to the queue) while something is typed; after a send it
         // rests, dimmed, so a second tap can't stop the answer (adam, Nov 12).
-        assertTrue(screen.contains("val stops = answering && !canSend"))
-        assertTrue(!screen.contains("if (answering && canSend) Box("))
-        assertTrue(screen.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); resting = true } }"))
-        assertTrue(screen.contains("private const val SEND_REST_MS = 500L"))
+        assertTrue(bar.contains("val stops = answering && (!canSend || !queues)") && bar.contains("queues: Boolean = true"))
+        assertTrue(!screen.contains("queues = false") && screen.contains("PromptBar(text, onText, answering, onSend, onStop, voiceEnabled,"))
+        assertTrue(!bar.contains("if (answering && canSend) Box("))
+        assertTrue(bar.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); resting = true } }"))
+        assertTrue(bar.contains("private const val SEND_REST_MS = 500L"))
         assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue, onMergeQueue)"))
     }
 

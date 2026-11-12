@@ -7,46 +7,50 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import team.sopa.boar.engine.labs.DesignerCanvas.Quality
 import team.sopa.boar.engine.labs.DesignerCanvas.Shape
 import team.sopa.boar.engine.labs.DesignerCanvas.Size
 import team.sopa.boar.engine.labs.DesignerCanvas.Stop
-import team.sopa.boar.engine.labs.DesignerCanvas.Tier
 
-/** Designer's canvas (adam's mock-up, Nov 13): shape and speed instead of pixels, the default, the rail, the variations. */
+/** Designer's canvas (adam's mock-up, Nov 12-13): shape and quality instead of pixels, the default, the drawer, the shared input bar, the variations. */
 class DesignerCanvasTest {
     private val dir = "../app/src/labs/plugins/designer"
     private fun src(name: String) = java.io.File("$dir/java/team/sopa/boar/labs/designer/$name").readText()
     private fun strings(d: String) = java.io.File("$dir/res/$d/strings_lab_image.xml").readText()
 
-    @Test fun `Fast is the middle size of each shape and Slow the largest`() {
-        assertEquals(Size(512, 512), DesignerCanvas.size(Shape.SQUARE, Tier.FAST))
-        assertEquals(Size(640, 640), DesignerCanvas.size(Shape.SQUARE, Tier.SLOW))
-        assertEquals(Size(384, 512), DesignerCanvas.size(Shape.PORTRAIT, Tier.FAST))
-        assertEquals(Size(448, 640), DesignerCanvas.size(Shape.PORTRAIT, Tier.SLOW))
-        assertEquals(Size(640, 320), DesignerCanvas.size(Shape.WIDE, Tier.FAST))
-        assertEquals(Size(768, 320), DesignerCanvas.size(Shape.WIDE, Tier.SLOW))
-        // Six sizes offered, each its own shape and tier back, and none of the removed small ones.
-        assertEquals(6, DesignerCanvas.OFFERED.size)
-        for (s in DesignerCanvas.OFFERED) assertEquals(s, DesignerCanvas.size(s.shape, s.tier))
-        assertTrue(DesignerCanvas.REMOVED.none { it in DesignerCanvas.OFFERED })
-        assertEquals(listOf("512", "640", "384x512", "448x640", "640x320", "768x320"), DesignerCanvas.OFFERED.map { it.key })
+    @Test fun `Low, Medium and High are the three sizes of each shape`() {
+        val expect = mapOf(
+            Shape.SQUARE to listOf(Size(384, 384), Size(512, 512), Size(640, 640)),
+            Shape.PORTRAIT to listOf(Size(320, 448), Size(384, 512), Size(448, 640)),
+            Shape.WIDE to listOf(Size(576, 256), Size(640, 320), Size(768, 320)),
+        )
+        for ((shape, sizes) in expect) assertEquals(shape.name, sizes, Quality.entries.map { DesignerCanvas.size(shape, it) })
+        // Nine sizes offered, each its own shape and quality back.
+        assertEquals(9, DesignerCanvas.OFFERED.size)
+        for (s in DesignerCanvas.OFFERED) assertEquals(s, DesignerCanvas.size(s.shape, s.quality))
+        assertEquals(listOf("low", "medium", "high"), Quality.entries.map { it.key })
     }
 
-    @Test fun `a saved size of a removed one becomes Fast of the same shape, an offered one stays`() {
-        assertEquals(Size(512, 512), DesignerCanvas.migrate("384"))
-        assertEquals(Size(384, 512), DesignerCanvas.migrate("320x448"))
-        assertEquals(Size(640, 320), DesignerCanvas.migrate("576x256"))
+    @Test fun `migration both ways - Fast is Medium, Slow is High, and every saved size keeps its own level`() {
+        assertEquals(Quality.MEDIUM, DesignerCanvas.fromSpeed("fast")); assertEquals(Quality.HIGH, DesignerCanvas.fromSpeed("Slow")); assertNull(DesignerCanvas.fromSpeed("x"))
+        // What the Fast/Slow build saved (the middle and the largest sizes) reads back as Medium and High.
+        assertEquals(Quality.MEDIUM, DesignerCanvas.migrate("512")!!.quality); assertEquals(Quality.HIGH, DesignerCanvas.migrate("640")!!.quality)
+        assertEquals(Quality.MEDIUM, DesignerCanvas.migrate("384x512")!!.quality); assertEquals(Quality.HIGH, DesignerCanvas.migrate("768x320")!!.quality)
+        // The smallest sizes, saved before Nov 13, are Low again, not moved.
+        assertEquals(Size(384, 384), DesignerCanvas.migrate("384")); assertEquals(Quality.LOW, DesignerCanvas.migrate("320x448")!!.quality)
+        assertEquals(Size(576, 256), DesignerCanvas.migrate("576x256"))
         for (s in DesignerCanvas.OFFERED) assertEquals(s, DesignerCanvas.migrate(s.key))
-        for (s in DesignerCanvas.REMOVED) assertEquals(Tier.FAST, DesignerCanvas.migrate(s.key)!!.tier)
-        for (s in DesignerCanvas.REMOVED) assertEquals(s.shape, DesignerCanvas.migrate(s.key)!!.shape)
+        // A size that is none of the nine becomes Medium of its shape.
+        assertEquals(Size(640, 320), DesignerCanvas.migrate("1024x400")); assertEquals(Size(384, 512), DesignerCanvas.migrate("100x900"))
         assertNull(DesignerCanvas.migrate(null)); assertNull(DesignerCanvas.migrate("")); assertNull(DesignerCanvas.migrate("big"))
-        // Nothing saved, or something unreadable: Engraving's default size, Square and Fast.
+        // Nothing saved, or something unreadable: Square, Medium.
         assertEquals(null to DesignerCanvas.DEFAULT, DesignerCanvas.loadDefault { null })
+        assertEquals(Size(512, 512), DesignerCanvas.DEFAULT)
         assertEquals(Size(512, 512), DesignerCanvas.loadDefault { k -> if (k == DesignerCanvas.SIZE_PREF) "nonsense" else null }.second)
-        assertEquals(Size(512, 512), DesignerCanvas.loadDefault { k -> if (k == DesignerCanvas.SIZE_PREF) "384" else null }.second)
+        assertEquals(Size(384, 384), DesignerCanvas.loadDefault { k -> if (k == DesignerCanvas.SIZE_PREF) "384" else null }.second)
     }
 
-    @Test fun `the default keeps style, shape and speed together, and is read back the same`() {
+    @Test fun `the default keeps style, shape and quality together, and is read back the same`() {
         for (s in DesignerCanvas.OFFERED) {
             val prefs = HashMap<String, String>()
             DesignerCanvas.saveDefault(prefs::put, "watercolor", s)
@@ -54,47 +58,91 @@ class DesignerCanvasTest {
         }
         val prefs = HashMap<String, String>()
         DesignerCanvas.saveDefault(prefs::put, "cyber", Size(576, 256))
-        assertEquals("640x320", prefs[DesignerCanvas.SIZE_PREF])
-        // The app saves and reads through these, under its old keys (a default saved before Nov 13 carries over).
+        assertEquals("576x256", prefs[DesignerCanvas.SIZE_PREF])
+        // The app saves and reads through these, under its old keys (a default saved before carries over).
         assertEquals("image.style", DesignerCanvas.STYLE_PREF); assertEquals("image.size", DesignerCanvas.SIZE_PREF)
         val lab = src("ImageLab.kt")
         assertTrue(lab.contains("DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)"))
         assertTrue(lab.contains("DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second"))
         assertTrue(lab.substringAfter("fun setDefaults() {").substringBefore("\n    }").contains("ImageLab.setDefaults(s.style, s.size)"))
-        // "★ Default" in both trays, lit when the pick is the default.
+        // "★ Default" in every tray, lit when the pick is the default.
         val screen = src("ImageLabScreen.kt")
         assertTrue(screen.contains("Pill(t(\"native.labs.image.default\"), selected = isDefault) { vm.setDefaults() }"))
+        // Shape keeps the quality and Quality keeps the shape.
+        assertTrue(lab.contains("fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.quality))"))
+        assertTrue(lab.contains("fun setQuality(quality: DesignerCanvas.Quality) = setSize(ImageLab.Canvas.of(_state.value.size.shape, quality))"))
     }
 
-    @Test fun `the caption is style, shape and this phone's seconds, else the speed word`() {
-        assertEquals("Engraving · Square · 9 s", DesignerCanvas.caption("Engraving", "Square", 9, "Fast"))
-        assertEquals("Lo-fi · Wide · Slow", DesignerCanvas.caption("Lo-fi", "Wide", null, "Slow"))
+    @Test fun `the caption is style, shape and this phone's seconds, else the quality`() {
+        assertEquals("Engraving · Square · 9 s", DesignerCanvas.caption("Engraving", "Square", 9, "Low quality"))
+        assertEquals("Lo-fi · Wide · Low quality", DesignerCanvas.caption("Lo-fi", "Wide", null, "Low quality"))
         assertEquals(40, DesignerCanvas.variationsSeconds(10)); assertNull(DesignerCanvas.variationsSeconds(null))
-        assertTrue(src("ImageLabScreen.kt").contains("DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), tierName(shown.tier))"))
+        assertTrue(src("ImageLabScreen.kt").contains("DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), qualityLong(shown.quality))"))
     }
 
-    @Test fun `the rail has exactly two tools, Style and Shape`() {
-        assertEquals(listOf("style", "shape"), DesignerCanvas.Tool.entries.map { it.key })
+    @Test fun `no rail - the drawer has exactly three sections, Style, Shape and Quality, and Default`() {
+        assertEquals(listOf("style", "shape", "quality"), DesignerCanvas.Section.entries.map { it.key })
         val screen = src("ImageLabScreen.kt")
-        val rail = screen.substringAfter("private fun Rail(").substringBefore("\n}\n")
-        assertTrue(rail.contains("for (tool in DesignerCanvas.Tool.entries)"))
-        assertEquals(1, Regex("Rail\\(tray").findAll(screen).count())
+        val drawer = screen.substringAfter("private fun DesignerDrawer(").substringBefore("\n}\n")
+        assertTrue(drawer.contains("for (section in DesignerCanvas.Section.entries)") && drawer.contains("ModalBottomSheet("))
+        assertTrue(drawer.contains("StyleSection(state, vm)") && drawer.contains("ShapeSection(state, vm)") && drawer.contains("QualitySection(state, vm)"))
+        assertTrue(drawer.contains("Pill(t(\"native.labs.image.default\"), selected = isDefault) { vm.setDefaults() }"))
+        // Opened by the input bar's left button, with its spoken label; no rail and no trays left.
+        assertTrue(screen.contains("onLeft = { if (ready && !busy) drawer = true }, leftLabel = drawerLabel"))
+        assertTrue(screen.contains("if (drawer) DesignerDrawer(state, vm) { drawer = false }"))
+        for (gone in listOf("fun Rail(", "Tray(", "DesignerCanvas.Tool")) assertTrue(gone, !screen.contains(gone))
         for (d in listOf("values", "values-pt")) {
-            val tools = Regex("name=\"native_labs_image_tool_([a-z]+)\"").findAll(strings(d)).map { it.groupValues[1] }.toList()
-            assertEquals(d, listOf("style", "shape"), tools.sorted().reversed())
+            val sections = Regex("name=\"native_labs_image_section_([a-z]+)\"").findAll(strings(d)).map { it.groupValues[1] }.toSet()
+            assertEquals(d, setOf("style", "shape", "quality"), sections)
+            assertTrue(d, !strings(d).contains("native_labs_image_tool_"))
         }
         // Hidden by adam on Nov 13: no Seed, Edit or More anywhere on the page.
         for (gone in listOf("tool.seed", "tool.edit", "tool.more", "seedKeep", "seedNew", "setSeedLocked(")) assertTrue(gone, !screen.contains(gone))
+        // The Shape section has only the shapes; the levels are in the Quality section.
+        val shape = screen.substringAfter("private fun ShapeSection(").substringBefore("\n}\n")
+        assertTrue(!shape.contains("Quality.entries") && shape.contains("DesignerCanvas.Shape.entries"))
+        assertTrue(screen.substringAfter("private fun QualitySection(").substringBefore("\n}\n").contains("DesignerCanvas.Quality.entries"))
+    }
+
+    @Test fun `Designer's bottom is the chat's own input bar - voice, Draw that becomes Stop, the same rest after a send`() {
+        val screen = src("ImageLabScreen.kt")
+        val canvas = screen.substringAfter("fun DesignerCanvasScreen(").substringBefore("\n}\n")
+        assertTrue(canvas.contains("team.sopa.boar.ui.chat.PromptBar(subject, { subject = it }, answering = busy,"))
+        assertTrue(canvas.contains("onSend = { vm.generate(subject); keyboard?.hide(); focus.clearFocus() }, onStop = { vm.cancel() }, voiceEnabled = voiceEnabled"))
+        assertTrue(canvas.contains("sendIcon = team.sopa.boar.R.drawable.ic_designer_draw, sendLabel = t(\"native.labs.image.generate\"), queues = false, enabled = ready"))
+        assertTrue(canvas.contains("placeholder = t(\"native.labs.image.placeholder\")") && canvas.contains("settings.voiceInputEnabled"))
+        // Its own copy is gone: one bar for both.
+        assertTrue(!screen.contains("private fun PromptBar(") && !screen.contains("BasicTextField("))
+        val bar = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/PromptBar.kt").readText()
+        // Voice fills the prompt: the mic writes what was said into the same text (onText), as in the chat.
+        assertTrue(bar.contains("if (voiceEnabled) MicButton(text, onText, enabled = !answering && enabled, size = 34.dp)"))
+        assertTrue(bar.contains("voice.start(onPartial = { onText(join(it)) }, onResult = { onText(join(it)) }, onEnd = { listening = false })"))
+        // Without the queue (Designer), the button is Stop all the while it draws; Draw with the words otherwise.
+        assertTrue(bar.contains("val stops = answering && (!canSend || !queues)"))
+        assertTrue(bar.contains("if (stops) onStop() else { onSend(); resting = true }") && bar.contains("private const val SEND_REST_MS = 500L"))
+        // The chat calls the same bar, with its own placeholder and the answer style on the left.
+        val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        assertTrue(chat.contains("PromptBar(text, onText, answering, onSend, onStop, voiceEnabled,") && !chat.contains("private fun MicButton("))
+        // The chip stays above the bar (adam, Nov 12).
+        assertTrue(canvas.indexOf("native.labs.image.fromChat") in 0 until canvas.indexOf("team.sopa.boar.ui.chat.PromptBar("))
+    }
+
+    @Test fun `the quality hint says not timed only for the picked level when it isn't timed`() {
+        val tray = src("ImageLabScreen.kt").substringAfter("private fun QualitySection(").substringBefore("\n}\n")
+        assertTrue(tray.contains("if (ImageLab.expectedSeconds(state.size) != null) t(\"native.labs.image.qualityHint\")"))
+        assertTrue(tray.contains("t(\"native.labs.image.qualityHintUntimed\", \"level\" to qualityLong(state.size.quality))"))
+        for (d in listOf("values", "values-pt")) assertTrue(d, Regex("native_labs_image_qualityHintUntimed\"[^>]*>[^<]*\\{\\{level}}").containsMatchIn(strings(d)))
+        assertTrue(strings("values").contains(">Higher quality draws a bigger picture and takes longer. Seconds are this phone\\'s own average.<"))
     }
 
     @Test fun `no pixel numbers in Designer's strings, English and Portuguese`() {
         val px = Regex("\\d+\\s*[x×]\\s*\\d+|\\d+\\s*px\\b")
         for (d in listOf("values", "values-pt")) for (m in Regex("<string name=\"([^\"]+)\"[^>]*>(.*?)</string>", RegexOption.DOT_MATCHES_ALL).findAll(strings(d)))
             assertTrue("$d ${m.groupValues[1]}: ${m.groupValues[2]}", !px.containsMatchIn(m.groupValues[2]))
-        // Nor built in code: the pixel label is gone, the screen says sizes with the shape and speed words.
+        // Nor built in code: the pixel label is gone, the screen says sizes with the shape and quality words.
         val lab = src("ImageLab.kt"); val screen = src("ImageLabScreen.kt")
         assertTrue(!lab.contains("val label") && !screen.contains(".label") && !screen.contains("\" px"))
-        assertTrue(screen.contains("t(\"native.labs.image.shapeTier\""))
+        assertTrue(screen.contains("t(\"native.labs.image.shapeQuality\""))
     }
 
     @Test fun `variations are drawn one by one and stop on the first failure, keeping what was drawn`() = runBlocking {
@@ -142,26 +190,27 @@ class DesignerCanvasTest {
         assertTrue(settings.contains("native.labs.image.removeModel") && settings.contains("native.labs.wait.setting") && settings.contains("AboutPluginFold(ImageGenLab)"))
         // The strip: the latest 12, and All opens the media manager.
         assertTrue(screen.contains("private const val STRIP = 12") && screen.contains("HistoryStrip(state, onShow = showFile, onManage = onManage)"))
-        // One round button: Draw, or Stop while drawing.
-        assertTrue(screen.contains("if (busy) onStop() else onDraw()"))
     }
 
     @Test fun `the i sheet draws again, four variations, deletes, and shares nothing`() {
         val screen = src("ImageLabScreen.kt")
         val sheet = screen.substringAfter("private fun InfoSheet(").substringBefore("\n}\n")
         assertTrue(sheet.contains("vm.regenerate()") && sheet.contains("vm.variations()") && sheet.contains("vm.delete(f)"))
-        for (k in listOf("words", "styleLabel", "shapeLabel", "time")) assertTrue(k, sheet.contains("native.labs.image.$k"))
+        for (k in listOf("words", "styleLabel", "shapeLabel", "qualityLabel", "time")) assertTrue(k, sheet.contains("native.labs.image.$k"))
+        // Shape and Quality on separate lines.
+        assertTrue(sheet.contains("Fact(t(\"native.labs.image.shapeLabel\"), shapeName(it.shape)); Fact(t(\"native.labs.image.qualityLabel\"), qualityName(it.quality))"))
         assertTrue(!Regex("share|photos|ACTION_SEND|MediaStore", RegexOption.IGNORE_CASE).containsMatchIn(sheet))
         for (d in listOf("values", "values-pt")) assertTrue(d, !strings(d).contains("native_labs_image_share"))
     }
 
     @Test fun `new and changed strings in English and Portuguese`() {
-        val keys = listOf("tool_style", "tool_shape", "shapeTitle", "shapeLabel", "speedLabel", "tier_fast", "tier_slow", "tierSeconds", "shapeTier",
-            "shapeHint", "shapeHintUntimed", "default", "done", "styleHint", "styleHintNone", "emptyCanvas", "noModelTitle", "noModelCaption", "stop",
+        val keys = listOf("drawer", "section_style", "section_shape", "section_quality", "shapeLabel", "qualityLabel", "quality_low", "quality_medium",
+            "quality_high", "qualityLong_low", "qualityLong_medium", "qualityLong_high", "qualitySeconds", "shapeQuality", "qualityHint", "qualityHintUntimed",
+            "default", "styleHint", "styleHintNone", "emptyCanvas", "noModelTitle", "noModelCaption",
             "all", "next", "infoButton", "fullButton", "infoTitle", "words", "time", "drawAgain", "drawAgainNote", "variations", "variationsTime",
             "variationsNote", "variationOf", "variationsPick", "variationOpen", "settingsTitle", "waitSketch", "shape_banner", "placeholder")
         for (d in listOf("values", "values-pt")) for (k in keys) assertTrue("$d $k", strings(d).contains("name=\"native_labs_image_$k\""))
-        assertTrue(strings("values").contains(">Seconds are this phone\\'s own average. Slower draws a bigger picture.<"))
+        assertTrue(strings("values").contains("name=\"native_labs_image_drawer\" formatted=\"false\">Style, shape and quality<"))
         assertTrue(strings("values").contains("name=\"native_labs_image_shape_banner\" formatted=\"false\">Wide<"))
     }
 }

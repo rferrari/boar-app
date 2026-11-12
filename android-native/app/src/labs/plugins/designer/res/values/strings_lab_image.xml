@@ -5,7 +5,6 @@
     <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet. Download it once with internet; after that, drawing works offline. Its license (CreativeML Open RAIL++-M) rules out some uses, such as harming or harassing people, misleading content meant to harm, and medical advice: huggingface.co/IDKiro/sdxs-512-0.9</string>
     <string name="native_labs_image_download" formatted="false">Download (683 MB)</string>
     <string name="native_labs_image_downloading" formatted="false">Downloading… {{pct}}%</string>
-    <string name="native_labs_image_style" formatted="false">STYLE</string>
     <string name="native_labs_image_style_engraving" formatted="false">Engraving</string>
     <string name="native_labs_image_style_scientific" formatted="false">Scientific</string>
     <string name="native_labs_image_placeholder" formatted="false">What should I draw?</string>
@@ -56,25 +55,13 @@
     <string name="native_labs_image_drawPicked" formatted="false">Draw · {{style}}, {{size}}</string>
     <string name="native_labs_image_details" formatted="false">Details</string>
     <string name="native_labs_image_how" formatted="false">• Draws one illustration at a time on this phone, offline, from a few words and a style.\n• Under an answer, 🎨 Illustrate this answer picks what to draw from it.\n• Some subjects are refused.\n• Images made here stay here; All › under the picture manages or deletes them.</string>
-    <string name="native_labs_image_tool_style" formatted="false">Style</string>
-    <string name="native_labs_image_tool_shape" formatted="false">Shape</string>
-    <string name="native_labs_image_shapeTitle" formatted="false">SHAPE</string>
     <string name="native_labs_image_shapeLabel" formatted="false">Shape</string>
-    <string name="native_labs_image_speedLabel" formatted="false">Speed</string>
-    <string name="native_labs_image_tier_fast" formatted="false">Fast</string>
-    <string name="native_labs_image_tier_slow" formatted="false">Slow</string>
-    <string name="native_labs_image_tierSeconds" formatted="false">{{tier}} · ~{{s}} s</string>
-    <string name="native_labs_image_shapeTier" formatted="false">{{shape}}, {{tier}}</string>
-    <string name="native_labs_image_shapeHint" formatted="false">Seconds are this phone\'s own average. Slower draws a bigger picture.</string>
-    <string name="native_labs_image_shapeHintUntimed" formatted="false">Not timed on this phone yet: the seconds show after the first drawing. Slower draws a bigger picture.</string>
     <string name="native_labs_image_default" formatted="false">★ Default</string>
-    <string name="native_labs_image_done" formatted="false">Done</string>
     <string name="native_labs_image_styleHint" formatted="false">Tap the selected style again for no style.</string>
     <string name="native_labs_image_styleHintNone" formatted="false">No style: your words are the whole prompt.</string>
     <string name="native_labs_image_emptyCanvas" formatted="false">Type a subject and tap Draw to fill this shape.</string>
     <string name="native_labs_image_noModelTitle" formatted="false">Designer needs its model</string>
     <string name="native_labs_image_noModelCaption" formatted="false">The model is not on this phone yet.</string>
-    <string name="native_labs_image_stop" formatted="false">Stop</string>
     <string name="native_labs_image_all" formatted="false">All {{count}} ›</string>
     <string name="native_labs_image_next" formatted="false">Next: {{style}}</string>
     <string name="native_labs_image_infoButton" formatted="false">Picture details and actions</string>
@@ -92,4 +79,19 @@
     <string name="native_labs_image_variationOpen" formatted="false">Show variation {{n}}</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Designer settings</string>
     <string name="native_labs_image_waitSketch" formatted="false">Sketch</string>
+    <string name="native_labs_image_qualityLabel" formatted="false">Quality</string>
+    <string name="native_labs_image_quality_low" formatted="false">Low</string>
+    <string name="native_labs_image_quality_medium" formatted="false">Medium</string>
+    <string name="native_labs_image_quality_high" formatted="false">High</string>
+    <string name="native_labs_image_qualityLong_low" formatted="false">Low quality</string>
+    <string name="native_labs_image_qualityLong_medium" formatted="false">Medium quality</string>
+    <string name="native_labs_image_qualityLong_high" formatted="false">High quality</string>
+    <string name="native_labs_image_qualitySeconds" formatted="false">{{level}} · ~{{s}} s</string>
+    <string name="native_labs_image_shapeQuality" formatted="false">{{shape}}, {{quality}}</string>
+    <string name="native_labs_image_qualityHint" formatted="false">Higher quality draws a bigger picture and takes longer. Seconds are this phone\'s own average.</string>
+    <string name="native_labs_image_qualityHintUntimed" formatted="false">Higher quality draws a bigger picture and takes longer. {{level}} isn\'t timed on this phone yet: its seconds show after the first drawing at it.</string>
+    <string name="native_labs_image_drawer" formatted="false">Style, shape and quality</string>
+    <string name="native_labs_image_section_style" formatted="false">STYLE</string>
+    <string name="native_labs_image_section_shape" formatted="false">SHAPE</string>
+    <string name="native_labs_image_section_quality" formatted="false">QUALITY</string>
 </resources>

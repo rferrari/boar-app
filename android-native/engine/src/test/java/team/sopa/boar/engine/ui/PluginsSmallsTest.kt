@@ -9,8 +9,8 @@ class PluginsSmallsTest {
     private val list = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
     private val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
 
-    @Test fun `Designer's sheet scrolls styles, shapes and speeds sideways`() {
-        assertTrue(image.contains("style, sideways = true) { style = it }") && image.contains("shape, sideways = true) { shape = it }") && image.contains("tier, sideways = true) { tier = it }"))
+    @Test fun `Designer's sheet scrolls styles, shapes and qualities sideways`() {
+        assertTrue(image.contains("style, sideways = true) { style = it }") && image.contains("shape, sideways = true) { shape = it }") && image.contains("quality, sideways = true) { quality = it }"))
     }
 
     @Test fun `under a drawing only i and x, the rest inside i`() {

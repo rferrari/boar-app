@@ -46,7 +46,8 @@ class FinalGateTest {
     }
 
     @Test fun `a send on an idle chat rests too (Q-6)`() {
-        val screen = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        // The input bar is shared by the chat and Designer (PromptBar.kt, Nov 12).
+        val screen = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/PromptBar.kt").readText()
         assertTrue(screen.contains("onSend(); resting = true") && !screen.contains("if (answering) resting = true"))
     }
 
