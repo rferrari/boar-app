@@ -23,30 +23,53 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
 /**
- * The plugin page template (t9 and adam, Nov 12), in this order: one sentence of what it does, one real before and
- * after, the Try rows, and "How it works" folded with the long note. Guard uses it first; the others follow once adam
- * approves their copy.
+ * The plugin page template (t9 and adam, Nov 12), in this order: one sentence of what it does, one real example (a
+ * before and after, or what you ask and what BOAR replies), the Try rows, and "How it works" folded with the long note.
+ * A page with a live tool (Nomad, Lunar, Vitals, Canvas, Designer, Press) shows the tool first and this under it, with
+ * no summary. [example] is drawn in the example card under its text (Canvas's chart). A plugin whose page has this fold
+ * has no `_about` string, so the shared "About this plugin" fold (LabsScreen AboutPlugin) hides itself: one fold a page.
  */
 @Composable
-fun PluginPage(summary: String, before: String?, after: String?, tries: List<String>, howItWorks: String?) {
+fun PluginPage(
+    summary: String?, before: String?, after: String?, tries: List<String>, howItWorks: String?,
+    beforeLabel: String = t("native.labs.page.before"), afterLabel: String = t("native.labs.page.after"),
+    exampleLabel: String? = null, tryHint: String = t("native.labs.page.tryHint"),
+    example: (@Composable () -> Unit)? = null,
+) {
     val c = Boar.colors
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text(summary, style = Boar.type.bodyLg, color = c.textPrimary)
-        if (before != null && after != null) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCard).padding(12.dp),
+        summary?.let { Text(it, style = Boar.type.bodyLg, color = c.textPrimary) }
+        if (before != null || after != null || example != null) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCard).padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Label(t("native.labs.page.before"))
-            Text(before, style = Boar.type.body, color = c.textSecondary)
-            Label(t("native.labs.page.after"))
-            Text(after, style = Boar.type.body, color = c.textPrimary, fontWeight = FontWeight.SemiBold)
+            exampleLabel?.let { Label(it) }
+            // Labels only for a pair; a lone text (Press's file, Designer's drawing) is the example itself.
+            val pair = before != null && after != null
+            if (before != null) {
+                if (pair) Label(beforeLabel)
+                Text(before, style = Boar.type.body, color = c.textSecondary)
+            }
+            if (after != null) {
+                if (pair) Label(afterLabel)
+                Text(after, style = Boar.type.body, color = c.textPrimary, fontWeight = if (pair) FontWeight.SemiBold else null)
+            }
+            example?.invoke()
         }
         if (tries.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Label(t("native.labs.page.try"))
             for (q in tries) TryRow(q)
-            Text(t("native.labs.page.tryHint"), style = Boar.type.caption, color = c.textMuted)
+            Text(tryHint, style = Boar.type.caption, color = c.textMuted)
         }
         howItWorks?.let { Fold(t("native.labs.page.how"), it) }
     }
 }
+
+/** The template for a plugin that answers in the chat: its example is what you ask and what BOAR replies. */
+@Composable
+fun AnswerPage(
+    summary: String?, question: String?, reply: String?, tries: List<String>, howItWorks: String?,
+    tryHint: String = t("native.labs.page.tryHint"), example: (@Composable () -> Unit)? = null,
+) = PluginPage(summary, question, reply, tries, howItWorks, t("native.labs.page.ask"), t("native.labs.page.reply"),
+    t("native.labs.page.example"), tryHint, example)
 
 @Composable
 private fun Label(text: String) = Text(text, style = Boar.type.caption, color = Boar.colors.textMuted, fontWeight = FontWeight.Bold)

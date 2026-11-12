@@ -173,15 +173,11 @@ object CanvasLab : LabPlugin {
 
     @Composable
     override fun Content() {
-        val c = Boar.colors
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(t("native.labs.canvas.intro"), style = Boar.type.body, color = c.textPrimary)
-            Text(t("native.labs.canvas.howVisual"), style = Boar.type.body, color = c.textPrimary)
-            Text(t("native.labs.canvas.howWidget"), style = Boar.type.body, color = c.textPrimary)
-            Text(t("native.labs.canvas.safety"), style = Boar.type.subtext, color = c.textMuted)
-            Text(t("native.labs.canvas.example"), style = Boar.type.subtext, color = c.textMuted)
+        // The plugin page template (Nov 12). Canvas works under an answer, not on a question: its example is the live
+        // chart, and the Try rows ask a question whose answer has something to draw.
+        team.sopa.boar.labs.PluginPage(null, t("native.labs.canvas.example"), null, (1..2).map { t("native.labs.canvas.example$it") },
+            t("native.labs.canvas.how"), exampleLabel = t("native.labs.page.example"), tryHint = t("native.labs.canvas.tryHint")) {
             VisualView(Visual.Series(t("native.labs.canvas.exampleTitle"), Visual.SeriesKind.BARS, "m", listOf("Everest" to 8849.0, "K2" to 8611.0, "Kangchenjunga" to 8586.0)))
-            Text(t("native.labs.canvas.credit"), style = Boar.type.subtext, color = c.textDim)
         }
     }
 }

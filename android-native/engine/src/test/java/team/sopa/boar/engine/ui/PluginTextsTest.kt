@@ -16,10 +16,16 @@ class PluginTextsTest {
         }
     }
 
-    @Test fun `each plugin page ends with About this plugin, folded`() {
+    @Test fun `each plugin page ends with one fold, How it works or About this plugin`() {
         val labs = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
         assertTrue(labs.contains("AboutPlugin(lab)") && labs.contains("t(\"native.labs.aboutPlugin\")"))
-        for ((id, _) in bodies("values")) assertTrue(id, java.io.File("../app/src/labs/plugins/$id").walkTopDown().any { it.isFile && it.readText().contains("native_labs_${id}_about\"") })
+        // A page on the template (PluginPage, Nov 12) folds its `_how`; its `_about` is gone, so AboutPlugin hides itself.
+        for ((id, _) in bodies("values")) {
+            val files = java.io.File("../app/src/labs/plugins/$id").walkTopDown().filter { it.isFile }.map { it.readText() }.toList()
+            val about = files.any { it.contains("native_labs_${id}_about\"") }
+            val how = files.any { it.contains("native_labs_${id}_how\"") } && files.any { it.contains("t(\"native.labs.$id.how\")") }
+            assertTrue(id, about != how)
+        }
     }
 
     @Test fun `Vitals puts heat and battery side by side and the cores as vertical bars`() {

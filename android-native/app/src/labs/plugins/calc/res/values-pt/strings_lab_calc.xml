@@ -2,12 +2,11 @@
 <resources>
     <string name="native_labs_calc_title" formatted="false">Calculadora</string>
     <string name="native_labs_calc_body" formatted="false">Contas exatas do dia a dia: combustível, bateria, câmbio e mais. Sem o modelo.</string>
-    <string name="native_labs_calc_answers" formatted="false">RESPONDE SOZINHA</string>
-    <string name="native_labs_calc_answersList" formatted="false">• Watt-hora de uma bateria, e se ela pode ir no avião\n• Consumo: L/100 km e milhas por galão\n• Tempo de trilha pela regra de Naismith\n• Câmbio na cotação que você der, com gorjeta\n• Água para uma viagem: pessoas × dias × litros\n• Temperatura: Celsius e Fahrenheit\n• Quanto tempo: uma quantidade a uma taxa (MB a MB/s, km a km/h, páginas por hora), em inglês\n• Quantos: recipientes, viagens ou ônibus para um total, arredondando para cima, em inglês</string>
-    <string name="native_labs_calc_try" formatted="false">EXPERIMENTE</string>
     <string name="native_labs_calc_example1" formatted="false">Meu carro alugado faz 7,5 litros a cada 100 km. Quanto isso dá em milhas por galão americano?</string>
     <string name="native_labs_calc_example2" formatted="false">How long to drive 240 miles at 60 mph?</string>
-    <string name="native_labs_calc_example3" formatted="false">Meu power bank é de 5.000 mAh a 3,85 V. Quantos watt-hora isso dá, e posso levar no avião?</string>
-    <string name="native_labs_calc_note" formatted="false">Ela faz a conta com os números da sua pergunta e mostra a fórmula. O resto vai para o modelo, como sempre. Uma mensagem sobre saúde, ferimento, perigo ou uma pessoa (ou uma conversa que tenha sido) nunca recebe resposta da calculadora. Os detalhes da resposta mostram Ferramenta quando foi ela que escreveu. Problemas com palavras só em inglês. Portada da calculadora de r4to (BOAR R&amp;D).</string>
-    <string name="native_labs_calc_about" formatted="false">Respostas exatas para algumas contas do dia a dia (bateria, consumo, trilha, câmbio, água, temperatura, quanto tempo, quantos), na hora e sem o modelo. Contas simples e porcentagens ainda vão para o modelo.</string>
+    <string name="native_labs_calc_example3" formatted="false">Quanto é 30 °C em Fahrenheit?</string>
+    <string name="native_labs_calc_summary" formatted="false">Contas exatas do dia a dia, com a fórmula. Sem precisar do modelo.</string>
+    <string name="native_labs_calc_exampleQ" formatted="false">Meu power bank é de 5.000 mAh a 3,85 V. Posso levar no avião?</string>
+    <string name="native_labs_calc_exampleA" formatted="false">5.000 mAh × 3,85 V ÷ 1000 = 19,25 Wh. Sim, pode levar no avião: até 100 Wh é permitido na bagagem de mão (não na despachada).</string>
+    <string name="native_labs_calc_how" formatted="false">Ela faz a conta com os números da sua pergunta e mostra a fórmula. Ela sabe: watt-hora de uma bateria e se pode ir no avião; consumo (L/100 km, mpg); tempo de trilha (regra de Naismith); câmbio na sua cotação, com gorjeta; água para uma viagem; Celsius e Fahrenheit; quanto tempo a uma taxa; quantos recipientes, viagens ou ônibus, arredondando para cima.\n\nContas simples e porcentagens ainda vão para o modelo. A Calculadora fica fora de conversas sobre saúde, ferimentos, perigo ou pessoas, e deixa a resposta para o modelo. Os detalhes da resposta mostram Ferramenta quando foi ela. Problemas com palavras (quanto tempo, quantos) só em inglês. Baseada na calculadora de r4to (BOAR R&amp;D).</string>
 </resources>

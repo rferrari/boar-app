@@ -119,25 +119,29 @@ object CompassLab : LabPlugin {
             sm.registerListener(listener, mag, SensorManager.SENSOR_DELAY_UI)
             onDispose { sm.unregisterListener(listener) }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (accel == null || mag == null) {
-                Text(t("native.labs.compass.noSensor"), style = Boar.type.body, color = c.textSecondary)
-                return@Column
+        // The live dial first, then the page template under it (Nov 12): a real example, Try, and the rest folded.
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (accel == null || mag == null) {
+                    Text(t("native.labs.compass.noSensor"), style = Boar.type.body, color = c.textSecondary)
+                    return@Column
+                }
+                // The number moves in whole degrees and only once the heading has moved at least 1°, so it doesn't flicker
+                // between two values while the phone is still.
+                var shownDeg by remember { mutableIntStateOf(0) }
+                shownDeg = team.sopa.boar.engine.labs.Compass.shown(shownDeg, heading)
+                val deg = shownDeg
+                Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (seen) "$deg° ${t("native.labs.compass.dir.${cardinal(deg)}")}" else "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
+                    Rose(heading, Modifier.fillMaxWidth(0.85f).aspectRatio(1f), c.textAccentEmerald, c.crimson400, c.textMuted, c.borderDefault)
+                }
+                if (accuracy <= SensorManager.SENSOR_STATUS_ACCURACY_LOW)
+                    Text("⚠ " + t("native.labs.compass.calibrate"), style = Boar.type.body, color = c.amber400,
+                        modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).padding(12.dp))
             }
-            // The number moves in whole degrees and only once the heading has moved at least 1°, so it doesn't flicker
-            // between two values while the phone is still.
-            var shownDeg by remember { mutableIntStateOf(0) }
-            shownDeg = team.sopa.boar.engine.labs.Compass.shown(shownDeg, heading)
-            val deg = shownDeg
-            Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (seen) "$deg° ${t("native.labs.compass.dir.${cardinal(deg)}")}" else "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
-                Rose(heading, Modifier.fillMaxWidth(0.85f).aspectRatio(1f), c.textAccentEmerald, c.crimson400, c.textMuted, c.borderDefault)
-            }
-            if (accuracy <= SensorManager.SENSOR_STATUS_ACCURACY_LOW)
-                Text("⚠ " + t("native.labs.compass.calibrate"), style = Boar.type.body, color = c.amber400,
-                    modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).padding(12.dp))
-            Text(t("native.labs.compass.note"), style = Boar.type["mono.xs"], color = c.textDim)
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.compass.exampleQ"), t("native.labs.compass.exampleA"),
+                (1..2).map { t("native.labs.compass.example$it") }, t("native.labs.compass.how"))
         }
     }
 

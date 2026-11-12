@@ -38,21 +38,13 @@ object CoHazardLab : LabPlugin {
     @Composable
     override fun Content() {
         val c = Boar.colors
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.cohazard.answers")) { Text(t("native.labs.cohazard.answersList"), style = Boar.type.body, color = c.textPrimary) }
-            Card(t("native.labs.cohazard.try")) {
-                for (i in 1..3) team.sopa.boar.labs.TryRow(t("native.labs.cohazard.example$i"))
-            }
-            Text(t("native.labs.cohazard.note"), style = Boar.type["mono.xs"], color = c.textDim)
-        }
-    }
-
-    @Composable
-    private fun Card(label: String, content: @Composable () -> Unit) {
-        val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(label, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
-            content()
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            // A safety page: what to do now comes first, in amber, before the example.
+            Text("⚠ " + t("native.labs.cohazard.safety"), style = Boar.type.body, color = c.amber400, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).padding(12.dp))
+            // The plugin page template (Nov 12): a real example (an excerpt of CoHazard's fixed text), Try, the rest folded.
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.cohazard.exampleQ"), t("native.labs.cohazard.exampleA"),
+                (1..3).map { t("native.labs.cohazard.example$it") }, t("native.labs.cohazard.how"))
         }
     }
 }

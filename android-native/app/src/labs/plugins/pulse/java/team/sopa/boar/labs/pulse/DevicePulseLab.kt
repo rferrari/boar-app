@@ -174,6 +174,9 @@ object DevicePulseLab : LabPlugin {
                 Line(t("native.labs.pulse.device"), "${Build.MANUFACTURER} ${Build.MODEL} · ${socName()}")
             }
             Text(t("native.labs.pulse.tip"), style = Boar.type.caption, color = c.textMuted)
+            // The page template under the live meters (Nov 12): what the chat answers (sample values), Try, the rest folded.
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.pulse.exampleQ"), t("native.labs.pulse.exampleA"),
+                (1..2).map { t("native.labs.pulse.example$it") }, t("native.labs.pulse.how"))
         }
     }
 

@@ -61,4 +61,7 @@
     <string name="native_labs_page_tryHint" formatted="false">Tap to ask it in a new chat. Hold to edit it first.</string>
     <string name="native_labs_page_how" formatted="false">How it works</string>
     <string name="native_labs_listSubtitle" formatted="false">Switch them on or off, tap to open.</string>
+    <string name="native_labs_page_example" formatted="false">EXAMPLE</string>
+    <string name="native_labs_page_ask" formatted="false">You ask</string>
+    <string name="native_labs_page_reply" formatted="false">BOAR replies</string>
 </resources>

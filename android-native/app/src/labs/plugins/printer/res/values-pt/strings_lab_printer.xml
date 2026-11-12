@@ -3,7 +3,7 @@
     <string name="native_labs_printer_title" formatted="false">Press</string>
     <string name="native_labs_printer_body" formatted="false">Junte respostas numa cesta e gere um PDF ou arquivo Markdown.</string>
     <string name="native_labs_printer_empty" formatted="false">A cesta está vazia.</string>
-    <string name="native_labs_printer_howTo" formatted="false">Embaixo de qualquer resposta numa conversa, toque em 📎 para adicioná-la aqui. Junte de quantas conversas quiser e volte para organizar e compilar.</string>
+    <string name="native_labs_printer_howTo" formatted="false">Toque em 📎 embaixo de qualquer resposta para adicioná-la aqui. Depois organize e imprima.</string>
     <string name="native_labs_printer_docTitle" formatted="false">TÍTULO DO DOCUMENTO</string>
     <string name="native_labs_printer_untitled" formatted="false">Notas de campo</string>
     <string name="native_labs_printer_items_one" formatted="false">{{count}} ITEM</string>
@@ -11,12 +11,12 @@
     <string name="native_labs_printer_clear" formatted="false">LIMPAR</string>
     <string name="native_labs_printer_sources_one" formatted="false">{{count}} fonte</string>
     <string name="native_labs_printer_sources_other" formatted="false">{{count}} fontes</string>
-    <string name="native_labs_printer_noImages" formatted="false">Nenhum desenho ainda. Crie alguns no Gerador de imagem e escolha aqui.</string>
+    <string name="native_labs_printer_noImages" formatted="false">Nenhum desenho ainda. Faça alguns no Designer e escolha aqui.</string>
     <string name="native_labs_printer_compile" formatted="false">🖨️ Imprimir em PDF</string>
     <string name="native_labs_printer_compiling" formatted="false">Imprimindo…</string>
     <string name="native_labs_printer_footer" formatted="false">compilado offline com o BOAR</string>
-    <string name="native_labs_printer_inBasket" formatted="false">Na cesta da Impressora (toque para tirar)</string>
-    <string name="native_labs_printer_addToBasket" formatted="false">Adicionar à cesta da Impressora</string>
+    <string name="native_labs_printer_inBasket" formatted="false">Na cesta do Press (toque para tirar)</string>
+    <string name="native_labs_printer_addToBasket" formatted="false">Adicionar à cesta do Press</string>
     <string name="native_labs_printer_saved" formatted="false">Salvo: {{name}}</string>
     <string name="native_labs_printer_include" formatted="false">IMPRIMIR</string>
     <string name="native_labs_printer_metaDate" formatted="false">Data</string>
@@ -39,6 +39,7 @@
     <string name="native_labs_printer_pos_before" formatted="false">↑ Desenho, depois título</string>
     <string name="native_labs_printer_pickTitle" formatted="false">Desenho desta resposta</string>
     <string name="native_labs_printer_noDrawing" formatted="false">✕ Sem desenho</string>
-    <string name="native_labs_printer_about" formatted="false">Junte respostas de qualquer conversa numa cesta e compile tudo em um PDF ou arquivo Markdown.</string>
     <string name="native_labs_printer_addChat" formatted="false">Adicionar ao Press</string>
+    <string name="native_labs_printer_exampleA" formatted="false">3 respostas de 2 conversas + 1 desenho → notas-de-campo.pdf, com data, modelo e fontes embaixo de cada resposta.</string>
+    <string name="native_labs_printer_how" formatted="false">Junte respostas de qualquer conversa, acrescente desenhos do Designer e compile tudo offline num PDF ou arquivo Markdown. Segure ⠿ e arraste para mudar a ordem.</string>
 </resources>

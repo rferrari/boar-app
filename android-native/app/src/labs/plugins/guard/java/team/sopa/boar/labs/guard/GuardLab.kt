@@ -40,7 +40,7 @@ object GuardLab : LabPlugin {
         // The plugin page template (Nov 12): what it does, a real before and after, Try, and the long text folded.
         team.sopa.boar.labs.PluginPage(t("native.labs.guard.summary"), t("native.labs.guard.before"), t("native.labs.guard.after"),
             (1..3).map { t("native.labs.guard.example$it") },
-            t("native.labs.guard.answersList") + "\n\n" + t("native.labs.guard.note"))
+            t("native.labs.guard.how"))
     }
 
     @Composable
