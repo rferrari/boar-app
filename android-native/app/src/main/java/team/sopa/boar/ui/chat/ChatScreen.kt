@@ -251,29 +251,24 @@ private fun Ambient() {
 @Composable
 private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit, onSetDeepResearch: (Boolean) -> Unit) {
     val c = Boar.colors
-    val connectionFlash = remember { mutableStateOf(false) }
     val type = Boar.type
-    Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = team.sopa.boar.ui.HeaderMetrics.PAD), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // The bar every page header copies (HeaderMetrics): a 42 dp row between 10 dp paddings.
-        Row(Modifier.height(team.sopa.boar.ui.HeaderMetrics.ROW), verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp)) {
+        // The bar every page header copies (HeaderMetrics): 62 dp, the 42 dp round buttons centred in it, and the title's two
+        // lines get the whole height (t9 1950: in a 42 dp row the second line was cut off above Standard text).
+        Row(Modifier.height(team.sopa.boar.ui.HeaderMetrics.HEIGHT), verticalAlignment = Alignment.CenterVertically) {
             RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp, description = t("native.a11y.menu")) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // No boar here: the menu shows it, once is enough (adam, Nov 10).
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                        ConnectionDot(state.online, connectionFlash)
+                        Text("BOAR", style = team.sopa.boar.ui.HeaderMetrics.titleStyle(type).copy(letterSpacing = 0.5.sp), color = c.textHeading, maxLines = 1)
+                        ConnectionDot(state.online)
                     }
                     // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
                     val headerModel = team.sopa.boar.engine.chat.HeaderModel.label(state.answeringId != null, state.answeringModel, state.modelLabel)
-                    // The connection flashes here for 2 s, in the same line and size: nothing in the header moves (adam, Nov 12).
-                    val ctx = androidx.compose.ui.platform.LocalContext.current
-                    val animOff = remember { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
-                    androidx.compose.animation.Crossfade(connectionFlash.value, animationSpec = androidx.compose.animation.core.tween(if (animOff) 0 else 250), label = "connection") { flashing ->
-                        if (flashing) Text("● " + t(if (state.online) "chatHeader.online" else "chatHeader.offline"), style = type["mono.xs"], color = if (state.online) c.amber400 else MOON,
-                            fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(top = 1.dp))
-                        else Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
-                    }
+                    // The model line stays the model line; the connection is the pill beside BOAR (adam, Nov 12, t9 1950).
+                    Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type), color = c.textDim,
+                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -283,7 +278,7 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
         }
         // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
         val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
-        if (tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
+        if (tps != null) Row(Modifier.padding(bottom = team.sopa.boar.ui.HeaderMetrics.PAD), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             tps?.let {
                 Row(
@@ -311,36 +306,52 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
 private val MOON = Color(0xFF9EC7F0)
 
 /**
- * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", for about 2 s when BOAR opens and when the
- * connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). A tap shows the pill again with
- * what the connection is used for. With animations off the swap is instant. Shown once per state for the process
- * (ConnectionPill), so redraws and coming back to the chat don't repeat it.
+ * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", beside BOAR for about 2 s when BOAR opens and when
+ * the connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). A tap shows the pill
+ * again and opens what the connection is used for. Shown once per state for the process (ConnectionPill).
+ * The header never moves (adam, Nov 12; t9 1950): the pill's space is always kept, the pill and the dot are drawn on
+ * top of each other and cross-fade, so nothing else changes position or size. With animations off the swap is instant.
  */
 @Composable
-private fun ConnectionDot(online: Boolean, flash: androidx.compose.runtime.MutableState<Boolean>) {
+private fun ConnectionDot(online: Boolean) {
     val c = Boar.colors
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val animOff = remember { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    var expanded by remember { mutableStateOf(false) }
     var info by remember { mutableStateOf(false) }
     var tapped by remember { mutableStateOf(0) }
     LaunchedEffect(online) {
-        // On open at once; a change only once it has held, so a flapping signal doesn't flash it.
+        // On open at once; a change only once it has held, so a flapping signal doesn't flash the pill.
         if (ConnectionPill.lastShown != null) kotlinx.coroutines.delay(ConnectionPill.SETTLE_MS)
         if (!ConnectionPill.shouldShow(online)) return@LaunchedEffect
         ConnectionPill.lastShown = online
-        flash.value = true
+        expanded = true
         kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
-        flash.value = false
+        expanded = false
     }
     LaunchedEffect(tapped) {
         if (tapped == 0) return@LaunchedEffect
-        flash.value = true
+        expanded = true
         kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
-        flash.value = false
+        expanded = false
     }
+    val pill by androidx.compose.animation.core.animateFloatAsState(if (expanded) 1f else 0f,
+        androidx.compose.animation.core.tween(if (animOff) 0 else 250), label = "connection")
+    val tint = if (online) c.amber400 else MOON
     val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
-    // Only the dot here: "● ONLINE / OFFLINE" shows in the model line below "BOAR" (adam, Nov 12: the header must not move).
-    Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { tapped++; info = true }.padding(horizontal = 4.dp, vertical = 8.dp)) {
-        // Amber online, a greyed moon-blue ring offline (adam, Nov 11).
-        Box(Modifier.size(7.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
+    // One box, always the pill's size: the dot sits where the pill starts, right after BOAR.
+    Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { tapped++; info = true }.padding(horizontal = 4.dp, vertical = 8.dp),
+        contentAlignment = Alignment.CenterStart) {
+        Row(
+            Modifier.alpha(pill).background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
+                .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Box(Modifier.size(5.dp).background(tint, CircleShape))
+            Text(label, fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false)
+        }
+        // The dot keeps the pill's colors (adam, Nov 11): amber online, a greyed moon-blue ring offline.
+        Box(Modifier.alpha(1f - pill).size(7.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
     }
     if (info) androidx.compose.material3.AlertDialog(onDismissRequest = { info = false }, containerColor = c.bgCardElevated,
         confirmButton = { androidx.compose.material3.TextButton({ info = false }) { Text(t("common.done"), color = c.textAccentCyan) } },

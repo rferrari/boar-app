@@ -18,22 +18,39 @@ class ConnectionPillTest {
         assertTrue(!chat.contains("offlineReady"))
     }
 
-    @Test fun `ONLINE or OFFLINE crossfades in the model line, so nothing in the header moves`() {
+    @Test fun `ONLINE or OFFLINE is the pill beside BOAR, in kept space, so nothing in the header moves (t9 1950)`() {
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
         val header = chat.substringAfter("private fun Header(").substringBefore("\n}\n")
-        assertTrue(header.contains("Crossfade(connectionFlash.value") && header.contains("ANIMATOR_DURATION_SCALE"))
+        assertTrue(header.contains("ConnectionDot(state.online)") && !header.contains("Crossfade("))
+        // The model line is only the model.
+        assertTrue(header.contains("Text((headerModel ?: t(\"chatHeader.localLlmCore\")).uppercase(), style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type)"))
         val dot = chat.substringAfter("private fun ConnectionDot(").substringBefore("\n}\n")
-        assertTrue(!dot.contains("animateContentSize") && !dot.contains("if (expanded)"))
+        // Both drawn, one box: the pill and the dot cross-fade by alpha; nothing is added or removed, so nothing resizes.
+        assertTrue(!dot.contains("animateContentSize") && !dot.contains("if (expanded) Row("))
+        assertTrue(dot.contains("Modifier.alpha(pill)") && dot.contains("Modifier.alpha(1f - pill)") && dot.contains("tween(if (animOff) 0 else 250)"))
+        assertTrue(dot.contains("clickable(onClickLabel = label) { tapped++; info = true }"))
         assertTrue(dot.contains("if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)"))
         assertTrue(dot.contains("boldMarks(t(if (online) \"chatHeader.onlineBody\" else \"chatHeader.offlineBody\"))"))
     }
 
-    @Test fun `every page header is the chat header's height`() {
+    @Test fun `every page header is the chat header, 62 dp, both lines get the whole bar, the same styles`() {
         val ph = java.io.File("../app/src/main/java/team/sopa/boar/ui/PageHeader.kt").readText()
         assertTrue(ph.contains("val ROW = 42.dp") && ph.contains("val PAD = 10.dp") && ph.contains("val HEIGHT = ROW + PAD * 2"))
-        assertTrue(ph.contains(".height(HeaderMetrics.HEIGHT)") && ph.contains("FixedSizeChrome"))
+        assertTrue(ph.contains(".height(HeaderMetrics.HEIGHT).padding(horizontal = 12.dp),") && ph.contains("FixedSizeChrome"))
+        assertTrue(ph.contains("style = HeaderMetrics.titleStyle(Boar.type)") && ph.contains("style = HeaderMetrics.subtitleStyle(Boar.type)"))
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
-        assertTrue(chat.contains("Row(Modifier.height(team.sopa.boar.ui.HeaderMetrics.ROW)") && chat.contains("vertical = team.sopa.boar.ui.HeaderMetrics.PAD"))
+        assertTrue(chat.contains("Row(Modifier.height(team.sopa.boar.ui.HeaderMetrics.HEIGHT), verticalAlignment = Alignment.CenterVertically)"))
+        assertTrue(chat.contains("Text(\"BOAR\", style = team.sopa.boar.ui.HeaderMetrics.titleStyle(type)"))
+        assertTrue(!chat.contains("HeaderMetrics.ROW)"))
+    }
+
+    @Test fun `both lines fit the 62 dp bar up to the 1_3 font scale, at every text size`() {
+        // titleLg and mono.xs at Compact and Standard (Large is held at Standard in the header): line heights x 1.3.
+        for ((title, sub) in listOf(18.5f to 9.25f, 20f to 10f)) {
+            fun scaled(x: Float) = when { x <= 11 -> 12f; x == 12f -> 13f; x == 13f -> 14f; x <= 15 -> 16f; else -> x }
+            val lines = (scaled(title) * 1.15f + scaled(sub) * 1.25f) * 1.3f
+            assertTrue("$title: $lines", lines <= 62f - 4f)
+        }
     }
 
     @Test fun `the dialog texts are short paragraphs with bold marks, in English and Portuguese`() {

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import team.sopa.boar.ui.theme.Boar
 
 /**
@@ -28,8 +29,16 @@ object HeaderMetrics {
     val ROW = 42.dp
     /** Above and below the row. */
     val PAD = 10.dp
-    /** The whole bar: 10 + 42 + 10 = 62 dp, plus the 1 dp line under it. */
+    /** The whole bar: 10 + 42 + 10 = 62 dp, plus the 1 dp line under it. The title's two lines get all of it, not the 42 dp row. */
     val HEIGHT = ROW + PAD * 2
+
+    /**
+     * The title ("BOAR" in the chat) and the line under it (the chat's model line, a page's subtitle), the same in every
+     * header: titleLg and mono.xs with tight line heights, so both lines fit the bar up to the 1.3 font scale
+     * FixedSizeChrome allows (t9 1950: the subtitle was cut off).
+     */
+    fun titleStyle(type: team.sopa.boar.ui.theme.BoarType) = type.titleLg.let { it.copy(lineHeight = (it.fontSize.value * 1.15f).sp) }
+    fun subtitleStyle(type: team.sopa.boar.ui.theme.BoarType) = type["mono.xs"].let { it.copy(lineHeight = (it.fontSize.value * 1.25f).sp) }
 }
 
 @Composable
@@ -38,15 +47,16 @@ fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxT
     // The chat header's height exactly, with or without a subtitle: one line each, sizes held at Standard as the chat's
     // header does (FixedSizeChrome), so Large text can't make the bar taller.
     team.sopa.boar.ui.theme.FixedSizeChrome {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).height(HeaderMetrics.HEIGHT).padding(horizontal = 12.dp, vertical = HeaderMetrics.PAD),
+        Row(Modifier.fillMaxWidth().background(c.bgSurface).height(HeaderMetrics.HEIGHT).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             // [backTo] names where Back goes when it isn't obvious: "‹ Plugins", "‹ Chat" (t9, Nov 12).
             Text("‹ " + (backTo ?: t("common.back")), style = Boar.type.body, color = c.textAccentEmerald, maxLines = 1,
                 modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
             Column(Modifier.weight(1f)) {
-                Text(title, style = Boar.type.titleLg, color = c.textHeading, maxLines = if (subtitle != null) 1 else maxTitleLines.coerceAtMost(1),
+                // The chat header's look: the title as "BOAR", the subtitle as its model line (t9 1950).
+                Text(title, style = HeaderMetrics.titleStyle(Boar.type), color = c.textHeading, maxLines = if (subtitle != null) 1 else maxTitleLines.coerceAtMost(1),
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                subtitle?.let { Text(it, style = Boar.type.caption, color = c.textMuted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+                subtitle?.let { Text(it, style = HeaderMetrics.subtitleStyle(Boar.type), color = c.textMuted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
             }
         }
     }
