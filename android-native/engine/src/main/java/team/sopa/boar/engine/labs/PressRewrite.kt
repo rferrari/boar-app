@@ -106,6 +106,15 @@ object PressRewrite {
     /** The source marks in a text, each once. */
     fun marks(text: String): Set<Int> = MARK.findAll(text).map { it.groupValues[1].toInt() }.toSet()
 
+    /**
+     * New text written from the user's own words must not cite what the passage didn't: a [n] that wasn't there before is
+     * taken out (the model added "[1]" to a plain note on the F3, Nov 12). Marks the passage had stay.
+     */
+    fun dropNewMarks(before: String, after: String): String {
+        val had = marks(before)
+        return MARK.replace(after) { m -> if (m.groupValues[1].toInt() in had) m.value else "" }.replace(Regex(" +([.,;:!?])"), "$1").replace(Regex(" {2,}"), " ").trim()
+    }
+
     /** A mark that was there is missing, or a new one appeared: the screen says "Some source marks changed". */
     fun marksChanged(before: String, after: String): Boolean = marks(before) != marks(after)
 }

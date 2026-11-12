@@ -39,7 +39,8 @@ internal object PressRewriter {
                     onText(PressRewrite.visible(written.toString()))
                 }
             } ?: return Outcome.Failed
-            val out = PressRewrite.clean(r.text)
+            // The user's own words may bring new text: it never gets a source mark the passage didn't have.
+            val out = PressRewrite.clean(r.text).let { if (option == PressRewrite.Option.OWN) PressRewrite.dropNewMarks(text, it) else it }
             if (out.isBlank()) return Outcome.Failed
             if (PressRewrite.unchanged(text, out)) return Outcome.Unchanged
             return Outcome.Done(out, PressRewrite.marksChanged(text, out))

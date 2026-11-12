@@ -117,3 +117,12 @@ class PressRewriteOwnWordsTest {
         org.junit.Assert.assertTrue(screen.contains("document = PressRewrite.documentContext(project.name,") && screen.contains("PressRewriter.run(ctx, current, option, ownText, languageOf, document)"))
     }
 }
+
+class PressRewriteNewMarksTest {
+    @Test fun `new text never gets a source mark the passage didn't have`() {
+        org.junit.Assert.assertEquals("this document is about the salinity of the sea", PressRewrite.dropNewMarks("this is a test", "this document is about the salinity of the sea [1]"))
+        org.junit.Assert.assertEquals("Salt comes from rocks [2]. It stays.", PressRewrite.dropNewMarks("Rocks give salt [2].", "Salt comes from rocks [2]. It stays [5]."))
+        val runner = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressRewriter.kt").readText()
+        org.junit.Assert.assertTrue(runner.contains("if (option == PressRewrite.Option.OWN) PressRewrite.dropNewMarks(text, it) else it"))
+    }
+}
