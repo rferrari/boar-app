@@ -55,3 +55,12 @@ class RegateDeltaTest {
         assertTrue(tiny.note.toString(), tiny.note != null && !tiny.note!!.startsWith("0 miles"))
     }
 }
+
+class IllustratorCancelTest {
+    @Test fun `a cancel while the subject is picked draws nothing, and a late picture goes with its recipe (N-3)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val start = ill.substringAfter("val fromModel = runCatching")
+        assertTrue(start.indexOf("currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch") in 0 until start.indexOf("SdRunner.draw("))
+        assertTrue(ill.contains("if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }"))
+    }
+}

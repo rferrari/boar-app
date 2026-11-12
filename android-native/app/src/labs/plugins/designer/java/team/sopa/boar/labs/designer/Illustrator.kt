@@ -81,6 +81,9 @@ object Illustrator {
         jobs[a.id]?.cancel()
         jobs[a.id] = scope.launch {
             val fromModel = runCatching { if (a.chatBusy) null else subjectFromModel(ctx, a) }.getOrNull()
+            // Forgotten or erased while the subject was picked (runCatching swallows that cancel): stop here, nothing is
+            // drawn for a deleted answer (validator N-3).
+            if (!kotlinx.coroutines.currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch
             // The same subject as another answer's drawing is a stale pick: draw the question instead.
             val repeated = fromModel != null && status.any { (id, s) -> id != a.id && s is Status.Done && s.subject.equals(fromModel, ignoreCase = true) }
             // Checked whatever its source (ImageSafety): a pick the image model shouldn't draw becomes a calm landscape.
@@ -91,7 +94,8 @@ object Illustrator {
             runCatching { SdRunner.draw(ctx, subject, style, canvas) }
                 .onSuccess { d ->
                     // Forgotten (✕) while it drew: the result has no answer to go to.
-                    if (status[a.id] !is Status.Drawing) { d.file.delete(); return@onSuccess }
+                    // The picture and its recipe go together (validator N-3: the recipe stayed).
+                    if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }
                     fresh.add(a.id)
             status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
                 }
