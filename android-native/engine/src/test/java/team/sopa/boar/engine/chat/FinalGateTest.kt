@@ -34,7 +34,7 @@ class FinalGateTest {
         val m = PromptMerge.of(listOf("my heater smells, is it carbon monoxide?", "capital of Peru"))
         assertTrue(PromptMerge.isMerged(m))
         assertFalse(PromptMerge.isMerged("capital of Peru"))
-        assertTrue(vm.contains("if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith(\"safety-\")) ToolResult.Context(r.tool, r.text) else null) else r"))
+        assertTrue(vm.contains("if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith(\"safety-\")) ToolResult.Context(r.tool, team.sopa.boar.engine.chat.PromptMerge.safetyContext(r.text)) else null) else r"))
     }
 
     @Test fun `merging twice keeps one list, Spanish gets a Spanish head (Q-9)`() {

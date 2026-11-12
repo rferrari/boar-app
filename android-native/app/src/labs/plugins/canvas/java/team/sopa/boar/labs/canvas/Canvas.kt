@@ -83,10 +83,8 @@ internal object Canvas {
             val fromSources = if (kind == Kind.WIDGET) none else VisualContext.fromSources(a.question, a.text, a.passages)
             val context = listOf(earlier.sourceText, fromSources.sourceText).filter { it.isNotBlank() }.joinToString("\n")
             val r = runCatching { generate(ctx, a, kind, earlier, fromSources) }
-            // Forgotten (✕) or erased while it was being made: checked and saved under the lock that forget and eraseAll
-            // take, so an erase can't finish between the check and the save and the file come back (CodeRabbit).
-            synchronized(this@Canvas) {
-            if (status[key] !is Status.Making) return@launch
+            // The parse and checks run first, outside the lock: a long table check must not make a ✕ or Clear all wait
+            // (validator M-3). Only the "still wanted?" check and the save are under it.
             val raw = r.getOrNull()
             val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, context), a.question) as? Visual.Parsed.Rejected else null
             val rejected = when {
@@ -96,8 +94,12 @@ internal object Canvas {
             }
             // The reason in the log (never the answer's text); the refused number or label only on screen.
             refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
-            status[key] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
-            else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, key, it) }
+            // Forgotten (✕) or erased while it was being made: checked and saved under the lock that forget and eraseAll
+            // take, so an erase can't finish between the check and the save and the file come back (CodeRabbit).
+            synchronized(this@Canvas) {
+                if (status[key] !is Status.Making) return@launch
+                status[key] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
+                else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, key, it) }
             }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[key]?.javaClass?.simpleName}")

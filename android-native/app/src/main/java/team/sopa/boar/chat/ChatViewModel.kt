@@ -553,7 +553,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch(Dispatchers.IO) {
             // What the labs made for this chat's answers goes first, while the answers can still be listed.
             runCatching { team.sopa.boar.plugins.UserData.eraseAnswers(services.chats.messages(id).filter { it.role == "assistant" }.map { it.id }) }
-            runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") }
+            // Once more if the delete fails (a busy database): the plugins' files are already gone, so the chat must not stay
+            // half deleted; a second failure is logged and told (validator M-6).
+            runCatching { services.chats.deleteSession(id) }
+                .recoverCatching { kotlinx.coroutines.delay(300); services.chats.deleteSession(id) }
+                .onFailure { e -> android.util.Log.w("BOAR", "chat delete failed after its plugin files were erased", e); showToast("native.chat.dbFailed") }
         }
         if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }
     }
@@ -757,7 +761,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 ?.takeIf { !(deep || personal) || PersonalFiles.keepsTool(it.tool) }
                 // A merged queue goes to the model whole: an instant answer would take one question and drop the rest (validator
                 // Q-8). A safety answer isn't lost: the model reads it first.
-                ?.let { r -> if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith("safety-")) ToolResult.Context(r.tool, r.text) else null) else r }
+                ?.let { r -> if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith("safety-")) ToolResult.Context(r.tool, team.sopa.boar.engine.chat.PromptMerge.safetyContext(r.text)) else null) else r }
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s

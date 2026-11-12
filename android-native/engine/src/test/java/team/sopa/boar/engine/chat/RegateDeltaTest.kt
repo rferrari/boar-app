@@ -64,3 +64,35 @@ class IllustratorCancelTest {
         assertTrue(ill.contains("if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }"))
     }
 }
+
+class CoMergeOrdersTest {
+    private val coEn = "Can I run my portable generator in the attached garage if I keep the door open?"
+    private val harmlessEn = listOf("What is the capital of Peru?", "Who was Napoleon?")
+    private val harmlessPt = listOf("Qual a capital do Brasil?", "Quantos habitantes tem Portugal?")
+
+    private fun mergeOf(vararg qs: String): List<String> {
+        val q = PromptQueue(); qs.forEach { q.add(it) }
+        q.merge { team.sopa.boar.engine.routing.LabTools.coHazard(it) != null }
+        return q.waiting.map { it.text }
+    }
+
+    @Test fun `the validator's mixed cases and every order keep the CO question as its own turn (M-1, M-2)`() {
+        val cases = listOf(
+            listOf(coEn, harmlessPt[0]), listOf(harmlessPt[0], coEn, harmlessPt[1]), listOf(coEn, harmlessEn[0], harmlessPt[0]),
+            listOf(coEn) + harmlessEn, harmlessEn + coEn, listOf(harmlessEn[0], coEn, harmlessEn[1]),
+            listOf(coEn) + harmlessPt, harmlessPt + coEn, listOf(harmlessPt[0], coEn, harmlessPt[1]),
+        )
+        for (c in cases) {
+            val left = mergeOf(*c.toTypedArray())
+            assertEquals(c.toString(), coEn, left.first())
+            assertTrue(c.toString(), left.drop(1).none { team.sopa.boar.engine.routing.LabTools.coHazard(it) != null && it == coEn })
+            val others = c.filter { it != coEn }
+            assertEquals(c.toString(), if (others.size >= 2) 2 else c.size, left.size)
+        }
+    }
+
+    @Test fun `a merged text that still matches is told to state the card first`() {
+        val ctx = PromptMerge.safetyContext("Carbon monoxide can kill.")
+        assertTrue(ctx.startsWith("SAFETY WARNING. Start your answer with this warning, word for word") && ctx.endsWith("Carbon monoxide can kill."))
+    }
+}

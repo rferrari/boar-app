@@ -28,6 +28,14 @@ object PromptMerge {
         return head + "\n" + qs.mapIndexed { i, q -> "${i + 1}. $q" }.joinToString("\n")
     }
 
+    /**
+     * A safety card for a merged text that still matches it (hazard words spread over two questions; a safety question
+     * itself is never merged, PromptQueue.merge): never silent context, the model is told to state it first, unchanged
+     * (validator M-1/N-2).
+     */
+    fun safetyContext(card: String): String =
+        "SAFETY WARNING. Start your answer with this warning, word for word, before anything else, then answer the questions:\n$card"
+
     fun isMerged(text: String): Boolean = HEADS.any { text.trimStart().startsWith(it) }
 
     /** The questions inside a merged text; the text itself otherwise. */
