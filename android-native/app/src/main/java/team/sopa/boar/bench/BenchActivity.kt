@@ -270,6 +270,17 @@ private fun BenchScreen(
                 modifier = Modifier.background(c.cyanBgSubtle, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
         }
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // The log first, newest line on top, with how long since the last line (adam, Nov 12: an evaluation looked frozen
+            // with its log at the bottom). A long answer writes nothing for a minute or two; the clock shows it's still going.
+            team.sopa.boar.ui.BoarSection("Log") {
+                val lines = remember(log) { BenchLog.newestFirst(log) }
+                var lastAt by remember { mutableStateOf(System.currentTimeMillis()) }
+                var now by remember { mutableStateOf(System.currentTimeMillis()) }
+                androidx.compose.runtime.LaunchedEffect(log) { lastAt = System.currentTimeMillis() }
+                androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { now = System.currentTimeMillis(); kotlinx.coroutines.delay(1_000) } }
+                Text(BenchLog.since(now - lastAt), style = type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+                Text(lines, style = type["mono.xs"], color = c.textSecondary, modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(8.dp)).padding(10.dp))
+            }
             team.sopa.boar.ui.BoarSection("Model") {
                 if (models.isEmpty()) Text("Push a .gguf to Android/data/<package>/files/models", style = type.subtext, color = c.textAccentAmber)
                 else team.sopa.boar.ui.settings.Choices(null, models.map { it to "${it.name} · ${it.length() / 1_000_000} MB" }, model) { model = it }
@@ -290,9 +301,6 @@ private fun BenchScreen(
                 team.sopa.boar.ui.settings.LinkButton("Bench pp512 / tg128") { onRun("bench", model, params()) }
                 team.sopa.boar.ui.settings.LinkButton("Ask") { onRun("ask", model, params()) }
             }
-            team.sopa.boar.ui.BoarSection("Log") {
-                Text(log, style = type["mono.xs"], color = c.textSecondary, modifier = Modifier.fillMaxWidth().background(c.bgTerminal, RoundedCornerShape(8.dp)).padding(10.dp))
-            }
         }
     }
 }
@@ -308,4 +316,11 @@ private fun BenchField(label: String, value: String, modifier: Modifier, onValue
             cursorBrush = androidx.compose.ui.graphics.SolidColor(c.emerald500),
             modifier = Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp))
     }
+}
+
+/** The bench log as shown: newest line first, the last [MAX] lines; "last line 42 s ago" under the heading. */
+internal object BenchLog {
+    const val MAX = 60
+    fun newestFirst(log: String): String = log.trimEnd('\n').lines().takeLast(MAX).asReversed().joinToString("\n")
+    fun since(ms: Long): String = (ms / 1000).let { s -> if (s < 60) "● last line ${s} s ago" else "● last line ${s / 60} min ${s % 60} s ago" }
 }

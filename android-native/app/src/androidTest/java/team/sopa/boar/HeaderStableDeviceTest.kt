@@ -3,6 +3,7 @@ package team.sopa.boar
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Density
@@ -37,7 +38,8 @@ class HeaderStableDeviceTest {
             BoarTheme { ChatScreen(ChatState(online = true), onSend = {}, onStop = {}, onNewChat = {}, onMenu = {}, onSetTone = {}, onSetDeepResearch = {}, onRate = { _, _ -> }) }
         }
         fun bounds() = listOf(
-            compose.onNodeWithText("BOAR", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
+            // The header's BOAR: the empty chat shows a big BOAR too, lower down.
+            compose.onAllNodesWithText("BOAR", useUnmergedTree = true).fetchSemanticsNodes().minBy { it.boundsInRoot.top }.boundsInRoot,
             compose.onNodeWithContentDescription(t("chatHeader.newChatSession"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
             compose.onNodeWithContentDescription(t("native.a11y.menu"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
             compose.onNodeWithText(t("chatHeader.online"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,

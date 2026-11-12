@@ -258,6 +258,8 @@ class DeviceEvalRunner(
                                 if (s == null) failureRow(runId, config, q, runStyle, maxTokens, "model failed to load")
                                 else {
                                     running = s
+                                    // Said before the answer, so the bench screen shows what it's doing during a long one (adam, Nov 12).
+                                    log("[EVAL] ${q.id}: answering on ${config.modelId}…")
                                     val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
                                     // The chat's short-answer rules too: small talk, health and seed-phrase questions answer in
                                     // Succinct, and small talk at Succinct's length (ShortAnswer, ChatViewModel).
