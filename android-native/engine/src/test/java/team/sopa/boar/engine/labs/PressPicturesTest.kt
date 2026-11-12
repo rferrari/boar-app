@@ -169,3 +169,15 @@ class PressPicturesTest {
         assertTrue(File("$dir/PdfCompiler.kt").readText().contains("p.endBeside()"))
     }
 }
+
+class PressPhotoOpenTest {
+    @Test fun `a bounds-only decode's null result is not taken as "can't open" (every photo failed on the F3)`() {
+        val src = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressPictures.kt").readText()
+        val copy = src.substringAfter("fun copyPhoto(").substringBefore("val sample =")
+        org.junit.Assert.assertTrue(copy.contains("?.use { BitmapFactory.decodeStream(it, null, bounds); true } ?: false"))
+        org.junit.Assert.assertTrue(copy.contains("if (bounds.outWidth <= 0 || bounds.outHeight <= 0) error(\"not a picture\")"))
+        org.junit.Assert.assertTrue(!copy.contains("BitmapFactory.decodeStream(it, null, bounds) } ?: error"))
+        val screen = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+        org.junit.Assert.assertTrue(screen.contains("android.util.Log.w(\"BoarLabs\", \"press: photo copy failed\", e)"))
+    }
+}

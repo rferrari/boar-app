@@ -223,7 +223,11 @@ internal fun PressScreen(lab: LabPlugin) {
         if (uri == null) return@rememberLauncherForActivityResult
         val pid = project.id
         scope.launch {
-            val b = withContext(Dispatchers.IO) { runCatching { PressPictures.copyPhoto(ctx, pid, uri) }.getOrNull() }
+            // The reason goes to the log (never the photo itself), so a failure on a phone can be traced.
+            val b = withContext(Dispatchers.IO) {
+                runCatching { PressPictures.copyPhoto(ctx, pid, uri) }
+                    .onFailure { e -> android.util.Log.w("BoarLabs", "press: photo copy failed", e) }.getOrNull()
+            }
             if (b == null) Toasts.show(I18n.t(ctx, "native.labs.printer.photoFailed"))
             else if (PressStore.library.value?.current?.id == pid) addBlock(b)
         }

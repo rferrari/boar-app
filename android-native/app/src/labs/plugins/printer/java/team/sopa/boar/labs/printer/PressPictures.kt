@@ -65,7 +65,11 @@ object PressPictures {
     fun copyPhoto(ctx: Context, projectId: String, uri: android.net.Uri): PressDoc.Block.Picture {
         val cr = ctx.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: error("can't open the photo")
+        // A bounds-only decode always returns null (it fills [bounds]): only a stream that won't open is an error. Every photo
+        // failed with "could not be read" on the F3 before this (all28, Nov 12).
+        val opened = cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds); true } ?: false
+        if (!opened) error("can't open the photo")
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) error("not a picture")
         val sample = PressFiles.sampleSize(bounds.outWidth, bounds.outHeight)
         var bmp = cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) } ?: error("not a picture")
         val (w, h) = PressFiles.scaled(bmp.width, bmp.height)
