@@ -247,7 +247,7 @@ object LabHooks {
         if (route == "labs") return LabsList(onOpen = go, onTiles = { go(TILES) }) { go("chat") }
         if (route == TILES) return LabsScreen(onOpen = go) { go("labs") }
         val lab = LabRegistry.byId(route.removePrefix("lab:"))
-        // Opening a plugin's page counts as using it (the header's sheet shows the last five used).
+        // Opening a plugin's page counts as using it (the header's sheet shows the last three used).
         if (lab != null) androidx.compose.runtime.LaunchedEffect(lab.id) { LabPrefs.used(lab.id) }
         if (lab == null) androidx.compose.runtime.LaunchedEffect(route) { go(backFrom(route)) } else LabScaffold(lab) { go(backFrom(route)) }
     }
@@ -348,7 +348,7 @@ object LabHooks {
             Column(androidx.compose.ui.Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.headerSheet"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
-                // The last five used, newest first (adam, Nov 11); the rest are one tap away in Manage plugins (Pro).
+                // The last three used, newest first (adam, Nov 11; three since Nov 13); the rest are one tap away in Manage plugins (Pro).
                 val recent = LabPrefs.recentIds()
                 val shown = team.sopa.boar.engine.labs.RecentPlugins.pick(labs.map { it.id }, recent).mapNotNull { id -> labs.firstOrNull { it.id == id } }
                 shown.forEach { lab ->

@@ -8,9 +8,11 @@ import org.junit.Test
 class RecentPluginsTest {
     private val active = listOf("pulse", "image", "printer", "calc", "facts", "canvas", "staged")
 
-    @Test fun `the last used come first, only plugins that are on, at most five`() {
-        assertEquals(listOf("canvas", "printer", "pulse", "image", "calc"), RecentPlugins.pick(active, listOf("canvas", "lunar", "printer")))
-        assertEquals(5, RecentPlugins.pick(active, emptyList()).size)
+    @Test fun `the last used come first, only plugins that are on, at most three`() {
+        assertEquals(listOf("canvas", "printer", "pulse"), RecentPlugins.pick(active, listOf("canvas", "lunar", "printer")))
+        assertEquals(3, RecentPlugins.pick(active, emptyList()).size)
+        // Fewer used: the others that are on fill it, in list order.
+        assertEquals(listOf("facts", "pulse", "image"), RecentPlugins.pick(active, listOf("facts")))
     }
 
     @Test fun `using a plugin moves it to the front, ten kept`() {

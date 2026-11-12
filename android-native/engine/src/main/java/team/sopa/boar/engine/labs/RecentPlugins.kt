@@ -5,7 +5,8 @@ package team.sopa.boar.engine.labs
  * when fewer were used, the others switched on fill it in their list order.
  */
 object RecentPlugins {
-    const val SHOWN = 5
+    /** Three (adam, Nov 13; it was five). */
+    const val SHOWN = 3
     const val KEPT = 10
 
     fun pick(active: List<String>, recent: List<String>, n: Int = SHOWN): List<String> =
