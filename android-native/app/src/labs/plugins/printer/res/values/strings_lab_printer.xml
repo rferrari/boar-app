@@ -1,46 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_printer_title" formatted="false">Press</string>
-    <string name="native_labs_printer_body" formatted="false">Collect answers in a basket, then make a PDF or Markdown file.</string>
-    <string name="native_labs_printer_empty" formatted="false">The basket is empty.</string>
-    <string name="native_labs_printer_howTo" formatted="false">Tap 📎 under any answer to add it here. Then arrange and print.</string>
-    <string name="native_labs_printer_docTitle" formatted="false">DOCUMENT TITLE</string>
+    <string name="native_labs_printer_body" formatted="false">Projects as documents: chat answers, headings, notes and drawings, saved as a PDF.</string>
+    <string name="native_labs_printer_about" formatted="false">Each project is its own document. The white page is what the PDF prints: A4, made offline on this phone. Tap a block to move it, edit it or remove it. Answers come from a chat, and every document ends with how it was made: the date, the models and their speed, each drawing\'s recipe and one numbered list of the sources.</string>
     <string name="native_labs_printer_untitled" formatted="false">Field notes</string>
-    <string name="native_labs_printer_items_one" formatted="false">{{count}} ITEM</string>
-    <string name="native_labs_printer_items_other" formatted="false">{{count}} ITEMS</string>
-    <string name="native_labs_printer_clear" formatted="false">CLEAR</string>
-    <string name="native_labs_printer_sources_one" formatted="false">{{count}} source</string>
-    <string name="native_labs_printer_sources_other" formatted="false">{{count}} sources</string>
+    <string name="native_labs_printer_empty" formatted="false">Nothing here yet.</string>
+    <string name="native_labs_printer_howTo" formatted="false">Add answers from a chat: under an answer, open the plugins and tap Add to Press. Or add a heading, a note or a drawing.</string>
     <string name="native_labs_printer_noImages" formatted="false">No drawings yet. Make some in Designer, then pick them here.</string>
-    <string name="native_labs_printer_compile" formatted="false">🖨️ Print to PDF</string>
+    <string name="native_labs_printer_compile" formatted="false">Save PDF</string>
     <string name="native_labs_printer_compiling" formatted="false">Printing…</string>
     <string name="native_labs_printer_footer" formatted="false">compiled offline with BOAR</string>
-    <string name="native_labs_printer_inBasket" formatted="false">In the Press basket (tap to remove)</string>
-    <string name="native_labs_printer_addToBasket" formatted="false">Add to the Press basket</string>
+    <string name="native_labs_printer_inBasket" formatted="false">In {{project}} (tap to remove)</string>
+    <string name="native_labs_printer_addToBasket" formatted="false">Add to Press: {{project}}</string>
+    <string name="native_labs_printer_inProject" formatted="false">{{count}} in {{project}}</string>
     <string name="native_labs_printer_saved" formatted="false">Saved: {{name}}</string>
-    <string name="native_labs_printer_include" formatted="false">PRINT</string>
-    <string name="native_labs_printer_metaDate" formatted="false">Date</string>
-    <string name="native_labs_printer_metaModel" formatted="false">Model &amp; speed</string>
-    <string name="native_labs_printer_metaSources" formatted="false">Sources</string>
-    <string name="native_labs_printer_arrange" formatted="false">✎ Arrange</string>
-    <string name="native_labs_printer_preview" formatted="false">👁 Preview</string>
-    <string name="native_labs_printer_heading" formatted="false">Heading</string>
     <string name="native_labs_printer_moveUp" formatted="false">Move up</string>
     <string name="native_labs_printer_moveDown" formatted="false">Move down</string>
-    <string name="native_labs_printer_dragHint" formatted="false">Hold ⠿ and drag to change the order.</string>
-    <string name="native_labs_printer_markdown" formatted="false">📝 Save as Markdown</string>
-    <string name="native_labs_printer_mdReasoning" formatted="false">Reasoning</string>
-    <string name="native_labs_printer_place_center" formatted="false">⬛ Center</string>
-    <string name="native_labs_printer_place_right" formatted="false">▐ Right</string>
-    <string name="native_labs_printer_place_left" formatted="false">▌ Left</string>
-    <string name="native_labs_printer_place_alternate" formatted="false">⇄ Alternate</string>
-    <string name="native_labs_printer_metaDrawings" formatted="false">Drawings</string>
-    <string name="native_labs_printer_pos_after" formatted="false">↓ Heading, then drawing</string>
-    <string name="native_labs_printer_pos_before" formatted="false">↑ Drawing, then heading</string>
-    <string name="native_labs_printer_pickTitle" formatted="false">Drawing for this answer</string>
-    <string name="native_labs_printer_noDrawing" formatted="false">✕ No drawing</string>
+    <string name="native_labs_printer_edit" formatted="false">Edit text</string>
+    <string name="native_labs_printer_doneEditing" formatted="false">Done editing</string>
+    <string name="native_labs_printer_remove" formatted="false">Remove</string>
+    <string name="native_labs_printer_close" formatted="false">Close</string>
+    <string name="native_labs_printer_removed" formatted="false">Removed from the page</string>
+    <string name="native_labs_printer_undo" formatted="false">Undo</string>
+    <string name="native_labs_printer_markdown" formatted="false">Save as Markdown</string>
+    <string name="native_labs_printer_pickTitle" formatted="false">Pick a drawing</string>
     <string name="native_labs_printer_addChat" formatted="false">Add to Press</string>
-    <string name="native_labs_printer_exampleA" formatted="false">3 answers from 2 chats + 1 drawing → field-notes.pdf, with date, model and sources under each answer.</string>
-    <string name="native_labs_printer_how" formatted="false">• Collect answers from any chat, add drawings from Designer, and compile them offline into a PDF or a Markdown file.\n• Hold ⠿ and drag to change the order.</string>
-    <string name="native_labs_printer_deleteNote" formatted="false">Its answers leave the Press basket.</string>
+    <string name="native_labs_printer_deleteNote" formatted="false">Its answers leave every Press project.</string>
+    <string name="native_labs_printer_projects" formatted="false">Projects</string>
+    <string name="native_labs_printer_projectButton" formatted="false">Project: {{name}}. Opens the project menu</string>
+    <string name="native_labs_printer_blocks_one" formatted="false">{{count}} block</string>
+    <string name="native_labs_printer_blocks_other" formatted="false">{{count}} blocks</string>
+    <string name="native_labs_printer_newProject" formatted="false">New project</string>
+    <string name="native_labs_printer_newProjectHint" formatted="false">Name, for example Trip to Lisbon</string>
+    <string name="native_labs_printer_create" formatted="false">Create</string>
+    <string name="native_labs_printer_rename" formatted="false">Rename “{{name}}”</string>
+    <string name="native_labs_printer_renameSave" formatted="false">Save the name</string>
+    <string name="native_labs_printer_delete" formatted="false">Delete “{{name}}”</string>
+    <string name="native_labs_printer_deleteConfirm" formatted="false">Tap again to delete “{{name}}” and all it holds</string>
+    <string name="native_labs_printer_deleted" formatted="false">“{{name}}” deleted</string>
+    <string name="native_labs_printer_keepOne" formatted="false">Keep at least one project.</string>
+    <string name="native_labs_printer_inbox_one" formatted="false">{{count}} new answer added at the end</string>
+    <string name="native_labs_printer_inbox_other" formatted="false">{{count}} new answers added at the end</string>
+    <string name="native_labs_printer_show" formatted="false">Show</string>
+    <string name="native_labs_printer_add" formatted="false">Add</string>
+    <string name="native_labs_printer_addTitle" formatted="false">Add to this page</string>
+    <string name="native_labs_printer_heading" formatted="false">Heading</string>
+    <string name="native_labs_printer_note" formatted="false">Note</string>
+    <string name="native_labs_printer_drawing" formatted="false">Drawing from Designer</string>
+    <string name="native_labs_printer_drawings_one" formatted="false">{{count}} on this phone</string>
+    <string name="native_labs_printer_drawings_other" formatted="false">{{count}} on this phone</string>
+    <string name="native_labs_printer_addHint" formatted="false">Answers come from a chat: under an answer, open the plugins and tap Add to Press.</string>
+    <string name="native_labs_printer_newHeading" formatted="false">New heading</string>
+    <string name="native_labs_printer_newNote" formatted="false">A note</string>
+    <string name="native_labs_printer_docTitle" formatted="false">Document title</string>
+    <string name="native_labs_printer_sourcesRefs" formatted="false">Sources</string>
+    <string name="native_labs_printer_page" formatted="false">page {{n}}</string>
+    <string name="native_labs_printer_missing" formatted="false">This drawing is no longer on this phone.</string>
+    <string name="native_labs_printer_mdDrawing" formatted="false">Drawing</string>
+    <string name="native_labs_printer_unreadable" formatted="false">Press can\'t read its projects file. It is kept as it is, and nothing is written over it.</string>
+    <string name="native_labs_printer_receipt" formatted="false">HOW THIS DOCUMENT WAS MADE</string>
+    <string name="native_labs_printer_rMade" formatted="false">Made</string>
+    <string name="native_labs_printer_rMadeValue" formatted="false">{{date}}, offline, on this phone · BOAR {{version}}</string>
+    <string name="native_labs_printer_rAnswers" formatted="false">Answers</string>
+    <string name="native_labs_printer_rDrawings" formatted="false">Drawings</string>
+    <string name="native_labs_printer_rPhotos" formatted="false">Photos</string>
+    <string name="native_labs_printer_rPhotosValue" formatted="false">{{count}} from this phone</string>
+    <string name="native_labs_printer_rSources" formatted="false">Sources</string>
+    <string name="native_labs_printer_rDesigner" formatted="false">Designer</string>
+    <string name="native_labs_printer_rSeed" formatted="false">seed {{seed}}</string>
+    <string name="native_labs_printer_rSquare" formatted="false">square</string>
+    <string name="native_labs_printer_rPortrait" formatted="false">portrait</string>
+    <string name="native_labs_printer_rWide" formatted="false">wide</string>
 </resources>

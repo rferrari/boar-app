@@ -8,7 +8,7 @@
 # enough; they're for advanced users, in debug and Labs builds (-Pboar.labs.released=false), not for everyone.
 pulse: VitalsTest PluginAnswersTest
 image: ImageSafetyTest IllustrateGateTest
-printer: ChatExportTest
+printer: PressDocTest PressReceiptTest PictureFitTest
 polyglot: LanguageGateTest
 calc: LabToolsCombinationTest LabToolsCompoundTest UnitBridgeTest
 distance: TravelDistanceTest

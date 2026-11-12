@@ -15,10 +15,19 @@ class PictureFitTest {
         assertEquals(200f to 200f, PictureFit.fit(0, 512, 200f))
     }
 
-    @Test fun `the PDF and the preview use it, the chooser thumbnail stays square`() {
-        val pdf = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PdfCompiler.kt").readText()
-        assertTrue(pdf.contains("PictureFit.fit(bmp.width, bmp.height, box)"))
-        val press = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").readText()
-        assertTrue(press.contains("Thumb(f, whole = true)") && press.contains("{ Thumb(drawing) }"))
+    @Test fun `on the paper a picture takes the column's width in its shape, no taller than the cap`() {
+        assertEquals(515f to 386.25f, PictureFit.within(640, 480, 515f, 400f))
+        // A tall one is held to the cap, and narrower.
+        assertEquals(300f to 400f, PictureFit.within(384, 512, 515f, 400f))
+        assertEquals(515f to 257.5f, PictureFit.within(640, 320, 515f, 400f))
+        assertEquals(400f to 400f, PictureFit.within(0, 0, 515f, 400f))
+    }
+
+    @Test fun `the PDF and the paper on screen use the same fit`() {
+        val dir = "../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer"
+        val pdf = java.io.File("$dir/PdfCompiler.kt").readText()
+        assertTrue(pdf.contains("PictureFit.within(bmp.width, bmp.height, Paper.INNER, Paper.PICTURE_MAX_H)"))
+        val screen = java.io.File("$dir/PressScreen.kt").readText()
+        assertTrue(screen.contains("PictureFit.within(pw, ph, Paper.INNER, Paper.PICTURE_MAX_H)"))
     }
 }
