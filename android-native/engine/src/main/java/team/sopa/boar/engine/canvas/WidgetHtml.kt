@@ -33,7 +33,7 @@ object WidgetHtml {
         val fenced = Regex("```(?:html)?\\s*\\n([\\s\\S]*?)```", RegexOption.IGNORE_CASE).find(text)?.groupValues?.get(1)
         val body = (fenced ?: text).trim()
         val start = Regex("<!doctype html|<html|<body|<div|<style|<script|<main|<section|<canvas|<svg", RegexOption.IGNORE_CASE).find(body)?.range?.first ?: return null
-        val end = body.lastIndexOf("</html>", ignoreCase = true).takeIf { it >= 0 }?.plus("</html>".length) ?: body.length
+        val end = body.lastIndexOf("</html>", ignoreCase = true).takeIf { it >= start }?.plus("</html>".length) ?: body.length
         val page = body.substring(start, end).trim()
         if (page.length > MAX_CHARS || !page.contains('<')) return null
         return page

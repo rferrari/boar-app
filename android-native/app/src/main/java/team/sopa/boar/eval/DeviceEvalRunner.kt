@@ -471,7 +471,7 @@ class DeviceEvalRunner(
         try {
             team.sopa.boar.engine.answer.StagedAnswer(retrieve, classify, retrievalIrrelevant)
                 .answer(team.sopa.boar.engine.answer.StagedRequest(q.query, systemPrompt, introReminder, styleReminder.takeIf { personalityId != "succinct" }, maxTokens),
-                    load = { s }, shouldStop = { false })
+                    load = { s }, shouldStop = { stopRequested })
                 .collect { e ->
                     when (e) {
                         is team.sopa.boar.engine.answer.StagedEvent.Piece -> tokens++

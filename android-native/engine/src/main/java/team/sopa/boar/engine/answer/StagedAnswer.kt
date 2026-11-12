@@ -135,7 +135,7 @@ class StagedAnswer(
             emit(StagedEvent.Restart)
             intro.setLength(0)
             fullAnswer = true
-            metrics = generate(session, prompt(session, req.query, sources, req.systemPrompt, req.history, req.detailsReminder, req.enableThinking), req.maxTokens) { piece ->
+            metrics = generate(session, prompt(session, req.query, sources, req.systemPrompt, req.history, req.detailsReminder ?: req.introReminder, req.enableThinking), req.maxTokens) { piece ->
                 intro.append(piece)
                 emit(StagedEvent.Piece(StagedStep.INTRO, piece))
             }

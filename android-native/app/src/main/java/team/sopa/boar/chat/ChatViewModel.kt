@@ -604,8 +604,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** Asks the question of [answerId] again (an answer that came back empty). */
     /** Asks the question of [answerId] again with the Labs plugins skipped, so the model answers it ("Ask BOAR instead"). */
     fun askModel(answerId: String) {
-        // Not queued: the "skip the plugins" flag belongs to this question only.
-        if (job?.isActive == true) return
+        // Not queued: the "skip the plugins" flag belongs to this question only, so not while others wait either (it would
+        // be taken by the next one in line; CodeRabbit).
+        if (job?.isActive == true || handoff || !queue.isEmpty() || _state.value.loadNote != null) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -665,6 +666,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
         gateNote()?.let { n ->
+            // A second question while the note shows waits behind the first instead of replacing it (validator Q-4,
+            // CodeRabbit); the queue starts after the held one once the model loads, or goes with the note.
+            if (heldQuestion != null && _state.value.loadNote != null) {
+                if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
+                return
+            }
             heldQuestion = q
             // A waiting question that stops here ends the answer notification the queue kept up.
             if (serviceUp) team.sopa.boar.app.AnswerService.stop(getApplication())

@@ -193,6 +193,12 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     var readDoc by rememberSaveable { mutableStateOf("") }
     var readTitle by rememberSaveable { mutableStateOf("") }
     var readBody by rememberSaveable { mutableStateOf("") }
+    // A plugin page's Try row: a new chat that asks it, or the question in the input box to edit (adam, Nov 12). Set before
+    // any screen returns, so a plugin page restored after rotation has it too; cleared with this composition (CodeRabbit).
+    androidx.compose.runtime.DisposableEffect(vm) {
+        team.sopa.boar.plugins.AskFromPlugin.handler = { q, send -> vm.newChat(); if (send) vm.send(q) else vm.prefillWith(q); screen = "chat" }
+        onDispose { team.sopa.boar.plugins.AskFromPlugin.handler = { _, _ -> } }
+    }
     if (screen == "reader") {
         BackHandler { screen = "chat" }
         team.sopa.boar.ui.chat.SourceReaderScreen(services, readDoc, readTitle, readBody) { screen = "chat" }
@@ -310,10 +316,6 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         BackHandler { vm.refreshSettings(); screen = "chat" }
         SettingsScreen(services, prefs, onPin = { flow -> screen = "pin:$flow:settings" }, onSetup = { setup.restart(); screen = "setup" }, onOpen = { screen = if (it == "about") "about:settings" else it }) { vm.refreshSettings(); screen = "chat" }
         return
-    }
-    // A plugin page's Try row: a new chat that asks it, or the question in the input box to edit (adam, Nov 12).
-    androidx.compose.runtime.SideEffect {
-        team.sopa.boar.plugins.AskFromPlugin.handler = { q, send -> vm.newChat(); if (send) vm.send(q) else vm.prefillWith(q); screen = "chat" }
     }
     val drawer = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()

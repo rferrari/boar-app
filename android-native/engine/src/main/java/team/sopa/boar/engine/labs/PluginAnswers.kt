@@ -17,6 +17,8 @@ object PluginAnswers {
     // No bare "lunar" ("lunar eclipse", "lunar new year"), and no title: "Moon Knight", "Sailor Moon", "lua de mel" (validator P-2).
     private val MOON = Regex("\\b(moon|moons|lua|lunar phase|fase lunar)\\b", RegexOption.IGNORE_CASE)
     private val MOON_NOT = Regex("\\b(eclipse|eclipses|new year|ano novo|knight|sailor|lua de mel|honeymoon|festival)\\b", RegexOption.IGNORE_CASE)
+    /** A date or the past ("the moon on July 20 1969", "last night's moon"): the answer is for now only (CodeRabbit). */
+    private val MOON_DATED = Regex("\\b(1[5-9]\\d\\d|2[0-9]\\d\\d)\\b|\\byesterday\\b|\\blast (night|week|month|year)\\b|\\bontem\\b|\\b(semana|m[eê]s|ano) passad[oa]\\b", RegexOption.IGNORE_CASE)
     /** "Moon Knight", "Lua Nova" as a name: a capitalised word after the moon word (case-sensitive on purpose). */
     private val MOON_NAME = Regex("\\b(Moon|Lua)\\s+\\p{Lu}")
     private val MOON_NOW = Regex(
@@ -30,7 +32,7 @@ object PluginAnswers {
     private val MOON_ASK = Regex("\\bwhat'?s the moon\\b|\\bwhat is the moon (like|doing)\\b|\\bmoon (phase|tonight|today|now)\\b|\\bcomo est[aá] a lua\\b|\\bfase da lua\\b|\\blunar phase\\b|\\bfase lunar\\b", RegexOption.IGNORE_CASE)
 
     fun isMoonQuestion(q: String): Boolean = norm(q).let { n -> MOON.containsMatchIn(n) && (MOON_NOW.containsMatchIn(n) || MOON_ASK.containsMatchIn(n)) && !MOON_HISTORY.containsMatchIn(n) &&
-        !MOON_NOT.containsMatchIn(n) && !MOON_NAME.containsMatchIn(n) }
+        !MOON_NOT.containsMatchIn(n) && !MOON_NAME.containsMatchIn(n) && !MOON_DATED.containsMatchIn(n) }
 
     /** Curly apostrophes as straight ones: "where’s" is "where's". */
     private fun norm(q: String) = q.replace('\u2019', '\'').replace('\u2018', '\'')
@@ -81,13 +83,24 @@ object PluginAnswers {
         val deg = heading.roundToInt() % 360
         val dir = Compass.cardinal(deg)
         val name = (if (pt) DIRS_PT else DIRS_EN).getValue(dir)
-        val north = ((360 - deg) % 360)
+        // "Which way is east": the turn to east, not to north (CodeRabbit). North otherwise.
+        val asked = askedCardinal(q)
+        val target = mapOf("n" to 0, "e" to 90, "s" to 180, "w" to 270).getValue(asked)
+        val north = ((target - deg) % 360 + 360) % 360
         val turn = if (north <= 180) (if (pt) "$north° à direita" else "$north° to your right") else (if (pt) "${360 - north}° à esquerda" else "${360 - north}° to your left")
+        val askedName = (if (pt) DIRS_PT else DIRS_EN).getValue(asked)
         val flat = tiltDeg != null && tiltDeg > FLAT_DEG
-        val base = if (pt) "O topo do celular aponta para $name ($deg°). O norte fica a $turn." else "The top of your phone points $name ($deg°). North is $turn."
+        val base = if (pt) "O topo do celular aponta para $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} fica a $turn." else "The top of your phone points $name ($deg°). ${askedName.replaceFirstChar { it.uppercase() }} is $turn."
         val hold = if (!flat) "" else if (pt) " Segure o celular deitado, na horizontal: inclinado, a bússola erra." else " Hold the phone flat: tilted, the compass reads wrong."
         val note = if (pt) " Norte magnético; afaste de ímãs e metais." else " Magnetic north; keep it away from magnets and metal."
         return base + hold + note
+    }
+
+    private val ASKED = Regex("\\b(north|south|east|west|norte|sul|leste|oeste)\\b", RegexOption.IGNORE_CASE)
+
+    /** The cardinal the question asks for: "n", "e", "s" or "w"; north when it names none ("which way am I facing"). */
+    private fun askedCardinal(q: String): String = when (ASKED.find(q)?.value?.lowercase()) {
+        "south", "sul" -> "s"; "east", "leste" -> "e"; "west", "oeste" -> "w"; else -> "n"
     }
 
     private val DIRS_EN = mapOf("n" to "north", "ne" to "northeast", "e" to "east", "se" to "southeast", "s" to "south", "sw" to "southwest", "w" to "west", "nw" to "northwest")

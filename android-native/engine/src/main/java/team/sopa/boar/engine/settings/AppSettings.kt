@@ -68,7 +68,9 @@ class AppSettings(private val file: File) {
         // Fresh: setup never finished (no answer model chosen yet), no lab, no Boarverse. Every rc2 install has a model.
         val fresh = activeModelId("llm") == null && !anyLabOn && !boarverseOn
         val proChanged = !storedTweaks.isAuto || bool("adaptiveRoutingEnabled") == true || int("freeMemoryAfterMinutes") != null ||
-            bool("showDrawerStats") == true || bool("debugLogEnabled") == true || anyLabOn
+            bool("showDrawerStats") == true || bool("debugLogEnabled") == true || anyLabOn ||
+            // Sources above the answer is a Pro setting too: kept for a user who picked it (CodeRabbit).
+            (str("sourcesLayout") ?: SOURCES_TODAY) != SOURCES_TODAY
         val explorerChanged = boarverseOn || EXPLORER_CHANGES.any { (key, isDefault) -> data[key]?.let { it !is JsonNull && !isDefault(it) } == true }
         val p = UserProfile.forUpdate(proChanged, explorerChanged)
         // A file that couldn't be read is left for recovery: the profile holds for this run, and the next setting the

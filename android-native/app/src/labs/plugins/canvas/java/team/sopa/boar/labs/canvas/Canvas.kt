@@ -83,7 +83,9 @@ internal object Canvas {
             val fromSources = if (kind == Kind.WIDGET) none else VisualContext.fromSources(a.question, a.text, a.passages)
             val context = listOf(earlier.sourceText, fromSources.sourceText).filter { it.isNotBlank() }.joinToString("\n")
             val r = runCatching { generate(ctx, a, kind, earlier, fromSources) }
-            // Forgotten (✕) while it was being made.
+            // Forgotten (✕) or erased while it was being made: checked and saved under the lock that forget and eraseAll
+            // take, so an erase can't finish between the check and the save and the file come back (CodeRabbit).
+            synchronized(this@Canvas) {
             if (status[key] !is Status.Making) return@launch
             val raw = r.getOrNull()
             val refusal = if (raw != null && kind != Kind.WIDGET) Visual.parse(raw, grounding(a, context), a.question) as? Visual.Parsed.Rejected else null
@@ -96,18 +98,21 @@ internal object Canvas {
             refusal?.let { android.util.Log.i("BoarLabs", "canvas ${a.id}: refused ${it.reason}") }
             status[key] = if (rejected != null || raw == null) Status.Failed(rejected ?: "native.labs.canvas.failed", refusal?.detail?.take(60), raw)
             else Status.Done(kind, raw, (System.nanoTime() - started) / 1e9, context).also { save(ctx, key, it) }
+            }
             // No question or answer text in the log, as the other labs.
             android.util.Log.i("BoarLabs", "canvas ${a.id}: $kind -> ${status[key]?.javaClass?.simpleName}")
             jobs.remove(key)
         }
     }
 
+    @Synchronized
     fun forget(ctx: Context, id: String) {
         jobs.remove(id)?.cancel()
         status.remove(id)
         file(ctx, id).delete()
     }
 
+    @Synchronized
     fun eraseAll(ctx: Context) {
         jobs.values.forEach { it.cancel() }
         jobs.clear()

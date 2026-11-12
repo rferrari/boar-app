@@ -83,4 +83,18 @@ class PluginAnswersTest {
             assertFalse(q, PluginAnswers.isPhoneQuestion(q))
         for (q in listOf("is my phone charging?", "how much battery does my phone have", "is this phone too hot?")) assertTrue(q, PluginAnswers.isPhoneQuestion(q))
     }
+
+    @Test fun `the turn is to the direction asked, and a dated moon goes to the model (CodeRabbit)`() {
+        assertTrue(PluginAnswers.directionAnswer("which way is east?", 0f, 0f).contains("East is 90° to your right"))
+        assertTrue(PluginAnswers.directionAnswer("which way is west?", 0f, 0f).contains("West is 90° to your left"))
+        assertTrue(PluginAnswers.directionAnswer("onde fica o sul?", 90f, 0f).contains("O sul fica a 90° à direita"))
+        assertTrue(PluginAnswers.directionAnswer("which direction am I facing", 90f, 0f).contains("North is 90° to your left"))
+        for (q in listOf("what was the moon phase on July 20 1969", "what phase was the moon last night", "qual era a fase da lua ontem"))
+            assertFalse(q, PluginAnswers.isMoonQuestion(q))
+    }
+
+    @Test fun `a small distance is kept exact in the sum (CodeRabbit)`() {
+        val p = team.sopa.boar.engine.routing.UnitBridge.prepare("how long to travel 0.02 miles at 3 km/h")
+        assertFalse(p.query, p.query.contains(" 0 km"))
+    }
 }
