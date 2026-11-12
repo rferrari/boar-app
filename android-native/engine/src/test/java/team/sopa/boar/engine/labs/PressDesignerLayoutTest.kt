@@ -25,6 +25,8 @@ class PressDesignerLayoutTest {
         assertTrue(screen.contains("CaptionLine(project, pages = pageStarts.size + 1, canSave = project.blocks.isNotEmpty() && !compiling, onSave = ::savePdf)"))
         val cap = s.substringAfter("private fun CaptionLine(").substringBefore("\n}\n")
         assertTrue(cap.contains("background(GOLD)") && cap.contains("onClickLabel = save, onClick = onSave"))
+        // One way to the project menu: the input bar's left button (it was on the caption line too).
+        assertTrue(!cap.contains("lab_printer_ic_folder"))
     }
 
     @Test fun `the strip adds a photo, a heading, a chat's answers or a drawing, and the menu's Add to Press uses the same code`() {

@@ -278,7 +278,7 @@ internal fun PressScreen(lab: LabPlugin) {
                 }))
             },
             onClose = { selected = null; editing = null })
-        CaptionLine(project, pages = pageStarts.size + 1, canSave = project.blocks.isNotEmpty() && !compiling, onSave = ::savePdf) { sheet = Sheet.PROJECTS }
+        CaptionLine(project, pages = pageStarts.size + 1, canSave = project.blocks.isNotEmpty() && !compiling, onSave = ::savePdf)
         AddStrip(project,
             onPhoto = { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
@@ -608,12 +608,11 @@ private fun EditSheet(block: Block, onSelf: () -> Unit, onClose: () -> Unit) {
     }
 }
 
-/** Under the page, as Designer's caption: the project, its blocks and pages, Save PDF (gold) and the project menu. */
+/** Under the page, as Designer's caption: the project, its blocks and pages, and Save PDF (gold). The project menu is the input bar's left button. */
 @Composable
-private fun CaptionLine(project: PressDoc.Project, pages: Int, canSave: Boolean, onSave: () -> Unit, onMenu: () -> Unit) {
+private fun CaptionLine(project: PressDoc.Project, pages: Int, canSave: Boolean, onSave: () -> Unit) {
     val c = Boar.colors
     val save = t("native.labs.printer.compile")
-    val menu = t("native.labs.printer.projectButton", "name" to project.name)
     Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(project.name + " · " + t("native.labs.printer.blocks", "count" to project.blocks.size) + " · " + t("native.labs.printer.pages", "count" to pages),
@@ -622,9 +621,6 @@ private fun CaptionLine(project: PressDoc.Project, pages: Int, canSave: Boolean,
         Box(Modifier.size(44.dp).alpha(if (canSave) 1f else 0.4f).clip(CircleShape).background(GOLD)
             .clickable(enabled = canSave, role = Role.Button, onClickLabel = save, onClick = onSave), contentAlignment = Alignment.Center) {
             Icon(painterResource(R.drawable.lab_printer_ic_download), save, Modifier.size(22.dp), tint = Color(0xFF1B1405))
-        }
-        Box(Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = menu, onClick = onMenu), contentAlignment = Alignment.Center) {
-            Icon(painterResource(R.drawable.lab_printer_ic_folder), menu, Modifier.size(22.dp), tint = c.textHeading)
         }
     }
 }
