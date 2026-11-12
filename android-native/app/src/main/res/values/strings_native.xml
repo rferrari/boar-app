@@ -725,6 +725,7 @@
     <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} in the basket</string>
     <string name="native_sources_earlier" formatted="false">EARLIER IN THE PASSAGE</string>
     <string name="native_sources_sameArticle" formatted="false">MORE FROM THIS ARTICLE</string>
+    <string name="native_chat_connectionDetails" formatted="false">Double tap for details</string>
     <string name="native_chat_queueFull" formatted="false">Up to 5 questions can wait. Send this one when one of them has run.</string>
     <string name="native_chat_queueDropped" formatted="false">BOAR was closed: {{count}} waiting questions were dropped.</string>
     <string name="native_chat_clearQueue" formatted="false">Clear queue</string>

@@ -28,7 +28,10 @@ class ConnectionPillTest {
         // Both drawn, one box: the pill and the dot cross-fade by alpha; nothing is added or removed, so nothing resizes.
         assertTrue(!dot.contains("animateContentSize") && !dot.contains("if (expanded) Row("))
         assertTrue(dot.contains("Modifier.alpha(pill)") && dot.contains("Modifier.alpha(1f - pill)") && dot.contains("tween(if (animOff) 0 else 250)"))
-        assertTrue(dot.contains("clickable(onClickLabel = label) { tapped++; info = true }"))
+        // Two steps (adam, Nov 13): the dot expands into the pill for 4 s, a tap on the pill opens the dialog; TalkBack opens it at once.
+        assertTrue(dot.contains(".clickable { if (expanded) info = true else tapped++ }"))
+        assertTrue(dot.contains("delay(ConnectionPill.TAP_SHOW_MS)") && ConnectionPill.TAP_SHOW_MS == 4_000L && ConnectionPill.SHOW_MS == 2_000L)
+        assertTrue(dot.contains("clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }"))
         assertTrue(dot.contains("if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)"))
         assertTrue(dot.contains("boldMarks(t(if (online) \"chatHeader.onlineBody\" else \"chatHeader.offlineBody\"))"))
     }

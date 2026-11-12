@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -52,6 +53,23 @@ class HeaderStableDeviceTest {
         val after = bounds()
         assertEquals("during", before, during)
         assertEquals("after", before, after)
+    }
+
+    @Test fun theFirstTapShowsThePillTheSecondOpensTheDialogAndNothingMoves() {
+        ConnectionPill.lastShown = true   // no automatic pill: start from the dot
+        compose.setContent {
+            BoarTheme { ChatScreen(ChatState(online = true), onSend = {}, onStop = {}, onNewChat = {}, onMenu = {}, onSetTone = {}, onSetDeepResearch = {}, onRate = { _, _ -> }) }
+        }
+        val dot = compose.onNodeWithContentDescription(t("chatHeader.online") + ". " + t("native.chat.connectionDetails"))
+        fun newChat() = compose.onNodeWithContentDescription(t("chatHeader.newChatSession"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val before = newChat()
+        dot.performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText(t("chatHeader.onlineTitle")).assertDoesNotExist()   // first tap: only the pill
+        assertEquals(before, newChat())
+        dot.performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText(t("chatHeader.onlineTitle")).assertExists()         // second tap, on the pill: the dialog
     }
 
     @Test fun theSubtitleIsInsideTheBarAtTheLargestFontScale() {

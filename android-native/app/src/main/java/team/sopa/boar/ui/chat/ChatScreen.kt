@@ -5,6 +5,7 @@ import team.sopa.boar.engine.chat.ConnectionPill
 import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.material3.minimumInteractiveComponentSize
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
@@ -307,8 +308,9 @@ private val MOON = Color(0xFF9EC7F0)
 
 /**
  * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", beside BOAR for about 2 s when BOAR opens and when
- * the connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). A tap shows the pill
- * again and opens what the connection is used for. Shown once per state for the process (ConnectionPill).
+ * the connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). Two steps (adam,
+ * Nov 13): a tap on the dot shows the pill for about 4 s; a tap on the pill, the automatic one included, opens what the
+ * connection is used for. TalkBack reads the state and opens the dialog at once. Shown once per state (ConnectionPill).
  * The header never moves (adam, Nov 12; t9 1950): the pill's space is always kept, the pill and the dot are drawn on
  * top of each other and cross-fade, so nothing else changes position or size. With animations off the swap is instant.
  */
@@ -332,7 +334,7 @@ private fun ConnectionDot(online: Boolean) {
     LaunchedEffect(tapped) {
         if (tapped == 0) return@LaunchedEffect
         expanded = true
-        kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
+        kotlinx.coroutines.delay(ConnectionPill.TAP_SHOW_MS)
         expanded = false
     }
     val pill by androidx.compose.animation.core.animateFloatAsState(if (expanded) 1f else 0f,
@@ -340,7 +342,11 @@ private fun ConnectionDot(online: Boolean) {
     val tint = if (online) c.amber400 else MOON
     val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
     // One box, always the pill's size: the dot sits where the pill starts, right after BOAR.
-    Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = label) { tapped++; info = true }.padding(horizontal = 4.dp, vertical = 8.dp),
+    val spoken = label + ". " + t("native.chat.connectionDetails")
+    // First tap: the pill; a tap on the pill: the dialog. A screen reader gets one action that opens the dialog.
+    Box(Modifier.clip(RoundedCornerShape(8.dp))
+        .clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }
+        .clickable { if (expanded) info = true else tapped++ }.padding(horizontal = 4.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart) {
         Row(
             Modifier.alpha(pill).background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))

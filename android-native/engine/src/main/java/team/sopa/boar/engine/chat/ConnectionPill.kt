@@ -7,6 +7,8 @@ package team.sopa.boar.engine.chat
  */
 object ConnectionPill {
     const val SHOW_MS = 2_000L
+    /** After a tap on the dot: long enough to read it and tap the pill for the details (adam, Nov 13). */
+    const val TAP_SHOW_MS = 4_000L
     const val SETTLE_MS = 1_500L
 
     /** The state the pill last showed this process; null: not shown yet. */
