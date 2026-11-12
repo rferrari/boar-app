@@ -73,5 +73,5 @@
     <string name="native_labs_image_try1" formatted="false">a lighthouse in a storm</string>
     <string name="native_labs_image_try2" formatted="false">the water cycle</string>
     <string name="native_labs_image_try3" formatted="false">a mountain cabin at dawn</string>
-    <string name="native_labs_image_how" formatted="false">Draws one illustration at a time on this phone, offline, from a few words and a style. Under an answer, 🎨 Illustrate this answer picks what to draw from it. Some subjects are refused. Images made here stay here; manage or delete them below.</string>
+    <string name="native_labs_image_how" formatted="false">• Draws one illustration at a time on this phone, offline, from a few words and a style.\n• Under an answer, 🎨 Illustrate this answer picks what to draw from it.\n• Some subjects are refused.\n• Images made here stay here; manage or delete them below.</string>
 </resources>

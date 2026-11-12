@@ -15,5 +15,5 @@
     <string name="native_labs_facts_other" formatted="false">Outros</string>
     <string name="native_labs_facts_otherList" formatted="false">quando um monumento foi construído, tomadas e voltagem, onde um evento aconteceu, quem ganhou um prêmio num ano</string>
     <string name="native_labs_facts_source" formatted="false">Toda resposta mostra a fonte e a data (Wikidata, outubro de 2026).</string>
-    <string name="native_labs_facts_how" formatted="false">Dois dados de uma vez, um resumo, um porquê ou como, um nome ambíguo (Georgia) ou uma conversa sobre saúde vão para o modelo. Uma população mais antiga mostra o ano.\n\nDados offline de r4to (BOAR R&amp;D).</string>
+    <string name="native_labs_facts_how" formatted="false">• Responde com uma tabela da Wikidata guardada no celular, por enquanto só em inglês.\n• Dois fatos de uma vez, um resumo, um porquê ou como, um nome ambíguo (Georgia) ou uma conversa sobre saúde vão para o modelo.\n• Uma população antiga mostra o ano.\n• Toda resposta mostra a fonte e a data (Wikidata, outubro de 2026).\n• Dados offline do r4to (BOAR R&amp;D).</string>
 </resources>

@@ -25,5 +25,5 @@
     <string name="native_labs_pulse_exampleA" formatted="false">Bateria em 64%, carregando; temperatura da bateria 33,0 °C (fria); 3,1 GB de memória livres de 11,2 GB; 8 núcleos de processador. Lido agora no celular; o Vitals mostra mais.</string>
     <string name="native_labs_pulse_example1" formatted="false">Meu celular está esquentando?</string>
     <string name="native_labs_pulse_example2" formatted="false">Quanta memória livre tem o celular?</string>
-    <string name="native_labs_pulse_how" formatted="false">Calor, bateria, o clock de cada núcleo, a memória e o chip em que o BOAR roda, lidos neste celular. Você também pode perguntar na conversa se o celular está quente.</string>
+    <string name="native_labs_pulse_how" formatted="false">• Calor, bateria, o clock de cada núcleo, a memória e o chip em que o BOAR roda, lidos neste celular.\n• Você também pode perguntar na conversa se o celular está quente.</string>
 </resources>

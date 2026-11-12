@@ -244,10 +244,10 @@
     <string name="chatHeader_deepResearch" formatted="false">Pesquisa Aprofundada</string>
     <string name="chatHeader_deepResearchActive" formatted="false">Pesquisa Aprofundada Ativa</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
-    <string name="chatHeader_onlineTitle" formatted="false">Você está online</string>
-    <string name="chatHeader_onlineBody" formatted="false">Seu celular está conectado à internet. O BOAR não precisa dela: respostas, busca e sua biblioteca funcionam neste celular. Só baixar modelos ou pacotes e buscar modelos no Hugging Face usam a conexão. Ative o modo avião para vê-lo funcionar totalmente offline.</string>
-    <string name="chatHeader_offlineTitle" formatted="false">Você está offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">Sem conexão com a internet. Tudo funciona: respostas, busca e sua biblioteca estão neste celular.</string>
+    <string name="chatHeader_onlineTitle" formatted="false">Online, mas não precisamos.</string>
+    <string name="chatHeader_onlineBody" formatted="false">O BOAR funciona igual com ou sem sinal.\n\nA conexão só serve para **baixar modelos ou pacotes** e **buscar no Hugging Face**.\n\nQuer ver? Ligue o **modo avião**.</string>
+    <string name="chatHeader_offlineTitle" formatted="false">Offline, como planejado.</string>
+    <string name="chatHeader_offlineBody" formatted="false">O BOAR não precisa de internet.\n\nSua biblioteca está **neste celular**, pode perguntar.</string>
     <string name="chatScreen_initializingCore" formatted="false">Inicializando núcleo offline local…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Carregando pesos GGUF locais…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexando base de conhecimento offline…</string>

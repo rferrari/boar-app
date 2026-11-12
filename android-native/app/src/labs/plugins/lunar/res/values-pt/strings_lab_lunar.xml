@@ -18,5 +18,5 @@
     <string name="native_labs_lunar_exampleQ" formatted="false">Qual a fase da lua hoje?</string>
     <string name="native_labs_lunar_example1" formatted="false">Qual a fase da lua hoje?</string>
     <string name="native_labs_lunar_example2" formatted="false">Quando é a próxima lua cheia?</string>
-    <string name="native_labs_lunar_how" formatted="false">Calculado pela data do celular, sem internet e sem localização. O hemisfério só muda o lado que aparece iluminado. Nascer e pôr da lua precisam da sua localização, por isso não aparecem. Você também pode perguntar na conversa.</string>
+    <string name="native_labs_lunar_how" formatted="false">• Calculado pela data do celular, sem internet e sem localização.\n• O hemisfério só muda o lado que aparece iluminado.\n• Nascer e pôr da lua precisam da sua localização, por isso não aparecem.\n• Você também pode perguntar na conversa.</string>
 </resources>

@@ -18,5 +18,5 @@
     <string name="native_labs_lunar_exampleQ" formatted="false">What phase is the moon tonight?</string>
     <string name="native_labs_lunar_example1" formatted="false">What phase is the moon tonight?</string>
     <string name="native_labs_lunar_example2" formatted="false">When is the next full moon?</string>
-    <string name="native_labs_lunar_how" formatted="false">Worked out from the phone\'s date, with no internet and no location. The hemisphere only changes which side looks lit. Moonrise and moonset need your location, so they aren\'t shown. You can also ask in the chat.</string>
+    <string name="native_labs_lunar_how" formatted="false">• Worked out from the phone\'s date, with no internet and no location.\n• The hemisphere only changes which side looks lit.\n• Moonrise and moonset need your location, so they aren\'t shown.\n• You can also ask in the chat.</string>
 </resources>

@@ -16,5 +16,5 @@
     <string name="native_labs_compass_exampleA" formatted="false">O topo do celular aponta para o nordeste (45°). O norte fica a 45° à esquerda. Norte magnético; afaste de ímãs e metais.</string>
     <string name="native_labs_compass_example1" formatted="false">Onde fica o norte?</string>
     <string name="native_labs_compass_example2" formatted="false">Para que lado estou virado?</string>
-    <string name="native_labs_compass_how" formatted="false">Aponta para o norte magnético, calculado neste celular sem internet. O norte verdadeiro fica alguns graus ao lado, conforme onde você está; precisaria da sua localização, que o BOAR não pede. Segure o celular na horizontal. Você também pode perguntar na conversa onde fica o norte.</string>
+    <string name="native_labs_compass_how" formatted="false">• Aponta para o norte magnético, calculado neste celular sem internet.\n• O norte verdadeiro fica alguns graus ao lado, conforme onde você está; precisaria da sua localização, que o BOAR não pede.\n• Segure o celular na horizontal.\n• Você também pode perguntar na conversa onde fica o norte.</string>
 </resources>

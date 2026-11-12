@@ -15,5 +15,5 @@
     <string name="native_labs_facts_other" formatted="false">Other</string>
     <string name="native_labs_facts_otherList" formatted="false">when a monument was built, plugs and voltage, where an event happened, who won a prize in a year</string>
     <string name="native_labs_facts_source" formatted="false">Every answer shows its source and date (Wikidata, October 2026).</string>
-    <string name="native_labs_facts_how" formatted="false">Two facts at once, a summary, a why or how, an ambiguous name (Georgia) or a health conversation go to the model. An older population shows its year.\n\nOffline data from r4to (BOAR R&amp;D).</string>
+    <string name="native_labs_facts_how" formatted="false">• Answers from a Wikidata table kept on the phone, English only for now.\n• Two facts at once, a summary, a why or how, an ambiguous name (Georgia) or a health conversation go to the model.\n• An older population shows its year.\n• Every answer shows its source and date (Wikidata, October 2026).\n• Offline data from r4to (BOAR R&amp;D).</string>
 </resources>

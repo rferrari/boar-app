@@ -18,7 +18,7 @@ class PageHeaderTest {
 
     @Test fun `one height with or without a subtitle`() {
         val h = java.io.File("$ui/PageHeader.kt").readText()
-        assertTrue(h.contains("heightIn(min = 72.dp)"))
+        assertTrue(h.contains(".height(HeaderMetrics.HEIGHT)"))
     }
 
     @Test fun `the Plugins pages, About and Evaluation use it too, a plugin's Back names its target (t9, Nov 12)`() {

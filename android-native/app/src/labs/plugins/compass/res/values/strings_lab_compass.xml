@@ -16,5 +16,5 @@
     <string name="native_labs_compass_exampleA" formatted="false">The top of your phone points northeast (45°). North is 45° to your left. Magnetic north; keep it away from magnets and metal.</string>
     <string name="native_labs_compass_example1" formatted="false">Which way is north?</string>
     <string name="native_labs_compass_example2" formatted="false">Which direction am I facing?</string>
-    <string name="native_labs_compass_how" formatted="false">Points to magnetic north, worked out on this phone with no internet. True north is a few degrees off, depending on where you are; it would need your location, which BOAR doesn\'t ask for. Hold the phone flat. You can also ask in the chat which way is north.</string>
+    <string name="native_labs_compass_how" formatted="false">• Points to magnetic north, worked out on this phone with no internet.\n• True north is a few degrees off, depending on where you are; it would need your location, which BOAR doesn\'t ask for.\n• Hold the phone flat.\n• You can also ask in the chat which way is north.</string>
 </resources>

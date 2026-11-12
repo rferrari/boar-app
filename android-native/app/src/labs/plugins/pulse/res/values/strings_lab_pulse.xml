@@ -25,5 +25,5 @@
     <string name="native_labs_pulse_exampleA" formatted="false">Battery at 64%, charging; battery temperature 33.0 °C (cool); 3.1 GB of 11.2 GB memory free; 8 processor cores. Read on this phone just now; Vitals shows more.</string>
     <string name="native_labs_pulse_example1" formatted="false">Is my phone getting hot?</string>
     <string name="native_labs_pulse_example2" formatted="false">How much memory does my phone have free?</string>
-    <string name="native_labs_pulse_how" formatted="false">Heat, battery, every core\'s clock, memory and the chip BOAR runs on, read on this phone. You can also ask in the chat how hot your phone is.</string>
+    <string name="native_labs_pulse_how" formatted="false">• Heat, battery, every core\'s clock, memory and the chip BOAR runs on, read on this phone.\n• You can also ask in the chat how hot your phone is.</string>
 </resources>

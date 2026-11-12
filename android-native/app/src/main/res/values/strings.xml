@@ -245,10 +245,10 @@
     <string name="chatHeader_deepResearch" formatted="false">Deep Research</string>
     <string name="chatHeader_deepResearchActive" formatted="false">Deep Research Active</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
-    <string name="chatHeader_onlineTitle" formatted="false">You\'re online</string>
-    <string name="chatHeader_onlineBody" formatted="false">Your phone is connected to the internet. BOAR doesn\'t need it: answers, search and your library all work on this phone. Only downloading models or packs and searching Hugging Face for models use the connection. Turn on airplane mode to see it work fully offline.</string>
-    <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">No internet connection. Everything works: answers, search and your library are all on this phone.</string>
+    <string name="chatHeader_onlineTitle" formatted="false">Online, but we don\'t need it.</string>
+    <string name="chatHeader_onlineBody" formatted="false">BOAR works the same with or without signal.\n\nThe connection is only for **downloading models or packs** and **searching Hugging Face**.\n\nWant proof? Switch on **airplane mode**.</string>
+    <string name="chatHeader_offlineTitle" formatted="false">Offline, as intended.</string>
+    <string name="chatHeader_offlineBody" formatted="false">BOAR doesn\'t need the internet.\n\nYour library is **on this phone**, so ask away.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Mounting local GGUF weights…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>

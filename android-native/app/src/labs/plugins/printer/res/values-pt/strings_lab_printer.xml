@@ -41,5 +41,5 @@
     <string name="native_labs_printer_noDrawing" formatted="false">✕ Sem desenho</string>
     <string name="native_labs_printer_addChat" formatted="false">Adicionar ao Press</string>
     <string name="native_labs_printer_exampleA" formatted="false">3 respostas de 2 conversas + 1 desenho → notas-de-campo.pdf, com data, modelo e fontes embaixo de cada resposta.</string>
-    <string name="native_labs_printer_how" formatted="false">Junte respostas de qualquer conversa, acrescente desenhos do Designer e compile tudo offline num PDF ou arquivo Markdown. Segure ⠿ e arraste para mudar a ordem.</string>
+    <string name="native_labs_printer_how" formatted="false">• Junte respostas de qualquer conversa, acrescente desenhos do Designer e compile tudo offline num PDF ou arquivo Markdown.\n• Segure ⠿ e arraste para mudar a ordem.</string>
 </resources>
