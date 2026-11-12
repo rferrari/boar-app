@@ -32,6 +32,9 @@ class AppSettings(private val file: File) {
         return runCatching { json.parseToJsonElement(text).jsonObject }.getOrElse { loadFailed = true; JsonObject(emptyMap()) }
     }
 
+    /** False when settings.json is there but couldn't be read: a one-time migration then waits, writing nothing (validator S-3). */
+    val readable: Boolean get() = !loadFailed
+
     /** The profile settled for a file that couldn't be read: kept for this run only, never written over the file. */
     @Volatile private var unsavedProfile: UserProfile? = null
 

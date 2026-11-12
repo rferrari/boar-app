@@ -47,7 +47,9 @@ class DocumentsViewModel(app: Application) : AndroidViewModel(app) {
     /** While a collection is being added, another waits its turn (up to five); otherwise it starts now. */
     fun import(uris: List<Uri>, name: String) {
         if (uris.isEmpty()) return
-        if (_state.value.stage != null) {
+        // Also while one waits: between an import's end and the next start, a new one joins the end instead of running
+        // beside the waiting one (validator D-3).
+        if (_state.value.stage != null || !queue.waiting.isEmpty()) {
             if (!queue.add(name, uris.size, uris)) _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(getApplication(), "native.docs.queueFull")) }
             publishQueue()
             return

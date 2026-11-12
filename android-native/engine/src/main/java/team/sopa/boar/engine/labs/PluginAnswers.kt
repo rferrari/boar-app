@@ -14,7 +14,11 @@ import kotlin.math.roundToInt
  */
 object PluginAnswers {
     // ---- Lunar ----
-    private val MOON = Regex("\\b(moon|moons|lunar|lua|lunar)\\b", RegexOption.IGNORE_CASE)
+    // No bare "lunar" ("lunar eclipse", "lunar new year"), and no title: "Moon Knight", "Sailor Moon", "lua de mel" (validator P-2).
+    private val MOON = Regex("\\b(moon|moons|lua|lunar phase|fase lunar)\\b", RegexOption.IGNORE_CASE)
+    private val MOON_NOT = Regex("\\b(eclipse|eclipses|new year|ano novo|knight|sailor|lua de mel|honeymoon|festival)\\b", RegexOption.IGNORE_CASE)
+    /** "Moon Knight", "Lua Nova" as a name: a capitalised word after the moon word (case-sensitive on purpose). */
+    private val MOON_NAME = Regex("\\b(Moon|Lua)\\s+\\p{Lu}")
     private val MOON_NOW = Regex(
         "\\b(phase|phases|tonight|today|now|this (week|month)|next (full|new)|full moon|new moon|waxing|waning|crescent|gibbous|lit|" +
             "fase|fases|hoje|esta noite|agora|esta semana|este m[eê]s|pr[oó]xima|cheia|nova|minguante|crescente)\\b",
@@ -23,9 +27,10 @@ object PluginAnswers {
     private val MOON_HISTORY = Regex("\\b(landing|landed|apollo|armstrong|mission|astronaut|pouso|miss[aã]o|astronauta|orbit|[oó]rbita|distance|dist[aâ]ncia|gravity|gravidade)\\b", RegexOption.IGNORE_CASE)
 
     /** "what's the moon", "whats the moon like", "moon phase": asking for the moon now without a time word. */
-    private val MOON_ASK = Regex("\\bwhat'?s the moon\\b|\\bwhat is the moon (like|doing)\\b|\\bmoon (phase|tonight|today|now)\\b|\\bcomo est[aá] a lua\\b|\\bfase da lua\\b", RegexOption.IGNORE_CASE)
+    private val MOON_ASK = Regex("\\bwhat'?s the moon\\b|\\bwhat is the moon (like|doing)\\b|\\bmoon (phase|tonight|today|now)\\b|\\bcomo est[aá] a lua\\b|\\bfase da lua\\b|\\blunar phase\\b|\\bfase lunar\\b", RegexOption.IGNORE_CASE)
 
-    fun isMoonQuestion(q: String): Boolean = norm(q).let { n -> MOON.containsMatchIn(n) && (MOON_NOW.containsMatchIn(n) || MOON_ASK.containsMatchIn(n)) && !MOON_HISTORY.containsMatchIn(n) }
+    fun isMoonQuestion(q: String): Boolean = norm(q).let { n -> MOON.containsMatchIn(n) && (MOON_NOW.containsMatchIn(n) || MOON_ASK.containsMatchIn(n)) && !MOON_HISTORY.containsMatchIn(n) &&
+        !MOON_NOT.containsMatchIn(n) && !MOON_NAME.containsMatchIn(n) }
 
     /** Curly apostrophes as straight ones: "where’s" is "where's". */
     private fun norm(q: String) = q.replace('\u2019', '\'').replace('\u2018', '\'')
@@ -46,10 +51,16 @@ object PluginAnswers {
     }
 
     // ---- Nomad ----
+    /**
+     * After the cardinal the question ends, or says "from here", "now"...: "North Carolina", "North Korea's capital",
+     * "o Sul do Brasil" and "o Norte Shopping" are places, not headings (validator P-1).
+     */
+    private const val HEADING_END = "(?=\\s*(?:$|[?.!,;]|(?:from here|right now|now|exactly|daqui|agora|exatamente)\\b))"
+
     private val DIRECTION = Regex(
-        "\\b(which way is|which way'?s|where is|where'?s|what'?s|whats|what direction (is|am i)|which direction (is|am i)|point me|find) (to )?(the )?(north|south|east|west)\\b|" +
+        "\\b(which way is|which way'?s|where is|where'?s|what'?s|whats|what direction (is|am i)|which direction (is|am i)|point me|find) (to )?(the )?(north|south|east|west)$HEADING_END|" +
             "\\bwhich (way|direction) am i (facing|heading|pointing)\\b|\\bmy heading\\b|\\bcompass (heading|reading|direction)\\b|" +
-            "\\b(onde fica|onde [eé]|para onde fica|para que lado fica|qual dire[cç][aã]o [eé]) o (norte|sul|leste|oeste)\\b|" +
+            "\\b(onde fica|onde [eé]|para onde fica|para que lado fica|qual dire[cç][aã]o [eé]) o (norte|sul|leste|oeste)$HEADING_END|" +
             "\\bpara (onde|que lado|que dire[cç][aã]o) estou (virado|apontando|olhando)\\b",
         RegexOption.IGNORE_CASE,
     )
@@ -57,7 +68,7 @@ object PluginAnswers {
     fun isDirectionQuestion(q: String): Boolean = DIRECTION.containsMatchIn(norm(q)) && !NOT_DIRECTION.containsMatchIn(norm(q))
 
     /** "What's north of France" is geography, not a heading. */
-    private val NOT_DIRECTION = Regex("\\b(north|south|east|west) of\\b|\\b(norte|sul|leste|oeste) de\\b", RegexOption.IGNORE_CASE)
+    private val NOT_DIRECTION = Regex("\\b(north|south|east|west) of\\b|\\b(norte|sul|leste|oeste) (de|do|da|dos|das)\\b", RegexOption.IGNORE_CASE)
 
     /** Past this tilt the compass reads wrong: "hold the phone flat". */
     const val FLAT_DEG = 18f
@@ -83,9 +94,9 @@ object PluginAnswers {
     private val DIRS_PT = mapOf("n" to "o norte", "ne" to "o nordeste", "e" to "o leste", "se" to "o sudeste", "s" to "o sul", "sw" to "o sudoeste", "w" to "o oeste", "nw" to "o noroeste")
 
     // ---- Vitals ----
-    private val PHONE = Regex("\\b(my|this|the) (phone|device|cellphone|mobile)\\b|\\b(meu|este|deste|do|o) (celular|telefone|aparelho)\\b|\\bphone'?s\\b", RegexOption.IGNORE_CASE)
+    private val PHONE = Regex("\\b(my|this) (phone|device|cellphone|mobile)\\b|\\bthe (phone|cellphone)\\b|\\b(meu|este|deste|do|o) (celular|telefone|aparelho)\\b|\\bphone'?s\\b", RegexOption.IGNORE_CASE)
     private val PHONE_WHAT = Regex(
-        "\\b(battery|charge|charging|temperature|hot|heat|overheat|overheating|warm|memory|ram|cpu|processor|cores|processes|" +
+        "\\b(battery|charging|temperature|hot|heat|overheat|overheating|warm|memory|ram|cpu|processor|cores|processes|" +
             "bateria|carga|carregando|temperatura|quente|esquentando|aquecendo|mem[oó]ria|processador|n[uú]cleos|processos)\\b",
         RegexOption.IGNORE_CASE,
     )
@@ -93,7 +104,19 @@ object PluginAnswers {
     /** "my battery", "minha bateria": the phone's own, with no phone word needed. */
     private val MY_BATTERY = Regex("\\bmy battery\\b|\\bminha bateria\\b|\\bbattery level\\b|\\bn[ií]vel da bateria\\b", RegexOption.IGNORE_CASE)
 
-    fun isPhoneQuestion(q: String): Boolean = norm(q).let { n -> (PHONE.containsMatchIn(n) && PHONE_WHAT.containsMatchIn(n)) || MY_BATTERY.containsMatchIn(n) }
+    /**
+     * Advice, not a reading: "how do I charge this phone faster", "what battery should I buy for my phone" go to the model
+     * (validator P-3: Vitals is on by default, so a wrong first answer reaches everyone).
+     */
+    private val ADVICE = Regex(
+        "\\bhow (do|can|should|to|does|would)\\b|\\bhow to\\b|\\bshould i\\b|\\bbuy\\b|\\bfaster\\b|\\blonger\\b|\\btips?\\b|\\bwhy\\b|\\bbest\\b|\\bimprove\\b|\\bsave\\b|" +
+            "\\bcomo (fa[cç]o|posso|devo|fazer|economizar)\\b|\\bcomprar\\b|\\bmais r[aá]pido\\b|\\bdicas?\\b|\\bpor ?que\\b|\\bmelhor\\b|\\bdurar mais\\b",
+        RegexOption.IGNORE_CASE,
+    )
+
+    fun isPhoneQuestion(q: String): Boolean = norm(q).let { n ->
+        ((PHONE.containsMatchIn(n) && PHONE_WHAT.containsMatchIn(n)) || MY_BATTERY.containsMatchIn(n)) && !ADVICE.containsMatchIn(n)
+    }
 
     data class PhoneNow(val batteryPct: Int?, val charging: Boolean?, val batteryTempC: Double?, val ramFreeMb: Long?, val ramTotalMb: Long?, val cores: Int?)
 

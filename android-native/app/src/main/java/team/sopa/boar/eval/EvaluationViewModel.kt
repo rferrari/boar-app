@@ -70,6 +70,8 @@ class EvaluationViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch(Dispatchers.IO) {
             try {
                 // One model in memory at a time: the chat's is reloaded on its next message.
+                // The chat's answer and its queue stop first (validator Q-5).
+                services.stopAnswersAndWait()
                 services.host.unload()
                 val result = runner.runConfigs(chosen, s.queries, object : DeviceEvalRunner.Listener {
                     override fun onProgress(p: DeviceEvalRunner.Progress) = _state.update { it.copy(progress = p) }

@@ -748,6 +748,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             else if (aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
                 ?.takeIf { !(deep || personal) || PersonalFiles.keepsTool(it.tool) }
+                // A merged queue goes to the model whole: an instant answer would take one question and drop the rest (validator
+                // Q-8). A safety answer isn't lost: the model reads it first.
+                ?.let { r -> if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith("safety-")) ToolResult.Context(r.tool, r.text) else null) else r }
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s
@@ -1187,21 +1190,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }, staged?.let { "staged" to stagedJson(it) }).toMap()).toString()
 
     /** A staged answer's key facts and check, kept with it (the times are in the receipt). */
+    private fun factsJson(l: List<KeyFactView>) = JsonArray(l.map { k -> JsonObject(mapOf("sentence" to JsonPrimitive(k.sentence), "passage" to JsonPrimitive(k.passage),
+        "title" to JsonPrimitive(k.source.title), "docId" to JsonPrimitive(k.source.docId ?: ""), "source" to JsonPrimitive(k.source.source ?: ""))) })
+
+    // "+N sources" and the health passages are kept too, so a reopened chat shows the same card (validator S-1).
     private fun stagedJson(v: StagedView) = JsonObject(listOfNotNull(
-        "keyFacts" to JsonArray(v.keyFacts.map { k -> JsonObject(mapOf("sentence" to JsonPrimitive(k.sentence), "passage" to JsonPrimitive(k.passage),
-            "title" to JsonPrimitive(k.source.title), "docId" to JsonPrimitive(k.source.docId ?: ""), "source" to JsonPrimitive(k.source.source ?: ""))) }),
+        "keyFacts" to factsJson(v.keyFacts),
+        if (v.more.isNotEmpty()) "more" to factsJson(v.more) else null,
+        if (v.withPassages) "withPassages" to JsonPrimitive(true) else null,
         "added" to JsonPrimitive(v.added), v.unsupported?.let { u -> "unsupported" to JsonArray(u.map(::JsonPrimitive)) },
         if (v.stopped) "stopped" to JsonPrimitive(true) else null,
     ).toMap())
 
     private fun stagedFromMeta(meta: String?, receipt: Receipt?): StagedView? = runCatching {
         val o = Json.parseToJsonElement(meta ?: return null).jsonObject["staged"]?.jsonObject ?: return null
+        fun facts(key: String) = o[key]?.jsonArray.orEmpty().map { e ->
+            val k = e.jsonObject
+            fun s(key: String) = k[key]?.jsonPrimitive?.content.orEmpty()
+            KeyFactView(s("sentence"), s("passage"), Source(s("title"), s("source").ifEmpty { null }, null, null, s("docId").ifEmpty { null }, s("passage")))
+        }
         StagedView(
-            keyFacts = o["keyFacts"]!!.jsonArray.map { e ->
-                val k = e.jsonObject
-                fun s(key: String) = k[key]?.jsonPrimitive?.content.orEmpty()
-                KeyFactView(s("sentence"), s("passage"), Source(s("title"), s("source").ifEmpty { null }, null, null, s("docId").ifEmpty { null }, s("passage")))
-            },
+            keyFacts = facts("keyFacts"),
+            more = facts("more"),
+            withPassages = o["withPassages"]?.jsonPrimitive?.content == "true",
             added = o["added"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
             unsupported = o["unsupported"]?.jsonArray?.map { it.jsonPrimitive.content },
             times = receipt?.stages.orEmpty(),

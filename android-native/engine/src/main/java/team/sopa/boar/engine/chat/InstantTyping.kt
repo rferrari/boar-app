@@ -15,11 +15,22 @@ object InstantTyping {
     fun typed(tool: String, animationsOff: Boolean, screenReader: Boolean): Boolean =
         !tool.startsWith("safety-") && !animationsOff && !screenReader
 
-    /** The text in pieces, one per [STEP_MS], ending within [MAX_MS] (longer answers type faster), whole words kept together where they fit. */
+    /**
+     * The text in pieces, one per [STEP_MS], ending within [MAX_MS] (longer answers type faster). A piece never ends
+     * inside an emoji (a surrogate pair): Lunar's moons showed as a box for a frame (validator T-1). Words may split.
+     */
     fun pieces(text: String): List<String> {
         if (text.isEmpty()) return emptyList()
         val steps = maxOf(1, minOf((text.length * 1000L / CHARS_PER_SECOND / STEP_MS).toInt(), (MAX_MS / STEP_MS).toInt()))
-        val size = (text.length + steps - 1) / steps
-        return text.chunked(maxOf(1, size))
+        val size = maxOf(1, (text.length + steps - 1) / steps)
+        val out = ArrayList<String>()
+        var i = 0
+        while (i < text.length) {
+            var end = minOf(text.length, i + size)
+            if (end < text.length && Character.isHighSurrogate(text[end - 1])) end++
+            out += text.substring(i, end)
+            i = end
+        }
+        return out
     }
 }

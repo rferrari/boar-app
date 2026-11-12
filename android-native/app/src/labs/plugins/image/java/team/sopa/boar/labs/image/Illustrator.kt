@@ -100,8 +100,27 @@ object Illustrator {
     /** ✕ under the answer: the drawing goes, and one still being made is stopped (SdRunner stops sd-cli on cancel). */
     fun forget(id: String) {
         jobs.remove(id)?.cancel()
-        (status.remove(id) as? Status.Done)?.file?.delete()
+        // The picture and its recipe (subject, style, seed) go together (validator D-2).
+        (status.remove(id) as? Status.Done)?.file?.let(ImageLab::deleteDrawing)
         scope.launch(Dispatchers.IO) { save() }
+    }
+
+    /**
+     * Chats deleted one by one (drawer Delete after its Undo window, or the automatic prune): their answers' drawings go,
+     * the PNG, its recipe and the illustrations.json entry (validator D-1). A drawing still being made is stopped.
+     */
+    @Synchronized
+    fun eraseAnswers(ctx: Context, ids: List<String>) {
+        load(ctx)
+        var changed = false
+        for (id in ids) {
+            jobs.remove(id)?.cancel()
+            val s = status.remove(id) ?: continue
+            (s as? Status.Done)?.file?.let(ImageLab::deleteDrawing)
+            fresh.remove(id)
+            changed = true
+        }
+        if (changed) save()
     }
 
     // The safe-alternative and family-friendly rules (Oct 18): asked "can I run a generator in the garage", it drew a
@@ -145,7 +164,7 @@ object Illustrator {
     fun eraseAll(ctx: Context) {
         jobs.values.forEach { it.cancel() }
         jobs.clear()
-        status.values.forEach { (it as? Status.Done)?.file?.delete() }
+        status.values.forEach { (it as? Status.Done)?.file?.let(ImageLab::deleteDrawing) }
         status.clear()
         File(ctx.filesDir, "labs/illustrations.json").delete()
     }

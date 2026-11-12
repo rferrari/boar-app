@@ -855,7 +855,7 @@ private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean,
         val pulse = if (stopping) blink else 1f
         Box(
             Modifier.size(48.dp).alpha(if (resting) 0.45f else if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg)
-                .clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); if (answering) resting = true } },
+                .clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); resting = true } },
             contentAlignment = Alignment.Center,
         ) { if (stops) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
     }

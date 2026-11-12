@@ -47,7 +47,9 @@ class BoarServices private constructor(private val context: Context) {
         team.sopa.boar.plugins.AnswerModes.staged = { settings.stagedQuotes }
         runCatching {
             val labs = context.getSharedPreferences("labs", android.content.Context.MODE_PRIVATE)
-            if (labs.contains("enabled.staged")) {
+            // An unreadable settings.json is never replaced by {"stagedQuotes":false}: the key waits for a start that can
+            // read it, and the setting is on meanwhile (validator S-3).
+            if (labs.contains("enabled.staged") && settings.readable) {
                 team.sopa.boar.engine.answer.StagedMigration.settingFrom(labs.getBoolean("enabled.staged", false))?.let { settings.stagedQuotes = it }
                 labs.edit().remove("enabled.staged").apply()
             }

@@ -61,4 +61,26 @@ class PluginAnswersTest {
         for (q in listOf("my battery", "how hot is my phone", "battery level?", "minha bateria"))
             assertTrue(q, PluginAnswers.isPhoneQuestion(q))
     }
+
+    @Test fun `a place named after a cardinal is not a heading (validator P-1)`() {
+        for (q in listOf("Where is North Carolina?", "where's South Dakota", "What's North Korea's capital", "what's West Virginia known for",
+            "where is East Timor", "whats South Africa", "find North Dakota", "onde fica o Sul do Brasil", "onde fica o Norte Shopping", "where is the north pole"))
+            assertFalse(q, PluginAnswers.isDirectionQuestion(q))
+        for (q in listOf("which way is north from here?", "where is north right now", "find north", "onde fica o norte daqui?", "where's the north."))
+            assertTrue(q, PluginAnswers.isDirectionQuestion(q))
+    }
+
+    @Test fun `a show, an eclipse or a holiday is not the moon now (validator P-2)`() {
+        for (q in listOf("what time does Moon Knight air today", "is there a lunar eclipse tonight", "Sailor Moon episodes today",
+            "when is the lunar new year this month", "lua de mel hoje"))
+            assertFalse(q, PluginAnswers.isMoonQuestion(q))
+        for (q in listOf("Moon phase today", "lunar phase today", "what's the moon like tonight?")) assertTrue(q, PluginAnswers.isMoonQuestion(q))
+    }
+
+    @Test fun `advice about a phone goes to the model (validator P-3)`() {
+        for (q in listOf("how do I charge this phone faster", "what battery should I buy for my phone", "how does the device driver manage memory",
+            "how can I make my battery last longer", "como faço meu celular esquentar menos?"))
+            assertFalse(q, PluginAnswers.isPhoneQuestion(q))
+        for (q in listOf("is my phone charging?", "how much battery does my phone have", "is this phone too hot?")) assertTrue(q, PluginAnswers.isPhoneQuestion(q))
+    }
 }

@@ -72,6 +72,8 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         Illustrator.eraseAll(context)
         if (scope == team.sopa.boar.plugins.UserData.Scope.EVERYTHING) SdRunner.outDir(context).listFiles().orEmpty().forEach { it.delete() }
     }
+    override fun eraseAnswers(context: android.content.Context, answerIds: List<String>) = Illustrator.eraseAnswers(context, answerIds)
+
     override val emoji = "🎨"
     override val art = team.sopa.boar.R.drawable.truffle_retrowave
     override val status = team.sopa.boar.labs.LabStatus.BETA

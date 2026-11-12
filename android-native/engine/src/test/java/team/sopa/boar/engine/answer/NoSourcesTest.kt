@@ -20,6 +20,10 @@ class NoSourcesTest {
         assertTrue(chat.contains("val above = m.sources.isNotEmpty() && m.staged == null"))
         assertTrue(chat.contains("if (!streaming && m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }"))
         // "+N sources" and "added N" need N > 0.
-        assertTrue(card.contains("if (v.more.isNotEmpty()) {") && card.contains("if (v.added > 0) Text("))
+        assertTrue(card.contains("if (v.more.isNotEmpty()) MoreSources(") && card.contains("if (v.added > 0) Text("))
+    }
+
+    @Test fun `sources but no matching sentence, the sources link, never an empty block (validator S-2)`() {
+        assertTrue(card.contains("} else if (v.more.isNotEmpty()) {\n            // No sentence matched the question"))
     }
 }

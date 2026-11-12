@@ -50,14 +50,12 @@ internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onR
             if (factsOpen) {
                 v.keyFacts.forEachIndexed { i, k -> KeyFact(k, v.withPassages, onRead, key?.let { "$it/staged/$i" }) }
                 // The rest of the sources, one tap away: "+2 sources ›" (adam, Nov 10: 2 or 3 quotes are good as they are).
-                if (v.more.isNotEmpty()) {
-                    Text(if (moreOpen) t("native.staged.lessSources") else t("native.staged.moreSources", "count" to v.more.size) + " ›",
-                        style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { moreOpen = !moreOpen }.padding(vertical = 2.dp))
-                    if (moreOpen) v.more.forEachIndexed { i, k -> KeyFact(k, v.withPassages, onRead, key?.let { "$it/staged/more/$i" }) }
-                }
+                if (v.more.isNotEmpty()) MoreSources(v, moreOpen, { moreOpen = !moreOpen }, onRead, key)
                 Text(t("native.staged.factsNote"), style = Boar.type.subtext, color = c.textDim, fontStyle = FontStyle.Italic)
             }
+        } else if (v.more.isNotEmpty()) {
+            // No sentence matched the question: the sources are still one tap away, never an empty block (validator S-2).
+            MoreSources(v, moreOpen, { moreOpen = !moreOpen }, onRead, key)
         }
         // The step line once the answer has started; before its first word the chat's wait line says what's happening.
         if (streaming && written) v.step?.let { step ->
@@ -68,6 +66,14 @@ internal fun StagedCard(v: StagedView, streaming: Boolean, written: Boolean, onR
         }
         if (v.added > 0) Text(t("native.staged.added", "count" to v.added), style = Boar.type.subtext, color = c.textSecondary)
     }
+}
+
+@Composable
+private fun MoreSources(v: StagedView, open: Boolean, toggle: () -> Unit, onRead: (Source) -> Unit, key: String?) {
+    Text(if (open) t("native.staged.lessSources") else t("native.staged.moreSources", "count" to v.more.size) + " ›",
+        style = Boar.type["mono.xs"], color = Boar.colors.textAccentCyan, fontWeight = FontWeight.Bold,
+        modifier = Modifier.clickable { toggle() }.padding(vertical = 2.dp))
+    if (open) v.more.forEachIndexed { i, k -> KeyFact(k, v.withPassages, onRead, key?.let { "$it/staged/more/$i" }) }
 }
 
 /** Under the answer: the number check, once it's done. */

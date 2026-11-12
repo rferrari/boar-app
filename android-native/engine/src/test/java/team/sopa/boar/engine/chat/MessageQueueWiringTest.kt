@@ -41,7 +41,7 @@ class MessageQueueWiringTest {
         // rests, dimmed, so a second tap can't stop the answer (adam, Nov 12).
         assertTrue(screen.contains("val stops = answering && !canSend"))
         assertTrue(!screen.contains("if (answering && canSend) Box("))
-        assertTrue(screen.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); if (answering) resting = true } }"))
+        assertTrue(screen.contains("clickable(enabled = (answering || canSend) && !resting) { if (stops) onStop() else { onSend(); resting = true } }"))
         assertTrue(screen.contains("private const val SEND_REST_MS = 500L"))
         assertTrue(screen.contains("if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue, onMergeQueue)"))
     }

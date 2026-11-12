@@ -278,7 +278,15 @@ class ModelsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun remove(a: CatalogAsset) {
         safeScope.launch(Dispatchers.IO) {
-            if (a.id == _state.value.activeLlm) services.host.unload()
+            // The answer being written (and the queue) stop first, as with Use: the next question must not start on a
+            // deleted model (validator Q-5). Still answering after the wait: nothing is deleted.
+            if (a.id == _state.value.activeLlm) {
+                if (!services.stopAnswersAndWait()) {
+                    team.sopa.boar.ui.Toasts.show(text("native.models.switchBusy", "model" to a.shortName))
+                    return@launch
+                }
+                services.host.unload()
+            }
             // Placed over USB by hand: the app never deletes it.
             if (a.externalPath != null) { refresh(); return@launch }
             if (a.kind == AssetKind.CORPUS && a.format != "sqlite-pack") services.knowledgeBase.deleteSeedChunksWithPrefix(SeedCorpus.chunkIdPrefix(a.id))
