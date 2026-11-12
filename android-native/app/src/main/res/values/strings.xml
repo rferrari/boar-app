@@ -246,7 +246,7 @@
     <string name="chatHeader_deepResearchActive" formatted="false">Deep Research Active</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
     <string name="chatHeader_onlineTitle" formatted="false">Online, but we don\'t need it.</string>
-    <string name="chatHeader_onlineBody" formatted="false">BOAR works the same with or without signal.\n\nThe connection is only for **downloading models or packs**, **searching Hugging Face** and sharing evaluation results, if you turn that on.\n\nWant proof? Switch on **airplane mode**.</string>
+    <string name="chatHeader_onlineBody" formatted="false">BOAR works the same with or without signal.\n\nThe connection is only for **downloading models or packs**, **searching Hugging Face** and sharing evaluation results, if you turn that on.</string>
     <string name="chatHeader_offlineTitle" formatted="false">Offline, as intended.</string>
     <string name="chatHeader_offlineBody" formatted="false">BOAR doesn\'t need the internet.\n\nYour library is **on this phone**, so ask away.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>

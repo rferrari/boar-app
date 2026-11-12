@@ -61,6 +61,9 @@ class ConnectionPillTest {
             val s = java.io.File("../app/src/main/res/$d/strings.xml").readText()
             for (k in listOf("onlineTitle", "onlineBody", "offlineTitle", "offlineBody")) assertTrue("$d $k", s.contains("name=\"chatHeader_$k\""))
             assertTrue(d, Regex("name=\"chatHeader_onlineBody\"[^>]*>[^<]*\\*\\*").containsMatchIn(s))
+            // It ends with what the connection is used for: no airplane-mode dare (adam chose (a), Nov 13).
+            val online = Regex("name=\"chatHeader_onlineBody\"[^>]*>([^<]*)<").find(s)!!.groupValues[1]
+            assertTrue(d, !online.contains("airplane") && !online.contains("avião") && (online.endsWith("turn that on.") || online.endsWith("ligar isso.")))
         }
         assertTrue(java.io.File("../app/src/main/java/team/sopa/boar/ui/BoldMarks.kt").readText().contains("fun boldMarks(text: String): AnnotatedString"))
     }

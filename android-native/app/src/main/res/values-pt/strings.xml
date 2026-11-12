@@ -245,7 +245,7 @@
     <string name="chatHeader_deepResearchActive" formatted="false">Pesquisa Aprofundada Ativa</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
     <string name="chatHeader_onlineTitle" formatted="false">Online, mas não precisamos.</string>
-    <string name="chatHeader_onlineBody" formatted="false">O BOAR funciona igual com ou sem sinal.\n\nA conexão só serve para **baixar modelos ou pacotes**, **buscar no Hugging Face** e compartilhar resultados de avaliação, se você ligar isso.\n\nQuer ver? Ligue o **modo avião**.</string>
+    <string name="chatHeader_onlineBody" formatted="false">O BOAR funciona igual com ou sem sinal.\n\nA conexão só serve para **baixar modelos ou pacotes**, **buscar no Hugging Face** e compartilhar resultados de avaliação, se você ligar isso.</string>
     <string name="chatHeader_offlineTitle" formatted="false">Offline, como planejado.</string>
     <string name="chatHeader_offlineBody" formatted="false">O BOAR não precisa de internet.\n\nSua biblioteca está **neste celular**, pode perguntar.</string>
     <string name="chatScreen_initializingCore" formatted="false">Inicializando núcleo offline local…</string>
