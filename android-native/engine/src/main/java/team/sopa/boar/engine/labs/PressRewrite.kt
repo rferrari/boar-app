@@ -50,7 +50,9 @@ object PressRewrite {
      */
     fun prompt(option: Option, text: String, own: String? = null, languageOf: String = text): Prompt {
         val pt = portuguese(languageOf)
-        val user = instruction(option, own, pt, text) + "\n\n" + (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim()
+        // The passage first, the task last: small models copied the passage back when the task came first (the F3, Nov 12:
+        // "Shorter" returned the same text on Qwen3 1.7B).
+        val user = (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim() + "\n\n" + (if (pt) "TAREFA: " else "TASK: ") + instruction(option, own, pt, text)
         val tokens = text.length / 3
         val n = when (option) { Option.SHORTER -> tokens; Option.LIST -> tokens * 2; else -> tokens * 3 / 2 } + 64
         return Prompt(if (pt) SYSTEM_PT else SYSTEM_EN, user, n.coerceIn(96, 1024))

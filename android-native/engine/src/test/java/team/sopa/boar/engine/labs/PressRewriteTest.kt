@@ -15,17 +15,17 @@ class PressRewriteTest {
         for (o in PressRewrite.Option.entries) {
             val p = PressRewrite.prompt(o, en, own = "for a 10-year-old")
             assertTrue(o.name, p.system.contains("Keep every source mark such as [1] or [2] exactly as written"))
-            assertTrue(o.name, p.user.endsWith("PASSAGE:\n$en"))
+            assertTrue(o.name, p.user.startsWith("PASSAGE:\n$en\n\nTASK: "))
             assertTrue(o.name, p.nPredict in 96..1024)
             val q = PressRewrite.prompt(o, pt, own = "para uma criança")
             assertTrue(o.name, q.system.contains("Mantenha cada marca de fonte"))
-            assertTrue(o.name, q.user.endsWith("TRECHO:\n$pt"))
+            assertTrue(o.name, q.user.startsWith("TRECHO:\n$pt\n\nTAREFA: "))
         }
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.SHORTER, en).user.startsWith("Rewrite it in at most"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en).user.startsWith("Rewrite it with short, everyday words"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, en).user.startsWith("Fix only the grammar"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.LIST, pt).user.startsWith("Transforme em uma lista"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, en, own = "  for a 10-year-old ").user.startsWith("Rewrite it this way: for a 10-year-old\n"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.SHORTER, en).user.substringAfter("TASK: ").startsWith("Rewrite it in at most"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en).user.substringAfter("TASK: ").startsWith("Rewrite it with short, everyday words"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, en).user.substringAfter("TASK: ").startsWith("Fix only the grammar"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.LIST, pt).user.substringAfter("TAREFA: ").startsWith("Transforme em uma lista"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, en, own = "  for a 10-year-old ").user.substringAfter("TASK: ").startsWith("Rewrite it this way: for a 10-year-old"))
         // The language can come from the answer's question when the text alone is too short to tell.
         assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, "Sim [1].", languageOf = "Por que o mar é salgado? Sim [1].").system.startsWith("Você"))
         // A list gets more room than a shorter version.

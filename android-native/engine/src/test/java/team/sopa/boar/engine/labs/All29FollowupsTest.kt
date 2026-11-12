@@ -33,7 +33,8 @@ class All29FollowupsTest {
         assertTrue(PressRewrite.instruction(PressRewrite.Option.SIMPLER, null, false, text).contains("everyday words") &&
             PressRewrite.instruction(PressRewrite.Option.SIMPLER, null, false, text).contains("The same facts"))
         assertTrue(PressRewrite.instruction(PressRewrite.Option.FIX, null, false, text).contains("The same length (about 19 words)"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.SHORTER, text).user.contains("at most 9 words"))
+        val user = PressRewrite.prompt(PressRewrite.Option.SHORTER, text).user
+        assertTrue(user, user.startsWith("PASSAGE:\n") && user.trimEnd().endsWith("cut the rest.") && user.contains("TASK: Rewrite it in at most 9 words"))
     }
 
     @Test fun `the same text back says No change instead of NOW and REWRITTEN`() {
