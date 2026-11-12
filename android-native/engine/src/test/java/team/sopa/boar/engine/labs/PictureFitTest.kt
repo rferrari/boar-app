@@ -28,6 +28,8 @@ class PictureFitTest {
         val pdf = java.io.File("$dir/PdfCompiler.kt").readText()
         assertTrue(pdf.contains("PictureFit.within(bmp.width, bmp.height, Paper.INNER, Paper.PICTURE_MAX_H)"))
         val screen = java.io.File("$dir/PressScreen.kt").readText()
-        assertTrue(screen.contains("PictureFit.within(pw, ph, Paper.INNER, Paper.PICTURE_MAX_H)"))
+        // A centered picture gets the column, a side one its share (phase 2), through the same fit.
+        assertTrue(screen.contains("PictureFit.within(pw, ph, maxW, Paper.PICTURE_MAX_H)") && screen.contains("PictureContent(b, project.id, s, Paper.INNER,"))
+        assertTrue(pdf.contains("PictureFit.within(bmp.width, bmp.height, box, Paper.PICTURE_MAX_H)"))
     }
 }

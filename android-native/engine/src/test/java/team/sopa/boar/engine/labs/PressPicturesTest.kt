@@ -146,7 +146,7 @@ class PressPicturesTest {
         val ids = plan.flatMap { when (it) { is Item.Single -> listOf(it.block.id); is Item.Beside -> listOfNotNull(it.picture.id, it.text?.id) } }
         assertEquals(listOf("c", "a1", "r", "a2", "n", "l", "h", "a3", "l2", "n2", "r2", "c2", "end"), ids)
         assertFalse(plan.any { it is Item.Beside && it.text is Block.Heading })
-        assertNull((plan[5] as Item.Beside).text)
+        assertNull((plan[4] as Item.Beside).text)
     }
 
     @Test fun `widths and the lines beside`() {
