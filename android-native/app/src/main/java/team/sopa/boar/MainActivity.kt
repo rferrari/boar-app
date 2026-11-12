@@ -399,6 +399,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
             onRemoveQueued = vm::removeQueued,
             onClearQueue = vm::clearQueue,
             onMergeQueue = vm::mergeQueue,
+            onSkipTyping = vm::skipTyping,
             onNewChat = vm::newChat,
             onMenu = { scope.launch { drawer.open() } },
             onSetTone = vm::setTone,

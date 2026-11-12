@@ -55,6 +55,8 @@ object CompassLab : LabPlugin {
     override val status = LabStatus.ALPHA
 
     /** "Which way is north?": answered from the compass sensor, with "hold the phone flat" when it's tilted (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isDirectionQuestion(query)
+
     override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
         if (!team.sopa.boar.engine.labs.PluginAnswers.isDirectionQuestion(query)) null
         else {

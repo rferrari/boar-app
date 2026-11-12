@@ -27,9 +27,9 @@ class SmallsWordsTest {
         assertTrue(hooks.contains("t(\"native.a11y.pluginActions\")"))
     }
 
-    @Test fun `both plugin sheets use one row, with the ALPHA or BETA tag`() {
+    @Test fun `both plugin sheets use one row, status chips behind a switch (off since Nov 12)`() {
         assertTrue(hooks.contains("private fun SheetRow(") && Regex("SheetRow\\(").findAll(hooks).count() == 3)
-        assertTrue(hooks.contains("if (status == LabStatus.ALPHA || status == LabStatus.BETA) StatusChip(status)"))
+        assertTrue(hooks.contains("if (PluginsUi.SHOW_STATUS && (status == LabStatus.ALPHA || status == LabStatus.BETA)) StatusChip(status)"))
     }
 
     @Test fun `the plugin switches use the Settings switch row`() {

@@ -132,6 +132,7 @@ fun ChatScreen(
     onRemoveQueued: (Long) -> Unit = {},
     onClearQueue: () -> Unit = {},
     onMergeQueue: () -> Unit = {},
+    onSkipTyping: () -> Unit = {},
 ) {
     val c = Boar.colors
     // Back from the article reader (or any page), the chat is where it was (adam, Nov 12): the same answer in view.
@@ -185,7 +186,9 @@ fun ChatScreen(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource,
+                        // "Lunar is off": the Plugins list in Pro (its switch), else the plugin's page.
+                        onReadPlugin = { id -> onOpenRoute(if (team.sopa.boar.labs.LabPrefs.proProfile) "labs" else "lab:$id") }, onSkipTyping = onSkipTyping) }
                 }
                 // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -515,7 +518,7 @@ private fun activityLabel(a: Activity?): String = when (a) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {},
-    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}) {
+    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}, onReadPlugin: (String) -> Unit = {}, onSkipTyping: () -> Unit = {}) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -579,7 +582,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming, onCite = if (m.sources.isNotEmpty() && !streaming) ({ n -> if (n in 1..m.sources.size) read(n) }) else null)
+                    // A tap while an instant answer types shows the rest at once (InstantTyping).
+                    if (streaming) Box(Modifier.clickable(onClickLabel = t("native.chat.showAll")) { onSkipTyping() }) { MarkdownMessage(shown, true) }
+                    else MarkdownMessage(shown, streaming, onCite = if (m.sources.isNotEmpty() && !streaming) ({ n -> if (n in 1..m.sources.size) read(n) }) else null)
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
@@ -599,6 +604,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             // "Every number … is in its sources" only when there are sources to check against.
             if (!streaming && m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
             // No list under the answer any more: the sources are shown once, above it (adam, Nov 12).
+            // The question was a plugin's, but it's off (Nov 12): one line, a tap goes where it's turned on.
+            if (!streaming) m.offPlugin?.let { id ->
+                Text(t("native.chat.pluginOff", "name" to t("native.labs.$id.title")), style = Boar.type.subtext, color = c.textAccentCyan,
+                    modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp)).clickable { onReadPlugin(id) }.padding(vertical = 4.dp))
+            }
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
             // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
@@ -654,7 +664,7 @@ private fun Receipt.instant() = tool != null && tokens == 0
 private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
 
 @Composable
-private fun receiptRate(r: Receipt) = if (r.instant()) t("native.receipt.instant") else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
+private fun receiptRate(r: Receipt) = if (r.instant()) t(if (r.typed) "native.receipt.instantTyped" else "native.receipt.instant") else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
 
 /** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
 @Composable

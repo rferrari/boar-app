@@ -50,6 +50,8 @@ object LunarLab : LabPlugin {
     override val status = LabStatus.ALPHA
 
     /** A question about the moon now ("what phase is the moon tonight"): answered here, from the date (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isMoonQuestion(query)
+
     override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
         if (!team.sopa.boar.engine.labs.PluginAnswers.isMoonQuestion(query)) null
         else team.sopa.boar.plugins.ToolResult.Instant("lunar-phase", team.sopa.boar.engine.labs.PluginAnswers.moonAnswer(query, System.currentTimeMillis()))

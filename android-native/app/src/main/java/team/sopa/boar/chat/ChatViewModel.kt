@@ -78,6 +78,8 @@ data class UiMessage(
     val error: String? = null,
     /** Boar Staged answers: the steps and what they found; null for an answer written the usual way. */
     val staged: StagedView? = null,
+    /** A plugin that would have answered this question but is off (its id): one line under the answer (adam, Nov 12). */
+    val offPlugin: String? = null
 )
 
 /**
@@ -614,6 +616,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         send(q)
     }
 
+    /** A tap on an instant answer being typed: the rest at once (InstantTyping). */
+    @Volatile private var skipTyping = false
+    fun skipTyping() { skipTyping = true }
+    private fun rest(text: String, from: Int) = text.substring(from.coerceAtMost(text.length))
+
     /** What the bypassed plugin answered, for the model's prompt on [askModel]'s question only. */
     @Volatile private var bypassed: ToolResult.Context? = null
 
@@ -733,6 +740,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var limited: Int? = null
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
             // Research only a safety answer (Boar Cohazard): the CO question went to the model there (F3, Oct 19).
+            var instantAt = 0L
+            var typedAt = false
             val skipTools = skipToolsOnce.also { skipToolsOnce = false }
             val bypass = bypassed.also { bypassed = null }
             val tool = if (skipTools) bypass?.takeIf { !(deep || personal) }
@@ -797,7 +806,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (instant != null) {
                     limited = null
-                    onPiece(instant.text)
+                    instantAt = System.nanoTime()
+                    // Shown at typing speed (InstantTyping): presentation only, the receipt keeps the real time above.
+                    // A tap on the answer (skipTyping) or Stop shows the rest at once; the safety answer never types.
+                    val app = getApplication<Application>()
+                    val animOff = android.provider.Settings.Global.getFloat(app.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+                    val reader = (app.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager)?.isTouchExplorationEnabled == true
+                    skipTyping = false
+                    if (!team.sopa.boar.engine.chat.InstantTyping.typed(instant.tool, animOff, reader)) onPiece(instant.text)
+                    else {
+                        var shownLen = 0
+                        for (piece in team.sopa.boar.engine.chat.InstantTyping.pieces(instant.text)) {
+                            if (skipTyping || stopRequested) { onPiece(rest(instant.text, shownLen)); shownLen = instant.text.length; break }
+                            onPiece(piece); shownLen += piece.length
+                            kotlinx.coroutines.delay(team.sopa.boar.engine.chat.InstantTyping.STEP_MS)
+                        }
+                        if (shownLen < instant.text.length) onPiece(instant.text.substring(shownLen))
+                        typedAt = true
+                    }
                 } else if (staged) {
                     path = "staged"
                     val (introReminder, detailsReminder) = stagedReminders(style, smallModel)
@@ -923,7 +949,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             else AnswerChecks.run(q, text.toString())
             if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.
-            val measured = if (instant != null) Receipt(totalMs = (System.nanoTime() - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0)
+            val measured = if (instant != null) Receipt(totalMs = ((instantAt.takeIf { it > 0 } ?: System.nanoTime()) - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0, typed = typedAt)
             else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
@@ -956,7 +982,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
-                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey, staged = stagedView) else it })
+                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey, staged = stagedView,
+                        offPlugin = if (instant == null && !stopped) runCatching { AnswerTools.offPlugin(q) }.getOrNull() else null) else it })
             }
         }
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.

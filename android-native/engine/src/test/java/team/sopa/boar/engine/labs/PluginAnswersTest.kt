@@ -49,4 +49,16 @@ class PluginAnswersTest {
         val pt = PluginAnswers.phoneAnswer("qual a temperatura do meu celular?", PluginAnswers.PhoneNow(50, false, 30.0, null, null, null))
         assertTrue(pt, pt.contains("30,0 °C (fria)"))
     }
+
+    @Test fun `natural phrasings are taken too, the history guard stays`() {
+        for (q in listOf("where's the north?", "where’s the north?", "whats north", "which way's north?", "where's north"))
+            assertTrue(q, PluginAnswers.isDirectionQuestion(q))
+        assertFalse(PluginAnswers.isDirectionQuestion("what's north of France?"))
+        for (q in listOf("moon tonight", "whats the moon like", "what's the moon doing", "moon phase", "como está a lua?"))
+            assertTrue(q, PluginAnswers.isMoonQuestion(q))
+        for (q in listOf("moon landing tonight documentary", "apollo moon phase mission", "moon distance today"))
+            assertFalse(q, PluginAnswers.isMoonQuestion(q))
+        for (q in listOf("my battery", "how hot is my phone", "battery level?", "minha bateria"))
+            assertTrue(q, PluginAnswers.isPhoneQuestion(q))
+    }
 }

@@ -22,7 +22,13 @@ object PluginAnswers {
     )
     private val MOON_HISTORY = Regex("\\b(landing|landed|apollo|armstrong|mission|astronaut|pouso|miss[aã]o|astronauta|orbit|[oó]rbita|distance|dist[aâ]ncia|gravity|gravidade)\\b", RegexOption.IGNORE_CASE)
 
-    fun isMoonQuestion(q: String): Boolean = MOON.containsMatchIn(q) && MOON_NOW.containsMatchIn(q) && !MOON_HISTORY.containsMatchIn(q)
+    /** "what's the moon", "whats the moon like", "moon phase": asking for the moon now without a time word. */
+    private val MOON_ASK = Regex("\\bwhat'?s the moon\\b|\\bwhat is the moon (like|doing)\\b|\\bmoon (phase|tonight|today|now)\\b|\\bcomo est[aá] a lua\\b|\\bfase da lua\\b", RegexOption.IGNORE_CASE)
+
+    fun isMoonQuestion(q: String): Boolean = norm(q).let { n -> MOON.containsMatchIn(n) && (MOON_NOW.containsMatchIn(n) || MOON_ASK.containsMatchIn(n)) && !MOON_HISTORY.containsMatchIn(n) }
+
+    /** Curly apostrophes as straight ones: "where’s" is "where's". */
+    private fun norm(q: String) = q.replace('\u2019', '\'').replace('\u2018', '\'')
 
     private val PHASE_EN = mapOf("new" to "a new moon", "waxingCrescent" to "a waxing crescent", "firstQuarter" to "at first quarter",
         "waxingGibbous" to "a waxing gibbous", "full" to "full", "waningGibbous" to "a waning gibbous", "lastQuarter" to "at last quarter", "waningCrescent" to "a waning crescent")
@@ -41,14 +47,17 @@ object PluginAnswers {
 
     // ---- Nomad ----
     private val DIRECTION = Regex(
-        "\\b(which way is|where is|what direction (is|am i)|which direction (is|am i)|point me|find) (the )?(north|south|east|west)\\b|" +
+        "\\b(which way is|which way'?s|where is|where'?s|what'?s|whats|what direction (is|am i)|which direction (is|am i)|point me|find) (to )?(the )?(north|south|east|west)\\b|" +
             "\\bwhich (way|direction) am i (facing|heading|pointing)\\b|\\bmy heading\\b|\\bcompass (heading|reading|direction)\\b|" +
             "\\b(onde fica|onde [eé]|para onde fica|para que lado fica|qual dire[cç][aã]o [eé]) o (norte|sul|leste|oeste)\\b|" +
             "\\bpara (onde|que lado|que dire[cç][aã]o) estou (virado|apontando|olhando)\\b",
         RegexOption.IGNORE_CASE,
     )
 
-    fun isDirectionQuestion(q: String): Boolean = DIRECTION.containsMatchIn(q)
+    fun isDirectionQuestion(q: String): Boolean = DIRECTION.containsMatchIn(norm(q)) && !NOT_DIRECTION.containsMatchIn(norm(q))
+
+    /** "What's north of France" is geography, not a heading. */
+    private val NOT_DIRECTION = Regex("\\b(north|south|east|west) of\\b|\\b(norte|sul|leste|oeste) de\\b", RegexOption.IGNORE_CASE)
 
     /** Past this tilt the compass reads wrong: "hold the phone flat". */
     const val FLAT_DEG = 18f
@@ -81,7 +90,10 @@ object PluginAnswers {
         RegexOption.IGNORE_CASE,
     )
 
-    fun isPhoneQuestion(q: String): Boolean = PHONE.containsMatchIn(q) && PHONE_WHAT.containsMatchIn(q)
+    /** "my battery", "minha bateria": the phone's own, with no phone word needed. */
+    private val MY_BATTERY = Regex("\\bmy battery\\b|\\bminha bateria\\b|\\bbattery level\\b|\\bn[ií]vel da bateria\\b", RegexOption.IGNORE_CASE)
+
+    fun isPhoneQuestion(q: String): Boolean = norm(q).let { n -> (PHONE.containsMatchIn(n) && PHONE_WHAT.containsMatchIn(n)) || MY_BATTERY.containsMatchIn(n) }
 
     data class PhoneNow(val batteryPct: Int?, val charging: Boolean?, val batteryTempC: Double?, val ramFreeMb: Long?, val ramTotalMb: Long?, val cores: Int?)
 

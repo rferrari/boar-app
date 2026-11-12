@@ -746,4 +746,7 @@
     <string name="native_docs_running" formatted="false">Adicionando: {{name}}</string>
     <string name="native_docs_waiting" formatted="false">{{name}} · {{count}} arquivos</string>
     <string name="native_docs_queueNote" formatted="false">Elas são adicionadas uma de cada vez. Fechar o BOAR descarta as que ainda esperam.</string>
+    <string name="native_chat_pluginOff" formatted="false">{{name}} está desligado. Ligue em Plugins ›</string>
+    <string name="native_receipt_instantTyped" formatted="false">instantânea · exibida em velocidade de digitação</string>
+    <string name="native_chat_showAll" formatted="false">Mostrar tudo</string>
 </resources>

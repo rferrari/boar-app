@@ -35,6 +35,8 @@ data class Receipt(
     val styleNote: String? = null,
     /** Boar Staged answers: when each step happened, ms from the start ("sources", "introFirst", "detailsFirst", "total"…). */
     val stages: Map<String, Double>? = null,
+    /** An instant plugin answer shown at typing speed (presentation only; [totalMs] is the real time). */
+    val typed: Boolean = false
 ) {
     fun toJson() = JsonObject(listOfNotNull(
         "totalMs" to JsonPrimitive(totalMs), "ttftMs" to JsonPrimitive(ttftMs), "tokPerSec" to JsonPrimitive(tokPerSec), "tokens" to JsonPrimitive(tokens),

@@ -82,6 +82,10 @@ object LabHooks {
         team.sopa.boar.plugins.AnswerTools.tools = { LabRegistry.active.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } }
         team.sopa.boar.plugins.AnswerChecks.checks = { LabRegistry.active.mapNotNull { it.answerCheck } }
         team.sopa.boar.plugins.ChatActions.actions = { LabRegistry.active.flatMap { it.chatActions } }
+        // A question for a plugin that's switched off: name it under the answer (only with Plugins on; Nov 12).
+        team.sopa.boar.plugins.AnswerTools.offPlugin = { q ->
+            if (!LabPrefs.labsOn) null else LabRegistry.visible.mapNotNull(LabRegistry::opened).firstOrNull { !LabPrefs.enabled(it.id) && it.recognizes(q) }?.id
+        }
         team.sopa.boar.plugins.AnswerModes.staged = { LabRegistry.active.any { it.stagedAnswers } }
         team.sopa.boar.plugins.AnswerModes.ownsSources = { LabRegistry.active.any { it.ownsSources } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
@@ -384,7 +388,7 @@ object LabHooks {
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     androidx.compose.material3.Text(title, style = team.sopa.boar.ui.theme.Boar.type.body, color = if (enabled) c.textPrimary else c.textDim, maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = androidx.compose.ui.Modifier.weight(1f, fill = false))
-                    if (status == LabStatus.ALPHA || status == LabStatus.BETA) StatusChip(status)
+                    if (PluginsUi.SHOW_STATUS && (status == LabStatus.ALPHA || status == LabStatus.BETA)) StatusChip(status)
                 }
                 line?.let { androidx.compose.material3.Text(it, style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted, maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }

@@ -7,7 +7,8 @@ package team.sopa.boar.engine.labs
  * height…), which hold no warning; a text that reads like one is refused anyway, as a second lock.
  */
 object IllustrateGate {
-    private val DRAWABLE_TOOLS = listOf("calculator-", "temperature-conversion", "facts-")
+    // Lunar and Nomad joined on Nov 12 (adam); Vitals, Cohazard, Guard and the rest stay out.
+    private val DRAWABLE_TOOLS = listOf("calculator-", "temperature-conversion", "facts-", "lunar-", "compass-")
     private const val NOT_DRAWABLE = "calculator-travel-distance"
     private val WARNING = Regex(
         "⚠|\\b(warning|danger|dangerous|hazard|deadly|poison|toxic|never|do not|don't|unsafe|emergency|" +

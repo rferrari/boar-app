@@ -65,6 +65,8 @@ object DevicePulseLab : LabPlugin {
     override val status = LabStatus.LIVE
 
     /** "How hot is my phone?": answered from the battery and memory, read now (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isPhoneQuestion(query)
+
     override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
         val ctx = team.sopa.boar.labs.LabPrefs.appContext
         if (ctx == null || !team.sopa.boar.engine.labs.PluginAnswers.isPhoneQuestion(query)) null

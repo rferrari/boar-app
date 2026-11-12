@@ -128,7 +128,7 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(t("native.labs.${lab.id}.title"), style = Boar.type.title, color = c.textHeading, maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    StatusChip(lab.status)
+                    if (PluginsUi.SHOW_STATUS) StatusChip(lab.status)
                 }
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
             }
@@ -362,7 +362,7 @@ private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(t("native.labs.${lab.id}.title"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold, maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                StatusChip(lab.status)
+                if (PluginsUi.SHOW_STATUS) StatusChip(lab.status)
             }
             Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
@@ -389,6 +389,8 @@ object PluginsUi {
     const val SHOW_UPCOMING = false
     /** The tile view of the Plugins page: the list is the only view. */
     const val SHOW_TILES = false
+    /** The ALPHA/BETA/LIVE chips (adam, Nov 12: dropped from what users see); the status stays an internal gate. */
+    const val SHOW_STATUS = false
 }
 
 /** On a plugin's page while it's off: it's off, where to turn it on, and that settings changed now apply then. */
