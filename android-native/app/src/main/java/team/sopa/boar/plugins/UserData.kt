@@ -16,4 +16,10 @@ object UserData {
      * own messages do (validator P-1: a visual's file stayed). Set by Boar Labs at start.
      */
     @Volatile var eraseAnswers: (answerIds: List<String>) -> Unit = {}
+
+    /**
+     * The lines the chat's delete row shows: what deleting it takes from the plugins switched on (Press: "Its answers
+     * leave the Press basket", only when some are in it; adam, Nov 12). Already in the user's language. Set by Boar Labs.
+     */
+    @Volatile var deleteNotes: (answerIds: List<String>) -> List<String> = { emptyList() }
 }

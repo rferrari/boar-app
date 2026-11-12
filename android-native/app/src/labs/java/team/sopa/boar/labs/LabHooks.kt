@@ -92,6 +92,7 @@ object LabHooks {
         val app = context.applicationContext
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
         team.sopa.boar.plugins.UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseAnswers(app, ids) } } }
+        team.sopa.boar.plugins.UserData.deleteNotes = { ids -> LabRegistry.active.mapNotNull { lab -> runCatching { lab.deleteNote(app, ids) }.getOrNull() } }
     }
 
     /** route to label key; empty while Labs is off. */

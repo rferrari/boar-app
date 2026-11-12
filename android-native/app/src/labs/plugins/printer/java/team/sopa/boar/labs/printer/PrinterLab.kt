@@ -78,6 +78,12 @@ object PrinterLab : LabPlugin {
     override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
         Basket.eraseAll(context)
     }
+
+    /** One chat deleted (after its Undo window, or pruned): its answers leave the basket too (adam chose this, Nov 12). Runs even when off. */
+    override fun eraseAnswers(context: android.content.Context, answerIds: List<String>) = Basket.removeAll(context, answerIds)
+
+    override fun deleteNote(context: android.content.Context, answerIds: List<String>): String? =
+        if (Basket.countOf(context, answerIds) > 0) team.sopa.boar.ui.I18n.t(context, "native.labs.printer.deleteNote") else null
     override val emoji = "🖨️"
     override val art = team.sopa.boar.R.drawable.truffle_steampunk
     override val status = LabStatus.BETA

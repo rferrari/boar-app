@@ -77,6 +77,9 @@ interface LabPlugin {
     /** Erases what this lab made for these answers, when their chat is deleted (UserData.eraseAnswers). Runs even when off. */
     fun eraseAnswers(context: Context, answerIds: List<String>) {}
 
+    /** A line for the chat's delete row when [eraseAnswers] would take something of these answers; null otherwise. Asked only when on. */
+    fun deleteNote(context: Context, answerIds: List<String>): String? = null
+
     /** The search slot: a step after search for every answer (a reranker); see team.sopa.boar.plugins.SearchStage. */
     val searchStage: team.sopa.boar.plugins.SearchStage? get() = null
 

@@ -54,6 +54,21 @@ object Basket {
 
     fun remove(id: String) = change { list -> list.filter { it.id != id } }
 
+    /** The answers of a deleted chat leave the basket; the header's count follows ([items]). */
+    fun removeAll(context: Context, ids: Collection<String>) {
+        if (ids.isEmpty()) return
+        load(context)
+        val gone = ids.toSet()
+        change { list -> list.filter { it.id !in gone } }
+    }
+
+    /** How many of [ids] are in the basket. */
+    fun countOf(context: Context, ids: Collection<String>): Int {
+        load(context)
+        val set = ids.toSet()
+        return _items.value.count { it.id in set }
+    }
+
     fun edit(id: String, text: String) = change { list -> list.map { if (it.id == id) it.copy(text = text) else it } }
 
     /** The heading printed above an answer (its question, at first). */

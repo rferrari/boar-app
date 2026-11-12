@@ -290,6 +290,16 @@ private fun ChatSheet(s: ChatSession, onClose: () -> Unit, onRename: (String, St
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var renaming by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(s.title) }
+    // What deleting takes from the plugins on (Press: its basket answers), read off the main thread.
+    var deleteNotes by remember { mutableStateOf<List<String>>(emptyList()) }
+    androidx.compose.runtime.LaunchedEffect(s.id) {
+        deleteNotes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val ids = team.sopa.boar.app.BoarServices.get(ctx).chats.messages(s.id).filter { it.role == "assistant" }.map { it.id }
+                team.sopa.boar.plugins.UserData.deleteNotes(ids)
+            }.getOrDefault(emptyList())
+        }
+    }
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(s.title, style = Boar.type.title, color = c.textHeading, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(bottom = 6.dp))
@@ -301,6 +311,7 @@ private fun ChatSheet(s: ChatSession, onClose: () -> Unit, onRename: (String, St
             } else SheetRow(t("native.drawer.rename")) { renaming = true }
             for (a in team.sopa.boar.plugins.ChatActions.actions()) SheetRow(t(a.labelKey)) { a.run(ctx, s.id, s.title); team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(ctx, "native.drawer.added")); onClose() }
             SheetRow(t("native.drawer.deleteChat"), danger = true) { onDelete(s.id); onClose() }
+            for (n in deleteNotes) Text(n, style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.padding(horizontal = 8.dp))
         }
     }
 }
