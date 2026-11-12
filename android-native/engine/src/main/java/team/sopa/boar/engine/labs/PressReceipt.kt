@@ -147,7 +147,7 @@ object PressReceipt {
      * paper. Pictures stay out (a line says where one was, with its caption if it has one).
      */
     fun markdown(project: PressDoc.Project, l: Labels, date: String, version: String, sourcesLabel: String, drawingLabel: String,
-                 r: Receipt = build(project)): String = buildString {
+                 r: Receipt = build(project), photoLabel: String = drawingLabel): String = buildString {
         append("# ").append(project.name.trim().replace('\n', ' ')).append("\n\n")
         append('_').append(date).append("_\n\n")
         for (b in project.blocks) when (b) {
@@ -160,7 +160,7 @@ object PressReceipt {
                 append(renumber(b.text.trim(), refs)).append("\n\n")
                 refsLine(refs, sourcesLabel)?.let { append(it).append("\n\n") }
             }
-            is Block.Picture -> append("_").append(drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")
+            is Block.Picture -> append("_").append(if (b.kind == PressDoc.Kind.PHOTO) photoLabel else drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")
             is Block.Unknown -> {}
         }
         append("---\n\n**").append(l.title).append("**\n\n")

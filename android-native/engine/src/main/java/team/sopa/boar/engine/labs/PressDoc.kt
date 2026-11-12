@@ -155,6 +155,9 @@ object PressDoc {
             }
         }
 
+        /** A picture's place: centered at the full width, or left / right with the next text beside it (phase 2). */
+        fun place(blockId: String, place: Place) = mapBlock(blockId) { b -> if (b is Block.Picture) b.copy(place = place) else b }
+
         /** The user saw [projectId]'s new answers (Show, or left the page); nothing changes when there were none. */
         fun markSeen(now: Long, projectId: String = current.id) =
             if (projects.firstOrNull { it.id == projectId }?.unseen ?: 0 == 0) this else mapProject(projectId) { it.copy(seenAt = now) }
