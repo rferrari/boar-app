@@ -129,8 +129,8 @@ object PressDoc {
         /** Takes an answer out of the open project, and the drawing that came with it. */
         fun removeAnswer(answerId: String) = mapOpen { p -> p.copy(blocks = p.blocks.filterNot { it.id == answerId || (it is Block.Picture && it.answerId == answerId) }) }
 
-        /** Puts [b] at [at] in the open project (clamped): a new block, or a removed one back where it was (Undo). */
-        fun insert(b: Block, at: Int) = mapOpen { p ->
+        /** Puts [b] at [at] in a project (the open one by default; clamped): a new block, or a removed one back where it was (Undo). */
+        fun insert(b: Block, at: Int, projectId: String = current.id) = mapProject(projectId) { p ->
             if (p.blocks.any { it.id == b.id }) p else p.copy(blocks = p.blocks.toMutableList().apply { add(at.coerceIn(0, size), b) })
         }
 
@@ -155,7 +155,9 @@ object PressDoc {
             }
         }
 
-        fun markSeen(now: Long) = mapOpen { it.copy(seenAt = now) }
+        /** The user saw [projectId]'s new answers (Show, or left the page); nothing changes when there were none. */
+        fun markSeen(now: Long, projectId: String = current.id) =
+            if (projects.firstOrNull { it.id == projectId }?.unseen ?: 0 == 0) this else mapProject(projectId) { it.copy(seenAt = now) }
 
         /** A deleted chat's answers leave every project, with the drawings that came with them (adam chose (a), Nov 12). */
         fun eraseAnswers(ids: Collection<String>): Library {
