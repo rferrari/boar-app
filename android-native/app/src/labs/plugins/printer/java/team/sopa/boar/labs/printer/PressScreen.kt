@@ -199,8 +199,9 @@ internal fun PressScreen(lab: LabPlugin) {
 
     fun saveMarkdown() {
         val drawingLabel = I18n.t(ctx, "native.labs.printer.mdDrawing")
+        val photoLabel = I18n.t(ctx, "native.labs.printer.mdPhoto")
         scope.launch {
-            markdown = withContext(Dispatchers.IO) { PressPage.of(ctx, project, date).markdown(drawingLabel) }
+            markdown = withContext(Dispatchers.IO) { PressPage.of(ctx, project, date).markdown(drawingLabel, photoLabel) }
             saveMd.launch(slug(project.name) + ".md")
         }
     }

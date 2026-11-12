@@ -39,7 +39,7 @@ internal object PressSelfTest {
                 if (n > 0) { ok++; say("ok press $name: $n pages, ${out.length() / 1024} KB") } else { fail++; say("FAIL press $name: no pages") }
             }.onFailure { fail++; say("FAIL press $name: ${it.javaClass.simpleName} ${it.message}") }
             runCatching {
-                val md = page.markdown(drawingLabel)
+                val md = page.markdown(drawingLabel, team.sopa.boar.ui.I18n.t(ctx, "native.labs.printer.mdPhoto"))
                 File(dir, "$name.md").writeText(md)
                 val missing = project.answers.filterNot { PressPageText.oneLine(it.shownHeading) in md }.map { it.id }
                 missing + listOfNotNull("receipt".takeIf { page.labels.title !in md || page.labels.footer !in md })
