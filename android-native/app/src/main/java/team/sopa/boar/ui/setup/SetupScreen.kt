@@ -89,7 +89,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         state.step == 1 -> Welcome(state, language, onLanguage, onSkip) { vm.next() }
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
-        state.details -> InstallStep(state, vm, onGuide = { vm.showDetails(false) }) { backOpen = true }
+        state.details -> InstallStep(state, vm, onGuide = { vm.showDetails(false) }, onDone = onDone) { backOpen = true }
         else -> SetupGuidePage(state, vm, themeId, onTheme, onFontScale, onDone)
     }
     if (backOpen) {
@@ -350,12 +350,18 @@ private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
 }
 
 @Composable
-internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> Unit, onBack: () -> Unit) {
+internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> Unit, onDone: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
     StepScreen(footer = {
+        // Everything on the phone and the packs organized: Open BOAR from here too, as the guide's last page offers
+        // (adam on the F3, t9 0120: the downloads view was a dead end). It follows the state, so a download that finished
+        // in the background shows it on return.
+        if (state.finished) {
+            PrimaryButton(t("flows.onboarding.open"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onDone)
+            SecondaryButton(t("native.setupGuide.backToGuide"), onClick = onGuide)
         // Back to the page the user was on; the download keeps going under it.
-        PrimaryButton(t("native.setupGuide.backToGuide"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onGuide)
+        } else PrimaryButton(t("native.setupGuide.backToGuide"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onGuide)
         if (!state.transferring && state.indexPhase != IndexPhase.BUILDING && !state.finished) BackLink(t("flows.onboarding.back"), onBack)
     }) {
         StepHeader(if (state.indexPhase == IndexPhase.WAITING) 3 else 4,
