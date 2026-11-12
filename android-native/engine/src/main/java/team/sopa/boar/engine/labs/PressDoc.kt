@@ -25,6 +25,8 @@ import kotlinx.serialization.json.longOrNull
  */
 object PressDoc {
     const val VERSION = 1
+    /** How many projects the menu lists before "All projects". */
+    const val SHORT_LIST = 4
 
     data class Source(val title: String, val source: String? = null)
 
@@ -105,6 +107,20 @@ object PressDoc {
         private fun mapBlock(blockId: String, f: (Block) -> Block) = mapOpen { p -> p.copy(blocks = p.blocks.map { if (it.id == blockId) f(it) else it }) }
 
         fun switchTo(id: String) = if (projects.any { it.id == id }) copy(open = id) else this
+
+        /**
+         * The menu's short list (adam, Nov 12: ten projects made the menu long): the open project first, then the ones seen or
+         * made most recently, [n] in all. The rest are behind "All projects", with a search.
+         */
+        fun shortList(n: Int = SHORT_LIST): List<Project> =
+            (listOf(current) + projects.filter { it.id != current.id }.sortedByDescending { maxOf(it.seenAt, it.createdAt) }).take(n)
+
+        /** Every project whose name has [query] (case and accents aside), the open one first, then the most recent. */
+        fun search(query: String): List<Project> {
+            fun norm(x: String) = java.text.Normalizer.normalize(x.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
+            val q = norm(query.trim())
+            return shortList(Int.MAX_VALUE).filter { q.isEmpty() || norm(it.name).contains(q) }
+        }
 
         /** A new empty project, opened; it goes first in the list. */
         fun newProject(id: String, name: String, now: Long) =

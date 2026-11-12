@@ -114,7 +114,7 @@ import java.io.File
  * bottom bar, Add and Save PDF. Tapping a block selects it; an icon bar above the bottom bar moves, edits (on the page,
  * text blocks), removes (with Undo) or lets go of it.
  */
-private enum class Sheet { PROJECTS, ADD, DRAWINGS, EDIT }
+private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT }
 
 private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
@@ -321,7 +321,9 @@ internal fun PressScreen(lab: LabPlugin) {
                         },
                         onMarkdown = { sheet = null; saveMarkdown() },
                         onAdd = { sheet = Sheet.ADD }, onPdf = { sheet = null; savePdf() }, canSave = project.blocks.isNotEmpty() && !compiling,
+                        onAll = { sheet = Sheet.ALL_PROJECTS },
                         showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
+                    Sheet.ALL_PROJECTS -> AllProjectsSheet(library) { id -> PressStore.change { it.switchTo(id) }; sheet = null }
                     Sheet.ADD -> AddSheet(
                         onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
                         onNote = { addBlock(Block.Note(PressStore.newId("n"), I18n.t(ctx, "native.labs.printer.newNote"))) },
@@ -334,7 +336,11 @@ internal fun PressScreen(lab: LabPlugin) {
                     Sheet.EDIT -> {
                         val target = project.blocks.firstOrNull { it.id == selected && textOf(it) != null }
                         if (target == null) LaunchedEffect(Unit) { sheet = null }
-                        else EditSheet(target, typed = askOwn, onSelf = { askOwn = null; sheet = null; editing = target.id }, onClose = { askOwn = null; sheet = null })
+                        else EditSheet(target, typed = askOwn,
+                            // The rest of the document, for an instruction in the user's own words (PressRewrite.documentContext).
+                            document = PressRewrite.documentContext(project.name, project.blocks.filter { it.id != target.id }.mapNotNull { b ->
+                                when (b) { is Block.Answer -> b.shownHeading + "\n" + PressReceipt.plain(b.text); else -> textOf(b) }
+                            }), onSelf = { askOwn = null; sheet = null; editing = target.id }, onClose = { askOwn = null; sheet = null })
                     }
                     Sheet.DRAWINGS -> DrawingsSheet { f ->
                         sheet = null
@@ -449,7 +455,7 @@ private fun SheetRow(text: String, small: String? = null, icon: Int? = null, acc
 @Composable
 private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
                           onDelete: () -> Unit, onMarkdown: () -> Unit, showBreaks: Boolean = true, onBreaks: (Boolean) -> Unit = {},
-                          onAdd: () -> Unit = {}, onPdf: () -> Unit = {}, canSave: Boolean = true) {
+                          onAdd: () -> Unit = {}, onPdf: () -> Unit = {}, canSave: Boolean = true, onAll: () -> Unit = {}) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val current = library.current
@@ -472,10 +478,13 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
                     .padding(horizontal = 16.dp, vertical = 10.dp))
     }
     Group("native.labs.printer.projects")
-    library.projects.forEach { p ->
+    // The open one and the most recent (PressDoc.SHORT_LIST); the rest behind "All projects", so the menu stays short.
+    library.shortList().forEach { p ->
         SheetRow(p.name, t("native.labs.printer.blocks", "count" to p.blocks.size), icon = if (p.id == current.id) R.drawable.lab_printer_ic_check else R.drawable.lab_printer_ic_folder,
             accent = p.id == current.id) { onSwitch(p.id) }
     }
+    if (library.projects.size > PressDoc.SHORT_LIST)
+        SheetRow(t("native.labs.printer.allProjects", "count" to library.projects.size), "›", icon = R.drawable.lab_printer_ic_folder, onClick = onAll)
     if (!naming) SheetRow(t("native.labs.printer.newProject"), icon = R.drawable.lab_printer_ic_add) { naming = true }
     else {
         val focus = remember { FocusRequester() }
@@ -544,7 +553,7 @@ private fun SheetButton(text: String, primary: Boolean, enabled: Boolean = true,
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun EditSheet(block: Block, typed: String? = null, onSelf: () -> Unit, onClose: () -> Unit) {
+private fun EditSheet(block: Block, typed: String? = null, document: String = "", onSelf: () -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -569,7 +578,7 @@ private fun EditSheet(block: Block, typed: String? = null, onSelf: () -> Unit, o
         line = null; result = null; streamed = ""; running = true
         job = scope.launch {
             val o = try {
-                PressRewriter.run(ctx, current, option, ownText, languageOf) { streamed = it }
+                PressRewriter.run(ctx, current, option, ownText, languageOf, document) { streamed = it }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -634,6 +643,23 @@ private fun EditSheet(block: Block, typed: String? = null, onSelf: () -> Unit, o
             line?.let { Text(it, style = Boar.type.caption, color = c.amber400, modifier = Modifier.padding(top = 8.dp)) }
             Text(t("native.labs.printer.rwHint"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 8.dp))
         }
+    }
+}
+
+/** Every project, the open one first, then the most recent; a search box to find one by name (adam, Nov 12). */
+@Composable
+private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Unit) {
+    val c = Boar.colors
+    var query by remember { mutableStateOf("") }
+    SheetTitle(t("native.labs.printer.allProjects", "count" to library.projects.size))
+    BasicTextField(query, { query = it.take(60) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(GOLD),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp),
+        decorationBox = { inner -> if (query.isEmpty()) Text(t("native.labs.printer.searchProjects"), style = Boar.type.body, color = c.textDim); inner() })
+    val found = library.search(query)
+    if (found.isEmpty()) Text(t("native.labs.printer.noProjects"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(vertical = 12.dp))
+    found.forEach { p ->
+        SheetRow(p.name, t("native.labs.printer.blocks", "count" to p.blocks.size),
+            icon = if (p.id == library.current.id) R.drawable.lab_printer_ic_check else R.drawable.lab_printer_ic_folder, accent = p.id == library.current.id) { onSwitch(p.id) }
     }
 }
 

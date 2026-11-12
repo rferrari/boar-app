@@ -12,7 +12,7 @@ class PressRewriteTest {
     private val pt = "Onde o sol evapora muita água e poucos rios chegam, o sal fica para trás [1]. O Mar Vermelho é um dos mais salgados [2]."
 
     @Test fun `each option asks for its change, in the text's language, and keeps the marks`() {
-        for (o in PressRewrite.Option.entries) {
+        for (o in PressRewrite.Option.entries.filter { it != PressRewrite.Option.OWN }) {
             val p = PressRewrite.prompt(o, en, own = "for a 10-year-old")
             assertTrue(o.name, p.system.contains("Keep every source mark such as [1] or [2] exactly as written"))
             assertTrue(o.name, p.user.startsWith("PASSAGE:\n$en\n\nTASK: "))
@@ -25,7 +25,7 @@ class PressRewriteTest {
         assertTrue(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en).user.substringAfter("TASK: ").startsWith("Rewrite it with short, everyday words"))
         assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, en).user.substringAfter("TASK: ").startsWith("Fix only the grammar"))
         assertTrue(PressRewrite.prompt(PressRewrite.Option.LIST, pt).user.substringAfter("TAREFA: ").startsWith("Transforme em uma lista"))
-        assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, en, own = "  for a 10-year-old ").user.substringAfter("TASK: ").startsWith("Rewrite it this way: for a 10-year-old"))
+        assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, en, own = "  for a 10-year-old ").user.endsWith("INSTRUCTION: for a 10-year-old"))
         // The language can come from the answer's question when the text alone is too short to tell.
         assertTrue(PressRewrite.prompt(PressRewrite.Option.FIX, "Sim [1].", languageOf = "Por que o mar é salgado? Sim [1].").system.startsWith("Você"))
         // A list gets more room than a shorter version.
@@ -97,5 +97,23 @@ class PressRewriteTest {
         assertTrue(services.contains("val isModelBusy: Boolean get() = modelBusy()"))
         // The clean-up and the marks check are the engine's.
         assertTrue(rewriter.contains("PressRewrite.clean(") && rewriter.contains("PressRewrite.marksChanged("))
+    }
+}
+
+class PressRewriteOwnWordsTest {
+    @Test fun `the user's own words get the document to read and may write new text`() {
+        val doc = PressRewrite.documentContext("Field notes", listOf("Why is the sea salty?\nSeawater contains minerals and salts [1].", "", "A test sea"))
+        org.junit.Assert.assertEquals("Field notes\n\nWhy is the sea salty?\nSeawater contains minerals and salts [1].\n\nA test sea", doc)
+        val p = PressRewrite.prompt(PressRewrite.Option.OWN, "this is a test", own = "replace this with a sentence about the document", document = doc)
+        org.junit.Assert.assertTrue(p.system.contains("may ask for new text") && p.system.contains("never add a new one"))
+        org.junit.Assert.assertTrue(p.user, p.user.startsWith("DOCUMENT (for context only, do not copy it):\nField notes") &&
+            p.user.contains("\n\nPASSAGE:\nthis is a test\n\nINSTRUCTION: replace this with a sentence about the document"))
+        org.junit.Assert.assertTrue(p.nPredict >= 320)
+        // No document: the passage and the instruction alone; Portuguese follows the text.
+        org.junit.Assert.assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, "x", own = "y").user.startsWith("PASSAGE:"))
+        org.junit.Assert.assertTrue(PressRewrite.prompt(PressRewrite.Option.OWN, "Por que o mar é salgado? Não sei.", own = "mais curto").user.contains("INSTRUÇÃO: mais curto"))
+        org.junit.Assert.assertTrue(PressRewrite.documentContext("T", listOf("a".repeat(3000))).length <= 1500)
+        val screen = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+        org.junit.Assert.assertTrue(screen.contains("document = PressRewrite.documentContext(project.name,") && screen.contains("PressRewriter.run(ctx, current, option, ownText, languageOf, document)"))
     }
 }

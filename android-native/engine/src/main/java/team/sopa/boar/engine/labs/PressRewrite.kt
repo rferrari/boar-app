@@ -48,8 +48,32 @@ object PressRewrite {
      * The model's prompt for [text] (the language from [languageOf], the text by default). Room to write: about the text's
      * length again, more for a list, between 96 and 1024 tokens.
      */
-    fun prompt(option: Option, text: String, own: String? = null, languageOf: String = text): Prompt {
+    /**
+     * The user's own words (the input bar, or the sheet's field) may ask for new text, not a rewording: "replace this with
+     * something about the document" (adam on the F3, Nov 12: the model kept returning "this is a test"). So that option gets
+     * the rest of the document to read, and may write new text from it.
+     */
+    private const val OWN_EN = "You edit one passage of a document, doing exactly what the writer's INSTRUCTION says. The instruction may ask " +
+        "for new text in place of the passage: then write it, using the DOCUMENT to know what it is about. Reply with the new passage " +
+        "only: no preface, no title, no quotes, no notes. Write in English. Use only facts from the document or the passage. Keep a " +
+        "source mark such as [1] only if the passage already has it; never add a new one."
+    private const val OWN_PT = "Você edita um trecho de um documento, fazendo exatamente o que a INSTRUÇÃO de quem escreve pede. A instrução pode " +
+        "pedir um texto novo no lugar do trecho: então escreva, usando o DOCUMENTO para saber do que se trata. Responda só com o novo " +
+        "trecho: sem introdução, sem título, sem aspas, sem notas. Escreva em português. Use só fatos do documento ou do trecho. " +
+        "Mantenha uma marca de fonte como [1] só se o trecho já a tiver; nunca acrescente uma nova."
+
+    /** The rest of the document for the model to read: its title and the other blocks' text, [max] characters at most. */
+    fun documentContext(title: String, others: List<String>, max: Int = 1500): String =
+        (listOf(title.trim()) + others.map { it.trim() }).filter { it.isNotEmpty() }.joinToString("\n\n").take(max).trim()
+
+    fun prompt(option: Option, text: String, own: String? = null, languageOf: String = text, document: String = ""): Prompt {
         val pt = portuguese(languageOf)
+        if (option == Option.OWN) {
+            val doc = document.trim().takeIf { it.isNotEmpty() }?.let { (if (pt) "DOCUMENTO (só para contexto, não copie):" else "DOCUMENT (for context only, do not copy it):") + "\n" + it + "\n\n" }.orEmpty()
+            val user = doc + (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim() + "\n\n" + (if (pt) "INSTRUÇÃO: " else "INSTRUCTION: ") + own.orEmpty().trim().take(200)
+            // Room for new text, not only the passage's length again.
+            return Prompt(if (pt) OWN_PT else OWN_EN, user, (text.length / 3 * 3 / 2 + 64).coerceIn(320, 1024))
+        }
         // The passage first, the task last: small models copied the passage back when the task came first (the F3, Nov 12:
         // "Shorter" returned the same text on Qwen3 1.7B).
         val user = (if (pt) "TRECHO:" else "PASSAGE:") + "\n" + text.trim() + "\n\n" + (if (pt) "TAREFA: " else "TASK: ") + instruction(option, own, pt, text)

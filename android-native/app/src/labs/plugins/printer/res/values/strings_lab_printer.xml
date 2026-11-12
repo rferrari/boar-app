@@ -119,4 +119,7 @@
     <string name="native_labs_printer_pageGroup" formatted="false">Page</string>
     <string name="native_labs_printer_placeNext" formatted="false">Tap for the next place</string>
     <string name="native_labs_printer_fromChat" formatted="false">Answers from a chat</string>
+    <string name="native_labs_printer_allProjects" formatted="false">All projects ({{count}})</string>
+    <string name="native_labs_printer_searchProjects" formatted="false">Search projects</string>
+    <string name="native_labs_printer_noProjects" formatted="false">No project with that name.</string>
 </resources>

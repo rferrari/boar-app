@@ -22,12 +22,12 @@ internal object PressRewriter {
     private const val TIMEOUT_MS = 120_000L
 
     /** [text] is the block's text as stored; [languageOf] tells its language (an answer's question and text). [onText]: what's written so far. */
-    suspend fun run(ctx: Context, text: String, option: PressRewrite.Option, own: String?, languageOf: String, onText: (String) -> Unit): Outcome {
+    suspend fun run(ctx: Context, text: String, option: PressRewrite.Option, own: String?, languageOf: String, document: String = "", onText: (String) -> Unit): Outcome {
         val services = team.sopa.boar.app.BoarServices.get(ctx)
         if (services.isModelBusy) return Outcome.Busy
         val session = services.activeSession() ?: return Outcome.NoModel
         if (services.isModelBusy) return Outcome.Busy
-        val p = PressRewrite.prompt(option, text, own, languageOf)
+        val p = PressRewrite.prompt(option, text, own, languageOf, document)
         val written = StringBuilder()
         // While it writes, the model counts as busy (BOAR doesn't free it in the background meanwhile).
         val busy: () -> Boolean = { true }

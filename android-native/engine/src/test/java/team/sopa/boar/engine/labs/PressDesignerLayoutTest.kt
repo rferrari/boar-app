@@ -1,5 +1,6 @@
 package team.sopa.boar.engine.labs
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -57,5 +58,34 @@ class PressDesignerLayoutTest {
             val x = read("plugins/printer/res/$d/strings_lab_printer.xml")
             for (k in listOf("notePlaceholder", "askPlaceholder", "addNote", "menu", "saveAs", "pageGroup", "placeNext", "fromChat")) assertTrue("$d $k", x.contains("name=\"native_labs_printer_$k\""))
         }
+    }
+}
+
+class PressManyProjectsTest {
+    private fun lib(n: Int): PressDoc.Library {
+        var l = PressDoc.Library("p0", listOf(PressDoc.Project("p0", "Field notes", 1)))
+        for (i in 1 until n) l = l.newProject("p$i", if (i == 7) "Viagem a São Paulo" else "Project $i", 10L * i)
+        return l.switchTo("p3")
+    }
+
+    @Test fun `the menu lists the open project and the three most recent, however many there are`() {
+        val l = lib(12)
+        assertEquals(listOf("p3", "p11", "p10", "p9"), l.shortList().map { it.id })
+        assertEquals(12, l.search("").size)
+        assertEquals("p3", l.search("").first().id)
+        assertEquals(2, lib(2).shortList().size)
+    }
+
+    @Test fun `search finds by name, case and accents aside`() {
+        val l = lib(12)
+        assertEquals(listOf("p7"), l.search("sao paulo").map { it.id })
+        assertEquals(listOf("p11", "p10", "p1"), l.search("project 1").map { it.id })
+        assertTrue(l.search("zzz").isEmpty())
+    }
+
+    @Test fun `the screen uses the short list, All projects and the search`() {
+        val s = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+        assertTrue(s.contains("library.shortList().forEach") && s.contains("if (library.projects.size > PressDoc.SHORT_LIST)"))
+        assertTrue(s.contains("Sheet.ALL_PROJECTS -> AllProjectsSheet(library)") && s.contains("val found = library.search(query)"))
     }
 }
