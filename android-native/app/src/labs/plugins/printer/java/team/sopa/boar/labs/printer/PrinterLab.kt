@@ -42,7 +42,7 @@ object PrinterLab : LabPlugin {
         if (PressStore.countOf(context, answerIds) > 0) team.sopa.boar.ui.I18n.t(context, "native.labs.printer.deleteNote") else null
 
     /** An answer as a block, with what the chat knows of it. */
-    private fun answerBlock(id: String, chatTitle: String, question: String, text: String, sources: List<Pair<String, String?>>, model: String?, tokPerSec: Double?) =
+    internal fun answerBlock(id: String, chatTitle: String, question: String, text: String, sources: List<Pair<String, String?>>, model: String?, tokPerSec: Double?) =
         PressDoc.Block.Answer(id, chatTitle, question, text, sources.map { PressDoc.Source(it.first, it.second?.takeIf { s -> s.isNotEmpty() }) },
             System.currentTimeMillis(), model, tokPerSec)
 
@@ -67,19 +67,7 @@ object PrinterLab : LabPlugin {
 
     /** "Add to Press" on a chat in the menu (adam, Nov 12): every answer of the chat, into the open project. */
     override val chatActions = listOf(team.sopa.boar.plugins.ChatAction("native.labs.printer.addChat") { ctx, sessionId, title ->
-        Thread {
-            val msgs = runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.messages(sessionId) }.getOrDefault(emptyList())
-            var question = ""
-            for (m in msgs) {
-                if (m.role == "user") { question = m.text; continue }
-                if (m.role != "assistant" || m.text.isBlank()) continue
-                val sources = runCatching {
-                    val arr = org.json.JSONObject(m.meta ?: "{}").optJSONArray("sources") ?: org.json.JSONArray()
-                    (0 until arr.length()).map { i -> arr.getJSONObject(i).let { o -> o.optString("title") to o.optString("source").takeIf { it.isNotEmpty() } } }
-                }.getOrDefault(emptyList())
-                PressStore.addAnswer(ctx, answerBlock(m.id, title, question, m.text, sources, null, null), listOfNotNull(PressPictures.ofAnswer(ctx, m.id)))
-            }
-        }.start()
+        PressStore.addChat(ctx, sessionId, title)
     })
 
     /** The open project's answers, on the chat header's plugins icon and beside Press in its list. */

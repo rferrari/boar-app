@@ -81,6 +81,23 @@ object PressStore {
     }
 
     /** An answer (and the drawing it already has) at the end of the open project. */
+    /** Every answer of a chat, into the open project at the end ("Add to Press" in the menu, and Press's own strip). Off the main thread. */
+    fun addChat(context: Context, sessionId: String, title: String) {
+        Thread {
+                val msgs = runCatching { team.sopa.boar.app.BoarServices.get(context).chats.messages(sessionId) }.getOrDefault(emptyList())
+                var question = ""
+                for (m in msgs) {
+                    if (m.role == "user") { question = m.text; continue }
+                    if (m.role != "assistant" || m.text.isBlank()) continue
+                    val sources = runCatching {
+                        val arr = org.json.JSONObject(m.meta ?: "{}").optJSONArray("sources") ?: org.json.JSONArray()
+                        (0 until arr.length()).map { i -> arr.getJSONObject(i).let { o -> o.optString("title") to o.optString("source").takeIf { it.isNotEmpty() } } }
+                    }.getOrDefault(emptyList())
+                    PressStore.addAnswer(context, PrinterLab.answerBlock(m.id, title, question, m.text, sources, null, null), listOfNotNull(PressPictures.ofAnswer(context, m.id)))
+                }
+            }.start()
+    }
+
     fun addAnswer(context: Context, a: PressDoc.Block.Answer, after: List<PressDoc.Block> = emptyList()) {
         load(context)
         change { it.addAnswer(a, after) }

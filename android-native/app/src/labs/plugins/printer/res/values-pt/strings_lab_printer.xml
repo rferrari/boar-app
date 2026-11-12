@@ -111,4 +111,9 @@
     <string name="native_labs_printer_pageBreaks" formatted="false">Mostrar quebras de página</string>
     <string name="native_labs_printer_on" formatted="false">Ligado</string>
     <string name="native_labs_printer_off" formatted="false">Desligado</string>
+    <string name="native_labs_printer_notePlaceholder" formatted="false">Escreva uma nota…</string>
+    <string name="native_labs_printer_addNote" formatted="false">Adicionar a nota</string>
+    <string name="native_labs_printer_pages" formatted="false">{{count}} páginas</string>
+    <string name="native_labs_printer_photo" formatted="false">Foto</string>
+    <string name="native_labs_printer_allDrawings" formatted="false">Todos os desenhos ›</string>
 </resources>
