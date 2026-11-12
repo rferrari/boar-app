@@ -71,4 +71,6 @@
     <string name="native_labs_printer_rSquare" formatted="false">square</string>
     <string name="native_labs_printer_rPortrait" formatted="false">portrait</string>
     <string name="native_labs_printer_rWide" formatted="false">wide</string>
+    <string name="native_labs_printer_rFast" formatted="false">fast</string>
+    <string name="native_labs_printer_rSlow" formatted="false">slow</string>
 </resources>
