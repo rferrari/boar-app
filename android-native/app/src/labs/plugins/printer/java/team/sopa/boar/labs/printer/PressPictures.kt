@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import org.json.JSONObject
 import team.sopa.boar.engine.labs.PressDoc
+import team.sopa.boar.engine.labs.PressFiles
 import java.io.File
 
 /**
@@ -56,9 +57,39 @@ object PressPictures {
     fun gallery(ctx: Context): List<File> =
         File(ctx.filesDir, "labs/images").listFiles { f -> f.extension.equals("png", true) }.orEmpty().sortedByDescending { it.lastModified() }
 
+    /**
+     * A photo picked from the phone (Android's photo picker, no permission), COPIED into the project's folder: turned
+     * upright, its long side at most PressFiles.PHOTO_MAX, as a JPEG. The original stays in the gallery; the copy goes
+     * with its project. Off the main thread.
+     */
+    fun copyPhoto(ctx: Context, projectId: String, uri: android.net.Uri): PressDoc.Block.Picture {
+        val cr = ctx.contentResolver
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: error("can't open the photo")
+        val sample = PressFiles.sampleSize(bounds.outWidth, bounds.outHeight)
+        var bmp = cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) } ?: error("not a picture")
+        val (w, h) = PressFiles.scaled(bmp.width, bmp.height)
+        if (w != bmp.width || h != bmp.height) bmp = android.graphics.Bitmap.createScaledBitmap(bmp, w, h, true)
+        val degrees = runCatching {
+            cr.openInputStream(uri)?.use {
+                when (android.media.ExifInterface(it).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL)) {
+                    android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                    android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                    android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                    else -> 0
+                }
+            } ?: 0
+        }.getOrDefault(0)
+        if (degrees != 0) bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, android.graphics.Matrix().apply { postRotate(degrees.toFloat()) }, true)
+        val f = PressFiles.copyInto(PressStore.dir(ctx), projectId, PressStore.newId("photo") + ".jpg") { out ->
+            if (!bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out)) error("not saved")
+        }
+        return PressDoc.Block.Picture(PressStore.newId("pic"), PressDoc.Kind.PHOTO, f.name, width = bmp.width, height = bmp.height).also { bmp.recycle() }
+    }
+
     /** The file behind a picture: a drawing's own path; a photo (phase 2) lives in its project's folder. */
     fun fileOf(ctx: Context, projectId: String, p: PressDoc.Block.Picture): File? = when (p.kind) {
         PressDoc.Kind.DRAWING -> File(p.file)
-        PressDoc.Kind.PHOTO -> File(PressStore.projectDir(ctx, projectId), File(p.file).name)
+        PressDoc.Kind.PHOTO -> PressFiles.photoFile(PressStore.dir(ctx), projectId, p.file)
     }.takeIf { it.isFile }
 }

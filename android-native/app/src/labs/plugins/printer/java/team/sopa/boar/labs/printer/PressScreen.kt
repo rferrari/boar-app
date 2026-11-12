@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +67,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -94,6 +96,7 @@ import kotlinx.coroutines.withContext
 import team.sopa.boar.R
 import team.sopa.boar.engine.labs.PressDoc
 import team.sopa.boar.engine.labs.PressDoc.Block
+import team.sopa.boar.engine.labs.PressLayout
 import team.sopa.boar.engine.labs.PressReceipt
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.ui.I18n
@@ -207,9 +210,21 @@ internal fun PressScreen(lab: LabPlugin) {
         val at = project.blocks.indexOfFirst { it.id == selected }.let { if (it < 0) project.blocks.size else it + 1 }
         PressStore.change { it.insert(b, at) }
         selected = b.id
-        editing = if (b is Block.Picture) null else b.id
+        // A picture opens its caption, as the mock-up does; text blocks open for typing.
+        editing = b.id
         fresh = b.id
         sheet = null
+    }
+
+    // + Add, Photo from this phone: Android's photo picker (no permission); the photo is copied into the project's folder.
+    val pickPhoto = androidx.activity.compose.rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val pid = project.id
+        scope.launch {
+            val b = withContext(Dispatchers.IO) { runCatching { PressPictures.copyPhoto(ctx, pid, uri) }.getOrNull() }
+            if (b == null) Toasts.show(I18n.t(ctx, "native.labs.printer.photoFailed"))
+            else if (PressStore.library.value?.current?.id == pid) addBlock(b)
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -230,6 +245,7 @@ internal fun PressScreen(lab: LabPlugin) {
         if (i >= 0) ActionBar(project.blocks[i], i, project.blocks.size, editing == selected,
             onMove = { by -> PressStore.change { it.move(project.blocks[i].id, by) }; editing = null },
             onEdit = { editing = if (editing == selected) null else selected },
+            onPlace = { place -> PressStore.change { it.place(project.blocks[i].id, place) } },
             onRemove = {
                 val b = project.blocks[i]
                 val pid = project.id
@@ -265,7 +281,11 @@ internal fun PressScreen(lab: LabPlugin) {
                     Sheet.ADD -> AddSheet(
                         onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
                         onNote = { addBlock(Block.Note(PressStore.newId("n"), I18n.t(ctx, "native.labs.printer.newNote"))) },
-                        onDrawing = { sheet = Sheet.DRAWINGS })
+                        onDrawing = { sheet = Sheet.DRAWINGS },
+                        onPhoto = {
+                            sheet = null
+                            pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        })
                     Sheet.DRAWINGS -> DrawingsSheet { f ->
                         sheet = null
                         scope.launch {
@@ -340,7 +360,8 @@ private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Bo
 }
 
 @Composable
-private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onRemove: () -> Unit, onClose: () -> Unit) {
+private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
+                      onRemove: () -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -351,6 +372,14 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
             if (b is Block.Heading || b is Block.Note || b is Block.Answer) {
                 Sep()
                 IconAction(R.drawable.lab_printer_ic_edit, t(if (editing) "native.labs.printer.doneEditing" else "native.labs.printer.edit"), on = editing, onClick = onEdit)
+            }
+            if (b is Block.Picture) {
+                Sep()
+                // The caption, typed under the picture on the page; then where it sits (left and right: the next text beside it).
+                IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), on = editing, onClick = onEdit)
+                for ((place, icon, key) in listOf(Triple(PressDoc.Place.LEFT, R.drawable.lab_printer_ic_left, "placeLeft"),
+                        Triple(PressDoc.Place.CENTER, R.drawable.lab_printer_ic_center, "placeCenter"), Triple(PressDoc.Place.RIGHT, R.drawable.lab_printer_ic_right, "placeRight")))
+                    IconAction(icon, t("native.labs.printer.$key"), on = b.place == place) { onPlace(place) }
             }
             Sep()
             IconAction(R.drawable.lab_printer_ic_remove, t("native.labs.printer.remove"), danger = true, onClick = onRemove)
@@ -445,11 +474,12 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
 }
 
 @Composable
-private fun AddSheet(onHeading: () -> Unit, onNote: () -> Unit, onDrawing: () -> Unit) {
+private fun AddSheet(onHeading: () -> Unit, onNote: () -> Unit, onDrawing: () -> Unit, onPhoto: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val drawings by produceState(0) { value = withContext(Dispatchers.IO) { PressPictures.gallery(ctx).size } }
     SheetTitle(t("native.labs.printer.addTitle"))
+    SheetRow(t("native.labs.printer.addPhoto"), t("native.labs.printer.addPhotoSmall"), onClick = onPhoto)
     SheetRow(t("native.labs.printer.heading"), onClick = onHeading)
     SheetRow(t("native.labs.printer.note"), onClick = onNote)
     SheetRow(t("native.labs.printer.drawing"), t("native.labs.printer.drawings", "count" to drawings), onClick = onDrawing)
@@ -544,10 +574,18 @@ private fun PaperView(page: PressPage, selected: String?, editing: String?, fres
                 Text(t("native.labs.printer.empty") + "\n" + t("native.labs.printer.howTo"), style = s.note, textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(vertical = s.dp(60f)))
             }
-            project.blocks.forEach { b ->
-                key(b.id) {
-                    BlockView(b, page, s, selected == b.id, editing == b.id, fresh == b.id, onSelect = { onSelect(b.id) }, onFreshUsed = onFreshUsed)
-                    Spacer(Modifier.height(s.dp(Paper.GAP)))
+            // The same plan as the PDF: a side picture with the next text block beside it (PressLayout).
+            PressLayout.plan(project.blocks).forEach { item ->
+                when (item) {
+                    is PressLayout.Item.Single -> key(item.block.id) {
+                        val b = item.block
+                        BlockView(b, page, s, selected == b.id, editing == b.id, fresh == b.id, onSelect = { onSelect(b.id) }, onFreshUsed = onFreshUsed)
+                        Spacer(Modifier.height(s.dp(Paper.GAP)))
+                    }
+                    is PressLayout.Item.Beside -> key(item.picture.id) {
+                        BesideView(item, page, s, selected, editing, fresh, onSelect, onFreshUsed)
+                        Spacer(Modifier.height(s.dp(Paper.GAP)))
+                    }
                 }
             }
             ReceiptView(page, s)
@@ -574,16 +612,7 @@ private fun TitleField(project: PressDoc.Project, s: PaperScale, focus: FocusReq
 private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolean, editing: Boolean, fresh: Boolean, onSelect: () -> Unit, onFreshUsed: () -> Unit) {
     val ctx = LocalContext.current
     val project = page.project
-    val outset = 6.dp
-    Column(Modifier.fillMaxWidth()
-        .drawBehind {
-            if (selected) {
-                val o = outset.toPx()
-                drawRoundRect(Color(0xFFFFFAF0), Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()))
-                drawRoundRect(GOLD, Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()), style = Stroke(1.5.dp.toPx()))
-            }
-        }
-        .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onSelect)) {
+    Column(Modifier.fillMaxWidth().selectable(selected, onSelect)) {
         when (b) {
             is Block.Heading ->
                 if (editing) EditField(b.text, s.heading, fresh, onFreshUsed) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
@@ -603,26 +632,147 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
                 else Text(page.answerText(b), style = s.body)
                 page.refsLine(b)?.let { Text(it, style = s.refs, modifier = Modifier.padding(top = s.dp(4f))) }
             }
-            is Block.Picture -> {
-                val file = remember(b.file, project.id) { PressPictures.fileOf(ctx, project.id, b) }
-                val (pw, ph) = if (b.width > 0 && b.height > 0) b.width to b.height else 1 to 1
-                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, Paper.INNER, Paper.PICTURE_MAX_H)
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    if (file != null) Box(Modifier.size(s.dp(w), s.dp(h)).background(Color(0xFFEEEEEE))) { Picture(file, ContentScale.Fit) }
-                    else Text(t("native.labs.printer.missing"), style = s.caption, textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().background(Color(0xFFF1F2F5)).padding(s.dp(20f)))
-                }
-                // Empty captions don't show, as they don't print.
-                if (b.caption.isNotBlank()) Text(b.caption.trim(), style = s.caption, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = s.dp(4f)))
-            }
+            is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER, editing, fresh, onFreshUsed, center = true)
             is Block.Unknown -> {}
+        }
+    }
+}
+
+/** A block's selection on the paper: gold around it, a tap selects it. */
+@Composable
+private fun Modifier.selectable(selected: Boolean, onSelect: () -> Unit): Modifier = this
+    .drawBehind {
+        if (selected) {
+            val o = 6.dp.toPx()
+            drawRoundRect(Color(0xFFFFFAF0), Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()))
+            drawRoundRect(GOLD, Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+        }
+    }
+    .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onSelect)
+
+/**
+ * A picture in a box [maxW] points wide, in its own shape, its caption under it: typed on the page while [editing]; an
+ * empty one doesn't show, as it doesn't print.
+ */
+@Composable
+private fun PictureContent(b: Block.Picture, projectId: String, s: PaperScale, maxW: Float, editing: Boolean, fresh: Boolean, onFreshUsed: () -> Unit, center: Boolean) {
+    val ctx = LocalContext.current
+    val file = remember(b.file, projectId) { PressPictures.fileOf(ctx, projectId, b) }
+    val (pw, ph) = if (b.width > 0 && b.height > 0) b.width to b.height else 1 to 1
+    val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, maxW, Paper.PICTURE_MAX_H)
+    Column(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = if (center) Alignment.Center else if (b.place == PressDoc.Place.LEFT) Alignment.CenterStart else Alignment.CenterEnd) {
+            if (file != null) Box(Modifier.size(s.dp(w), s.dp(h)).background(Color(0xFFEEEEEE))) { Picture(file, ContentScale.Fit) }
+            else Text(t("native.labs.printer.missing"), style = s.caption, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFF1F2F5)).padding(s.dp(20f)))
+        }
+        val align = if (center) TextAlign.Center else TextAlign.Start
+        if (editing) Box(Modifier.padding(top = s.dp(4f))) {
+            EditField(b.caption, s.caption.copy(textAlign = align), fresh, onFreshUsed, placeholder = t("native.labs.printer.captionHint")) { v ->
+                PressStore.change { it.editText(b.id, PressDoc.Field.CAPTION, v) }
+            }
+        }
+        // Empty captions don't show, as they don't print.
+        else if (b.caption.isNotBlank()) Text(b.caption.trim(), style = s.caption, textAlign = align, modifier = Modifier.fillMaxWidth().padding(top = s.dp(4f)))
+    }
+}
+
+/** A piece of a text block, for the flow beside a picture: its text, its style, the space above it. */
+private data class Piece(val text: String, val style: TextStyle, val gap: Float)
+
+private fun pieces(b: Block, page: PressPage, s: PaperScale): List<Piece> = when (b) {
+    is Block.Answer -> listOfNotNull(
+        Piece(PressPageText.oneLine(b.shownHeading), s.heading, 0f),
+        b.shownQuestion?.let { Piece(it.trim(), s.question, 3f) },
+        Piece(page.answerText(b), s.body, 3f),
+        page.refsLine(b)?.let { Piece(it, s.refs, 4f) },
+    )
+    is Block.Note -> listOf(Piece(b.text, s.note, 0f))
+    else -> emptyList()
+}
+
+/**
+ * A picture on the left or right with the next text block beside it (PressLayout.plan): the lines whose top is above the
+ * picture's bottom go beside it (PressLayout.linesBeside, as in the PDF), the rest continue below at the full width. While
+ * the text is being typed it stays beside the picture whole.
+ */
+@Composable
+private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperScale, selected: String?, editing: String?, fresh: String?,
+                       onSelect: (String) -> Unit, onFreshUsed: () -> Unit) {
+    val pic = item.picture
+    val text = item.text
+    val density = LocalDensity.current
+    val side = PressLayout.sideWidth(Paper.INNER)
+    val (pw, ph) = if (pic.width > 0 && pic.height > 0) pic.width to pic.height else 1 to 1
+    var picH by remember(pic.id) { mutableStateOf(with(density) { s.dp(team.sopa.boar.engine.labs.PictureFit.within(pw, ph, side, Paper.PICTURE_MAX_H).second).toPx() }) }
+    val picture = @Composable {
+        Box(Modifier.width(s.dp(side)).onSizeChanged { picH = it.height.toFloat() }.selectable(selected == pic.id) { onSelect(pic.id) }) {
+            PictureContent(pic, page.project.id, s, side, editing == pic.id, fresh == pic.id, onFreshUsed, center = false)
+        }
+    }
+    val gutter = s.dp(PressLayout.GUTTER)
+    if (text == null) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (item.left) Arrangement.Start else Arrangement.End) { picture() }
+        return
+    }
+    val note = text is Block.Note
+    val indent = if (note) 12f else 0f
+    val textSelected = selected == text.id
+    if (editing == text.id) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gutter)) {
+            if (item.left) picture()
+            Box(Modifier.weight(1f)) { BlockView(text, page, s, textSelected, true, fresh == text.id, onSelect = { onSelect(text.id) }, onFreshUsed = onFreshUsed) }
+            if (!item.left) picture()
+        }
+        return
+    }
+    val measurer = rememberTextMeasurer()
+    val widthPx = with(density) { s.dp(PressLayout.besideWidth(Paper.INNER) - indent).roundToPx() }
+    val room = picH + with(density) { s.dp(8f).toPx() }
+    val beside = mutableListOf<Piece>()
+    val below = mutableListOf<Piece>()
+    var y = 0f
+    for (p in pieces(text, page, s)) {
+        if (p.text.isBlank()) continue
+        if (y >= room) { below += p; continue }
+        val gap = with(density) { s.dp(p.gap).toPx() }
+        val lay = measurer.measure(p.text, p.style, constraints = androidx.compose.ui.unit.Constraints(maxWidth = widthPx))
+        val n = PressLayout.linesBeside((0 until lay.lineCount).map { y + gap + lay.getLineTop(it) }, room)
+        when {
+            n >= lay.lineCount -> { beside += p; y += gap + lay.size.height }
+            n == 0 -> { below += p; y = room }
+            else -> {
+                val cut = lay.getLineEnd(n - 1)
+                beside += p.copy(text = p.text.substring(0, cut).trimEnd())
+                below += p.copy(text = p.text.substring(cut).trimStart(), gap = 0f)
+                y = room
+            }
+        }
+    }
+    val pieceView = @Composable { list: List<Piece>, m: Modifier ->
+        Column(m.then(if (note) Modifier.drawBehind {
+            drawLine(Color(Paper.NOTE_BAR), Offset(1.dp.toPx(), 0f), Offset(1.dp.toPx(), size.height), strokeWidth = 2.dp.toPx())
+        }.padding(start = s.dp(indent)) else Modifier)) {
+            list.forEach { p -> Text(p.text, style = p.style, modifier = Modifier.padding(top = s.dp(p.gap))) }
+        }
+    }
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gutter)) {
+            if (item.left) picture()
+            if (beside.isNotEmpty()) pieceView(beside, Modifier.weight(1f).selectable(textSelected) { onSelect(text.id) })
+            else Spacer(Modifier.weight(1f))
+            if (!item.left) picture()
+        }
+        if (below.isNotEmpty()) {
+            Spacer(Modifier.height(s.dp(if (beside.isEmpty()) 8f else 2f)))
+            pieceView(below, Modifier.fillMaxWidth().selectable(textSelected) { onSelect(text.id) })
         }
     }
 }
 
 /** A text typed on the page, in the paper's own style; saved a moment after typing stops, and when it closes. */
 @Composable
-private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUsed: () -> Unit, onSave: (String) -> Unit) {
+private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUsed: () -> Unit, placeholder: String? = null, onSave: (String) -> Unit) {
     var draft by remember { mutableStateOf(TextFieldValue(value, if (fresh) TextRange(0, value.length) else TextRange(value.length))) }
     val latest by rememberUpdatedState(value)
     val save by rememberUpdatedState(onSave)
@@ -634,7 +784,10 @@ private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUs
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { if (fresh) { runCatching { focus.requestFocus() }; onFreshUsed() } }
     BasicTextField(draft, { draft = it }, textStyle = style, cursorBrush = SolidColor(GOLD),
-        modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF3D6), RoundedCornerShape(2.dp)).focusRequester(focus))
+        modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF3D6), RoundedCornerShape(2.dp)).focusRequester(focus),
+        decorationBox = { inner ->
+            Box { if (draft.text.isEmpty() && placeholder != null) Text(placeholder, style = style.copy(color = Color(0xFFA2A6B4)), modifier = Modifier.fillMaxWidth()); inner() }
+        })
 }
 
 @Composable

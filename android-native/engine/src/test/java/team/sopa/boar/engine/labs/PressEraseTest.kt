@@ -48,10 +48,10 @@ class PressEraseTest {
     @Test fun `Forgot PIN and Clear all erase every project, its folder and the old basket`() {
         assertTrue(press.substringAfter("override fun eraseUserData(").substringBefore("\n    }").contains("PressStore.eraseAll(context)"))
         val all = store.substringAfter("fun eraseAll(context: Context)").substringBefore("\n    }")
-        assertTrue(all.contains("dir(context).deleteRecursively()"))
+        assertTrue(all.contains("PressFiles.eraseAll(dir(context))"))
         assertTrue(all.contains("basketFile(context).delete()"))
         // A deleted project takes its folder (phase 2's photos) with it.
-        assertTrue(store.substringAfter("fun deleteProject(context: Context, id: String)").substringBefore("\n    }").contains("projectDir(context, id).deleteRecursively()"))
+        assertTrue(store.substringAfter("fun deleteProject(context: Context, id: String)").substringBefore("\n    }").contains("PressFiles.deleteProject(dir(context), id)"))
     }
 
     @Test fun `the header count follows the open project`() {

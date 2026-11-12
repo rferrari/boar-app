@@ -25,6 +25,9 @@ internal object PressSelfTest {
         val wide = File(dir, "wide.png").also { f -> f.outputStream().use { sample(640, 320).compress(Bitmap.CompressFormat.PNG, 100, it) } }
         File(tall.path + ".json").writeText("""{"subject":"a boar","style":"engraving","size":"384x512","seed":48213}""")
         val drawingLabel = team.sopa.boar.ui.I18n.t(ctx, "native.labs.printer.mdDrawing")
+        // A photo as Add puts one: copied into its (self-test) project's folder, which goes at the end.
+        val photoDir = PressStore.projectDir(ctx, "selftest-Sides")
+        team.sopa.boar.engine.labs.PressFiles.copyInto(PressStore.dir(ctx), "selftest-Sides", PHOTO) { out -> wide.inputStream().use { it.copyTo(out) } }
         var ok = 0; var fail = 0
         for ((name, project) in projects(square, tall, wide)) {
             val page = PressPage.of(ctx, project)
@@ -43,6 +46,7 @@ internal object PressSelfTest {
             }.onSuccess { missing -> if (missing.isEmpty()) { ok++; say("ok press $name.md") } else { fail++; say("FAIL press $name.md: missing $missing") } }
                 .onFailure { fail++; say("FAIL press $name.md: ${it.javaClass.simpleName} ${it.message}") }
         }
+        photoDir.deleteRecursively()
         say("press done: $ok ok, $fail failed; files in ${dir.path}")
     }
 
@@ -66,6 +70,8 @@ internal object PressSelfTest {
 
     private fun picture(f: File, n: Int, caption: String = "") = Block.Picture("pic-$n", PressDoc.Kind.DRAWING, f.path, caption = caption,
         width = PressPictures.sizeOf(f)?.first ?: 0, height = PressPictures.sizeOf(f)?.second ?: 0)
+
+    private const val PHOTO = "selftest-photo.png"
 
     private val ANSWER = "Boil water for at least one minute (three minutes above 2,000 m) [1], let it cool covered, and store it in a clean container [2]. " +
         "**Filtering** first through a clean cloth removes sediment.\n\n- Use a lid\n- Keep it shaded\n\n1. Boil\n2. Cool\n3. Store"
@@ -92,6 +98,19 @@ internal object PressSelfTest {
             Block.Note("n1", "Ask about the lighthouse tomorrow."),
             Block.Picture("gone", PressDoc.Kind.DRAWING, File(square.parentFile, "deleted.png").path),
             Block.Heading("h2", (1..40).joinToString(" ") { "long" }),
+        )),
+        // Phase 2: pictures left and right with the next text beside them, a heading after a side picture, a photo.
+        "sides" to project("Sides", listOf(
+            picture(tall, 10, "On the left, a caption that wraps over two lines at least").copy(place = PressDoc.Place.LEFT),
+            answer(10, "Why is the sea salty?", ANSWER + "\n\n" + ANSWER),
+            picture(wide, 11).copy(place = PressDoc.Place.RIGHT),
+            Block.Note("n10", "A note beside a wide picture on the right."),
+            picture(square, 12, "Before a heading").copy(place = PressDoc.Place.RIGHT),
+            Block.Heading("h10", "A heading never starts beside a picture"),
+            answer(11, "Short?", "Yes."),
+            Block.Picture("photo", PressDoc.Kind.PHOTO, PHOTO, caption = "A photo copied into the project", place = PressDoc.Place.LEFT, width = 640, height = 320),
+            answer(12, "Tide pools", ANSWER),
+            picture(tall, 13).copy(place = PressDoc.Place.LEFT),
         )),
     )
 }

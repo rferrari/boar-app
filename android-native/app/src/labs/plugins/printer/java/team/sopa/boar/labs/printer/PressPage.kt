@@ -64,7 +64,7 @@ class PressPage(
 
     fun refsLine(a: PressDoc.Block.Answer) = PressReceipt.refsLine(receipt.refs[a.id], sourcesLabel)
 
-    fun markdown(drawingLabel: String) = PressReceipt.markdown(project, labels, date, version, sourcesLabel, drawingLabel, receipt)
+    fun markdown(drawingLabel: String, photoLabel: String = drawingLabel) = PressReceipt.markdown(project, labels, date, version, sourcesLabel, drawingLabel, receipt, photoLabel)
 
     companion object {
         fun dateText(): String = DateFormat.getDateInstance(DateFormat.LONG).format(Date())

@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import team.sopa.boar.engine.labs.PressDoc
+import team.sopa.boar.engine.labs.PressFiles
 import java.io.File
 
 /**
@@ -28,7 +29,7 @@ object PressStore {
 
     fun dir(context: Context) = File(context.filesDir, "labs/press")
     /** A project's own folder (phase 2: its photos, copied in from the phone). */
-    fun projectDir(context: Context, projectId: String) = File(dir(context), projectId.replace(Regex("[^A-Za-z0-9_-]"), "_"))
+    fun projectDir(context: Context, projectId: String) = team.sopa.boar.engine.labs.PressFiles.projectDir(dir(context), projectId)
     private fun projectsFile(context: Context) = android.util.AtomicFile(File(dir(context), "projects.json"))
     private fun basketFile(context: Context) = File(context.filesDir, "labs/basket.json")
 
@@ -44,7 +45,11 @@ object PressStore {
             ?: team.sopa.boar.ui.I18n.t(context, "native.labs.printer.untitled")
         val now = System.currentTimeMillis()
         when (val r = PressDoc.load(projects, basket, newId("p"), name, now, PressPictures.illustrations(context))) {
-            is PressDoc.Loaded.Read -> { _library.value = r.library; loaded = true; _unreadable.value = false }
+            is PressDoc.Loaded.Read -> {
+                _library.value = r.library; loaded = true; _unreadable.value = false
+                // Copies no project uses any more (a photo removed past its Undo, a cut-short copy): only after a good read.
+                runCatching { PressFiles.orphans(dir(context), r.library).forEach { it.deleteRecursively() } }
+            }
             is PressDoc.Loaded.Migrated -> {
                 // Written first; only then the basket goes. A failed write leaves the basket for the next try.
                 if (write(r.library)) {
@@ -98,13 +103,13 @@ object PressStore {
     fun deleteProject(context: Context, id: String): Boolean {
         var gone = false
         change { lib -> lib.deleteProject(id).also { gone = it !== lib } }
-        if (gone) projectDir(context, id).deleteRecursively()
+        if (gone) PressFiles.deleteProject(dir(context), id)
         return gone
     }
 
     /** Erased with the chats (Forgot PIN, Clear all): every project and its folder, and the old basket, even if unreadable. */
     fun eraseAll(context: Context) = synchronized(lock) {
-        dir(context).deleteRecursively()
+        PressFiles.eraseAll(dir(context))
         basketFile(context).delete()
         file = projectsFile(context)
         val now = System.currentTimeMillis()

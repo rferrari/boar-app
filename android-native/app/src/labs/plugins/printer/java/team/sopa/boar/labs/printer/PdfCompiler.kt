@@ -10,6 +10,7 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import team.sopa.boar.engine.labs.PressDoc.Block
+import team.sopa.boar.engine.labs.PressLayout
 import java.io.File
 
 /**
@@ -27,27 +28,25 @@ object PdfCompiler {
             val p = Pager(doc)
             p.text(page.project.name.trim().ifEmpty { " " }, serif(Paper.TITLE, bold = true), after = 4f)
             p.text(page.date.uppercase(), sans(Paper.DATE, color = Paper.DATE_INK), after = Paper.GAP + 4f)
-            for (b in page.project.blocks) when (b) {
-                is Block.Heading -> if (b.text.isNotBlank()) {
-                    p.keepRoom(Paper.HEADING * 1.4f + Paper.BODY * 3)
-                    p.text(b.text.trim(), serif(Paper.HEADING, bold = true), after = Paper.GAP)
+            val caption = { b: Block.Picture -> b.caption.trim().takeIf { it.isNotEmpty() }?.let { it to serif(Paper.CAPTION, italic = true, color = Paper.MUTED) } }
+            // The same plan as the paper on screen: a side picture with the next text block beside it (PressLayout).
+            for (item in PressLayout.plan(page.project.blocks)) when (item) {
+                is PressLayout.Item.Single -> {
+                    val b = item.block
+                    if (b is Block.Picture) fileOf(b)?.let { f ->
+                        // Empty captions don't print.
+                        p.picture(f, caption(b))
+                        p.gap(Paper.GAP)
+                    } else block(p, page, b)
                 }
-                is Block.Answer -> {
-                    p.keepRoom(Paper.HEADING * 1.4f + Paper.BODY * 3)
-                    p.text(PressPageText.oneLine(b.shownHeading), serif(Paper.HEADING, bold = true), after = 3f)
-                    b.shownQuestion?.let { p.text(it.trim(), serif(Paper.QUESTION, italic = true, color = Paper.MUTED), after = 3f) }
-                    p.text(page.answerText(b), serif(Paper.BODY), after = 4f, spacing = Paper.PDF_SPACING)
-                    page.refsLine(b)?.let { p.text(it, sans(Paper.REFS, color = Paper.META), after = 0f) }
-                    p.gap(Paper.GAP)
+                is PressLayout.Item.Beside -> {
+                    val f = fileOf(item.picture)
+                    if (f != null) p.sidePicture(f, item.left, caption(item.picture))
+                    item.text?.let { block(p, page, it) }
+                    // What follows (a heading above all) starts below the picture.
+                    p.endBeside()
+                    p.gap(if (item.text == null) Paper.GAP else 0f)
                 }
-                is Block.Note -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.NOTE, italic = true, color = Paper.MUTED), after = Paper.GAP,
-                    spacing = Paper.PDF_SPACING, indent = 12f)
-                is Block.Picture -> fileOf(b)?.let { f ->
-                    // Empty captions don't print.
-                    p.picture(f, b.caption.trim().takeIf { it.isNotEmpty() }?.let { it to serif(Paper.CAPTION, italic = true, color = Paper.MUTED) })
-                    p.gap(Paper.GAP)
-                }
-                is Block.Unknown -> {}
             }
             receipt(p, page)
             p.finish()
@@ -55,6 +54,27 @@ object PdfCompiler {
             out.outputStream().use { doc.writeTo(it) }
         } finally {
             doc.close()
+        }
+    }
+
+    /** A text block (or nothing for the others): beside a picture, the Pager narrows its lines. */
+    private fun block(p: Pager, page: PressPage, b: Block) {
+        when (b) {
+            is Block.Heading -> if (b.text.isNotBlank()) {
+                p.keepRoom(Paper.HEADING * 1.4f + Paper.BODY * 3)
+                p.text(b.text.trim(), serif(Paper.HEADING, bold = true), after = Paper.GAP)
+            }
+            is Block.Answer -> {
+                p.keepRoom(Paper.HEADING * 1.4f + Paper.BODY * 3)
+                p.text(PressPageText.oneLine(b.shownHeading), serif(Paper.HEADING, bold = true), after = 3f)
+                b.shownQuestion?.let { p.text(it.trim(), serif(Paper.QUESTION, italic = true, color = Paper.MUTED), after = 3f) }
+                p.text(page.answerText(b), serif(Paper.BODY), after = 4f, spacing = Paper.PDF_SPACING)
+                page.refsLine(b)?.let { p.text(it, sans(Paper.REFS, color = Paper.META), after = 0f) }
+                p.gap(Paper.GAP)
+            }
+            is Block.Note -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.NOTE, italic = true, color = Paper.MUTED), after = Paper.GAP,
+                spacing = Paper.PDF_SPACING, indent = 12f)
+            is Block.Picture, is Block.Unknown -> {}
         }
     }
 
@@ -101,6 +121,7 @@ object PdfCompiler {
             page?.let { finishPage(it) }
             n++
             y = Paper.M
+            float = null
             return doc.startPage(PdfDocument.PageInfo.Builder(Paper.W.toInt(), Paper.H.toInt(), n).create()).also { page = it }
         }
 
@@ -110,39 +131,86 @@ object PdfCompiler {
             doc.finishPage(pg)
         }
 
-        /** Starts a new page unless [h] points still fit on this one (a heading never ends a page alone). */
+        /** A side picture's region: the text beside it is narrower until [bottom]; [left] puts the picture on the left. */
+        private class Beside(val left: Boolean, val bottom: Float)
+        private var float: Beside? = null
+
+        /** Starts a new page unless [h] points still fit on this one (a heading never ends a page alone); not beside a picture. */
         fun keepRoom(h: Float) {
             canvas
-            if (y > Paper.M && bottom - y < h) newPage()
+            if (float == null && y > Paper.M && bottom - y < h) newPage()
         }
 
-        /** Text that flows across pages line by line; [indent] with a bar on its left (a note). */
+        /**
+         * Text that flows across pages line by line; [indent] with a bar on its left (a note). Beside a side picture the lines
+         * whose top is above the picture's bottom are narrower (PressLayout.linesBeside), the rest get the full width back.
+         */
         fun text(s: String, paint: TextPaint, after: Float, spacing: Float = 1.15f, indent: Float = 0f, center: Boolean = false) {
             if (s.isBlank()) { y += after; return }
             var rest = s
-            val width = (Paper.INNER - indent).toInt()
             while (rest.isNotEmpty()) {
                 canvas // a page exists
+                val f = float?.takeIf { y < it.bottom }
+                val column = if (f != null) PressLayout.besideWidth(Paper.INNER) else Paper.INNER
+                val x0 = if (f != null && f.left) Paper.M + PressLayout.sideWidth(Paper.INNER) + PressLayout.GUTTER else Paper.M
+                val width = (column - indent).toInt()
                 val layout = StaticLayout.Builder.obtain(rest, 0, rest.length, paint, width)
                     .setAlignment(if (center) Layout.Alignment.ALIGN_CENTER else Layout.Alignment.ALIGN_NORMAL).setLineSpacing(0f, spacing).build()
                 val room = bottom - y
                 var last = 0
                 while (last < layout.lineCount && layout.getLineBottom(last) <= room) last++
-                if (last == 0) { newPage(); continue }
+                if (f != null) last = minOf(last, PressLayout.linesBeside((0 until layout.lineCount).map { layout.getLineTop(it).toFloat() }, f.bottom - y))
+                if (last == 0) {
+                    // Nothing more beside the picture: below it at the full width; or nothing fits this page: the next one.
+                    if (f != null && y + layout.getLineBottom(0) <= bottom) { y = f.bottom; float = null } else newPage()
+                    continue
+                }
                 val c = canvas
                 val h = layout.getLineBottom(last - 1).toFloat()
-                if (indent > 0) c.drawLine(Paper.M + 1f, y + 2f, Paper.M + 1f, y + h - 2f, Paint().apply { color = Paper.NOTE_BAR; strokeWidth = 2f })
+                if (indent > 0) c.drawLine(x0 + 1f, y + 2f, x0 + 1f, y + h - 2f, Paint().apply { color = Paper.NOTE_BAR; strokeWidth = 2f })
                 c.save()
-                c.translate(Paper.M + indent, y)
+                c.translate(x0 + indent, y)
                 c.clipRect(0f, 0f, width.toFloat(), h)
                 layout.draw(c)
                 c.restore()
                 y += h
                 if (last == layout.lineCount) break
                 rest = rest.substring(layout.getLineStart(last))
-                newPage()
+                // Stopped by the picture's bottom: the rest at the full width; by the page's end: the next page.
+                if (f != null && layout.getLineBottom(last) <= room) { y = maxOf(y, f.bottom); float = null } else newPage()
             }
             y += after
+        }
+
+        /** Ends the text beside a picture: what follows starts below it, at the full width. */
+        fun endBeside() {
+            float?.let { y = maxOf(y, it.bottom) }
+            float = null
+        }
+
+        /**
+         * A picture on the left or right, PressLayout.sideWidth of the column, its caption under it in the same width; the
+         * text that follows goes beside it ([text]).
+         */
+        fun sidePicture(file: File, left: Boolean, caption: Pair<String, TextPaint>?) {
+            endBeside()
+            val bmp = BitmapFactory.decodeFile(file.path) ?: return
+            try {
+                val box = PressLayout.sideWidth(Paper.INNER)
+                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(bmp.width, bmp.height, box, Paper.PICTURE_MAX_H)
+                val cap = caption?.let { (s, paint) -> StaticLayout.Builder.obtain(s, 0, s.length, paint, box.toInt()).setLineSpacing(0f, 1.1f).build() }
+                val total = h + (cap?.let { it.height + 4f } ?: 0f)
+                canvas
+                if (bottom - y < total) newPage()
+                val x = if (left) Paper.M else Paper.W - Paper.M - box
+                // The picture to the outer edge of its box; a narrow (tall) one leaves no gap by the text.
+                val px = if (left) x else x + box - w
+                canvas.drawBitmap(bmp, null, RectF(px, y, px + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG))
+                cap?.let { c -> canvas.save(); canvas.translate(x, y + h + 4f); c.draw(canvas); canvas.restore() }
+                float = Beside(left, y + total + 8f)
+            } finally {
+                bmp.recycle()
+            }
         }
 
         /** One receipt line: the label in its column, the value beside it. */
@@ -164,6 +232,7 @@ object PdfCompiler {
 
         /** A picture centered at the column's width in its own shape, no taller than half a page; its caption under it. */
         fun picture(file: File, caption: Pair<String, TextPaint>?) {
+            endBeside()
             val bmp = BitmapFactory.decodeFile(file.path) ?: return
             try {
                 val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(bmp.width, bmp.height, Paper.INNER, Paper.PICTURE_MAX_H)
