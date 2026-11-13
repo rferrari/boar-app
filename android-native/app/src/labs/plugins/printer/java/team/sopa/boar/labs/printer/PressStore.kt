@@ -32,6 +32,8 @@ object PressStore {
     fun projectDir(context: Context, projectId: String) = team.sopa.boar.engine.labs.PressFiles.projectDir(dir(context), projectId)
     private fun projectsFile(context: Context) = android.util.AtomicFile(File(dir(context), "projects.json"))
     private fun basketFile(context: Context) = File(context.filesDir, "labs/basket.json")
+    /** The old basket couldn't be read once: it is tried again when Press loads (G-3). */
+    private fun pendingMarker(context: Context) = File(dir(context), "basket-pending")
 
     fun newId(prefix: String) = prefix + "-" + java.util.UUID.randomUUID().toString().take(8)
 
@@ -46,9 +48,16 @@ object PressStore {
         val now = System.currentTimeMillis()
         when (val r = PressDoc.load(projects, basket, newId("p"), name, now, PressPictures.illustrations(context))) {
             is PressDoc.Loaded.Read -> {
-                _library.value = r.library; loaded = true; _unreadable.value = false
+                var lib = r.library
+                // The old basket couldn't be read the first time (G-3): try again, once a launch, until it can.
+                val pending = pendingMarker(context)
+                if (pending.isFile && basket != null) runCatching { PressDoc.mergeBasket(lib, basket, newId("p"), name, now, PressPictures.illustrations(context)) }
+                    .onSuccess { merged -> if (merged == lib || write(merged)) { lib = merged; basketFile(context).delete(); pending.delete() } }
+                    .onFailure { android.util.Log.w("BoarLabs", "press: the old basket still can't be read; will retry") }
+                else if (pending.isFile) pending.delete()
+                _library.value = lib; loaded = true; _unreadable.value = false
                 // Copies no project uses any more (a photo removed past its Undo, a cut-short copy): only after a good read.
-                runCatching { PressFiles.orphans(dir(context), r.library).forEach { it.deleteRecursively() } }
+                runCatching { PressFiles.orphans(dir(context), lib).forEach { it.deleteRecursively() } }
             }
             is PressDoc.Loaded.Migrated -> {
                 // Written first; only then the basket goes. A failed write leaves the basket for the next try.
@@ -59,7 +68,10 @@ object PressStore {
             }
             is PressDoc.Loaded.Fresh -> {
                 // Not written until the first change; a basket that can't be read stays where it is.
-                if (r.basketUnreadable) android.util.Log.w("BoarLabs", "press: the old basket can't be read; kept as is")
+                if (r.basketUnreadable) {
+                    android.util.Log.w("BoarLabs", "press: the old basket can't be read; kept as is, retried on the next launch")
+                    runCatching { dir(context).mkdirs(); pendingMarker(context).writeText("1") }
+                }
                 _library.value = r.library; loaded = true
             }
             is PressDoc.Loaded.Unreadable -> {
@@ -114,6 +126,20 @@ object PressStore {
     fun countOf(context: Context, ids: Collection<String>): Int {
         load(context)
         return _library.value?.countOf(ids) ?: 0
+    }
+
+    /**
+     * A photo block was removed: its copy goes when the Undo is over, if no block uses it again (validator G-1: it stayed
+     * until the next cold start). The cleanup at load stays as the safety net.
+     */
+    fun dropPhotoLater(context: Context, projectId: String, name: String, afterMs: Long) {
+        val app = context.applicationContext
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            synchronized(lock) {
+                val lib = _library.value ?: return@synchronized
+                if (loaded && PressFiles.unused(lib, projectId, name)) runCatching { PressFiles.photoFile(dir(app), projectId, name).delete() }
+            }
+        }, afterMs)
     }
 
     /** Deletes a project and its folder (phase 2: its photos with it). */

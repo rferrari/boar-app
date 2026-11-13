@@ -461,7 +461,25 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addStopper(stop: () -> Unit) { stoppers += stop }
     fun removeStopper(stop: () -> Unit) { stoppers -= stop }
-    private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
+    private fun modelBusy(): Boolean = labHolds.get() > 0 || busyChecks.any { runCatching { it() }.getOrDefault(false) }
+
+    /** A lab writing with the chat's model (Press's rewrite): the chat waits for it, and it waits for the chat (G-4). */
+    private val labHolds = java.util.concurrent.atomic.AtomicInteger(0)
+
+    /**
+     * Nothing uses the model: a lab holds it, checked and claimed in one step, so a chat answer, title or preload can't
+     * start in between (validator G-4). False when something does; the lab says busy. Release with [releaseModelForLab].
+     */
+    @Synchronized fun claimModelForLab(): Boolean {
+        if (modelBusy()) return false
+        labHolds.incrementAndGet()
+        return true
+    }
+
+    fun releaseModelForLab() { labHolds.updateAndGet { maxOf(0, it - 1) } }
+
+    /** True while a lab holds the model. */
+    val isLabUsingModel: Boolean get() = labHolds.get() > 0
     /** Read-only: the chat (or anything that registered a busy check) is using the model now; Press's rewrite waits for it. */
     val isModelBusy: Boolean get() = modelBusy()
 
@@ -528,7 +546,15 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     /** Loads the active model if it isn't resident; null when no model is installed or it fails to load. */
-    suspend fun activeSession(): team.sopa.boar.engine.TextModel? {
+    /**
+     * The answer model, loaded. While a lab holds it (Press's rewrite, up to its 2 minutes) everyone else waits here first:
+     * the chat's answer, title, summary and preload (validator G-4: the guard ran one way). [forLab] is the holder itself.
+     */
+    suspend fun activeSession(forLab: Boolean = false): team.sopa.boar.engine.TextModel? {
+        if (!forLab) {
+            val until = android.os.SystemClock.elapsedRealtime() + 150_000
+            while (labHolds.get() > 0 && android.os.SystemClock.elapsedRealtime() < until) kotlinx.coroutines.delay(250)
+        }
         val m = answerModel() ?: return null
         host.load(m.id) ?: return null
         return host.current()

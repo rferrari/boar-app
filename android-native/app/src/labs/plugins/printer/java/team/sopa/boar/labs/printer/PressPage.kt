@@ -65,7 +65,7 @@ class PressPage(
     val footer: List<String> get() = PressReceipt.footer(receipt, labels, date)
 
     /** An answer's text as it prints: plain, its [k] marks as the document's numbers. */
-    fun answerText(a: PressDoc.Block.Answer) = PressReceipt.plain(PressReceipt.renumber(a.text, receipt.refs[a.id].orEmpty()))
+    fun answerText(a: PressDoc.Block.Answer) = PressReceipt.plain(PressReceipt.renumber(a.text, receipt.local[a.id].orEmpty()))
 
     fun refsLine(a: PressDoc.Block.Answer) = PressReceipt.refsLine(receipt.refs[a.id], sourcesLabel)
 

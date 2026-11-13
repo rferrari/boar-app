@@ -74,17 +74,13 @@ object PressPictures {
         var bmp = cr.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) } ?: error("not a picture")
         val (w, h) = PressFiles.scaled(bmp.width, bmp.height)
         if (w != bmp.width || h != bmp.height) bmp = android.graphics.Bitmap.createScaledBitmap(bmp, w, h, true)
-        val degrees = runCatching {
-            cr.openInputStream(uri)?.use {
-                when (android.media.ExifInterface(it).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL)) {
-                    android.media.ExifInterface.ORIENTATION_ROTATE_90 -> 90
-                    android.media.ExifInterface.ORIENTATION_ROTATE_180 -> 180
-                    android.media.ExifInterface.ORIENTATION_ROTATE_270 -> 270
-                    else -> 0
-                }
-            } ?: 0
-        }.getOrDefault(0)
-        if (degrees != 0) bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, android.graphics.Matrix().apply { postRotate(degrees.toFloat()) }, true)
+        // Upright, mirrored ones too (validator G-6): rotate, then mirror left-right when the orientation says so.
+        val orientation = runCatching {
+            cr.openInputStream(uri)?.use { android.media.ExifInterface(it).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL) } ?: 1
+        }.getOrDefault(1)
+        val (degrees, mirror) = PressFiles.upright(orientation)
+        if (degrees != 0 || mirror) bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height,
+            android.graphics.Matrix().apply { setRotate(degrees.toFloat()); if (mirror) postScale(-1f, 1f) }, true)
         val f = PressFiles.copyInto(PressStore.dir(ctx), projectId, PressStore.newId("photo") + ".jpg") { out ->
             if (!bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out)) error("not saved")
         }

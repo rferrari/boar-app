@@ -67,6 +67,11 @@ object PressDoc {
             val tokPerSec: Double? = null,
             /** The heading the user typed; blank means the question stands as the heading. */
             val heading: String = "",
+            /**
+             * Its text was changed (typed, or a rewrite the user used): only the sources it still cites by [n] print, so a
+             * rewrite that cites nothing has no Sources line (validator G-5). An answer as it came from the chat keeps all.
+             */
+            val edited: Boolean = false,
         ) : Block {
             /** The heading on the paper: the user's, or the question, or the chat's title. */
             val shownHeading: String get() = heading.ifBlank { question.ifBlank { chatTitle } }
@@ -176,7 +181,7 @@ object PressDoc {
                 b is Block.Paragraph -> b.copy(text = value)
                 b is Block.Bullets -> b.copy(text = value)
                 b is Block.Answer && field == Field.HEADING -> b.copy(heading = if (value.trim() == b.question.trim()) "" else value)
-                b is Block.Answer -> b.copy(text = value)
+                b is Block.Answer -> if (value == b.text) b else b.copy(text = value, edited = true)
                 b is Block.Picture && field == Field.CAPTION -> b.copy(caption = value)
                 else -> b
             }
@@ -241,7 +246,7 @@ object PressDoc {
         is Block.Answer -> JsonObject(linkedMapOf(
             "type" to JsonPrimitive("answer"), "id" to JsonPrimitive(b.id), "chatTitle" to JsonPrimitive(b.chatTitle), "question" to JsonPrimitive(b.question),
             "heading" to JsonPrimitive(b.heading), "text" to JsonPrimitive(b.text), "addedAt" to JsonPrimitive(b.addedAt), "model" to str(b.model),
-            "tokPerSec" to (b.tokPerSec?.let { JsonPrimitive(it) } ?: JsonNull),
+            "tokPerSec" to (b.tokPerSec?.let { JsonPrimitive(it) } ?: JsonNull), "edited" to JsonPrimitive(b.edited),
             "sources" to JsonArray(b.sources.map { JsonObject(linkedMapOf("title" to JsonPrimitive(it.title), "source" to str(it.source))) }),
         ))
         is Block.Picture -> JsonObject(linkedMapOf(
@@ -279,7 +284,7 @@ object PressDoc {
             "list" -> Block.Bullets(id, o.s("text").orEmpty())
             "divider" -> Block.Divider(id)
             "answer" -> Block.Answer(id, o.s("chatTitle").orEmpty(), o.s("question").orEmpty(), o.s("text").orEmpty(), sources(o["sources"]), o.l("addedAt") ?: 0,
-                o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty())
+                o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty(), o.b("edited") ?: false)
             "picture" -> Block.Picture(id, if (o.s("kind") == "photo") Kind.PHOTO else Kind.DRAWING, o.s("file") ?: return null, o.s("caption").orEmpty(),
                 Place.of(o.s("place")), o.s("answerId"), (o["recipe"] as? JsonObject)?.let { r -> Recipe(r.s("subject"), r.s("style"), r.s("size"), r.l("seed")) },
                 (o.l("width") ?: 0).toInt(), (o.l("height") ?: 0).toInt())
@@ -332,6 +337,16 @@ object PressDoc {
      * Loads the projects ([projects] is the file's text, or null when there's none). The basket is migrated once: only when
      * there is no projects file yet, so after the first write it never runs again.
      */
+    /**
+     * The old basket that couldn't be read the first time, read now (validator G-3): its answers become one more project,
+     * after the ones there are. Throws if it still can't be read; an empty basket changes nothing.
+     */
+    fun mergeBasket(lib: Library, basket: String, newId: String, name: String, now: Long, illustrations: Map<String, String> = emptyMap()): Library {
+        val old = fromBasket(basket, newId, name, now, illustrations)
+        val adds = old.projects.filter { it.blocks.isNotEmpty() && lib.projects.none { p -> p.id == it.id } }
+        return if (adds.isEmpty()) lib else lib.copy(projects = lib.projects + adds)
+    }
+
     fun load(projects: String?, basket: String?, newId: String, name: String, now: Long, illustrations: Map<String, String> = emptyMap()): Loaded {
         if (projects != null) return runCatching { Loaded.Read(parse(projects)) }.getOrElse { Loaded.Unreadable(it) }
         if (basket != null) return runCatching { Loaded.Migrated(fromBasket(basket, newId, name, now, illustrations)) }

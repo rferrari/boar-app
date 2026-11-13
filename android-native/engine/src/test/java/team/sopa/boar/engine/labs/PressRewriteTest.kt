@@ -85,14 +85,15 @@ class PressRewriteTest {
 
     @Test fun `it refuses while the chat uses the model, and without a model, and never cancels the chat's generation`() {
         val run = rewriter.substringAfter("suspend fun run(").substringBefore("\n    }\n")
-        assertTrue(run.indexOf("services.isModelBusy") in 0 until run.indexOf("activeSession()"))
+        // Checked and claimed in one step before the session (validator G-4).
+        assertTrue(run.indexOf("services.claimModelForLab()") in 0 until run.indexOf("activeSession(forLab = true)"))
         assertTrue(run.contains("?: return Outcome.NoModel"))
         // Its own timeout, as a coroutine: SessionEngine's timeoutMs would cancel the session, whoever runs on it.
         assertTrue(run.contains("timeoutMs = null"))
         assertTrue(run.contains("withTimeoutOrNull("))
         assertFalse(run.contains(".cancel()"))
         // While it writes, the app counts the model as busy (no unload in the background).
-        assertTrue(run.contains("services.addBusyCheck(busy)") && run.contains("services.removeBusyCheck(busy)"))
+        assertTrue(run.contains("services.claimModelForLab()") && run.contains("services.releaseModelForLab()"))
         val services = File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText()
         assertTrue(services.contains("val isModelBusy: Boolean get() = modelBusy()"))
         // The clean-up and the marks check are the engine's.
@@ -123,6 +124,7 @@ class PressRewriteNewMarksTest {
         org.junit.Assert.assertEquals("this document is about the salinity of the sea", PressRewrite.dropNewMarks("this is a test", "this document is about the salinity of the sea [1]"))
         org.junit.Assert.assertEquals("Salt comes from rocks [2]. It stays.", PressRewrite.dropNewMarks("Rocks give salt [2].", "Salt comes from rocks [2]. It stays [5]."))
         val runner = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressRewriter.kt").readText()
-        org.junit.Assert.assertTrue(runner.contains("if (option == PressRewrite.Option.OWN) PressRewrite.dropNewMarks(text, it) else it"))
+        // Every option now (validator G-2).
+        org.junit.Assert.assertTrue(runner.contains("val out = PressRewrite.dropNewMarks(text, PressRewrite.clean(r.text))"))
     }
 }

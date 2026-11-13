@@ -103,8 +103,24 @@ object PressRewrite {
         return norm(before) == norm(after)
     }
 
-    /** The source marks in a text, each once. */
-    fun marks(text: String): Set<Int> = MARK.findAll(text).map { it.groupValues[1].toInt() }.toSet()
+    /**
+     * A source mark in any shape a model writes (validator G-2): [5], [ 5 ], [1, 5], [1-5], [5;6], [S5], [^5], 【5】.
+     * Up to three letters may stand before a number; three digits at most, so a year in brackets is not a mark.
+     */
+    private val ANY_MARK = Regex("[\\[【]\\s*\\^?[A-Za-z]{0,3}\\s*\\d{1,3}(?:\\s*[-–,;]\\s*\\^?[A-Za-z]{0,3}\\s*\\d{1,3})*\\s*[\\]】]")
+
+    /** The numbers one mark stands for: a range 1-5 is every number in it (at most 50). */
+    private fun numbersIn(mark: String): List<Int> {
+        val out = mutableListOf<Int>()
+        for (part in mark.trim('[', ']', '【', '】', ' ').split(',', ';')) {
+            val n = Regex("\\d{1,3}").findAll(part).map { it.value.toInt() }.toList()
+            if (n.size == 2 && Regex("[-–]").containsMatchIn(part) && n[1] >= n[0] && n[1] - n[0] < 50) out += (n[0]..n[1]) else out += n
+        }
+        return out
+    }
+
+    /** The source marks in a text, each once, whatever their shape. */
+    fun marks(text: String): Set<Int> = ANY_MARK.findAll(text).flatMap { numbersIn(it.value) }.toSet()
 
     /**
      * New text written from the user's own words must not cite what the passage didn't: a [n] that wasn't there before is
@@ -112,7 +128,9 @@ object PressRewrite {
      */
     fun dropNewMarks(before: String, after: String): String {
         val had = marks(before)
-        return MARK.replace(after) { m -> if (m.groupValues[1].toInt() in had) m.value else "" }.replace(Regex(" +([.,;:!?])"), "$1").replace(Regex(" {2,}"), " ").trim()
+        // Every shape (G-2); what stays is written back plainly: [1, 5] with only 1 known becomes [1].
+        return ANY_MARK.replace(after) { m -> numbersIn(m.value).distinct().filter { it in had }.joinToString("") { "[$it]" } }
+            .replace(Regex(" +([.,;:!?])"), "$1").replace(Regex(" {2,}"), " ").trim()
     }
 
     /** A mark that was there is missing, or a new one appeared: the screen says "Some source marks changed". */

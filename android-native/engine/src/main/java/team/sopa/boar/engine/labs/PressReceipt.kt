@@ -33,8 +33,10 @@ object PressReceipt {
         val photos: Int,
         /** The document's sources, in number order: [n] is sources[n - 1]. */
         val sources: List<PressDoc.Source>,
-        /** Each answer block's numbers, in its own sources' order. */
+        /** Each answer block's numbers, in its own sources' order: the ones it cites when its text was changed (G-5). */
         val refs: Map<String, List<Int>>,
+        /** Each answer's own [k] → the document's number; a [k] not in it prints as nothing (G-5b). */
+        val local: Map<String, Map<Int, Int>> = emptyMap(),
     )
 
     /**
@@ -49,6 +51,7 @@ object PressReceipt {
         val sources = mutableListOf<PressDoc.Source>()
         val numberOf = HashMap<Pair<String, String?>, Int>()
         val refs = LinkedHashMap<String, List<Int>>()
+        val local = LinkedHashMap<String, Map<Int, Int>>()
         val models = LinkedHashMap<String, MutableList<Double?>>()
         val drawings = mutableListOf<Drawing>()
         var photos = 0
@@ -56,10 +59,16 @@ object PressReceipt {
         for (b in project.blocks) when (b) {
             is Block.Answer -> {
                 answers++
-                refs[b.id] = b.sources.map { s ->
+                // A changed text keeps only the sources it still cites (G-5); the chat's answer as it came keeps them all.
+                val cited = if (b.edited) PressRewrite.marks(b.text) else null
+                val map = LinkedHashMap<Int, Int>()
+                b.sources.forEachIndexed { i, s ->
+                    if (cited != null && (i + 1) !in cited) return@forEachIndexed
                     val key = s.title.trim().lowercase(Locale.ROOT) to s.source?.trim()?.lowercase(Locale.ROOT)
-                    numberOf.getOrPut(key) { sources += s; sources.size }
-                }.distinct()
+                    map[i + 1] = numberOf.getOrPut(key) { sources += s; sources.size }
+                }
+                refs[b.id] = map.values.distinct()
+                local[b.id] = map
                 b.model?.takeIf { it.isNotBlank() }?.let { models.getOrPut(it) { mutableListOf() } += b.tokPerSec }
             }
             is Block.Picture -> if (b.kind == PressDoc.Kind.PHOTO) photos++ else {
@@ -72,7 +81,7 @@ object PressReceipt {
         return Receipt(answers, models.map { (m, speeds) ->
             val known = speeds.filterNotNull().filter { it > 0 }
             ModelLine(m, speeds.size, known.minOrNull(), known.maxOrNull())
-        }, drawings, photos, sources, refs)
+        }, drawings, photos, sources, refs, local)
     }
 
     /**
@@ -148,8 +157,15 @@ object PressReceipt {
     fun refsLine(numbers: List<Int>?, label: String): String? = numbers?.takeIf { it.isNotEmpty() }?.joinToString(" ", prefix = "$label ") { "[$it]" }
 
     /** An answer's own [k] marks, if its text kept any, become the document's numbers ([refs] in its sources' order). */
-    fun renumber(text: String, refs: List<Int>): String =
-        if (refs.isEmpty()) text else Regex("\\[(\\d{1,3})]").replace(text) { m -> m.groupValues[1].toInt().let { k -> refs.getOrNull(k - 1)?.let { "[$it]" } ?: m.value } }
+    fun renumber(text: String, refs: List<Int>): String = renumber(text, refs.withIndex().associate { (i, n) -> i + 1 to n })
+
+    /**
+     * An answer's own [k] marks become the document's numbers ([map]); a [k] the answer has no source for is taken out,
+     * so it never reads as another answer's source (validator G-5b).
+     */
+    fun renumber(text: String, map: Map<Int, Int>): String =
+        Regex("\\[(\\d{1,3})]").replace(text) { m -> map[m.groupValues[1].toInt()]?.let { "[$it]" } ?: "" }
+            .replace(Regex("(?<=\\S) +([.,;:!?])"), "$1").replace(Regex("(?<=\\S) {2,}(?=\\S)"), " ")
 
     /** An answer's markdown as plain text for the paper: no ** or #, bullets as •. */
     fun plain(md: String): String = md.lines().joinToString("\n") { line ->
@@ -172,9 +188,10 @@ object PressReceipt {
             is Block.Divider -> append("* * *\n\n")
             is Block.Answer -> {
                 val refs = r.refs[b.id].orEmpty()
+                val local = r.local[b.id].orEmpty()
                 append("### ").append(b.shownHeading.trim().replace('\n', ' ')).append("\n\n")
                 b.shownQuestion?.let { append('_').append(it.trim().replace('\n', ' ')).append("_\n\n") }
-                append(renumber(b.text.trim(), refs)).append("\n\n")
+                append(renumber(b.text.trim(), local).trim()).append("\n\n")
                 refsLine(refs, sourcesLabel)?.let { append(it).append("\n\n") }
             }
             is Block.Picture -> append("_").append(if (b.kind == PressDoc.Kind.PHOTO) photoLabel else drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")

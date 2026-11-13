@@ -275,9 +275,12 @@ internal fun PressScreen(lab: LabPlugin) {
                 val pid = project.id
                 PressStore.change { it.remove(b.id) }
                 selected = null; editing = null
-                Toasts.show(Toasts.Toast(I18n.t(ctx, "native.labs.printer.removed"), action = I18n.t(ctx, "native.labs.printer.undo"), onAction = {
+                val toast = Toasts.Toast(I18n.t(ctx, "native.labs.printer.removed"), action = I18n.t(ctx, "native.labs.printer.undo"), onAction = {
                     PressStore.change { it.insert(b, i, pid) }
-                }))
+                })
+                Toasts.show(toast)
+                // A photo's copy goes once the Undo is over (G-1), with room for a toast still waiting its turn.
+                if (b is Block.Picture && b.kind == PressDoc.Kind.PHOTO) PressStore.dropPhotoLater(ctx, pid, java.io.File(b.file).name, toast.millis + UNDO_GRACE_MS)
             },
             onClose = { selected = null; editing = null })
         // Nothing selected: the same row holds what can be added, as icons (adam, Nov 12: "keep the add to this page as
@@ -1007,6 +1010,9 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
 }
 
 /** A text typed on the page, in the paper's own style; saved a moment after typing stops, and when it closes. */
+/** After a removed photo's Undo toast: time for toasts queued before it, then its copy is deleted. */
+private const val UNDO_GRACE_MS = 10_000L
+
 /** A paragraph's or list's hint while it is empty (the placeholder's grey). */
 private val HINT = Color(0xFFA2A6B4)
 

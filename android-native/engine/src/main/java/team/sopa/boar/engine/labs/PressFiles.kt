@@ -12,10 +12,38 @@ object PressFiles {
     /** The long side of a copied photo: sharp in an A4 PDF, small on the phone. */
     const val PHOTO_MAX = 1600
 
-    fun projectDir(pressDir: File, projectId: String) = File(pressDir, projectId.replace(Regex("[^A-Za-z0-9_-]"), "_"))
+    /**
+     * A project's folder, always one level under the Press folder: a character that isn't a letter, digit, - or _ becomes
+     * _, so "." and ".." can't name a parent, and an empty id is the folder "_", never the Press folder itself (validator
+     * G-9: "delete project" on it would have wiped every project).
+     */
+    fun projectDir(pressDir: File, projectId: String): File =
+        File(pressDir, projectId.replace(Regex("[^A-Za-z0-9_-]"), "_").ifBlank { "_" })
 
-    /** A photo block's file: a plain name in its project's folder (never a path that leaves it). */
-    fun photoFile(pressDir: File, projectId: String, name: String) = File(projectDir(pressDir, projectId), File(name).name)
+    /** A photo block's file: a plain name in its project's folder; "", "." and ".." become "_", never a folder (G-9). */
+    fun photoFile(pressDir: File, projectId: String, name: String): File {
+        val plain = File(name).name.takeUnless { it.isBlank() || it == "." || it == ".." } ?: "_"
+        return File(projectDir(pressDir, projectId), plain)
+    }
+
+    /** True when no project uses the photo [name] of [projectId] any more (its block removed past the Undo, G-1). */
+    fun unused(lib: PressDoc.Library, projectId: String, name: String): Boolean =
+        lib.projects.none { p -> p.id == projectId && p.blocks.any { it is PressDoc.Block.Picture && it.kind == PressDoc.Kind.PHOTO && File(it.file).name == name } }
+
+    /**
+     * How to stand a photo upright from its EXIF orientation (1–8): the degrees to rotate, then whether to mirror it
+     * left-right (validator G-6: the mirrored ones, 2, 4, 5 and 7, were left as taken).
+     */
+    fun upright(orientation: Int): Pair<Int, Boolean> = when (orientation) {
+        2 -> 0 to true
+        3 -> 180 to false
+        4 -> 180 to true
+        5 -> 90 to true
+        6 -> 90 to false
+        7 -> 270 to true
+        8 -> 270 to false
+        else -> 0 to false
+    }
 
     /**
      * Writes a photo into its project's folder as [name]: to a temporary file first, renamed when complete, so a half copy

@@ -45,8 +45,8 @@ class PressReceiptTest {
         val r = PressReceipt.build(project)
         assertEquals("Evaporation leaves salt [2], rivers bring it [1].", PressReceipt.renumber("Evaporation leaves salt [2], rivers bring it [1].", r.refs.getValue("a1")))
         assertEquals("Rock basins [3].", PressReceipt.renumber("Rock basins [1].", r.refs.getValue("a2")))
-        // A mark with no source behind it stays as it was.
-        assertEquals("See [7].", PressReceipt.renumber("See [7].", r.refs.getValue("a2")))
+        // A mark with no source behind it is taken out: it would read as another answer's source (validator G-5b).
+        assertEquals("See.", PressReceipt.renumber("See [7].", r.refs.getValue("a2")))
     }
 
     @Test fun `the receipt is always there, and names models, speeds and drawings`() {
