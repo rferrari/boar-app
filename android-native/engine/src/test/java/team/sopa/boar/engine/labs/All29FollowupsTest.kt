@@ -58,7 +58,7 @@ class All29FollowupsTest {
     @Test fun `the receipt is kept together in the PDF, and no page marker runs through it on screen`() {
         val pdf = app("printer/java/team/sopa/boar/labs/printer/PdfCompiler.kt")
         val r = pdf.substringAfter("private fun receipt(").substringBefore("p.shortRule()")
-        assertTrue(r.contains("p.keepRoom(minOf(total, Paper.H - 2 * Paper.M))") && r.contains("for (line in lines)"))
+        assertTrue(r.contains("p.keepRoom(minOf(total + above, Paper.H - 2 * Paper.M))") && r.contains("for (line in lines)") && r.contains("if (p.room() >= total + 18f) 18f else 6f"))
         val s = app("printer/java/team/sopa/boar/labs/printer/PressScreen.kt")
         assertTrue(s.contains("Box(Modifier.unit(PdfCompiler.RECEIPT))"))
     }
