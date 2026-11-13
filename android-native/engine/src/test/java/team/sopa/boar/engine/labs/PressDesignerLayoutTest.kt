@@ -37,9 +37,11 @@ class PressDesignerLayoutTest {
 
     @Test fun `one menu, grouped, with Save as and its two formats on the right`() {
         val menu = s.substringAfter("private fun ProjectsSheet(").substringBefore("\n}\n")
-        val at = listOf("native.labs.printer.addTitle", "native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "Group(\"native.labs.printer.pageGroup\")", "AboutPluginFold(lab)").map { menu.indexOf(it) }
+        val at = listOf("native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "Group(\"native.labs.printer.pageGroup\")", "AboutPluginFold(lab)").map { menu.indexOf(it) }
         assertTrue(at.toString(), at.all { it >= 0 } && at == at.sorted())
         assertTrue(menu.contains("Triple(\".pdf\", onPdf, canSave), Triple(\".md\", onMarkdown, true)"))
+        // Adding is a toolbar now, not a menu row (adam, Nov 12).
+        assertTrue(!menu.contains("native.labs.printer.addTitle"))
         assertTrue(screen.contains("onLeft = { sheet = Sheet.PROJECTS }") && screen.contains("R.drawable.ic_menu"))
     }
 
@@ -50,9 +52,12 @@ class PressDesignerLayoutTest {
         assertTrue(Regex("IconAction\\(").findAll(bar).count() <= 7)
     }
 
-    @Test fun `Add lists what can be added, a chat's answers included, and the strings exist`() {
-        val add = s.substringAfter("private fun AddSheet(").substringBefore("\n}\n")
-        for (x in listOf("onPhoto", "onHeading", "onNote", "onDrawing", "onChat(id, title)")) assertTrue(x, add.contains(x))
+    @Test fun `with nothing selected the row is the add toolbar, icons with spoken names, and a selected block's toolbar takes its place`() {
+        assertTrue(screen.contains("if (i >= 0) ActionBar(") && screen.contains("else AddBar("))
+        val bar = s.substringAfter("private fun AddBar(").substringBefore("\n}\n")
+        for (x in listOf("lab_printer_ic_photo", "lab_printer_ic_heading", "lab_printer_ic_drawing", "lab_printer_ic_chat")) assertTrue(x, bar.contains(x))
+        assertTrue(!bar.contains("horizontalScroll") && Regex("IconAction\\(").findAll(bar).count() == 4)
+        assertTrue(s.contains("Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }"))
         assertTrue(read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").contains("PressStore.addChat(ctx, sessionId, title)"))
         for (d in listOf("values", "values-pt")) {
             val x = read("plugins/printer/res/$d/strings_lab_printer.xml")

@@ -280,6 +280,13 @@ internal fun PressScreen(lab: LabPlugin) {
                 }))
             },
             onClose = { selected = null; editing = null })
+        // Nothing selected: the same row holds what can be added, as icons (adam, Nov 12: "keep the add to this page as
+        // icons… as toolbar"). A note is typed in the bar below.
+        else AddBar(
+            onPhoto = { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
+            onDrawing = { sheet = Sheet.DRAWINGS },
+            onChat = { sheet = Sheet.ADD })
         // The whole bottom is the chat's input bar (adam, Nov 12: a minimalist toolbar). Its left button opens one menu with
         // everything, grouped (add, save as, projects, page). With a text block selected, what is typed tells BOAR how to
         // change that text (NOW and REWRITTEN, nothing changes before Use); with nothing selected it is a note.
@@ -320,19 +327,11 @@ internal fun PressScreen(lab: LabPlugin) {
                             sheet = null
                         },
                         onMarkdown = { sheet = null; saveMarkdown() },
-                        onAdd = { sheet = Sheet.ADD }, onPdf = { sheet = null; savePdf() }, canSave = project.blocks.isNotEmpty() && !compiling,
+                        onPdf = { sheet = null; savePdf() }, canSave = project.blocks.isNotEmpty() && !compiling,
                         onAll = { sheet = Sheet.ALL_PROJECTS },
                         showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
                     Sheet.ALL_PROJECTS -> AllProjectsSheet(library) { id -> PressStore.change { it.switchTo(id) }; sheet = null }
-                    Sheet.ADD -> AddSheet(
-                        onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
-                        onNote = { addBlock(Block.Note(PressStore.newId("n"), I18n.t(ctx, "native.labs.printer.newNote"))) },
-                        onDrawing = { sheet = Sheet.DRAWINGS },
-                        onPhoto = {
-                            sheet = null
-                            pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        },
-                        onChat = { id, title -> sheet = null; PressStore.addChat(ctx, id, title) })
+                    Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }
                     Sheet.EDIT -> {
                         val target = project.blocks.firstOrNull { it.id == selected && textOf(it) != null }
                         if (target == null) LaunchedEffect(Unit) { sheet = null }
@@ -455,7 +454,7 @@ private fun SheetRow(text: String, small: String? = null, icon: Int? = null, acc
 @Composable
 private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
                           onDelete: () -> Unit, onMarkdown: () -> Unit, showBreaks: Boolean = true, onBreaks: (Boolean) -> Unit = {},
-                          onAdd: () -> Unit = {}, onPdf: () -> Unit = {}, canSave: Boolean = true, onAll: () -> Unit = {}) {
+                          onPdf: () -> Unit = {}, canSave: Boolean = true, onAll: () -> Unit = {}) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val current = library.current
@@ -465,7 +464,6 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
     // One menu, grouped (adam, Nov 12): add, save as, the projects, the page.
     @Composable fun Group(key: String) = Text(t(key).uppercase(), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted,
         modifier = Modifier.padding(top = 14.dp, bottom = 2.dp))
-    SheetRow(t("native.labs.printer.addTitle"), "›", icon = R.drawable.lab_printer_ic_add, onClick = onAdd)
     // "Save as…": the format on the right, one tap each (adam, Nov 12).
     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(painterResource(R.drawable.lab_printer_ic_download), null, Modifier.size(22.dp), tint = c.textPrimary)
@@ -663,25 +661,34 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
     }
 }
 
+/** What can be added, as one row of icons with spoken names (a long press shows the name): photo, heading, drawing, a chat's answers. */
 @Composable
-private fun AddSheet(onHeading: () -> Unit, onNote: () -> Unit, onDrawing: () -> Unit, onPhoto: () -> Unit, onChat: (String, String) -> Unit = { _, _ -> }) {
+private fun AddBar(onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
     val c = Boar.colors
-    val ctx = LocalContext.current
-    val drawings by produceState(0) { value = withContext(Dispatchers.IO) { PressPictures.gallery(ctx).size } }
-    SheetTitle(t("native.labs.printer.addTitle"))
-    SheetRow(t("native.labs.printer.addPhoto"), t("native.labs.printer.addPhotoSmall"), onClick = onPhoto)
-    SheetRow(t("native.labs.printer.heading"), onClick = onHeading)
-    SheetRow(t("native.labs.printer.note"), onClick = onNote)
-    SheetRow(t("native.labs.printer.drawing"), t("native.labs.printer.drawings", "count" to drawings), onClick = onDrawing)
-    // The latest chats: a tap adds that chat's answers at the end, as "Add to Press" in the menu does.
-    val chats by produceState<List<Pair<String, String>>>(emptyList()) {
-        value = withContext(Dispatchers.IO) {
-            runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.listSessions().take(5).map { it.id to it.title.ifBlank { "…" } } }.getOrDefault(emptyList())
+    Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(t("native.labs.printer.add"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(end = 2.dp))
+            IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), onClick = onPhoto)
+            IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), onClick = onHeading)
+            IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), onClick = onDrawing)
+            IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), onClick = onChat)
         }
     }
-    if (chats.isNotEmpty()) Text(t("native.labs.printer.fromChat").uppercase(), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted,
-        modifier = Modifier.padding(top = 14.dp, bottom = 2.dp))
-    chats.forEach { (id, title) -> SheetRow(title, icon = R.drawable.lab_printer_ic_add) { onChat(id, title) } }
+}
+
+/** The latest chats: a tap adds that chat's answers at the end, as "Add to Press" in the menu does. */
+@Composable
+private fun ChatsSheet(onChat: (String, String) -> Unit) {
+    val c = Boar.colors
+    val ctx = LocalContext.current
+    val chats by produceState<List<Pair<String, String>>?>(null) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.listSessions().take(12).map { it.id to it.title.ifBlank { "…" } } }.getOrDefault(emptyList())
+        }
+    }
+    SheetTitle(t("native.labs.printer.fromChat"))
+    chats?.forEach { (id, title) -> SheetRow(title, icon = R.drawable.lab_printer_ic_add) { onChat(id, title) } }
     Text(t("native.labs.printer.addHint"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(top = 8.dp))
 }
 

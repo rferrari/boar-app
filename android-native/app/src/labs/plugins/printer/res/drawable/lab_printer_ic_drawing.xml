@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Press add drawing: a brush (adam, Nov 12: add as toolbar icons); stroke style like the other Press icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M14.5,4.5l5,5l-8.5,8.5h-5v-5z" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    <path android:pathData="M4,20c1.5,0 2.5,-0.7 2.5,-2.5" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+</vector>
