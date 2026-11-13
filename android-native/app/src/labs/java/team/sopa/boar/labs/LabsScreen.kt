@@ -120,7 +120,6 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
     if (lab.fullPage) {
         Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
-            if (!LabPrefs.enabled(lab.id)) Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) { OffAlert(if (LabPrefs.proProfile) onClose else null) }
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
         }
         return
@@ -151,7 +150,7 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
         // The switch is in the Plugins list only (adam, Nov 12). Off, the page still shows everything: an alert on top, the
         // settings editable (saved for when it's on; editing never turns it on, and an off plugin fills no slot).
         // In Pro, Back goes to the Plugins list (LabHooks.backFrom), so the alert's link is the same way back.
-        if (!LabPrefs.enabled(lab.id)) OffAlert(if (LabPrefs.proProfile) onClose else null)
+        // No "this plugin is off" banner (adam, Nov 13): the switch is in the Plugins list.
         lab.Content()
         AboutPlugin(lab)
     }
@@ -411,13 +410,3 @@ object PluginsUi {
     const val SHOW_STATUS = false
 }
 
-/** On a plugin's page while it's off: it's off, where to turn it on, and that settings changed now apply then. */
-@Composable
-private fun OffAlert(onList: (() -> Unit)?) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).then(if (onList != null) Modifier.clickable(onClick = onList) else Modifier).background(c.amberBgSubtle, RoundedCornerShape(10.dp)).border(1.dp, c.amberBorder, RoundedCornerShape(10.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(t(if (LabPrefs.proProfile) "native.labs.offInList" else "native.labs.offPage"), style = Boar.type.body, color = c.textAccentAmber, fontWeight = FontWeight.SemiBold)
-        Text(t("native.labs.offSettings"), style = Boar.type.caption, color = c.textSecondary)
-    }
-}

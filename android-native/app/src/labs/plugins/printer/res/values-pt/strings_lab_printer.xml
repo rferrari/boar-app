@@ -119,7 +119,6 @@
     <string name="native_labs_printer_askPlaceholder" formatted="false">Diga ao BOAR como mudar este texto…</string>
     <string name="native_labs_printer_menu" formatted="false">Menu do Press</string>
     <string name="native_labs_printer_saveAs" formatted="false">Salvar como…</string>
-    <string name="native_labs_printer_pageGroup" formatted="false">Página</string>
     <string name="native_labs_printer_placeNext" formatted="false">Toque para a próxima posição</string>
     <string name="native_labs_printer_fromChat" formatted="false">Respostas de uma conversa</string>
     <string name="native_labs_printer_allProjects" formatted="false">Todos os projetos ({{count}})</string>

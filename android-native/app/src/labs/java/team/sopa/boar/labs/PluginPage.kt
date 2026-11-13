@@ -23,8 +23,8 @@ import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
 /**
- * The plugin page template (t9 and adam, Nov 12), in this order: one sentence of what it does, one real example (a
- * before and after, or what you ask and what BOAR replies), the Try rows, and "How it works" folded with the long note.
+ * The plugin page template (t9 and adam, Nov 12), in this order: one sentence of what it does, the Try rows, and "How it
+ * works" folded with one real example (a before and after, or what you ask and what BOAR replies) above the long note.
  * A page with a live tool (Nomad, Lunar, Vitals, Canvas, Designer, Press) shows the tool first and this under it, with
  * no summary. [example] is drawn in the example card under its text (Canvas's chart). A plugin whose page has this fold
  * has no `_about` string, so the shared "About this plugin" fold (LabsScreen AboutPlugin) hides itself: one fold a page.
@@ -39,8 +39,8 @@ fun PluginPage(
     val c = Boar.colors
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         summary?.let { Text(it, style = Boar.type.bodyLg, color = c.textPrimary) }
-        if (before != null || after != null || example != null) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCard).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val hasExample = before != null || after != null || example != null
+        val exampleBody: @Composable () -> Unit = {
             exampleLabel?.let { Label(it) }
             // Labels only for a pair; a lone text (Press's file, Designer's drawing) is the example itself.
             val pair = before != null && after != null
@@ -54,12 +54,16 @@ fun PluginPage(
             }
             example?.invoke()
         }
+        // The example sits inside "How it works", above its note (adam, Nov 13: "all example on plugin page, move to how it
+        // works"); a page with no such fold keeps it in a card of its own.
+        if (hasExample && howItWorks == null) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCard).padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) { exampleBody() }
         if (tries.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Label(t("native.labs.page.try"))
             for (q in tries) TryRow(q)
             Text(tryHint, style = Boar.type.caption, color = c.textMuted)
         }
-        howItWorks?.let { Fold(t("native.labs.page.how"), it) }
+        howItWorks?.let { Fold(t("native.labs.page.how"), it, if (hasExample) exampleBody else null) }
     }
 }
 
@@ -75,7 +79,7 @@ fun AnswerPage(
 private fun Label(text: String) = Text(text, style = Boar.type.caption, color = Boar.colors.textMuted, fontWeight = FontWeight.Bold)
 
 @Composable
-private fun Fold(title: String, body: String) {
+private fun Fold(title: String, body: String, top: (@Composable () -> Unit)? = null) {
     val c = Boar.colors
     var open by rememberSaveable(title) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard)) {
@@ -83,6 +87,9 @@ private fun Fold(title: String, body: String) {
             Text(title, style = Boar.type.body, color = c.textHeading, modifier = Modifier.weight(1f))
             Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)
         }
-        if (open) Text(body, style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp))
+        if (open) Column(Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            top?.invoke()
+            Text(body, style = Boar.type.body, color = c.textSecondary, modifier = if (top != null) Modifier.padding(top = 6.dp) else Modifier)
+        }
     }
 }

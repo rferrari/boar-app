@@ -289,7 +289,8 @@ internal fun PressScreen(lab: LabPlugin) {
             onPhoto = { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
             onDrawing = { sheet = Sheet.DRAWINGS },
-            onChat = { sheet = Sheet.ADD })
+            onChat = { sheet = Sheet.ADD },
+            showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
         // The whole bottom is the chat's input bar (adam, Nov 12: a minimalist toolbar). Its left button opens one menu with
         // everything, grouped (add, save as, projects, page). With a text block selected, what is typed tells BOAR how to
         // change that text (NOW and REWRITTEN, nothing changes before Use); with nothing selected it is a note.
@@ -332,8 +333,7 @@ internal fun PressScreen(lab: LabPlugin) {
                         },
                         onMarkdown = { sheet = null; saveMarkdown() },
                         onPdf = { sheet = null; savePdf() }, canSave = project.blocks.isNotEmpty() && !compiling,
-                        onAll = { sheet = Sheet.ALL_PROJECTS },
-                        showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
+                        onAll = { sheet = Sheet.ALL_PROJECTS })
                     Sheet.ALL_PROJECTS -> AllProjectsSheet(library) { id -> PressStore.change { it.switchTo(id) }; sheet = null }
                     Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }
                     Sheet.EDIT -> {
@@ -375,10 +375,11 @@ private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").tr
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false, onClick: () -> Unit) {
+private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false,
+                       size: Dp = 44.dp, onClick: () -> Unit) {
     val c = Boar.colors
     val tint = when { danger -> c.crimson400; on -> GOLD; else -> c.textHeading }
-    Box(Modifier.size(44.dp).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
+    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
         .border(1.dp, if (on) GOLD else c.borderSubtle, CircleShape)
         // The name, spoken; a long press shows it too.
         .combinedClickable(enabled = enabled, role = Role.Button, onClickLabel = label, onLongClick = { Toasts.show(label) }, onClick = onClick),
@@ -445,7 +446,7 @@ private fun SheetRow(text: String, small: String? = null, icon: Int? = null, acc
 
 @Composable
 private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
-                          onDelete: () -> Unit, onMarkdown: () -> Unit, showBreaks: Boolean = true, onBreaks: (Boolean) -> Unit = {},
+                          onDelete: () -> Unit, onMarkdown: () -> Unit,
                           onPdf: () -> Unit = {}, canSave: Boolean = true, onAll: () -> Unit = {}) {
     val c = Boar.colors
     val ctx = LocalContext.current
@@ -498,10 +499,6 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
             else -> onDelete()
         }
     }
-    Group("native.labs.printer.pageGroup")
-    // Where the PDF's pages break, on the paper (adam, Nov 12: "maybe can be a on off switch").
-    SheetRow(t("native.labs.printer.pageBreaks"), t(if (showBreaks) "native.labs.printer.on" else "native.labs.printer.off"),
-        icon = R.drawable.lab_printer_ic_page) { onBreaks(!showBreaks) }
     Spacer(Modifier.height(8.dp))
     team.sopa.boar.labs.AboutPluginFold(lab)
 }
@@ -657,25 +654,37 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
 
 /**
  * What can be added, as one row of icons with spoken names (a long press shows the name): heading, paragraph, list,
- * divider, photo (adam's order, Nov 13), then a drawing and a chat's answers. It scrolls sideways only on a phone under 364 dp.
+ * divider, photo (adam's order, Nov 13), then a drawing and a chat's answers, and last the page breaks switch (gold when on;
+ * adam, Nov 13: "fit the show page toggle on toolbar… without horizontal scroll. and remove it from main menu"). It never
+ * scrolls: the buttons share the width, 44 dp at most.
  */
 @Composable
-private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
+private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit,
+                   showBreaks: Boolean, onBreaks: (Boolean) -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            // No "Add" word any more: seven icons fit a 360 dp phone without it; each still says its name.
-            IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), onClick = onHeading)
-            IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), onClick = onParagraph)
-            IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), onClick = onList)
-            IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), onClick = onDivider)
-            IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), onClick = onPhoto)
-            IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), onClick = onDrawing)
-            IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), onClick = onChat)
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
+            val size = ((maxWidth - ADD_GAP * (ADD_BUTTONS - 1)) / ADD_BUTTONS).coerceAtMost(44.dp)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // No "Add" word: each icon says its name (spoken, and on a long press).
+                IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), size = size, onClick = onHeading)
+                IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), size = size, onClick = onParagraph)
+                IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), size = size, onClick = onList)
+                IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), size = size, onClick = onDivider)
+                IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), size = size, onClick = onPhoto)
+                IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), size = size, onClick = onDrawing)
+                IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), size = size, onClick = onChat)
+                // Where the PDF's pages break, on the paper: a switch, gold when on; its name says on or off.
+                IconAction(R.drawable.lab_printer_ic_page, t("native.labs.printer.pageBreaks") + ": " + t(if (showBreaks) "native.labs.printer.on" else "native.labs.printer.off"),
+                    on = showBreaks, size = size) { onBreaks(!showBreaks) }
+            }
         }
     }
 }
+
+private const val ADD_BUTTONS = 8
+private val ADD_GAP = 4.dp
 
 /** The latest chats: a tap adds that chat's answers at the end, as "Add to Press" in the menu does. */
 @Composable

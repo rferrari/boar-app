@@ -10,7 +10,8 @@ class PluginPagesTest {
 
     @Test fun `one switch, in the list, and off the page shows everything under an alert`() {
         assertTrue(!scaffold.contains("material3.Switch("))
-        assertTrue(scaffold.contains("if (!LabPrefs.enabled(lab.id)) OffAlert(") && scaffold.contains("        lab.Content()"))
+        // No off banner on the page any more (adam, Nov 13): the switch is in the list.
+        assertTrue(!scaffold.contains("OffAlert(") && scaffold.contains("        lab.Content()"))
         // An off plugin fills no slot: only enabled labs are active.
         val plugin = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabPlugin.kt").readText()
         assertTrue(plugin.contains("visible.mapNotNull(::opened).filter { LabPrefs.enabled(it.id) }"))

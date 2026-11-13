@@ -15,7 +15,7 @@ class PluginFullPageTest {
 
     @Test fun `a full page has the header, the off alert, then the plugin's own space, and About is reusable`() {
         val full = screen.substringAfter("if (lab.fullPage) {").substringBefore("return\n")
-        assertTrue(full.contains("full = true") && full.contains("OffAlert(") && full.contains("Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }"))
+        assertTrue(full.contains("full = true") && !full.contains("OffAlert(") && full.contains("Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }"))
         assertTrue(!full.contains("verticalScroll") && !full.contains("AboutPlugin("))
         assertTrue(screen.contains("fun AboutPluginFold(lab: LabPlugin)"))
     }

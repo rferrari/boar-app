@@ -37,7 +37,9 @@ class PressDesignerLayoutTest {
 
     @Test fun `one menu, grouped, with Save as and its two formats on the right`() {
         val menu = s.substringAfter("private fun ProjectsSheet(").substringBefore("\n}\n")
-        val at = listOf("native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "Group(\"native.labs.printer.pageGroup\")", "AboutPluginFold(lab)").map { menu.indexOf(it) }
+        // The page breaks switch is on the add bar now, not in the menu (adam, Nov 13).
+        assertTrue(!menu.contains("pageGroup") && !menu.contains("pageBreaks"))
+        val at = listOf("native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "AboutPluginFold(lab)").map { menu.indexOf(it) }
         assertTrue(at.toString(), at.all { it >= 0 } && at == at.sorted())
         assertTrue(menu.contains("Triple(\".pdf\", onPdf, canSave), Triple(\".md\", onMarkdown, true)"))
         // Adding is a toolbar now, not a menu row (adam, Nov 12).
@@ -56,13 +58,15 @@ class PressDesignerLayoutTest {
         assertTrue(screen.contains("if (i >= 0) ActionBar(") && screen.contains("else AddBar("))
         val bar = s.substringAfter("private fun AddBar(").substringBefore("\n}\n")
         for (x in listOf("lab_printer_ic_photo", "lab_printer_ic_heading", "lab_printer_ic_drawing", "lab_printer_ic_chat")) assertTrue(x, bar.contains(x))
-        // Nov 13: paragraph, list and divider too, seven icons; no "Add" word, so the row fits a 360 dp phone.
-        assertTrue(Regex("IconAction\\(").findAll(bar).count() == 7 && !bar.contains("native.labs.printer.add\""))
+        // Nov 13: paragraph, list and divider too, and the page breaks switch: eight icons sharing the width, no scroll, no "Add" word.
+        assertTrue(Regex("IconAction\\(").findAll(bar).count() == 8 && !bar.contains("native.labs.printer.add\""))
+        assertTrue(!bar.contains("horizontalScroll") && bar.contains(".coerceAtMost(44.dp)") && s.contains("private const val ADD_BUTTONS = 8"))
+        assertTrue(bar.contains("on = showBreaks, size = size) { onBreaks(!showBreaks) }"))
         assertTrue(s.contains("Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }"))
         assertTrue(read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").contains("PressStore.addChat(ctx, sessionId, title)"))
         for (d in listOf("values", "values-pt")) {
             val x = read("plugins/printer/res/$d/strings_lab_printer.xml")
-            for (k in listOf("notePlaceholder", "askPlaceholder", "addNote", "menu", "saveAs", "pageGroup", "placeNext", "fromChat")) assertTrue("$d $k", x.contains("name=\"native_labs_printer_$k\""))
+            for (k in listOf("notePlaceholder", "askPlaceholder", "addNote", "menu", "saveAs", "placeNext", "fromChat")) assertTrue("$d $k", x.contains("name=\"native_labs_printer_$k\""))
         }
     }
 }

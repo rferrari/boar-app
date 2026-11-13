@@ -40,9 +40,10 @@ class PressMoreBlocksTest {
     @Test fun `the add toolbar is heading, paragraph, list, divider, photo (adam's order), then drawing and chats`() {
         val src = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
         val bar = src.substringAfter("private fun AddBar(").substringBefore("\n}\n")
-        val order = listOf("ic_heading", "ic_paragraph", "ic_list", "ic_divider", "ic_photo", "ic_drawing", "ic_chat").map { bar.indexOf(it) }
+        val order = listOf("ic_heading", "ic_paragraph", "ic_list", "ic_divider", "ic_photo", "ic_drawing", "ic_chat", "ic_page").map { bar.indexOf(it) }
         assertTrue(order.toString(), order.all { it > 0 } && order == order.sorted())
-        assertTrue(bar.contains("horizontalScroll(rememberScrollState())"))
+        // Nov 13: the page breaks switch joins them, last, and the row no longer scrolls.
+        assertTrue(!bar.contains("horizontalScroll("))
         val pdf = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PdfCompiler.kt").readText()
         assertTrue(pdf.contains("is Block.Paragraph ->") && pdf.contains("is Block.Bullets ->") && pdf.contains("is Block.Divider ->"))
         for (dir in listOf("values", "values-pt")) {

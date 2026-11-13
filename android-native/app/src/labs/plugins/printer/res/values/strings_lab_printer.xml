@@ -119,7 +119,6 @@
     <string name="native_labs_printer_askPlaceholder" formatted="false">Tell BOAR how to change this text…</string>
     <string name="native_labs_printer_menu" formatted="false">Press menu</string>
     <string name="native_labs_printer_saveAs" formatted="false">Save as…</string>
-    <string name="native_labs_printer_pageGroup" formatted="false">Page</string>
     <string name="native_labs_printer_placeNext" formatted="false">Tap for the next place</string>
     <string name="native_labs_printer_fromChat" formatted="false">Answers from a chat</string>
     <string name="native_labs_printer_allProjects" formatted="false">All projects ({{count}})</string>
