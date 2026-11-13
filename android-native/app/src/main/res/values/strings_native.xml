@@ -725,6 +725,11 @@
     <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} in the basket</string>
     <string name="native_sources_earlier" formatted="false">EARLIER IN THE PASSAGE</string>
     <string name="native_sources_sameArticle" formatted="false">MORE FROM THIS ARTICLE</string>
+    <string name="native_chat_connectionOnly" formatted="false">The dot only shows the connection. BOAR answers the same offline.</string>
+    <string name="native_chat_answerModel" formatted="false">Answer model</string>
+    <string name="native_chat_noModels" formatted="false">No answer model on this phone yet.</string>
+    <string name="native_chat_modelBusy" formatted="false">Wait for the answer to finish to change the model.</string>
+    <string name="native_chat_openCatalog" formatted="false">Open the Model Catalog</string>
     <string name="native_chat_connectionDetails" formatted="false">Double tap for details</string>
     <string name="native_chat_queueFull" formatted="false">Up to 5 questions can wait. Send this one when one of them has run.</string>
     <string name="native_chat_queueDropped" formatted="false">BOAR was closed: {{count}} waiting questions were dropped.</string>

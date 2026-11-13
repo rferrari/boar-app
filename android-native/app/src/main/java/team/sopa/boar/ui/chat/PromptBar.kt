@@ -62,7 +62,7 @@ fun PromptBar(
     val c = Boar.colors
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
     // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
-    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = BAR_PAD), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClickLabel = leftLabel, onClick = onLeft), contentAlignment = Alignment.Center) {
             left()
         }
@@ -71,7 +71,7 @@ fun PromptBar(
         val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
         Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(if (highlight) 1.5.dp else 1.dp, if (highlight) c.frontierBadgeBorder else c.borderDefault, fieldShape)
             .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
+            Box(Modifier.weight(1f).padding(vertical = 10.dp)) {
                 val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
                 if (text.isEmpty()) Text(placeholder, style = style, color = placeholderColor ?: c.textDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
@@ -131,3 +131,6 @@ private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, 
         if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stopListening")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading, description = t("native.a11y.mic"))
     }
 }
+
+/** Above and below the bar's row: 4 dp (it was 8; adam, Nov 13: "some dead margin space there… try to reduce it"). The round buttons keep their 48 dp. */
+private val BAR_PAD = 4.dp

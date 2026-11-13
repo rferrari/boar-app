@@ -43,7 +43,6 @@ class HeaderStableDeviceTest {
             compose.onAllNodesWithText("BOAR", useUnmergedTree = true).fetchSemanticsNodes().minBy { it.boundsInRoot.top }.boundsInRoot,
             compose.onNodeWithContentDescription(t("chatHeader.newChatSession"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
             compose.onNodeWithContentDescription(t("native.a11y.menu"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
-            compose.onNodeWithText(t("chatHeader.online"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot,
         )
         compose.mainClock.advanceTimeByFrame()
         val before = bounds()
@@ -60,7 +59,7 @@ class HeaderStableDeviceTest {
         compose.setContent {
             BoarTheme { ChatScreen(ChatState(online = true), onSend = {}, onStop = {}, onNewChat = {}, onMenu = {}, onSetTone = {}, onSetDeepResearch = {}, onRate = { _, _ -> }) }
         }
-        val dot = compose.onNodeWithContentDescription(t("chatHeader.online") + ". " + t("native.chat.connectionDetails"))
+        val dot = compose.onNode(androidx.compose.ui.test.hasContentDescription(t("chatHeader.online") + ". ", substring = true))
         fun newChat() = compose.onNodeWithContentDescription(t("chatHeader.newChatSession"), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
         val before = newChat()
         dot.performClick()

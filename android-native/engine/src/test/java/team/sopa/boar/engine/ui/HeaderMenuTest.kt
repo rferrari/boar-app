@@ -15,9 +15,9 @@ class HeaderMenuTest {
         assertTrue(header.contains("LabHooks.HeaderBadges(onOpenRoute)") && header.contains("onNewChat"))
     }
 
-    @Test fun `the connection is the pill beside BOAR, then a quiet dot`() {
+    @Test fun `the connection is on the model line, a quiet dot before the model's name`() {
         assertTrue(!chat.contains("StatusPill"))
-        assertTrue(header.contains("ConnectionDot(state.online)"))
+        assertTrue(header.contains("ConnectionLine(state.online,"))
         assertTrue(chat.contains("ConnectionPill.shouldShow(online)"))
     }
 

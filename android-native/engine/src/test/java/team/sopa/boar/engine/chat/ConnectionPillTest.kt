@@ -13,27 +13,30 @@ class ConnectionPillTest {
 
     @Test fun `the header waits for the connection to settle and remembers what it showed`() {
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
-        val dot = chat.substringAfter("private fun ConnectionDot(").substringBefore("\n}\n")
+        val dot = chat.substringAfter("private fun ConnectionLine(").substringBefore("\n}\n")
         assertTrue(dot.contains("delay(ConnectionPill.SETTLE_MS)") && dot.contains("ConnectionPill.lastShown = online") && dot.contains("delay(ConnectionPill.SHOW_MS)"))
         assertTrue(!chat.contains("offlineReady"))
     }
 
-    @Test fun `ONLINE or OFFLINE is the pill beside BOAR, in kept space, so nothing in the header moves (t9 1950)`() {
+    @Test fun `the connection is on the model line, the name turns into ONLINE or OFFLINE for 2 s, the title never changes (option D)`() {
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
         val header = chat.substringAfter("private fun Header(").substringBefore("\n}\n")
-        assertTrue(header.contains("ConnectionDot(state.online)") && !header.contains("Crossfade("))
-        // The model line is only the model.
-        assertTrue(header.contains("Text((headerModel ?: t(\"chatHeader.localLlmCore\")).uppercase(), style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type)"))
-        val dot = chat.substringAfter("private fun ConnectionDot(").substringBefore("\n}\n")
-        // Both drawn, one box: the pill and the dot cross-fade by alpha; nothing is added or removed, so nothing resizes.
-        assertTrue(!dot.contains("animateContentSize") && !dot.contains("if (expanded) Row("))
-        assertTrue(dot.contains("Modifier.alpha(pill)") && dot.contains("Modifier.alpha(1f - pill)") && dot.contains("tween(if (animOff) 0 else 250)"))
-        // Two steps (adam, Nov 13): the dot expands into the pill for 4 s, a tap on the pill opens the dialog; TalkBack opens it at once.
-        assertTrue(dot.contains(".clickable { if (expanded) info = true else tapped++ }"))
-        assertTrue(dot.contains("delay(ConnectionPill.TAP_SHOW_MS)") && ConnectionPill.TAP_SHOW_MS == 4_000L && ConnectionPill.SHOW_MS == 2_000L)
-        assertTrue(dot.contains("clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }"))
-        assertTrue(dot.contains("if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)"))
-        assertTrue(dot.contains("boldMarks(t(if (online) \"chatHeader.onlineBody\" else \"chatHeader.offlineBody\"))"))
+        // BOAR alone on the title line; the second line is the connection line with the model's name.
+        assertTrue(header.contains("ConnectionLine(state.online, (headerModel ?: t(\"chatHeader.localLlmCore\")).uppercase(), busy = state.answeringId != null)"))
+        assertTrue(!header.contains("ConnectionDot(") && !chat.contains("private fun ConnectionDot("))
+        val line = chat.substringAfter("private fun ConnectionLine(").substringBefore("\n}\n")
+        // One line, one style, cross-faded: nothing changes size. Reduce motion: instant.
+        assertTrue(line.contains("Crossfade(expanded, animationSpec = androidx.compose.animation.core.tween(if (animOff) 0 else 250)"))
+        assertTrue(line.contains("if (word) Text(label, style = style, color = tint") && line.contains("else Text(model, style = style, color = c.textDim"))
+        assertTrue(!line.contains("animateContentSize") && !line.contains("RoundedCornerShape(4.dp)"))
+        // Two steps (adam, Nov 13): a tap shows the word for 4 s, a tap on the word opens the dialog; TalkBack opens it at once.
+        assertTrue(line.contains(".clickable { if (expanded) info = true else tapped++ }"))
+        assertTrue(line.contains("delay(ConnectionPill.TAP_SHOW_MS)") && ConnectionPill.TAP_SHOW_MS == 4_000L && ConnectionPill.SHOW_MS == 2_000L)
+        assertTrue(line.contains("clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }"))
+        assertTrue(line.contains("if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)"))
+        // The details are a sheet now (the connection, then the answer models), not a dialog.
+        assertTrue(line.contains("if (info) ConnectionSheet(online, busy, onCatalog = { info = false; onCatalog() }) { info = false }") && !line.contains("AlertDialog"))
+        assertTrue(chat.substringAfter("private fun ConnectionSheet(").substringBefore("\n}\n").contains("boldMarks(t(if (online) \"chatHeader.onlineBody\" else \"chatHeader.offlineBody\"))"))
     }
 
     @Test fun `every page header is the chat header, 62 dp, both lines get the whole bar, the same styles`() {
@@ -66,5 +69,27 @@ class ConnectionPillTest {
             assertTrue(d, !online.contains("airplane") && !online.contains("avião") && (online.endsWith("turn that on.") || online.endsWith("ligar isso.")))
         }
         assertTrue(java.io.File("../app/src/main/java/team/sopa/boar/ui/BoldMarks.kt").readText().contains("fun boldMarks(text: String): AnnotatedString"))
+    }
+
+    /** adam, Nov 13: a tap opens a sheet that says the dot is only an indicator, lists the answer models on the phone and links the catalog. */
+    @Test fun `the connection sheet lists the installed answer models and opens the catalog`() {
+        val src = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        val sheet = src.substringAfter("private fun ConnectionSheet(").substringBefore("\n}\n")
+        assertTrue(sheet.contains("native.chat.connectionOnly"))
+        assertTrue(sheet.contains("AssetKind.LLM") && sheet.contains("?.present == true"))
+        assertTrue("the switch goes through the catalog's own view model", sheet.contains("models.use(a)"))
+        assertTrue("no switch while an answer is being written", sheet.contains("!busy"))
+        assertTrue(sheet.contains("native.chat.openCatalog") && src.contains("onOpenRoute(\"models\")"))
+        for (dir in listOf("values", "values-pt")) {
+            val xml = java.io.File("../app/src/main/res/$dir/strings_native.xml").readText()
+            for (k in listOf("connectionOnly", "answerModel", "noModels", "modelBusy", "openCatalog")) assertTrue("$dir $k", xml.contains("name=\"native_chat_$k\""))
+        }
+    }
+
+    /** adam, Nov 13: the bar under the chat is less tall, and the round buttons keep their 48 dp. */
+    @Test fun `the input bar is compact and keeps 48 dp buttons`() {
+        val src = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/PromptBar.kt").readText()
+        assertTrue(src.contains("private val BAR_PAD = 4.dp") && src.contains("vertical = BAR_PAD"))
+        assertTrue(src.contains("size(48.dp)"))
     }
 }

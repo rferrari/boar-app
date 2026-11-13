@@ -725,6 +725,11 @@
     <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} na cesta</string>
     <string name="native_sources_earlier" formatted="false">ANTES NO TRECHO</string>
     <string name="native_sources_sameArticle" formatted="false">MAIS DESTE ARTIGO</string>
+    <string name="native_chat_connectionOnly" formatted="false">O ponto só mostra a conexão. O BOAR responde igual offline.</string>
+    <string name="native_chat_answerModel" formatted="false">Modelo de resposta</string>
+    <string name="native_chat_noModels" formatted="false">Ainda não há modelo de resposta neste celular.</string>
+    <string name="native_chat_modelBusy" formatted="false">Espere a resposta terminar para trocar o modelo.</string>
+    <string name="native_chat_openCatalog" formatted="false">Abrir o Catálogo de Modelos</string>
     <string name="native_chat_connectionDetails" formatted="false">Toque duas vezes para ver os detalhes</string>
     <string name="native_chat_queueFull" formatted="false">Até 5 perguntas podem esperar. Envie esta quando uma delas tiver rodado.</string>
     <string name="native_chat_queueDropped" formatted="false">O BOAR foi fechado: {{count}} perguntas na fila foram descartadas.</string>

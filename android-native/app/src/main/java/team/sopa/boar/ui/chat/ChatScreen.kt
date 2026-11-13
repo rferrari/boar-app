@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -258,15 +259,12 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // No boar here: the menu shows it, once is enough (adam, Nov 10).
                 Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("BOAR", style = team.sopa.boar.ui.HeaderMetrics.titleStyle(type).copy(letterSpacing = 0.5.sp), color = c.textHeading, maxLines = 1)
-                        ConnectionDot(state.online)
-                    }
+                    Text("BOAR", style = team.sopa.boar.ui.HeaderMetrics.titleStyle(type).copy(letterSpacing = 0.5.sp), color = c.textHeading, maxLines = 1)
                     // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
                     val headerModel = team.sopa.boar.engine.chat.HeaderModel.label(state.answeringId != null, state.answeringModel, state.modelLabel)
-                    // The model line stays the model line; the connection is the pill beside BOAR (adam, Nov 12, t9 1950).
-                    Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type), color = c.textDim,
-                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    // The connection lives on the model line (adam picked D of mockup-header-pill.html, Nov 12): its dot before the
+                    // model's name, and for 2 s the name gives way to ONLINE or OFFLINE, same line, same size. The title never changes.
+                    ConnectionLine(state.online, (headerModel ?: t("chatHeader.localLlmCore")).uppercase(), busy = state.answeringId != null) { onOpenRoute("models") }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -304,23 +302,23 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
 private val MOON = Color(0xFF9EC7F0)
 
 /**
- * The connection (adam, Nov 11): a pill, "● ONLINE" or "● OFFLINE", beside BOAR for about 2 s when BOAR opens and when
- * the connection really changes, then a small dot (amber online, a greyed moon-blue ring offline). Two steps (adam,
- * Nov 13): a tap on the dot shows the pill for about 4 s; a tap on the pill, the automatic one included, opens what the
- * connection is used for. TalkBack reads the state and opens the dialog at once. Shown once per state (ConnectionPill).
- * The header never moves (adam, Nov 12; t9 1950): the pill's space is always kept, the pill and the dot are drawn on
- * top of each other and cross-fade, so nothing else changes position or size. With animations off the swap is instant.
+ * The connection, on the header's second line (adam, Nov 12: option D, "the metamorphic one"): a small dot (amber online,
+ * a greyed moon-blue ring offline) before the model's name. When BOAR opens and when the connection really changes
+ * (ConnectionPill: once per state, after it has held), the name becomes "ONLINE" or "OFFLINE" for about 2 s, in the dot's
+ * color, then turns back into the name. A tap shows the word for about 4 s; a tap while it shows opens what the connection
+ * is used for. Nothing changes size: it is one line of the same text style, cross-faded. Reduce motion: instant.
  */
 @Composable
-private fun ConnectionDot(online: Boolean) {
+private fun ConnectionLine(online: Boolean, model: String, busy: Boolean = false, onCatalog: () -> Unit = {}) {
     val c = Boar.colors
+    val type = Boar.type
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val animOff = remember { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
     var expanded by remember { mutableStateOf(false) }
     var info by remember { mutableStateOf(false) }
     var tapped by remember { mutableStateOf(0) }
     LaunchedEffect(online) {
-        // On open at once; a change only once it has held, so a flapping signal doesn't flash the pill.
+        // On open at once; a change only once it has held, so a flapping signal doesn't flash the word.
         if (ConnectionPill.lastShown != null) kotlinx.coroutines.delay(ConnectionPill.SETTLE_MS)
         if (!ConnectionPill.shouldShow(online)) return@LaunchedEffect
         ConnectionPill.lastShown = online
@@ -334,33 +332,67 @@ private fun ConnectionDot(online: Boolean) {
         kotlinx.coroutines.delay(ConnectionPill.TAP_SHOW_MS)
         expanded = false
     }
-    val pill by androidx.compose.animation.core.animateFloatAsState(if (expanded) 1f else 0f,
-        androidx.compose.animation.core.tween(if (animOff) 0 else 250), label = "connection")
     val tint = if (online) c.amber400 else MOON
     val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
-    // One box, always the pill's size: the dot sits where the pill starts, right after BOAR.
-    val spoken = label + ". " + t("native.chat.connectionDetails")
-    // First tap: the pill; a tap on the pill: the dialog. A screen reader gets one action that opens the dialog.
-    Box(Modifier.clip(RoundedCornerShape(8.dp))
+    val spoken = label + ". " + model + ". " + t("native.chat.connectionDetails")
+    val style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type)
+    // First tap: the word; a tap on the word: the dialog. A screen reader gets one action that opens the dialog.
+    Row(Modifier.clip(RoundedCornerShape(6.dp))
         .clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }
-        .clickable { if (expanded) info = true else tapped++ }.padding(horizontal = 4.dp, vertical = 8.dp),
-        contentAlignment = Alignment.CenterStart) {
-        Row(
-            Modifier.alpha(pill).background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
-                .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Box(Modifier.size(5.dp).background(tint, CircleShape))
-            Text(label, fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp, fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false)
+        .clickable { if (expanded) info = true else tapped++ },
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Box(Modifier.size(6.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
+        androidx.compose.animation.Crossfade(expanded, animationSpec = androidx.compose.animation.core.tween(if (animOff) 0 else 250), label = "connection") { word ->
+            if (word) Text(label, style = style, color = tint, fontWeight = FontWeight.Bold, maxLines = 1)
+            else Text(model, style = style, color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
-        // The dot keeps the pill's colors (adam, Nov 11): amber online, a greyed moon-blue ring offline.
-        Box(Modifier.alpha(1f - pill).size(7.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
     }
-    if (info) androidx.compose.material3.AlertDialog(onDismissRequest = { info = false }, containerColor = c.bgCardElevated,
-        confirmButton = { androidx.compose.material3.TextButton({ info = false }) { Text(t("common.done"), color = c.textAccentCyan) } },
-        title = { Text(t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), style = Boar.type.title, color = c.textHeading) },
-        // Short paragraphs, the key words in bold (adam, Nov 12).
-        text = { Text(team.sopa.boar.ui.boldMarks(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody")), style = Boar.type.body, color = c.textSecondary) })
+    // A tap on the word: what the connection is for, and the answer model, with the way to change it (adam, Nov 13).
+    if (info) ConnectionSheet(online, busy, onCatalog = { info = false; onCatalog() }) { info = false }
+}
+
+/**
+ * The sheet behind the header's second line (adam, Nov 13): the connection is only an indicator (BOAR answers the same
+ * offline), and the answer model: the ones on this phone, a tap to answer with another, and the Model Catalog. The catalog's
+ * own view model does the switch, so it stops a running answer first and loads the model, exactly as "Select & Use" does.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun ConnectionSheet(online: Boolean, busy: Boolean, onCatalog: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val models: team.sopa.boar.models.ModelsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val ms by models.state.collectAsState()
+    LaunchedEffect(Unit) { models.refresh() }
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.size(8.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.7f), CircleShape)))
+                Text(t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), style = Boar.type.titleSm, color = c.textHeading)
+            }
+            Text(team.sopa.boar.ui.boldMarks(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody")), style = Boar.type.body, color = c.textSecondary)
+            Text(t("native.chat.connectionOnly"), style = Boar.type.caption, color = c.textMuted)
+            Box(Modifier.fillMaxWidth().padding(top = 6.dp).height(1.dp).background(c.borderDefault))
+            Text(t("native.chat.answerModel").uppercase(), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted, modifier = Modifier.padding(top = 6.dp))
+            // The answer models on this phone; the active one is checked. Not while an answer is being written.
+            val installed = ms.items.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && ms.rows[it.id]?.present == true }
+            if (installed.isEmpty()) Text(t("native.chat.noModels"), style = Boar.type.caption, color = c.textMuted)
+            installed.forEach { a ->
+                val active = a.id == ms.activeLlm
+                Row(Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp).clip(RoundedCornerShape(10.dp))
+                    .clickable(enabled = !active && !busy && ms.activating == null, role = androidx.compose.ui.semantics.Role.Button) { models.use(a); onClose() }
+                    .padding(horizontal = 8.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(if (active) "✓" else " ", style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.widthIn(min = 16.dp))
+                    Text(a.shortName, style = Boar.type.body, color = if (active) c.textAccentEmerald else c.textPrimary, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                        modifier = Modifier.weight(1f).alpha(if (busy && !active) 0.5f else 1f))
+                    Text(team.sopa.boar.engine.models.Units.formatBytes(a.sizeBytes), style = Boar.type.caption, color = c.textMuted)
+                }
+            }
+            if (busy) Text(t("native.chat.modelBusy"), style = Boar.type.caption, color = c.amber400)
+            Text(t("native.chat.openCatalog") + " ›", style = Boar.type.body, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onCatalog).padding(horizontal = 8.dp, vertical = 14.dp))
+        }
+    }
 }
 
 @Composable
