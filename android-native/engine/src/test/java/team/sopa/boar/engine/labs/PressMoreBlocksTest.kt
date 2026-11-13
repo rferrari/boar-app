@@ -51,3 +51,27 @@ class PressMoreBlocksTest {
         }
     }
 }
+
+/** adam, Nov 13: the document's footer is two small lines, not "How this document was made". */
+class PressFooterTest {
+    private fun answer(id: String, model: String, vararg src: String) = Block.Answer(id, "Chat", "Q?", "A.", src.map { PressDoc.Source(it, "Wikipedia") }, 1, model, 9.5)
+
+    @Test fun `two lines at most - the sources by number, then the models and BOAR`() {
+        val p = PressDoc.Project("p", "Coast", 1, listOf(answer("a", "Qwen3 4B", "Salt", "Sea"), answer("b", "LFM2.5 8B", "Sea", "Tide")))
+        assertEquals(listOf("Sources  [1] Salt  ·  [2] Sea  ·  [3] Tide", "Qwen3 4B  ·  LFM2.5 8B  ·  Made offline with BOAR · 13 Nov"),
+            PressReceipt.footer(PressReceipt.build(p), PressReceipt.Labels(), "13 Nov"))
+    }
+
+    @Test fun `no sources, one line`() {
+        val p = PressDoc.Project("p", "Coast", 1, listOf(Block.Paragraph("t", "Mine.")))
+        assertEquals(listOf("Made offline with BOAR · 13 Nov"), PressReceipt.footer(PressReceipt.build(p), PressReceipt.Labels(), "13 Nov"))
+    }
+
+    @Test fun `the paper and the PDF draw the footer, not the old receipt rows`() {
+        val dir = "../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/"
+        val pdf = java.io.File(dir + "PdfCompiler.kt").readText().substringAfter("private fun receipt(").substringBefore("\n    }\n")
+        val scr = java.io.File(dir + "PressScreen.kt").readText().substringAfter("private fun ReceiptView(").substringBefore("\n}\n")
+        for (x in listOf(pdf, scr)) assertTrue(x.contains("footer") && !x.contains("labels.title") && !x.contains("rows"))
+        for (d in listOf("values", "values-pt")) assertTrue(java.io.File("../app/src/labs/plugins/printer/res/$d/strings_lab_printer.xml").readText().contains("name=\"native_labs_printer_madeWith\""))
+    }
+}

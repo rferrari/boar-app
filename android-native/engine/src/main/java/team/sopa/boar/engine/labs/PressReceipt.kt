@@ -89,6 +89,8 @@ object PressReceipt {
         val photosValue: String = "{{count}} from this phone",
         val sources: String = "Sources",
         val footer: String = "compiled offline with BOAR",
+        /** The footer's last line, after the models; {{date}}. */
+        val madeWith: String = "Made offline with BOAR · {{date}}",
         val designer: String = "Designer",
         val seed: String = "seed {{seed}}",
         val square: String = "square",
@@ -130,6 +132,16 @@ object PressReceipt {
         if (r.sources.isNotEmpty()) add(Row(l.sources, r.sources.map(::sourceText), numbered = true))
     }
 
+    /**
+     * The document's footer, at most two lines (adam, Nov 13: "too much information… make a models, sources and boar made
+     * simple footer… 2 lines max, elegant, simple"): the sources by their [n] (the numbers the answers use), then the
+     * models and "Made offline with BOAR" with the date. No speeds, recipes or counts. A document with no sources has one line.
+     */
+    fun footer(r: Receipt, l: Labels, date: String): List<String> = listOfNotNull(
+        r.sources.takeIf { it.isNotEmpty() }?.mapIndexed { i, s -> "[${i + 1}] ${s.title.trim()}" }?.joinToString("  ·  ", prefix = l.sources + "  "),
+        (r.models.map { it.model } + l.madeWith.replace("{{date}}", date)).joinToString("  ·  "),
+    )
+
     fun sourceText(s: PressDoc.Source) = s.title + (s.source?.takeIf { it.isNotBlank() }?.let { " — $it" } ?: "")
 
     /** "Sources [1] [3]" under an answer; null when it has none. */
@@ -168,14 +180,7 @@ object PressReceipt {
             is Block.Picture -> append("_").append(if (b.kind == PressDoc.Kind.PHOTO) photoLabel else drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")
             is Block.Unknown -> {}
         }
-        append("---\n\n**").append(l.title).append("**\n\n")
-        for (row in rows(r, l, date, version)) {
-            if (row.numbered) {
-                append("\n**").append(row.label).append("**\n\n")
-                row.lines.forEachIndexed { i, s -> append(i + 1).append(". ").append(s).append('\n') }
-                append('\n')
-            } else append("- **").append(row.label).append("**: ").append(row.lines.joinToString("; ")).append('\n')
-        }
-        append("\n_").append(l.footer).append("_\n")
+        // The same two-line footer as the paper (adam, Nov 13), in small italics under a rule.
+        append("---\n\n").append(footer(r, l, date).joinToString("  \n") { "_${it}_" }).append('\n')
     }
 }

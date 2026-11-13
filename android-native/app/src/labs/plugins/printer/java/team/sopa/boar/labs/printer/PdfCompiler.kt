@@ -103,37 +103,19 @@ object PdfCompiler {
         }
     }
 
-    /** "How this document was made", always at the end. */
+    /**
+     * The footer, always at the end (adam, Nov 13): a short centered hairline, then at most two small light lines, the
+     * sources by number and "models · Made offline with BOAR · date". Kept together on one page (t9 1721).
+     */
     private fun receipt(p: Pager, page: PressPage) {
-        val rows = page.rows
-        // Kept together (t9 1721: a page break ran through it): the whole receipt's height, measured as it will be drawn;
-        // a receipt taller than a page starts on a fresh one and continues.
-        val label0 = sans(Paper.RECEIPT, bold = true, color = Paper.LABEL_INK)
-        val value0 = sans(Paper.RECEIPT, color = Paper.RECEIPT_INK)
-        val w = (Paper.INNER - Paper.RECEIPT_LABEL_W).toInt()
-        var total = 6f + 2f + Paper.RECEIPT_TITLE * 1.4f + 6f + 10f + Paper.FOOT * 1.6f
-        for (row in rows) {
-            row.lines.forEachIndexed { i, line ->
-                val text = if (row.numbered) "${i + 1}. $line" else line
-                total += maxOf(StaticLayout.Builder.obtain(text, 0, text.length, value0, w).setLineSpacing(0f, 1.15f).build().height,
-                    if (i == 0) StaticLayout.Builder.obtain(row.label, 0, row.label.length, label0, (Paper.RECEIPT_LABEL_W - 6).toInt()).build().height else 0).toFloat()
-            }
-            total += 4f
-        }
+        val lines = page.footer
+        val paint = sans(Paper.FOOTER, color = Paper.FOOT_INK)
+        var total = 18f + 8f
+        for (line in lines) total += StaticLayout.Builder.obtain(line, 0, line.length, paint, Paper.INNER.toInt()).setLineSpacing(0f, 1.3f).build().height + 2f
         p.keepRoom(minOf(total, Paper.H - 2 * Paper.M))
-        p.gap(6f)
-        p.rule()
-        p.text(page.labels.title, sans(Paper.RECEIPT_TITLE, bold = true, color = Paper.INK).apply { letterSpacing = 0.06f }, after = 6f)
-        val label = sans(Paper.RECEIPT, bold = true, color = Paper.LABEL_INK)
-        val value = sans(Paper.RECEIPT, color = Paper.RECEIPT_INK)
-        for (row in rows) {
-            row.lines.forEachIndexed { i, line ->
-                p.row(if (i == 0) row.label else "", if (row.numbered) "${i + 1}. $line" else line, label, value)
-            }
-            p.gap(4f)
-        }
-        p.gap(10f)
-        p.text(page.labels.footer, sans(Paper.FOOT, color = Paper.FOOT_INK), after = 0f, center = true)
+        p.gap(18f)
+        p.shortRule()
+        for (line in lines) p.text(line, paint, after = 2f, spacing = 1.3f, center = true)
     }
 
     private fun serif(size: Float, bold: Boolean = false, italic: Boolean = false, color: Int = Paper.INK) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -308,6 +290,12 @@ object PdfCompiler {
                 bmp?.recycle()
             }
             caption?.let { (s, paint) -> text(s, paint, after = 0f, center = true) }
+        }
+
+        /** A short hairline in the middle of the page, above the footer. */
+        fun shortRule() {
+            canvas.drawLine(Paper.W / 2 - 24f, y, Paper.W / 2 + 24f, y, Paint().apply { color = Paper.RULE; strokeWidth = 0.6f })
+            y += 8f
         }
 
         fun rule() {

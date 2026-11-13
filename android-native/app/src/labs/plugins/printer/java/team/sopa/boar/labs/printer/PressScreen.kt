@@ -751,6 +751,7 @@ private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.un
     val label = style(Paper.RECEIPT, sans, bold = true, color = Paper.LABEL_INK, line = 1.35f)
     val value = style(Paper.RECEIPT, sans, color = Paper.RECEIPT_INK, line = 1.35f)
     val foot = style(Paper.FOOT, sans, color = Paper.FOOT_INK)
+    val footer = style(Paper.FOOTER, sans, color = Paper.FOOT_INK, line = 1.3f)
 }
 
 @Composable
@@ -1030,19 +1031,11 @@ private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUs
 
 @Composable
 private fun ReceiptView(page: PressPage, s: PaperScale) {
-    Column(Modifier.fillMaxWidth().padding(top = s.dp(6f))) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
-        Text(page.labels.title, style = s.receiptTitle, modifier = Modifier.padding(top = s.dp(10f), bottom = s.dp(6f)))
-        page.rows.forEach { row ->
-            row.lines.forEachIndexed { i, line ->
-                Row(Modifier.fillMaxWidth()) {
-                    Text(if (i == 0) row.label else "", style = s.label, modifier = Modifier.width(s.dp(Paper.RECEIPT_LABEL_W)))
-                    Text(if (row.numbered) "${i + 1}. $line" else line, style = s.value, modifier = Modifier.weight(1f))
-                }
-            }
-            Spacer(Modifier.height(s.dp(4f)))
-        }
-        Text(page.labels.footer, style = s.foot, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = s.dp(10f)))
+    // The footer as the PDF draws it (adam, Nov 13): a short hairline, two small light lines, centered.
+    Column(Modifier.fillMaxWidth().padding(top = s.dp(18f)), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.width(s.dp(48f)).height(1.dp).background(Color(Paper.RULE)))
+        Spacer(Modifier.height(s.dp(8f)))
+        page.footer.forEach { Text(it, style = s.footer, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = s.dp(2f))) }
     }
 }
 

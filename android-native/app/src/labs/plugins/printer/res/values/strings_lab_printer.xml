@@ -9,6 +9,7 @@
     <string name="native_labs_printer_noImages" formatted="false">No drawings yet. Make some in Designer, then pick them here.</string>
     <string name="native_labs_printer_compile" formatted="false">Save PDF</string>
     <string name="native_labs_printer_compiling" formatted="false">Printing…</string>
+    <string name="native_labs_printer_madeWith" formatted="false">Made offline with BOAR · {{date}}</string>
     <string name="native_labs_printer_footer" formatted="false">compiled offline with BOAR</string>
     <string name="native_labs_printer_inBasket" formatted="false">In {{project}} (tap to remove)</string>
     <string name="native_labs_printer_addToBasket" formatted="false">Add to Press: {{project}}</string>

@@ -33,6 +33,8 @@ object Paper {
     const val RECEIPT_TITLE = 12.5f
     const val RECEIPT_LABEL_W = 80f
     const val FOOT = 11f
+    /** The document's footer: small, light, centered (adam, Nov 13: it read as part of the document). */
+    const val FOOTER = 8.5f
     const val GAP = 14f
     /** The tallest a picture gets: about half a page. */
     const val PICTURE_MAX_H = 380f
@@ -59,6 +61,9 @@ class PressPage(
 ) {
     val rows: List<PressReceipt.Row> get() = PressReceipt.rows(receipt, labels, date, version)
 
+    /** The document's two-line footer (PressReceipt.footer). */
+    val footer: List<String> get() = PressReceipt.footer(receipt, labels, date)
+
     /** An answer's text as it prints: plain, its [k] marks as the document's numbers. */
     fun answerText(a: PressDoc.Block.Answer) = PressReceipt.plain(PressReceipt.renumber(a.text, receipt.refs[a.id].orEmpty()))
 
@@ -79,6 +84,7 @@ class PressPage(
             photosValue = I18n.t(ctx, "native.labs.printer.rPhotosValue", "count" to "{{count}}"),
             sources = I18n.t(ctx, "native.labs.printer.rSources"),
             footer = I18n.t(ctx, "native.labs.printer.footer"),
+            madeWith = I18n.t(ctx, "native.labs.printer.madeWith", "date" to "{{date}}"),
             designer = I18n.t(ctx, "native.labs.printer.rDesigner"),
             seed = I18n.t(ctx, "native.labs.printer.rSeed", "seed" to "{{seed}}"),
             square = I18n.t(ctx, "native.labs.printer.rSquare"),
