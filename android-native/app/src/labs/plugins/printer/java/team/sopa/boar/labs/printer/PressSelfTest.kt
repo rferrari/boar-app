@@ -98,6 +98,9 @@ internal object PressSelfTest {
             Block.Note("n1", "Ask about the lighthouse tomorrow."),
             Block.Picture("gone", PressDoc.Kind.DRAWING, File(square.parentFile, "deleted.png").path),
             Block.Heading("h2", (1..40).joinToString(" ") { "long" }),
+            Block.Paragraph("t1", "A paragraph of plain body text, not a note."),
+            Block.Divider("d1"),
+            Block.Bullets("l1", "Salt\nWater\nSun"),
         )),
         // Phase 2: pictures left and right with the next text beside them, a heading after a side picture, a photo.
         "sides" to project("Sides", listOf(

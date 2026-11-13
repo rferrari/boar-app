@@ -50,6 +50,11 @@
     <string name="native_labs_printer_drawings_one" formatted="false">{{count}} on this phone</string>
     <string name="native_labs_printer_drawings_other" formatted="false">{{count}} on this phone</string>
     <string name="native_labs_printer_addHint" formatted="false">Answers come from a chat: under an answer, open the plugins and tap Add to Press.</string>
+    <string name="native_labs_printer_paragraph" formatted="false">Paragraph</string>
+    <string name="native_labs_printer_list" formatted="false">List</string>
+    <string name="native_labs_printer_divider" formatted="false">Divider</string>
+    <string name="native_labs_printer_paragraphHint" formatted="false">Write a paragraph…</string>
+    <string name="native_labs_printer_listHint" formatted="false">One item per line…</string>
     <string name="native_labs_printer_newHeading" formatted="false">New heading</string>
     <string name="native_labs_printer_newNote" formatted="false">A note</string>
     <string name="native_labs_printer_docTitle" formatted="false">Document title</string>

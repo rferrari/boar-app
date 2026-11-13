@@ -96,6 +96,9 @@ object PdfCompiler {
             }
             is Block.Note -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.NOTE, italic = true, color = Paper.MUTED), after = Paper.GAP,
                 spacing = Paper.PDF_SPACING, indent = 12f)
+            is Block.Paragraph -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
+            is Block.Bullets -> if (b.items.isNotEmpty()) p.text(team.sopa.boar.engine.labs.PressDoc.bulleted(b.text), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
+            is Block.Divider -> { p.gap(4f); p.rule(); p.gap(Paper.GAP - 10f) }
             is Block.Picture, is Block.Unknown -> {}
         }
     }

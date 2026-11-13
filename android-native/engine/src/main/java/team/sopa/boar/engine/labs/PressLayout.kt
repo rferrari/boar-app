@@ -22,7 +22,7 @@ object PressLayout {
     }
 
     /** Text that may flow beside a picture; a heading (and another picture) never does. */
-    fun flows(b: Block?) = b is Block.Answer || b is Block.Note
+    fun flows(b: Block?) = b is Block.Answer || b is Block.Note || b is Block.Paragraph || b is Block.Bullets
 
     fun plan(blocks: List<Block>): List<Item> {
         val out = mutableListOf<Item>()

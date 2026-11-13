@@ -281,8 +281,11 @@ internal fun PressScreen(lab: LabPlugin) {
             },
             onClose = { selected = null; editing = null })
         // Nothing selected: the same row holds what can be added, as icons (adam, Nov 12: "keep the add to this page as
-        // icons… as toolbar"). A note is typed in the bar below.
+        // icons… as toolbar"; Nov 13: paragraph, list and divider too). A note is typed in the bar below.
         else AddBar(
+            onParagraph = { addBlock(Block.Paragraph(PressStore.newId("t"), "")) },
+            onList = { addBlock(Block.Bullets(PressStore.newId("l"), "")) },
+            onDivider = { addBlock(Block.Divider(PressStore.newId("d"))); editing = null },
             onPhoto = { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
             onDrawing = { sheet = Sheet.DRAWINGS },
@@ -409,7 +412,7 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
         Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             IconAction(R.drawable.lab_printer_ic_up, t("native.labs.printer.moveUp"), enabled = index > 0) { onMove(-1) }
             IconAction(R.drawable.lab_printer_ic_down, t("native.labs.printer.moveDown"), enabled = index < count - 1) { onMove(1) }
-            if (b is Block.Heading || b is Block.Note || b is Block.Answer)
+            if (textOf(b) != null)
                 IconAction(R.drawable.lab_printer_ic_edit, t(if (editing) "native.labs.printer.doneEditing" else "native.labs.printer.edit"), on = editing, onClick = onEdit)
             if (b is Block.Picture) {
                 IconAction(R.drawable.lab_printer_ic_caption, t(if (editing) "native.labs.printer.doneCaption" else "native.labs.printer.caption"), dot = editing, onClick = onCaption)
@@ -514,10 +517,12 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
     team.sopa.boar.labs.AboutPluginFold(lab)
 }
 
-/** The text "Ask BOAR to rewrite it" works on: a heading's or note's text, an answer's text (not its heading). */
+/** The text "Ask BOAR to rewrite it" works on: a heading's, note's, paragraph's or list's text, an answer's text (not its heading). */
 private fun textOf(b: Block): String? = when (b) {
     is Block.Heading -> b.text
     is Block.Note -> b.text
+    is Block.Paragraph -> b.text
+    is Block.Bullets -> b.text
     is Block.Answer -> b.text
     else -> null
 }
@@ -661,16 +666,22 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
     }
 }
 
-/** What can be added, as one row of icons with spoken names (a long press shows the name): photo, heading, drawing, a chat's answers. */
+/**
+ * What can be added, as one row of icons with spoken names (a long press shows the name): the text kinds first (paragraph,
+ * heading, list, divider), then a photo, a drawing, a chat's answers. It scrolls sideways only on a phone under 364 dp.
+ */
 @Composable
-private fun AddBar(onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
+private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(t("native.labs.printer.add"), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(end = 2.dp))
-            IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), onClick = onPhoto)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            // No "Add" word any more: seven icons fit a 360 dp phone without it; each still says its name.
+            IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), onClick = onParagraph)
             IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), onClick = onHeading)
+            IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), onClick = onList)
+            IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), onClick = onDivider)
+            IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), onClick = onPhoto)
             IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), onClick = onDrawing)
             IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), onClick = onChat)
         }
@@ -841,6 +852,19 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
                 else Text(page.answerText(b), style = s.body)
                 page.refsLine(b)?.let { Text(it, style = s.refs, modifier = Modifier.padding(top = s.dp(4f))) }
             }
+            // A paragraph and a list start empty and open for typing; empty, they show their hint on the screen only (they don't print).
+            is Block.Paragraph ->
+                if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.paragraphHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
+                else if (b.text.isBlank()) Text(t("native.labs.printer.paragraphHint"), style = s.body.copy(color = HINT))
+                else Text(b.text.trim(), style = s.body)
+            is Block.Bullets ->
+                if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.listHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
+                else if (b.items.isEmpty()) Text(t("native.labs.printer.listHint"), style = s.body.copy(color = HINT))
+                else Text(PressDoc.bulleted(b.text), style = s.body)
+            // Tall enough to tap; the line itself is thin, as in the PDF.
+            is Block.Divider -> Box(Modifier.fillMaxWidth().height(s.dp(14f)), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
+            }
             is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER, editing, fresh, onFreshUsed, center = true)
             is Block.Unknown -> {}
         }
@@ -897,6 +921,8 @@ private fun pieces(b: Block, page: PressPage, s: PaperScale): List<Piece> = when
         page.refsLine(b)?.let { Piece(it, s.refs, 4f) },
     )
     is Block.Note -> listOf(Piece(b.text, s.note, 0f))
+    is Block.Paragraph -> listOf(Piece(b.text.trim(), s.body, 0f))
+    is Block.Bullets -> listOf(Piece(PressDoc.bulleted(b.text), s.body, 0f))
     else -> emptyList()
 }
 
@@ -980,6 +1006,9 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
 }
 
 /** A text typed on the page, in the paper's own style; saved a moment after typing stops, and when it closes. */
+/** A paragraph's or list's hint while it is empty (the placeholder's grey). */
+private val HINT = Color(0xFFA2A6B4)
+
 @Composable
 private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUsed: () -> Unit, placeholder: String? = null, onSave: (String) -> Unit) {
     var draft by remember { mutableStateOf(TextFieldValue(value, if (fresh) TextRange(0, value.length) else TextRange(value.length))) }

@@ -50,6 +50,11 @@
     <string name="native_labs_printer_drawings_one" formatted="false">{{count}} neste celular</string>
     <string name="native_labs_printer_drawings_other" formatted="false">{{count}} neste celular</string>
     <string name="native_labs_printer_addHint" formatted="false">As respostas vêm das conversas: embaixo de uma resposta, abra os plugins e toque em Adicionar ao Press.</string>
+    <string name="native_labs_printer_paragraph" formatted="false">Parágrafo</string>
+    <string name="native_labs_printer_list" formatted="false">Lista</string>
+    <string name="native_labs_printer_divider" formatted="false">Divisor</string>
+    <string name="native_labs_printer_paragraphHint" formatted="false">Escreva um parágrafo…</string>
+    <string name="native_labs_printer_listHint" formatted="false">Um item por linha…</string>
     <string name="native_labs_printer_newHeading" formatted="false">Novo título</string>
     <string name="native_labs_printer_newNote" formatted="false">Uma nota</string>
     <string name="native_labs_printer_docTitle" formatted="false">Título do documento</string>

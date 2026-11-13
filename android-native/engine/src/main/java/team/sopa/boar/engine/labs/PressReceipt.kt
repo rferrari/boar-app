@@ -155,6 +155,9 @@ object PressReceipt {
         for (b in project.blocks) when (b) {
             is Block.Heading -> if (b.text.isNotBlank()) append("## ").append(b.text.trim().replace('\n', ' ')).append("\n\n")
             is Block.Note -> if (b.text.isNotBlank()) append(b.text.trim().lines().joinToString("\n") { "> $it" }).append("\n\n")
+            is Block.Paragraph -> if (b.text.isNotBlank()) append(b.text.trim()).append("\n\n")
+            is Block.Bullets -> if (b.items.isNotEmpty()) append(b.items.joinToString("\n") { "- $it" }).append("\n\n")
+            is Block.Divider -> append("* * *\n\n")
             is Block.Answer -> {
                 val refs = r.refs[b.id].orEmpty()
                 append("### ").append(b.shownHeading.trim().replace('\n', ' ')).append("\n\n")

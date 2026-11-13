@@ -44,7 +44,16 @@ object PressDoc {
         val id: String
 
         data class Heading(override val id: String, val text: String) : Block
+        /** An aside: italic and muted, with a bar at its side; a quote in the .md. Typed in the input bar. */
         data class Note(override val id: String, val text: String) : Block
+        /** Body text the user writes, as an answer's text looks (adam, Nov 13: a paragraph is not a note). */
+        data class Paragraph(override val id: String, val text: String) : Block
+        /** A list, one item per line of [text] ([items]); a "- " or "• " the user typed is not part of the item. */
+        data class Bullets(override val id: String, val text: String) : Block {
+            val items: List<String> get() = PressDoc.items(text)
+        }
+        /** A thin line across the page, between parts. */
+        data class Divider(override val id: String) : Block
 
         /** An answer from a chat; [id] is the chat message's id, so the same answer is in a project only once. */
         data class Answer(
@@ -164,6 +173,8 @@ object PressDoc {
             when {
                 b is Block.Heading -> b.copy(text = value)
                 b is Block.Note -> b.copy(text = value)
+                b is Block.Paragraph -> b.copy(text = value)
+                b is Block.Bullets -> b.copy(text = value)
                 b is Block.Answer && field == Field.HEADING -> b.copy(heading = if (value.trim() == b.question.trim()) "" else value)
                 b is Block.Answer -> b.copy(text = value)
                 b is Block.Picture && field == Field.CAPTION -> b.copy(caption = value)
@@ -196,6 +207,12 @@ object PressDoc {
 
     enum class Field { TEXT, HEADING, CAPTION }
 
+    /** A list's items: one per non-blank line, a leading "-", "*" or "•" taken off. */
+    fun items(text: String): List<String> = text.lines().map { it.trim().replace(Regex("^[-*•]\\s*"), "").trim() }.filter { it.isNotEmpty() }
+
+    /** A list as the paper and the PDF show it: "• " before each item. */
+    fun bulleted(text: String): String = items(text).joinToString("\n") { "•  $it" }
+
     fun emptyLibrary(id: String, name: String, now: Long) = Library(id, listOf(Project(id, name, now, seenAt = now)))
 
     // ---- JSON ----
@@ -218,6 +235,9 @@ object PressDoc {
     private fun blockJson(b: Block): JsonObject = when (b) {
         is Block.Heading -> JsonObject(linkedMapOf("type" to JsonPrimitive("heading"), "id" to JsonPrimitive(b.id), "text" to JsonPrimitive(b.text)))
         is Block.Note -> JsonObject(linkedMapOf("type" to JsonPrimitive("note"), "id" to JsonPrimitive(b.id), "text" to JsonPrimitive(b.text)))
+        is Block.Paragraph -> JsonObject(linkedMapOf("type" to JsonPrimitive("paragraph"), "id" to JsonPrimitive(b.id), "text" to JsonPrimitive(b.text)))
+        is Block.Bullets -> JsonObject(linkedMapOf("type" to JsonPrimitive("list"), "id" to JsonPrimitive(b.id), "text" to JsonPrimitive(b.text)))
+        is Block.Divider -> JsonObject(linkedMapOf("type" to JsonPrimitive("divider"), "id" to JsonPrimitive(b.id)))
         is Block.Answer -> JsonObject(linkedMapOf(
             "type" to JsonPrimitive("answer"), "id" to JsonPrimitive(b.id), "chatTitle" to JsonPrimitive(b.chatTitle), "question" to JsonPrimitive(b.question),
             "heading" to JsonPrimitive(b.heading), "text" to JsonPrimitive(b.text), "addedAt" to JsonPrimitive(b.addedAt), "model" to str(b.model),
@@ -255,6 +275,9 @@ object PressDoc {
         return when (o.s("type")) {
             "heading" -> Block.Heading(id, o.s("text").orEmpty())
             "note" -> Block.Note(id, o.s("text").orEmpty())
+            "paragraph" -> Block.Paragraph(id, o.s("text").orEmpty())
+            "list" -> Block.Bullets(id, o.s("text").orEmpty())
+            "divider" -> Block.Divider(id)
             "answer" -> Block.Answer(id, o.s("chatTitle").orEmpty(), o.s("question").orEmpty(), o.s("text").orEmpty(), sources(o["sources"]), o.l("addedAt") ?: 0,
                 o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty())
             "picture" -> Block.Picture(id, if (o.s("kind") == "photo") Kind.PHOTO else Kind.DRAWING, o.s("file") ?: return null, o.s("caption").orEmpty(),

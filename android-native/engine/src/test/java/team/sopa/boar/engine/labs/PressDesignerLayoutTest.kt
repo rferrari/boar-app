@@ -56,7 +56,8 @@ class PressDesignerLayoutTest {
         assertTrue(screen.contains("if (i >= 0) ActionBar(") && screen.contains("else AddBar("))
         val bar = s.substringAfter("private fun AddBar(").substringBefore("\n}\n")
         for (x in listOf("lab_printer_ic_photo", "lab_printer_ic_heading", "lab_printer_ic_drawing", "lab_printer_ic_chat")) assertTrue(x, bar.contains(x))
-        assertTrue(!bar.contains("horizontalScroll") && Regex("IconAction\\(").findAll(bar).count() == 4)
+        // Nov 13: paragraph, list and divider too, seven icons; no "Add" word, so the row fits a 360 dp phone.
+        assertTrue(Regex("IconAction\\(").findAll(bar).count() == 7 && !bar.contains("native.labs.printer.add\""))
         assertTrue(s.contains("Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }"))
         assertTrue(read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").contains("PressStore.addChat(ctx, sessionId, title)"))
         for (d in listOf("values", "values-pt")) {
