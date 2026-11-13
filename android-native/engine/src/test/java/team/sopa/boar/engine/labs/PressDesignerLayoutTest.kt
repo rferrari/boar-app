@@ -21,7 +21,7 @@ class PressDesignerLayoutTest {
 
     @Test fun `the project's name is the page header's subtitle`() {
         assertTrue(read("java/team/sopa/boar/labs/LabPlugin.kt").contains("@Composable fun pageSubtitle(): String? = null"))
-        assertTrue(read("java/team/sopa/boar/labs/LabsScreen.kt").contains("full = true, subtitle = lab.pageSubtitle())"))
+        assertTrue(read("java/team/sopa/boar/labs/LabsScreen.kt").contains("full = true, subtitle = lab.pageSubtitle(), onExit = onExit)"))
         val lab = read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt")
         assertTrue(lab.substringAfter("override fun pageSubtitle()").substringBefore("\n    }").contains("current?.name"))
     }
@@ -42,7 +42,7 @@ class PressDesignerLayoutTest {
         assertTrue(menu.contains("Triple(\".pdf\", onPdf, canSave), Triple(\".md\", onMarkdown, true)"))
         // Adding is a toolbar now, not a menu row (adam, Nov 12).
         assertTrue(!menu.contains("native.labs.printer.addTitle"))
-        assertTrue(screen.contains("onLeft = { sheet = Sheet.PROJECTS }") && screen.contains("R.drawable.ic_menu"))
+        assertTrue(screen.contains("onLeft = { sheet = Sheet.PROJECTS }") && screen.contains("R.drawable.lab_printer_ic_menu_doc"))
     }
 
     @Test fun `the action bar is one row that doesn't scroll, with one placement button`() {

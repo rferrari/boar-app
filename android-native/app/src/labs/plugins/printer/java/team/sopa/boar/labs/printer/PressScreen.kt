@@ -153,7 +153,7 @@ internal fun PressScreen(lab: LabPlugin) {
     val full by produceState<PressPage?>(null, project) { value = withContext(Dispatchers.IO) { runCatching { PressPage.of(ctx, project, date) }.getOrNull() } }
     val page = full?.takeIf { it.project == project } ?: quick
 
-    // Leaving the page (or another project) counts as having seen its new answers.
+    // Leaving the page (or another project) marks it seen: the menu's recent projects are ordered by it.
     DisposableEffect(project.id) {
         val id = project.id
         onDispose { PressStore.change { it.markSeen(System.currentTimeMillis(), id) } }
@@ -252,10 +252,7 @@ internal fun PressScreen(lab: LabPlugin) {
     // What was typed in the bar for the selected text: the edit sheet starts BOAR's rewrite with it.
     var askOwn by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize()) {
-        if (project.unseen > 0) InboxBanner(project.unseen) {
-            scope.launch { scroll.animateScrollTo(scroll.maxValue) }
-            PressStore.change { it.markSeen(System.currentTimeMillis(), project.id) }
-        }
+        // No "N new answers added at the end · Show" banner (adam, Nov 13: Show found nothing new; his own answers).
         Box(Modifier.fillMaxWidth().weight(1f).background(c.bgBlack)) {
             Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(14.dp)) {
                 PaperView(page, if (showBreaks) pageStarts else emptyList(), selected, editing, fresh, titleFocus,
@@ -309,7 +306,8 @@ internal fun PressScreen(lab: LabPlugin) {
             }, onStop = {}, voiceEnabled = voice,
             placeholder = t(if (target != null) "native.labs.printer.askPlaceholder" else "native.labs.printer.notePlaceholder"),
             onLeft = { sheet = Sheet.PROJECTS }, leftLabel = t("native.labs.printer.menu"),
-            left = { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp, tint = c.textHeading, description = t("native.labs.printer.menu")) },
+            // A page with lines, not ☰: the paragraph icon is bare lines and the two looked the same (adam, Nov 13).
+            left = { team.sopa.boar.ui.PackIcon(R.drawable.lab_printer_ic_menu_doc, 22.dp, tint = c.textHeading, description = t("native.labs.printer.menu")) },
             sendIcon = if (target != null) team.sopa.boar.R.drawable.ic_send else R.drawable.lab_printer_ic_add,
             sendLabel = t(if (target != null) "native.labs.printer.rwAsk" else "native.labs.printer.addNote"), queues = false)
     }
@@ -374,18 +372,6 @@ private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").tr
 
 // ---- The bars ----
 
-
-@Composable
-private fun InboxBanner(n: Int, onShow: () -> Unit) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 8.dp)
-        .clip(RoundedCornerShape(10.dp)).background(c.emeraldBgSubtle).border(1.dp, c.emeraldBorder, RoundedCornerShape(10.dp)).padding(start = 12.dp),
-        verticalAlignment = Alignment.CenterVertically) {
-        Text(t("native.labs.printer.inbox", "count" to n), style = Boar.type.caption, color = c.textPrimary, modifier = Modifier.weight(1f))
-        Text(t("native.labs.printer.show"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable(role = Role.Button, onClick = onShow).padding(horizontal = 12.dp, vertical = 10.dp))
-    }
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -670,8 +656,8 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
 }
 
 /**
- * What can be added, as one row of icons with spoken names (a long press shows the name): the text kinds first (paragraph,
- * heading, list, divider), then a photo, a drawing, a chat's answers. It scrolls sideways only on a phone under 364 dp.
+ * What can be added, as one row of icons with spoken names (a long press shows the name): heading, paragraph, list,
+ * divider, photo (adam's order, Nov 13), then a drawing and a chat's answers. It scrolls sideways only on a phone under 364 dp.
  */
 @Composable
 private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
@@ -680,8 +666,8 @@ private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () ->
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             // No "Add" word any more: seven icons fit a 360 dp phone without it; each still says its name.
-            IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), onClick = onParagraph)
             IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), onClick = onHeading)
+            IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), onClick = onParagraph)
             IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), onClick = onList)
             IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), onClick = onDivider)
             IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), onClick = onPhoto)

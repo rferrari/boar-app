@@ -40,9 +40,6 @@
     <string name="native_labs_printer_deleteConfirm" formatted="false">Tap again to delete “{{name}}” and all it holds</string>
     <string name="native_labs_printer_deleted" formatted="false">“{{name}}” deleted</string>
     <string name="native_labs_printer_keepOne" formatted="false">Keep at least one project.</string>
-    <string name="native_labs_printer_inbox_one" formatted="false">{{count}} new answer added at the end</string>
-    <string name="native_labs_printer_inbox_other" formatted="false">{{count}} new answers added at the end</string>
-    <string name="native_labs_printer_show" formatted="false">Show</string>
     <string name="native_labs_printer_add" formatted="false">Add</string>
     <string name="native_labs_printer_addTitle" formatted="false">Add to this page</string>
     <string name="native_labs_printer_heading" formatted="false">Heading</string>

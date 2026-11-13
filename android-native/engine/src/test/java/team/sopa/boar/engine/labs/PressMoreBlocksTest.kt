@@ -37,10 +37,10 @@ class PressMoreBlocksTest {
         assertTrue(md, md.contains("Plain body text.\n\n- salt\n- water\n- sun\n\n* * *\n\n> An aside."))
     }
 
-    @Test fun `the add toolbar has the text kinds first and scrolls sideways`() {
+    @Test fun `the add toolbar is heading, paragraph, list, divider, photo (adam's order), then drawing and chats`() {
         val src = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
         val bar = src.substringAfter("private fun AddBar(").substringBefore("\n}\n")
-        val order = listOf("ic_paragraph", "ic_heading", "ic_list", "ic_divider", "ic_photo", "ic_drawing", "ic_chat").map { bar.indexOf(it) }
+        val order = listOf("ic_heading", "ic_paragraph", "ic_list", "ic_divider", "ic_photo", "ic_drawing", "ic_chat").map { bar.indexOf(it) }
         assertTrue(order.toString(), order.all { it > 0 } && order == order.sorted())
         assertTrue(bar.contains("horizontalScroll(rememberScrollState())"))
         val pdf = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PdfCompiler.kt").readText()

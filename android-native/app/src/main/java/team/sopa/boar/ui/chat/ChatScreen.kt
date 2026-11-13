@@ -673,10 +673,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
 /** A tool's instant answer generated nothing: "0.0 s · instant" instead of a speed. */
 private fun Receipt.instant() = tool != null && tokens == 0
 
-private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
+/** "18 s · 10.4 tok/s"; an instant answer only its time (adam, Nov 13: no "shown at typing speed"; "instant" is in the opened receipt). */
+private fun receiptShort(r: Receipt, rate: String?) = listOfNotNull(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
 
 @Composable
-private fun receiptRate(r: Receipt) = if (r.instant()) t(if (r.typed) "native.receipt.instantTyped" else "native.receipt.instant") else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
+private fun receiptRate(r: Receipt): String? = if (r.instant()) null else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
 
 /** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
 @Composable
@@ -728,7 +729,8 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
         t("chat.receipt.start") to ReceiptFormat.seconds(r.ttftMs),
         r.model?.let { t("chat.receipt.model") to it },
         r.tool?.let { t("native.receipt.tool") to it },
-        if (r.instant()) null else t("chat.receipt.speedLabel") to t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}"),
+        // An instant answer's speed is "instant", here and not on the short line (adam, Nov 13).
+        t("chat.receipt.speedLabel") to (if (r.instant()) t("native.receipt.instant") else t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}")),
         if (r.instant()) null else t("chat.receipt.words") to count(r.tokens),
         t("chat.receipt.total") to ReceiptFormat.seconds(r.totalMs),
     )

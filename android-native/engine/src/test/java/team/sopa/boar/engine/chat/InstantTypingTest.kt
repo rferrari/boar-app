@@ -27,6 +27,8 @@ class InstantTypingTest {
         assertTrue(vm.contains("for (piece in team.sopa.boar.engine.chat.InstantTyping.pieces(instant.text))") && vm.contains("if (skipTyping || stopRequested) { onPiece(rest(instant.text, shownLen))"))
         assertTrue(vm.contains("Receipt(totalMs = ((instantAt.takeIf { it > 0 } ?: System.nanoTime()) - startAt) / 1e6"))
         val screen = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
-        assertTrue(screen.contains("native.receipt.instantTyped"))
+        // adam, Nov 13: the short line is the time only; "instant" is the opened receipt's Speed row; no typing-speed note.
+        assertTrue(!screen.contains("native.receipt.instantTyped") && screen.contains("private fun receiptRate(r: Receipt): String? = if (r.instant()) null"))
+        assertTrue(screen.contains("t(\"chat.receipt.speedLabel\") to (if (r.instant()) t(\"native.receipt.instant\")"))
     }
 }

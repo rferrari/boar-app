@@ -40,9 +40,6 @@
     <string name="native_labs_printer_deleteConfirm" formatted="false">Toque de novo para apagar “{{name}}” e tudo o que tem nele</string>
     <string name="native_labs_printer_deleted" formatted="false">“{{name}}” apagado</string>
     <string name="native_labs_printer_keepOne" formatted="false">Mantenha pelo menos um projeto.</string>
-    <string name="native_labs_printer_inbox_one" formatted="false">{{count}} resposta nova adicionada no fim</string>
-    <string name="native_labs_printer_inbox_other" formatted="false">{{count}} respostas novas adicionadas no fim</string>
-    <string name="native_labs_printer_show" formatted="false">Mostrar</string>
     <string name="native_labs_printer_add" formatted="false">Adicionar</string>
     <string name="native_labs_printer_addTitle" formatted="false">Adicionar a esta página</string>
     <string name="native_labs_printer_heading" formatted="false">Título</string>

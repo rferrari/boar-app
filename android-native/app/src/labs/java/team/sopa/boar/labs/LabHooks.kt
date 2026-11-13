@@ -249,7 +249,8 @@ object LabHooks {
         val lab = LabRegistry.byId(route.removePrefix("lab:"))
         // Opening a plugin's page counts as using it (the header's sheet shows the last three used).
         if (lab != null) androidx.compose.runtime.LaunchedEffect(lab.id) { LabPrefs.used(lab.id) }
-        if (lab == null) androidx.compose.runtime.LaunchedEffect(route) { go(backFrom(route)) } else LabScaffold(lab) { go(backFrom(route)) }
+        // ‹ Back: the previous page (backFrom). ✕: the chat, the Plugins list and the plugin page gone (adam, Nov 13).
+        if (lab == null) androidx.compose.runtime.LaunchedEffect(route) { go(backFrom(route)) } else LabScaffold(lab, onExit = { go("chat") }) { go(backFrom(route)) }
     }
 
     /** One 🧩 in the answer's footer; it opens a sheet with every active lab's actions for this answer. */

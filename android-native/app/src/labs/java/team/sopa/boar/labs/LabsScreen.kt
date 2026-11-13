@@ -115,10 +115,10 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 
 /** One experiment's page: the shared header (emoji, name, status) above the plugin's own content. */
 @Composable
-fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
+fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Unit) {
     val c = Boar.colors
     if (lab.fullPage) {
-        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle()) {
+        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
             if (!LabPrefs.enabled(lab.id)) Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) { OffAlert(if (LabPrefs.proProfile) onClose else null) }
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
@@ -128,7 +128,7 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
     // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
     // grid, and the on/off switch, all in one block; the page below is the lab's.
     // Back names where it goes: the Plugins list in Pro, the chat below Pro (LabHooks.backFrom).
-    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), header = {
+    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), onExit = onExit, header = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 ?: Text(lab.emoji, fontSize = 36.sp)
@@ -189,12 +189,14 @@ private fun Shell(
     subtitle: String? = null,
     /** The plugin lays out the whole height itself (LabPlugin.fullPage): no scroll, no padding. */
     full: Boolean = false,
+    /** The header's ✕: to the chat, past the Plugins list (plugin pages only). */
+    onExit: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
         // The app's page header (t9, Nov 12: the Plugins pages had their own); a plugin's own block comes under it.
-        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo)
+        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit)
         if (header != null) {
             Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))

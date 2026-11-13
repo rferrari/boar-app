@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Press menu button: a page with its top-right corner folded and three short lines (adam, Nov 13: "a document with
+     lines icon", so it isn't the paragraph icon's bare lines); stroke style like the other Press icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M14,3H7.5A1.5,1.5 0,0 0,6 4.5v15A1.5,1.5 0,0 0,7.5 21h9a1.5,1.5 0,0 0,1.5 -1.5V7z M14,3v4h4 M9,12h6 M9,15h6 M9,18h3.5" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+</vector>

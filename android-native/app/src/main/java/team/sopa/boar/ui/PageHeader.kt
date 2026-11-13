@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import team.sopa.boar.ui.theme.wash
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +45,9 @@ object HeaderMetrics {
 }
 
 @Composable
-fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxTitleLines: Int = 1, backTo: String? = null) {
+fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxTitleLines: Int = 1, backTo: String? = null,
+               /** A ✕ on the right that leaves for the chat (plugin pages only, adam Nov 13); null: no ✕. */
+               onClose: (() -> Unit)? = null) {
     val c = Boar.colors
     // The chat header's height exactly, with or without a subtitle: one line each, sizes held at Standard as the chat's
     // header does (FixedSizeChrome), so Large text can't make the bar taller.
@@ -57,6 +62,14 @@ fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxT
                 Text(title, style = HeaderMetrics.titleStyle(Boar.type), color = c.textHeading, maxLines = if (subtitle != null) 1 else maxTitleLines.coerceAtMost(1),
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 subtitle?.let { Text(it, style = HeaderMetrics.subtitleStyle(Boar.type), color = c.textMuted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+            }
+            // ✕: straight to the chat, where ‹ Back goes to the previous page (adam, Nov 13). The chat header's 42 dp round button.
+            if (onClose != null) {
+                val label = t("common.close")
+                Box(Modifier.size(HeaderMetrics.ROW).clip(androidx.compose.foundation.shape.CircleShape).background(c.wash(0.05f))
+                    .clickable(onClickLabel = label, role = androidx.compose.ui.semantics.Role.Button, onClick = onClose), contentAlignment = Alignment.Center) {
+                    PackIcon(team.sopa.boar.R.drawable.ic_close, 20.dp, description = label)
+                }
             }
         }
     }
