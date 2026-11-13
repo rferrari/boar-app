@@ -110,10 +110,12 @@ object PdfCompiler {
     private fun receipt(p: Pager, page: PressPage) {
         val lines = page.footer
         val paint = sans(Paper.FOOTER, color = Paper.FOOT_INK)
-        var total = 18f + 8f
+        var total = 8f
         for (line in lines) total += StaticLayout.Builder.obtain(line, 0, line.length, paint, Paper.INNER.toInt()).setLineSpacing(0f, 1.3f).build().height + 2f
-        p.keepRoom(minOf(total, Paper.H - 2 * Paper.M))
-        p.gap(18f)
+        // 18 pt above it when there is room; on a nearly full last page only 6, so it isn't alone on a new page (all41 on the F3).
+        val above = if (p.room() >= total + 18f) 18f else 6f
+        p.keepRoom(minOf(total + above, Paper.H - 2 * Paper.M))
+        p.gap(above)
         p.shortRule()
         for (line in lines) p.text(line, paint, after = 2f, spacing = 1.3f, center = true)
     }
@@ -181,6 +183,9 @@ object PdfCompiler {
         private var float: Beside? = null
 
         /** Starts a new page unless [h] points still fit on this one (a heading never ends a page alone); not beside a picture. */
+        /** What is left on this page, in points. */
+        fun room(): Float = bottom - y
+
         fun keepRoom(h: Float) {
             canvas
             if (float == null && y > Paper.M && bottom - y < h) newPage()
