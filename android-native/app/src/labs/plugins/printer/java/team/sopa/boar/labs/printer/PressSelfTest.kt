@@ -42,7 +42,7 @@ internal object PressSelfTest {
                 val md = page.markdown(drawingLabel, team.sopa.boar.ui.I18n.t(ctx, "native.labs.printer.mdPhoto"))
                 File(dir, "$name.md").writeText(md)
                 val missing = project.answers.filterNot { PressPageText.oneLine(it.shownHeading) in md }.map { it.id }
-                missing + listOfNotNull("receipt".takeIf { page.labels.title !in md || page.labels.footer !in md })
+                missing + listOfNotNull("footer".takeIf { page.footer.any { it !in md } })
             }.onSuccess { missing -> if (missing.isEmpty()) { ok++; say("ok press $name.md") } else { fail++; say("FAIL press $name.md: missing $missing") } }
                 .onFailure { fail++; say("FAIL press $name.md: ${it.javaClass.simpleName} ${it.message}") }
         }
