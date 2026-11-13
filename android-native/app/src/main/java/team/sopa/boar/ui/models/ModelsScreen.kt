@@ -74,7 +74,11 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         // The order holds while the catalog is open: a download that starts, fails or ends doesn't move its card away
         // from the user's finger (Oct 20). It's sorted again when the sort, the filter or the set of models changes.
         val order = remember(state.sort, state.filter, all.size) { sorted.map { it.id } }
-        val models = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
+        val frozen = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
+        // Except downloads (adam, Nov 13): one that starts goes to the top, where its progress is easy to follow, and stays
+        // there until the catalog is closed, so a download that ends or fails doesn't jump away either.
+        val pinned = remember { mutableSetOf<String>() }.apply { addAll(facts.downloading) }
+        val models = ModelOrder.downloadsFirst(frozen, pinned) { it.id }
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // The search model missing (its warning lived in Settings → Models until rc3, slice 5): it reads the packs and
             // the documents, so nothing is found without it. Said first, where models are.
@@ -94,7 +98,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
                     ), state.sort, vm::setSort)
                     ChipRow(t("native.models.show"), listOf(
                         ModelOrder.Filter.ALL to t("native.models.filterAll"), ModelOrder.Filter.ON_PHONE to t("native.models.filterOnPhone"),
-                        ModelOrder.Filter.DOWNLOADING to t("native.models.filterDownloading"), ModelOrder.Filter.MINE to t("native.models.filterMine"),
+                        ModelOrder.Filter.MINE to t("native.models.filterMine"),
                     ), state.filter, vm::setFilter)
                 }
             }

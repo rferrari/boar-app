@@ -353,7 +353,6 @@
     <string name="native_models_show" formatted="false">Show</string>
     <string name="native_models_filterAll" formatted="false">All</string>
     <string name="native_models_filterOnPhone" formatted="false">On this phone</string>
-    <string name="native_models_filterDownloading" formatted="false">Downloading</string>
     <string name="native_models_filterMine" formatted="false">Added by you</string>
     <string name="native_models_emptyFilter" formatted="false">No models here. Pick All to see every model.</string>
     <string name="native_models_nowUsing" formatted="false">Now answering with {{model}}</string>

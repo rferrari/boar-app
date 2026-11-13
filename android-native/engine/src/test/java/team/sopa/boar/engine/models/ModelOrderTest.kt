@@ -1,6 +1,7 @@
 package team.sopa.boar.engine.models
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import team.sopa.boar.engine.models.ModelOrder.Facts
 import team.sopa.boar.engine.models.ModelOrder.Filter
@@ -15,19 +16,28 @@ class ModelOrderTest {
     )
     private fun ids(sort: Sort, filter: Filter = Filter.ALL, f: Facts = facts) = ModelOrder.apply(items, sort, filter, f).map { it.id }
 
-    @Test fun `smart puts the active one first, then downloads, then the phone's models by last use`() =
-        assertEquals(listOf("c", "e", "d", "a", "b"), ids(Sort.SMART))
+    @Test fun `smart puts a download first, then the active one, then the phone's models by last use`() =
+        assertEquals(listOf("e", "c", "d", "a", "b"), ids(Sort.SMART))
 
-    @Test fun `last used is newest first and never used keep catalog order at the end`() =
-        assertEquals(listOf("c", "d", "a", "b", "e"), ids(Sort.LAST_USED))
+    @Test fun `last used is newest first and never used keep catalog order at the end, a download on top`() =
+        assertEquals(listOf("e", "c", "d", "a", "b"), ids(Sort.LAST_USED))
 
-    @Test fun `recently added is newest first`() =
-        assertEquals(listOf("d", "e", "b", "a", "c"), ids(Sort.ADDED))
+    @Test fun `recently added is newest first, a download on top`() =
+        assertEquals(listOf("e", "d", "b", "a", "c"), ids(Sort.ADDED))
 
-    @Test fun `filters`() {
-        assertEquals(listOf("c", "d", "a"), ids(Sort.SMART, Filter.ON_PHONE))
-        assertEquals(listOf("e"), ids(Sort.SMART, Filter.DOWNLOADING))
+    /** adam, Nov 13: no Downloading filter; a download shows on top whatever the filter. */
+    @Test fun `filters keep a download on top`() {
+        assertEquals(listOf("e", "c", "d", "a"), ids(Sort.SMART, Filter.ON_PHONE))
         assertEquals(listOf("e", "d"), ids(Sort.SMART, Filter.MINE))
+        assertEquals(listOf("ALL", "ON_PHONE", "MINE"), Filter.values().map { it.name })
+        val two = facts.copy(downloading = setOf("b", "e"))
+        assertEquals("two downloads keep the sort's order between them", listOf("e", "b", "d", "a", "c"), ids(Sort.ADDED, f = two))
+    }
+
+    @Test fun `the catalog screen pins a download that starts while it is open, and has no Downloading chip`() {
+        val src = java.io.File("../app/src/main/java/team/sopa/boar/ui/models/ModelsScreen.kt").readText()
+        assertTrue(!src.contains("Filter.DOWNLOADING") && !src.contains("filterDownloading"))
+        assertTrue(src.contains("ModelOrder.downloadsFirst(frozen, pinned)"))
     }
 
     @Test fun `with no times at all every sort keeps catalog order after the active one`() {
