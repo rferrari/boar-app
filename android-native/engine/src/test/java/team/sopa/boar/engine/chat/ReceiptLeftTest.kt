@@ -16,4 +16,11 @@ class ReceiptLeftTest {
             assertTrue(f, body.contains("textAlign = TextAlign.Start") && !body.contains("TextAlign.End"))
         }
     }
+
+    @Test fun `the answer's notes sit under the separator, above the receipt row`() {
+        // adam, Nov 14: "Every number in this answer is in its sources" read as part of the answer.
+        val footer = chat.substringAfter("if (m.text.isNotEmpty() && !streaming) {\n                Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp)").substringBefore("Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart)")
+        assertTrue(footer.contains("m.receipt?.styleNote?.let {") && footer.contains("StagedCheck(it)"))
+        assertTrue(Regex("StagedCheck\\(it\\)").findAll(chat).count() == 1 && Regex("native.chat.styleNote").findAll(chat).count() == 1)
+    }
 }

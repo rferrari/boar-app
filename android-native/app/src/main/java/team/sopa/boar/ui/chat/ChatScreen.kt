@@ -618,10 +618,6 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
-            // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
-            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
-            // "Every number … is in its sources" only when there are sources to check against.
-            if (!streaming && m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
             // No list under the answer any more: the sources are shown once, above it (adam, Nov 12).
             // The question was a plugin's, but it's off (Nov 12): one line, a tap goes where it's turned on.
             if (!streaming) m.offPlugin?.let { id ->
@@ -652,6 +648,11 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (m.text.isNotEmpty() && !streaming) team.sopa.boar.labs.LabHooks.AnswerExtras(ref)
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
+                // Notes about the answer go under the separator, with the receipt, not against its text (adam, Nov 14: "more
+                // near response text then a footer notice"). BOAR answered in another style than the one picked (a health
+                // question under Detailed); "Every number … is in its sources", when there are sources to check against.
+                m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp)) }
+                if (m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     // Rating hidden (adam, Nov 11): nothing uses ratings yet. The code stays for when something does.
                     if (SHOW_RATING) {

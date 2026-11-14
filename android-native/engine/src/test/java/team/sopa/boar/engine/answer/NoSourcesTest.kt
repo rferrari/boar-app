@@ -18,7 +18,8 @@ class NoSourcesTest {
 
     @Test fun `no sources block, no number check and no plus-zero without sources`() {
         assertTrue(chat.contains("val above = m.sources.isNotEmpty() && m.staged == null"))
-        assertTrue(chat.contains("if (!streaming && m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }"))
+        // Under the separator since Nov 14 (inside the footer, which shows only when not streaming).
+        assertTrue(chat.contains("if (m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }"))
         // "+N sources" and "added N" need N > 0.
         assertTrue(card.contains("if (v.more.isNotEmpty()) MoreSources(") && card.contains("if (v.added > 0) Text("))
     }
