@@ -235,6 +235,12 @@ To check a Hugging Face GGUF before anyone downloads it, read its header (the fi
 for `general.architecture` and `tokenizer.chat_template`. The architecture must be
 supported by the llama.cpp submodule at its pinned commit.
 
+Presets: `scripts/bench-preset.sh fast-plugins` starts a level (`fast`: Succinct on the 1.7B; `medium`: Succinct on the
+1.7B and the 4B; `complete`: Succinct and Detailed on both, plus Deep Research for the research topic) with a topic
+(`android-native/app/src/main/assets/boar-data/topics/<id>.v<n>.json`; the level alone runs the fixed 17), follows
+the status, pulls the run and prints its scorecard. The request is `{"requestId":…,"preset":"fast-plugins"}`. Every run
+is also listed on the app's Evaluations page.
+
 A request can also name the Boar Labs plugins that answer and check, with `"labs": [ids]`
 (for example `"labs":["calc","facts"]`), as in the chat with only those labs on. Without it,
 the labs switched on in the app answer.

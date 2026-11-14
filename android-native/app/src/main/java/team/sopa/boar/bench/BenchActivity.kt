@@ -117,6 +117,9 @@ class BenchActivity : ComponentActivity() {
             // A release build can't be reached with run-as: the request can come base64 in the intent (request64), and
             // the results are then copied to Android/data/<pkg>/files/eval-out, where adb can pull them.
             val request64 = intent.getStringExtra("request64")
+            // The status and rows copied to eval-out after every answer, not only at the end (t9 0521 item 6: over adb a run
+            // showed no progress until it ended).
+            if (request64 != null) runner.mirrorDir = File(getExternalFilesDir(null), "eval-out").apply { mkdirs() }
             lifecycleScope.launch {
                 if (request64 != null) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     File(filesDir, "eval/requests").apply { mkdirs() }.resolve("pending.json")

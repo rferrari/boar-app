@@ -782,4 +782,47 @@
     <string name="native_docs_subtitle" formatted="false">Packs and files BOAR can search</string>
     <string name="native_tweaks_stagedQuotes" formatted="false">Staged quotes</string>
     <string name="native_tweaks_stagedQuotesNote" formatted="false">Show the quotes from the sources before the answer. Turn it off if answers look wrong on your model.</string>
+    <string name="native_eval_preset_title" formatted="false">Preset</string>
+    <string name="native_eval_preset_byHand" formatted="false">By hand</string>
+    <string name="native_eval_level_fast" formatted="false">Fast</string>
+    <string name="native_eval_level_medium" formatted="false">Medium</string>
+    <string name="native_eval_level_complete" formatted="false">Complete</string>
+    <string name="native_eval_level_fast_note" formatted="false">Succinct, on the 1.7B (or the only answer model).</string>
+    <string name="native_eval_level_medium_note" formatted="false">Succinct, on the 1.7B and the 4B.</string>
+    <string name="native_eval_level_complete_note" formatted="false">Succinct and Detailed on both models, and Deep Research for the research topic.</string>
+    <string name="native_eval_level_byHand_note" formatted="false">The models you tick, in the default style.</string>
+    <string name="native_eval_topic_title" formatted="false">Topic</string>
+    <string name="native_eval_topic_draft" formatted="false">Draft, for t9\'s review: its rules don\'t count yet.</string>
+    <string name="native_eval_planModels" formatted="false">Models: {{models}}</string>
+    <string name="native_eval_expected" formatted="false">Expected: about {{time}} for {{answers}} answers</string>
+    <string name="native_eval_expected_untimed" formatted="false">plus {{count}} Deep Research answers nobody has timed yet</string>
+    <string name="native_eval_expected_fromPrevious" formatted="false">from the last {{level}} run on this phone</string>
+    <string name="native_eval_expected_fromSeed" formatted="false">from the F3\'s medians</string>
+    <string name="native_eval_scorecard_title" formatted="false">Scorecard</string>
+    <string name="native_eval_scorecard_passed" formatted="false">{{passed}}/{{checked}} passed</string>
+    <string name="native_eval_scorecard_toRead" formatted="false">{{count}} to read</string>
+    <string name="native_eval_scorecard_was" formatted="false">was {{passed}}/{{checked}}</string>
+    <string name="native_eval_scorecard_up" formatted="false">up</string>
+    <string name="native_eval_scorecard_down" formatted="false">down</string>
+    <string name="native_eval_scorecard_same" formatted="false">same</string>
+    <string name="native_eval_scorecard_model" formatted="false">first word {{first}} · whole answer {{whole}} · peak {{peak}}</string>
+    <string name="native_eval_scorecard_note" formatted="false">The computer scores only what a rule can check (a plugin\'s exact text, the language, cards, sources, numbers). The rest is to read.</string>
+    <string name="native_eval_verdict_PASS" formatted="false">passed</string>
+    <string name="native_eval_verdict_FAIL" formatted="false">failed</string>
+    <string name="native_eval_verdict_TO_READ" formatted="false">to read</string>
+    <string name="native_eval_saved_title" formatted="false">Saved runs ({{count}})</string>
+    <string name="native_eval_saved_empty" formatted="false">No runs saved yet. Every run stays on this phone until you delete it.</string>
+    <string name="native_eval_saved_byHand" formatted="false">by hand</string>
+    <string name="native_eval_saved_adb" formatted="false">over adb</string>
+    <string name="native_eval_saved_answers" formatted="false">{{count}} answers</string>
+    <string name="native_eval_saved_state_running" formatted="false">running</string>
+    <string name="native_eval_saved_state_done" formatted="false">done</string>
+    <string name="native_eval_saved_state_stopped" formatted="false">stopped</string>
+    <string name="native_eval_saved_state_failed" formatted="false">failed</string>
+    <string name="native_eval_saved_state_interrupted" formatted="false">interrupted</string>
+    <string name="native_eval_saved_opened" formatted="false">Saved run · {{date}}</string>
+    <string name="native_eval_saved_close" formatted="false">Close</string>
+    <string name="native_eval_saved_delete" formatted="false">Delete</string>
+    <string name="native_eval_saved_deleteTitle" formatted="false">Delete this run?</string>
+    <string name="native_eval_saved_deleteBody" formatted="false">Its answers are deleted from this phone and can\'t be brought back. Exports you made are kept.</string>
 </resources>
