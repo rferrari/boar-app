@@ -9,7 +9,7 @@ import team.sopa.boar.engine.rag.Js
  * toLocaleString does for en-US / pt-BR.
  */
 object Calculators {
-    /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water". */
+    /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water" | "conversion". */
     data class Calculation(val kind: String, val text: String)
 
     // Starts only where a run of digits starts: from every digit inside a long run, \d+ backtracked over the rest of it,
@@ -238,7 +238,10 @@ object Calculators {
         return base + note
     }
 
-    /** The exact answer to an arithmetic question, or null. Order: the most specific first. */
+    /**
+     * The exact answer to an arithmetic question, or null. Order: the most specific first. A plain unit conversion
+     * ("26 miles in km", UnitConversion) is the last try, after the temperature rule (adam, Nov 13).
+     */
     fun calculate(query: String, pt: Boolean): Calculation? {
         val tries: List<Pair<String, (String, Boolean) -> String?>> = listOf(
             "battery" to ::battery,
@@ -247,6 +250,7 @@ object Calculators {
             "currency" to ::currency,
             "water" to ::water,
             "temperature" to ::temperature,
+            "conversion" to UnitConversion::convert,
         )
         for ((kind, fn) in tries) {
             val text = fn(query, pt)
