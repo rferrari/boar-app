@@ -1,38 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_canvas_title" formatted="false">Canvas</string>
-    <string name="native_labs_canvas_body" formatted="false">Transforma uma resposta num cartão ou numa pequena ferramenta. Feito no celular.</string>
+    <string name="native_labs_canvas_title" formatted="false">Cartões</string>
+    <string name="native_labs_canvas_body" formatted="false">Transforma parte de uma resposta em gráfico, tabela, passos ou fatos.</string>
     <string name="native_labs_canvas_example" formatted="false">A partir de uma resposta sobre as montanhas mais altas:</string>
-    <string name="native_labs_canvas_exampleTitle" formatted="false">Picos mais altos</string>
+    <string name="native_labs_canvas_exampleTitle" formatted="false">Montanhas mais altas</string>
     <string name="native_labs_canvas_make_card" formatted="false">Criar um cartão</string>
-    <string name="native_labs_canvas_again_card" formatted="false">Refazer o cartão</string>
-    <string name="native_labs_canvas_making" formatted="false">Montando…</string>
-    <string name="native_labs_canvas_makingWidget" formatted="false">🧪 Montando um widget a partir desta resposta (alguns minutos; uma nova pergunta espera por ele)…</string>
-    <string name="native_labs_canvas_madeBy" formatted="false">feito em {{seconds}} s a partir desta resposta</string>
+    <string name="native_labs_canvas_making" formatted="false">Criando um cartão…</string>
+    <string name="native_labs_canvas_underAnswer" formatted="false">O cartão está embaixo da resposta</string>
+    <string name="native_labs_canvas_nothingHere" formatted="false">Nada para desenhar aqui</string>
+    <string name="native_labs_canvas_askModel" formatted="false">Pedir ao BOAR para fazer um · mais lento</string>
+    <string name="native_labs_canvas_found_chart" formatted="false">Um gráfico de {{count}} números</string>
+    <string name="native_labs_canvas_found_table" formatted="false">Uma tabela de {{count}} linhas</string>
+    <string name="native_labs_canvas_found_steps" formatted="false">Uma lista de {{count}} passos</string>
+    <string name="native_labs_canvas_found_facts" formatted="false">{{count}} fatos principais</string>
+    <string name="native_labs_canvas_found_compare2" formatted="false">Duas coisas comparadas</string>
+    <string name="native_labs_canvas_found_compare3" formatted="false">Três coisas comparadas</string>
+    <string name="native_labs_canvas_found_compare4" formatted="false">Quatro coisas comparadas</string>
+    <string name="native_labs_canvas_found_or" formatted="false">{{first}}, ou {{second}}</string>
+    <string name="native_labs_canvas_fromAnswer" formatted="false">desta resposta</string>
+    <string name="native_labs_canvas_byModel" formatted="false">feito pelo modelo · conferido com a resposta</string>
+    <string name="native_labs_canvas_remove" formatted="false">Remover o cartão</string>
+    <string name="native_labs_canvas_doneCount" formatted="false">{{done}} de {{total}} feitos · guardado com esta conversa</string>
+    <string name="native_labs_canvas_makingVisual" formatted="false">📊 O BOAR está lendo a resposta para criar um cartão…</string>
     <string name="native_labs_canvas_noModel" formatted="false">Nenhum modelo de resposta está carregado. Pergunte algo primeiro e tente de novo.</string>
     <string name="native_labs_canvas_failed" formatted="false">O modelo parou antes de terminar. Tente de novo.</string>
-    <string name="native_labs_canvas_noCard" formatted="false">O modelo não escreveu um visual que o BOAR consiga desenhar. Tente de novo, ou monte um widget.</string>
-    <string name="native_labs_canvas_nothing" formatted="false">O modelo não achou nada nesta resposta que valha um visual.</string>
-    <string name="native_labs_canvas_invented" formatted="false">O visual tinha um número que não está na resposta, então o BOAR descartou.</string>
-    <string name="native_labs_canvas_noWidget" formatted="false">O modelo não escreveu uma página que o BOAR consiga mostrar. Tente de novo; modelos maiores se saem melhor.</string>
-    <string name="native_labs_canvas_makingVisual" formatted="false">📊 Criando um visual a partir desta resposta…</string>
-    <string name="native_labs_canvas_ungrounded" formatted="false">O visual citou algo que não está na resposta, então o BOAR descartou.</string>
-    <string name="native_labs_canvas_view_bars" formatted="false">Barras</string>
-    <string name="native_labs_canvas_view_line" formatted="false">Linha</string>
-    <string name="native_labs_canvas_view_share" formatted="false">Pizza</string>
-    <string name="native_labs_canvas_view_table" formatted="false">Tabela</string>
-    <string name="native_labs_canvas_copy" formatted="false">Copiar</string>
-    <string name="native_labs_canvas_copied" formatted="false">Copiado</string>
-    <string name="native_labs_canvas_expand" formatted="false">Ampliar</string>
+    <string name="native_labs_canvas_noCard" formatted="false">O modelo não escreveu um cartão que o BOAR consiga desenhar. Tente de novo; modelos maiores se saem melhor.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">O modelo não achou nada nesta resposta que valha um cartão.</string>
+    <string name="native_labs_canvas_invented" formatted="false">O cartão tinha um número que não está na resposta, então o BOAR descartou.</string>
+    <string name="native_labs_canvas_ungrounded" formatted="false">O cartão citou algo que não está na resposta, então o BOAR descartou.</string>
+    <string name="native_labs_canvas_unpaired" formatted="false">Um número do cartão pertence a outro item da resposta, então o BOAR descartou.</string>
     <string name="native_labs_canvas_refused" formatted="false">Recusado: {{what}} (não está na resposta)</string>
     <string name="native_labs_canvas_showReply" formatted="false">Mostrar o que o modelo escreveu</string>
     <string name="native_labs_canvas_hideReply" formatted="false">Ocultar o que o modelo escreveu</string>
-    <string name="native_labs_canvas_leftOut" formatted="false">⚠ Deixado de fora, não está na resposta, nas respostas anteriores nem nas fontes: {{what}}. Confira as fontes antes de confiar neste visual.</string>
-    <string name="native_labs_canvas_withMore" formatted="false">com respostas anteriores ou fontes</string>
-    <string name="native_labs_canvas_unpaired" formatted="false">Um número do visual pertence a outro item da resposta, então o BOAR descartou.</string>
-    <string name="native_labs_canvas_interactive" formatted="false">Tornar interativo · mais lento</string>
+    <string name="native_labs_canvas_leftOut" formatted="false">⚠ Deixado de fora, não está na resposta, nas respostas anteriores nem nas fontes: {{what}}. Confira as fontes antes de confiar neste cartão.</string>
+    <string name="native_labs_canvas_view_bars" formatted="false">Barras</string>
+    <string name="native_labs_canvas_view_line" formatted="false">Linha</string>
+    <string name="native_labs_canvas_view_pie" formatted="false">Pizza</string>
+    <string name="native_labs_canvas_view_table" formatted="false">Tabela</string>
+    <string name="native_labs_canvas_view_checklist" formatted="false">Passos</string>
+    <string name="native_labs_canvas_view_facts" formatted="false">Fatos</string>
+    <string name="native_labs_canvas_view_compare" formatted="false">Lado a lado</string>
     <string name="native_labs_canvas_tryHint" formatted="false">Pergunte uma destas e toque em 🧩 embaixo da resposta.</string>
     <string name="native_labs_canvas_example1" formatted="false">Quais são as três montanhas mais altas, e qual a altura de cada uma?</string>
     <string name="native_labs_canvas_example2" formatted="false">Como purificar água na natureza, passo a passo?</string>
-    <string name="native_labs_canvas_how" formatted="false">• Em qualquer resposta, abra o 🧩.\n• O modelo que respondeu escolhe o que combina (gráfico de barras, linha ou pizza, tabela, passos, comparação ou fatos principais) e o BOAR desenha.\n• Números de respostas anteriores da conversa podem entrar.\n• Troque entre barras, linha, pizza e tabela, copie ou abra em tela cheia.\n• Tornar interativo (embaixo de um visual) monta uma pequena página, como um conversor ou um quiz.\n• É mais lento, e modelos pequenos erram muito.\n• Um visual usa só o que a resposta diz: um número ou nome que não está lá é descartado.\n• As páginas interativas rodam trancadas: sem internet, sem arquivos, sem acesso ao BOAR ou às suas conversas.\n• Nada para perguntas de saúde ou de frase-semente.\n• A ideia vem do Open Intelligent UI da CopilotKit (MIT); aqui roda no seu celular, sem servidor.</string>
+    <string name="native_labs_canvas_how" formatted="false">• Em qualquer resposta, abra o 🧩. A linha Cartões já diz o que dá para desenhar: \"Um gráfico de 3 números\", \"Uma lista de 5 passos\".\n• Criar um cartão desenha na hora, a partir do próprio texto da resposta, sem rodar o modelo de novo: um gráfico, uma tabela, uma lista de passos, uma comparação ou fatos principais.\n• O cartão fica embaixo da resposta. Quando mais de uma forma serve, troque entre elas; pizza só para partes de um todo, linha só para anos em ordem.\n• Marque os passos de uma lista; as marcas ficam guardadas com a conversa.\n• Adicionar ao Press leva o cartão junto com a resposta, para o PDF e o Markdown.\n• Nada para desenhar? Peça ao BOAR para fazer um. É mais lento, e o cartão dele também é conferido com a resposta: um número ou nome que não está lá fica de fora.\n• Nada para perguntas de saúde ou de frase-semente.</string>
 </resources>

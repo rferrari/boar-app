@@ -59,6 +59,10 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
         listOf(sessionId),
     ) { ChatMessageRecord(it.string(0)!!, it.string(1)!!, it.string(2)!!, open(it.string(3)!!), it.long(4), it.string(5), it.string(6)?.let(::open)) }
 
+    /** One message's meta, opened; null when it has none (Cards reads and merges its card there, adam Nov 14). */
+    fun messageMeta(messageId: String): String? =
+        db.query("SELECT meta FROM chat_message_meta WHERE message_id = ?", listOf(messageId)) { it.string(0) }.firstOrNull()?.let(::open)
+
     fun setMessageMeta(messageId: String, meta: String) {
         db.execute("INSERT OR REPLACE INTO chat_message_meta (message_id, meta) VALUES (?, ?)", listOf(messageId, seal(meta)))
     }
