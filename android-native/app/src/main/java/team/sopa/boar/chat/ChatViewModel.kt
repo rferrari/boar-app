@@ -79,7 +79,12 @@ data class UiMessage(
     /** Boar Staged answers: the steps and what they found; null for an answer written the usual way. */
     val staged: StagedView? = null,
     /** A plugin that would have answered this question but is off (its id): one line under the answer (adam, Nov 12). */
-    val offPlugin: String? = null
+    val offPlugin: String? = null,
+    /**
+     * A user message sent by a "Keep going" step (KeepGoing.Step.key): its [text] is the real question, the bubble shows
+     * the verb (adam, Nov 14: "A", the verb alone). Null for a typed question.
+     */
+    val step: String? = null,
 )
 
 /**
@@ -568,7 +573,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val msgs = runCatching {
                 withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
                     UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta),
-                        staged = receiptFromMeta(r.meta).let { stagedFromMeta(r.meta, it) })
+                        staged = receiptFromMeta(r.meta).let { stagedFromMeta(r.meta, it) }, step = if (r.role == "user") stepFromMeta(r.meta) else null)
                 }
             }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
@@ -632,6 +637,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** Set by [askModel] for the next question only. */
     @Volatile private var skipToolsOnce = false
 
+    /** "Keep going" (t9 0235): for the next question only, the style ("detailed"), Deep Research, and the step it came from. */
+    @Volatile private var styleOnce: String? = null
+    @Volatile private var deepOnce: Boolean? = null
+    @Volatile private var stepOnce: String? = null
+
+    /**
+     * A "Keep going" step under [answerId] (t9 0235): the same question again, for that answer only. Go deeper in Detailed,
+     * Research this with Deep Research, Ask BOAR as askModel. The style and the Deep Research switch stay as the user set
+     * them, as redoWithLimit leaves the limit. Not while BOAR answers or questions wait (the bubbles hide then).
+     */
+    fun keepGoing(answerId: String, step: team.sopa.boar.engine.chat.KeepGoing.Step) {
+        if (job?.isActive == true || handoff || !queue.isEmpty() || _state.value.loadNote != null) return
+        val messages = _state.value.messages
+        val i = messages.indexOfFirst { it.id == answerId }
+        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        stepOnce = step.key
+        when (step) {
+            team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> { styleOnce = "detailed"; send(q) }
+            team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> { deepOnce = true; send(q) }
+            team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> askModel(answerId)
+        }
+    }
+
     fun retry(answerId: String) {
         if (job?.isActive == true) return
         val messages = _state.value.messages
@@ -688,6 +716,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         if (!serviceUp) team.sopa.boar.app.AnswerService.start(getApplication())
+        val stepNow = stepOnce.also { stepOnce = null }
+        val styleNow = styleOnce.also { styleOnce = null }
+        val deepNow = deepOnce.also { deepOnce = null }
         job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
@@ -699,7 +730,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val sessionId = try {
                 // The question stands in as the title until the model writes one.
                 (_state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, q.take(60)) }.id)
-                    .also { chats.addMessage(it, "user", q, userId) }
+                    .also { chats.addMessage(it, "user", q, userId); if (stepNow != null) chats.setMessageMeta(userId, stepMeta(stepNow)) }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 _state.update { it.copy(error = e.message ?: e.toString(), messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", "")) }
@@ -707,12 +738,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             _state.update {
                 it.copy(sessionId = sessionId, error = null, answeringId = answerId, answerStartedAt = android.os.SystemClock.elapsedRealtime(), activity = Activity.Retrieving, liveTokPerSec = null,
-                    messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
+                    messages = it.messages + UiMessage(userId, "user", q, step = stepNow) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings
             // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
-            val chosenStyle = settings.personalityId ?: services.personalities.defaultId
+            val chosenStyle = styleNow ?: settings.personalityId ?: services.personalities.defaultId
             // Personal Files: only the user's own files, whole; no Deep Research, router, answer check or Labs tools
             // but the safety cards (PersonalFiles). ShortAnswer already leaves it alone (Detailed only).
             val personal = PersonalFiles.isOn(chosenStyle)
@@ -746,7 +777,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var tokens = 0
             // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers. It
             // steps aside in Personal Files.
-            val deep = _state.value.deepResearch && !personal
+            val deep = (deepNow ?: _state.value.deepResearch) && !personal
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
@@ -1193,6 +1224,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private fun receiptFromMeta(meta: String?): Receipt? = runCatching {
         Json.parseToJsonElement(meta ?: return null).jsonObject["receipt"]?.jsonObject?.let(Receipt::fromJson)
     }.getOrNull()
+
+    /** A Keep going step on its user message (the text stays the real question). */
+    private fun stepMeta(step: String) = JsonObject(mapOf("step" to JsonPrimitive(step))).toString()
+    private fun stepFromMeta(meta: String?): String? = runCatching { Json.parseToJsonElement(meta ?: return null).jsonObject["step"]?.jsonPrimitive?.content }.getOrNull()
 
     private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null, staged: StagedView? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
         JsonObject(listOfNotNull(

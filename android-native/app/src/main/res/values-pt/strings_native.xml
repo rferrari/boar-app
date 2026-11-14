@@ -380,6 +380,20 @@
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
     <string name="native_answering_text" formatted="false">A resposta continua enquanto você usa outros apps.</string>
+    <string name="native_chat_keepGoing" formatted="false">Continue</string>
+    <string name="native_chat_kgGroup" formatted="false">Continue: o que perguntar depois</string>
+    <string name="native_chat_kgDeeper" formatted="false">Ir mais fundo</string>
+    <string name="native_chat_kgResearch" formatted="false">Pesquisar isto</string>
+    <string name="native_chat_kgAsk" formatted="false">Perguntar ao BOAR</string>
+    <string name="native_chat_kgAskQ" formatted="false">Perguntar ao BOAR: {{q}}</string>
+    <string name="native_chat_kgQuick" formatted="false">Rápida</string>
+    <string name="native_chat_kgDetailed" formatted="false">Detalhada</string>
+    <string name="native_chat_kgResearchRung" formatted="false">Pesquisa</string>
+    <string name="native_chat_kgBoar" formatted="false">BOAR</string>
+    <string name="native_chat_kgDeeperSpoken" formatted="false">Ir mais fundo: a mesma pergunta de novo, em Detalhada.</string>
+    <string name="native_chat_kgResearchSpoken" formatted="false">Pesquisar isto: a mesma pergunta de novo, com a Pesquisa profunda.</string>
+    <string name="native_chat_kgAskSpoken" formatted="false">Perguntar ao BOAR: o modelo responde esta pergunta no lugar de {{name}}.</string>
+    <string name="native_chat_kgFollowSpoken" formatted="false">Perguntar: {{q}}</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>

@@ -5,6 +5,7 @@ import team.sopa.boar.engine.chat.ConnectionPill
 import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.material3.minimumInteractiveComponentSize
 import kotlinx.coroutines.launch
@@ -37,6 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -116,6 +118,8 @@ fun ChatScreen(
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
     onAskModel: (String) -> Unit = {},
+    /** "Keep going" (t9 0235): a step under the latest answer (its id and the step). */
+    onKeepGoing: (String, team.sopa.boar.engine.chat.KeepGoing.Step) -> Unit = { _, _ -> },
     /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
     onDismissLoadNote: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
@@ -192,6 +196,11 @@ fun ChatScreen(
                         // "Lunar is off": the Plugins list in Pro (its switch), else the plugin's page.
                         onReadPlugin = { id -> onOpenRoute(if (team.sopa.boar.labs.LabPrefs.proProfile) "labs" else "lab:$id") }, onSkipTyping = onSkipTyping,
                         onOpenPlugin = { id -> onOpenRoute("lab:$id") }) }
+                    // "Keep going" under the latest answer, outside its card, on the user's side (t9 0235): not while BOAR
+                    // answers or questions wait, gone when the input has text or a newer answer arrives.
+                    val last = state.messages.lastOrNull()
+                    if (last != null && last.role == "assistant" && last.text.isNotBlank() && state.answeringId == null && state.queued.isEmpty() && input.isBlank())
+                        item(key = "keep-going-" + last.id) { KeepGoingGroup(last, state, onStep = { step -> onKeepGoing(last.id, step) }, onAsk = { send(it) }, onFill = { input = it }) }
                 }
                 // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -570,7 +579,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
             }
             if (user) {
-                Text(m.text, style = type.bodyLg, color = c.textPrimary)
+                // A Keep going step shows its verb (adam, Nov 14: "A"); the text, copy and hold stay the real question.
+                val shownText = userBubbleText(m)
+                Text(shownText, style = type.bodyLg, color = c.textPrimary,
+                    modifier = if (shownText != m.text) Modifier.semantics { contentDescription = shownText + ". " + m.text } else Modifier)
                 return@Column
             }
             val split = AnswerText.splitThinking(m.text)
@@ -613,7 +625,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
-                    ActionButton("↻", t("native.chat.tryAgain")) { onRetry(m.id) }
+                    VerbLine(t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
@@ -626,17 +638,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             }
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
-            // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
-            // Its own row on the right, bigger, with BOAR's mascot: a way out of the plugin's answer, not one of its controls.
-            if (!streaming && speaker?.canBypass == true && state.answeringId == null) Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterEnd) {
-                ActionButton(null, t("native.chat.askBoarInstead"), art = R.drawable.mascot) { onAskModel(m.id) }
-            }
-            // The cut is a note; the way to run it again with more tokens is its own button on the next line, in the
-            // accent, so the two never squeeze into one row.
+            // No "Ask BOAR instead" pill (t9 0235): it is the "Ask BOAR" step under the latest answer (KeepGoingGroup).
+            // The cut, one quiet line, then its verb (t9 0235: repairs stay in the card, in the same verb style).
             m.cutAt?.let { limit ->
-                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) ActionButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
+                Column(Modifier.padding(top = 4.dp)) {
+                    Text(t("native.chat.cutAtLimit", "limit" to limit) + ".", style = Boar.type.subtext, color = c.textMuted)
+                    if (m.nextLimit != null && state.answeringId == null) VerbLine(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
@@ -803,6 +810,112 @@ private const val LOADING_LINE_SECONDS = 4
  * Something to do about an answer (Try again, Allow more, Ask BOAR instead): on its own line, full size, in the accent,
  * never squeezed next to a note. The footer's small chips ([FooterButton]) are for its icons only.
  */
+/** What a user's bubble shows: the question, or a Keep going step's verb (the text stays the question). */
+@Composable
+private fun userBubbleText(m: UiMessage): String = when (team.sopa.boar.engine.chat.KeepGoing.Step.of(m.step)) {
+    team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
+    team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
+    team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskQ", "q" to m.text)
+    null -> m.text
+}
+
+/** A verb in the card or a bubble (t9 0235): bold, muted, a dotted underline; a 48 dp target with the button role. */
+@Composable
+private fun VerbLine(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val c = Boar.colors
+    val line = c.textMuted
+    Box(modifier.heightIn(min = 48.dp).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick), contentAlignment = Alignment.CenterStart) {
+        Text(label, style = Boar.type.body, color = c.textMuted, fontWeight = FontWeight.Bold, modifier = Modifier.drawBehind {
+            val y = size.height - 1.dp.toPx()
+            drawLine(line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(),
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(1.5.dp.toPx(), 3.dp.toPx())), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        })
+    }
+}
+
+/**
+ * "Keep going" (adam, Nov 13-14; t9 0235): a small label and up to three faint bubbles under the latest answer, on the
+ * user's side: the user's bubble shape, a dashed border, a light fill. The step first (its verb, then the ladder with the
+ * rungs done filled), then follow-up questions. A tap asks; holding a follow-up puts it in the input.
+ */
+@Composable
+private fun KeepGoingGroup(last: UiMessage, state: ChatState, onStep: (team.sopa.boar.engine.chat.KeepGoing.Step) -> Unit, onAsk: (String) -> Unit, onFill: (String) -> Unit) {
+    val c = Boar.colors
+    val question = state.messages.dropLast(1).lastOrNull { it.role == "user" }?.text.orEmpty()
+    val r = last.receipt
+    val speaker = r?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
+    val next = remember(last.id, last.text, r) {
+        val pt = team.sopa.boar.engine.routing.QueryContext.isPortugueseQuestion(question)
+        val follow = team.sopa.boar.engine.chat.FollowUps.pick(question,
+            last.sources.mapIndexed { i, s -> team.sopa.boar.engine.chat.FollowUps.Source(s.title, s.body, last.text.contains("[${i + 1}]")) }, pt)
+        team.sopa.boar.engine.chat.KeepGoing.of(team.sopa.boar.engine.chat.KeepGoing.Answer(
+            broken = last.error != null || last.stopped || last.timedOut,
+            instant = r?.tool != null && r.tokens == 0, canBypass = speaker?.canBypass == true,
+            style = r?.style, deepResearch = r?.path == "deep", cut = last.cutAt != null, keptShort = r?.styleNote != null,
+            hasSources = last.sources.isNotEmpty()), follow)
+    }
+    if (next.step == null && next.followUps.isEmpty()) return
+    val shape = RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp)
+    val label = t("native.chat.keepGoing")
+    val groupLabel = t("native.chat.kgGroup")
+    Column(Modifier.fillMaxWidth().semantics { contentDescription = groupLabel }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = Boar.type["mono.xs"], color = c.textDim)
+        @Composable fun Faint(spoken: String, onClick: () -> Unit, onHold: (() -> Unit)? = null, content: @Composable () -> Unit) {
+            val border = c.borderDefault
+            Box(Modifier.widthIn(max = 320.dp).heightIn(min = 48.dp).clip(shape).background(c.bgCardHover.copy(alpha = 0.35f))
+                .drawBehind {
+                    val o = androidx.compose.ui.graphics.Outline.Generic(androidx.compose.ui.graphics.Path().apply {
+                        addRoundRect(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height,
+                            androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()),
+                            androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(20.dp.toPx())))
+                    })
+                    drawPath(o.path, border, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
+                }
+                .combinedClickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick, onLongClick = onHold)
+                .semantics(mergeDescendants = true) { contentDescription = spoken }
+                .padding(horizontal = 14.dp, vertical = 9.dp), contentAlignment = Alignment.CenterStart) { content() }
+        }
+        next.step?.let { step ->
+            val verb = when (step) {
+                team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
+                team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
+                team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAsk")
+            }
+            val rungs = if (step == team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR) listOf(speaker?.let { t(it.titleKey) } ?: "", t("native.chat.kgBoar"))
+                else listOf(t("native.chat.kgQuick"), t("native.chat.kgDetailed"), t("native.chat.kgResearchRung"))
+            val done = team.sopa.boar.engine.chat.KeepGoing.rungsDone(step)
+            val spoken = when (step) {
+                team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeperSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearchSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskSpoken", "name" to (speaker?.let { t(it.titleKey) } ?: ""))
+            }
+            Faint(spoken, onClick = { onStep(step) }) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    VerbText(verb)
+                    Text(rungs.mapIndexed { i, n -> (if (i < done) "● " else "○ ") + n }.joinToString("  ›  "), style = Boar.type["mono.xs"], color = c.textDim)
+                }
+            }
+        }
+        next.followUps.forEach { q ->
+            Faint(t("native.chat.kgFollowSpoken", "q" to q), onClick = { onAsk(q) }, onHold = { onFill(q) }) {
+                Text(q, style = Boar.type.body, color = c.textSecondary)
+            }
+        }
+    }
+}
+
+/** The verb's look without its own touch target (inside a bubble, which is the target). */
+@Composable
+private fun VerbText(label: String) {
+    val line = Boar.colors.textMuted
+    Text(label, style = Boar.type.body, color = Boar.colors.textMuted, fontWeight = FontWeight.Bold, modifier = Modifier.drawBehind {
+        val y = size.height - 1.dp.toPx()
+        drawLine(line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(),
+            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(1.5.dp.toPx(), 3.dp.toPx())), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    })
+}
+
 @Composable
 internal fun ActionButton(glyph: String?, label: String, art: Int? = null, onClick: () -> Unit) {
     val c = Boar.colors

@@ -380,6 +380,20 @@
     <string name="native_answering_channel" formatted="false">Answering</string>
     <string name="native_answering_title" formatted="false">BOAR is answering…</string>
     <string name="native_answering_text" formatted="false">The answer keeps going while you use other apps.</string>
+    <string name="native_chat_keepGoing" formatted="false">Keep going</string>
+    <string name="native_chat_kgGroup" formatted="false">Keep going: what to ask next</string>
+    <string name="native_chat_kgDeeper" formatted="false">Go deeper</string>
+    <string name="native_chat_kgResearch" formatted="false">Research this</string>
+    <string name="native_chat_kgAsk" formatted="false">Ask BOAR</string>
+    <string name="native_chat_kgAskQ" formatted="false">Ask BOAR: {{q}}</string>
+    <string name="native_chat_kgQuick" formatted="false">Quick</string>
+    <string name="native_chat_kgDetailed" formatted="false">Detailed</string>
+    <string name="native_chat_kgResearchRung" formatted="false">Research</string>
+    <string name="native_chat_kgBoar" formatted="false">BOAR</string>
+    <string name="native_chat_kgDeeperSpoken" formatted="false">Go deeper: ask the same question again, in Detailed.</string>
+    <string name="native_chat_kgResearchSpoken" formatted="false">Research this: ask the same question again, with Deep Research.</string>
+    <string name="native_chat_kgAskSpoken" formatted="false">Ask BOAR: the model answers this question instead of {{name}}.</string>
+    <string name="native_chat_kgFollowSpoken" formatted="false">Ask: {{q}}</string>
     <string name="native_chat_tryAgain" formatted="false">Try again</string>
     <string name="native_chat_holdToReuse" formatted="false">Press and hold any of your messages to copy it back into the input.</string>
     <string name="native_chat_stopping" formatted="false">Stopping…</string>
