@@ -34,12 +34,14 @@ object AnswerLanguage {
     /** Personal Files' fixed line, in Portuguese (PersonalFiles.NOT_FOUND_PT), said exactly when the files don't hold it. */
     const val PT_FILES_ONLY = "Responda em Português e cite o arquivo pelo número, como [1]. Se o contexto não tiver a resposta, diga exatamente: " + PersonalFiles.NOT_FOUND_PT
 
-    private val EN_WORDS = Regex("""\b(the|is|are|was|were|what|how|why|who|which|when|where|does|do|did|of|and|to|in|can|should|would|tell|me|about|between|my|your)\b""", RegexOption.IGNORE_CASE)
+    // Words a Portuguese question doesn't use; one is enough once the Portuguese checks above said no (40 short questions,
+    // Nov 14: two missed "What causes tides?" and "is it dangerous?").
+    private val EN_WORDS = Regex("""\b(the|is|are|was|were|what|how|why|who|which|when|where|does|did|of|and|to|in|can|should|would|tell|about|between|my|your|it|there|this|that|explain|thanks|thank|please|much|many|vs|height|best)\b""", RegexOption.IGNORE_CASE)
 
     /** The language [text] is clearly in, or null when it can't be told (a few words, numbers, a name). */
     fun clear(text: String): Lang? {
         if (QueryContext.isPortugueseQuestion(text) || PtLexicon.looksPortuguese(text)) return Lang.PT
-        return if (EN_WORDS.findAll(text).count() >= 2) Lang.EN else null
+        return if (EN_WORDS.containsMatchIn(text)) Lang.EN else null
     }
 
     /** [earlier]: the user's earlier turns, oldest first. */
