@@ -81,7 +81,7 @@ object PrinterLab : LabPlugin {
         return PressStore.library.collectAsState().value?.current?.name
     }
 
-    /** The open project's answers, on the chat header's plugins icon and beside Press in its list. */
+    /** The open project's answers, beside Press in the header icon's list; not on the icon (countOnHeaderIcon stays off, adam Nov 14). */
     @Composable
     override fun headerCount(): Int {
         val ctx = LocalContext.current

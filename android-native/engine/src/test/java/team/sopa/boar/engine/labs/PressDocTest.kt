@@ -97,11 +97,16 @@ class PressDocTest {
         assertEquals(listOf("a1", "a2"), lib.current.blocks.map { it.id })
         lib = lib.rename("p1", "  Coast  ").rename("p1", "   ")
         assertEquals("Coast", lib.current.name)
-        // Delete: the open one goes, another opens; the last one stays.
+        // Delete: the open one goes, another opens. The last one goes too, a blank one in its place (adam, Nov 14).
         lib = lib.deleteProject("p1")
         assertEquals(listOf("p2"), lib.projects.map { it.id })
         assertEquals("p2", lib.open)
         assertEquals(lib, lib.deleteProject("p2"))
+        val blank = PressDoc.Project("p9", "Untitled", 5, seenAt = 5)
+        val after = lib.deleteProject("p2", blank)
+        assertEquals(listOf("p9"), after.projects.map { it.id }); assertEquals("p9", after.open)
+        assertTrue(after.current.blocks.isEmpty() && after.current.name == "Untitled")
+        assertEquals(lib, lib.deleteProject("nope", blank))
     }
 
     @Test fun `blocks move, are removed and come back with Undo, and are edited in place`() {

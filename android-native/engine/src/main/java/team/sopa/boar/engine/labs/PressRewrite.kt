@@ -9,7 +9,7 @@ import team.sopa.boar.engine.routing.QueryContext
  * as they were. The app runs it on the loaded chat model and changes nothing until the user picks "Use the new text".
  */
 object PressRewrite {
-    enum class Option { SHORTER, SIMPLER, FIX, LIST, OWN }
+    enum class Option { SHORTER, SIMPLER, FIX, LIST, FORMAL, PARAGRAPH, OWN }
 
     data class Prompt(val system: String, val user: String, val nPredict: Int)
 
@@ -41,6 +41,11 @@ object PressRewrite {
         Option.FIX -> words(text).let { n -> if (pt) "Corrija só a gramática, a ortografia e a redação. Mesmo tamanho (cerca de $n palavras) e os mesmos fatos."
             else "Fix only the grammar, spelling and wording. The same length (about $n words) and the same facts." }
         Option.LIST -> if (pt) "Transforme em uma lista, um ponto por linha, cada linha começando com \"- \"." else "Turn it into a list, one point per line, each line starting with \"- \"."
+        // adam, Nov 14: "2 more presets" (t9 0136 picked these): a report's tone at the same length, and the reverse of As a list.
+        Option.FORMAL -> words(text).let { n -> if (pt) "Reescreva em tom formal e neutro, como em um relatório: frases completas, sem gírias. Os mesmos fatos e mais ou menos o mesmo tamanho (cerca de $n palavras)."
+            else "Rewrite it in a formal, neutral tone, as for a report: full sentences, no slang, no contractions. The same facts and about the same length (about $n words)." }
+        Option.PARAGRAPH -> if (pt) "Reescreva como um só parágrafo de frases completas: junte os pontos ou itens em texto corrido, sem marcadores e sem quebras de linha. Os mesmos fatos, nenhum fato novo."
+            else "Rewrite it as one paragraph of full sentences: join the points or list items into running text, with no bullets and no line breaks. The same facts, no new ones."
         Option.OWN -> (if (pt) "Reescreva assim: " else "Rewrite it this way: ") + own.orEmpty().trim().take(200)
     }
 

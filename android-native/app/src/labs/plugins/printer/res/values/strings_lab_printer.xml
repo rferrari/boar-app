@@ -39,7 +39,6 @@
     <string name="native_labs_printer_delete" formatted="false">Delete “{{name}}”</string>
     <string name="native_labs_printer_deleteConfirm" formatted="false">Tap again to delete “{{name}}” and all it holds</string>
     <string name="native_labs_printer_deleted" formatted="false">“{{name}}” deleted</string>
-    <string name="native_labs_printer_keepOne" formatted="false">Keep at least one project.</string>
     <string name="native_labs_printer_add" formatted="false">Add</string>
     <string name="native_labs_printer_addTitle" formatted="false">Add to this page</string>
     <string name="native_labs_printer_heading" formatted="false">Heading</string>
@@ -94,6 +93,8 @@
     <string name="native_labs_printer_rwShorter" formatted="false">Shorter</string>
     <string name="native_labs_printer_rwSimpler" formatted="false">Simpler words</string>
     <string name="native_labs_printer_rwFix" formatted="false">Fix the wording</string>
+    <string name="native_labs_printer_rwFormal" formatted="false">More formal</string>
+    <string name="native_labs_printer_rwParagraph" formatted="false">As a paragraph</string>
     <string name="native_labs_printer_rwList" formatted="false">As a list</string>
     <string name="native_labs_printer_rwOwnHint" formatted="false">Or say what to change, for example: for a 10-year-old</string>
     <string name="native_labs_printer_rwAsk" formatted="false">Ask BOAR</string>

@@ -70,6 +70,13 @@ interface LabPlugin {
     /** What this lab holds for the user (Press: pages in the basket), counted on the chat header's plugins icon; 0 for none. */
     @Composable fun headerCount(): Int = 0
 
+    /**
+     * [headerCount] adds to the number on the chat header's plugins icon: a hidden switch, off for every plugin (adam, Nov
+     * 14: "i cant clean up that, so annoy me… keep as hidden settings for plugins to display notification or not"). The
+     * count still reads beside the plugin in the icon's list.
+     */
+    val countOnHeaderIcon: Boolean get() = false
+
     /** How [headerCount] reads beside the lab in the header's list ("3 in the basket"). */
     @Composable fun headerCountLabel(n: Int): String = "$n"
 

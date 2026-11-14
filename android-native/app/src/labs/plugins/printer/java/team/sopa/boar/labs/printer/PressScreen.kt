@@ -317,7 +317,9 @@ internal fun PressScreen(lab: LabPlugin) {
     if (focusTitle) LaunchedEffect(Unit) { delay(150); runCatching { titleFocus.requestFocus() }; focusTitle = false }
 
     sheet?.let { which ->
-        ModalBottomSheet({ sheet = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.bgCardElevated) {
+        // Closed any way (swipe down, a tap outside, Back): the bar's instruction goes with it, so the pencil never reopens
+        // the sheet on a leftover and rewrites at once (adam on the F3, Nov 14; t9 0136).
+        ModalBottomSheet({ sheet = null; askOwn = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.bgCardElevated) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
                 when (which) {
                     Sheet.PROJECTS -> ProjectsSheet(library,
@@ -340,7 +342,7 @@ internal fun PressScreen(lab: LabPlugin) {
                     Sheet.EDIT -> {
                         val target = project.blocks.firstOrNull { it.id == selected && textOf(it) != null }
                         if (target == null) LaunchedEffect(Unit) { sheet = null }
-                        else EditSheet(target, typed = askOwn,
+                        else EditSheet(target, typed = askOwn, onTypedUsed = { askOwn = null },
                             // The rest of the document, for an instruction in the user's own words (PressRewrite.documentContext).
                             document = PressRewrite.documentContext(project.name, project.blocks.filter { it.id != target.id }.mapNotNull { b ->
                                 when (b) { is Block.Answer -> b.shownHeading + "\n" + PressReceipt.plain(b.text); else -> textOf(b) }
@@ -482,14 +484,10 @@ private fun ProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Unit,
                 .clickable(role = Role.Button) { onNew(name.trim()) }.padding(vertical = 14.dp))
     }
     SheetRow(t("native.labs.printer.rename", "name" to current.name), icon = R.drawable.lab_printer_ic_edit, onClick = onRename)
-    val single = library.projects.size <= 1
+    // Any project can be deleted, the last one too (adam, Nov 14): a blank one takes its place. Two taps, as before.
     SheetRow(t(if (confirm) "native.labs.printer.deleteConfirm" else "native.labs.printer.delete", "name" to current.name),
-        small = if (single) t("native.labs.printer.keepOne") else null, icon = R.drawable.lab_printer_ic_remove, danger = !single) {
-        when {
-            single -> Toasts.show(I18n.t(ctx, "native.labs.printer.keepOne"))
-            !confirm -> confirm = true
-            else -> onDelete()
-        }
+        icon = R.drawable.lab_printer_ic_remove, danger = true) {
+        if (!confirm) confirm = true else onDelete()
     }
 }
 
@@ -532,7 +530,7 @@ private fun SheetButton(text: String, primary: Boolean, enabled: Boolean = true,
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun EditSheet(block: Block, typed: String? = null, document: String = "", onSelf: () -> Unit, onClose: () -> Unit) {
+private fun EditSheet(block: Block, typed: String? = null, onTypedUsed: () -> Unit = {}, document: String = "", onSelf: () -> Unit, onClose: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -573,8 +571,9 @@ private fun EditSheet(block: Block, typed: String? = null, document: String = ""
             }
         }
     }
-    // Typed in the input bar for this text: BOAR starts on it as the sheet opens (adam, Nov 12).
-    LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed) } }
+    // Typed in the input bar for this text: BOAR starts on it as the sheet opens (adam, Nov 12), once: the instruction is
+    // used up as its rewrite starts (t9 0136), and stays in the sheet's own field.
+    LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed); onTypedUsed() } }
     val done = result
     when {
         running -> {
@@ -606,13 +605,15 @@ private fun EditSheet(block: Block, typed: String? = null, document: String = ""
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
             Text(t("native.labs.printer.askTitle"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
             if (chatBusy) Text(t("native.labs.printer.rwBusy"), style = Boar.type.caption, color = c.amber400, modifier = Modifier.padding(bottom = 6.dp))
-            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((option, key) in listOf(PressRewrite.Option.SHORTER to "native.labs.printer.rwShorter", PressRewrite.Option.SIMPLER to "native.labs.printer.rwSimpler",
-                        PressRewrite.Option.FIX to "native.labs.printer.rwFix", PressRewrite.Option.LIST to "native.labs.printer.rwList"))
+            // Six presets on two full lines at Standard text (adam, Nov 14: "2 more to fill the second line"): Shorter, Simpler
+            // words, Fix the wording / As a list, As a paragraph, More formal. 8 dp sides and 6 dp gaps make the English lines
+            // 348 and 336 dp of the 361 dp a 393 dp phone gives them; longer words (Large, Portuguese) wrap, never cut.
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((option, key) in REWRITE_PRESETS)
                     Text(t(key), style = Boar.type.body, color = c.textPrimary,
                         modifier = Modifier.alpha(if (chatBusy) 0.4f else 1f).clip(RoundedCornerShape(999.dp)).background(c.bgCard)
                             .border(1.dp, c.borderSubtle, RoundedCornerShape(999.dp)).clickable(enabled = !chatBusy, role = Role.Button) { ask(option, null) }
-                            .padding(horizontal = 14.dp, vertical = 9.dp))
+                            .padding(horizontal = 8.dp, vertical = 9.dp))
             }
             BasicTextField(own, { own = it.take(120) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(Boar.colors.emerald500),
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp).background(c.bgCard, RoundedCornerShape(10.dp))
@@ -624,6 +625,13 @@ private fun EditSheet(block: Block, typed: String? = null, document: String = ""
         }
     }
 }
+
+/** The edit sheet's presets, in their order on the two lines. */
+private val REWRITE_PRESETS = listOf(
+    PressRewrite.Option.SHORTER to "native.labs.printer.rwShorter", PressRewrite.Option.SIMPLER to "native.labs.printer.rwSimpler",
+    PressRewrite.Option.FIX to "native.labs.printer.rwFix", PressRewrite.Option.LIST to "native.labs.printer.rwList",
+    PressRewrite.Option.PARAGRAPH to "native.labs.printer.rwParagraph", PressRewrite.Option.FORMAL to "native.labs.printer.rwFormal",
+)
 
 /** Every project, the open one first, then the most recent; a search box to find one by name (adam, Nov 12). */
 @Composable

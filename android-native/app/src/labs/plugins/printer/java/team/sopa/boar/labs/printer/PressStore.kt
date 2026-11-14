@@ -145,7 +145,10 @@ object PressStore {
     /** Deletes a project and its folder (phase 2: its photos with it). */
     fun deleteProject(context: Context, id: String): Boolean {
         var gone = false
-        change { lib -> lib.deleteProject(id).also { gone = it !== lib } }
+        // The last project can go too: an empty "Untitled" one takes its place (adam, Nov 14).
+        val now = System.currentTimeMillis()
+        val blank = PressDoc.Project(newId("p"), team.sopa.boar.ui.I18n.t(context, "native.labs.printer.untitled"), now, seenAt = now)
+        change { lib -> lib.deleteProject(id, blank).also { gone = it !== lib } }
         if (gone) PressFiles.deleteProject(dir(context), id)
         return gone
     }

@@ -21,11 +21,19 @@ class PluginsIconTest {
         assertTrue(icon.contains("if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t(\"native.labs.manage\")"))
     }
 
-    @Test fun `no lab draws its own header badge any more, Press counts on the icon`() {
+    @Test fun `no lab draws its own header badge, and no count on the icon unless a lab asks for it`() {
         val plugin = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabPlugin.kt").readText()
         assertTrue(!plugin.contains("fun HeaderBadge("))
+        // adam, Nov 14: "do not display that. hide it for now. keep as hidden settings for plugins".
+        assertTrue(plugin.contains("val countOnHeaderIcon: Boolean get() = false"))
+        assertTrue(icon.contains("val waiting = labs.filter { it.countOnHeaderIcon }.sumOf { counts[it.id] ?: 0 }") && icon.contains("if (waiting > 0)"))
+        // No plugin turns it on today: Press's answers no longer count on the icon.
+        val on = java.io.File("../app/src/labs").walk().filter { it.extension == "kt" && it.readText().contains("countOnHeaderIcon = true") }.toList()
+        assertTrue(on.toString(), on.isEmpty())
+        // Press's count still reads beside it in the icon's list.
         val press = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").readText()
-        assertTrue(press.contains("override fun headerCount(): Int"))
+        assertTrue(press.contains("override fun headerCount(): Int") && press.contains("override fun headerCountLabel(n: Int): String"))
+        assertTrue(icon.contains("trailing = counts[lab.id]?.takeIf { it > 0 }?.let { n -> { androidx.compose.material3.Text(lab.headerCountLabel(n)"))
     }
 
     @Test fun `strings in English and Portuguese`() {

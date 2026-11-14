@@ -59,8 +59,12 @@ class PressRewriteTest {
         val sheet = screen.substringAfter("private fun EditSheet(").substringBefore("\n}\n")
         assertTrue(sheet.contains("t(\"native.labs.printer.editSelf\")"))
         assertTrue(sheet.contains("t(\"native.labs.printer.askTitle\")"))
-        for (k in listOf("rwShorter", "rwSimpler", "rwFix", "rwList", "rwOwnHint", "rwAsk", "rwNow", "rwRewritten", "rwUse", "rwKeep", "rwStop", "rwMarks"))
+        for (k in listOf("rwOwnHint", "rwAsk", "rwNow", "rwRewritten", "rwUse", "rwKeep", "rwStop", "rwMarks"))
             assertTrue(k, sheet.contains("\"native.labs.printer.$k\""))
+        // The presets, from one list (REWRITE_PRESETS).
+        val presets = screen.substringAfter("private val REWRITE_PRESETS = listOf(").substringBefore("\n)\n")
+        assertTrue(sheet.contains("for ((option, key) in REWRITE_PRESETS)"))
+        for (k in listOf("rwShorter", "rwSimpler", "rwFix", "rwList")) assertTrue(k, presets.contains("\"native.labs.printer.$k\""))
         for (d in listOf("values", "values-pt")) {
             val s = File("../app/src/labs/plugins/printer/res/$d/strings_lab_printer.xml").readText()
             for (k in listOf("editSelf", "askTitle", "rwShorter", "rwSimpler", "rwFix", "rwList", "rwBusy", "rwNoModel", "rwMarks", "rwUse", "rwKeep"))
@@ -126,5 +130,68 @@ class PressRewriteNewMarksTest {
         val runner = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressRewriter.kt").readText()
         // Every option now (validator G-2).
         org.junit.Assert.assertTrue(runner.contains("val out = PressRewrite.dropNewMarks(text, PressRewrite.clean(r.text))"))
+    }
+}
+
+/**
+ * t9 0136 (adam on the F3, Nov 14: the pencil "took me straight there [Ask BOAR to rewrite it], i could not choose"): an
+ * instruction typed in the bar is used once. Before the fix the sheet's own dismiss (swipe, tap outside, Back) left it
+ * set, and the pencil on any text reopened the sheet rewriting with it.
+ */
+class PressEditLeftoverTest {
+    private val screen = File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+
+    @Test fun `closing the sheet any way drops the bar's instruction`() {
+        assertTrue(screen.contains("ModalBottomSheet({ sheet = null; askOwn = null }, sheetState"))
+        assertTrue(!screen.contains("ModalBottomSheet({ sheet = null }, sheetState"))
+    }
+
+    @Test fun `the instruction is used up as its rewrite starts`() {
+        assertTrue(screen.contains("EditSheet(target, typed = askOwn, onTypedUsed = { askOwn = null },"))
+        assertTrue(screen.contains("LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed); onTypedUsed() } }"))
+        // Set in one place only: the bar, for a selected text.
+        assertEquals(1, Regex("askOwn = typed").findAll(screen).count())
+    }
+}
+
+/** adam, Nov 14: "add 2 more presets… to fill the second line" (t9 0136: More formal, As a paragraph). */
+class PressMorePresetsTest {
+    private val en = "Salt in the sea comes from rocks [1]. Rivers carry it down [2]."
+    private val pt = "O sal do mar vem das rochas [1]. Os rios o levam até o mar [2]."
+
+    @Test fun `More formal keeps the facts and the length, in English and Portuguese`() {
+        val e = PressRewrite.instruction(PressRewrite.Option.FORMAL, null, false, en)
+        assertTrue(e, e.startsWith("Rewrite it in a formal, neutral tone, as for a report") && e.contains("no contractions") && e.contains("(about ${PressRewrite.words(en)} words)"))
+        val p = PressRewrite.instruction(PressRewrite.Option.FORMAL, null, true, pt)
+        assertTrue(p, p.startsWith("Reescreva em tom formal e neutro") && p.contains("(cerca de ${PressRewrite.words(pt)} palavras)"))
+    }
+
+    @Test fun `As a paragraph joins the points with no new facts, in English and Portuguese`() {
+        val e = PressRewrite.instruction(PressRewrite.Option.PARAGRAPH, null, false, en)
+        assertTrue(e, e.contains("one paragraph of full sentences") && e.contains("no bullets and no line breaks") && e.endsWith("The same facts, no new ones."))
+        val p = PressRewrite.instruction(PressRewrite.Option.PARAGRAPH, null, true, pt)
+        assertTrue(p, p.contains("um só parágrafo") && p.endsWith("Os mesmos fatos, nenhum fato novo."))
+    }
+
+    @Test fun `both use the passage-first prompt, the same system and marks rules, and the default room`() {
+        for (o in listOf(PressRewrite.Option.FORMAL, PressRewrite.Option.PARAGRAPH)) {
+            val pe = PressRewrite.prompt(o, en.repeat(6))
+            assertTrue(pe.user.startsWith("PASSAGE:") && pe.user.contains("\n\nTASK: ") && pe.system.contains("Keep every source mark"))
+            assertEquals(PressRewrite.prompt(PressRewrite.Option.SIMPLER, en.repeat(6)).nPredict, pe.nPredict)
+            val pp = PressRewrite.prompt(o, pt.repeat(6))
+            assertTrue(pp.user.startsWith("TRECHO:") && pp.user.contains("TAREFA: ") && pp.system.contains("Mantenha cada marca de fonte"))
+        }
+    }
+
+    @Test fun `six chips, in the order that fills two lines, with their strings`() {
+        val screen = File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+        val presets = screen.substringAfter("private val REWRITE_PRESETS = listOf(").substringBefore("\n)\n")
+        val order = listOf("SHORTER", "SIMPLER", "FIX", "LIST", "PARAGRAPH", "FORMAL").map { presets.indexOf("PressRewrite.Option.$it ") }
+        assertTrue(order.toString(), order.all { it >= 0 } && order == order.sorted())
+        assertTrue(screen.contains(".padding(horizontal = 8.dp, vertical = 9.dp))") && screen.contains("FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)"))
+        for (d in listOf("values", "values-pt")) {
+            val x = File("../app/src/labs/plugins/printer/res/$d/strings_lab_printer.xml").readText()
+            for (k in listOf("rwFormal", "rwParagraph")) assertTrue("$d $k", x.contains("name=\"native_labs_printer_$k\""))
+        }
     }
 }

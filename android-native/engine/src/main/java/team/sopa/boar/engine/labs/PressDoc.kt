@@ -142,9 +142,14 @@ object PressDoc {
 
         fun rename(id: String, name: String) = name.trim().takeIf { it.isNotEmpty() }?.let { n -> mapProject(id) { it.copy(name = n) } } ?: this
 
-        /** Deletes a project (its folder goes too, phase 2's photos with it); the last one can't go. */
-        fun deleteProject(id: String): Library {
-            if (projects.size <= 1 || projects.none { it.id == id }) return this
+        /**
+         * Deletes a project (its folder goes too, phase 2's photos with it). The last one can go too (adam, Nov 14: "i want
+         * to delete the last one and i cant. privacy"): [blank], an empty project, takes its place, as after Clear all.
+         * Without [blank] the last one stays.
+         */
+        fun deleteProject(id: String, blank: Project? = null): Library {
+            if (projects.none { it.id == id }) return this
+            if (projects.size <= 1) return blank?.takeIf { it.id != id }?.let { Library(it.id, listOf(it)) } ?: this
             val rest = projects.filter { it.id != id }
             return Library(if (open == id) rest.first().id else open, rest)
         }

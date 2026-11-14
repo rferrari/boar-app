@@ -320,7 +320,7 @@ object LabHooks {
     /**
      * One plugins icon in the chat header (t9, Nov 10: it replaces each lab's own badge). Shown in every profile while a
      * lab is on; a tap lists the labs that are on, each opening its page. Managing them (the on/off list) stays in Pro.
-     * Labs that wait on the user (Press's basket) add to the count on the icon.
+     * A lab's count shows beside it in the list; on the icon only when the lab asks for it (countOnHeaderIcon, off for all).
      */
     @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
     @Composable
@@ -330,7 +330,8 @@ object LabHooks {
         if (labs.isEmpty()) return
         val c = team.sopa.boar.ui.theme.Boar.colors
         val counts = labs.associate { it.id to it.headerCount() }
-        val waiting = counts.values.sum()
+        // Only plugins that ask for it count on the icon (LabPlugin.countOnHeaderIcon: none today, Press's answers included).
+        val waiting = labs.filter { it.countOnHeaderIcon }.sumOf { counts[it.id] ?: 0 }
         var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
         androidx.compose.foundation.layout.Box {
             androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.size(42.dp).clip(androidx.compose.foundation.shape.CircleShape)

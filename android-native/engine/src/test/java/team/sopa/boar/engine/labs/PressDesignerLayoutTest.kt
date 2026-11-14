@@ -32,7 +32,7 @@ class PressDesignerLayoutTest {
         assertTrue(bar.contains("else addBlock(Block.Note(PressStore.newId(\"n\"), typed))"))
         assertTrue(bar.contains("\"native.labs.printer.askPlaceholder\" else \"native.labs.printer.notePlaceholder\""))
         // The sheet starts the rewrite with what was typed; nothing changes before Use (PressRewriteTest).
-        assertTrue(s.contains("EditSheet(target, typed = askOwn,") && s.contains("LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed) } }"))
+        assertTrue(s.contains("EditSheet(target, typed = askOwn,") && s.contains("LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed); onTypedUsed() } }"))
     }
 
     @Test fun `one menu, grouped, with Save as and its two formats on the right`() {
