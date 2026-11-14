@@ -658,8 +658,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.rateUp")) { onRate(m.id, "up") }
                         FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder, t("native.a11y.rateDown")) { onRate(m.id, "down") }
                     }
-                    // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    // The receipt on the left, the buttons on the right (adam, Nov 14: with the rating gone, time and tokens move
+                    // left); it fills the row up to the buttons and is tapped open below (main's ReceiptToggle).
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
@@ -691,14 +692,14 @@ private fun receiptRate(r: Receipt): String? = if (r.instant()) null else t("cha
 private fun ReceiptShort(r: Receipt) =
     Text(receiptShort(r, receiptRate(r)), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
         // Two lines with Large text rather than losing "tok/s" off the end.
-        maxLines = 2, textAlign = TextAlign.End, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+        maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp).padding(end = 4.dp))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, receiptRate(r))
-    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.End,
-        modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
+    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.Start,
+        modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp).padding(end = 4.dp))
 }
 
 @Composable
