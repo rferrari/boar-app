@@ -58,10 +58,11 @@ class PressDesignerLayoutTest {
         assertTrue(screen.contains("if (i >= 0) ActionBar(") && screen.contains("else AddBar("))
         val bar = s.substringAfter("private fun AddBar(").substringBefore("\n}\n")
         for (x in listOf("lab_printer_ic_photo", "lab_printer_ic_heading", "lab_printer_ic_drawing", "lab_printer_ic_chat")) assertTrue(x, bar.contains(x))
-        // Nov 13: paragraph, list and divider too, and the page breaks switch: eight icons sharing the width, no scroll, no "Add" word.
+        // Nov 13: paragraph, list and divider too, and (Nov 14) Press settings: eight icons sharing the width, no scroll, no "Add" word.
         assertTrue(Regex("IconAction\\(").findAll(bar).count() == 8 && !bar.contains("native.labs.printer.add\""))
         assertTrue(!bar.contains("horizontalScroll") && bar.contains(".coerceAtMost(44.dp)") && s.contains("private const val ADD_BUTTONS = 8"))
-        assertTrue(bar.contains("on = showBreaks, size = size) { onBreaks(!showBreaks) }"))
+        // Nov 14: the last one opens Press settings (page breaks, date, sources, models, speed), not a page breaks switch.
+        assertTrue(bar.contains("IconAction(R.drawable.lab_printer_ic_settings, t(\"native.labs.printer.settings\"), size = size, onClick = onSettings)") && !bar.contains("showBreaks"))
         assertTrue(s.contains("Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }"))
         assertTrue(read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").contains("PressStore.addChat(ctx, sessionId, title)"))
         for (d in listOf("values", "values-pt")) {

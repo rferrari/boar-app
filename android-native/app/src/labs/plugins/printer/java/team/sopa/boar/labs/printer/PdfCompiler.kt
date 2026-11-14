@@ -16,7 +16,7 @@ import java.io.File
 /**
  * A project as an A4 PDF with Android's own PdfDocument, offline: what the white page in Press shows, at [Paper]'s
  * measures. The title and date, the blocks in order (heading, answer: its heading, the question in italics, the text,
- * "Sources [n]"; note; picture with its caption if it has one), then "How this document was made", always, and the footer.
+ * "Sources [n]"; note; picture with its caption if it has one), then the Sources section and the footer (Press settings).
  * Text flows across pages line by line; a heading that would end a page alone starts the next one, a picture that
  * doesn't fit starts a new page.
  */
@@ -29,6 +29,7 @@ object PdfCompiler {
     data class PageStart(val unit: String, val intoPt: Float)
     const val TITLE = "title"
     const val RECEIPT = "receipt"
+    const val SOURCES = "sources"
 
     /** [fileOf] is a picture's file, or null when it is gone (it is left out). */
     fun compile(out: File, page: PressPage, fileOf: (Block.Picture) -> File?) {
@@ -51,7 +52,8 @@ object PdfCompiler {
     private fun layout(p: Pager, page: PressPage, fileOf: (Block.Picture) -> File?) {
             p.begin(TITLE)
             p.text(page.project.name.trim().ifEmpty { " " }, serif(Paper.TITLE, bold = true), after = 4f)
-            p.text(page.date.uppercase(), sans(Paper.DATE, color = Paper.DATE_INK), after = Paper.GAP + 4f)
+            if (page.options.date) p.text(page.date.uppercase(), sans(Paper.DATE, color = Paper.DATE_INK), after = Paper.GAP + 4f)
+            else p.gap(Paper.GAP)
             val caption = { b: Block.Picture -> b.caption.trim().takeIf { it.isNotEmpty() }?.let { it to serif(Paper.CAPTION, italic = true, color = Paper.MUTED) } }
             // The same plan as the paper on screen: a side picture with the next text block beside it (PressLayout).
             for (item in PressLayout.plan(page.project.blocks)) when (item) {
@@ -74,6 +76,7 @@ object PdfCompiler {
                     p.gap(if (item.text == null) Paper.GAP else 0f)
                 }
             }
+            sources(p, page)
             p.begin(RECEIPT)
             receipt(p, page)
             p.finish()
@@ -101,6 +104,21 @@ object PdfCompiler {
             is Block.Divider -> { p.gap(4f); p.rule(); p.gap(Paper.GAP - 10f) }
             is Block.Picture, is Block.Unknown -> {}
         }
+    }
+
+    /**
+     * The Sources section at the end of the document (adam, Nov 14: "a sources session on end of document"): a small heading,
+     * then each source by its [n] with its pack. Its heading never ends a page alone.
+     */
+    private fun sources(p: Pager, page: PressPage) {
+        val lines = page.sourceLines.takeIf { it.isNotEmpty() } ?: return
+        p.begin(SOURCES)
+        val head = sans(Paper.RECEIPT_TITLE, bold = true)
+        val line = sans(Paper.REFS, color = Paper.RECEIPT_INK)
+        p.keepRoom(Paper.GAP + Paper.RECEIPT_TITLE * 1.6f + Paper.REFS * 2.6f)
+        p.gap(Paper.GAP)
+        p.text(page.sourcesLabel, head, after = 6f)
+        for (l in lines) p.text(l, line, after = 3f, spacing = 1.25f)
     }
 
     /**

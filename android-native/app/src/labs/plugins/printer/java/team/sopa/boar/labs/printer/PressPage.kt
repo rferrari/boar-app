@@ -58,18 +58,25 @@ class PressPage(
     val receipt: PressReceipt.Receipt,
     val labels: PressReceipt.Labels,
     val sourcesLabel: String,
+    /** What prints besides the blocks (Press settings, adam Nov 14). */
+    val options: PressReceipt.Options = PressReceipt.Options(),
 ) {
     val rows: List<PressReceipt.Row> get() = PressReceipt.rows(receipt, labels, date, version)
 
-    /** The document's two-line footer (PressReceipt.footer). */
-    val footer: List<String> get() = PressReceipt.footer(receipt, labels, date)
+    /** The Sources section at the end, one line per source with its pack; empty when off or there are none. */
+    val sourceLines: List<String> get() = PressReceipt.sourceLines(receipt, options)
 
-    /** An answer's text as it prints: plain, its [k] marks as the document's numbers. */
-    fun answerText(a: PressDoc.Block.Answer) = PressReceipt.plain(PressReceipt.renumber(a.text, receipt.local[a.id].orEmpty()))
+    /** The footer: the models' line when on, and "Made offline with BOAR", always (PressReceipt.footer). */
+    val footer: List<String> get() = PressReceipt.footer(receipt, labels, date, options)
 
-    fun refsLine(a: PressDoc.Block.Answer) = PressReceipt.refsLine(receipt.refs[a.id], sourcesLabel)
+    /** An answer's text as it prints: plain, its [k] marks as the document's numbers (none when sources are off). */
+    fun answerText(a: PressDoc.Block.Answer) =
+        PressReceipt.plain(PressReceipt.renumber(a.text, if (options.sources) receipt.local[a.id].orEmpty() else emptyMap()))
 
-    fun markdown(drawingLabel: String, photoLabel: String = drawingLabel) = PressReceipt.markdown(project, labels, date, version, sourcesLabel, drawingLabel, receipt, photoLabel)
+    fun refsLine(a: PressDoc.Block.Answer) = if (options.sources) PressReceipt.refsLine(receipt.refs[a.id], sourcesLabel) else null
+
+    fun markdown(drawingLabel: String, photoLabel: String = drawingLabel) =
+        PressReceipt.markdown(project, labels, date, version, sourcesLabel, drawingLabel, receipt, photoLabel, options)
 
     companion object {
         fun dateText(): String = DateFormat.getDateInstance(DateFormat.LONG).format(Date())
@@ -100,12 +107,29 @@ class PressPage(
             },
         )
 
+        /** Press settings (adam, Nov 14): the date, the Sources section, the models and their speed; global, like page breaks. */
+        const val DATE_PREF = "printer.showDate"
+        const val SOURCES_PREF = "printer.showSources"
+        const val MODELS_PREF = "printer.showModels"
+        const val SPEED_PREF = "printer.showSpeed"
+
+        private fun pref(key: String, default: Boolean) = when (team.sopa.boar.labs.LabPrefs.string(key)) { "on" -> true; "off" -> false; else -> default }
+
+        fun options(): PressReceipt.Options = PressReceipt.Options().let { d ->
+            PressReceipt.Options(pref(DATE_PREF, d.date), pref(SOURCES_PREF, d.sources), pref(MODELS_PREF, d.models), pref(SPEED_PREF, d.speed))
+        }
+
+        fun saveOptions(o: PressReceipt.Options) {
+            for ((k, v) in listOf(DATE_PREF to o.date, SOURCES_PREF to o.sources, MODELS_PREF to o.models, SPEED_PREF to o.speed))
+                team.sopa.boar.labs.LabPrefs.putString(k, if (v) "on" else "off")
+        }
+
         /** Reads Designer's recipes and the pictures' sizes: off the main thread. */
-        fun of(ctx: Context, project: PressDoc.Project, date: String = dateText()): PressPage {
+        fun of(ctx: Context, project: PressDoc.Project, date: String = dateText(), options: PressReceipt.Options = options()): PressPage {
             val receipt = PressReceipt.build(project,
                 recipeOf = { p -> if (p.kind == PressDoc.Kind.DRAWING) PressPictures.recipeOf(ctx, p.file, p.answerId) ?: p.recipe else p.recipe },
                 sizeOf = { p -> PressPictures.fileOf(ctx, project.id, p)?.let(PressPictures::sizeOf) })
-            return PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, receipt, labels(ctx), I18n.t(ctx, "native.labs.printer.sourcesRefs"))
+            return PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, receipt, labels(ctx), I18n.t(ctx, "native.labs.printer.sourcesRefs"), options)
         }
     }
 }

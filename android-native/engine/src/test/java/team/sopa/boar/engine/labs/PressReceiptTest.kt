@@ -84,9 +84,9 @@ class PressReceiptTest {
         assertFalse(md.contains("_Why is the sea salty?_"))
         assertTrue(md.contains("Sources [3] [1]"))
         assertTrue(md.contains("> Ask about the lighthouse."))
-        // Nov 13: no "How this document was made"; a two-line footer, the sources by number, then the models and BOAR.
-        assertFalse(md.contains("HOW THIS DOCUMENT WAS MADE") || md.contains("tok/s"))
-        assertTrue(md, md.trimEnd().endsWith("---\n\n_Sources  [1] Seawater  ·  [2] Red Sea  ·  [3] Tide pool  ·  [4] Evaporation_  \n_Qwen3-4B  ·  Qwen3-1.7B  ·  Made offline with BOAR · 13 November 2026_"))
+        // Nov 14: a Sources section (each with its pack, when the answer knew it), then the models' line and BOAR's.
+        assertTrue(md, md.trimEnd().endsWith("## Sources\n\n[1] Seawater — Wikipedia  \n[2] Red Sea — Wikipedia  \n[3] Tide pool — Wikipedia  \n[4] Evaporation\n\n" +
+            "---\n\n_Qwen3-4B  ·  Qwen3-1.7B_  \n_Made offline with BOAR · 13 November 2026_"))
         // No model line under the answers: models are in the footer only.
         assertEquals(1, Regex("Qwen3-4B").findAll(md).count())
     }

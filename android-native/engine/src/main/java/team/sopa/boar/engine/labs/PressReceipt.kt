@@ -142,13 +142,30 @@ object PressReceipt {
     }
 
     /**
-     * The document's footer, at most two lines (adam, Nov 13: "too much information… make a models, sources and boar made
-     * simple footer… 2 lines max, elegant, simple"): the sources by their [n] (the numbers the answers use), then the
-     * models and "Made offline with BOAR" with the date. No speeds, recipes or counts. A document with no sources has one line.
+     * What a document prints besides its blocks, from Press settings (adam, Nov 14: "the toggle pages button become a
+     * settings… the date below title, sources on end of doc, models, speed… made with boar keep always on").
      */
-    fun footer(r: Receipt, l: Labels, date: String): List<String> = listOfNotNull(
-        r.sources.takeIf { it.isNotEmpty() }?.mapIndexed { i, s -> "[${i + 1}] ${s.title.trim()}" }?.joinToString("  ·  ", prefix = l.sources + "  "),
-        (r.models.map { it.model } + l.madeWith.replace("{{date}}", date)).joinToString("  ·  "),
+    data class Options(val date: Boolean = true, val sources: Boolean = true, val models: Boolean = true, val speed: Boolean = false)
+
+    /** The Sources section at the end: one line per source, by its [n], with the pack it came from ("Wikipedia"). */
+    fun sourceLines(r: Receipt, o: Options): List<String> =
+        if (!o.sources) emptyList() else r.sources.mapIndexed { i, s -> "[${i + 1}] " + sourceText(s).trim() }
+
+    /** A model with its speed in brackets: "Qwen3 4B (9.5 tok/s)", or the slowest to the fastest. */
+    fun modelWithSpeed(m: ModelLine): String = when {
+        m.minTokPerSec == null || m.maxTokPerSec == null -> m.model
+        String.format(Locale.US, "%.1f", m.minTokPerSec) == String.format(Locale.US, "%.1f", m.maxTokPerSec) -> "${m.model} (${speed(m.minTokPerSec)})"
+        else -> "${m.model} (" + String.format(Locale.US, "%.1f–%.1f tok/s", m.minTokPerSec, m.maxTokPerSec) + ")"
+    }
+
+    /**
+     * The footer under the Sources section (adam, Nov 14: "split what is sources, what is model, and made with boar"): the
+     * models on their own line when [Options.models] (each with its speed when [Options.speed]), then "Made offline with
+     * BOAR" and the date, always.
+     */
+    fun footer(r: Receipt, l: Labels, date: String, o: Options): List<String> = listOfNotNull(
+        r.models.takeIf { o.models && it.isNotEmpty() }?.joinToString("  ·  ") { if (o.speed) modelWithSpeed(it) else it.model },
+        l.madeWith.replace("{{date}}", date),
     )
 
     fun sourceText(s: PressDoc.Source) = s.title + (s.source?.takeIf { it.isNotBlank() }?.let { " — $it" } ?: "")
@@ -177,9 +194,9 @@ object PressReceipt {
      * paper. Pictures stay out (a line says where one was, with its caption if it has one).
      */
     fun markdown(project: PressDoc.Project, l: Labels, date: String, version: String, sourcesLabel: String, drawingLabel: String,
-                 r: Receipt = build(project), photoLabel: String = drawingLabel): String = buildString {
+                 r: Receipt = build(project), photoLabel: String = drawingLabel, o: Options = Options()): String = buildString {
         append("# ").append(project.name.trim().replace('\n', ' ')).append("\n\n")
-        append('_').append(date).append("_\n\n")
+        if (o.date) append('_').append(date).append("_\n\n")
         for (b in project.blocks) when (b) {
             is Block.Heading -> if (b.text.isNotBlank()) append("## ").append(b.text.trim().replace('\n', ' ')).append("\n\n")
             is Block.Note -> if (b.text.isNotBlank()) append(b.text.trim().lines().joinToString("\n") { "> $it" }).append("\n\n")
@@ -187,8 +204,9 @@ object PressReceipt {
             is Block.Bullets -> if (b.items.isNotEmpty()) append(b.items.joinToString("\n") { "- $it" }).append("\n\n")
             is Block.Divider -> append("* * *\n\n")
             is Block.Answer -> {
-                val refs = r.refs[b.id].orEmpty()
-                val local = r.local[b.id].orEmpty()
+                // Sources off: no "Sources [n]" line and no [n] in the text, which would point at nothing.
+                val refs = if (o.sources) r.refs[b.id].orEmpty() else emptyList()
+                val local = if (o.sources) r.local[b.id].orEmpty() else emptyMap()
                 append("### ").append(b.shownHeading.trim().replace('\n', ' ')).append("\n\n")
                 b.shownQuestion?.let { append('_').append(it.trim().replace('\n', ' ')).append("_\n\n") }
                 append(renumber(b.text.trim(), local).trim()).append("\n\n")
@@ -197,7 +215,8 @@ object PressReceipt {
             is Block.Picture -> append("_").append(if (b.kind == PressDoc.Kind.PHOTO) photoLabel else drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")
             is Block.Unknown -> {}
         }
-        // The same two-line footer as the paper (adam, Nov 13), in small italics under a rule.
-        append("---\n\n").append(footer(r, l, date).joinToString("  \n") { "_${it}_" }).append('\n')
+        // The Sources section, then the footer, as on the paper (adam, Nov 14), the footer in small italics under a rule.
+        sourceLines(r, o).takeIf { it.isNotEmpty() }?.let { append("## ").append(sourcesLabel).append("\n\n").append(it.joinToString("  \n")).append("\n\n") }
+        append("---\n\n").append(footer(r, l, date, o).joinToString("  \n") { "_${it}_" }).append('\n')
     }
 }

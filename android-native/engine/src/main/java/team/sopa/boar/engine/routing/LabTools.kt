@@ -62,7 +62,11 @@ object LabTools {
     fun <T, R : Any> first(items: List<T>, run: (T) -> R?): R? = items.firstNotNullOfOrNull { runCatching { run(it) }.getOrNull() }
 
     /** The check slot reads only a model's finished answer: not an instant tool answer, a stopped, timed-out or failed one,
-     * an empty one, or one written by Deep Research or a recap ([path] other than null or "adaptive"). */
+     * an empty one, or one written by Deep Research or a recap ([path] other than null, "adaptive" or "staged"). Staged
+     * answers are checked too (adam, Nov 14: Staged is the main answer style, on by default; Guard missed "No countries
+     * are bigger than India" in one). */
     fun checksAnswer(instant: Boolean, stopped: Boolean, timedOut: Boolean, failed: Boolean, path: String?, blank: Boolean): Boolean =
-        !instant && !stopped && !timedOut && !failed && (path == null || path == "adaptive") && !blank
+        !instant && !stopped && !timedOut && !failed && path in CHECKED_PATHS && !blank
+
+    private val CHECKED_PATHS = setOf(null, "adaptive", "staged")
 }

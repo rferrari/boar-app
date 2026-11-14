@@ -114,7 +114,7 @@ import java.io.File
  * bottom bar, Add and Save PDF. Tapping a block selects it; an icon bar above the bottom bar moves, edits (on the page,
  * text blocks), removes (with Undo) or lets go of it.
  */
-private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT }
+private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT, SETTINGS }
 
 private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
@@ -149,9 +149,11 @@ internal fun PressScreen(lab: LabPlugin) {
     val labels = remember { PressPage.labels(ctx) }
     val sourcesLabel = t("native.labs.printer.sourcesRefs")
     val date = remember { PressPage.dateText() }
-    val quick = remember(project) { PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, PressReceipt.build(project), labels, sourcesLabel) }
-    val full by produceState<PressPage?>(null, project) { value = withContext(Dispatchers.IO) { runCatching { PressPage.of(ctx, project, date) }.getOrNull() } }
-    val page = full?.takeIf { it.project == project } ?: quick
+    // Press settings (adam, Nov 14): what prints besides the blocks.
+    var options by remember { mutableStateOf(PressPage.options()) }
+    val quick = remember(project, options) { PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, PressReceipt.build(project), labels, sourcesLabel, options) }
+    val full by produceState<PressPage?>(null, project, options) { value = withContext(Dispatchers.IO) { runCatching { PressPage.of(ctx, project, date, options) }.getOrNull() } }
+    val page = full?.takeIf { it.project == project && it.options == options } ?: quick
 
     // Leaving the page (or another project) marks it seen: the menu's recent projects are ordered by it.
     DisposableEffect(project.id) {
@@ -290,7 +292,7 @@ internal fun PressScreen(lab: LabPlugin) {
             onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
             onDrawing = { sheet = Sheet.DRAWINGS },
             onChat = { sheet = Sheet.ADD },
-            showBreaks = showBreaks, onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") })
+            onSettings = { sheet = Sheet.SETTINGS })
         // The whole bottom is the chat's input bar (adam, Nov 12: a minimalist toolbar). Its left button opens one menu with
         // everything, grouped (add, save as, projects, page). With a text block selected, what is typed tells BOAR how to
         // change that text (NOW and REWRITTEN, nothing changes before Use); with nothing selected it is a note.
@@ -345,6 +347,9 @@ internal fun PressScreen(lab: LabPlugin) {
                                 when (b) { is Block.Answer -> b.shownHeading + "\n" + PressReceipt.plain(b.text); else -> textOf(b) }
                             }), onSelf = { askOwn = null; sheet = null; editing = target.id }, onClose = { askOwn = null; sheet = null })
                     }
+                    Sheet.SETTINGS -> SettingsSheet(showBreaks, options,
+                        onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") },
+                        onOptions = { o -> options = o; PressPage.saveOptions(o) })
                     Sheet.DRAWINGS -> DrawingsSheet { f ->
                         sheet = null
                         scope.launch {
@@ -660,7 +665,7 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
  */
 @Composable
 private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit,
-                   showBreaks: Boolean, onBreaks: (Boolean) -> Unit) {
+                   onSettings: () -> Unit) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -675,15 +680,31 @@ private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () ->
                 IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), size = size, onClick = onPhoto)
                 IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), size = size, onClick = onDrawing)
                 IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), size = size, onClick = onChat)
-                // Where the PDF's pages break, on the paper: a switch, gold when on; its name says on or off.
-                IconAction(R.drawable.lab_printer_ic_page, t("native.labs.printer.pageBreaks") + ": " + t(if (showBreaks) "native.labs.printer.on" else "native.labs.printer.off"),
-                    on = showBreaks, size = size) { onBreaks(!showBreaks) }
+                // Press settings, last (adam, Nov 14: the page breaks switch "become a settings"): page breaks, the date, the
+                // Sources section, the models and their speed.
+                IconAction(R.drawable.lab_printer_ic_settings, t("native.labs.printer.settings"), size = size, onClick = onSettings)
             }
         }
     }
 }
 
 private const val ADD_BUTTONS = 8
+
+/**
+ * Press settings (adam, Nov 14): the paper's page breaks, and what the document prints besides its blocks: the date under
+ * the title, the Sources section at the end, the models, and their speed (as rc2's receipt had). "Made offline with BOAR"
+ * always prints, so it has no switch. They apply to every project, the paper, the PDF and the Markdown.
+ */
+@Composable
+private fun SettingsSheet(showBreaks: Boolean, o: PressReceipt.Options, onBreaks: (Boolean) -> Unit, onOptions: (PressReceipt.Options) -> Unit) {
+    SheetTitle(t("native.labs.printer.settings"))
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageBreaks"), t("native.labs.printer.pageBreaksNote"), showBreaks, onBreaks)
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showDate"), null, o.date) { onOptions(o.copy(date = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSources"), t("native.labs.printer.showSourcesNote"), o.sources) { onOptions(o.copy(sources = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showModels"), null, o.models) { onOptions(o.copy(models = it, speed = it && o.speed)) }
+    if (o.models) team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSpeed"), null, o.speed) { onOptions(o.copy(speed = it)) }
+    Text(t("native.labs.printer.madeAlways"), style = Boar.type.caption, color = Boar.colors.textMuted, modifier = Modifier.padding(top = 10.dp))
+}
 private val ADD_GAP = 4.dp
 
 /** The latest chats: a tap adds that chat's answers at the end, as "Add to Press" in the menu does. */
@@ -750,6 +771,8 @@ private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.un
     val value = style(Paper.RECEIPT, sans, color = Paper.RECEIPT_INK, line = 1.35f)
     val foot = style(Paper.FOOT, sans, color = Paper.FOOT_INK)
     val footer = style(Paper.FOOTER, sans, color = Paper.FOOT_INK, line = 1.3f)
+    val sourcesTitle = style(Paper.RECEIPT_TITLE, sans, bold = true)
+    val sourceLine = style(Paper.REFS, sans, color = Paper.RECEIPT_INK)
 }
 
 @Composable
@@ -786,7 +809,8 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
             }
             .padding(s.dp(Paper.M))) {
             Box(Modifier.unit(PdfCompiler.TITLE)) { TitleField(project, s, titleFocus, onTitleFocus) }
-            Text(page.date.uppercase(), style = s.date, modifier = Modifier.padding(top = s.dp(4f), bottom = s.dp(Paper.GAP + 4f)))
+            if (page.options.date) Text(page.date.uppercase(), style = s.date, modifier = Modifier.padding(top = s.dp(4f), bottom = s.dp(Paper.GAP + 4f)))
+            else Spacer(Modifier.height(s.dp(Paper.GAP)))
             if (project.blocks.isEmpty()) {
                 Text(t("native.labs.printer.empty") + "\n" + t("native.labs.printer.howTo"), style = s.note, textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(vertical = s.dp(60f)))
@@ -804,6 +828,11 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
                         Spacer(Modifier.height(s.dp(Paper.GAP)))
                     }
                 }
+            }
+            // The Sources section at the end (adam, Nov 14), as the PDF prints it.
+            if (page.sourceLines.isNotEmpty()) Column(Modifier.unit(PdfCompiler.SOURCES).padding(top = s.dp(Paper.GAP))) {
+                Text(page.sourcesLabel, style = s.sourcesTitle, modifier = Modifier.padding(bottom = s.dp(6f)))
+                page.sourceLines.forEach { Text(it, style = s.sourceLine, modifier = Modifier.padding(bottom = s.dp(3f))) }
             }
             Box(Modifier.unit(PdfCompiler.RECEIPT)) {
                 ReceiptView(page, s)

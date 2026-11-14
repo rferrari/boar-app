@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Press "Show page breaks" (Nov 12): two page edges with a dashed break between them. -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M6,3h12v6M6,3v6M6,15v6h12v-6" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
-    <path android:pathData="M3,12h2M8,12h2M13,12h2M18,12h3" android:strokeWidth="1.75" android:strokeColor="#FFFFFFFF" android:strokeLineCap="round" android:fillColor="#00000000" />
-</vector>
