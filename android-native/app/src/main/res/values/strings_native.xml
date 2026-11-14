@@ -809,6 +809,8 @@
     <string name="native_eval_scorecard_note" formatted="false">The computer scores only what a rule can check (a plugin\'s exact text, the language, cards, sources, numbers). The rest is to read.</string>
     <string name="native_eval_verdict_PASS" formatted="false">passed</string>
     <string name="native_eval_verdict_FAIL" formatted="false">failed</string>
+    <string name="native_eval_verdict_KNOWN" formatted="false">known issue</string>
+    <string name="native_eval_verdict_SKIPPED" formatted="false">skipped</string>
     <string name="native_eval_verdict_TO_READ" formatted="false">to read</string>
     <string name="native_eval_saved_title" formatted="false">Saved runs ({{count}})</string>
     <string name="native_eval_saved_empty" formatted="false">No runs saved yet. Every run stays on this phone until you delete it.</string>

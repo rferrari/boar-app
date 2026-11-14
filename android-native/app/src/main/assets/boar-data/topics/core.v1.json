@@ -1,7 +1,7 @@
 {
   "id": "core",
   "version": 1,
-  "status": "draft, for t9's review",
+  "status": "reviewed by t9, 14 Nov",
   "title": "The fixed 17",
   "titlePt": "As 17 fixas",
   "about": "The 17 questions of eval-set.json since 6 Oct, run exactly as they are there (ids, text, set version). The rules only read their answers.",

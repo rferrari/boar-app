@@ -165,7 +165,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                         verdict?.let { v ->
                             Text(t("native.eval.verdict.${v.verdict.name}").uppercase(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), fontWeight = FontWeight.SemiBold,
-                                color = when (v.verdict) { Scorecard.Verdict.PASS -> c.textAccentEmerald; Scorecard.Verdict.FAIL -> c.crimson400; else -> c.textMuted })
+                                color = when (v.verdict) { Scorecard.Verdict.PASS -> c.textAccentEmerald; Scorecard.Verdict.FAIL -> c.crimson400; Scorecard.Verdict.KNOWN -> c.textAccentAmber; else -> c.textMuted })
                         }
                         Text((outcome ?: "—").uppercase(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = outcomeColor, fontWeight = FontWeight.SemiBold)
                     }

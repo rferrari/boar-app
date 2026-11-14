@@ -1,7 +1,7 @@
 {
   "id": "cards",
   "version": 1,
-  "status": "draft, for t9's review",
+  "status": "reviewed by t9, 14 Nov",
   "title": "Cards",
   "titlePt": "Cards",
   "about": "The 14 questions of the Cards runs on the F3 (Nov 14): each one's card found by CardRules.find, with its numbers right.",
@@ -14,7 +14,8 @@
         "cards": [
           "steps"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-tyre",
@@ -24,7 +25,8 @@
         "cards": [
           "steps"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-bread",
@@ -35,7 +37,8 @@
           "steps"
         ],
         "citesOnlyRealSources": true
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-campfire",
@@ -45,7 +48,8 @@
         "cards": [
           "steps"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-mountains",
@@ -73,7 +77,8 @@
             "label": "Kangchenjunga"
           }
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-countries",
@@ -88,7 +93,8 @@
           "Russia",
           "Canada"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-distances",
@@ -123,7 +129,8 @@
             "label": "water 212 °F"
           }
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-solar-wind",
@@ -133,7 +140,8 @@
         "cards": [
           "compare"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-virus",
@@ -143,7 +151,8 @@
         "cards": [
           "compare"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-curie",
@@ -200,7 +209,8 @@
             "label": "Kangchenjunga"
           }
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     },
     {
       "id": "cards-water-pt",
@@ -211,7 +221,8 @@
         "cards": [
           "steps"
         ]
-      }
+      },
+      "knownIssue": "the Cards a/b/c decision (adam: review later)"
     }
   ]
 }

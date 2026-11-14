@@ -1,13 +1,12 @@
 {
   "id": "plugins",
   "version": 1,
-  "status": "draft, for t9's review",
+  "status": "reviewed by t9, 14 Nov",
   "title": "Plugins and calculators",
   "titlePt": "Plugins e calculadoras",
   "about": "Each plugin's must-catch questions, with the exact text it gives (taken from the engine at bde73901). Runs with these plugins on, whatever the app has on.",
   "labs": [
     "cohazard",
-    "polyglot",
     "calc",
     "distance",
     "facts",
@@ -192,7 +191,8 @@
       "rules": {
         "tool": "language"
       },
-      "toRead": "A language BOAR doesn't answer in: the plugin says so, in the app's language."
+      "toRead": "A language BOAR doesn't answer in: the plugin says so, in the app's language. Asked only with Polyglot on (it is off by default; adam may deprecate it): skipped otherwise, and the scorecard says so.",
+      "needsLab": "polyglot"
     }
   ]
 }

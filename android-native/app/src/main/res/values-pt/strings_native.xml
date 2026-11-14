@@ -809,6 +809,8 @@
     <string name="native_eval_scorecard_note" formatted="false">O computador só pontua o que uma regra consegue checar (o texto exato de um plugin, o idioma, os cards, as fontes, os números). O resto é para ler.</string>
     <string name="native_eval_verdict_PASS" formatted="false">passou</string>
     <string name="native_eval_verdict_FAIL" formatted="false">falhou</string>
+    <string name="native_eval_verdict_KNOWN" formatted="false">problema conhecido</string>
+    <string name="native_eval_verdict_SKIPPED" formatted="false">pulada</string>
     <string name="native_eval_verdict_TO_READ" formatted="false">para ler</string>
     <string name="native_eval_saved_title" formatted="false">Execuções salvas ({{count}})</string>
     <string name="native_eval_saved_empty" formatted="false">Nenhuma execução salva ainda. Cada execução fica neste celular até você apagar.</string>

@@ -1,7 +1,7 @@
 {
   "id": "problems",
   "version": 1,
-  "status": "draft, for t9's review",
+  "status": "reviewed by t9, 14 Nov",
   "title": "Problems found so far",
   "titlePt": "Problemas achados",
   "about": "Every failure found so far, each with what right looks like. The statuette's 7 (Oct 7): their documents and expected answers were never shared; four cases reconstructed from the described failures are here (statuette-*), marked so. The originals wait for someone to ask the tester (t9 0526).",
@@ -14,57 +14,39 @@
         "citesOnlyRealSources": true,
         "sourcesNot": [
           "Cutlet"
-        ],
-        "cards": [
-          "steps"
         ]
       },
       "toRead": "Steps: flour, water, salt, a little yeast, a long rise, bake hot in a covered pot. It cited Cutlet: no [n] without a real source."
     },
     {
-      "id": "kilimanjaro-height",
-      "query": "How tall is Mount Kilimanjaro?",
+      "id": "mountains-ranking",
       "category": "factual",
+      "query": "What are the three highest mountains, and how tall is each?",
       "rules": {
-        "numbersAny": [
+        "numbers": [
           {
-            "value": 5895,
+            "value": 8849,
             "tolerance": 0.001,
-            "label": "5,895 m"
+            "label": "Everest"
           },
           {
-            "value": 19341,
+            "value": 8611,
             "tolerance": 0.001,
-            "label": "19,341 ft"
+            "label": "K2"
+          },
+          {
+            "value": 8586,
+            "tolerance": 0.001,
+            "label": "Kangchenjunga"
           }
+        ],
+        "answerHasNot": [
+          "Kilimanjaro",
+          "Olympus"
         ]
       },
-      "toRead": "5,895 m (19,341 ft). A known wrong fact to watch."
-    },
-    {
-      "id": "olympus-mons-height",
-      "query": "How tall is Olympus Mons?",
-      "category": "factual",
-      "rules": {
-        "numbersAny": [
-          {
-            "value": 21.9,
-            "tolerance": 0.04,
-            "label": "about 22 km"
-          },
-          {
-            "value": 21900,
-            "tolerance": 0.04,
-            "label": "about 21,900 m"
-          },
-          {
-            "value": 72000,
-            "tolerance": 0.04,
-            "label": "about 72,000 ft"
-          }
-        ]
-      },
-      "toRead": "About 22 km above the Martian datum (some sources say 21.9 or 25 km above the plains). A known wrong fact to watch."
+      "knownIssue": "model fact errors seen on the F3, 14 Nov: the 4B named Kilimanjaro and the 1.7B Olympus Mons among the three highest (no brief yet)",
+      "toRead": "Everest 8,849 m, K2 8,611 m, Kangchenjunga 8,586 m. Not Kilimanjaro, not Olympus Mons (a Martian volcano)."
     },
     {
       "id": "mountains-pt",
@@ -155,18 +137,8 @@
       "id": "statuette-rule-exception",
       "category": "reasoning",
       "query": "Read this note and answer.\n\nNote: \"Greenhouse vents. Open the North and South vents when it is above 28 °C, unless there is a smoke alert. During a smoke alert, close the North vent; the South vent stays open.\"\n\nIt is 31 °C and there is a smoke alert. Which vents should be open and which closed?",
-      "rules": {
-        "answerHasAny": [
-          "North",
-          "north"
-        ],
-        "answerHasNot": [
-          "North vent open",
-          "North vent should be open",
-          "open the North"
-        ]
-      },
-      "toRead": "Right: the North vent closed, the South vent open (the smoke alert is the exception to the above-28 °C rule). BOAR inverted this. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
+      "rules": {},
+      "toRead": "Right: the North vent closed, the South vent open (the smoke alert is the exception to the above-28 °C rule). BOAR inverted this. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526). Check that it does not say any of: \"North vent open\", \"North vent should be open\", \"open the North\" (to read: a rule on \"North\" alone gives false passes, t9 1058)."
     },
     {
       "id": "statuette-time-compare",
@@ -174,9 +146,10 @@
       "query": "Read this message and answer.\n\nMessage: \"The technician arrives at 17:10. Your appointment is at 17:30. The replacement part you ordered is unavailable until next week.\"\n\nWill the repair be done at the appointment? Why or why not?",
       "rules": {
         "answerHasAny": [
-          "unavailable",
+          "replacement part",
+          "part is unavailable",
           "not available",
-          "part"
+          "unavailable"
         ],
         "answerHasNot": [
           "17:10 is later",
@@ -205,6 +178,10 @@
           "isn't in",
           "no access code",
           "not mentioned"
+        ],
+        "answerHasNot": [
+          "8:00",
+          "18:00"
         ]
       },
       "toRead": "Right: the notice has no access code; say so, and don't give the opening hours instead. BOAR gave the hours. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."

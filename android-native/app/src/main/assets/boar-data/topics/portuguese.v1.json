@@ -1,7 +1,7 @@
 {
   "id": "portuguese",
   "version": 1,
-  "status": "draft, for t9's review",
+  "status": "reviewed by t9, 14 Nov",
   "title": "Portuguese",
   "titlePt": "Português",
   "about": "The language fix's 30 Portuguese questions (lang-20261114, arm 0 and arm 1): every answer in Portuguese, and no [n] without a real source.",

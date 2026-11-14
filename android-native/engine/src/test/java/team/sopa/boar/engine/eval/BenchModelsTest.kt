@@ -107,13 +107,15 @@ class BenchModelsTest {
         val topicDir = File(assets, "topics")
         val health = BenchTopic.parse(File(topicDir, "health.v1.json").readText())
         assertEquals(listOf("health-co", "health-burn", "health-sting", "health-fever", "health-dose"), health.questions.map { it.id })
-        // keptShort only where the chat keeps it short: the CO alarm with symptoms and the paracetamol dose aren't health
-        // questions to QueryContext today (found 14 Nov), so they answer at the run's style; the other three are.
+        // Every rule says what right looks like (t9 1058): all five kept short. Where the chat doesn't keep it short today
+        // (the CO alarm with symptoms, the paracetamol dose: not health questions to QueryContext, found 14 Nov), the
+        // question carries its known issue, so the scorecard shows an expected failure, not a regression.
         for (q in health.questions) {
-            assertTrue(q.id, q.rules!!.noTool)
-            assertEquals(q.id, q.rules!!.keptShort, ShortAnswer.reason("detailed", q.query!!, null) == "health")
+            assertTrue(q.id, q.rules!!.keptShort)
+            if (ShortAnswer.reason("detailed", q.query!!, null) != "health") assertTrue(q.id, q.knownIssue != null)
         }
-        assertEquals(listOf("health-burn", "health-sting", "health-fever"), health.questions.filter { it.rules!!.keptShort }.map { it.id })
+        // health-co: no "noTool" (it passed only because no card fires, the safety gap); right is the acute CO card first.
+        assertTrue(!health.questions.first { it.id == "health-co" }.rules!!.noTool)
         // The preset the requests use: both models' order comes from the request.
         val sets = EvalSets.parse(File(assets, "eval-set.json").readText())
         val topics = BenchTopic.newest(topicDir.list()!!.toList()).map { BenchTopic.parse(File(topicDir, it).readText()) }.associateBy { it.id }

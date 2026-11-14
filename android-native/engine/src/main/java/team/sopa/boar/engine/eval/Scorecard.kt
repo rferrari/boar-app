@@ -1,5 +1,7 @@
 package team.sopa.boar.engine.eval
 
+import kotlinx.serialization.json.jsonPrimitive
+
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,7 +20,8 @@ import kotlin.math.abs
  * The computer scores only what a rule can check; the rest is "to read". Pure: rows in, scorecard out.
  */
 object Scorecard {
-    enum class Verdict { PASS, FAIL, TO_READ }
+    /** KNOWN: failed, with a known issue (TopicQuestion.knownIssue); SKIPPED: its plugin was off in that run. */
+    enum class Verdict { PASS, FAIL, TO_READ, KNOWN, SKIPPED }
     enum class Trend { UP, DOWN, SAME }
 
     /** One rule on one answer: [ok] null when the row can't tell (an old run without the field). */
@@ -33,6 +36,8 @@ object Scorecard {
         val topic: String, val passed: Int, val checked: Int, val toRead: Int, val total: Int,
         /** The previous run's passed and checked for this topic, when it ran it. */
         val previousPassed: Int? = null, val previousChecked: Int? = null, val trend: Trend? = null,
+        /** Failures with a known issue, and questions skipped (their plugin off): counted apart from [checked]. */
+        val known: Int = 0, val skipped: Int = 0,
     )
 
     data class ModelLine(
@@ -57,11 +62,18 @@ object Scorecard {
         val topic = topicOf(row, topics.values)
         val q = topics[topic]?.question(row.str("queryId").orEmpty())
         val checks = ArrayList<Check>()
+        // Its plugin off in this run (rows say which were on): not asked, said so.
+        q?.needsLab?.let { lab ->
+            val on = (row["labsOn"] as? kotlinx.serialization.json.JsonArray)?.map { it.jsonPrimitive.content }
+            if (on == null || lab !in on) return RowResult(row.str("queryId").orEmpty(), topic, row.str("modelId"), BenchPresets.passKey(row), Verdict.SKIPPED,
+                listOf(Check("needsLab", null, "$lab off")), q.toRead)
+        }
         val outcome = row.str("outcome")
         if (outcome != "success") checks += Check("answered", false, outcome ?: "no outcome")
         q?.rules?.takeIf { !it.isEmpty }?.let { checks += check(row, it) }
         val known = checks.filter { it.ok != null }
         val verdict = when {
+            known.any { it.ok == false } && q?.knownIssue != null -> Verdict.KNOWN
             known.any { it.ok == false } -> Verdict.FAIL
             known.isEmpty() -> Verdict.TO_READ
             else -> Verdict.PASS
@@ -147,11 +159,13 @@ object Scorecard {
         val before = previous?.map { judge(it, topics) }?.groupBy { it.topic }
         val lines = results.groupBy { it.topic }.map { (topic, rs) ->
             val passed = rs.count { it.verdict == Verdict.PASS }
-            val checked = rs.count { it.verdict != Verdict.TO_READ }
+            // Checked = pass or fail; known failures and skipped questions are counted apart, so the trend shows regressions.
+            val checked = rs.count { it.verdict == Verdict.PASS || it.verdict == Verdict.FAIL }
             val prev = before?.get(topic)
             val pPassed = prev?.count { it.verdict == Verdict.PASS }
-            val pChecked = prev?.count { it.verdict != Verdict.TO_READ }
-            TopicLine(topic, passed, checked, rs.size - checked, rs.size, pPassed, pChecked, trend(passed, checked, pPassed, pChecked))
+            val pChecked = prev?.count { it.verdict == Verdict.PASS || it.verdict == Verdict.FAIL }
+            TopicLine(topic, passed, checked, rs.count { it.verdict == Verdict.TO_READ }, rs.size, pPassed, pChecked, trend(passed, checked, pPassed, pChecked),
+                known = rs.count { it.verdict == Verdict.KNOWN }, skipped = rs.count { it.verdict == Verdict.SKIPPED })
         }
         val models = rows.groupBy { (it.str("modelId") ?: it.str("configId").orEmpty()) to BenchPresets.passKey(it) }.map { (k, rs) ->
             val done = rs.filter { it.str("outcome") == "success" }
@@ -179,7 +193,10 @@ object Scorecard {
             append(t.topic.padEnd(12)).append(' ').append("${t.passed}/${t.checked}")
             if (t.previousChecked != null) append(" (was ${t.previousPassed}/${t.previousChecked})")
             t.trend?.let { append(' ').append(it.name.lowercase()) }
-            append(" · ${t.toRead} to read\n")
+            append(" · ${t.toRead} to read")
+            if (t.known > 0) append(" · ${t.known} known issues")
+            if (t.skipped > 0) append(" · ${t.skipped} skipped (plugin off)")
+            append('\n')
         }
         for (m in card.models) {
             append("${m.modelId} · ${m.pass}: ${m.answers} answers, first word ${secs(m.firstWordMs)}, whole answer ${secs(m.wholeAnswerMs)}, peak ")

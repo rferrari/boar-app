@@ -66,6 +66,13 @@ data class TopicQuestion(
     val rules: TopicRules? = null,
     /** What right looks like, for the person reading the answer. */
     val toRead: String = "",
+    /**
+     * Today fails this, and a fix is known (a board card or a brief): its failure shows as "known", apart from a
+     * regression (t9 1058: "a rule must say what right looks like, never what happens today").
+     */
+    val knownIssue: String? = null,
+    /** Asked only with this plugin on (Polyglot is off by default): skipped, and said so, when the run had it off. */
+    val needsLab: String? = null,
 )
 
 /**

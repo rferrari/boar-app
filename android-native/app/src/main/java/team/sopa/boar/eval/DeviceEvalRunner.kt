@@ -69,6 +69,8 @@ class DeviceEvalRunner(
     /** The app version on every row, so a saved or exported run says which build answered. */
     /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
     @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
+    /** The ids of the labs a run switched on (rows say them: a question that needs one is skipped when it's off). */
+    @Volatile private var runLabIds: List<String>? = null
     /** The request's labs ask for staged answers (Boar Staged Answers); null: the app's (AnswerModes). */
     @Volatile private var runStagedRequested: Boolean? = null
     @Volatile private var runStaged: Boolean? = null
@@ -110,6 +112,7 @@ class DeviceEvalRunner(
         }
         val labs = ids?.filter { it != "staged" }?.mapNotNull { team.sopa.boar.labs.LabRegistry.byId(it) }
         runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        runLabIds = labs?.map { it.id }
         runStaged = ids?.contains("staged")
     }
 
@@ -234,6 +237,7 @@ class DeviceEvalRunner(
             writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
         } }
         runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        runLabIds = labs?.map { it.id }
         runStaged = runStagedRequested
         // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
         val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
@@ -403,6 +407,7 @@ class DeviceEvalRunner(
                             plan?.let { "level" to JsonPrimitive(it.preset.level.id) },
                             plan?.topicOf?.get(q.id)?.let { "topic" to JsonPrimitive(it) },
                             plan?.topicOf?.get(q.id)?.let { t -> topics?.get(t)?.let { "topicVersion" to JsonPrimitive(it.version) } },
+                            runLabIds?.let { ids -> "labsOn" to kotlinx.serialization.json.JsonArray(ids.map { JsonPrimitive(it) }) },
                         )
                         val styled = JsonObject(row + extra)
                         rows += styled

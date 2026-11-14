@@ -36,10 +36,10 @@ class BenchPresetsTest {
         assertEquals(sets.extraSets, topics.getValue("vitalik").queries(sets))
     }
 
-    @Test fun `every topic file parses, is a draft for t9, and its questions resolve`() {
+    @Test fun `every topic file parses, is reviewed by t9, and its questions resolve`() {
         assertEquals(setOf("core", "vitalik", "plugins", "problems", "howto", "research", "quick", "cards", "portuguese", "health"), topics.keys)
         for (t in topics.values) {
-            assertTrue(t.id, t.status.startsWith("draft, for t9's review"))
+            assertEquals(t.id, "reviewed by t9, 14 Nov", t.status)
             val qs = t.queries(sets)
             assertEquals(t.id, qs.size, qs.map { it.id }.toSet().size)
             for (q in t.questions) if (!q.fromSet) assertEquals("${t.id}-v1", qs.first { it.id == q.id }.setVersion)

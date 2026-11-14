@@ -96,3 +96,29 @@ class ScorecardTest {
         assertEquals(2.5e9, models[0].peakRssBytes!!, 1e-3)
     }
 }
+
+/** t9 1058: a failure with a known issue shows apart from a regression; a question whose plugin is off is skipped. */
+class ScorecardKnownSkippedTest {
+    private fun row(id: String, answer: String, labs: List<String>? = null) = kotlinx.serialization.json.buildJsonObject {
+        put("queryId", kotlinx.serialization.json.JsonPrimitive(id)); put("answer", kotlinx.serialization.json.JsonPrimitive(answer))
+        put("outcome", kotlinx.serialization.json.JsonPrimitive("success")); put("topic", kotlinx.serialization.json.JsonPrimitive("t"))
+        labs?.let { l -> put("labsOn", kotlinx.serialization.json.JsonArray(l.map { kotlinx.serialization.json.JsonPrimitive(it) })) }
+    }
+    private val topic = BenchTopic("t", 1, title = "T", questions = listOf(
+        TopicQuestion("known", "q?", rules = TopicRules(answerHas = listOf("right")), knownIssue = "a fix"),
+        TopicQuestion("plain", "q?", rules = TopicRules(answerHas = listOf("right"))),
+        TopicQuestion("lab", "q?", rules = TopicRules(answerHas = listOf("right")), needsLab = "polyglot"),
+    ))
+
+    @org.junit.Test fun `known failures and skipped questions are counted apart`() {
+        val card = Scorecard.of(listOf(row("known", "wrong"), row("plain", "right"), row("lab", "right", listOf("calc"))), mapOf("t" to topic))
+        org.junit.Assert.assertEquals(Scorecard.Verdict.KNOWN, card.rows[0].verdict)
+        org.junit.Assert.assertEquals(Scorecard.Verdict.SKIPPED, card.rows[2].verdict)
+        val line = card.topics.single()
+        org.junit.Assert.assertEquals(1, line.passed); org.junit.Assert.assertEquals(1, line.checked)
+        org.junit.Assert.assertEquals(1, line.known); org.junit.Assert.assertEquals(1, line.skipped)
+        org.junit.Assert.assertTrue(Scorecard.text(card).contains("1 known issues") && Scorecard.text(card).contains("1 skipped (plugin off)"))
+        // With its plugin on, the question is asked and judged.
+        org.junit.Assert.assertEquals(Scorecard.Verdict.PASS, Scorecard.judge(row("lab", "right", listOf("polyglot")), mapOf("t" to topic)).verdict)
+    }
+}
