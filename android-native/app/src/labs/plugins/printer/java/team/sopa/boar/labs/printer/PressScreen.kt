@@ -118,8 +118,6 @@ private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT, SETTINGS
 
 private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
-private val GOLD = Color(0xFFF0B44C)
-private val GOLD_INK = Color(0xFF1A1530)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -291,8 +289,7 @@ internal fun PressScreen(lab: LabPlugin) {
             onPhoto = { pickPhoto.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
             onHeading = { addBlock(Block.Heading(PressStore.newId("h"), I18n.t(ctx, "native.labs.printer.newHeading"))) },
             onDrawing = { sheet = Sheet.DRAWINGS },
-            onChat = { sheet = Sheet.ADD },
-            onSettings = { sheet = Sheet.SETTINGS })
+            onChat = { sheet = Sheet.ADD })
         // The whole bottom is the chat's input bar (adam, Nov 12: a minimalist toolbar). Its left button opens one menu with
         // everything, grouped (add, save as, projects, page). With a text block selected, what is typed tells BOAR how to
         // change that text (NOW and REWRITTEN, nothing changes before Use); with nothing selected it is a note.
@@ -309,19 +306,21 @@ internal fun PressScreen(lab: LabPlugin) {
             }, onStop = {}, voiceEnabled = voice,
             placeholder = t(if (target != null) "native.labs.printer.askPlaceholder" else "native.labs.printer.notePlaceholder"),
             onLeft = { sheet = Sheet.PROJECTS }, leftLabel = t("native.labs.printer.menu"),
-            // A page with lines, not ☰: the paragraph icon is bare lines and the two looked the same (adam, Nov 13).
-            left = { team.sopa.boar.ui.PackIcon(R.drawable.lab_printer_ic_menu_doc, 22.dp, tint = c.textHeading, description = t("native.labs.printer.menu")) },
+            // ⋯, the plugin's menu, as on every plugin page (adam, Nov 14).
+            left = { team.sopa.boar.labs.PluginMenuIcon(t("native.labs.printer.menu")) },
             sendIcon = if (target != null) team.sopa.boar.R.drawable.ic_send else R.drawable.lab_printer_ic_add,
             sendLabel = t(if (target != null) "native.labs.printer.rwAsk" else "native.labs.printer.addNote"), queues = false)
     }
 
+    // The header's gear (PluginSettings, adam Nov 14) opens Press settings.
+    if (team.sopa.boar.labs.PluginSettings.open == lab.id) LaunchedEffect(Unit) { team.sopa.boar.labs.PluginSettings.open = null; sheet = Sheet.SETTINGS }
     if (focusTitle) LaunchedEffect(Unit) { delay(150); runCatching { titleFocus.requestFocus() }; focusTitle = false }
 
     sheet?.let { which ->
-        ModalBottomSheet({ sheet = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.bgSurface) {
+        ModalBottomSheet({ sheet = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.bgCardElevated) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
                 when (which) {
-                    Sheet.PROJECTS -> ProjectsSheet(library, lab,
+                    Sheet.PROJECTS -> ProjectsSheet(library,
                         onSwitch = { id -> PressStore.change { it.switchTo(id) }; sheet = null },
                         onNew = { name ->
                             PressStore.change { it.newProject(PressStore.newId("p"), name.ifBlank { I18n.t(ctx, "native.labs.printer.untitled") }, System.currentTimeMillis()) }
@@ -347,7 +346,7 @@ internal fun PressScreen(lab: LabPlugin) {
                                 when (b) { is Block.Answer -> b.shownHeading + "\n" + PressReceipt.plain(b.text); else -> textOf(b) }
                             }), onSelf = { askOwn = null; sheet = null; editing = target.id }, onClose = { askOwn = null; sheet = null })
                     }
-                    Sheet.SETTINGS -> SettingsSheet(showBreaks, options,
+                    Sheet.SETTINGS -> SettingsSheet(lab, showBreaks, options,
                         onBreaks = { on -> showBreaks = on; team.sopa.boar.labs.LabPrefs.putString(BREAKS_PREF, if (on) "on" else "off") },
                         onOptions = { o -> options = o; PressPage.saveOptions(o) })
                     Sheet.DRAWINGS -> DrawingsSheet { f ->
@@ -378,22 +377,10 @@ private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").tr
 // ---- The bars ----
 
 
-@OptIn(ExperimentalFoundationApi::class)
+/** Press's tools are the plugin pattern's round tools (team.sopa.boar.labs.PluginTool, adam Nov 14). */
 @Composable
 private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false,
-                       size: Dp = 44.dp, onClick: () -> Unit) {
-    val c = Boar.colors
-    val tint = when { danger -> c.crimson400; on -> GOLD; else -> c.textHeading }
-    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
-        .border(1.dp, if (on) GOLD else c.borderSubtle, CircleShape)
-        // The name, spoken; a long press shows it too.
-        .combinedClickable(enabled = enabled, role = Role.Button, onClickLabel = label, onLongClick = { Toasts.show(label) }, onClick = onClick),
-        contentAlignment = Alignment.Center) {
-        Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)
-        // Open (the caption being typed): a small dot, so the gold ring stays the current placement's alone (t9 1721).
-        if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 6.dp).size(7.dp).background(GOLD, CircleShape))
-    }
-}
+                       size: Dp = 44.dp, onClick: () -> Unit) = team.sopa.boar.labs.PluginTool(icon, label, enabled, on, danger, dot, size, onClick)
 
 @Composable
 private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onCaption: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
@@ -437,7 +424,7 @@ private fun SheetTitle(text: String) = Text(text, style = Boar.type.titleSm, col
 @Composable
 private fun SheetRow(text: String, small: String? = null, icon: Int? = null, accent: Boolean = false, danger: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
-    val color = when { danger -> c.crimson400; accent -> GOLD; else -> c.textPrimary }
+    val color = when { danger -> c.crimson400; accent -> Boar.colors.emerald500; else -> c.textPrimary }
     Column {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
         Row(Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick).padding(vertical = 14.dp, horizontal = 2.dp),
@@ -450,7 +437,7 @@ private fun SheetRow(text: String, small: String? = null, icon: Int? = null, acc
 }
 
 @Composable
-private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
+private fun ProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Unit, onNew: (String) -> Unit, onRename: () -> Unit,
                           onDelete: () -> Unit, onMarkdown: () -> Unit,
                           onPdf: () -> Unit = {}, canSave: Boolean = true, onAll: () -> Unit = {}) {
     val c = Boar.colors
@@ -467,9 +454,9 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
         Icon(painterResource(R.drawable.lab_printer_ic_download), null, Modifier.size(22.dp), tint = c.textPrimary)
         Text(t("native.labs.printer.saveAs"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).padding(start = 6.dp))
         for ((label, action, on) in listOf(Triple(".pdf", onPdf, canSave), Triple(".md", onMarkdown, true)))
-            Text(label, style = Boar.type.body, color = if (label == ".pdf") GOLD_INK else c.textPrimary, fontWeight = FontWeight.Bold,
-                modifier = Modifier.alpha(if (on) 1f else 0.4f).clip(RoundedCornerShape(999.dp)).background(if (label == ".pdf") GOLD else c.bgCard)
-                    .border(1.dp, if (label == ".pdf") GOLD else c.borderSubtle, RoundedCornerShape(999.dp))
+            Text(label, style = Boar.type.body, color = if (label == ".pdf") Boar.colors.textInverse else c.textPrimary, fontWeight = FontWeight.Bold,
+                modifier = Modifier.alpha(if (on) 1f else 0.4f).clip(RoundedCornerShape(999.dp)).background(if (label == ".pdf") Boar.colors.emerald500 else c.bgCard)
+                    .border(1.dp, if (label == ".pdf") Boar.colors.emerald500 else c.borderSubtle, RoundedCornerShape(999.dp))
                     .clickable(enabled = on, role = Role.Button, onClickLabel = t("native.labs.printer.saveAs") + " " + label, onClick = action)
                     .padding(horizontal = 16.dp, vertical = 10.dp))
     }
@@ -486,12 +473,12 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
         val focus = remember { FocusRequester() }
         LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
-        BasicTextField(name, { name = it.take(60) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(GOLD),
+        BasicTextField(name, { name = it.take(60) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(Boar.colors.emerald500),
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp).focusRequester(focus).background(c.bgCard, RoundedCornerShape(10.dp))
                 .border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp),
             decorationBox = { inner -> if (name.isEmpty()) Text(t("native.labs.printer.newProjectHint"), style = Boar.type.body, color = c.textDim); inner() })
-        Text(t("native.labs.printer.create"), style = Boar.type.body, color = GOLD_INK, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp).clip(RoundedCornerShape(12.dp)).background(GOLD)
+        Text(t("native.labs.printer.create"), style = Boar.type.body, color = Boar.colors.textInverse, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp).clip(RoundedCornerShape(12.dp)).background(Boar.colors.emerald500)
                 .clickable(role = Role.Button) { onNew(name.trim()) }.padding(vertical = 14.dp))
     }
     SheetRow(t("native.labs.printer.rename", "name" to current.name), icon = R.drawable.lab_printer_ic_edit, onClick = onRename)
@@ -504,8 +491,6 @@ private fun ProjectsSheet(library: PressDoc.Library, lab: LabPlugin, onSwitch: (
             else -> onDelete()
         }
     }
-    Spacer(Modifier.height(8.dp))
-    team.sopa.boar.labs.AboutPluginFold(lab)
 }
 
 /** The text "Ask BOAR to rewrite it" works on: a heading's, note's, paragraph's or list's text, an answer's text (not its heading). */
@@ -533,9 +518,9 @@ private fun Version(label: String, text: String, new: Boolean, warning: String? 
 @Composable
 private fun SheetButton(text: String, primary: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(text, style = Boar.type.body, color = if (primary) GOLD_INK else c.textPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+    Text(text, style = Boar.type.body, color = if (primary) Boar.colors.textInverse else c.textPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(top = 10.dp).alpha(if (enabled) 1f else 0.4f).clip(RoundedCornerShape(12.dp))
-            .background(if (primary) GOLD else c.bgCard).border(1.dp, if (primary) GOLD else c.borderSubtle, RoundedCornerShape(12.dp))
+            .background(if (primary) Boar.colors.emerald500 else c.bgCard).border(1.dp, if (primary) Boar.colors.emerald500 else c.borderSubtle, RoundedCornerShape(12.dp))
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(vertical = 14.dp))
 }
 
@@ -629,7 +614,7 @@ private fun EditSheet(block: Block, typed: String? = null, document: String = ""
                             .border(1.dp, c.borderSubtle, RoundedCornerShape(999.dp)).clickable(enabled = !chatBusy, role = Role.Button) { ask(option, null) }
                             .padding(horizontal = 14.dp, vertical = 9.dp))
             }
-            BasicTextField(own, { own = it.take(120) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(GOLD),
+            BasicTextField(own, { own = it.take(120) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(Boar.colors.emerald500),
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp).background(c.bgCard, RoundedCornerShape(10.dp))
                     .border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp),
                 decorationBox = { inner -> if (own.isEmpty()) Text(t("native.labs.printer.rwOwnHint"), style = Boar.type.body, color = c.textDim); inner() })
@@ -646,7 +631,7 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
     val c = Boar.colors
     var query by remember { mutableStateOf("") }
     SheetTitle(t("native.labs.printer.allProjects", "count" to library.projects.size))
-    BasicTextField(query, { query = it.take(60) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(GOLD),
+    BasicTextField(query, { query = it.take(60) }, singleLine = true, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(Boar.colors.emerald500),
         modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).background(c.bgCard, RoundedCornerShape(10.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).padding(12.dp),
         decorationBox = { inner -> if (query.isEmpty()) Text(t("native.labs.printer.searchProjects"), style = Boar.type.body, color = c.textDim); inner() })
     val found = library.search(query)
@@ -659,36 +644,24 @@ private fun AllProjectsSheet(library: PressDoc.Library, onSwitch: (String) -> Un
 
 /**
  * What can be added, as one row of icons with spoken names (a long press shows the name): heading, paragraph, list,
- * divider, photo (adam's order, Nov 13), then a drawing and a chat's answers, and last the page breaks switch (gold when on;
- * adam, Nov 13: "fit the show page toggle on toolbar… without horizontal scroll. and remove it from main menu"). It never
- * scrolls: the buttons share the width, 44 dp at most.
+ * divider, photo (adam's order, Nov 13), then a drawing and a chat's answers. Press settings left the toolbar for the
+ * header's gear (adam, Nov 14). From the left, 44 dp at most, never scrolling (the plugin pattern's toolbar).
  */
 @Composable
-private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit,
-                   onSettings: () -> Unit) {
-    val c = Boar.colors
-    Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
-            val size = ((maxWidth - ADD_GAP * (ADD_BUTTONS - 1)) / ADD_BUTTONS).coerceAtMost(44.dp)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                // No "Add" word: each icon says its name (spoken, and on a long press).
-                IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), size = size, onClick = onHeading)
-                IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), size = size, onClick = onParagraph)
-                IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), size = size, onClick = onList)
-                IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), size = size, onClick = onDivider)
-                IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), size = size, onClick = onPhoto)
-                IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), size = size, onClick = onDrawing)
-                IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), size = size, onClick = onChat)
-                // Press settings, last (adam, Nov 14: the page breaks switch "become a settings"): page breaks, the date, the
-                // Sources section, the models and their speed.
-                IconAction(R.drawable.lab_printer_ic_settings, t("native.labs.printer.settings"), size = size, onClick = onSettings)
-            }
-        }
+private fun AddBar(onParagraph: () -> Unit, onList: () -> Unit, onDivider: () -> Unit, onPhoto: () -> Unit, onHeading: () -> Unit, onDrawing: () -> Unit, onChat: () -> Unit) {
+    // No "Add" word: each icon says its name (spoken, and on a long press). Left-aligned, never scrolling (PluginToolbar).
+    team.sopa.boar.labs.PluginToolbar(ADD_BUTTONS) { size ->
+        IconAction(R.drawable.lab_printer_ic_heading, t("native.labs.printer.heading"), size = size, onClick = onHeading)
+        IconAction(R.drawable.lab_printer_ic_paragraph, t("native.labs.printer.paragraph"), size = size, onClick = onParagraph)
+        IconAction(R.drawable.lab_printer_ic_list, t("native.labs.printer.list"), size = size, onClick = onList)
+        IconAction(R.drawable.lab_printer_ic_divider, t("native.labs.printer.divider"), size = size, onClick = onDivider)
+        IconAction(R.drawable.lab_printer_ic_photo, t("native.labs.printer.addPhoto"), size = size, onClick = onPhoto)
+        IconAction(R.drawable.lab_printer_ic_drawing, t("native.labs.printer.drawing"), size = size, onClick = onDrawing)
+        IconAction(R.drawable.lab_printer_ic_chat, t("native.labs.printer.fromChat"), size = size, onClick = onChat)
     }
 }
 
-private const val ADD_BUTTONS = 8
+private const val ADD_BUTTONS = 7
 
 /**
  * Press settings (adam, Nov 14): the paper's page breaks, and what the document prints besides its blocks: the date under
@@ -696,7 +669,7 @@ private const val ADD_BUTTONS = 8
  * always prints, so it has no switch. They apply to every project, the paper, the PDF and the Markdown.
  */
 @Composable
-private fun SettingsSheet(showBreaks: Boolean, o: PressReceipt.Options, onBreaks: (Boolean) -> Unit, onOptions: (PressReceipt.Options) -> Unit) {
+private fun SettingsSheet(lab: LabPlugin, showBreaks: Boolean, o: PressReceipt.Options, onBreaks: (Boolean) -> Unit, onOptions: (PressReceipt.Options) -> Unit) {
     SheetTitle(t("native.labs.printer.settings"))
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageBreaks"), t("native.labs.printer.pageBreaksNote"), showBreaks, onBreaks)
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showDate"), null, o.date) { onOptions(o.copy(date = it)) }
@@ -704,8 +677,10 @@ private fun SettingsSheet(showBreaks: Boolean, o: PressReceipt.Options, onBreaks
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showModels"), null, o.models) { onOptions(o.copy(models = it, speed = it && o.speed)) }
     if (o.models) team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSpeed"), null, o.speed) { onOptions(o.copy(speed = it)) }
     Text(t("native.labs.printer.madeAlways"), style = Boar.type.caption, color = Boar.colors.textMuted, modifier = Modifier.padding(top = 10.dp))
+    // About this plugin lives here, not in the menu (adam, Nov 14). Press has no How it works text.
+    Spacer(Modifier.height(8.dp))
+    team.sopa.boar.labs.AboutPluginFold(lab)
 }
-private val ADD_GAP = 4.dp
 
 /** The latest chats: a tap adds that chat's answers at the end, as "Add to Press" in the menu does. */
 @Composable
@@ -850,7 +825,7 @@ private fun TitleField(project: PressDoc.Project, s: PaperScale, focus: FocusReq
         if (draft.isNotBlank() && draft.trim() != project.name) PressStore.change { it.rename(project.id, draft) }
     }
     val label = t("native.labs.printer.docTitle")
-    BasicTextField(draft, { draft = it.replace("\n", " ") }, textStyle = s.title, cursorBrush = SolidColor(GOLD),
+    BasicTextField(draft, { draft = it.replace("\n", " ") }, textStyle = s.title, cursorBrush = SolidColor(Boar.colors.emerald500),
         modifier = Modifier.fillMaxWidth().focusRequester(focus)
             .onFocusChanged { onFocus(it.isFocused); if (!it.isFocused && draft.isBlank()) draft = project.name }
             .semantics { contentDescription = label })
@@ -899,17 +874,19 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
     }
 }
 
-/** A block's selection on the paper: gold around it, a tap selects it. */
+/** A block's selection on the paper: the theme's accent around it, a tap selects it. */
 @Composable
-private fun Modifier.selectable(selected: Boolean, onSelect: () -> Unit): Modifier = this
-    .drawBehind {
+private fun Modifier.selectable(selected: Boolean, onSelect: () -> Unit): Modifier {
+    val ring = Boar.colors.emerald500
+    return this.drawBehind {
         if (selected) {
             val o = 6.dp.toPx()
             drawRoundRect(Color(0xFFFFFAF0), Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()))
-            drawRoundRect(GOLD, Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()), style = Stroke(1.5.dp.toPx()))
+            drawRoundRect(ring, Offset(-o, -o), Size(size.width + 2 * o, size.height + 2 * o), CornerRadius(4.dp.toPx()), style = Stroke(1.5.dp.toPx()))
         }
     }
     .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onSelect)
+}
 
 /**
  * A picture in a box [maxW] points wide, in its own shape, its caption under it: typed on the page while [editing]; an
@@ -1052,7 +1029,7 @@ private fun EditField(value: String, style: TextStyle, fresh: Boolean, onFreshUs
     DisposableEffect(Unit) { onDispose { if (draft.text != latest) save(draft.text) } }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { if (fresh) { runCatching { focus.requestFocus() }; onFreshUsed() } }
-    BasicTextField(draft, { draft = it }, textStyle = style, cursorBrush = SolidColor(GOLD),
+    BasicTextField(draft, { draft = it }, textStyle = style, cursorBrush = SolidColor(Boar.colors.emerald500),
         modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF3D6), RoundedCornerShape(2.dp)).focusRequester(focus),
         decorationBox = { inner ->
             Box { if (draft.text.isEmpty() && placeholder != null) Text(placeholder, style = style.copy(color = Color(0xFFA2A6B4)), modifier = Modifier.fillMaxWidth()); inner() }

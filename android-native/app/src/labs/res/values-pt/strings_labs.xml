@@ -48,6 +48,7 @@
     <string name="native_labs_search" formatted="false">Buscar plugins</string>
     <string name="native_labs_searchNone" formatted="false">Nenhum plugin encontrado.</string>
     <string name="native_labs_editAction" formatted="false">Mudar as configurações antes</string>
+    <string name="native_labs_pluginSettings" formatted="false">Configurações do {{name}}</string>
     <string name="native_labs_aboutPlugin" formatted="false">Sobre este plugin</string>
     <string name="native_labs_tryAsk" formatted="false">Perguntar numa nova conversa</string>
     <string name="native_labs_tryEdit" formatted="false">Colocar na caixa para editar</string>

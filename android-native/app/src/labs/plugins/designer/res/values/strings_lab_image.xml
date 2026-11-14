@@ -56,7 +56,6 @@
     <string name="native_labs_image_details" formatted="false">Details</string>
     <string name="native_labs_image_how" formatted="false">• Draws one illustration at a time on this phone, offline, from a few words and a style.\n• Under an answer, 🎨 Illustrate this answer picks what to draw from it.\n• Some subjects are refused.\n• Images made here stay here; All › under the picture manages or deletes them.</string>
     <string name="native_labs_image_shapeLabel" formatted="false">Shape</string>
-    <string name="native_labs_image_default" formatted="false">★ Default</string>
     <string name="native_labs_image_styleHint" formatted="false">Tap the selected style again for no style.</string>
     <string name="native_labs_image_styleHintNone" formatted="false">No style: your words are the whole prompt.</string>
     <string name="native_labs_image_emptyCanvas" formatted="false">Type a subject and tap Draw to fill this shape.</string>
@@ -77,6 +76,9 @@
     <string name="native_labs_image_variationOf" formatted="false">Drawing {{n}} of {{total}}…</string>
     <string name="native_labs_image_variationsPick" formatted="false">Tap one to see it on its own.</string>
     <string name="native_labs_image_variationOpen" formatted="false">Show variation {{n}}</string>
+    <string name="native_labs_image_menu" formatted="false">Designer menu</string>
+    <string name="native_labs_image_drawings" formatted="false">Drawings</string>
+    <string name="native_labs_image_allDrawings" formatted="false">All drawings ({{count}})</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Designer settings</string>
     <string name="native_labs_image_waitSketch" formatted="false">Sketch</string>
     <string name="native_labs_image_qualityLabel" formatted="false">Quality</string>
@@ -90,8 +92,4 @@
     <string name="native_labs_image_shapeQuality" formatted="false">{{shape}}, {{quality}}</string>
     <string name="native_labs_image_qualityHint" formatted="false">Higher quality draws a bigger picture and takes longer. Seconds are this phone\'s own average.</string>
     <string name="native_labs_image_qualityHintUntimed" formatted="false">Higher quality draws a bigger picture and takes longer. {{level}} isn\'t timed on this phone yet: its seconds show after the first drawing at it.</string>
-    <string name="native_labs_image_drawer" formatted="false">Style, shape and quality</string>
-    <string name="native_labs_image_section_style" formatted="false">STYLE</string>
-    <string name="native_labs_image_section_shape" formatted="false">SHAPE</string>
-    <string name="native_labs_image_section_quality" formatted="false">QUALITY</string>
 </resources>

@@ -21,7 +21,7 @@ class PressDesignerLayoutTest {
 
     @Test fun `the project's name is the page header's subtitle`() {
         assertTrue(read("java/team/sopa/boar/labs/LabPlugin.kt").contains("@Composable fun pageSubtitle(): String? = null"))
-        assertTrue(read("java/team/sopa/boar/labs/LabsScreen.kt").contains("full = true, subtitle = lab.pageSubtitle(), onExit = onExit)"))
+        assertTrue(read("java/team/sopa/boar/labs/LabsScreen.kt").contains("full = true, subtitle = lab.pageSubtitle(), onExit = onExit,"))
         val lab = read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt")
         assertTrue(lab.substringAfter("override fun pageSubtitle()").substringBefore("\n    }").contains("current?.name"))
     }
@@ -39,12 +39,14 @@ class PressDesignerLayoutTest {
         val menu = s.substringAfter("private fun ProjectsSheet(").substringBefore("\n}\n")
         // The page breaks switch is on the add bar now, not in the menu (adam, Nov 13).
         assertTrue(!menu.contains("pageGroup") && !menu.contains("pageBreaks"))
-        val at = listOf("native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "AboutPluginFold(lab)").map { menu.indexOf(it) }
+        // Nov 14: About this plugin is in Press settings, not in the menu; the menu ends with Rename and Delete.
+        assertTrue(!menu.contains("AboutPluginFold"))
+        val at = listOf("native.labs.printer.saveAs", "Group(\"native.labs.printer.projects\")", "native.labs.printer.rename", "native.labs.printer.delete\"").map { menu.indexOf(it) }
         assertTrue(at.toString(), at.all { it >= 0 } && at == at.sorted())
         assertTrue(menu.contains("Triple(\".pdf\", onPdf, canSave), Triple(\".md\", onMarkdown, true)"))
         // Adding is a toolbar now, not a menu row (adam, Nov 12).
         assertTrue(!menu.contains("native.labs.printer.addTitle"))
-        assertTrue(screen.contains("onLeft = { sheet = Sheet.PROJECTS }") && screen.contains("R.drawable.lab_printer_ic_menu_doc"))
+        assertTrue(screen.contains("onLeft = { sheet = Sheet.PROJECTS }") && screen.contains("team.sopa.boar.labs.PluginMenuIcon("))
     }
 
     @Test fun `the action bar is one row that doesn't scroll, with one placement button`() {
@@ -58,11 +60,11 @@ class PressDesignerLayoutTest {
         assertTrue(screen.contains("if (i >= 0) ActionBar(") && screen.contains("else AddBar("))
         val bar = s.substringAfter("private fun AddBar(").substringBefore("\n}\n")
         for (x in listOf("lab_printer_ic_photo", "lab_printer_ic_heading", "lab_printer_ic_drawing", "lab_printer_ic_chat")) assertTrue(x, bar.contains(x))
-        // Nov 13: paragraph, list and divider too, and (Nov 14) Press settings: eight icons sharing the width, no scroll, no "Add" word.
-        assertTrue(Regex("IconAction\\(").findAll(bar).count() == 8 && !bar.contains("native.labs.printer.add\""))
-        assertTrue(!bar.contains("horizontalScroll") && bar.contains(".coerceAtMost(44.dp)") && s.contains("private const val ADD_BUTTONS = 8"))
-        // Nov 14: the last one opens Press settings (page breaks, date, sources, models, speed), not a page breaks switch.
-        assertTrue(bar.contains("IconAction(R.drawable.lab_printer_ic_settings, t(\"native.labs.printer.settings\"), size = size, onClick = onSettings)") && !bar.contains("showBreaks"))
+        // Nov 13: paragraph, list and divider too; Nov 14: settings went to the header's gear. Seven tools, the shared
+        // left-aligned toolbar (no scroll, 44 dp at most), no "Add" word.
+        assertTrue(Regex("IconAction\\(").findAll(bar).count() == 7 && !bar.contains("native.labs.printer.add\""))
+        assertTrue(!bar.contains("horizontalScroll") && bar.contains("team.sopa.boar.labs.PluginToolbar(ADD_BUTTONS)") && s.contains("private const val ADD_BUTTONS = 7"))
+        assertTrue(!bar.contains("settings") && !bar.contains("showBreaks"))
         assertTrue(s.contains("Sheet.ADD -> ChatsSheet { id, title -> sheet = null; PressStore.addChat(ctx, id, title) }"))
         assertTrue(read("plugins/printer/java/team/sopa/boar/labs/printer/PrinterLab.kt").contains("PressStore.addChat(ctx, sessionId, title)"))
         for (d in listOf("values", "values-pt")) {

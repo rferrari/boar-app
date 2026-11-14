@@ -52,6 +52,12 @@ interface LabPlugin {
      */
     val fullPage: Boolean get() = false
 
+    /**
+     * The page has a settings sheet: a gear in the header, beside ✕ (adam, Nov 14: "Gear in the header… only on header").
+     * Its tap sets [PluginSettings.open] to [id]; the page opens its sheet.
+     */
+    val hasSettings: Boolean get() = false
+
     /** A full page's subtitle in the page header (Press: the open project's name; adam, Nov 12). Null: none. */
     @Composable fun pageSubtitle(): String? = null
 

@@ -9,16 +9,16 @@ import org.junit.Test
 class All29FollowupsTest {
     private fun app(p: String) = java.io.File("../app/src/labs/plugins/$p").readText()
 
-    @Test fun `the drawer is fully open or closed, its chips take no taps while it closes, and it never reopens by itself`() {
+    @Test fun `a tool's sheet is fully open or closed, its chips take no taps while it closes, and it never reopens by itself`() {
         val s = app("designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt")
-        assertTrue(s.contains("var drawer by remember { mutableStateOf(false) }") && !s.contains("var drawer by rememberSaveable"))
-        val d = s.substringAfter("private fun DesignerDrawer(").substringBefore("\n/** Style:")
+        // The drawer became three tool sheets (adam, Nov 14); the same guards.
+        assertTrue(s.contains("var tool by remember { mutableStateOf<Tool?>(null) }") && !s.contains("var tool by rememberSaveable"))
+        val d = s.substringAfter("private fun ToolSheet(").substringBefore("\n/** \"From your last chat\"")
         assertTrue(d.contains("rememberModalBottomSheetState(skipPartiallyExpanded = true)") && d.contains("sheetState = sheet"))
         assertTrue(d.contains("val live = sheet.targetValue != androidx.compose.material3.SheetValue.Hidden"))
         assertTrue(d.contains("if (!live) Box(Modifier.matchParentSize().pointerInput(Unit)") && d.contains("it.consume()"))
-        // Opened from the left button only; the hint is plain text.
-        assertEquals(1, Regex("drawer = true").findAll(s).count())
-        assertTrue(s.contains("onLeft = { if (ready && !busy) drawer = true }"))
+        // Opened from the toolbar only.
+        assertEquals(3, Regex("\\{ tool = Tool\\.").findAll(s).count())
     }
 
     @Test fun `each quick action has a concrete target`() {
@@ -52,7 +52,8 @@ class All29FollowupsTest {
         assertTrue(icon.contains("M4,5h10M9,5v10") && !icon.contains(center.substringAfter("pathData=\"").substringBefore("\"")))
         val s = app("printer/java/team/sopa/boar/labs/printer/PressScreen.kt")
         assertTrue(s.contains("lab_printer_ic_caption, t(if (editing) \"native.labs.printer.doneCaption\" else \"native.labs.printer.caption\"), dot = editing, onClick = onCaption)"))
-        assertTrue(s.contains("if (dot) Box(Modifier.align(Alignment.TopEnd)"))
+        // The dot is drawn by the plugin pattern's shared tool (Nov 14).
+        assertTrue(java.io.File("../app/src/labs/java/team/sopa/boar/labs/PluginChrome.kt").readText().contains("if (dot) Box(Modifier.align(Alignment.TopEnd)"))
     }
 
     @Test fun `the receipt is kept together in the PDF, and no page marker runs through it on screen`() {

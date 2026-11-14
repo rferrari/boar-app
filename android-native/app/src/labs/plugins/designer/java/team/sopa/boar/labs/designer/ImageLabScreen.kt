@@ -95,6 +95,17 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
     /** The picture is the page (adam's mock-up, Nov 13): the canvas fills the space under the header and never scrolls. */
     override val fullPage = true
 
+    /** Designer settings open from the header's gear (adam, Nov 14), no longer from the caption line. */
+    override val hasSettings = true
+
+    /** What you work on (adam, Nov 14): the shown picture's words. */
+    @Composable
+    override fun pageSubtitle(): String? {
+        val vm: ImageLabViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        val state by vm.state.collectAsState()
+        return state.image?.let { state.recipe?.subject ?: state.subject }?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
     @Composable
     override fun Content() {
         val vm: ImageLabViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -202,19 +213,19 @@ private fun shapeQuality(c: ImageLab.Canvas) = t("native.labs.image.shapeQuality
 private fun styleName(key: String?) = t("native.labs.image.style.${key ?: "none"}")
 
 /**
- * The canvas (adam's mock-up, Nov 13): the picture fills the space under the header at the picked shape, with one
- * caption line under it; then the history strip and the chat's own input bar (adam, Nov 12: "use the same prompt input
- * component for designer"): its left round button opens Designer's drawer (Style, Shape, Quality and ★ Default), the
- * field says "What should I draw?" and has the mic, and the right round button draws (Stop while drawing). The plugin's
- * own settings are behind the settings icon at the end of the caption line.
+ * The canvas, in the plugin page pattern (adam, Nov 14): the picture fills the space under the header at the picked
+ * shape, with one caption line under it (the status line); the shelf (the latest drawings and "From your last chat" as a
+ * button); the toolbar, Style, Shape and Quality, each its own small sheet; and the chat's own input bar, whose left round
+ * button is the ⋯ menu (the drawings) and whose right one draws (Stop while drawing). Settings: the header's gear.
  */
 @Composable
 fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
-    // Not saved and restored: the drawer opens only from its button, never by itself (t9 1721).
-    var drawer by remember { mutableStateOf(false) }
+    // Not saved and restored: a tool's sheet and the menu open only from their buttons, never by themselves (t9 1721).
+    var tool by remember { mutableStateOf<Tool?>(null) }
+    var menu by remember { mutableStateOf(false) }
     var info by rememberSaveable { mutableStateOf(false) }
     var full by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf(false) }
@@ -222,8 +233,10 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     val ready = state.engineFound && state.modelPresent
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    // A drawing started (Draw, or 4 variations from the "i" sheet): the drawer closes, the bar shows Stop.
-    androidx.compose.runtime.LaunchedEffect(busy) { if (busy) drawer = false }
+    // A drawing started (Draw, or 4 variations from the "i" sheet): a tool's sheet and the menu close, the bar shows Stop.
+    androidx.compose.runtime.LaunchedEffect(busy) { if (busy) { tool = null; menu = false } }
+    // The header's gear (PluginSettings, adam Nov 14) opens Designer settings.
+    if (team.sopa.boar.labs.PluginSettings.open == ImageGenLab.id) androidx.compose.runtime.LaunchedEffect(Unit) { team.sopa.boar.labs.PluginSettings.open = null; settings = true }
     // Shown with what it was drawn from: tapping a drawing in the strip puts its words back in the prompt bar.
     val showFile: (File) -> Unit = { f -> if (!busy) { vm.show(f); ImageLab.recipeOf(f)?.let { subject = it.subject } } }
     val voiceEnabled = remember { team.sopa.boar.app.BoarServices.get(ctx).settings.voiceInputEnabled }
@@ -233,30 +246,37 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CanvasArt(state, vm, ready, busy, onInfo = { info = true }, onFull = { full = true }, onShow = showFile)
             }
+            // The status line: nothing to tap (the gear is in the header since Nov 14).
             Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(caption(state, ready), style = Boar.type.caption, color = if (state.error != null) c.crimson400 else c.textMuted,
                     maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                IconButton(team.sopa.boar.R.drawable.ic_settings_tweaks, t("native.labs.image.settingsTitle"), c.textMuted) { settings = true }
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         Column(Modifier.fillMaxWidth().background(c.bgCardElevated)) {
             if (state.gallery.isNotEmpty()) HistoryStrip(state, onShow = showFile, onManage = onManage)
-            // Kept above the bar (adam, Nov 12).
-            state.lastChat?.takeIf { subject.isBlank() && !busy && ready }?.let { title ->
-                Text(t("native.labs.image.fromChat", "title" to title), style = Boar.type.caption, color = c.textAccentCyan, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 10.dp).clip(RoundedCornerShape(6.dp)).clickable { subject = title }.padding(horizontal = 6.dp, vertical = 6.dp))
-            }
+            // Kept above the bar (adam, Nov 12), as a button since Nov 14: a tap puts the chat's words in the field.
+            state.lastChat?.takeIf { subject.isBlank() && !busy && ready }?.let { title -> FromChatButton(title) { subject = title } }
         }
-        val drawerLabel = t("native.labs.image.drawer")
+        // The toolbar: Style, Shape, Quality, from the left, each saying its current value (adam, Nov 14).
+        team.sopa.boar.labs.PluginToolbar(3) { size ->
+            val can = ready && !busy
+            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_style, t("native.labs.image.styleLabel") + ": " + styleName(state.style.key), enabled = can, size = size) { tool = Tool.STYLE }
+            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_shape, t("native.labs.image.shapeLabel") + ": " + shapeName(state.size.shape), enabled = can, size = size) { tool = Tool.SHAPE }
+            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_quality, t("native.labs.image.qualityLabel") + ": " + qualityName(state.size.quality), enabled = can, size = size) { tool = Tool.QUALITY }
+        }
+        val menuLabel = t("native.labs.image.menu")
         // The chat's bar, shared (team.sopa.boar.ui.chat.PromptBar): Draw never queues, so it is Stop all the while it draws.
         team.sopa.boar.ui.chat.PromptBar(subject, { subject = it }, answering = busy,
             onSend = { vm.generate(subject); keyboard?.hide(); focus.clearFocus() }, onStop = { vm.cancel() }, voiceEnabled = voiceEnabled,
-            placeholder = t("native.labs.image.placeholder"), onLeft = { if (ready && !busy) drawer = true }, leftLabel = drawerLabel,
-            left = { PackIcon(team.sopa.boar.R.drawable.ic_designer_style, 22.dp, tint = if (ready && !busy) c.textHeading else c.textDim, description = drawerLabel) },
+            placeholder = t("native.labs.image.placeholder"), onLeft = { if (!busy) menu = true }, leftLabel = menuLabel,
+            left = { team.sopa.boar.labs.PluginMenuIcon(menuLabel, tint = if (!busy) c.textHeading else c.textDim) },
             sendIcon = team.sopa.boar.R.drawable.ic_designer_draw, sendLabel = t("native.labs.image.generate"), queues = false, enabled = ready)
     }
-    if (drawer) DesignerDrawer(state, vm) { drawer = false }
+    tool?.let { which -> ToolSheet(which, onClose = { tool = null }) {
+        when (which) { Tool.STYLE -> StyleSection(state, vm); Tool.SHAPE -> ShapeSection(state, vm); Tool.QUALITY -> QualitySection(state, vm) }
+    } }
+    if (menu) DesignerMenu(state, onShow = { f -> menu = false; showFile(f) }, onAll = { menu = false; onManage() }) { menu = false }
     if (info) state.image?.let { f -> InfoSheet(f, state, vm) { info = false } } ?: run { info = false }
     if (full) state.image?.let { f -> FullView(f) { full = false } } ?: run { full = false }
     if (settings) SettingsSheet(state, vm) { settings = false }
@@ -372,13 +392,6 @@ private fun RoundOverlay(icon: Int, label: String, onClick: () -> Unit) {
     }
 }
 
-@Composable
-private fun IconButton(icon: Int, label: String, tint: Color, onClick: () -> Unit) {
-    Box(Modifier.size(40.dp).clip(CircleShape).clickable(onClickLabel = label, onClick = onClick), contentAlignment = Alignment.Center) {
-        PackIcon(icon, 20.dp, tint = tint, description = label)
-    }
-}
-
 /** The latest 12 drawings; "All N ›" opens the media manager. */
 @Composable
 private fun HistoryStrip(state: ImageLabState, onShow: (File) -> Unit, onManage: () -> Unit) {
@@ -402,43 +415,88 @@ private fun HistoryStrip(state: ImageLabState, onShow: (File) -> Unit, onManage:
     }
 }
 
+/** Designer's three tools (adam, Nov 14), each with its own small sheet. */
+private enum class Tool(val titleKey: String) { STYLE("native.labs.image.styleLabel"), SHAPE("native.labs.image.shapeLabel"), QUALITY("native.labs.image.qualityLabel") }
+
 /**
- * Designer's drawer (adam, Nov 12: "the drawer instead of the tab buttons"), opened by the bar's left round button, as
- * the chat's answer-style sheet is: the sections in DesignerCanvas.Section, Style, Shape and Quality, and "★ Default"
- * (style, shape and quality together). Every pick applies at once; the canvas reshapes behind it.
+ * A tool's sheet: its title once (adam, Nov 14: "do not repeat… shape shape, style style"), then its picks; every pick
+ * applies at once and is the default (ImageLabViewModel.setStyle). Fully open or closed, never half: half open put the
+ * Quality chips over the input bar, so a tap meant for the field could pick a quality (the F3, Nov 12). While it closes,
+ * its chips take no taps.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun DesignerDrawer(state: ImageLabState, vm: ImageLabViewModel, onClose: () -> Unit) {
+private fun ToolSheet(tool: Tool, onClose: () -> Unit, content: @Composable () -> Unit) {
     val c = Boar.colors
-    val isDefault = state.style == state.defaultStyle && state.size == state.defaultSize
-    // Fully open or closed, never half: half open put the Quality chips over the input bar, so a tap meant for the field
-    // could pick a quality (the F3, Nov 12: a drawing came out with settings nobody chose). While it closes, its chips
-    // take no taps, so a tap on a closing sheet never reaches a chip.
     val sheet = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val live = sheet.targetValue != androidx.compose.material3.SheetValue.Hidden
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, sheetState = sheet, containerColor = c.bgCardElevated) {
         Box {
-        Column(Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(t("native.labs.image.drawer"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
-                Pill(t("native.labs.image.default"), selected = isDefault) { vm.setDefaults() }
+            Column(Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                team.sopa.boar.labs.PluginSheetTitle(t(tool.titleKey))
+                content()
             }
-            for (section in DesignerCanvas.Section.entries) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(t("native.labs.image.section.${section.key}"), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted)
-                when (section) {
-                    DesignerCanvas.Section.STYLE -> StyleSection(state, vm)
-                    DesignerCanvas.Section.SHAPE -> ShapeSection(state, vm)
-                    DesignerCanvas.Section.QUALITY -> QualitySection(state, vm)
-                }
-            }
-        }
-        if (!live) Box(Modifier.matchParentSize().pointerInput(Unit) {
-            awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
-        })
+            if (!live) Box(Modifier.matchParentSize().pointerInput(Unit) {
+                awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } }
+            })
         }
     }
 }
+
+/** "From your last chat" as a button (adam, Nov 14): a chat icon and the chat's title on one line; a tap fills the field. */
+@Composable
+private fun FromChatButton(title: String, onClick: () -> Unit) {
+    val c = Boar.colors
+    val label = t("native.labs.image.fromChat", "title" to title)
+    Row(Modifier.padding(start = 10.dp, end = 10.dp, bottom = 8.dp).widthIn(max = 320.dp).clip(RoundedCornerShape(50)).background(c.bgCard)
+        .border(1.dp, c.borderDefault, RoundedCornerShape(50)).clickable(onClickLabel = label, onClick = onClick).padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        PackIcon(team.sopa.boar.R.drawable.ic_designer_chat, 16.dp, tint = c.textMuted)
+        Text(title, style = Boar.type.caption, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/**
+ * The ⋯ menu (adam, Nov 14: one menu skeleton for every plugin): the shown drawing ✓ and the three latest others, then
+ * All drawings (N) ›, the media manager. Delete stays in the ⓘ sheet. No About here: it is in settings.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun DesignerMenu(state: ImageLabState, onShow: (File) -> Unit, onAll: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val shown = state.image?.takeIf { it in state.gallery }
+    val rows = listOfNotNull(shown) + state.gallery.filter { it != shown }.take(MENU_RECENT)
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+            Text(t("native.labs.image.drawings").uppercase(), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted, modifier = Modifier.padding(bottom = 4.dp))
+            if (rows.isEmpty()) Text(t("native.labs.image.managerEmpty"), style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(vertical = 12.dp))
+            rows.forEach { f ->
+                val r = ImageLab.recipeOf(f)
+                val on = f == shown
+                Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+                Row(Modifier.fillMaxWidth().clickable(onClickLabel = r?.subject) { onShow(f) }.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Picture(f, Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)), thumb = true)
+                    Column(Modifier.weight(1f)) {
+                        Text(r?.subject ?: f.nameWithoutExtension, style = Boar.type.body, color = if (on) c.emerald500 else c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        ImageLab.canvasOf(f)?.let { size -> Text(styleName(r?.style) + " · " + shapeName(size.shape), style = Boar.type.caption, color = c.textMuted, maxLines = 1) }
+                    }
+                    if (on) Text("✓", style = Boar.type.body, color = c.emerald500, fontWeight = FontWeight.Bold)
+                }
+            }
+            if (state.gallery.isNotEmpty()) {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onAll).padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(t("native.labs.image.allDrawings", "count" to state.gallery.size), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
+                    Text("›", style = Boar.type.body, color = c.textMuted)
+                }
+            }
+        }
+    }
+}
+
+/** The menu's drawings besides the shown one. */
+private const val MENU_RECENT = 3
 
 /** Style: the real styles as a carousel of small tiles; tapping the selected one again leaves no style. */
 @Composable

@@ -26,6 +26,9 @@ object PrinterLab : LabPlugin {
     /** The paper fills the page under the header; About this plugin is in the project sheet. */
     override val fullPage = true
 
+    /** Press settings open from the header's gear (adam, Nov 14), not from the toolbar. */
+    override val hasSettings = true
+
     override suspend fun selfTest(context: android.content.Context, args: Map<String, String>, say: (String) -> Unit): Boolean {
         PressSelfTest.run(context, args, say); return true
     }

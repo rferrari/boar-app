@@ -23,7 +23,7 @@ class PageHeaderTest {
 
     @Test fun `the Plugins pages, About and Evaluation use it too, a plugin's Back names its target (t9, Nov 12)`() {
         val labs = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
-        assertTrue(labs.contains("team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit)") && !labs.contains("DoneButton("))
+        assertTrue(labs.contains("team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit, actions = actions)") && !labs.contains("DoneButton("))
         assertTrue(labs.contains("backTo = if (LabPrefs.proProfile) t(\"native.labs.title\") else t(\"native.nav.chat\")"))
         assertTrue(java.io.File("$ui/about/AboutScreen.kt").readText().contains("team.sopa.boar.ui.PageHeader(t(\"aboutScreen.title\"), onClose)"))
         assertTrue(java.io.File("$ui/eval/EvaluationScreen.kt").readText().contains("team.sopa.boar.ui.PageHeader(t(\"evaluation.title\")"))

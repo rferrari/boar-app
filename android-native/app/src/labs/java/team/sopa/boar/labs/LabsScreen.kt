@@ -118,7 +118,9 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Unit) {
     val c = Boar.colors
     if (lab.fullPage) {
-        Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit) {
+        val name = t("native.labs.${lab.id}.title")
+        Shell(name, onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
+            actions = if (lab.hasSettings) ({ PluginSettingsGear(name) { PluginSettings.open = lab.id } }) else null) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
         }
@@ -190,12 +192,14 @@ private fun Shell(
     full: Boolean = false,
     /** The header's ✕: to the chat, past the Plugins list (plugin pages only). */
     onExit: (() -> Unit)? = null,
+    /** Before ✕: a full page's settings gear (PluginSettingsGear). */
+    actions: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
         // The app's page header (t9, Nov 12: the Plugins pages had their own); a plugin's own block comes under it.
-        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit)
+        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit, actions = actions)
         if (header != null) {
             Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
             Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))

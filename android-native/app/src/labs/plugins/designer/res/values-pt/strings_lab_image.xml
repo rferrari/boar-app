@@ -56,7 +56,6 @@
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
     <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
     <string name="native_labs_image_shapeLabel" formatted="false">Formato</string>
-    <string name="native_labs_image_default" formatted="false">★ Padrão</string>
     <string name="native_labs_image_styleHint" formatted="false">Toque de novo no estilo escolhido para ficar sem estilo.</string>
     <string name="native_labs_image_styleHintNone" formatted="false">Sem estilo: suas palavras são o pedido inteiro.</string>
     <string name="native_labs_image_emptyCanvas" formatted="false">Digite um tema e toque em Desenhar para preencher este formato.</string>
@@ -77,6 +76,9 @@
     <string name="native_labs_image_variationOf" formatted="false">Desenhando {{n}} de {{total}}…</string>
     <string name="native_labs_image_variationsPick" formatted="false">Toque em uma para vê-la sozinha.</string>
     <string name="native_labs_image_variationOpen" formatted="false">Mostrar a variação {{n}}</string>
+    <string name="native_labs_image_menu" formatted="false">Menu do Designer</string>
+    <string name="native_labs_image_drawings" formatted="false">Desenhos</string>
+    <string name="native_labs_image_allDrawings" formatted="false">Todos os desenhos ({{count}})</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Ajustes do Designer</string>
     <string name="native_labs_image_waitSketch" formatted="false">Esboço</string>
     <string name="native_labs_image_qualityLabel" formatted="false">Qualidade</string>
@@ -90,8 +92,4 @@
     <string name="native_labs_image_shapeQuality" formatted="false">{{shape}}, {{quality}}</string>
     <string name="native_labs_image_qualityHint" formatted="false">Qualidade maior desenha uma imagem maior e demora mais. Os segundos são a média deste celular.</string>
     <string name="native_labs_image_qualityHintUntimed" formatted="false">Qualidade maior desenha uma imagem maior e demora mais. {{level}} ainda não tem tempo medido neste celular: os segundos aparecem depois do primeiro desenho nela.</string>
-    <string name="native_labs_image_drawer" formatted="false">Estilo, formato e qualidade</string>
-    <string name="native_labs_image_section_style" formatted="false">ESTILO</string>
-    <string name="native_labs_image_section_shape" formatted="false">FORMATO</string>
-    <string name="native_labs_image_section_quality" formatted="false">QUALIDADE</string>
 </resources>

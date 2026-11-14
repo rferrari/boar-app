@@ -220,11 +220,16 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setStyle(s: ImageLab.Style) = _state.update { it.copy(style = s) }
+    /**
+     * Every Style, Shape or Quality pick is the default at once (adam, Nov 14: "lets hide this default, and the default
+     * become [the] setup [the] user did"): the next visit and the one-tap 🎨 Illustrate use the last pick. Showing an old
+     * drawing (show) puts its recipe on the canvas without changing the default.
+     */
+    fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }
     fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c, error = null) }
     /** Shape keeps the quality, Quality keeps the shape: the canvas reshapes at once. */
-    fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.quality))
-    fun setQuality(quality: DesignerCanvas.Quality) = setSize(ImageLab.Canvas.of(_state.value.size.shape, quality))
+    fun setShape(shape: DesignerCanvas.Shape) { setSize(ImageLab.Canvas.of(shape, _state.value.size.quality)); setDefaults() }
+    fun setQuality(quality: DesignerCanvas.Quality) { setSize(ImageLab.Canvas.of(_state.value.size.shape, quality)); setDefaults() }
 
     /**
      * Shows [f] and puts back what it was drawn from (style, shape and quality, seed) when it has a recipe; the screen fills
@@ -296,7 +301,7 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** "★ Default": the style, shape and quality Illustrate (in the chat) and a new Designer session use. */
+    /** The style, shape and quality Illustrate (in the chat) and a new Designer session use: saved on every pick. */
     fun setDefaults() {
         val s = _state.value
         ImageLab.setDefaults(s.style, s.size)

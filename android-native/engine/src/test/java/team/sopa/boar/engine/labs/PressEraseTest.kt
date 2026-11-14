@@ -75,8 +75,10 @@ class PressEraseTest {
         val screen = read("$dir/PressScreen.kt")
         assertTrue(screen.contains("team.sopa.boar.labs.AboutPluginFold(lab)"))
         // Icon-only actions: each has its name for screen readers (and a long press shows it).
-        assertTrue(screen.contains("Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)"))
-        assertTrue(screen.contains("onLongClick = { Toasts.show(label) }"))
+        // Drawn by the plugin pattern's shared round tool (Nov 14), which Press's IconAction calls.
+        val chrome = java.io.File("../app/src/labs/java/team/sopa/boar/labs/PluginChrome.kt").readText()
+        assertTrue(chrome.contains("Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)") && screen.contains("team.sopa.boar.labs.PluginTool(icon, label,"))
+        assertTrue(chrome.contains("onLongClick = { Toasts.show(label) }"))
         for (k in listOf("moveUp", "moveDown", "edit", "doneEditing", "remove", "close")) assertTrue(k, screen.contains("\"native.labs.printer.$k\""))
         // The receipt is drawn under the blocks on every page, empty or not; the PDF ends with it too.
         assertTrue(screen.substringAfter("private fun PaperView(").substringBefore("\n}").contains("ReceiptView(page, s)"))

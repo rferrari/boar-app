@@ -65,12 +65,14 @@ class DesignerCanvasTest {
         assertTrue(lab.contains("DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)"))
         assertTrue(lab.contains("DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second"))
         assertTrue(lab.substringAfter("fun setDefaults() {").substringBefore("\n    }").contains("ImageLab.setDefaults(s.style, s.size)"))
-        // "★ Default" in every tray, lit when the pick is the default.
+        // No "★ Default" (adam, Nov 14): every pick is the default at once. Shape keeps the quality and Quality keeps the shape.
         val screen = src("ImageLabScreen.kt")
-        assertTrue(screen.contains("Pill(t(\"native.labs.image.default\"), selected = isDefault) { vm.setDefaults() }"))
-        // Shape keeps the quality and Quality keeps the shape.
-        assertTrue(lab.contains("fun setShape(shape: DesignerCanvas.Shape) = setSize(ImageLab.Canvas.of(shape, _state.value.size.quality))"))
-        assertTrue(lab.contains("fun setQuality(quality: DesignerCanvas.Quality) = setSize(ImageLab.Canvas.of(_state.value.size.shape, quality))"))
+        assertTrue(!screen.contains("native.labs.image.default") && !screen.contains("★"))
+        assertTrue(lab.contains("fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }"))
+        assertTrue(lab.contains("fun setShape(shape: DesignerCanvas.Shape) { setSize(ImageLab.Canvas.of(shape, _state.value.size.quality)); setDefaults() }"))
+        assertTrue(lab.contains("fun setQuality(quality: DesignerCanvas.Quality) { setSize(ImageLab.Canvas.of(_state.value.size.shape, quality)); setDefaults() }"))
+        // Showing an old drawing puts its recipe on the canvas, not in the default.
+        assertTrue(!lab.substringAfter("fun show(f: File) {").substringBefore("\n    }").contains("setDefaults"))
     }
 
     @Test fun `the caption is style, shape and this phone's seconds, else the quality`() {
@@ -80,20 +82,19 @@ class DesignerCanvasTest {
         assertTrue(src("ImageLabScreen.kt").contains("DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), qualityLong(shown.quality))"))
     }
 
-    @Test fun `no rail - the drawer has exactly three sections, Style, Shape and Quality, and Default`() {
+    @Test fun `no rail and no drawer - Style, Shape and Quality are toolbar tools, each its own sheet titled once`() {
         assertEquals(listOf("style", "shape", "quality"), DesignerCanvas.Section.entries.map { it.key })
         val screen = src("ImageLabScreen.kt")
-        val drawer = screen.substringAfter("private fun DesignerDrawer(").substringBefore("\n}\n")
-        assertTrue(drawer.contains("for (section in DesignerCanvas.Section.entries)") && drawer.contains("ModalBottomSheet("))
-        assertTrue(drawer.contains("StyleSection(state, vm)") && drawer.contains("ShapeSection(state, vm)") && drawer.contains("QualitySection(state, vm)"))
-        assertTrue(drawer.contains("Pill(t(\"native.labs.image.default\"), selected = isDefault) { vm.setDefaults() }"))
-        // Opened by the input bar's left button, with its spoken label; no rail and no trays left.
-        assertTrue(screen.contains("onLeft = { if (ready && !busy) drawer = true }, leftLabel = drawerLabel"))
-        assertTrue(screen.contains("if (drawer) DesignerDrawer(state, vm) { drawer = false }"))
+        // adam, Nov 14: "Style, Shape, Quality on the toolbar… each opens its small sheet, titled once".
+        assertTrue(!screen.contains("DesignerDrawer") && screen.contains("team.sopa.boar.labs.PluginToolbar(3)"))
+        for (t in listOf("ic_designer_style", "ic_designer_shape", "ic_designer_quality")) assertTrue(t, screen.contains("team.sopa.boar.R.drawable.$t"))
+        assertTrue(screen.contains("t(\"native.labs.image.styleLabel\") + \": \" + styleName(state.style.key)"))
+        val sheet = screen.substringAfter("private fun ToolSheet(").substringBefore("\n}\n")
+        assertTrue(sheet.contains("team.sopa.boar.labs.PluginSheetTitle(t(tool.titleKey))") && Regex("Text\\(").findAll(sheet).count() == 0)
+        assertTrue(screen.contains("Tool.STYLE -> StyleSection(state, vm); Tool.SHAPE -> ShapeSection(state, vm); Tool.QUALITY -> QualitySection(state, vm)"))
         for (gone in listOf("fun Rail(", "Tray(", "DesignerCanvas.Tool")) assertTrue(gone, !screen.contains(gone))
         for (d in listOf("values", "values-pt")) {
-            val sections = Regex("name=\"native_labs_image_section_([a-z]+)\"").findAll(strings(d)).map { it.groupValues[1] }.toSet()
-            assertEquals(d, setOf("style", "shape", "quality"), sections)
+            for (k in listOf("section_style", "section_shape", "section_quality", "drawer", "default")) assertTrue("$d $k", !strings(d).contains("name=\"native_labs_image_$k\""))
             assertTrue(d, !strings(d).contains("native_labs_image_tool_"))
         }
         // Hidden by adam on Nov 13: no Seed, Edit or More anywhere on the page.
@@ -124,7 +125,7 @@ class DesignerCanvasTest {
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
         assertTrue(chat.contains("PromptBar(text, onText, answering, onSend, onStop, voiceEnabled,") && !chat.contains("private fun MicButton("))
         // The chip stays above the bar (adam, Nov 12).
-        assertTrue(canvas.indexOf("native.labs.image.fromChat") in 0 until canvas.indexOf("team.sopa.boar.ui.chat.PromptBar("))
+        assertTrue(canvas.indexOf("FromChatButton(title)") in 0 until canvas.indexOf("team.sopa.boar.ui.chat.PromptBar("))
     }
 
     @Test fun `the quality hint says not timed only for the picked level when it isn't timed`() {
@@ -204,13 +205,12 @@ class DesignerCanvasTest {
     }
 
     @Test fun `new and changed strings in English and Portuguese`() {
-        val keys = listOf("drawer", "section_style", "section_shape", "section_quality", "shapeLabel", "qualityLabel", "quality_low", "quality_medium",
+        val keys = listOf("menu", "drawings", "allDrawings", "shapeLabel", "qualityLabel", "quality_low", "quality_medium",
             "quality_high", "qualityLong_low", "qualityLong_medium", "qualityLong_high", "qualitySeconds", "shapeQuality", "qualityHint", "qualityHintUntimed",
-            "default", "styleHint", "styleHintNone", "emptyCanvas", "noModelTitle", "noModelCaption",
+            "styleHint", "styleHintNone", "emptyCanvas", "noModelTitle", "noModelCaption",
             "all", "next", "infoButton", "fullButton", "infoTitle", "words", "time", "drawAgain", "drawAgainNote", "variations", "variationsTime",
             "variationsNote", "variationOf", "variationsPick", "variationOpen", "settingsTitle", "waitSketch", "shape_banner", "placeholder")
         for (d in listOf("values", "values-pt")) for (k in keys) assertTrue("$d $k", strings(d).contains("name=\"native_labs_image_$k\""))
-        assertTrue(strings("values").contains("name=\"native_labs_image_drawer\" formatted=\"false\">Style, shape and quality<"))
         assertTrue(strings("values").contains("name=\"native_labs_image_shape_banner\" formatted=\"false\">Wide<"))
     }
 }

@@ -18,7 +18,7 @@ class PluginCloseTest {
         val labs = read("labs/java/team/sopa/boar/labs/LabsScreen.kt")
         // Both kinds of plugin page (full-page Press and Designer, and the others) pass it to the shared header.
         assertTrue(Regex("onExit = onExit").findAll(labs).count() == 2)
-        assertTrue(labs.contains("team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit)"))
+        assertTrue(labs.contains("team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit, actions = actions)"))
     }
 
     @Test fun `the close button is off unless a page asks for it, and other pages don't`() {
@@ -29,12 +29,11 @@ class PluginCloseTest {
             assertFalse(p, Regex("PageHeader\\([^\\n]*onClose =").containsMatchIn(read(p)))
     }
 
-    @Test fun `Press's menu button is a page with lines, not the paragraph's bare lines`() {
+    @Test fun `Press's menu button is the plugin pattern's ⋯, not the paragraph's bare lines`() {
+        // Nov 14: "⋯ in every plugin" (the page-with-lines icon of Nov 13 is gone).
         val press = read("labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt")
-        assertTrue(press.contains("PackIcon(R.drawable.lab_printer_ic_menu_doc, 22.dp, tint = c.textHeading, description = t(\"native.labs.printer.menu\"))"))
-        val icon = read("labs/plugins/printer/res/drawable/lab_printer_ic_menu_doc.xml")
-        val para = read("labs/plugins/printer/res/drawable/lab_printer_ic_paragraph.xml")
-        assertTrue(icon.contains("M14,3v4h4") && icon != para)
+        assertTrue(press.contains("left = { team.sopa.boar.labs.PluginMenuIcon(t(\"native.labs.printer.menu\")) }") && !press.contains("lab_printer_ic_menu_doc"))
+        assertTrue(read("labs/res/drawable/ic_plugin_menu.xml") != read("labs/plugins/printer/res/drawable/lab_printer_ic_paragraph.xml"))
     }
 }
 
