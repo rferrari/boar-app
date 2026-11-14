@@ -80,4 +80,10 @@ class CardRulesTest {
         // A question that names nothing: no pairing across sentences.
         assertTrue(CardRules.find("What are the three highest mountains, and how tall is each?", "Mount Everest is 8,850 m. K2 is 8,611 m. Kilimanjaro is 5,895 m.").isEmpty())
     }
+
+    @Test fun `a list label may hold a digit (K2), the number after it is still the value`() {
+        val c = CardRules.find("What are the three highest mountains, and how tall is each?", "- Everest: 8,849 m\n- K2: 8,611 m\n- Kangchenjunga: 8,586 m").first() as Card.Chart
+        assertEquals(listOf("Everest", "K2", "Kangchenjunga"), c.points.map { it.label })
+        assertEquals(listOf(8849.0, 8611.0, 8586.0), c.points.map { it.value })
+    }
 }

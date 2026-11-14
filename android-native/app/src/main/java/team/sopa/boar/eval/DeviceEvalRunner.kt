@@ -174,6 +174,12 @@ class DeviceEvalRunner(
     fun evalSets(): EvalSets = EvalSets.parse(asset("eval-set.json"))
 
     private suspend fun run(request: EvalRequest) {
+        // The language arm for this run only (t9 0420), back to what users get when it ends.
+        team.sopa.boar.engine.answer.AnswerLanguage.arm = request.languageArm ?: 1
+        try { runRequest(request) } finally { team.sopa.boar.engine.answer.AnswerLanguage.arm = 1 }
+    }
+
+    private suspend fun runRequest(request: EvalRequest) {
         val installed = installedModels()
         val installedIds = installed.map { it.first.id }
         if (request.pipeline == "answer") {

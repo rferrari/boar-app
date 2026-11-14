@@ -117,7 +117,7 @@ object CardRules {
 
     private const val NUM = """\d{1,3}(?:[.,\s]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"""
     private const val UNITS = """%|°C|°F|º|km²|km2|sq km|m²|km|m|cm|mm|kg|g|mg|L|ml|mL|ft|feet|metres|meters|metros|miles|milhas|years|anos|million|millions|milhões|billion|bilhões|AU|K"""
-    private val LIST_POINT = Regex("""^(?:[-*•]|\d{1,2}[.)])\s+\**(\d{4}(?=\**\s*:)|[\p{L}][^:\d]{0,40}?)\**\s*(?::|—|-|–|,|at|is|em|com|tem)?\s*(?:about|around|approximately|roughly|cerca de|aproximadamente)?\s*($NUM)\s*($UNITS)(?![\p{L}\d])""", RegexOption.IGNORE_CASE)
+    private val LIST_POINT = Regex("""^(?:[-*•]|\d{1,2}[.)])\s+\**(\d{4}(?=\**\s*:)|[\p{L}](?:[^:\d]|(?<=\p{L})\d(?!\d*\s*(?:$UNITS)\b)){0,40}?)\**\s*(?::|—|-|–|,|at|is|em|com|tem)?\s*(?:about|around|approximately|roughly|cerca de|aproximadamente)?\s*($NUM)\s*($UNITS)(?![\p{L}\d])""", RegexOption.IGNORE_CASE)
     private val ENUM_POINT = Regex("""(\p{Lu}[\p{L}\d'’-]*(?:\s(?:\p{Lu}[\p{L}\d'’-]*|\d+))*)\s(?:at|is|was|with|of|em|com|tem|has)?\s*(?:about|around|approximately|roughly|cerca de)?\s*\(?($NUM)\s*($UNITS)(?![\p{L}\d])""")
 
     private fun chart(lines: List<String>, answer: String): Card.Chart? {

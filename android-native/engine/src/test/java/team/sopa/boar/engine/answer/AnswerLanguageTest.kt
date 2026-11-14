@@ -103,3 +103,19 @@ class AnswerLanguageArmsTest {
         for (t in texts) assertTrue(t.take(40), StylePt.of(t) != t)
     }
 }
+
+class LanguageArmRequestTest {
+    @org.junit.After fun reset() { AnswerLanguage.arm = 1 }
+
+    @Test fun `a request sets the arm for its run, 0 to 3 only, and arm 0 sends no line`() {
+        val r = team.sopa.boar.engine.eval.DeviceEval.parseRequest("""{"requestId":"lang-a0","languageArm":0}""")
+        assertEquals(0, r.languageArm)
+        AnswerLanguage.arm = 0
+        assertEquals(null, AnswerLanguage.line(AnswerLanguage.Lang.PT, withSources = true))
+        AnswerLanguage.arm = 1
+        assertEquals(AnswerLanguage.PT_WITH_SOURCES, AnswerLanguage.line(AnswerLanguage.Lang.PT, withSources = true))
+        assertTrue(runCatching { team.sopa.boar.engine.eval.DeviceEval.parseRequest("""{"requestId":"x","languageArm":7}""") }.isFailure)
+        val runner = java.io.File("../app/src/main/java/team/sopa/boar/eval/DeviceEvalRunner.kt").readText()
+        assertTrue(runner.contains("AnswerLanguage.arm = request.languageArm ?: 1") && runner.contains("finally { team.sopa.boar.engine.answer.AnswerLanguage.arm = 1 }"))
+    }
+}

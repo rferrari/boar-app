@@ -16,7 +16,7 @@ object AnswerLanguage {
     enum class Lang { EN, PT }
 
     /**
-     * The language fix's arm (t9 0420 item 5), bench only until adam picks: 1 the line next to the question (what users
+     * The language fix's arm (t9 0420 item 5), bench only until adam picks: 0 no line (the "before"); 1 the line next to the question (what users
      * get); 2 also the style reminder in Portuguese; 3 also the style prompt in Portuguese (StylePt). English never moves.
      */
     @Volatile var arm: Int = 1
@@ -49,8 +49,9 @@ object AnswerLanguage {
         clear(question) ?: earlier.asReversed().firstNotNullOfOrNull(::clear) ?: if (app == "pt") Lang.PT else Lang.EN
 
     /** The line next to the question, or null for English (its prompt stays as it was). */
-    fun line(lang: Lang, withSources: Boolean, filesOnly: Boolean = false): String? = when (lang) {
-        Lang.EN -> null
-        Lang.PT -> if (filesOnly && withSources) PT_FILES_ONLY else if (withSources) PT_WITH_SOURCES else PT_NO_SOURCES
+    fun line(lang: Lang, withSources: Boolean, filesOnly: Boolean = false): String? = when {
+        // Arm 0 (bench only): the app as it was, no line, for the "before" run.
+        lang == Lang.EN || arm == 0 -> null
+        else -> if (filesOnly && withSources) PT_FILES_ONLY else if (withSources) PT_WITH_SOURCES else PT_NO_SOURCES
     }
 }

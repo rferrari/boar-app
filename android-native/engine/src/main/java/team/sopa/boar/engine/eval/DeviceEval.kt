@@ -60,6 +60,11 @@ data class EvalRequest(
      * [models] names them) and the styles, its topics the questions. Null: the request as before. Native only.
      */
     val preset: BenchPreset? = null,
+    /**
+     * The language fix's arm for this run (t9 0420 item 5): 0 no language line (the "before"), 1 the line (users), 2 also
+     * the style reminder in Portuguese, 3 also the style prompt. Null: as the build ships (1). Bench only.
+     */
+    val languageArm: Int? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -163,6 +168,9 @@ object DeviceEval {
         }
         return EvalRequest(
             preset = preset,
+            languageArm = (raw["languageArm"] as? JsonPrimitive)?.content?.toIntOrNull()?.also {
+                if (it !in 0..3) throw EvalRequestException("\"languageArm\" must be 0, 1, 2 or 3")
+            },
             requestId = id,
             style = style,
             engine = engine,
