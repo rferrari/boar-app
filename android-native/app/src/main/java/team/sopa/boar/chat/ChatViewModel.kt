@@ -716,6 +716,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
         if (!serviceUp) team.sopa.boar.app.AnswerService.start(getApplication())
+        // The app's language is the answer's last word when the question can't tell (AnswerLanguage, t9 0420).
+        team.sopa.boar.engine.answer.AnswerLanguage.appLanguage = services.settings.languageId
         val stepNow = stepOnce.also { stepOnce = null }
         val styleNow = styleOnce.also { styleOnce = null }
         val deepNow = deepOnce.also { deepOnce = null }
@@ -938,6 +940,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
                         conversation = conversation,
+                        // The write-up in the question's language (t9 0420): DeepResearch had the slot, nothing filled it.
+                        answerLanguage = team.sopa.boar.engine.answer.AnswerLanguage.line(
+                            team.sopa.boar.engine.answer.AnswerLanguage.of(q, prior.filter { it.role == "user" }.map { it.text }), withSources = research),
                         onRestart = ::restartText,
                     )
                     sources = r.citations

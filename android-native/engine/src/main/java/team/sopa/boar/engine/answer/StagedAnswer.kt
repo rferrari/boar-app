@@ -158,7 +158,7 @@ class StagedAnswer(
                 // The intro stays in the conversation as the model's own turn, so the details go on from it.
                 val history = ConversationHistory(req.history?.summary, req.history?.turns.orEmpty() +
                     ConversationTurn("user", req.query) + ConversationTurn("assistant", introText))
-                metrics = generate(session, prompt(session, DETAILS_ASK, sources, req.systemPrompt, history, req.detailsReminder, req.enableThinking), req.maxTokens) { piece ->
+                metrics = generate(session, prompt(session, DETAILS_ASK, sources, req.systemPrompt, history, req.detailsReminder, req.enableThinking, languageOf = req.query), req.maxTokens) { piece ->
                     if (times.detailsFirstMs == null) times = times.copy(detailsFirstMs = now())
                     details.append(piece)
                     emit(StagedEvent.Piece(StagedStep.DETAILS, piece))
@@ -188,11 +188,13 @@ class StagedAnswer(
         return metrics
     }
 
-    private suspend fun prompt(session: TextModel, query: String, sources: List<Chunk>, systemPrompt: String?, history: ConversationHistory?, reminder: String?, thinking: Boolean): Pair<String, List<String>> =
+    /** [languageOf]: the question that sets the answer's language (the details step asks DETAILS_ASK, in English). */
+    private suspend fun prompt(session: TextModel, query: String, sources: List<Chunk>, systemPrompt: String?, history: ConversationHistory?, reminder: String?, thinking: Boolean,
+                               languageOf: String = query): Pair<String, List<String>> =
         if (session.hasChatTemplate) {
-            val f = session.formatChat(RagPure.assembleChatMessages(query, sources, systemPrompt, history, reminder).map { ChatMessage(it.role, it.content) }, enableThinking = thinking)
+            val f = session.formatChat(RagPure.assembleChatMessages(query, sources, systemPrompt, history, reminder, languageOf = languageOf).map { ChatMessage(it.role, it.content) }, enableThinking = thinking)
             f.prompt to f.stops
-        } else RagPure.assemblePrompt(query, sources, systemPrompt, history, reminder) to AnswerPipeline.DEFAULT_STOP_SEQUENCES
+        } else RagPure.assemblePrompt(query, sources, systemPrompt, history, reminder, languageOf = languageOf) to AnswerPipeline.DEFAULT_STOP_SEQUENCES
 
     /** Searched again with the question and the intro: passages from articles not already read, the answering sentences only. */
     private fun moreSources(query: String, intro: String, have: List<Chunk>): List<Chunk> {

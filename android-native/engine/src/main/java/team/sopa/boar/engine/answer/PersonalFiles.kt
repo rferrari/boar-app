@@ -14,6 +14,9 @@ object PersonalFiles {
     /** The answer when nothing in the user's files matched (the chat shows its own language's line). */
     const val NOT_FOUND = "I couldn't find this in your Personal Files."
 
+    /** The same line in Portuguese (t9 0420), as the chat's own native.personal.notFound says it. */
+    const val NOT_FOUND_PT = "Não encontrei isso nos seus Arquivos locais."
+
     fun isOn(style: String?): Boolean = style == STYLE
 
     /** A Labs tool's answer is kept only from a safety card (`safety-*`), as under Deep Research. */
@@ -32,7 +35,7 @@ object PersonalFiles {
 
     /** An answer this long after the not-found line is a real answer, not a sign-off. */
     const val ANSWER_AFTER_HEDGE_CHARS = 40
-    private val LEAD = Regex("^(however|but|that said|still|nevertheless)[,:]?\\s+", RegexOption.IGNORE_CASE)
+    private val LEAD = Regex("^(however|but|that said|still|nevertheless|por[ée]m|mas|no entanto|ainda assim|contudo|entretanto)[,:]?\\s+", RegexOption.IGNORE_CASE)
     private val CITATION = Regex("\\[\\d+]")
 
     /**
@@ -43,8 +46,8 @@ object PersonalFiles {
      */
     fun dropHedge(answer: String): String {
         val t = answer.trimStart()
-        if (!t.startsWith(NOT_FOUND)) return answer
-        val rest = t.removePrefix(NOT_FOUND).trimStart()
+        val hedge = listOf(NOT_FOUND, NOT_FOUND_PT).firstOrNull { t.startsWith(it) } ?: return answer
+        val rest = t.removePrefix(hedge).trimStart()
         if (rest.length < ANSWER_AFTER_HEDGE_CHARS || !CITATION.containsMatchIn(rest)) return answer
         val body = rest.replaceFirst(LEAD, "")
         return body.replaceFirstChar { it.uppercaseChar() }
