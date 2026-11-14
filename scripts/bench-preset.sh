@@ -73,6 +73,12 @@ if [ -n "$MODELS" ]; then
   models_json=$(printf '%s' "$MODELS" | awk -F, '{ for (i = 1; i <= NF; i++) printf "%s\"%s\"", (i > 1 ? "," : ""), $i }')
   models_json=",\"models\":[$models_json]"
 fi
+# The style is never left to the app's default (t9 1040): a preset's level names its passes, so say them.
+case "${PRESET%%-*}" in
+  fast|medium) echo "styles: succinct (level ${PRESET%%-*})" ;;
+  complete) echo "styles: succinct and detailed, plus Deep Research for the research topic (level complete)" ;;
+  *) echo "unknown level in preset \"$PRESET\": fast, medium or complete" >&2; exit 2 ;;
+esac
 REQUEST="{\"requestId\":\"$REQ_ID\",\"preset\":\"$PRESET\"$models_json}"
 echo "request: $REQUEST"
 REQ64=$(printf '%s' "$REQUEST" | base64 -w0)

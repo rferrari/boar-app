@@ -1,1 +1,10 @@
-{"requestId":"small06-probe","models":["qwen3-0.6b"],"queries":["greeting-1"]}
+{
+ "requestId": "small06-probe",
+ "models": [
+  "qwen3-0.6b"
+ ],
+ "queries": [
+  "greeting-1"
+ ],
+ "style": "succinct"
+}
