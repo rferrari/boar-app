@@ -4,7 +4,7 @@
   "status": "draft, for t9's review",
   "title": "Problems found so far",
   "titlePt": "Problemas achados",
-  "about": "Every failure found so far, each with what right looks like. The statuette's 7 (Oct 7) are not here: their documents and expected answers were never shared (SOPA card \"[Eval] Pôr as 7 perguntas do statuette\"); t9 to add them when they are.",
+  "about": "Every failure found so far, each with what right looks like. The statuette's 7 (Oct 7): their documents and expected answers were never shared; four cases reconstructed from the described failures are here (statuette-*), marked so. The originals wait for someone to ask the tester (t9 0526).",
   "questions": [
     {
       "id": "bread-no-knead",
@@ -150,6 +150,64 @@
         "keptShort": true
       },
       "toRead": "Offline, on paper or metal, never typed into a phone, photo or cloud; never shared. Kept brief."
+    },
+    {
+      "id": "statuette-rule-exception",
+      "category": "reasoning",
+      "query": "Read this note and answer.\n\nNote: \"Greenhouse vents. Open the North and South vents when it is above 28 °C, unless there is a smoke alert. During a smoke alert, close the North vent; the South vent stays open.\"\n\nIt is 31 °C and there is a smoke alert. Which vents should be open and which closed?",
+      "rules": {
+        "answerHasAny": [
+          "North",
+          "north"
+        ],
+        "answerHasNot": [
+          "North vent open",
+          "North vent should be open",
+          "open the North"
+        ]
+      },
+      "toRead": "Right: the North vent closed, the South vent open (the smoke alert is the exception to the above-28 °C rule). BOAR inverted this. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
+    },
+    {
+      "id": "statuette-time-compare",
+      "category": "reasoning",
+      "query": "Read this message and answer.\n\nMessage: \"The technician arrives at 17:10. Your appointment is at 17:30. The replacement part you ordered is unavailable until next week.\"\n\nWill the repair be done at the appointment? Why or why not?",
+      "rules": {
+        "answerHasAny": [
+          "unavailable",
+          "not available",
+          "part"
+        ],
+        "answerHasNot": [
+          "17:10 is later",
+          "arrives late",
+          "after the appointment"
+        ]
+      },
+      "toRead": "Right: 17:10 is before 17:30, so arriving is not the problem; the repair can't be done because the part is unavailable until next week. BOAR called 17:10 later than 17:30 and left out the part. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
+    },
+    {
+      "id": "statuette-contradiction",
+      "category": "reasoning",
+      "query": "Read these observations and answer.\n\nObservations: \"Field A got fertilizer and full sun; its harvest was 40 % bigger. Field B got no fertilizer and full sun; its harvest was normal. Field C got fertilizer and half shade; its harvest was normal.\"\n\nDid the fertilizer cause Field A's bigger harvest? Can these observations separate the effect of fertilizer from the effect of sun?",
+      "rules": {},
+      "toRead": "Right, and consistent from start to end: the fertilizer alone did not cause it (Field C had fertilizer and a normal harvest); the bigger harvest came with fertilizer and full sun together; the three fields don't fully separate the two (no field with neither, no field with sun only besides B). The answer must not say both that they separate and that they do not. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
+    },
+    {
+      "id": "statuette-missing-info",
+      "category": "reasoning",
+      "query": "Read this notice and answer.\n\nNotice: \"Community center. Open Monday to Friday, 8:00 to 18:00. Saturday 9:00 to 13:00. Closed on Sundays and holidays.\"\n\nWhat is the access code for the side door?",
+      "rules": {
+        "answerHasAny": [
+          "not in",
+          "doesn't say",
+          "does not say",
+          "isn't in",
+          "no access code",
+          "not mentioned"
+        ]
+      },
+      "toRead": "Right: the notice has no access code; say so, and don't give the opening hours instead. BOAR gave the hours. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
     }
   ]
 }
