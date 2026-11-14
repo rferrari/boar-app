@@ -105,7 +105,8 @@ object PressStore {
                         val arr = org.json.JSONObject(m.meta ?: "{}").optJSONArray("sources") ?: org.json.JSONArray()
                         (0 until arr.length()).map { i -> arr.getJSONObject(i).let { o -> o.optString("title") to o.optString("source").takeIf { it.isNotEmpty() } } }
                     }.getOrDefault(emptyList())
-                    PressStore.addAnswer(context, PrinterLab.answerBlock(m.id, title, question, m.text, sources, null, null), listOfNotNull(PressPictures.ofAnswer(context, m.id)))
+                    PressStore.addAnswer(context, PrinterLab.answerBlock(m.id, title, question, m.text, sources, null, null,
+                        team.sopa.boar.engine.canvas.AnswerCard.fromMeta(m.meta)), listOfNotNull(PressPictures.ofAnswer(context, m.id)))
                 }
             }.start()
     }

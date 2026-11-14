@@ -56,6 +56,7 @@
     <string name="native_labs_printer_newNote" formatted="false">Uma nota</string>
     <string name="native_labs_printer_docTitle" formatted="false">Título do documento</string>
     <string name="native_labs_printer_sourcesRefs" formatted="false">Fontes</string>
+    <string name="native_labs_printer_cardByModel" formatted="false">feito pelo modelo · conferido com a resposta</string>
     <string name="native_labs_printer_page" formatted="false">página {{n}}</string>
     <string name="native_labs_printer_missing" formatted="false">Esta imagem não está mais neste celular.</string>
     <string name="native_labs_printer_mdDrawing" formatted="false">Desenho</string>

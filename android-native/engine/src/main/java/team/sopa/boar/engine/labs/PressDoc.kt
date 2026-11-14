@@ -72,6 +72,11 @@ object PressDoc {
              * rewrite that cites nothing has no Sources line (validator G-5). An answer as it came from the chat keeps all.
              */
             val edited: Boolean = false,
+            /**
+             * The card shown under the answer when it came to Press (Cards, t9 0207 item 4: the answer's own Add to Press
+             * takes it along), with its ticks; null for none, and for every answer saved before Cards.
+             */
+            val card: team.sopa.boar.engine.canvas.AnswerCard? = null,
         ) : Block {
             /** The heading on the paper: the user's, or the question, or the chat's title. */
             val shownHeading: String get() = heading.ifBlank { question.ifBlank { chatTitle } }
@@ -253,7 +258,7 @@ object PressDoc {
             "heading" to JsonPrimitive(b.heading), "text" to JsonPrimitive(b.text), "addedAt" to JsonPrimitive(b.addedAt), "model" to str(b.model),
             "tokPerSec" to (b.tokPerSec?.let { JsonPrimitive(it) } ?: JsonNull), "edited" to JsonPrimitive(b.edited),
             "sources" to JsonArray(b.sources.map { JsonObject(linkedMapOf("title" to JsonPrimitive(it.title), "source" to str(it.source))) }),
-        ))
+        ).also { m -> b.card?.let { m["card"] = team.sopa.boar.engine.canvas.AnswerCard.toJson(it, withTicks = true) } })
         is Block.Picture -> JsonObject(linkedMapOf(
             "type" to JsonPrimitive("picture"), "id" to JsonPrimitive(b.id), "kind" to JsonPrimitive(b.kind.name.lowercase()), "file" to JsonPrimitive(b.file),
             "caption" to JsonPrimitive(b.caption), "place" to JsonPrimitive(b.place.name.lowercase()), "answerId" to str(b.answerId),
@@ -289,7 +294,7 @@ object PressDoc {
             "list" -> Block.Bullets(id, o.s("text").orEmpty())
             "divider" -> Block.Divider(id)
             "answer" -> Block.Answer(id, o.s("chatTitle").orEmpty(), o.s("question").orEmpty(), o.s("text").orEmpty(), sources(o["sources"]), o.l("addedAt") ?: 0,
-                o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty(), o.b("edited") ?: false)
+                o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty(), o.b("edited") ?: false, team.sopa.boar.engine.canvas.AnswerCard.fromJson(o["card"]))
             "picture" -> Block.Picture(id, if (o.s("kind") == "photo") Kind.PHOTO else Kind.DRAWING, o.s("file") ?: return null, o.s("caption").orEmpty(),
                 Place.of(o.s("place")), o.s("answerId"), (o["recipe"] as? JsonObject)?.let { r -> Recipe(r.s("subject"), r.s("style"), r.s("size"), r.l("seed")) },
                 (o.l("width") ?: 0).toInt(), (o.l("height") ?: 0).toInt())

@@ -887,6 +887,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
                 if (editing) EditField(b.text, s.body, false, onFreshUsed) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
                 else Text(page.answerText(b), style = s.body)
                 page.refsLine(b)?.let { Text(it, style = s.refs, modifier = Modifier.padding(top = s.dp(4f))) }
+                b.card?.let { PaperCard(it, page, s) }
             }
             // A paragraph and a list start empty and open for typing; empty, they show their hint on the screen only (they don't print).
             is Block.Paragraph ->
@@ -1040,6 +1041,66 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
             Spacer(Modifier.height(s.dp(if (beside.isEmpty()) 8f else 2f)))
             pieceView(below, Modifier.fillMaxWidth().selectable(textSelected) { onSelect(text.id) })
         }
+        // An answer's card goes below the picture at the full width, as in the PDF.
+        (text as? Block.Answer)?.card?.let { PaperCard(it, page, s) }
+    }
+}
+
+/**
+ * An answer's card on the paper (Cards, t9 0207 item 4), as the PDF draws it (PdfCompiler.card): a rule, its title, then
+ * bars, a table (a pie or a line too), the steps with ✓ for a ticked one, the things compared side by side, or the facts.
+ */
+@Composable
+private fun PaperCard(card: team.sopa.boar.engine.canvas.AnswerCard, page: PressPage, s: PaperScale) {
+    val text = s.sourceLine.copy(fontSize = s.sp(Paper.CARD), lineHeight = s.sp(Paper.CARD * 1.15f), color = Color(Paper.INK))
+    val muted = text.copy(color = Color(Paper.MUTED))
+    val body = card.body
+    Column(Modifier.fillMaxWidth().padding(top = s.dp(4f)), verticalArrangement = Arrangement.spacedBy(s.dp(3f))) {
+        Box(Modifier.fillMaxWidth().padding(vertical = s.dp(4f)).height(1.dp).background(Color(Paper.RULE)))
+        if (card.title.isNotBlank()) Text(card.title.trim(), style = text.copy(fontSize = s.sp(Paper.CARD_TITLE), fontWeight = FontWeight.Bold))
+        if (card.byModel && page.cardByModel.isNotBlank()) Text(page.cardByModel, style = s.refs)
+        when {
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Series && card.shape == team.sopa.boar.engine.canvas.CardRules.Shape.BARS -> {
+                val max = body.points.maxOf { kotlin.math.abs(it.value) }.takeIf { it > 0 } ?: 1.0
+                body.points.forEach { pt ->
+                    Row(Modifier.fillMaxWidth()) {
+                        Text(pt.label, style = text, maxLines = 1, modifier = Modifier.weight(1f))
+                        Text(pt.written, style = muted)
+                    }
+                    Box(Modifier.fillMaxWidth().height(s.dp(7f)).clip(RoundedCornerShape(s.dp(3f))).background(Color(Paper.BAR_TRACK))) {
+                        Box(Modifier.fillMaxWidth((kotlin.math.abs(pt.value) / max).toFloat().coerceIn(0.01f, 1f)).height(s.dp(7f)).clip(RoundedCornerShape(s.dp(3f))).background(Color(Paper.BAR)))
+                    }
+                }
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Series || body is team.sopa.boar.engine.canvas.AnswerCard.Body.Table -> {
+                val (header, rows) = team.sopa.boar.engine.canvas.AnswerCard.asTable(card)!!
+                if (header.any { it.isNotBlank() }) PaperRow(header.map { it.uppercase() }, s.refs.copy(fontWeight = FontWeight.Bold), null)
+                rows.forEach { r ->
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
+                    PaperRow(r, text, null)
+                }
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Steps -> body.items.forEachIndexed { i, step ->
+                PaperRow(listOf(if (i in card.ticks) "✓" else "${i + 1}", step), text, listOf(0.07f, 0.93f))
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Facts -> body.pairs.forEach { (l, v) ->
+                Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
+                Row(Modifier.fillMaxWidth()) {
+                    Text(l, style = muted, modifier = Modifier.weight(0.38f))
+                    Text(v, style = text, modifier = Modifier.weight(0.62f))
+                }
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Compare ->
+                PaperRow(body.sides.map { (name, points) -> name + "\n" + points.joinToString("\n") { "•  $it" } }, text, null)
+        }
+    }
+}
+
+/** One row of a card's cells on the paper, [parts] of the width each (equal by default). */
+@Composable
+private fun PaperRow(cells: List<String>, style: TextStyle, parts: List<Float>?) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        cells.forEachIndexed { i, c -> Text(c, style = style, modifier = Modifier.weight(parts?.getOrNull(i) ?: 1f)) }
     }
 }
 
