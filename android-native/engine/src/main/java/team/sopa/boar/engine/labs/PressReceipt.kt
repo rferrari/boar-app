@@ -211,6 +211,9 @@ object PressReceipt {
                 b.shownQuestion?.let { append('_').append(it.trim().replace('\n', ' ')).append("_\n\n") }
                 append(renumber(b.text.trim(), local).trim()).append("\n\n")
                 refsLine(refs, sourcesLabel)?.let { append(it).append("\n\n") }
+                // Its card, when it came with one (Cards, t9 0207 item 4): in the form Markdown has for it, after the
+                // answer's own lines as on the paper and in the PDF.
+                b.card?.let { append(team.sopa.boar.engine.canvas.AnswerCard.markdown(it)).append("\n\n") }
             }
             is Block.Picture -> append("_").append(if (b.kind == PressDoc.Kind.PHOTO) photoLabel else drawingLabel).append(b.caption.trim().takeIf { it.isNotEmpty() }?.let { ": $it" } ?: "").append("_\n\n")
             is Block.Unknown -> {}

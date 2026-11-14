@@ -271,7 +271,7 @@ object LabHooks {
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(bottom = 6.dp))
                 owned.forEach { (labId, act) ->
                     val edit = act.onEdit
-                    SheetRow(act.art, act.emoji, act.label, null, LabRegistry.byId(labId)?.status, act.enabled,
+                    SheetRow(act.art, act.emoji, act.label, act.detail, LabRegistry.byId(labId)?.status, act.enabled,
                         trailing = if (act.done || edit != null) ({
                             Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (act.done) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 18.dp, c.textAccentEmerald)

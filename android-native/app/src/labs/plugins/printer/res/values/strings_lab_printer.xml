@@ -56,6 +56,7 @@
     <string name="native_labs_printer_newNote" formatted="false">A note</string>
     <string name="native_labs_printer_docTitle" formatted="false">Document title</string>
     <string name="native_labs_printer_sourcesRefs" formatted="false">Sources</string>
+    <string name="native_labs_printer_cardByModel" formatted="false">made by the model · checked against the answer</string>
     <string name="native_labs_printer_page" formatted="false">page {{n}}</string>
     <string name="native_labs_printer_missing" formatted="false">This picture is no longer on this phone.</string>
     <string name="native_labs_printer_mdDrawing" formatted="false">Drawing</string>

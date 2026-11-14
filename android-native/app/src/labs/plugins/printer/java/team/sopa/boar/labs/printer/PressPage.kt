@@ -48,6 +48,12 @@ object Paper {
     const val LABEL_INK = 0xFF3A3E4C.toInt()
     const val NOTE_BAR = 0xFFD0D4E0.toInt()
     const val FOOT_INK = 0xFF9A9EAC.toInt()
+    /** A card's bars on the paper (Cards, t9 0207 item 4): the ink's grey, so a black-and-white print still reads. */
+    const val BAR = 0xFF6B7080.toInt()
+    const val BAR_TRACK = 0xFFE8EAF0.toInt()
+    /** A card's text: a little smaller than the answer's. */
+    const val CARD = 13f
+    const val CARD_TITLE = 14f
 }
 
 /** One project as it prints: the date, the receipt and the words, the same for the paper, the PDF and the Markdown. */
@@ -60,6 +66,8 @@ class PressPage(
     val sourcesLabel: String,
     /** What prints besides the blocks (Press settings, adam Nov 14). */
     val options: PressReceipt.Options = PressReceipt.Options(),
+    /** The line under a card the model made ("made by the model · checked against the answer"). */
+    val cardByModel: String = "",
 ) {
     val rows: List<PressReceipt.Row> get() = PressReceipt.rows(receipt, labels, date, version)
 
@@ -129,7 +137,8 @@ class PressPage(
             val receipt = PressReceipt.build(project,
                 recipeOf = { p -> if (p.kind == PressDoc.Kind.DRAWING) PressPictures.recipeOf(ctx, p.file, p.answerId) ?: p.recipe else p.recipe },
                 sizeOf = { p -> PressPictures.fileOf(ctx, project.id, p)?.let(PressPictures::sizeOf) })
-            return PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, receipt, labels(ctx), I18n.t(ctx, "native.labs.printer.sourcesRefs"), options)
+            return PressPage(project, date, team.sopa.boar.BuildConfig.VERSION_NAME, receipt, labels(ctx), I18n.t(ctx, "native.labs.printer.sourcesRefs"), options,
+                I18n.t(ctx, "native.labs.printer.cardByModel"))
         }
     }
 }

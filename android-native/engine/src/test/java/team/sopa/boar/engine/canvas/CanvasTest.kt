@@ -1,7 +1,6 @@
 package team.sopa.boar.engine.canvas
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import team.sopa.boar.engine.canvas.CardSpec.Parsed
@@ -50,23 +49,5 @@ class CanvasTest {
         assertTrue(ok("<think>{\"type\":\"none\"}</think>{\"type\":\"facts\",\"title\":\"t\",\"facts\":[{\"label\":\"a\",\"value\":\"b\"}]}") is Card.Facts)
     }
 
-    private val theme = WidgetHtml.Theme("#000000", "#ffffff", "#888888", "#10b981", "#111111", dark = true)
-
-    @Test fun `a widget page comes out of a fence or bare text`() {
-        assertEquals("<html><body><button>Go</button></body></html>", WidgetHtml.extract("Sure!\n```html\n<html><body><button>Go</button></body></html>\n```\nEnjoy."))
-        assertEquals("<div id=\"a\">x</div>", WidgetHtml.extract("<div id=\"a\">x</div>"))
-        assertNull(WidgetHtml.extract("No page here."))
-        assertNull(WidgetHtml.extract("<div>" + "x".repeat(WidgetHtml.MAX_CHARS) + "</div>"))
-    }
-
-    @Test fun `the policy comes first and nothing may load`() {
-        val doc = WidgetHtml.wrap("<!DOCTYPE html><html><head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src *\"></head><body>hi</body></html>", theme)
-        val ours = doc.indexOf(WidgetHtml.POLICY)
-        assertTrue(ours in 0 until doc.indexOf("default-src *"))
-        assertTrue(WidgetHtml.POLICY.startsWith("default-src 'none'"))
-        assertTrue("connect-src 'none'" in WidgetHtml.POLICY)
-        assertTrue(doc.startsWith("<!doctype html><html><head>"))
-        assertTrue("--accent:#10b981" in doc)
-        assertEquals(1, Regex("<html", RegexOption.IGNORE_CASE).findAll(doc).count())
-    }
+    // The widget page's tests went with WidgetHtml (Cards, adam Nov 14: "Make it interactive" goes); CardsPluginTest checks it is gone.
 }

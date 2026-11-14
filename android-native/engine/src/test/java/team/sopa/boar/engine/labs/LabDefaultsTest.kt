@@ -24,7 +24,7 @@ class LabDefaultsTest {
     private fun startsOnAllowed(statuses: List<String>) = statuses.isNotEmpty() && statuses.all { it == "LIVE" || it == "BETA" }
 
     @Test fun `the default-on set is adam's list without the ALPHA labs still pending`() {
-        assertEquals(setOf("pulse", "image", "printer", "calc", "distance", "facts", "cohazard"), LabDefaults.ON)
+        assertEquals(setOf("pulse", "image", "printer", "calc", "distance", "facts", "cohazard", "canvas"), LabDefaults.ON)
         // Polyglot starts off (adam, Nov 11) but ships: it stays in the release list.
         assertTrue("polyglot" !in LabDefaults.ON && File("../app/src/labs/released.txt").readText().contains("polyglot:"))
         assertEquals(setOf("compass", "lunar", "guard"), LabDefaults.PENDING_ALPHA)
@@ -41,7 +41,7 @@ class LabDefaultsTest {
     }
 
     @Test fun `the labs adam keeps off start off`() {
-        for (id in listOf("bmoe", "colibri", "dailyQuiz", "sanctuary", "signboard", "canvas")) assertFalse(id, LabDefaults.switchOf(id, null))
+        for (id in listOf("bmoe", "colibri", "dailyQuiz", "sanctuary", "signboard")) assertFalse(id, LabDefaults.switchOf(id, null))
     }
 
     @Test fun `a fresh install gets exactly the default set`() {

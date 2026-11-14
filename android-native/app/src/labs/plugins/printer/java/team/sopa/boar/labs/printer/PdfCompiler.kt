@@ -95,6 +95,8 @@ object PdfCompiler {
                 b.shownQuestion?.let { p.text(it.trim(), serif(Paper.QUESTION, italic = true, color = Paper.MUTED), after = 3f) }
                 p.text(page.answerText(b), serif(Paper.BODY), after = 4f, spacing = Paper.PDF_SPACING)
                 page.refsLine(b)?.let { p.text(it, sans(Paper.REFS, color = Paper.META), after = 0f) }
+                // The card after the answer's own lines, as on the paper (beside a picture too, where it goes below it).
+                b.card?.let { card(p, page, it) }
                 p.gap(Paper.GAP)
             }
             is Block.Note -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.NOTE, italic = true, color = Paper.MUTED), after = Paper.GAP,
@@ -104,6 +106,42 @@ object PdfCompiler {
             is Block.Divider -> { p.gap(4f); p.rule(); p.gap(Paper.GAP - 10f) }
             is Block.Picture, is Block.Unknown -> {}
         }
+    }
+
+    /**
+     * An answer's card under its text (Cards, t9 0207 item 4), drawn as on screen: bars, a table, the steps (✓ for a
+     * ticked one), the things compared side by side, the key facts. A pie or a line prints as its table. Full width:
+     * below a side picture, never beside it.
+     */
+    private fun card(p: Pager, page: PressPage, card: team.sopa.boar.engine.canvas.AnswerCard) {
+        val body = card.body
+        val text = sans(Paper.CARD)
+        val muted = sans(Paper.CARD, color = Paper.MUTED)
+        p.endBeside()
+        p.keepRoom(Paper.CARD_TITLE * 1.4f + Paper.CARD * 4)
+        p.gap(4f)
+        p.rule()
+        if (card.title.isNotBlank()) p.text(card.title.trim(), sans(Paper.CARD_TITLE, bold = true), after = 2f)
+        if (card.byModel && page.cardByModel.isNotBlank()) p.text(page.cardByModel, sans(Paper.REFS, color = Paper.META), after = 4f) else p.gap(2f)
+        val shape = card.shape
+        when {
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Series && shape == team.sopa.boar.engine.canvas.CardRules.Shape.BARS ->
+                p.bars(body.points.map { it.label to it.written }, body.points.map { kotlin.math.abs(it.value) }, text, muted)
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Series || body is team.sopa.boar.engine.canvas.AnswerCard.Body.Table -> {
+                val (header, rows) = team.sopa.boar.engine.canvas.AnswerCard.asTable(card)!!
+                if (header.any { it.isNotBlank() }) p.cells(header.map { it.uppercase() }, sans(Paper.REFS, bold = true, color = Paper.META), rule = false)
+                rows.forEach { p.cells(it, text, rule = true) }
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Steps -> body.items.forEachIndexed { i, step ->
+                p.cells(listOf(if (i in card.ticks) "✓" else "${i + 1}", step), text, rule = false, widths = listOf(0.07f, 0.93f))
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Facts -> body.pairs.forEach { (l, v) ->
+                p.cells(listOf(l, v), text, rule = true, widths = listOf(0.38f, 0.62f), firstPaint = muted)
+            }
+            body is team.sopa.boar.engine.canvas.AnswerCard.Body.Compare ->
+                p.cells(body.sides.map { (name, points) -> name + "\n" + points.joinToString("\n") { "•  $it" } }, text, rule = false)
+        }
+        p.gap(4f)
     }
 
     /**
@@ -327,6 +365,50 @@ object PdfCompiler {
         }
 
         fun gap(h: Float) { y += h }
+
+        /**
+         * One row of cells across the column ([widths] as parts of it, equal by default), each wrapped in its own width; the
+         * row starts a new page when it doesn't fit; [rule]: a hairline above it. A card's table, steps, facts and comparison.
+         */
+        fun cells(cells: List<String>, paint: TextPaint, rule: Boolean, widths: List<Float>? = null, firstPaint: TextPaint? = null) {
+            if (cells.isEmpty()) return
+            val parts = widths ?: List(cells.size) { 1f / cells.size }
+            val gutter = 8f
+            val layouts = cells.mapIndexed { i, s ->
+                val w = (Paper.INNER * parts[i] - gutter).toInt().coerceAtLeast(20)
+                val t = s.ifEmpty { " " }
+                StaticLayout.Builder.obtain(t, 0, t.length, if (i == 0 && firstPaint != null) firstPaint else paint, w).setLineSpacing(0f, 1.15f).build()
+            }
+            val h = layouts.maxOf { it.height } + (if (rule) 6f else 3f)
+            canvas
+            if (bottom - y < h) newPage()
+            val c = canvas
+            if (rule) { c.drawLine(Paper.M, y, Paper.W - Paper.M, y, Paint().apply { color = Paper.RULE; strokeWidth = 0.6f }); y += 3f }
+            var x = Paper.M
+            layouts.forEachIndexed { i, l -> c.save(); c.translate(x, y); l.draw(c); c.restore(); x += Paper.INNER * parts[i] }
+            y += h - (if (rule) 3f else 0f)
+        }
+
+        /** Bars: each label and its value as the answer writes it, a bar under them, the longest the column's width. */
+        fun bars(items: List<Pair<String, String>>, values: List<Double>, label: TextPaint, value: TextPaint) {
+            val max = values.maxOrNull()?.takeIf { it > 0 } ?: 1.0
+            val line = label.textSize * 1.3f
+            val barH = 7f
+            items.forEachIndexed { i, (l, v) ->
+                val h = line + barH + 6f
+                canvas
+                if (bottom - y < h) newPage()
+                val c = canvas
+                val vw = value.measureText(v)
+                c.drawText(android.text.TextUtils.ellipsize(l, label, Paper.INNER - vw - 12f, android.text.TextUtils.TruncateAt.END).toString(), Paper.M, y + label.textSize, label)
+                c.drawText(v, Paper.W - Paper.M - vw, y + label.textSize, value)
+                val top = y + line
+                c.drawRoundRect(RectF(Paper.M, top, Paper.W - Paper.M, top + barH), 3f, 3f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Paper.BAR_TRACK })
+                val w = (Paper.INNER * (values[i] / max)).toFloat().coerceIn(4f, Paper.INNER)
+                c.drawRoundRect(RectF(Paper.M, top, Paper.M + w, top + barH), 3f, 3f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Paper.BAR })
+                y += h
+            }
+        }
 
         fun finish() { canvas; page?.let { finishPage(it) }; page = null }
     }

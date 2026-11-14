@@ -45,9 +45,17 @@ object PrinterLab : LabPlugin {
         if (PressStore.countOf(context, answerIds) > 0) team.sopa.boar.ui.I18n.t(context, "native.labs.printer.deleteNote") else null
 
     /** An answer as a block, with what the chat knows of it. */
-    internal fun answerBlock(id: String, chatTitle: String, question: String, text: String, sources: List<Pair<String, String?>>, model: String?, tokPerSec: Double?) =
+    internal fun answerBlock(id: String, chatTitle: String, question: String, text: String, sources: List<Pair<String, String?>>, model: String?, tokPerSec: Double?,
+                             card: team.sopa.boar.engine.canvas.AnswerCard? = null) =
         PressDoc.Block.Answer(id, chatTitle, question, text, sources.map { PressDoc.Source(it.first, it.second?.takeIf { s -> s.isNotEmpty() }) },
-            System.currentTimeMillis(), model, tokPerSec)
+            System.currentTimeMillis(), model, tokPerSec, card = card)
+
+    /**
+     * The card shown under the answer, read from the answer's own message meta where Cards keeps it (t9 0207 item 4: the
+     * answer's Add to Press takes the card along); null when none is shown. Off the main thread.
+     */
+    internal fun cardOf(ctx: android.content.Context, answerId: String): team.sopa.boar.engine.canvas.AnswerCard? =
+        runCatching { team.sopa.boar.engine.canvas.AnswerCard.fromMeta(team.sopa.boar.app.BoarServices.get(ctx).chats.messageMeta(answerId)) }.getOrNull()
 
     /** 📎 in the answer's plugins sheet: into the open project, at the end, with the drawing it already has. */
     @Composable
@@ -63,7 +71,7 @@ object PrinterLab : LabPlugin {
             if (added) PressStore.change { it.removeAnswer(a.id) }
             else scope.launch(Dispatchers.IO) {
                 val title = runCatching { team.sopa.boar.app.BoarServices.get(ctx).chats.listSessions().firstOrNull { it.id == a.sessionId }?.title }.getOrNull().orEmpty()
-                PressStore.addAnswer(ctx, answerBlock(a.id, title, a.question, a.text, a.sources, a.model, a.tokPerSec), listOfNotNull(PressPictures.ofAnswer(ctx, a.id)))
+                PressStore.addAnswer(ctx, answerBlock(a.id, title, a.question, a.text, a.sources, a.model, a.tokPerSec, cardOf(ctx, a.id)), listOfNotNull(PressPictures.ofAnswer(ctx, a.id)))
             }
         })
     }

@@ -1,12 +1,6 @@
 package team.sopa.boar.labs.canvas
 
-import androidx.compose.material3.minimumInteractiveComponentSize
-import android.annotation.SuppressLint
 import android.content.Context
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,37 +8,42 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.ui.text.drawText
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import team.sopa.boar.engine.canvas.Visual
+import team.sopa.boar.engine.canvas.AnswerCard
+import team.sopa.boar.engine.canvas.CardRules
+import team.sopa.boar.engine.canvas.CardRules.Shape
 import team.sopa.boar.engine.canvas.VisualScale
-import team.sopa.boar.engine.canvas.WidgetHtml
 import team.sopa.boar.labs.LabAction
 import team.sopa.boar.labs.LabPlugin
 import team.sopa.boar.labs.LabStatus
@@ -52,281 +51,314 @@ import team.sopa.boar.plugins.AnswerRef
 import team.sopa.boar.plugins.UserData
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
-import java.io.ByteArrayInputStream
-import java.util.Locale
 
 /**
- * Boar Canvas: an answer becomes something to look at or play with, the idea of CopilotKit's Open Intelligent UI
- * (github.com/CopilotKit/OpenIntelligentUI) brought on the phone and offline. From an answer's 🧩 sheet:
- * - 📊 Visual: the chat model reads the answer (and earlier answers' facts with numbers, VisualContext), picks a type
- *   (bars, line, pie, table, steps, compare, facts, or none) and copies the data; the app checks every number and label
- *   against those answers (Visual) and draws it, with a switch between bars, line, pie and table on the same data.
- * - 🧪 Widget: the chat model writes a small HTML page (a calculator, a quiz, a slider) shown in a WebView that
- *   can't reach the network, files or the app (WidgetHtml's policy plus the WebView's settings).
- * Both run on the model that answered, after the answer, never while the chat is answering.
+ * Cards (the Canvas plugin redesigned with adam, Nov 14; t9 0207 item 3; the id stays "canvas", so switches and saved
+ * cards still read). Part of an answer becomes a native card: a chart, a table, a checklist, a comparison or key facts.
+ * - Only when asked: the answer's plugins sheet has one row, which already says what the rules found ("Create a card" ·
+ *   "A chart of 3 numbers"). Rules first (CardRules): the app reads the answer's own text and draws at once, no model.
+ * - Nothing found: "Nothing to draw here" · "Ask BOAR to make one · slower": the model makes it as Visual did, its card
+ *   still checked against the answer and marked "made by the model · checked against the answer".
+ * - The card sits under the answer's text, in the same answer card: title, where it came from, the body, one switch with
+ *   only the shapes that fit, ✕ to remove it. No other button (adam: "remove those buttons… keep it simple"); the
+ *   answer's own Add to Press takes the card along.
+ * - Steps are a checklist; the ticks are saved with the answer (Canvas keeps both in the message's meta).
+ * - Gone (adam, Nov 14): the model-written page in a WebView, "Make it interactive", Copy and Expand.
  */
 object CanvasLab : LabPlugin {
     override val id = "canvas"
     override val emoji = "📊"
     // TODO(rc3): its own icon. An existing Boar avatar stands in for now (adam, Nov 10).
     override val art = team.sopa.boar.R.drawable.truffle_pixel_hacker
-    override val status = LabStatus.ALPHA
+    // BETA so it can start on (t9 0207 item 5: "switch it on by default, so the test APK carries it"); it counts as done
+    // only after the validator's gate and adam's hand test.
+    override val status = LabStatus.BETA
 
-    /** One "Create a card" (t9, Nov 10): the model picks the form; the interactive widget is offered under the card. */
+    /**
+     * The one row in the answer's plugins sheet, with what the rules found as its second line (adam, Nov 14). The rules
+     * run when the row is drawn, so the line is true before the tap.
+     */
     @Composable
     override fun answerActions(a: AnswerRef): List<LabAction> {
         val ctx = LocalContext.current
         if (!Canvas.allowed(a)) return emptyList()
-        val st = Canvas.status(ctx, a.id)
+        val cards = remember(a.question, a.text) { runCatching { CardRules.find(a.question, a.text) }.getOrDefault(emptyList()) }
+        val shown = Canvas.shown(ctx, a)
+        val st = Canvas.status(a.id)
         val free = !Canvas.busy() && !a.chatBusy
-        val label = when (st) {
-            is Canvas.Status.Making -> t("native.labs.canvas.making")
-            is Canvas.Status.Done -> t("native.labs.canvas.again.card")
-            else -> t("native.labs.canvas.make.card")
-        }
-        return listOf(LabAction("📊", label, done = st is Canvas.Status.Done, enabled = free) { Canvas.start(ctx, a, Canvas.Kind.VISUAL) })
+        val name = t("native.labs.canvas.title")
+        return listOf(when {
+            st is Canvas.Status.Making -> LabAction("📊", name, enabled = false, art = art, detail = t("native.labs.canvas.making")) {}
+            shown != null -> LabAction("📊", name, done = true, enabled = false, art = art, detail = t("native.labs.canvas.underAnswer")) {}
+            cards.isNotEmpty() -> {
+                val best = cards.first()
+                LabAction("📊", t("native.labs.canvas.make.card"), art = art, detail = foundLine(cards)) {
+                    Canvas.show(ctx, a.id, AnswerCard.of(best, best.shapes.first(), AnswerCard.titleFor(best, a.question, a.sources.map { it.first })), a.text)
+                }
+            }
+            else -> {
+                val fallback = AnswerCard.titleFor(CardRules.Card.Steps(emptyList()), a.question, a.sources.map { it.first })
+                LabAction("📊", t("native.labs.canvas.nothingHere"), enabled = free, art = art, detail = t("native.labs.canvas.askModel")) {
+                    Canvas.start(ctx, a, fallback)
+                }
+            }
+        })
     }
 
+    /** "A chart of 3 numbers", or the best two: "A checklist of 4 steps, or a chart of 4 numbers". */
+    @Composable
+    private fun foundLine(cards: List<CardRules.Card>): String {
+        val lines = cards.take(2).map { c ->
+            val (kind, n) = AnswerCard.found(c)
+            when (kind) {
+                AnswerCard.Found.CHART -> t("native.labs.canvas.found.chart", "count" to n)
+                AnswerCard.Found.TABLE -> t("native.labs.canvas.found.table", "count" to n)
+                AnswerCard.Found.STEPS -> t("native.labs.canvas.found.steps", "count" to n)
+                AnswerCard.Found.FACTS -> t("native.labs.canvas.found.facts", "count" to n)
+                AnswerCard.Found.COMPARE -> t("native.labs.canvas.found.compare${n.coerceIn(2, 4)}")
+            }
+        }
+        return if (lines.size < 2) lines.first()
+        else t("native.labs.canvas.found.or", "first" to lines[0], "second" to lines[1].replaceFirstChar { it.lowercase() })
+    }
+
+    /** Under the answer's text: the wait line, a refusal, or the card. */
     @Composable
     override fun AnswerExtra(a: AnswerRef) {
         val ctx = LocalContext.current
         val c = Boar.colors
-        val card = Canvas.status(ctx, a.id)
-        val widgetKey = Canvas.keyOf(a.id, Canvas.Kind.WIDGET)
-        // Read after the card: an old widget under the card's key has just moved here (C-1).
-        val widget = Canvas.status(ctx, widgetKey)
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            card?.let { Slot(a, a.id, it) }
-            widget?.let { Slot(a, widgetKey, it) }
-            // The interactive form, only when asked: it's another model run, slower than the card (t9, Nov 10).
-            val legacyWidget = (card as? Canvas.Status.Done)?.kind == Canvas.Kind.WIDGET
-            if (widget == null && !legacyWidget && (card is Canvas.Status.Done || card is Canvas.Status.Failed) && Canvas.allowed(a)) {
-                val free = !Canvas.busy() && !a.chatBusy
-                Text("🧪 " + t("native.labs.canvas.interactive"), style = Boar.type["mono.xs"], color = if (free) c.textAccentCyan else c.textDim, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp))
-                        .clickable(enabled = free) { Canvas.start(ctx, a, Canvas.Kind.WIDGET) }.padding(horizontal = 10.dp, vertical = 5.dp))
-            }
+        when (val st = Canvas.status(a.id)) {
+            Canvas.Status.Making -> Text(t("native.labs.canvas.makingVisual"), style = Boar.type.caption, color = c.textAccentEmerald)
+            is Canvas.Status.Failed -> Failed(a, st)
+            null -> {}
         }
+        val card = Canvas.shown(ctx, a) ?: return
+        // The switch: every shape of every card the rules found; none for the model's card (it has the one it made).
+        val cards = remember(a.question, a.text, card.byModel) {
+            if (card.byModel) emptyList() else runCatching { CardRules.find(a.question, a.text) }.getOrDefault(emptyList())
+        }
+        val choices = remember(cards) { AnswerCard.choices(cards) }
+        // The pill that is on: the choice whose card, in its shape, is the one shown.
+        val current = remember(choices, card) { choices.firstOrNull { ch -> ch.shape == card.shape && AnswerCard.of(cards[ch.card], ch.shape, "").body == card.body } }
+        CardView(card, choices, current, ticks = Canvas.ticksOf(a.id),
+            onPick = { ch -> Canvas.show(ctx, a.id, AnswerCard.of(cards[ch.card], ch.shape, AnswerCard.titleFor(cards[ch.card], a.question, a.sources.map { it.first })), a.text) },
+            onTick = { Canvas.tick(ctx, a.id, it) },
+            onRemove = { Canvas.show(ctx, a.id, null, a.text) })
     }
 
-    /** One kind's state under the answer ([key]: Canvas.keyOf): making, refused with why, or drawn; ✕ forgets just it. */
+    /** Why the model's card wasn't drawn, what was refused, and the model's reply on demand; ✕ forgets it. */
     @Composable
-    private fun Slot(a: AnswerRef, key: String, st: Canvas.Status) {
-        val ctx = LocalContext.current
+    private fun Failed(a: AnswerRef, st: Canvas.Status.Failed) {
         val c = Boar.colors
-        when (st) {
-            is Canvas.Status.Making -> Text(t(if (st.kind == Canvas.Kind.WIDGET) "native.labs.canvas.makingWidget" else "native.labs.canvas.makingVisual"),
-                style = Boar.type.caption, color = c.textAccentEmerald)
-            is Canvas.Status.Failed -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("native.a11y.close")) { Canvas.forget(ctx, key) }.padding(4.dp))
-                }
-                // What was refused, set apart so it isn't read as the answer's own number check above.
-                st.detail?.let { Text(t("native.labs.canvas.refused", "what" to it), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold) }
-                // The model's whole reply, to see what it picked and where it went wrong (kept for this run only).
-                st.raw?.takeIf { it.isNotBlank() }?.let { raw ->
-                    var open by remember(key) { mutableStateOf(false) }
-                    Text(t(if (open) "native.labs.canvas.hideReply" else "native.labs.canvas.showReply"), style = Boar.type["mono.xs"], color = c.textAccentCyan,
-                        fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !open }.padding(vertical = 2.dp))
-                    if (open) androidx.compose.foundation.text.selection.SelectionContainer {
-                        Text(raw.take(4000), style = Boar.type["mono.xs"], color = c.textSecondary,
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgSubtle).padding(8.dp))
-                    }
-                }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(t(st.key), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.weight(1f, fill = false))
+                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize()
+                    .clickable(onClickLabel = t("native.a11y.close")) { Canvas.cancel(a.id) }.padding(4.dp))
             }
-            is Canvas.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                when (st.kind) {
-                    // A card saved before the merge reads as a visual (Visual is a superset of CardSpec).
-                    Canvas.Kind.CARD, Canvas.Kind.VISUAL -> {
-                        val context = remember(a.id, a.text, a.passages.size) { if (st.context.isNotEmpty()) st.context else Canvas.contextFor(ctx, a) }
-                        // Parsed once per reply and its grounding, off the main thread: the table check grows with rows × columns ×
-                        // the answer's length, and ran on every redraw of the answer (validator N-1).
-                        val grounding = remember(a.text, context) { Canvas.grounding(a, context) }
-                        val parsed by androidx.compose.runtime.produceState<Visual.Parsed?>(null, st.raw, grounding, a.question) {
-                            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { Visual.parse(st.raw, grounding, a.question) }
-                        }
-                        (parsed as? Visual.Parsed.Ok)?.let { ok ->
-                            VisualView(ok.visual)
-                            // What came out because neither the answer, the earlier answers nor the sources have it.
-                            if (ok.leftOut.isNotEmpty()) Text(t("native.labs.canvas.leftOut", "what" to ok.leftOut.take(8).joinToString(", ")),
-                                style = Boar.type.caption, color = c.amber400)
-                        }
-                    }
-                    Canvas.Kind.WIDGET -> WidgetHtml.extract(st.raw)?.let { WidgetView(it) }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text((if (st.kind == Canvas.Kind.WIDGET) "🧪 " else "📊 ") + t("native.labs.canvas.madeBy", "seconds" to String.format(Locale.US, "%.0f", st.seconds)) +
-                        if (st.context.isNotBlank()) " · " + t("native.labs.canvas.withMore") else "",
-                        style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.weight(1f, fill = false))
-                    Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clickable(onClickLabel = t("native.a11y.close")) { Canvas.forget(ctx, key) }.padding(4.dp))
+            st.detail?.let { Text(t("native.labs.canvas.refused", "what" to it), style = Boar.type["mono.xs"], color = c.amber400, fontWeight = FontWeight.Bold) }
+            st.raw?.takeIf { it.isNotBlank() }?.let { raw ->
+                var open by remember(a.id) { mutableStateOf(false) }
+                Text(t(if (open) "native.labs.canvas.hideReply" else "native.labs.canvas.showReply"), style = Boar.type["mono.xs"], color = c.textAccentCyan,
+                    fontWeight = FontWeight.Bold, modifier = Modifier.clickable { open = !open }.padding(vertical = 2.dp))
+                if (open) androidx.compose.foundation.text.selection.SelectionContainer {
+                    Text(raw.take(4000), style = Boar.type["mono.xs"], color = c.textSecondary,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(c.bgSubtle).padding(8.dp))
                 }
             }
         }
     }
 
+    /** Cards are kept in the answers' meta: they go with the chats. Here the memory and any file from before Cards. */
     override fun eraseUserData(context: Context, scope: UserData.Scope) = Canvas.eraseAll(context)
 
-    override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach {
-        Canvas.forget(context, it); Canvas.forget(context, Canvas.keyOf(it, Canvas.Kind.WIDGET))
-    }
+    override fun eraseAnswers(context: Context, answerIds: List<String>) = answerIds.forEach { Canvas.forget(context, it) }
 
     @Composable
     override fun Content() {
-        // The plugin page template (Nov 12). Canvas works under an answer, not on a question: its example is the live
-        // chart, and the Try rows ask a question whose answer has something to draw.
+        // The plugin page template (Nov 12): its example is a live card, and the Try rows ask questions whose answers hold one.
+        val title = t("native.labs.canvas.exampleTitle")
+        val example = remember(title) {
+            AnswerCard(Shape.BARS, title, AnswerCard.Body.Series("m", listOf(CardRules.Point("Everest", "8,849 m", 8849.0),
+                CardRules.Point("K2", "8,611 m", 8611.0), CardRules.Point("Kangchenjunga", "8,586 m", 8586.0))))
+        }
+        var shownExample by remember(example) { mutableStateOf(example) }
         team.sopa.boar.labs.PluginPage(null, t("native.labs.canvas.example"), null, (1..2).map { t("native.labs.canvas.example$it") },
             t("native.labs.canvas.how"), exampleLabel = t("native.labs.page.example"), tryHint = t("native.labs.canvas.tryHint")) {
-            VisualView(Visual.Series(t("native.labs.canvas.exampleTitle"), Visual.SeriesKind.BARS, "m", listOf("Everest" to 8849.0, "K2" to 8611.0, "Kangchenjunga" to 8586.0)))
+            val exampleChoices = listOf(AnswerCard.Choice(0, Shape.BARS), AnswerCard.Choice(0, Shape.TABLE))
+            CardView(shownExample, exampleChoices, exampleChoices.first { it.shape == shownExample.shape }, ticks = emptySet(),
+                onPick = { shownExample = example.copy(shape = it.shape) }, onTick = {}, onRemove = null)
         }
-    }
-}
-
-@Composable
-private fun CardFrame(title: String, content: @Composable () -> Unit) {
-    val c = Boar.colors
-    Column(Modifier.widthIn(max = 520.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.bgCard).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (title.isNotBlank()) Text(title, style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.SemiBold)
-        content()
     }
 }
 
 /**
- * A visual, drawn by the app: the model picked its type and data, the app checked them against the answer. A toolbar
- * switches the same numbers between bars, line, pie and a table (no new model call), copies the visual as Markdown, and
- * opens it full screen.
+ * The card under an answer's text, in the same answer card (adam, Nov 14): a rule above it, the title and where it came
+ * from, ✕, the body, then the switch when more than one shape fits. Theme tokens only.
  */
 @Composable
-internal fun VisualView(visual: Visual) {
-    var expanded by remember { mutableStateOf(false) }
-    var shown by remember(visual) { mutableStateOf(visual) }
-    CardFrame(visual.title) {
-        VisualToolbar(visual, shown, { shown = it }, onExpand = { expanded = true })
-        VisualBody(shown, large = false)
-    }
-    if (expanded) androidx.compose.ui.window.Dialog(onDismissRequest = { expanded = false },
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        val c = Boar.colors
-        Column(Modifier.fillMaxSize().background(c.bgSurface).padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(visual.title, style = Boar.type.title, color = c.textHeading, modifier = Modifier.weight(1f))
-                Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { expanded = false }.padding(horizontal = 10.dp, vertical = 6.dp))
+internal fun CardView(card: AnswerCard, choices: List<AnswerCard.Choice>, current: AnswerCard.Choice?, ticks: Set<Int>, onPick: (AnswerCard.Choice) -> Unit,
+                      onTick: (Int) -> Unit, onRemove: (() -> Unit)?) {
+    val c = Boar.colors
+    Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderSubtle))
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f)) {
+                if (card.title.isNotBlank()) Text(card.title, style = Boar.type.titleSm, color = c.textHeading, fontWeight = FontWeight.SemiBold)
+                Text(t(if (card.byModel) "native.labs.canvas.byModel" else "native.labs.canvas.fromAnswer"), style = Boar.type["mono.xs"], color = c.textDim)
             }
-            VisualToolbar(visual, shown, { shown = it }, onExpand = null)
-            VisualBody(shown, large = true)
-        }
-    }
-}
-
-/** The views the data allows (VisualScale.kinds), Copy, and Expand. */
-@Composable
-private fun VisualToolbar(original: Visual, shown: Visual, onShow: (Visual) -> Unit, onExpand: (() -> Unit)?) {
-    val c = Boar.colors
-    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
-    var copied by remember { mutableStateOf(false) }
-    Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        val series = original as? Visual.Series
-        if (series != null) for (k in VisualScale.kinds(series)) {
-            val target: Visual? = when (k) {
-                "table" -> VisualScale.asTable(series)
-                "line" -> VisualScale.asKind(series, Visual.SeriesKind.LINE)
-                "share" -> VisualScale.asKind(series, Visual.SeriesKind.SHARE)
-                else -> VisualScale.asKind(series, Visual.SeriesKind.BARS)
+            onRemove?.let {
+                Text("✕", style = Boar.type.body, color = c.textMuted, modifier = Modifier.clip(CircleShape)
+                    .clickable(onClickLabel = t("native.labs.canvas.remove"), onClick = it).minimumInteractiveComponentSize().padding(4.dp))
             }
-            val on = when (shown) { is Visual.Series -> k == shown.kind.name.lowercase().let { if (it == "share") "share" else it }; is Visual.Table -> k == "table"; else -> false }
-            Chip(t("native.labs.canvas.view.$k"), on) { target?.let(onShow) }
         }
-        Chip(if (copied) t("native.labs.canvas.copied") else t("native.labs.canvas.copy"), false) {
-            clipboard.setText(androidx.compose.ui.text.AnnotatedString(VisualScale.markdown(shown)))
-            copied = true
+        CardBody(card, ticks, onTick)
+        if (card.leftOut.isNotEmpty()) Text(t("native.labs.canvas.leftOut", "what" to card.leftOut.take(8).joinToString(", ")), style = Boar.type.caption, color = c.amber400)
+        if (choices.size > 1) FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (ch in choices) ShapePill(t("native.labs.canvas.view.${ch.shape.name.lowercase()}"), ch == current) { onPick(ch) }
         }
-        onExpand?.let { Chip(t("native.labs.canvas.expand"), false, it) }
     }
 }
 
+/** One shape in the switch: the accent ring and tint when on, as the plugin pages' pills. */
 @Composable
-private fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
+private fun ShapePill(label: String, on: Boolean, onClick: () -> Unit) {
     val c = Boar.colors
-    Text(label, style = Boar.type["mono.xs"], color = if (on) c.textInverse else c.textSecondary, fontWeight = FontWeight.Bold,
-        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(if (on) c.emerald500 else c.bgSubtle).clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 5.dp))
-}
-
-/** The palette for the parts of a pie and the points of a line: the theme's accents, then fixed hues that read on both themes. */
-@Composable
-private fun palette(): List<Color> {
-    val c = Boar.colors
-    return listOf(c.emerald500, c.textAccentCyan, c.amber400, c.crimson400, Color(0xFF8B7CF6), Color(0xFF5BA4F5), Color(0xFFE879A8), Color(0xFF9CA3AF))
+    Text(label, style = Boar.type.caption, maxLines = 1, color = if (on) c.textAccentEmerald else c.textSecondary,
+        modifier = Modifier.heightIn(min = 36.dp).clip(RoundedCornerShape(50)).background(if (on) c.emeraldBgSubtle else c.bgCard)
+            .border(1.dp, if (on) c.emerald400 else c.borderDefault, RoundedCornerShape(50))
+            .semantics { role = Role.Tab; stateDescription = if (on) "✓" else "" }
+            .clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 8.dp))
 }
 
 @Composable
-private fun VisualBody(v: Visual, large: Boolean) {
+private fun CardBody(card: AnswerCard, ticks: Set<Int>, onTick: (Int) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
-    when (v) {
-        is Visual.Table -> Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            v.columns.forEachIndexed { i, col ->
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(col.uppercase(), style = type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold)
-                    v.rows.forEach { r -> Text(r.getOrElse(i) { "" }, style = type.body, color = c.textPrimary, modifier = Modifier.widthIn(max = 180.dp)) }
-                }
-            }
+    when (val b = card.body) {
+        is AnswerCard.Body.Series -> when (card.shape) {
+            Shape.PIE -> Pie(b)
+            Shape.LINE -> Line(b)
+            Shape.TABLE -> TableView(emptyList(), b.points.map { listOf(it.label, it.written) })
+            else -> Bars(b)
         }
-        is Visual.Series -> when (v.kind) {
-            Visual.SeriesKind.BARS -> {
-                val max = v.items.maxOf { kotlin.math.abs(it.second) }.takeIf { it > 0 } ?: 1.0
-                v.items.forEach { (label, x) ->
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Row {
-                            Text(label, style = type.caption, color = c.textPrimary, modifier = Modifier.weight(1f))
-                            Text(number(x) + (v.unit?.let { " $it" } ?: ""), style = type["mono.xs"], color = c.textSecondary)
-                        }
-                        Box(Modifier.fillMaxWidth().height(if (large) 16.dp else 10.dp).clip(RoundedCornerShape(5.dp)).background(c.bgSubtle)) {
-                            Box(Modifier.fillMaxWidth((kotlin.math.abs(x) / max).toFloat().coerceIn(0.02f, 1f)).height(if (large) 16.dp else 10.dp).clip(RoundedCornerShape(5.dp)).background(c.emerald500))
-                        }
+        is AnswerCard.Body.Table -> TableView(b.header, b.rows)
+        is AnswerCard.Body.Steps -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            b.items.forEachIndexed { i, s ->
+                val done = i in ticks
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(role = Role.Checkbox) { onTick(i) }.padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                    Box(Modifier.size(22.dp).clip(CircleShape).background(if (done) c.emerald500 else c.bgSubtle)
+                        .border(1.dp, if (done) c.emerald500 else c.borderDefault, CircleShape), contentAlignment = Alignment.Center) {
+                        Text(if (done) "✓" else "${i + 1}", style = type["mono.xs"], color = if (done) c.textInverse else c.textSecondary, fontWeight = FontWeight.Bold)
                     }
+                    Text(s, style = type.body, color = if (done) c.textMuted else c.textPrimary, textDecoration = if (done) TextDecoration.LineThrough else null, modifier = Modifier.weight(1f))
                 }
             }
-            Visual.SeriesKind.LINE -> LineChart(v, large)
-            Visual.SeriesKind.SHARE -> ShareChart(v, large)
+            Text(t("native.labs.canvas.doneCount", "done" to ticks.count { it in b.items.indices }, "total" to b.items.size), style = type["mono.xs"], color = c.textDim)
         }
-        is Visual.Steps -> v.steps.forEachIndexed { i, s ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("${i + 1}", style = type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold, modifier = Modifier.width(18.dp))
-                Text(s, style = type.body, color = c.textPrimary)
-            }
-        }
-        is Visual.Compare -> Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            v.items.forEach { (name, points) ->
-                Column(Modifier.width(170.dp).clip(RoundedCornerShape(10.dp)).background(c.bgSubtle).padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        is AnswerCard.Body.Compare -> Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            b.sides.forEach { (name, points) ->
+                Column(Modifier.width(if (b.sides.size <= 2) 160.dp else 140.dp).clip(RoundedCornerShape(10.dp)).background(c.bgSubtle).padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(name, style = type.titleSm, color = c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
                     points.forEach { Text("• $it", style = type.caption, color = c.textPrimary) }
                 }
             }
         }
-        is Visual.Facts -> v.facts.forEach { (label, value) ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(label, style = type.caption, color = c.textSecondary, modifier = Modifier.weight(0.4f))
-                Text(value, style = type.body, color = c.textPrimary, modifier = Modifier.weight(0.6f))
+        is AnswerCard.Body.Facts -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            b.pairs.forEach { (label, value) ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(label, style = type.caption, color = c.textSecondary, modifier = Modifier.weight(0.4f))
+                    Text(value, style = type.body, color = c.textPrimary, modifier = Modifier.weight(0.6f))
+                }
             }
         }
     }
 }
 
-/** Points joined in order on an axis around the data (VisualScale.axis), each with its value; the labels under it. */
+/** Each label, its value as the answer writes it, and a bar from zero. */
 @Composable
-private fun LineChart(v: Visual.Series, large: Boolean) {
+private fun Bars(s: AnswerCard.Body.Series) {
     val c = Boar.colors
-    val values = v.items.map { it.second }
-    val axis = remember(v) { VisualScale.axis(values, fromZero = false) }
+    val max = s.points.maxOf { kotlin.math.abs(it.value) }.takeIf { it > 0 } ?: 1.0
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        s.points.forEach { p ->
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row {
+                    Text(p.label, style = Boar.type.caption, color = c.textPrimary, maxLines = 1, modifier = Modifier.weight(1f))
+                    Text(p.written, style = Boar.type["mono.xs"], color = c.textSecondary)
+                }
+                Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(c.bgSubtle)) {
+                    Box(Modifier.fillMaxWidth((kotlin.math.abs(p.value) / max).toFloat().coerceIn(0.02f, 1f)).height(10.dp).clip(RoundedCornerShape(5.dp)).background(c.emerald500))
+                }
+            }
+        }
+    }
+}
+
+/** A table: an optional header in small capitals, a hairline between rows; wide ones scroll sideways. */
+@Composable
+private fun TableView(header: List<String>, rows: List<List<String>>) {
+    val c = Boar.colors
+    val n = maxOf(header.size, rows.maxOfOrNull { it.size } ?: 0)
+    val wide = n > 2
+    Column(Modifier.then(if (wide) Modifier.horizontalScroll(rememberScrollState()) else Modifier.fillMaxWidth())) {
+        @Composable
+        fun line(cells: List<String>, head: Boolean) = Row(if (wide) Modifier else Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            for (i in 0 until n) {
+                val v = cells.getOrElse(i) { "" }
+                val m = if (wide) Modifier.widthIn(min = 72.dp, max = 180.dp) else Modifier.weight(1f)
+                if (head) Text(v.uppercase(), style = Boar.type.micro, color = c.textSecondary, fontWeight = FontWeight.Bold, modifier = m.padding(bottom = 4.dp))
+                else Text(v, style = Boar.type.body, color = c.textPrimary, modifier = m.padding(vertical = 6.dp),
+                    textAlign = if (!wide && i == n - 1 && n == 2) androidx.compose.ui.text.style.TextAlign.End else null)
+            }
+        }
+        if (header.any { it.isNotBlank() }) line(header, true)
+        rows.forEach { r -> Box(Modifier.then(if (wide) Modifier.width((n * 100).dp) else Modifier.fillMaxWidth()).height(1.dp).background(c.borderSubtle)); line(r, false) }
+    }
+}
+
+/** The parts of a whole (a pie only when CardRules or the model says they are): a donut and each part's value and share. */
+@Composable
+private fun Pie(s: AnswerCard.Body.Series) {
+    val c = Boar.colors
+    val colors = palette()
+    val values = s.points.map { it.value.coerceAtLeast(0.0) }
+    val total = values.sum().takeIf { it > 0 } ?: 1.0
+    val pct = remember(s) { AnswerCard.percents(s) }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        androidx.compose.foundation.Canvas(Modifier.size(104.dp)) {
+            var start = -90f
+            values.forEachIndexed { i, x ->
+                val sweep = (x / total * 360).toFloat()
+                drawArc(colors[i % colors.size], start, sweep, useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(width = size.minDimension * 0.22f))
+                start += sweep
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            s.points.forEachIndexed { i, p ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(colors[i % colors.size]))
+                    Text("${p.label}  ${p.written}" + if (s.unit != "%") "  (${pct[i]}%)" else "", style = Boar.type.caption, color = c.textPrimary)
+                }
+            }
+        }
+    }
+}
+
+/** Points in order (a line only for years in order, or the model's line), each with its value; the labels under it. */
+@Composable
+private fun Line(s: AnswerCard.Body.Series) {
+    val c = Boar.colors
+    val values = s.points.map { it.value }
+    val axis = remember(s) { VisualScale.axis(values, fromZero = false) }
     val measurer = androidx.compose.ui.text.rememberTextMeasurer()
     val valueStyle = Boar.type["mono.xs"].copy(color = c.textSecondary)
     val line = c.emerald500
     val grid = c.borderSubtle
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(if (large) 260.dp else 150.dp).padding(top = 14.dp, start = 6.dp, end = 6.dp)) {
+        androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(150.dp).padding(top = 14.dp, start = 6.dp, end = 6.dp)) {
             val span = (axis.max - axis.min).takeIf { it > 0 } ?: 1.0
             fun y(x: Double) = (size.height * (1 - (x - axis.min) / span)).toFloat()
             fun xAt(i: Int) = if (values.size == 1) size.width / 2 else size.width * i / (values.size - 1)
@@ -336,86 +368,19 @@ private fun LineChart(v: Visual.Series, large: Boolean) {
             drawPath(path, line, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
             values.forEachIndexed { i, x ->
                 drawCircle(line, radius = 5f, center = androidx.compose.ui.geometry.Offset(xAt(i), y(x)))
-                val text = measurer.measure(number(x), valueStyle)
-                drawText(text, topLeft = androidx.compose.ui.geometry.Offset((xAt(i) - text.size.width / 2).coerceIn(0f, size.width - text.size.width), y(x) - text.size.height - 4))
+                val text = measurer.measure(s.points[i].written, valueStyle)
+                drawText(text, topLeft = androidx.compose.ui.geometry.Offset((xAt(i) - text.size.width / 2).coerceIn(0f, (size.width - text.size.width).coerceAtLeast(0f)), y(x) - text.size.height - 4))
             }
         }
         Row(Modifier.fillMaxWidth()) {
-            v.items.forEach { (label, _) -> Text(label, style = Boar.type.micro, color = c.textSecondary, maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
-        }
-        v.unit?.let { Text(it, style = Boar.type.micro, color = c.textDim) }
-    }
-}
-
-/** A donut of the parts, and a legend with each value and its share of the whole (VisualScale.percents adds up to 100). */
-@Composable
-private fun ShareChart(v: Visual.Series, large: Boolean) {
-    val c = Boar.colors
-    val values = v.items.map { it.second }
-    val pct = remember(v) { VisualScale.percents(values) }
-    val colors = palette()
-    val total = values.sum()
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        androidx.compose.foundation.Canvas(Modifier.size(if (large) 180.dp else 110.dp)) {
-            var start = -90f
-            values.forEachIndexed { i, x ->
-                val sweep = (x / total * 360).toFloat()
-                drawArc(colors[i % colors.size], start, sweep, useCenter = false,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = size.minDimension * 0.22f))
-                start += sweep
-            }
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            v.items.forEachIndexed { i, (label, x) ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(colors[i % colors.size]))
-                    Text("$label  " + number(x) + (v.unit?.let { " $it" } ?: "") + "  (${pct[i]}%)", style = Boar.type.caption, color = c.textPrimary)
-                }
-            }
+            s.points.forEach { p -> Text(p.label, style = Boar.type.micro, color = c.textSecondary, maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.weight(1f)) }
         }
     }
 }
 
-private fun number(v: Double): String = if (v == Math.rint(v) && kotlin.math.abs(v) < 1e15) String.format(Locale.getDefault(), "%,d", v.toLong()) else String.format(Locale.getDefault(), "%,.2f", v)
-
-private fun Color.hex() = String.format("#%06X", 0xFFFFFF and toArgb())
-
-/**
- * The widget, locked down: script runs, but nothing loads (the page's policy, blockNetworkLoads, and every request
- * answered empty), no files or content URIs, no JavaScript bridge, no new windows, no navigation, no Safe Browsing
- * lookups (they'd send the page's URLs to Google).
- */
-@SuppressLint("SetJavaScriptEnabled")
+/** The parts' colours: the theme's own accents and their shades, no fixed hues. */
 @Composable
-private fun WidgetView(page: String) {
+private fun palette(): List<Color> {
     val c = Boar.colors
-    val doc = WidgetHtml.wrap(page, WidgetHtml.Theme(c.bgCard.hex(), c.textPrimary.hex(), c.textMuted.hex(), c.emerald500.hex(), c.bgSubtle.hex(), dark = c.bgCard.luminance() < 0.5f))
-    AndroidView(
-        factory = { ctx ->
-            WebView(ctx).apply {
-                settings.javaScriptEnabled = true
-                settings.allowFileAccess = false
-                settings.allowContentAccess = false
-                settings.blockNetworkLoads = true
-                settings.blockNetworkImage = true
-                settings.domStorageEnabled = false
-                settings.setGeolocationEnabled(false)
-                settings.javaScriptCanOpenWindowsAutomatically = false
-                settings.setSupportMultipleWindows(false)
-                settings.safeBrowsingEnabled = false
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = true
-                    // The widget's own page passes (WidgetHtml.allowedUrl); everything else gets an empty 403.
-                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                        if (team.sopa.boar.engine.canvas.WidgetHtml.allowedUrl(request.url?.toString())) null
-                        else WebResourceResponse("text/plain", "utf-8", 403, "Blocked", emptyMap(), ByteArrayInputStream(ByteArray(0)))
-                }
-                setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                loadDataWithBaseURL(null, doc, "text/html", "utf-8", null)
-            }
-        },
-        update = { /* the page is fixed once made */ },
-        onRelease = { it.destroy() },
-        modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth().height(440.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)),
-    )
+    return listOf(c.emerald500, c.cyan400, c.amber400, c.crimson400, c.textAccentViolet, c.emerald600, c.cyan600, c.amber600)
 }

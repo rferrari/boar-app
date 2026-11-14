@@ -135,8 +135,9 @@ class LabManifestTest {
         assertTrue("colibri" !in manifest)
     }
 
-    @Test fun `Canvas stays out of releases until it's gated (t9, Nov 11)`() {
-        assertTrue("canvas is back in released.txt", "canvas" !in manifest)
+    @Test fun `Cards (canvas) ships, on by default, with its rules' tests (t9 0207 item 5)`() {
+        assertTrue("canvas" in manifest && "canvas" in LabDefaults.ON)
+        assertTrue(manifest.getValue("canvas").containsAll(listOf("CardRulesTest", "AnswerCardTest")))
     }
 
     @Test fun `every lab that starts on, or waits to, ships in a release`() {
