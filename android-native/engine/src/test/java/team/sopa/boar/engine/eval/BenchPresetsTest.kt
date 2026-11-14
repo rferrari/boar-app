@@ -37,7 +37,7 @@ class BenchPresetsTest {
     }
 
     @Test fun `every topic file parses, is a draft for t9, and its questions resolve`() {
-        assertEquals(setOf("core", "vitalik", "plugins", "problems", "howto", "research", "quick", "cards", "portuguese"), topics.keys)
+        assertEquals(setOf("core", "vitalik", "plugins", "problems", "howto", "research", "quick", "cards", "portuguese", "health"), topics.keys)
         for (t in topics.values) {
             assertTrue(t.id, t.status.startsWith("draft, for t9's review"))
             val qs = t.queries(sets)
