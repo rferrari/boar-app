@@ -88,10 +88,13 @@ internal fun BenchVitals() {
                 }
             }
             val avg = s.coresMhz.filterNotNull().takeIf { it.isNotEmpty() }?.average()
-            Text(listOfNotNull(avg?.let { String.format(Locale.US, "CPU %.1f GHz", it / 1000) },
-                String.format(Locale.US, "RAM %s / %s GB free", gb(s.ramFree), gb(s.ramTotal)),
-                String.format(Locale.US, "BOAR %s GB", gb(s.boarBytes))).joinToString(" · "),
-                style = type["mono.xs"], color = c.textSecondary, modifier = Modifier.weight(1f))
+            // Two lines, each whole (adam, Nov 14: "only a GB goes to second line… use 2 lines for cpu and ram"): the CPU and
+            // BOAR's own memory, then the phone's free memory said in words ("RAM 1.0 / 7.3" read as a ratio).
+            Column(Modifier.weight(1f)) {
+                Text(listOfNotNull(avg?.let { String.format(Locale.US, "CPU %.1f GHz", it / 1000) }, String.format(Locale.US, "BOAR %s GB", gb(s.boarBytes))).joinToString(" · "),
+                    style = type["mono.xs"], color = c.textSecondary, maxLines = 1)
+                Text(String.format(Locale.US, "RAM %s GB free of %s GB", gb(s.ramFree), gb(s.ramTotal)), style = type["mono.xs"], color = c.textSecondary, maxLines = 1)
+            }
         }
     }
 }

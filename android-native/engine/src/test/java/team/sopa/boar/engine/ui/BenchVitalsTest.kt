@@ -17,4 +17,9 @@ class BenchVitalsTest {
             assertTrue(k, vitals.contains(k))
         assertTrue(!vitals.contains("team.sopa.boar.labs."))
     }
+
+    @Test fun `CPU and BOAR on one line, the free RAM on its own, in words`() {
+        assertTrue(vitals.contains("\"RAM %s GB free of %s GB\"") && !vitals.contains("RAM %s / %s GB free"))
+        assertTrue(vitals.contains("\"BOAR %s GB\"") && vitals.contains("maxLines = 1"))
+    }
 }
