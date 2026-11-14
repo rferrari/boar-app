@@ -272,6 +272,8 @@ private fun BenchScreen(
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The log first, newest line on top, with how long since the last line (adam, Nov 12: an evaluation looked frozen
             // with its log at the bottom). A long answer writes nothing for a minute or two; the clock shows it's still going.
+            // The phone's vitals above the log (adam, Nov 14): heat, throttling, cores and memory while a run goes.
+            BenchVitals()
             team.sopa.boar.ui.BoarSection("Log") {
                 val lines = remember(log) { BenchLog.newestFirst(log) }
                 var lastAt by remember { mutableStateOf(System.currentTimeMillis()) }
