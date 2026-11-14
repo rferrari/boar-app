@@ -295,6 +295,21 @@ object LabHooks {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) { LabRegistry.active.forEach { it.AnswerExtra(a) } }
     }
 
+    /**
+     * The plugins' notes on an answer, under its separator after BOAR's own, oldest first (LabPlugin.answerNotes; adam,
+     * Nov 14). An error in the crimson the chat uses for errors.
+     */
+    @Composable
+    fun AnswerNotes(a: AnswerRef) {
+        Init()
+        val notes = LabRegistry.active.flatMap { it.answerNotes(a) }.sortedBy { it.at }
+        val c = team.sopa.boar.ui.theme.Boar.colors
+        notes.forEach { n ->
+            androidx.compose.material3.Text(n.text, style = team.sopa.boar.ui.theme.Boar.type.subtext, color = if (n.error) c.crimson400 else c.textMuted,
+                modifier = androidx.compose.ui.Modifier.padding(top = 4.dp))
+        }
+    }
+
     /** A model's card in the Model Catalog: each active lab's rows for it; nothing while Labs is off. */
     @Composable
     fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {

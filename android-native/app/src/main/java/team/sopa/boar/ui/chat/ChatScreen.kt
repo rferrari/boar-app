@@ -660,6 +660,8 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 // question under Detailed); "Every number … is in its sources", when there are sources to check against.
                 m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp)) }
                 if (m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
+                // Then the plugins' notes (an error, a refusal), oldest first: a new one is always the last line (adam, Nov 14).
+                team.sopa.boar.labs.LabHooks.AnswerNotes(ref)
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     // Rating hidden (adam, Nov 11): nothing uses ratings yet. The code stays for when something does.
                     if (SHOW_RATING) {

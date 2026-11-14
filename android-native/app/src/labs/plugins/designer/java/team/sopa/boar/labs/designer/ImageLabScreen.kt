@@ -146,6 +146,11 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             onEdit = { Illustrator.asking = a.id }) { Illustrator.start(ctx, a, notReady) })
     }
 
+    /** A failed drawing's message ("Not enough free memory to draw now…"), under the answer's separator, in its turn. */
+    @Composable
+    override fun answerNotes(a: team.sopa.boar.plugins.AnswerRef): List<team.sopa.boar.labs.LabNote> =
+        (Illustrator.status(LocalContext.current, a.id) as? Illustrator.Status.Failed)?.let { listOf(team.sopa.boar.labs.LabNote(it.message, it.at)) } ?: emptyList()
+
     /** The drawing (or its progress) under the answer, with what was drawn and how long it took. */
     @Composable
     override fun AnswerExtra(a: team.sopa.boar.plugins.AnswerRef) {
@@ -159,7 +164,8 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
                 team.sopa.boar.labs.DesignerWait(st.style, Modifier.size(240.dp).clip(RoundedCornerShape(10.dp)))
                 Busy(t("native.labs.image.illustrateDrawing", "subject" to st.subject))
             }
-            is Illustrator.Status.Failed -> Text(st.message, style = Boar.type.caption, color = c.crimson400)
+            // Its message is a note under the answer's separator now (answerNotes; adam, Nov 14), not here.
+            is Illustrator.Status.Failed -> {}
             // What was drawn and the style, at a glance; ⓘ opens the exact prompt, shape and quality, seed and time (Oct 18).
             is Illustrator.Status.Done -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 var details by remember(a.id) { mutableStateOf(false) }

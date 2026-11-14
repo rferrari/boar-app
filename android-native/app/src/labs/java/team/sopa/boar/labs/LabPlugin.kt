@@ -67,6 +67,13 @@ interface LabPlugin {
     /** Content under a finished answer, above its footer. */
     @Composable fun AnswerExtra(a: AnswerRef) {}
 
+    /**
+     * Short messages about this answer (an error, a refusal): drawn under the answer's separator with BOAR's own notes,
+     * before the receipt, oldest first, so a new one is the last line (adam, Nov 14: "the plugin error message… should be
+     * after the chat response separator as well… if we have a new message, it should go as last one").
+     */
+    @Composable fun answerNotes(a: AnswerRef): List<LabNote> = emptyList()
+
     /** What this lab holds for the user (Press: pages in the basket), counted on the chat header's plugins icon; 0 for none. */
     @Composable fun headerCount(): Int = 0
 
@@ -305,3 +312,6 @@ object LabPrefs {
 object LabContext {
     @Volatile var app: Context? = null
 }
+
+/** A plugin's note under an answer ([LabPlugin.answerNotes]): its text, when it happened (the order), and whether it's an error. */
+data class LabNote(val text: String, val at: Long, val error: Boolean = true)

@@ -27,7 +27,8 @@ object Illustrator {
         data class Drawing(val subject: String, val style: String? = null) : Status
         /** [style], [size] and [seed]: what it was drawn with, for the card's details (null on drawings saved before Oct 18). */
         data class Done(val file: File, val subject: String, val seconds: Double?, val style: String? = null, val size: String? = null, val seed: Int? = null) : Status
-        data class Failed(val message: String) : Status
+        /** [at]: when it failed, for the order of the notes under the answer. */
+        data class Failed(val message: String, val at: Long = System.currentTimeMillis()) : Status
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
