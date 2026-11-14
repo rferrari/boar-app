@@ -23,6 +23,7 @@ import team.sopa.boar.engine.answer.AnswerRequest
 import team.sopa.boar.engine.answer.Personalities
 import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.db.NativeSqlite
+import team.sopa.boar.engine.eval.BenchModels
 import team.sopa.boar.engine.eval.BenchPass
 import team.sopa.boar.engine.eval.BenchPlan
 import team.sopa.boar.engine.eval.BenchPresets
@@ -144,12 +145,25 @@ class DeviceEvalRunner(
      * to load as "corrupted or incomplete".
      */
     fun installedModels(): List<Pair<ModelRef, File>> {
-        val catalog = Json.parseToJsonElement(asset("catalog.json")).jsonObject["models"]!!.jsonArray.map { it.jsonObject }
-        return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
-            val f = File(files, m["filename"]!!.jsonPrimitive.content)
-            val size = m["sizeBytes"]?.jsonPrimitive?.content?.toLongOrNull() ?: 0L
-            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), size)) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
+        val catalog = team.sopa.boar.engine.models.Catalog.parse(asset("catalog.json"))
+        // Then the bench-only models (bench-models.json, t9 0443): read here and nowhere else, so no user list has them.
+        return BenchModels.llms(catalog, benchOnlyModels()).mapNotNull { m ->
+            val f = if (m.testOnly) benchFileOf(m) else File(files, m.filename)
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), m.sizeBytes)) ModelRef(m.id, m.label) to f else null
         } + discoveredModels() + labEngineModels()
+    }
+
+    private fun benchOnlyModels() = runCatching { BenchModels.parse(asset(BenchModels.ASSET)) }
+        .onFailure { log("[EVAL] ${BenchModels.ASSET}: $it") }.getOrDefault(emptyList())
+
+    /**
+     * A bench-only model's file, copied over USB: files/<filename> (run-as, a debuggable build), else the app's shared
+     * folder Android/data/<pkg>/files/<filename>, which adb can write on a release build too.
+     */
+    private fun benchFileOf(m: team.sopa.boar.engine.models.CatalogAsset): File {
+        val own = File(files, m.filename)
+        if (own.isFile) return own
+        return context.getExternalFilesDir(null)?.let { File(it, m.filename) } ?: own
     }
 
     /** Models the user added from Hugging Face (Discover GGUF models) and downloaded: evaluated like the catalog's. */
