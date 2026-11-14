@@ -67,4 +67,17 @@ class CardRulesTest {
             "and the only person to win it in two sciences [2]. Born in Warsaw in 1867, she moved to Paris in 1891."
         assertTrue(CardRules.find("Who was Marie Curie?", a).isEmpty())
     }
+
+    @Test fun `the items the question names, one per sentence, from the F3's real answers`() {
+        val boil = CardRules.find("What are the boiling points of water, ethanol and mercury?",
+            "Water boils at 100\u202f°C (212\u202f°F) at sea level [2]. Ethanol boils at approximately 78\u202f°C (173\u202f°F) [3]. Mercury boils at 357\u202f°C (675\u202f°F) [3].").first() as Card.Chart
+        assertEquals(listOf("Water", "Ethanol", "Mercury"), boil.points.map { it.label })
+        assertEquals(listOf("100 °C", "78 °C", "357 °C"), boil.points.map { it.written })
+        val far = CardRules.find("How far are the Moon, Mars and the Sun from Earth?",
+            "The Moon is about 384,400 km from Earth. Mars varies from about 54.6 million to 401 million km away. The Sun is about 149.6 million km from Earth, on average. [1]")
+        // Mars gives two numbers (a range): not certain, so no card.
+        assertTrue(far.isEmpty())
+        // A question that names nothing: no pairing across sentences.
+        assertTrue(CardRules.find("What are the three highest mountains, and how tall is each?", "Mount Everest is 8,850 m. K2 is 8,611 m. Kilimanjaro is 5,895 m.").isEmpty())
+    }
 }

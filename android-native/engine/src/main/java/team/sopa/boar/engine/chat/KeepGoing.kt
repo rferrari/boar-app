@@ -30,6 +30,13 @@ object KeepGoing {
     data class Next(val step: Step?, val followUps: List<String>)
 
     const val MAX = 3
+
+    /**
+     * Follow-up questions are off until adam reads the table (t9 0235 item 7: "if they read poorly, the bubbles ship with
+     * the steps only"). On the F3's 56 real answers they did: "Purified water" for a question on purifying water,
+     * "Cutlet" for bread, "Nature reserve" for "natureza", and a title from the user's own files.
+     */
+    const val FOLLOW_UPS = false
     const val MAX_FOLLOW_UPS = 2
 
     /** The table of t9 0235, row by row. */
@@ -56,14 +63,17 @@ object KeepGoing {
  * no duplicates, two at most. Pure: text in, questions out.
  */
 object FollowUps {
-    data class Source(val title: String, val body: String, val cited: Boolean)
+    /** [fromPack]: a knowledge pack's article; never the user's own files (their names stay theirs). */
+    data class Source(val title: String, val body: String, val cited: Boolean, val fromPack: Boolean = true)
 
     fun pick(question: String, sources: List<Source>, pt: Boolean, max: Int = KeepGoing.MAX_FOLLOW_UPS): List<String> {
         val q = norm(question)
         val out = LinkedHashSet<String>()
         val seen = HashSet<String>()
         // 1. Another source's title, cited ones first; a title the question already names is its topic.
-        for (s in sources.sortedByDescending { it.cited }) {
+        // Only what the answer cites, only from the packs: an uncited passage was often off-topic ("Cutlet" for bread).
+        val usable = sources.filter { it.cited && it.fromPack && !FILE_LIKE.containsMatchIn(it.title) }
+        for (s in usable) {
             val t = cleanTitle(s.title)
             val k = norm(t)
             if (t.isEmpty() || k in seen || mentioned(k, q)) continue
@@ -72,7 +82,7 @@ object FollowUps {
             break
         }
         // 2. A named thing in a cited passage, not in the question, not a source already offered.
-        for (s in sources.filter { it.cited }) {
+        for (s in usable) {
             for (name in names(s.body)) {
                 val k = norm(name)
                 if (k in seen || mentioned(k, q) || k.length < 4) continue
@@ -90,12 +100,17 @@ object FollowUps {
 
     private fun norm(s: String) = java.text.Normalizer.normalize(s.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()
 
-    /** Every word of the name is in the question: it is the question's own topic. */
+    /** A file's name, not an article's: "eBook_investimentos (part 16/17)". */
+    private val FILE_LIKE = Regex("""_|\(part \d+/\d+\)|\.(pdf|txt|md|docx?|csv)\b""", RegexOption.IGNORE_CASE)
+
+    /** Every word of the name is in the question, by its stem ("purified" and "purify"): the question's own topic. */
     private fun mentioned(name: String, q: String): Boolean {
-        val qw = q.split(' ').toSet()
-        val words = name.split(' ').filter { it.length > 2 }
-        return words.isNotEmpty() && words.all { w -> qw.any { it == w || it.startsWith(w) || w.startsWith(it) && it.length > 3 } }
+        val qw = q.split(' ').filter { it.length > 2 }.map(::stem).toSet()
+        val words = name.split(' ').filter { it.length > 2 }.map(::stem)
+        return words.isNotEmpty() && words.all { it in qw }
     }
+
+    private fun stem(w: String) = w.take(5)
 
     private val NAME = Regex("""\b(\p{Lu}[\p{L}'-]+(?:\s+(?:of|de|da|do|the|von|van)?\s*\p{Lu}[\p{L}'-]+){0,3})""")
     private val STOP = setOf("The", "This", "That", "These", "Those", "It", "In", "On", "At", "A", "An", "He", "She", "They", "We", "I", "His", "Her", "Its",

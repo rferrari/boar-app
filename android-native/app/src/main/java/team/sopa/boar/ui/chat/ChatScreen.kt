@@ -846,8 +846,9 @@ private fun KeepGoingGroup(last: UiMessage, state: ChatState, onStep: (team.sopa
     val speaker = r?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
     val next = remember(last.id, last.text, r) {
         val pt = team.sopa.boar.engine.routing.QueryContext.isPortugueseQuestion(question)
-        val follow = team.sopa.boar.engine.chat.FollowUps.pick(question,
-            last.sources.mapIndexed { i, s -> team.sopa.boar.engine.chat.FollowUps.Source(s.title, s.body, last.text.contains("[${i + 1}]")) }, pt)
+        // Off until adam reads the table (KeepGoing.FOLLOW_UPS); only the packs' cited articles, never the user's files.
+        val follow = if (!team.sopa.boar.engine.chat.KeepGoing.FOLLOW_UPS) emptyList() else team.sopa.boar.engine.chat.FollowUps.pick(question,
+            last.sources.mapIndexed { i, s -> team.sopa.boar.engine.chat.FollowUps.Source(s.title, s.body, last.text.contains("[${i + 1}]"), fromPack = s.source?.contains(" — ") == true) }, pt)
         team.sopa.boar.engine.chat.KeepGoing.of(team.sopa.boar.engine.chat.KeepGoing.Answer(
             broken = last.error != null || last.stopped || last.timedOut,
             instant = r?.tool != null && r.tokens == 0, canBypass = speaker?.canBypass == true,
