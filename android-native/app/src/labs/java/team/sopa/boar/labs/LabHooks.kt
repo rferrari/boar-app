@@ -51,7 +51,7 @@ object LabHooks {
                 else -> null
             }
             // Each speaks by its tile's name, so the chat and the switch to turn it off say the same thing.
-            id?.let(LabRegistry::byId)?.let { team.sopa.boar.plugins.AnswerTools.Speaker("native.labs.${it.id}.title", it.art, it.emoji, canBypass = it.id != "cohazard") }
+            id?.let(LabRegistry::byId)?.let { team.sopa.boar.plugins.AnswerTools.Speaker("native.labs.${it.id}.title", it.art, it.emoji, canBypass = it.id != "cohazard", id = it.id) }
         }
         // The engine slot: the engines of the labs switched on now, read each time the app lists models.
         team.sopa.boar.plugins.EnginePlugins.providers = { LabRegistry.active.mapNotNull { it.engine } }

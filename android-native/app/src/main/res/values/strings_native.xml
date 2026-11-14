@@ -762,6 +762,7 @@
     <string name="native_docs_running" formatted="false">Adding: {{name}}</string>
     <string name="native_docs_waiting" formatted="false">{{name}} · {{count}} files</string>
     <string name="native_docs_queueNote" formatted="false">They\'re added one at a time. Closing BOAR drops the ones still waiting.</string>
+    <string name="native_chat_openPlugin" formatted="false">Open {{name}}</string>
     <string name="native_chat_pluginOff" formatted="false">{{name}} is off. Turn it on in Plugins ›</string>
     <string name="native_chat_showAll" formatted="false">Show all</string>
     <string name="native_docs_subtitle" formatted="false">Packs and files BOAR can search</string>

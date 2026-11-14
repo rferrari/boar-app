@@ -190,7 +190,8 @@ fun ChatScreen(
                 ) {
                     items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource,
                         // "Lunar is off": the Plugins list in Pro (its switch), else the plugin's page.
-                        onReadPlugin = { id -> onOpenRoute(if (team.sopa.boar.labs.LabPrefs.proProfile) "labs" else "lab:$id") }, onSkipTyping = onSkipTyping) }
+                        onReadPlugin = { id -> onOpenRoute(if (team.sopa.boar.labs.LabPrefs.proProfile) "labs" else "lab:$id") }, onSkipTyping = onSkipTyping,
+                        onOpenPlugin = { id -> onOpenRoute("lab:$id") }) }
                 }
                 // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -530,7 +531,8 @@ private fun activityLabel(a: Activity?): String = when (a) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {},
-    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}, onReadPlugin: (String) -> Unit = {}, onSkipTyping: () -> Unit = {}) {
+    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}, onReadPlugin: (String) -> Unit = {}, onSkipTyping: () -> Unit = {},
+    onOpenPlugin: (String) -> Unit = {}) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -553,7 +555,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             // A Labs plugin's instant answer speaks as that plugin (AnswerTools.speaker): its art and name, not BOAR's.
             val speaker = if (user) null else m.receipt?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
-            Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // A plugin's picture and name open its page (adam, Nov 13), in every profile; the ✕ there comes back to the chat.
+            val speakerPage = speaker?.id?.takeIf { !streaming && team.sopa.boar.labs.LabPrefs.labsOn }
+            val pluginName = speaker?.let { t(it.titleKey) }
+            Row((if (speakerPage != null) Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = androidx.compose.ui.semantics.Role.Button,
+                    onClickLabel = t("native.chat.openPlugin", "name" to pluginName.orEmpty())) { onOpenPlugin(speakerPage) } else Modifier)
+                .padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (!user) {
                     val art = speaker?.art
                     if (speaker != null && art == null) Text(speaker.emoji, fontSize = 15.sp)
