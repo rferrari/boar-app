@@ -43,6 +43,11 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
+import androidx.compose.foundation.lazy.itemsIndexed
+import team.sopa.boar.engine.eval.BenchLevel
+import team.sopa.boar.engine.eval.BenchPresets
+import team.sopa.boar.engine.eval.RunMeta
+import team.sopa.boar.engine.eval.Scorecard
 import team.sopa.boar.eval.EvaluationState
 import team.sopa.boar.eval.EvaluationViewModel
 import team.sopa.boar.ui.t
@@ -72,22 +77,35 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
     var modelsOpen by remember { mutableStateOf(true) }
     var answersOpen by remember { mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(state.running) { if (state.running) modelsOpen = false }
-    val chosen = state.configs.orEmpty().count { it.id in state.selected }
-    val canRun = !state.running && !chatBusy && chosen > 0 && state.configs != null
+    val byHand = state.level == null
+    val chosen = if (byHand) state.configs.orEmpty().count { it.id in state.selected } else state.plan?.models?.size ?: 0
+    val canRun = !state.running && !chatBusy && chosen > 0 && state.configs != null && (byHand || state.plan != null)
+    var confirmDelete by remember { mutableStateOf<String?>(null) }
+    var savedOpen by remember { mutableStateOf(true) }
     val export: (String) -> Unit = { format -> scope.launch { vm.exportIntent(format)?.let(ctx::startActivity) } }
 
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
         // The app's page header; Back waits while a run is going (as Done did).
-        team.sopa.boar.ui.PageHeader(t("evaluation.title"), { if (!state.running) onClose() })
+        team.sopa.boar.ui.PageHeader(t("evaluation.title"), { if (state.opened != null) vm.closeOpened() else if (!state.running) onClose() })
+        // Runs started over adb since the page was last open show up too.
+        androidx.compose.runtime.LaunchedEffect(Unit) { vm.refreshSaved() }
         // The set and app version under the header, not in it (header subtitles only where a first-timer needs one).
         Text(t("evaluation.subtitle", "version" to state.setVersion, "count" to state.queries.size) + " · BOAR " + vm.sharing.appVersion(),
             style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp, 12.dp, 12.dp, 40.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val configs = state.configs
-            item {
+            // A saved run opened from the list: its rows and scorecard below, as right after it ran.
+            state.opened?.let { run ->
+                item { OpenedBar(run, onClose = { vm.closeOpened() }, onDelete = { confirmDelete = run.runId }) }
+            }
+            if (state.opened == null) item { PresetSection(state, vm) }
+            if (state.opened == null && byHand) item {
                 SectionToggle(t("native.eval.modelsTitle", "chosen" to chosen, "count" to configs.orEmpty().size), modelsOpen) { modelsOpen = !modelsOpen }
             }
-            if (configs == null) item { CircularProgressIndicator(color = c.textAccentEmerald, modifier = Modifier.size(24.dp)) }
+            // The ticked models only by hand; a preset says its own models in its section.
+            val showModels = state.opened == null && byHand
+            if (!showModels) { /* nothing */ }
+            else if (configs == null) item { CircularProgressIndicator(color = c.textAccentEmerald, modifier = Modifier.size(24.dp)) }
             else if (modelsOpen) {
                 if (configs.isEmpty()) item { Note(t("evaluation.noModels")) }
                 items(configs, key = { it.id }) { cfg ->
@@ -102,12 +120,14 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Note(t("evaluation.summary", "queries" to state.queries.size, "configs" to chosen, "total" to state.queries.size * chosen))
-                    Note(if (chatBusy) t("evaluation.chatBusy") else t("native.eval.keepScreenOn"))
+                    if (state.opened == null) {
+                        Note(t("evaluation.summary", "queries" to state.queries.size, "configs" to chosen, "total" to (state.plan?.takeIf { !byHand }?.answers ?: (state.queries.size * chosen))))
+                        Note(if (chatBusy) t("evaluation.chatBusy") else t("native.eval.keepScreenOn"))
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (state.running) {
                             Action(if (state.stopping) t("evaluation.stopping") else t("evaluation.stop"), enabled = !state.stopping, danger = true) { vm.stop() }
-                        } else {
+                        } else if (state.opened == null) {
                             Action(t("evaluation.run"), enabled = canRun) { vm.run() }
                         }
                         if (state.runId != null && !state.running) {
@@ -120,7 +140,8 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                 }
             }
             // Under the buttons, so Run and Stop stay put: progress and each model's score, live while it runs.
-            if (state.running || state.rows.isNotEmpty()) item { ScoreSection(state, total = state.queries.size * chosen) }
+            if (state.running || state.rows.isNotEmpty()) item { ScoreSection(state, total = state.total) }
+            state.scorecard?.takeIf { !state.running }?.let { card -> item { ScorecardSection(card) } }
             state.error?.let { item { Text(t("evaluation.runFailedTitle") + ": " + it, style = Boar.type["mono.xs"], color = c.crimson400) } }
             state.savedPath?.let { path ->
                 item { Note((if (state.stopped) t("evaluation.stoppedEarly") + " " else "") + t("evaluation.savedTo", "path" to path)) }
@@ -128,18 +149,30 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             if (state.rows.isNotEmpty()) item {
                 SectionToggle(t("native.eval.answersTitle", "count" to state.rows.size), answersOpen) { answersOpen = !answersOpen }
             }
-            if (answersOpen) items(state.rows, key = { "${it.str("configId")}/${it.str("queryId")}" }) { r ->
-                val key = "${r.str("configId")}/${r.str("queryId")}"
+            // Keyed by place: a preset answers the same question once per pass (Succinct, Detailed, Deep Research).
+            if (answersOpen) itemsIndexed(state.rows, key = { i, it -> "$i/${it.str("configId")}/${it.str("queryId")}" }) { i, r ->
+                val key = "$i/${r.str("configId")}/${r.str("queryId")}"
                 val open = expanded == key
                 val outcome = r.str("outcome")
                 val outcomeColor = when (outcome) { "failure" -> c.crimson400; "cancelled" -> c.amber400; else -> c.textAccentEmerald }
                 val titles = r.list("retrievedTitles")
+                val verdict = state.scorecard?.rows?.getOrNull(i)?.takeIf { it.queryId == r.str("queryId") }
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCardElevated).border(1.dp, c.borderDefault, RoundedCornerShape(10.dp))
                     .clickable { expanded = if (open) null else key }.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("${r.str("queryId")} · ${r.str("configLabel")}", style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold,
+                        Text("${r.str("queryId")} · ${r.str("configLabel")}" + (r.str("style")?.let { " · $it" } ?: "") + (if (r.str("path") == "deep") " · deep" else ""),
+                            style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold,
                             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                        verdict?.let { v ->
+                            Text(t("native.eval.verdict.${v.verdict.name}").uppercase(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), fontWeight = FontWeight.SemiBold,
+                                color = when (v.verdict) { Scorecard.Verdict.PASS -> c.textAccentEmerald; Scorecard.Verdict.FAIL -> c.crimson400; else -> c.textMuted })
+                        }
                         Text((outcome ?: "—").uppercase(), style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = outcomeColor, fontWeight = FontWeight.SemiBold)
+                    }
+                    // What failed, and what right looks like (the topic's note), when open.
+                    if (open) verdict?.let { v ->
+                        v.checks.filter { it.ok == false }.forEach { ch -> Text("✗ ${ch.rule}: ${ch.detail}", style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.crimson400) }
+                        if (v.toRead.isNotEmpty()) Text(v.toRead, style = Boar.type["mono.xs"].copy(fontSize = 9.sp), color = c.textMuted)
                     }
                     val meta = Boar.type["mono.xs"].copy(fontSize = 9.sp)
                     r.str("query")?.let { q -> Text("Q: $q", style = Boar.type.subtext, color = c.textMuted, maxLines = if (open) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis) }
@@ -151,9 +184,155 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                         style = Boar.type.subtext, color = c.textPrimary, maxLines = if (open) Int.MAX_VALUE else 3, overflow = TextOverflow.Ellipsis)
                 }
             }
+            // Every run kept on the phone, newest first: from this page and from adb, old ones too (adam, Nov 14).
+            item { SectionToggle(t("native.eval.saved.title", "count" to state.saved.size), savedOpen) { savedOpen = !savedOpen } }
+            if (savedOpen && state.saved.isEmpty()) item { Note(t("native.eval.saved.empty")) }
+            if (savedOpen) items(state.saved, key = { "saved/" + it.runId }) { run ->
+                SavedRunRow(run, current = run.runId == state.opened?.runId, enabled = !state.running) { vm.open(run.runId) }
+            }
         }
     }
     ShareDialog(state, vm)
+    confirmDelete?.let { id ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            containerColor = c.bgCardElevated,
+            title = { Text(t("native.eval.saved.deleteTitle"), style = Boar.type.title, color = c.textHeading) },
+            text = { Text(t("native.eval.saved.deleteBody"), style = Boar.type.body, color = c.textPrimary) },
+            confirmButton = { androidx.compose.material3.TextButton({ vm.delete(id); confirmDelete = null }) { Text(t("native.eval.saved.delete"), color = c.crimson400) } },
+            dismissButton = { androidx.compose.material3.TextButton({ confirmDelete = null }) { Text(t("common.cancel"), color = c.textSecondary) } },
+        )
+    }
+}
+
+private fun runDate(ms: Long): String =
+    java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT).format(java.util.Date(ms))
+
+/** A saved run in the list: date and build, models, level and topic, how it ended. */
+@Composable
+private fun SavedRunRow(run: RunMeta, current: Boolean, enabled: Boolean, onOpen: () -> Unit) {
+    val c = Boar.colors
+    val meta = Boar.type["mono.xs"].copy(fontSize = 10.sp)
+    val stateColor = when (run.state) {
+        RunMeta.STATE_DONE -> c.textAccentEmerald
+        RunMeta.STATE_FAILED, RunMeta.STATE_INTERRUPTED -> c.crimson400
+        else -> c.amber400
+    }
+    Column(Modifier.fillMaxWidth().alpha(if (enabled) 1f else 0.5f).clip(RoundedCornerShape(8.dp)).background(c.bgCardElevated)
+        .border(1.dp, if (current) c.textAccentEmerald else c.borderDefault, RoundedCornerShape(8.dp))
+        .clickable(enabled = enabled, onClick = onOpen).padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(runDate(run.createdAt), style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(t("native.eval.saved.state.${run.state}").uppercase(), style = meta.copy(fontSize = 9.sp), color = stateColor, fontWeight = FontWeight.SemiBold)
+        }
+        val preset = run.level?.let { l -> t("native.eval.level.$l") + (run.topics.filter { it != BenchPresets.CORE }.takeIf { it.isNotEmpty() }?.joinToString("+", " · ") ?: "") }
+            ?: t("native.eval.saved.byHand")
+        Text(listOfNotNull(preset, t("native.eval.saved.answers", "count" to run.rows), run.appVersion?.let { "BOAR $it" },
+            if (run.source == "adb") t("native.eval.saved.adb") else null).joinToString(" · "), style = meta, color = c.textMuted)
+        if (run.models.isNotEmpty()) Text(run.models.joinToString(", "), style = meta, color = c.textDim, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** On top of an opened saved run: which one it is, Close and Delete. */
+@Composable
+private fun OpenedBar(run: RunMeta, onClose: () -> Unit, onDelete: () -> Unit) {
+    val c = Boar.colors
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(t("native.eval.saved.opened", "date" to runDate(run.createdAt)), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.Bold)
+        Text(run.runId, style = Boar.type["mono.xs"].copy(fontSize = 10.sp), color = c.textDim)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Action(t("native.eval.saved.close"), onClick = onClose)
+            Action(t("native.eval.saved.delete"), danger = true, onClick = onDelete)
+        }
+    }
+}
+
+@Composable
+private fun Chip(text: String, on: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    val c = Boar.colors
+    Text(text, style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary,
+        modifier = Modifier.alpha(if (enabled || on) 1f else 0.5f).background(if (on) c.emerald600 else c.bgCard, RoundedCornerShape(16.dp))
+            .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 12.dp, vertical = 7.dp))
+}
+
+private fun duration(seconds: Double): String {
+    val s = seconds.toLong()
+    return when {
+        s < 60 -> "$s s"
+        s < 3600 -> "${(s + 30) / 60} min"
+        else -> "${s / 3600} h ${(s % 3600 + 30) / 60} min"
+    }
+}
+
+/**
+ * Levels and topics (adam, Nov 14: "fast, only succinct mode. medium, complete. and by topics"), what the chosen preset
+ * runs and how long it should take before it starts ("this waiting sucks").
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun PresetSection(state: EvaluationState, vm: EvaluationViewModel) {
+    val c = Boar.colors
+    val pt = LocalContext.current.resources.configuration.locales[0]?.language == "pt"
+    val enabled = !state.running
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(t("native.eval.preset.title"), style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold)
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Chip(t("native.eval.preset.byHand"), state.level == null, enabled) { vm.setLevel(null) }
+            BenchLevel.entries.forEach { l -> Chip(t("native.eval.level.${l.id}"), state.level == l, enabled) { vm.setLevel(l) } }
+        }
+        Note(t(state.level?.let { "native.eval.level.${it.id}.note" } ?: "native.eval.level.byHand.note"))
+        if (state.topics.isNotEmpty()) {
+            Text(t("native.eval.topic.title"), style = Boar.type.subtext, color = c.textHeading, fontWeight = FontWeight.Bold)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                state.topics.forEach { tp -> Chip((if (pt) tp.titlePt else null) ?: tp.title, state.topic == tp.id, enabled) { vm.setTopic(tp.id) } }
+            }
+            state.topics.firstOrNull { it.id == state.topic }?.let { tp ->
+                if (tp.about.isNotEmpty()) Note(tp.about)
+                if (tp.status.startsWith("draft")) Note(t("native.eval.topic.draft"))
+            }
+        }
+        state.plan?.takeIf { state.level != null }?.let { plan ->
+            Note(t("native.eval.planModels", "models" to plan.models.joinToString(", ") { it.label }))
+            state.estimate?.let { e ->
+                val line = t("native.eval.expected", "time" to duration(e.seconds), "answers" to plan.answers) +
+                    (if (e.untimed > 0) ", " + t("native.eval.expected.untimed", "count" to e.untimed) else "") + " (" +
+                    (if (e.fromPrevious) t("native.eval.expected.fromPrevious", "level" to t("native.eval.level.${plan.preset.level.id}")) else t("native.eval.expected.fromSeed")) + ")"
+                Text(line, style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+/** One line per topic, passed over checked, against the previous run of the same preset; one line per model and pass. */
+@Composable
+private fun ScorecardSection(card: Scorecard.Card) {
+    val c = Boar.colors
+    val meta = Boar.type["mono.xs"].copy(fontSize = 10.sp)
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).background(c.bgCardElevated).padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(t("native.eval.scorecard.title"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.Bold)
+        card.topics.forEach { line ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(line.topic, style = Boar.type.subtext, color = c.textPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(t("native.eval.scorecard.passed", "passed" to line.passed, "checked" to line.checked), style = meta, color = c.textPrimary)
+                line.trend?.let { tr ->
+                    val (arrow, color) = when (tr) { Scorecard.Trend.UP -> "↑" to c.textAccentEmerald; Scorecard.Trend.DOWN -> "↓" to c.crimson400; else -> "=" to c.textMuted }
+                    Text("$arrow " + t("native.eval.scorecard.${tr.name.lowercase()}"), style = meta, color = color, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            Text(listOfNotNull(
+                line.previousChecked?.let { t("native.eval.scorecard.was", "passed" to line.previousPassed, "checked" to it) },
+                t("native.eval.scorecard.toRead", "count" to line.toRead),
+            ).joinToString(" · "), style = meta, color = c.textDim)
+        }
+        card.models.forEach { m ->
+            Text("${m.modelId} · ${m.pass}", style = Boar.type.subtext, color = c.textPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(t("native.eval.scorecard.model", "first" to formatMs(m.firstWordMs), "whole" to formatMs(m.wholeAnswerMs),
+                "peak" to (m.peakRssBytes?.let { String.format(Locale.US, "%.2f GB", it / 1e9) } ?: "—")), style = meta, color = c.textDim)
+        }
+        Note(t("native.eval.scorecard.note"))
+    }
 }
 
 /** SharePreview.tsx + ShareProgress.tsx: what will be sent, then each step and the outcome. */

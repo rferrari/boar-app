@@ -782,4 +782,47 @@
     <string name="native_docs_subtitle" formatted="false">Pacotes e arquivos que o BOAR consulta</string>
     <string name="native_tweaks_stagedQuotes" formatted="false">Citações em etapas</string>
     <string name="native_tweaks_stagedQuotesNote" formatted="false">Mostra as citações das fontes antes da resposta. Desligue se as respostas parecerem erradas no seu modelo.</string>
+    <string name="native_eval_preset_title" formatted="false">Predefinição</string>
+    <string name="native_eval_preset_byHand" formatted="false">À mão</string>
+    <string name="native_eval_level_fast" formatted="false">Rápido</string>
+    <string name="native_eval_level_medium" formatted="false">Médio</string>
+    <string name="native_eval_level_complete" formatted="false">Completo</string>
+    <string name="native_eval_level_fast_note" formatted="false">Sucinto, no 1.7B (ou no único modelo de resposta).</string>
+    <string name="native_eval_level_medium_note" formatted="false">Sucinto, no 1.7B e no 4B.</string>
+    <string name="native_eval_level_complete_note" formatted="false">Sucinto e Detalhado nos dois modelos, e Pesquisa profunda no tema de pesquisa.</string>
+    <string name="native_eval_level_byHand_note" formatted="false">Os modelos que você marcar, no estilo padrão.</string>
+    <string name="native_eval_topic_title" formatted="false">Tema</string>
+    <string name="native_eval_topic_draft" formatted="false">Rascunho, para revisão do t9: as regras ainda não contam.</string>
+    <string name="native_eval_planModels" formatted="false">Modelos: {{models}}</string>
+    <string name="native_eval_expected" formatted="false">Previsto: cerca de {{time}} para {{answers}} respostas</string>
+    <string name="native_eval_expected_untimed" formatted="false">mais {{count}} respostas de Pesquisa profunda que ninguém cronometrou ainda</string>
+    <string name="native_eval_expected_fromPrevious" formatted="false">pela última execução {{level}} neste celular</string>
+    <string name="native_eval_expected_fromSeed" formatted="false">pelas medianas do F3</string>
+    <string name="native_eval_scorecard_title" formatted="false">Placar</string>
+    <string name="native_eval_scorecard_passed" formatted="false">{{passed}}/{{checked}} passaram</string>
+    <string name="native_eval_scorecard_toRead" formatted="false">{{count}} para ler</string>
+    <string name="native_eval_scorecard_was" formatted="false">antes {{passed}}/{{checked}}</string>
+    <string name="native_eval_scorecard_up" formatted="false">subiu</string>
+    <string name="native_eval_scorecard_down" formatted="false">caiu</string>
+    <string name="native_eval_scorecard_same" formatted="false">igual</string>
+    <string name="native_eval_scorecard_model" formatted="false">primeira palavra {{first}} · resposta inteira {{whole}} · pico {{peak}}</string>
+    <string name="native_eval_scorecard_note" formatted="false">O computador só pontua o que uma regra consegue checar (o texto exato de um plugin, o idioma, os cards, as fontes, os números). O resto é para ler.</string>
+    <string name="native_eval_verdict_PASS" formatted="false">passou</string>
+    <string name="native_eval_verdict_FAIL" formatted="false">falhou</string>
+    <string name="native_eval_verdict_TO_READ" formatted="false">para ler</string>
+    <string name="native_eval_saved_title" formatted="false">Execuções salvas ({{count}})</string>
+    <string name="native_eval_saved_empty" formatted="false">Nenhuma execução salva ainda. Cada execução fica neste celular até você apagar.</string>
+    <string name="native_eval_saved_byHand" formatted="false">à mão</string>
+    <string name="native_eval_saved_adb" formatted="false">pelo adb</string>
+    <string name="native_eval_saved_answers" formatted="false">{{count}} respostas</string>
+    <string name="native_eval_saved_state_running" formatted="false">rodando</string>
+    <string name="native_eval_saved_state_done" formatted="false">concluída</string>
+    <string name="native_eval_saved_state_stopped" formatted="false">interrompida</string>
+    <string name="native_eval_saved_state_failed" formatted="false">falhou</string>
+    <string name="native_eval_saved_state_interrupted" formatted="false">cortada</string>
+    <string name="native_eval_saved_opened" formatted="false">Execução salva · {{date}}</string>
+    <string name="native_eval_saved_close" formatted="false">Fechar</string>
+    <string name="native_eval_saved_delete" formatted="false">Apagar</string>
+    <string name="native_eval_saved_deleteTitle" formatted="false">Apagar esta execução?</string>
+    <string name="native_eval_saved_deleteBody" formatted="false">As respostas são apagadas deste celular e não voltam. Exportações que você fez continuam.</string>
 </resources>

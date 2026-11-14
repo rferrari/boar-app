@@ -15,6 +15,7 @@ class BenchLogTest {
     }
 
     @Test fun `each question says it started`() {
-        assertTrue(runner.indexOf("log(\"[EVAL] \${q.id}: answering on \${config.modelId}…\")") in 0 until runner.indexOf("val r = answerRow("))
+        // Since presets (Nov 14) the line also names the pass (succinct, detailed, deep), and the answer is a row or a Deep Research row.
+        assertTrue(runner.indexOf("log(\"[EVAL] \${q.id}: answering on \${config.modelId} (\${pass.key})…\")") in 0 until runner.indexOf("val r = if (pass.deep) deepRow("))
     }
 }
