@@ -10,8 +10,9 @@ object LabDefaults {
     /**
      * adam's default-on list, without the ALPHA labs still waiting for tests and a phone pass ([PENDING_ALPHA]).
      * Polyglot left it on Nov 11 (adam): off by default until it's redesigned; it stays in the list to switch on.
+     * Cards (id canvas) joined it Nov 14 (t9 0207 item 5: "switch it on by default, so the test APK carries it").
      */
-    val ON: Set<String> = setOf("pulse", "image", "printer", "calc", "distance", "facts", "cohazard")
+    val ON: Set<String> = setOf("pulse", "image", "printer", "calc", "distance", "facts", "cohazard", "canvas")
 
     /**
      * On adam's list but ALPHA: they start off until each has tests and a device pass, or is raised to BETA, or adam
