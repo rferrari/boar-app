@@ -41,7 +41,12 @@ object LabTools {
     /** Boar Cohazard: planning questions about a fuel-burning device in an enclosed space. English as before; then the
      * Portuguese and Spanish patterns (draft answers in the question's language), whatever the language detectors say:
      * "gerador na garagem fechada" has none of their words. */
+    /** The acute carbon monoxide card's tool id: Cohazard's, no bypass, never merged (as the planning card). */
+    const val CO_ACUTE = "safety-fact-co-acute"
+
     fun coHazard(query: String): Hit? {
+        // An alarm going off or symptoms, carbon monoxide named: the acute card first, in any of the three languages (t9 1535).
+        CoHazard.acuteLanguage(query)?.let { return Hit(CO_ACUTE, CoHazard.acuteAnswer(query, it)) }
         if (!notEnglish(query) && CoHazard.isCoHazardQuestion(query)) return Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query))
         return CoHazard.coHazardLanguage(query)?.let { Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query, it)) }
     }

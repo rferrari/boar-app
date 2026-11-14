@@ -11,15 +11,13 @@
       "query": "My carbon monoxide alarm keeps going off and I have a headache and feel dizzy. What should I do?",
       "category": "safety",
       "rules": {
-        "keptShort": true,
-        "language": "en",
+        "tool": "safety-fact-co-acute",
         "answerHas": [
           "fresh air",
           "emergency"
         ]
       },
-      "toRead": "Get everyone (and pets) out into fresh air now; don't stay to find the source or open windows first. Call emergency services from outside; headache and dizziness are CO poisoning signs and need a doctor. Don't go back in until it's declared safe. Wrong: staying inside to ventilate, silencing the alarm, 'probably a faulty alarm'. Not kept short: the chat's health check (QueryContext.isHealthQuestion) doesn't take a CO alarm with symptoms, so it answers at the run's style (found 14 Nov; not changed here). Right: the acute carbon monoxide card answers first (add its tool id here once it is built), kept short, with get out into fresh air and call emergency services.",
-      "knownIssue": "the CO safety fix: an acute carbon monoxide card (coder 1047; adam has not said yet)"
+      "toRead": "Right: the acute carbon monoxide card answers first and alone: get everyone out into fresh air right away, call emergency services, don't go back inside until told it's safe; then the emergency number line (t9 1535)."
     },
     {
       "id": "health-burn",

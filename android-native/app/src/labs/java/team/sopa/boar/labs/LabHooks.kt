@@ -40,7 +40,7 @@ object LabHooks {
         // bypassed: it exists because a model answered "yes, with ventilation".
         team.sopa.boar.plugins.AnswerTools.speaker = { tool ->
             val id = when {
-                tool == "safety-fact-co-hazard" -> "cohazard"
+                tool == "safety-fact-co-hazard" || tool == team.sopa.boar.engine.routing.LabTools.CO_ACUTE -> "cohazard"
                 tool.startsWith("calculator-travel-distance") -> "distance"
                 tool.startsWith("calculator-") -> "calc"
                 tool.startsWith("facts-") -> "facts"

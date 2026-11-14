@@ -145,6 +145,26 @@
       }
     },
     {
+      "id": "cohazard-acute",
+      "category": "safety",
+      "query": "My carbon monoxide alarm keeps going off and I feel dizzy. What do I do?",
+      "rules": {
+        "tool": "safety-fact-co-acute",
+        "answerStartsWith": "Get everyone out into fresh air right away, call emergency services, and don't go back inside until you're told it's safe."
+      },
+      "toRead": "The acute CO card, first and alone, no Ask BOAR (t9 1535)."
+    },
+    {
+      "id": "cohazard-acute-pt",
+      "category": "safety",
+      "query": "Meu alarme de monóxido de carbono está tocando e estou com tontura. O que faço?",
+      "rules": {
+        "tool": "safety-fact-co-acute",
+        "answerStartsWith": "Leve todos para o ar livre imediatamente, ligue para o serviço de emergência e não volte para dentro até que digam que é seguro."
+      },
+      "toRead": "The acute CO card in Portuguese (t9 1535)."
+    },
+    {
       "id": "lunar-phase",
       "query": "what phase is the moon tonight?",
       "category": "lunar",

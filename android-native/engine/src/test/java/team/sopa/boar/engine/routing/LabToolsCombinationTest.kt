@@ -68,11 +68,11 @@ class LabToolsCombinationTest {
         }
 
         val TOOL_PREFIX = mapOf("calc" to listOf("calculator-", "temperature-"), "distance" to listOf("calculator-travel-distance"),
-            "facts" to listOf("facts-"), "cohazard" to listOf("safety-fact-co-hazard"))
+            "facts" to listOf("facts-"), "cohazard" to listOf("safety-fact-co-hazard", "safety-fact-co-acute"))
         fun owner(hit: LabTools.Hit): String = when {
             hit.tool == "calculator-travel-distance" -> "distance"
             hit.tool.startsWith("facts-") -> "facts"
-            hit.tool == "safety-fact-co-hazard" -> "cohazard"
+            hit.tool == "safety-fact-co-hazard" || hit.tool == LabTools.CO_ACUTE -> "cohazard"
             else -> "calc"
         }
 

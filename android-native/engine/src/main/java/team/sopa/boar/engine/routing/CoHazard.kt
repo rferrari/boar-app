@@ -384,6 +384,50 @@ object CoHazard {
     // has no Spanish lines, so a Spanish answer always ends with this one.
     private const val EMERGENCY_LINE_ES = "En una emergencia, llama al número de emergencias local (911 en EE. UU., 112 en Europa)."
 
+    // ---- The acute card (adam: "send co safety fix", Nov 14; t9 1535) ----
+    // The planning card above stays out of an alarm going off or symptoms (ACUTE: "not this planning answer"); until now
+    // nothing else answered them, so the most urgent carbon monoxide question had the model alone, not kept short. This
+    // card is the planning card's own last sentence in each language, nothing new, then the emergency number line.
+
+    /** Carbon monoxide named: never "CO" alone (CO2, Colorado, a company), never a smoke alarm. */
+    private val CO_NAMED = Regex(
+        """(?<![\p{L}\p{N}])(?:carbon[ -]monoxide|mon[óo]xido de carbono|co (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:alarmes?|alarmas?|detector(?:es)?|sensor(?:es)?|intoxica[çc][ãa]o|intoxicaci[óo]n|envenenamento|envenenamiento|n[íi]vel|nivel) (?:de|por) (?:co|mon[óo]xido))(?![\p{L}\p{N}])""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    const val CO_ACUTE_EN = "Get everyone out into fresh air right away, call emergency services, and don't go back inside until you're told it's safe."
+    const val CO_ACUTE_PT = "Leve todos para o ar livre imediatamente, ligue para o serviço de emergência e não volte para dentro até que digam que é seguro."
+    const val CO_ACUTE_ES = "Saca a todos al aire libre de inmediato, llama a los servicios de emergencia y no vuelvas a entrar hasta que te digan que es seguro."
+
+    /**
+     * The acute card's language ("en", "pt", "es"), or null: carbon monoxide named, with an alarm going off, a ppm reading,
+     * or a symptom, in English, Portuguese or Spanish. The question's language decides; else the language whose acute
+     * words matched.
+     */
+    fun acuteLanguage(query: String): String? {
+        val q = QUOTES.replace(query, "'")
+        if (!CO_NAMED.containsMatchIn(q)) return null
+        val en = ACUTE.containsMatchIn(q); val pt = PT.acute.containsMatchIn(q); val es = ES.acute.containsMatchIn(q)
+        if (!(en || pt || es)) return null
+        // Which language's own alarm or symptom words matched decides first: the generic detectors read Spanish shared words
+        // ("de", "está") as Portuguese.
+        return when {
+            es && !pt -> "es"
+            pt && !es -> "pt"
+            QueryContext.isSpanishQuestion(query) -> "es"
+            QueryContext.isPortugueseQuestion(query) -> "pt"
+            Regex("""mon[óo]xido""", RegexOption.IGNORE_CASE).containsMatchIn(q) -> "pt"
+            else -> "en"
+        }
+    }
+
+    /** The acute card in [lang]: the planning card's own advice, then the emergency number line it uses. */
+    fun acuteAnswer(query: String, lang: String): String = when (lang) {
+        "pt" -> "$CO_ACUTE_PT\n\n${EmergencyNumbers.emergencyNumbersLine(query, true) ?: EMERGENCY_LINE_PT}"
+        "es" -> "$CO_ACUTE_ES\n\n$EMERGENCY_LINE_ES"
+        else -> "$CO_ACUTE_EN\n\n${EmergencyNumbers.emergencyNumbersLine(query, false) ?: EMERGENCY_LINE_EN}"
+    }
+
     /** The language of a Portuguese or Spanish CO planning question ("pt" or "es"), or null. Both match (shared words
      * like "dentro" with each one's device): the Spanish detector decides. */
     fun coHazardLanguage(query: String): String? {
