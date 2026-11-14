@@ -18,12 +18,15 @@ object AnswerLanguage {
     /** The app's language setting ("pt", "en"), set by the app; the last word when nothing else tells. */
     @Volatile var appLanguage: String? = null
 
-    /** r4to's lines (src/routing/context.ts:823-829), word for word. */
-    const val PT_WITH_SOURCES = "Responda em português do Brasil, mesmo que as fontes estejam em inglês, e cite cada afirmação com o número da fonte, como [1]."
-    const val PT_NO_SOURCES = "Responda em português do Brasil."
+    /**
+     * r4to's lines (src/routing/context.ts:823-829), with adam's wording of the language (Nov 14: "use \"Responda em
+     * Português.\" instead \"Responda em português do Brasil.\""); the citation request stays word for word.
+     */
+    const val PT_WITH_SOURCES = "Responda em Português, mesmo que as fontes estejam em inglês, e cite cada afirmação com o número da fonte, como [1]."
+    const val PT_NO_SOURCES = "Responda em Português."
 
     /** Personal Files' fixed line, in Portuguese (PersonalFiles.NOT_FOUND_PT), said exactly when the files don't hold it. */
-    const val PT_FILES_ONLY = "Responda em português do Brasil e cite o arquivo pelo número, como [1]. Se o contexto não tiver a resposta, diga exatamente: " + PersonalFiles.NOT_FOUND_PT
+    const val PT_FILES_ONLY = "Responda em Português e cite o arquivo pelo número, como [1]. Se o contexto não tiver a resposta, diga exatamente: " + PersonalFiles.NOT_FOUND_PT
 
     private val EN_WORDS = Regex("""\b(the|is|are|was|were|what|how|why|who|which|when|where|does|do|did|of|and|to|in|can|should|would|tell|me|about|between|my|your)\b""", RegexOption.IGNORE_CASE)
 

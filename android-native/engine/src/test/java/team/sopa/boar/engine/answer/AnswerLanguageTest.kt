@@ -60,8 +60,13 @@ class AnswerLanguageTest {
         check("26 km", listOf("Quanto é 26 milhas em km?"), null, Lang.PT)
     }
 
-    @Test fun `r4to's lines, word for word`() {
-        assertEquals("Responda em português do Brasil, mesmo que as fontes estejam em inglês, e cite cada afirmação com o número da fonte, como [1].", AnswerLanguage.PT_WITH_SOURCES)
-        assertEquals("Responda em português do Brasil.", AnswerLanguage.PT_NO_SOURCES)
+    @Test fun `r4to's lines, in adam's wording of the language`() {
+        assertEquals("Responda em Português, mesmo que as fontes estejam em inglês, e cite cada afirmação com o número da fonte, como [1].", AnswerLanguage.PT_WITH_SOURCES)
+        assertEquals("Responda em Português.", AnswerLanguage.PT_NO_SOURCES)
+    }
+
+    @Test fun `the chat title follows the chat's language, English unchanged`() {
+        assertEquals("\"Why is the sky blue?\"", Summarize.titleInput("Why is the sky blue?"))
+        assertEquals("\"Por que o céu é azul?\"\n\n" + AnswerLanguage.PT_NO_SOURCES, Summarize.titleInput("Por que o céu é azul?"))
     }
 }
