@@ -8,9 +8,14 @@ class SettingsProfileAboutTest {
     private val settings = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
     private fun res(d: String, f: String) = java.io.File("../app/src/main/res/$d/$f").readText()
 
-    @Test fun `the profile is three pills with a short caption, and going down says what pauses`() {
-        assertTrue(settings.contains("ProfilePills(services, profile)") && !settings.contains("private fun ProfileSection("))
-        assertTrue(settings.contains("t(\"native.settings.profile.\${profile.key}Short\")") && settings.contains("if (wentDown) Text(t(\"native.settings.profile.downNote\")"))
+    @Test fun `the profile is three small pills in the header, and what a pick gives and what pauses going down are toasts`() {
+        // adam, Nov 13: "move the profile pills to settings header. smaller pills. the notes, use as toasts".
+        assertTrue(settings.contains("actions = if (shown(SettingsPart.PROFILE)) ({ ProfilePills(profile, pick) }) else null") && !settings.contains("private fun ProfileSection("))
+        val pills = settings.substringAfter("private fun ProfilePills(").substringBefore("\n}\n")
+        assertTrue(pills.contains("style = Boar.type.caption") && !pills.contains("Text(t(\"native.settings.profile.\${profile.key}Short\")") && !pills.contains("Note("))
+        assertTrue(settings.contains("Toasts.Toast(shorts.getValue(p) + if (down) \" \$downNote\" else \"\"") && settings.contains("ProfileUpdateToast(services, profile)"))
+        val header = java.io.File("../app/src/main/java/team/sopa/boar/ui/PageHeader.kt").readText()
+        assertTrue(header.contains("actions: (@Composable () -> Unit)? = null") && header.indexOf("actions?.invoke()") in 0 until header.indexOf("if (onClose != null)"))
         for (d in listOf("values", "values-pt")) for (k in listOf("simpleShort", "explorerShort", "proShort", "downNote"))
             assertTrue("$d $k", res(d, "strings_native.xml").contains("name=\"native_settings_profile_$k\""))
     }

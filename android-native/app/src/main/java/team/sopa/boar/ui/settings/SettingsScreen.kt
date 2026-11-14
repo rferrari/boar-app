@@ -74,16 +74,23 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     fun shown(part: SettingsPart) = part.shownIn(profile)
     var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack)
+        // The profile pills sit in the header (adam, Nov 13); what a pick gives, and what pauses going down, are toasts.
+        val shorts = UserProfile.entries.associateWith { t("native.settings.profile.${it.key}Short") }
+        val downNote = t("native.settings.profile.downNote")
+        val pick: (UserProfile) -> Unit = { p ->
+            val down = p.ordinal < profile.ordinal
+            profile = p; s.userProfile = p; tech = s.showLiveStats
+            team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(p)
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.Toasts.Toast(shorts.getValue(p) + if (down) " $downNote" else "", millis = if (down) 4_500 else 2_800))
+        }
+        ProfileUpdateToast(services, profile)
+        team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack,
+            actions = if (shown(SettingsPart.PROFILE)) ({ ProfilePills(profile, pick) }) else null)
         val scroll = rememberScrollState(SettingsMemory.scroll)
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { SettingsMemory.scroll = scroll.value } }
         Column(Modifier.fillMaxWidth().verticalScroll(scroll).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
             // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
-            if (shown(SettingsPart.PROFILE)) ProfilePills(services, profile) {
-                profile = it; s.userProfile = it; tech = s.showLiveStats
-                team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(it)
-            }
             if (shown(SettingsPart.TONE)) ToneSection(services)
             // Models and Knowledge are in the menu (Model Catalog, Knowledge): not repeated here (rc3, slice 5).
             if (shown(SettingsPart.MEMORY)) Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
@@ -487,36 +494,41 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
  * Settings → Profile (rc3): Simple, Explorer or Pro, each with one plain sentence. After an update gave the user a
  * profile, it opens once with a note saying which one and why.
  */
-@Composable
 /**
- * The profile as three pills at the top of Settings (adam, Nov 12), the current one filled, one tap to switch, with one
- * short line on what the picked one adds. Going down says once that Plugins and Advanced tweaks pause; the values are
- * kept (as before). The update note, when there is one, sits under them.
+ * The profile as three small pills in the Settings header (adam, Nov 13; at the top of the page since Nov 12), the current
+ * one filled, one tap to switch. The caption and the "pauses below Pro" line are toasts now (SettingsScreen's pick).
  */
-private fun ProfilePills(services: BoarServices, profile: UserProfile, onPick: (UserProfile) -> Unit) {
+@Composable
+private fun ProfilePills(profile: UserProfile, onPick: (UserProfile) -> Unit) {
     val c = Boar.colors
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        for (p in UserProfile.entries) {
+            val on = p == profile
+            Text(t("native.settings.profile.${p.key}"), style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
+                fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+                modifier = Modifier.clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
+                    .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
+                    .clickable(enabled = !on, role = androidx.compose.ui.semantics.Role.Button) { onPick(p) }
+                    .padding(horizontal = 8.dp, vertical = 5.dp))
+        }
+    }
+}
+
+/** After an update that moved the profile, its note shows once, as a toast on opening Settings (adam, Nov 13: no notes on the page). */
+@Composable
+private fun ProfileUpdateToast(services: BoarServices, profile: UserProfile) {
     val s = services.settings
     val note = remember { s.profileNotePending }
-    if (note) androidx.compose.runtime.LaunchedEffect(Unit) { s.profileNotePending = false }
-    var wentDown by remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            for (p in UserProfile.entries) {
-                val on = p == profile
-                Text(t("native.settings.profile.${p.key}"), style = Boar.type.body, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
-                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
-                        .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
-                        .clickable(enabled = !on) { wentDown = p.ordinal < profile.ordinal; onPick(p) }.padding(horizontal = 6.dp, vertical = 10.dp))
-            }
-        }
-        Text(t("native.settings.profile.${profile.key}Short"), style = Boar.type.caption, color = c.textMuted)
-        if (wentDown) Text(t("native.settings.profile.downNote"), style = Boar.type.caption, color = c.textAccentAmber)
-        if (note) Note(t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
-            if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "")
-        val updatedLabs = remember { team.sopa.boar.labs.LabPrefs.turnedOnByUpdate() }
-        if (note && updatedLabs.isNotEmpty()) Note(t("native.settings.profile.labsOn", "labs" to updatedLabs.map { t("native.labs.$it.title") }.joinToString(", ")))
+    if (!note) return
+    val updatedLabs = remember { team.sopa.boar.labs.LabPrefs.turnedOnByUpdate() }
+    val text = listOfNotNull(
+        t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
+            if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "",
+        updatedLabs.takeIf { it.isNotEmpty() }?.let { l -> t("native.settings.profile.labsOn", "labs" to l.map { t("native.labs.$it.title") }.joinToString(", ")) },
+    ).joinToString(" ")
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        s.profileNotePending = false
+        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.Toasts.Toast(text, millis = 7_000))
     }
 }
 

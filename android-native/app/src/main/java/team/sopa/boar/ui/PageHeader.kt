@@ -47,7 +47,9 @@ object HeaderMetrics {
 @Composable
 fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxTitleLines: Int = 1, backTo: String? = null,
                /** A ✕ on the right that leaves for the chat (plugin pages only, adam Nov 13); null: no ✕. */
-               onClose: (() -> Unit)? = null) {
+               onClose: (() -> Unit)? = null,
+               /** Small controls on the right, before the ✕ (Settings' profile pills, adam Nov 13). */
+               actions: (@Composable () -> Unit)? = null) {
     val c = Boar.colors
     // The chat header's height exactly, with or without a subtitle: one line each, sizes held at Standard as the chat's
     // header does (FixedSizeChrome), so Large text can't make the bar taller.
@@ -63,6 +65,7 @@ fun PageHeader(title: String, onBack: () -> Unit, subtitle: String? = null, maxT
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 subtitle?.let { Text(it, style = HeaderMetrics.subtitleStyle(Boar.type), color = c.textMuted, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
             }
+            actions?.invoke()
             // ✕: straight to the chat, where ‹ Back goes to the previous page (adam, Nov 13). The chat header's 42 dp round button.
             if (onClose != null) {
                 val label = t("common.close")
