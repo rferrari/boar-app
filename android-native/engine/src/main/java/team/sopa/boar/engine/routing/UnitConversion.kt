@@ -100,7 +100,7 @@ object UnitConversion {
         if (src === dst || src.family != dst.family) return null
         if (src.family == "volume" && UK_GALLON.containsMatchIn(query)) return null
         val ptHere = pt || PT_WORDS.containsMatchIn(match)
-        val x = Calculators.parseNumber(rawNum, ptHere)
+        val x = Calculators.parseNumber(rawNum, Calculators.readsComma(query, ptHere))
         if (!x.isFinite() || x < 0) return null
         val y = x * src.base / dst.base
         if (!y.isFinite()) return null
