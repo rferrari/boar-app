@@ -15,6 +15,12 @@ import team.sopa.boar.engine.routing.QueryContext
 object AnswerLanguage {
     enum class Lang { EN, PT }
 
+    /**
+     * The language fix's arm (t9 0420 item 5), bench only until adam picks: 1 the line next to the question (what users
+     * get); 2 also the style reminder in Portuguese; 3 also the style prompt in Portuguese (StylePt). English never moves.
+     */
+    @Volatile var arm: Int = 1
+
     /** The app's language setting ("pt", "en"), set by the app; the last word when nothing else tells. */
     @Volatile var appLanguage: String? = null
 

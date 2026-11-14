@@ -204,6 +204,15 @@ object RagPure {
         return team.sopa.boar.engine.answer.AnswerLanguage.line(lang, withSources, filesOnly)?.let { "\n\n$it" } ?: ""
     }
 
+    private fun langOf(languageOf: String, history: ConversationHistory?) =
+        team.sopa.boar.engine.answer.AnswerLanguage.of(languageOf, history?.turns.orEmpty().filter { it.role == "user" }.map { it.text })
+
+    /** Arms 2 and 3 (bench only): the style reminder, then also the style prompt, in Portuguese for a Portuguese question. */
+    private fun reminderFor(reminder: String?, lang: team.sopa.boar.engine.answer.AnswerLanguage.Lang) =
+        if (lang == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT && team.sopa.boar.engine.answer.AnswerLanguage.arm >= 2) team.sopa.boar.engine.answer.StylePt.of(reminder) else reminder
+    private fun promptFor(systemPrompt: String?, lang: team.sopa.boar.engine.answer.AnswerLanguage.Lang) =
+        if (lang == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT && team.sopa.boar.engine.answer.AnswerLanguage.arm >= 3) team.sopa.boar.engine.answer.StylePt.of(systemPrompt) else systemPrompt
+
     private fun contextOf(chunks: List<Chunk>) = chunks.mapIndexed { i, c -> "[${i + 1}] ${c.title}\n${c.body}" }.joinToString("\n\n")
 
     /** Personal Files' list of the user's files (OwnFiles.note), right before the context it explains. */
@@ -217,7 +226,8 @@ object RagPure {
         userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
         filesOnly: Boolean = false, filesNote: String? = null, languageOf: String = userQuery,
     ): String {
-        val instruction = instructionOf(systemPrompt)
+        val lang = langOf(languageOf, history)
+        val instruction = instructionOf(promptFor(systemPrompt, lang))
         val summary = history?.summary?.trim()?.takeIf { it.isNotEmpty() }?.let { "Summary of earlier conversation:\n$it\n\n" } ?: ""
         val turns = history?.turns?.takeIf { it.isNotEmpty() }?.let { t ->
             "Recent conversation:\n${t.joinToString("\n") { "${if (it.role == "user") "User" else "Assistant"}: ${it.text}" }}\n\n"
@@ -225,7 +235,7 @@ object RagPure {
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "Context:\n${contextOf(chunks)}\n\n" else ""
-        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${filesSection(filesNote, "\n\n")}${ctx}Question: $userQuery${styleSection(styleReminder)}${languageSection(languageOf, history, chunks.isNotEmpty(), filesOnly)}\n\nAnswer:"
+        return "$instruction$ctxInstr $GROUNDING_INSTRUCTION\n\n$summary$turns${filesSection(filesNote, "\n\n")}${ctx}Question: $userQuery${styleSection(reminderFor(styleReminder, lang))}${languageSection(languageOf, history, chunks.isNotEmpty(), filesOnly)}\n\nAnswer:"
     }
 
     /** The fixed start of every sourced answer prompt for a tone, kept prefilled in the KV cache. */
@@ -240,7 +250,8 @@ object RagPure {
         userQuery: String, chunks: List<Chunk>, systemPrompt: String? = null, history: ConversationHistory? = null, styleReminder: String? = null,
         filesOnly: Boolean = false, filesNote: String? = null, languageOf: String = userQuery,
     ): List<PromptMessage> {
-        val instruction = instructionOf(systemPrompt)
+        val lang = langOf(languageOf, history)
+        val instruction = instructionOf(promptFor(systemPrompt, lang))
         val hasContext = chunks.isNotEmpty()
         val ctxInstr = if (hasContext) contextInstruction(filesOnly) else ""
         val ctx = if (hasContext) "\n\nContext:\n${contextOf(chunks)}" else ""
@@ -249,6 +260,6 @@ object RagPure {
         val files = filesSection(filesNote, "").let { if (it.isEmpty()) "" else "\n\n$it" }
         val system = PromptMessage("system", "$instruction$ctxInstr $GROUNDING_INSTRUCTION$summary$files$ctx")
         val past = history?.turns.orEmpty().map { PromptMessage(it.role, it.text) }
-        return listOf(system) + past + PromptMessage("user", userQuery + styleSection(styleReminder) + languageSection(languageOf, history, chunks.isNotEmpty(), filesOnly))
+        return listOf(system) + past + PromptMessage("user", userQuery + styleSection(reminderFor(styleReminder, lang)) + languageSection(languageOf, history, chunks.isNotEmpty(), filesOnly))
     }
 }

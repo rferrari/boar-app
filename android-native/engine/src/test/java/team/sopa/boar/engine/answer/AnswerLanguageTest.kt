@@ -70,3 +70,36 @@ class AnswerLanguageTest {
         assertEquals("\"Por que o céu é azul?\"\n\n" + AnswerLanguage.PT_NO_SOURCES, Summarize.titleInput("Por que o céu é azul?"))
     }
 }
+
+/** t9 0420 item 5: the arms, bench only; English never moves. */
+class AnswerLanguageArmsTest {
+    private val src = listOf(team.sopa.boar.engine.rag.Chunk("c1", "d1", "Seawater", "Seawater is salty."))
+    private val sys = "You are Boar, a concise offline research assistant. Answer in 2-3 short, direct sentences or a brief paragraph, no preamble. Do not default to a bulleted list or a single takeaway sentence followed by three bullet points — use bullets only when the content is genuinely a list of distinct items."
+    private val rem = "Keep it short: 2-3 sentences. No lists unless the question asks for one."
+    @org.junit.After fun reset() { AnswerLanguage.arm = 1 }
+
+    @Test fun `arm 1 keeps the English style texts, arm 2 the reminder in Portuguese, arm 3 the prompt too`() {
+        val q = "Por que a água do mar é salgada?"
+        fun msgs() = team.sopa.boar.engine.rag.RagPure.assembleChatMessages(q, src, sys, styleReminder = rem)
+        assertTrue(msgs().last().content.contains(rem) && msgs().first().content.startsWith(sys))
+        AnswerLanguage.arm = 2
+        assertTrue(msgs().last().content.contains("Seja breve: 2-3 frases.") && msgs().first().content.startsWith(sys))
+        AnswerLanguage.arm = 3
+        assertTrue(msgs().first().content.startsWith("Você é o Boar, um assistente de pesquisa offline e conciso."))
+    }
+
+    @Test fun `English never moves, whatever the arm`() {
+        AnswerLanguage.arm = 1
+        val en = team.sopa.boar.engine.rag.RagPure.assembleChatMessages("Why is seawater salty?", src, sys, styleReminder = rem)
+        AnswerLanguage.arm = 3
+        assertEquals(en, team.sopa.boar.engine.rag.RagPure.assembleChatMessages("Why is seawater salty?", src, sys, styleReminder = rem))
+    }
+
+    @Test fun `every style text in personalities json has its Portuguese`() {
+        val json = java.io.File("../app/src/main/assets/boar-data/personalities.json").readText()
+        val texts = Regex("\"(systemPrompt|styleReminder|systemPromptSmall|styleReminderSmall)\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)+)\"").findAll(json)
+            .map { kotlinx.serialization.json.Json.decodeFromString<String>("\"" + it.groupValues[2] + "\"") }.toList()
+        assertTrue(texts.isNotEmpty())
+        for (t in texts) assertTrue(t.take(40), StylePt.of(t) != t)
+    }
+}
