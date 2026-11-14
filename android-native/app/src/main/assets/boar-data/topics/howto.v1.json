@@ -1,0 +1,86 @@
+{
+  "id": "howto",
+  "version": 1,
+  "status": "draft, for t9's review",
+  "title": "Comparison and how-to",
+  "titlePt": "Comparação e passo a passo",
+  "about": "Questions that ask to compare two things or for steps: what the cards and the structure of an answer are for.",
+  "questions": [
+    {
+      "id": "comparison-1",
+      "fromSet": true,
+      "rules": {
+        "cards": [
+          "compare"
+        ]
+      },
+      "toRead": "Both revolutions, side by side: when, what changed, what each left."
+    },
+    {
+      "id": "howto-tyre",
+      "query": "How do I change a flat bicycle tyre?",
+      "category": "how-to",
+      "rules": {
+        "cards": [
+          "steps"
+        ]
+      },
+      "toRead": "Steps in order: wheel off, tyre levers, find the hole, patch or new tube, inflate."
+    },
+    {
+      "id": "howto-campfire",
+      "query": "How do I start a campfire safely?",
+      "category": "how-to",
+      "rules": {
+        "cards": [
+          "steps"
+        ]
+      },
+      "toRead": "Steps, with where (a ring, clear ground) and how to put it out."
+    },
+    {
+      "id": "howto-water",
+      "query": "How do you purify water in the wild, step by step?",
+      "category": "how-to",
+      "rules": {
+        "cards": [
+          "steps"
+        ]
+      },
+      "toRead": "Boil (1 min, 3 at altitude), filter, or tablets; steps in order."
+    },
+    {
+      "id": "compare-solar-wind",
+      "query": "Compare solar and wind power.",
+      "category": "comparison",
+      "rules": {
+        "cards": [
+          "compare"
+        ]
+      },
+      "toRead": "Each one's points: when it produces, cost, land, storage."
+    },
+    {
+      "id": "compare-virus-bacterium",
+      "query": "What is the difference between a virus and a bacterium?",
+      "category": "comparison",
+      "rules": {
+        "cards": [
+          "compare"
+        ]
+      },
+      "toRead": "Living cell vs not; antibiotics work on bacteria only."
+    },
+    {
+      "id": "compare-coffee-tea",
+      "query": "Which has more caffeine, coffee or tea?",
+      "category": "comparison",
+      "rules": {
+        "answerHas": [
+          "coffee"
+        ]
+      },
+      "toRead": "Coffee, per cup (about 95 mg vs about 47 mg for black tea)."
+    }
+  ]
+}

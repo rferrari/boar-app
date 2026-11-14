@@ -55,6 +55,11 @@ data class EvalRequest(
      * styles by the runner; null is the default style. Native only.
      */
     val style: String? = null,
+    /**
+     * A bench preset ("fast", "fast-plugins", "complete-research"; [BenchPresets]): its level picks the models (unless
+     * [models] names them) and the styles, its topics the questions. Null: the request as before. Native only.
+     */
+    val preset: BenchPreset? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -144,7 +149,20 @@ object DeviceEval {
             (v as? JsonPrimitive)?.takeIf { it.isString && !it.content.isBlankJs() }?.content?.let(::jsTrim)
                 ?: throw EvalRequestException("\"style\" must be a style id")
         }
+        // adam, Nov 14: presets by level and topic. "preset": "fast-plugins", or "level" with "topics".
+        val preset = raw["preset"]?.let { v ->
+            (v as? JsonPrimitive)?.takeIf { it.isString }?.content?.let(BenchPresets::parse)
+                ?: throw EvalRequestException("\"preset\" must be a level (fast, medium, complete), then a topic: \"fast-plugins\"")
+        } ?: raw["level"]?.let { v ->
+            val level = (v as? JsonPrimitive)?.takeIf { it.isString }?.content?.let(BenchLevel::of)
+                ?: throw EvalRequestException("\"level\" must be fast, medium or complete")
+            BenchPreset(level, stringList(raw["topics"], "topics")?.takeIf { it.isNotEmpty() } ?: listOf(BenchPresets.CORE))
+        }
+        if (preset != null && (raw["questions"] != null || raw["queries"] != null)) {
+            throw EvalRequestException("a preset brings its own questions: leave out \"questions\" and \"queries\"")
+        }
         return EvalRequest(
+            preset = preset,
             requestId = id,
             style = style,
             engine = engine,

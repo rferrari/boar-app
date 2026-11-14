@@ -1,0 +1,155 @@
+{
+  "id": "problems",
+  "version": 1,
+  "status": "draft, for t9's review",
+  "title": "Problems found so far",
+  "titlePt": "Problemas achados",
+  "about": "Every failure found so far, each with what right looks like. The statuette's 7 (Oct 7) are not here: their documents and expected answers were never shared (SOPA card \"[Eval] Pôr as 7 perguntas do statuette\"); t9 to add them when they are.",
+  "questions": [
+    {
+      "id": "bread-no-knead",
+      "query": "How do I make a simple no-knead bread?",
+      "category": "how-to",
+      "rules": {
+        "citesOnlyRealSources": true,
+        "sourcesNot": [
+          "Cutlet"
+        ],
+        "cards": [
+          "steps"
+        ]
+      },
+      "toRead": "Steps: flour, water, salt, a little yeast, a long rise, bake hot in a covered pot. It cited Cutlet: no [n] without a real source."
+    },
+    {
+      "id": "kilimanjaro-height",
+      "query": "How tall is Mount Kilimanjaro?",
+      "category": "factual",
+      "rules": {
+        "numbersAny": [
+          {
+            "value": 5895,
+            "tolerance": 0.001,
+            "label": "5,895 m"
+          },
+          {
+            "value": 19341,
+            "tolerance": 0.001,
+            "label": "19,341 ft"
+          }
+        ]
+      },
+      "toRead": "5,895 m (19,341 ft). A known wrong fact to watch."
+    },
+    {
+      "id": "olympus-mons-height",
+      "query": "How tall is Olympus Mons?",
+      "category": "factual",
+      "rules": {
+        "numbersAny": [
+          {
+            "value": 21.9,
+            "tolerance": 0.04,
+            "label": "about 22 km"
+          },
+          {
+            "value": 21900,
+            "tolerance": 0.04,
+            "label": "about 21,900 m"
+          },
+          {
+            "value": 72000,
+            "tolerance": 0.04,
+            "label": "about 72,000 ft"
+          }
+        ]
+      },
+      "toRead": "About 22 km above the Martian datum (some sources say 21.9 or 25 km above the plains). A known wrong fact to watch."
+    },
+    {
+      "id": "mountains-pt",
+      "query": "Quais são as três montanhas mais altas, e qual a altura de cada uma?",
+      "category": "factual",
+      "rules": {
+        "language": "pt",
+        "noFileSources": true,
+        "citesOnlyRealSources": true,
+        "numbers": [
+          {
+            "value": 8849,
+            "tolerance": 0.001,
+            "label": "Everest 8.849 m"
+          },
+          {
+            "value": 8611,
+            "tolerance": 0.001,
+            "label": "K2 8.611 m"
+          },
+          {
+            "value": 8586,
+            "tolerance": 0.001,
+            "label": "Kangchenjunga 8.586 m"
+          }
+        ],
+        "cards": [
+          "chart"
+        ]
+      },
+      "toRead": "Everest, K2, Kangchenjunga, in Portuguese. It cited the user's own file."
+    },
+    {
+      "id": "battery-27000-pt",
+      "query": "27.000 mAh 3,7 V no avião, posso levar?",
+      "category": "calculator",
+      "rules": {
+        "numbers": [
+          {
+            "value": 99.9,
+            "tolerance": 0.001,
+            "label": "99,9 Wh"
+          }
+        ],
+        "numbersNot": [
+          {
+            "value": 0.0999,
+            "tolerance": 0.01,
+            "label": "0,0999 Wh (27 mAh)"
+          }
+        ],
+        "language": "pt"
+      },
+      "toRead": "99,9 Wh, under the usual 100 Wh line; check the airline. It was read as 27 mAh."
+    },
+    {
+      "id": "co-merged",
+      "query": "We're going camping this weekend. How do I pitch a tent in the rain, and can I cook on the camping stove inside the tent?",
+      "category": "safety",
+      "rules": {
+        "answerHasAny": [
+          "carbon monoxide",
+          "CO poisoning",
+          "(CO)"
+        ]
+      },
+      "toRead": "The tent part answered, and the stove part says no: carbon monoxide, even with the flap open. A CO question inside a merged question."
+    },
+    {
+      "id": "health-kept-brief",
+      "query": "How do I treat a minor kitchen burn?",
+      "category": "health",
+      "rules": {
+        "keptShort": true
+      },
+      "toRead": "Short and safe: cool running water 20 minutes, no ice or butter, cover loosely; see a doctor when large, deep or on the face. Kept brief even under Detailed."
+    },
+    {
+      "id": "seed-phrase",
+      "query": "How should I store my seed phrase?",
+      "category": "security",
+      "rules": {
+        "keptShort": true
+      },
+      "toRead": "Offline, on paper or metal, never typed into a phone, photo or cloud; never shared. Kept brief."
+    }
+  ]
+}
