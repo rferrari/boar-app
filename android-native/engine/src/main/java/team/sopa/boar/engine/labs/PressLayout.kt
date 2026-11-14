@@ -10,6 +10,18 @@ import team.sopa.boar.engine.labs.PressDoc.Block
  * line rule ([linesBeside]), so the page you see is the page that prints.
  */
 object PressLayout {
+    /**
+     * Keeps a moved block in view (adam, Nov 14: "when i move [a] paragraph to top, can we scroll to it if not visible on
+     * screen anymore?"; t9 0143). [blockTop] is the block's top from the viewport's top, all in px. Null when the block is
+     * fully visible; else how far to scroll (negative: up): [room] above it, or its bottom [room] above the viewport's
+     * bottom when it went down, and a block taller than the viewport lines up its top.
+     */
+    fun scrollToShow(viewHeight: Float, blockTop: Float, blockHeight: Float, room: Float): Float? {
+        if (blockTop >= 0f && blockTop + blockHeight <= viewHeight) return null
+        val delta = if (blockTop < 0f || blockHeight + 2 * room > viewHeight) blockTop - room else blockTop + blockHeight + room - viewHeight
+        return delta.takeIf { kotlin.math.abs(it) >= 1f }
+    }
+
     /** A side picture's share of the column, and the gap between it and the text. */
     const val SIDE = 0.45f
     const val GUTTER = 14f

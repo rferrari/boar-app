@@ -185,6 +185,8 @@ class NumGuardTest {
     @Test fun `calc shortcut answers calculators and word problems, with answer_ts codes`() {
         val battery = CalcShortcut.answer("My power bank is 5,000 mAh at 3.85 V. How many watt-hours is that, and can I take it on a plane?")
         assertEquals("calculator-battery", battery?.code)
+        // adam, Nov 14 (t9 0143): the sum, then one neutral line; no verdict, no airline limit the app can't keep current.
+        assertEquals("5,000 mAh × 3.85 V ÷ 1000 = 19.25 Wh. Airlines set their battery limits in Wh, and the rules change: check your airline before you fly.", battery?.text)
         assertEquals("temperature-conversion", CalcShortcut.answer("What is 30 °C in Fahrenheit?")?.code)
         assertEquals("calculator-fuel-economy", CalcShortcut.answer("Meu carro alugado faz 7,5 litros a cada 100 km. Quanto isso dá em milhas por galão americano?")?.code)
         assertEquals("calculator-rate-time", CalcShortcut.answer("how long to drive 240 miles at 60 mph")?.code)

@@ -51,6 +51,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -236,6 +239,22 @@ internal fun PressScreen(lab: LabPlugin) {
         }
     }
 
+    // A moved block stays in view (t9 0143): where the page sits on screen and where each block is, then after a move (its
+    // id and a counter, so every tap follows it) a scroll if it isn't fully visible, a jump with animations off.
+    var viewTop by remember { mutableStateOf(0f) }
+    var viewHeight by remember { mutableStateOf(0f) }
+    val placed = remember { androidx.compose.runtime.mutableStateMapOf<String, Pair<Float, Float>>() }
+    var follow by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    LaunchedEffect(follow) {
+        val id = follow?.first ?: return@LaunchedEffect
+        // Two frames: the moved block is laid out in its new place before it is measured.
+        androidx.compose.runtime.withFrameNanos { }; androidx.compose.runtime.withFrameNanos { }
+        val (top, height) = placed[id] ?: return@LaunchedEffect
+        val delta = PressLayout.scrollToShow(viewHeight, top - viewTop, height, with(density) { 16.dp.toPx() }) ?: return@LaunchedEffect
+        val still = android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        if (still) scroll.scrollBy(delta) else scroll.animateScrollBy(delta)
+    }
     var showBreaks by remember { mutableStateOf(team.sopa.boar.labs.LabPrefs.string(BREAKS_PREF) != "off") }
     // The PDF's own page breaks (PdfCompiler.pageStarts, a layout without drawing), redone a moment after the document
     // changes: the lines on the paper are where the PDF really breaks, not an estimate (adam, Nov 12).
@@ -253,17 +272,18 @@ internal fun PressScreen(lab: LabPlugin) {
     var askOwn by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize()) {
         // No "N new answers added at the end · Show" banner (adam, Nov 13: Show found nothing new; his own answers).
-        Box(Modifier.fillMaxWidth().weight(1f).background(c.bgBlack)) {
+        Box(Modifier.fillMaxWidth().weight(1f).background(c.bgBlack).onGloballyPositioned { v -> viewTop = v.positionInRoot().y; viewHeight = v.size.height.toFloat() }) {
             Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(14.dp)) {
                 PaperView(page, if (showBreaks) pageStarts else emptyList(), selected, editing, fresh, titleFocus,
                     onSelect = { id -> if (selected != id) { selected = id; editing = null } },
                     onTitleFocus = { if (it) { selected = null; editing = null } },
-                    onFreshUsed = { fresh = null })
+                    onFreshUsed = { fresh = null },
+                    onPlaced = { id, y, h -> placed[id] = y to h })
             }
         }
         val i = project.blocks.indexOfFirst { it.id == selected }
         if (i >= 0) ActionBar(project.blocks[i], i, project.blocks.size, editing == selected,
-            onMove = { by -> PressStore.change { it.move(project.blocks[i].id, by) }; editing = null },
+            onMove = { by -> val id = project.blocks[i].id; PressStore.change { it.move(id, by) }; editing = null; follow = id to (follow?.second ?: 0) + 1 },
             onEdit = { if (editing == selected) editing = null else sheet = Sheet.EDIT },
             onCaption = { editing = if (editing == selected) null else selected },
             onPlace = { place -> PressStore.change { it.place(project.blocks[i].id, place) } },
@@ -760,7 +780,9 @@ private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.un
 
 @Composable
 private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, selected: String?, editing: String?, fresh: String?, titleFocus: FocusRequester,
-                      onSelect: (String) -> Unit, onTitleFocus: (Boolean) -> Unit, onFreshUsed: () -> Unit) {
+                      onSelect: (String) -> Unit, onTitleFocus: (Boolean) -> Unit, onFreshUsed: () -> Unit,
+                      /** Each block's top on the screen and its height (px), for keeping a moved block in view. */
+                      onPlaced: (String, Float, Float) -> Unit = { _, _, _ -> }) {
     val project = page.project
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
@@ -769,7 +791,10 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
         val pageLabel = t("native.labs.printer.page", "n" to "{{n}}")
         // Each block's top and height on the paper (px), by the ids PdfCompiler.pageStarts uses.
         val tops = remember { androidx.compose.runtime.mutableStateMapOf<String, Pair<Float, Float>>() }
-        fun Modifier.unit(vararg ids: String) = onGloballyPositioned { c -> val v = c.positionInParent().y to c.size.height.toFloat(); ids.forEach { tops[it] = v } }
+        fun Modifier.unit(vararg ids: String) = onGloballyPositioned { c ->
+            val v = c.positionInParent().y to c.size.height.toFloat(); ids.forEach { tops[it] = v }
+            val y = c.positionInRoot().y; ids.forEach { onPlaced(it, y, v.second) }
+        }
         val breakColor = Color(0xFFB9BFD3)
         Column(Modifier.fillMaxWidth().shadow(6.dp, RoundedCornerShape(2.dp)).background(Color.White, RoundedCornerShape(2.dp))
             // Where the PDF's pages start (PdfCompiler.pageStarts): a line at the top of the block that starts a page, or as far

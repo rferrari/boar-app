@@ -2,11 +2,11 @@
 <resources>
     <string name="native_labs_calc_title" formatted="false">Calculadora</string>
     <string name="native_labs_calc_body" formatted="false">Contas exatas do dia a dia: combustível, bateria, câmbio e mais. Sem o modelo.</string>
-    <string name="native_labs_calc_example1" formatted="false">Meu carro alugado faz 7,5 litros a cada 100 km. Quanto isso dá em milhas por galão americano?</string>
+    <string name="native_labs_calc_example1" formatted="false">Meu power bank é de 5.000 mAh a 3,85 V. Quantos watt-hora isso dá?</string>
     <string name="native_labs_calc_example2" formatted="false">How long to drive 240 miles at 60 mph?</string>
     <string name="native_labs_calc_example3" formatted="false">26 milhas em km</string>
     <string name="native_labs_calc_summary" formatted="false">Contas exatas do dia a dia e conversões de unidades, com a fórmula. Sem precisar do modelo.</string>
-    <string name="native_labs_calc_exampleQ" formatted="false">Meu power bank é de 5.000 mAh a 3,85 V. Posso levar no avião?</string>
-    <string name="native_labs_calc_exampleA" formatted="false">5.000 mAh × 3,85 V ÷ 1000 = 19,25 Wh. Sim, pode levar no avião: até 100 Wh é permitido na bagagem de mão (não na despachada).</string>
+    <string name="native_labs_calc_exampleQ" formatted="false">Meu carro alugado faz 7,5 litros a cada 100 km. Quanto isso dá em milhas por galão americano?</string>
+    <string name="native_labs_calc_exampleA" formatted="false">7,5 L/100 km = 31,36 milhas por galão (galão americano). Conta: mpg = 235,215 ÷ L/100 km.</string>
     <string name="native_labs_calc_how" formatted="false">• Calcula a resposta com os números da sua pergunta e mostra a fórmula.\n• Converte milhas, km, pés, polegadas, jardas, kg, libras, onças, galões americanos e °C/°F: \"26 milhas em km\".\n• O resto vai para o modelo, como sempre.\n• Fica de fora de conversas sobre saúde, ferimentos, perigo ou pessoas.\n• Os detalhes da resposta dizem Ferramenta quando foi a calculadora.\n• Problemas em texto só em inglês. Adaptado da calculadora do r4to (BOAR R&amp;D).</string>
 </resources>

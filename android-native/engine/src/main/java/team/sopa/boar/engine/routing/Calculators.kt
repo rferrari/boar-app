@@ -129,32 +129,22 @@ object Calculators {
         return SPACES_2.replace(SPACE_DOT.replace(text, "."), " ")
     }
 
-    // (d) Battery energy: Wh = mAh × V / 1000, with the airline limits (IATA/FAA: up to 100 Wh in carry-on; 100-160 Wh
-    // with the airline's approval; above 160 Wh not allowed; spare batteries never in checked bags).
+    // (d) Battery energy: Wh = mAh × V / 1000. With flight words, one neutral line instead of a verdict (adam, Nov 14; t9
+    // 0143): the limits are set by airlines and IATA and they change (a power bank above 100 Wh is "Forbidden" in IATA's
+    // 2026 guidance, and the 100-160 Wh approval goes from the DGR in 2027); an offline app can't know the rule of the day.
     private val MAH = JsRegex.re("""$NUM\s*mah\b""", "i")
     private val VOLTS = JsRegex.re("""$NUM\s*v\b""", "i")
     private val FLIGHT = JsRegex.re("""avi[ãa]o|voo|voar|bagagem|companhia a[ée]rea|plane|flight|fly|airline|carry[- ]on|luggage""", "i")
+
+    const val FLIGHT_NOTE_EN = " Airlines set their battery limits in Wh, and the rules change: check your airline before you fly."
+    const val FLIGHT_NOTE_PT = " As companhias aéreas definem os limites de bateria em Wh, e as regras mudam: confira com a sua antes de voar."
 
     private fun battery(q: String, pt: Boolean): String? {
         val mah = MAH.find(q) ?: return null
         val v = VOLTS.find(q) ?: return null
         val wh = (parseNumber(mah.groupValues[1], pt) * parseNumber(v.groupValues[1], pt)) / 1000
         var text = "${fmt(parseNumber(mah.groupValues[1], pt), pt, 0)} mAh × ${fmt(parseNumber(v.groupValues[1], pt), pt)} V ÷ 1000 = ${fmt(wh, pt)} Wh."
-        if (FLIGHT.containsMatchIn(q)) {
-            text += when {
-                wh <= 100 -> if (pt) {
-                    " Sim, pode levar no avião: até 100 Wh é permitido na bagagem de mão (não na despachada)."
-                } else {
-                    " Yes, you can take it on a plane: up to 100 Wh is allowed in carry-on baggage (not in checked bags)."
-                }
-                wh <= 160 -> if (pt) {
-                    " Entre 100 e 160 Wh, só na bagagem de mão e com aprovação da companhia aérea."
-                } else {
-                    " Between 100 and 160 Wh it needs the airline's approval, in carry-on baggage only."
-                }
-                else -> if (pt) " Acima de 160 Wh, não é permitido em voos de passageiros." else " Above 160 Wh it is not allowed on passenger flights."
-            }
-        }
+        if (FLIGHT.containsMatchIn(q)) text += if (pt) FLIGHT_NOTE_PT else FLIGHT_NOTE_EN
         return text
     }
 
