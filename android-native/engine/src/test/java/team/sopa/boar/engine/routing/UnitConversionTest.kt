@@ -127,4 +127,14 @@ class UnitConversionTest {
         // Two quantities of different kinds are not one compound: the conversion still answers.
         assertEquals("10 inches = 25.4 cm (1 inch = 2.54 cm).", conv("A 5 kg box, 10 inches to cm"))
     }
+
+    @Test fun `a range goes to the model, never its last number alone (validator B-3)`() {
+        for (q in listOf("between 5 and 10 miles in km", "5 to 10 miles in km", "5-10 miles in km", "5–10 kg to lb", "de 5 a 10 milhas em km",
+            "entre 5 e 10 milhas em km", "3 or 4 feet in cm")) {
+            assertEquals(q, null, conv(q))
+            assertEquals(q, null, CalcShortcut.answer(q))
+        }
+        // A number elsewhere in the question is not a range.
+        assertEquals("26 miles = 41.84 km (1 mile = 1.609344 km).", conv("I ran 3 days and 26 miles in km is how much?"))
+    }
 }
