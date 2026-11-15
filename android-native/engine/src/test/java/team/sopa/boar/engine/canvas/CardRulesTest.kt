@@ -113,4 +113,13 @@ class CardRulesTest {
         val shop = CardRules.find("When is the museum open?", "- Opening hours: 09:00 to 17:00\n- Closed: Mondays\n- Entry: free")
         assertEquals(listOf("Opening hours", "Closed", "Entry"), (shop.first { it is Card.Facts } as Card.Facts).pairs.map { it.first })
     }
+
+    @Test fun `a Portuguese answer's dotted thousands are thousands in the chart (validator B-11)`() {
+        val a = "As montanhas mais altas do mundo e do Brasil:\n- Everest: 8.849 m\n- K2: 8.611 m\n- Pico da Neblina: 2.995 m\n- Morro do Elefante: 300 m"
+        val c = CardRules.find("Quais são as montanhas mais altas?", a).first { it is Card.Chart } as Card.Chart
+        assertEquals(listOf(8849.0, 8611.0, 2995.0, 300.0), c.points.map { it.value })
+        // English keeps reading "8.849" as a decimal when nothing says otherwise, and its "8,849" as thousands.
+        val en = CardRules.find("Tallest peaks?", "- Everest: 8,849 m\n- K2: 8,611 m\n- Kangchenjunga: 8,586 m").first { it is Card.Chart } as Card.Chart
+        assertEquals(listOf(8849.0, 8611.0, 8586.0), en.points.map { it.value })
+    }
 }

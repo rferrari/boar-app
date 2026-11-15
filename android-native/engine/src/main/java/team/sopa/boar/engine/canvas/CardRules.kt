@@ -41,7 +41,7 @@ object CardRules {
         val labelled = labelled(lines)
         if (COMPARES.containsMatchIn(question) && labelled.size in 2..4) cards += Card.Compare(labelled.map { (k, v) -> k to splitPoints(v) })
         else if (labelled.size >= 3) cards += Card.Facts(labelled)
-        (chart(lines, answer) ?: namedInQuestion(question, answer))?.let { cards += it }
+        (chart(lines, answer, question) ?: namedInQuestion(question, answer))?.let { cards += it }
         // Best first: what the question asks for, then the richest.
         return cards.sortedBy { c ->
             when {
@@ -128,8 +128,8 @@ object CardRules {
     private val LIST_POINT = Regex("""^(?:[-*•]|\d{1,2}[.)])\s+\**(\d{4}(?=\**\s*:)|[\p{L}](?:[^:\d]|(?<=\p{L})\d(?!\d*\s*(?:$UNITS)\b)){0,40}?)\**\s*(?::|—|-|–|,|at|is|em|com|tem)?\s*(?:about|around|approximately|roughly|cerca de|aproximadamente)?\s*($SIGNED)\s*($UNITS)(?![\p{L}\d])""", RegexOption.IGNORE_CASE)
     private val ENUM_POINT = Regex("""(\p{Lu}[\p{L}\d'’-]*(?:\s(?:\p{Lu}[\p{L}\d'’-]*|\d+))*)\s(?:at|is|was|with|of|em|com|tem|has)?\s*(?:about|around|approximately|roughly|cerca de)?\s*\(?($SIGNED)\s*($UNITS)(?![\p{L}\d])""")
 
-    private fun chart(lines: List<String>, answer: String): Card.Chart? {
-        val mark = Calculators.readsComma(answer, false)
+    private fun chart(lines: List<String>, answer: String, question: String = ""): Card.Chart? {
+        val mark = markOf(answer, question)
         fun point(label: String, num: String, unit: String) = Point(clean(label).trim().trimEnd(':', ',', '-', '—'), "$num $unit".trim(), signed(num, mark))
         val fromList = lines.mapNotNull { l -> LIST_POINT.find(l)?.let { m -> point(m.groupValues[1], m.groupValues[2], m.groupValues[3]) to m.groupValues[3].lowercase() } }
         val series = sameUnit(fromList) ?: answer.split(Regex("""(?<=[.!?])\s+""")).asSequence()
@@ -161,7 +161,7 @@ object CardRules {
         val names = list.split(Regex(""",\s*|\s+(?:and|e)\s+""")).map { it.trim().removePrefix("the ").removePrefix("The ").removePrefix("o ").removePrefix("a ") }
             .map { it.substringBefore(" from ").substringBefore(",").trim() }.filter { it.length >= 3 }
         if (names.size < 3) return null
-        val mark = Calculators.readsComma(answer, false)
+        val mark = markOf(answer, question)
         val first = answer.split(Regex("""\n\s*\n""")).first()
         val sentences = first.split(Regex("""(?<=[.!?])\s+"""))
         val points = ArrayList<Pair<Point, String>>()
@@ -203,6 +203,17 @@ object CardRules {
     /** The number with its sign: "-67" or "−67" reads -67.0. */
     private fun signed(num: String, mark: Boolean): Double =
         if (num.startsWith('-') || num.startsWith('−')) -Calculators.parseNumber(num.substring(1), mark) else Calculators.parseNumber(num, mark)
+
+    /**
+     * The decimal mark for a card's numbers: the answer's own numbers first ([Calculators.readsComma]), else its language,
+     * else the question's (a list of names and numbers says little).
+     * A Portuguese answer's "8.849 m" is 8849 (validator B-11: "Everest: 8.849 m … Morro: 300 m" drew Everest under the
+     * hill).
+     */
+    private fun markOf(answer: String, question: String): Boolean {
+        val lang = team.sopa.boar.engine.answer.AnswerLanguage.clear(answer) ?: team.sopa.boar.engine.answer.AnswerLanguage.clear(question)
+        return Calculators.readsComma(answer, lang == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT)
+    }
 
     private fun clean(s: String) = s.replace("**", "").replace("__", "").replace(Regex("""\s*\[\d{1,3}]"""), "").trim()
 }
