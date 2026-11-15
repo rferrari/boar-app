@@ -68,7 +68,7 @@ class CardsPluginTest {
 
     @Test fun `the model's card keeps its grounding check and its left-out line`() {
         assertTrue(canvas.contains("Visual.parse(it, grounding(a, context), a.question)"))
-        assertTrue(canvas.contains("AnswerCard.ofVisual(parsed.visual, parsed.leftOut, fallbackTitle)"))
+        assertTrue(canvas.contains("AnswerCard.ofVisual(parsed.visual, parsed.leftOut, fallbackTitle, a.text)"))
         assertTrue(lab.contains("native.labs.canvas.leftOut"))
     }
 
