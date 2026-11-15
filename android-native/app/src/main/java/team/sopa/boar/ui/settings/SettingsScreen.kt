@@ -272,9 +272,24 @@ private fun ClearChats(services: BoarServices) {
     var asking by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(false) }
     LinkButton(if (done) t("native.settings.clearChatsDone") else t("memorySettings.clearAllChatHistory"), danger = !done) { if (!done) asking = true }
+    // Press projects are the user's documents: kept unless they tick the box (adam, Nov 15: "let user choose"; t9 0115).
+    var press by remember { mutableStateOf(0) }
+    var alsoPress by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(asking) { if (asking) { alsoPress = false; press = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { team.sopa.boar.plugins.UserData.pressProjects() }.getOrDefault(0) } } }
     if (asking) androidx.compose.material3.AlertDialog({ asking = false },
         title = { Text(t("memorySettings.clearAllConfirmTitle")) },
-        confirmButton = { androidx.compose.material3.TextButton({ services.chats.clearAll(); runCatching { team.sopa.boar.plugins.UserData.erase(team.sopa.boar.plugins.UserData.Scope.CHATS) }; asking = false; done = true }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
+        text = if (press > 0) { {
+            Row(Modifier.fillMaxWidth().clickable { alsoPress = !alsoPress }, verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Checkbox(alsoPress, { alsoPress = it })
+                Text(t("native.settings.clearChatsPress", "count" to press), style = Boar.type.body, color = Boar.colors.textSecondary)
+            }
+        } } else null,
+        confirmButton = { androidx.compose.material3.TextButton({
+            services.chats.clearAll()
+            val scope = if (press > 0 && !alsoPress) team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS else team.sopa.boar.plugins.UserData.Scope.CHATS
+            runCatching { team.sopa.boar.plugins.UserData.erase(scope) }
+            asking = false; done = true
+        }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
         dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
 }
 

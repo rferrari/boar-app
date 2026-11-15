@@ -6,7 +6,14 @@ package team.sopa.boar.plugins
  * all of it, when the PIN is forgotten (the chats are erased with the key) or the user purges the app.
  */
 object UserData {
-    enum class Scope { CHATS, EVERYTHING }
+    /**
+     * CHATS_KEEP_PRESS: Clear chat history with "Also delete Press projects" off (adam, Nov 15; t9 0115): every plugin
+     * erases as for CHATS except Press, whose projects stay with the answers already in them.
+     */
+    enum class Scope { CHATS, CHATS_KEEP_PRESS, EVERYTHING }
+
+    /** How many Press projects hold something (an empty starter doesn't count); 0 without Press. Set by Boar Labs. */
+    @Volatile var pressProjects: () -> Int = { 0 }
 
     /** Set by Boar Labs at start; runs every lab's eraser, switched on or not. */
     @Volatile var erase: (Scope) -> Unit = {}

@@ -123,6 +123,12 @@ object PressStore {
         change { it.eraseAnswers(ids) }
     }
 
+    /** Projects that hold at least one block: what "Also delete Press projects (N)" counts. */
+    fun projectsWithContent(context: Context): Int {
+        load(context)
+        return _library.value?.projects?.count { it.blocks.isNotEmpty() } ?: 0
+    }
+
     /** How many of [ids] are in any project. */
     fun countOf(context: Context, ids: Collection<String>): Int {
         load(context)

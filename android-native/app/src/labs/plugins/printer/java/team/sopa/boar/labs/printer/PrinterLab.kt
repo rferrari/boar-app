@@ -33,8 +33,12 @@ object PrinterLab : LabPlugin {
         PressSelfTest.run(context, args, say); return true
     }
 
-    /** The projects hold answers' text: they go with the chats (Forgot PIN, Clear all), every project and its folder. */
+    /**
+     * The projects hold answers' text: they go with the chats (Forgot PIN, Clear all), every project and its folder.
+     * Clear chat history keeps them unless the user ticks "Also delete Press projects" (adam, Nov 15; t9 0115).
+     */
     override fun eraseUserData(context: android.content.Context, scope: team.sopa.boar.plugins.UserData.Scope) {
+        if (scope == team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS) return
         PressStore.eraseAll(context)
     }
 

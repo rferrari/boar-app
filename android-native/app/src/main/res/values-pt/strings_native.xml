@@ -834,4 +834,5 @@
     <string name="native_chat_prune_delete" formatted="false">Apagar</string>
     <string name="native_settings_summary_memoryAll" formatted="false">Guarda todas as conversas</string>
     <string name="native_settings_memory_all" formatted="false">Todas</string>
+    <string name="native_settings_clearChatsPress" formatted="false">Apagar também os projetos do Press ({{count}}) e suas fotos</string>
 </resources>

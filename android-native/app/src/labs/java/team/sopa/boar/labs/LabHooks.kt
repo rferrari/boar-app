@@ -91,6 +91,7 @@ object LabHooks {
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext
         team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
+        team.sopa.boar.plugins.UserData.pressProjects = { runCatching { team.sopa.boar.labs.printer.PressStore.projectsWithContent(app) }.getOrDefault(0) }
         team.sopa.boar.plugins.UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseAnswers(app, ids) } } }
         team.sopa.boar.plugins.UserData.deleteNotes = { ids -> LabRegistry.active.mapNotNull { lab -> runCatching { lab.deleteNote(app, ids) }.getOrNull() } }
     }

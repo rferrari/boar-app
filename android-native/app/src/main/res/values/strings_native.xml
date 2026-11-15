@@ -834,4 +834,5 @@
     <string name="native_chat_prune_delete" formatted="false">Delete it</string>
     <string name="native_settings_summary_memoryAll" formatted="false">Keeps all chats</string>
     <string name="native_settings_memory_all" formatted="false">All</string>
+    <string name="native_settings_clearChatsPress" formatted="false">Also delete Press projects ({{count}}) and their photos</string>
 </resources>
