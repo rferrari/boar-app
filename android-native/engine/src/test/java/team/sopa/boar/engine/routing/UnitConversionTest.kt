@@ -117,4 +117,14 @@ class UnitConversionTest {
         assertEquals(LabTools.Hit("calculator-conversion", "26 miles = 41.84 km (1 mile = 1.609344 km)."), LabTools.calc("26 miles in km", emptyList()))
         assertEquals(CalcShortcut.Hit("calculator-conversion", "26 milhas = 41,84 km (1 milha = 1,609344 km)."), CalcShortcut.answer("quantos km são 26 milhas"))
     }
+
+    @Test fun `a compound quantity goes to the model, never its last part alone (validator B-2)`() {
+        for (q in listOf("5 feet 10 in to cm", "5 ft 10 inches in cm", "1 lb 8 oz to kg", "1 lb and 8 oz in grams", "how many cm is 5 feet 10 inches",
+            "2 libras e 3 onças em gramas")) {
+            assertEquals(q, null, conv(q))
+            assertEquals(q, null, CalcShortcut.answer(q))
+        }
+        // Two quantities of different kinds are not one compound: the conversion still answers.
+        assertEquals("10 inches = 25.4 cm (1 inch = 2.54 cm).", conv("A 5 kg box, 10 inches to cm"))
+    }
 }

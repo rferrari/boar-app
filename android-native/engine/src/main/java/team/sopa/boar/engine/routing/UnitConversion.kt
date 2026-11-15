@@ -63,6 +63,12 @@ object UnitConversion {
     /** "26 miles in km", "convert 26 miles into kilometres", "26 milhas para quilômetros". */
     private val FORWARD = Regex("""$NUM$SOURCE_TAIL\s+$TO\s+(?:(?:the|o|a|os|as)\s+)?((?:$ALL_NAMES))$END""", RegexOption.IGNORE_CASE)
 
+    /** A quantity right before the converted number: "5 feet " in "5 feet 10 in to cm", "1 lb and " in "1 lb and 8 oz". */
+    private val PART_BEFORE = Regex("""\d\s*((?:$ALL_NAMES))$END\s*(?:,|and|e|&)?\s*$""", RegexOption.IGNORE_CASE)
+
+    /** A quantity right after the converted one: " 10 inches" in "how many cm is 5 feet 10 inches". */
+    private val PART_AFTER = Regex("""^\s*(?:,|and|e|&)?\s*\d+(?:[.,]\d+)?\s*((?:$ALL_NAMES))$END""", RegexOption.IGNORE_CASE)
+
     /** "how many km is 26 miles", "how many cm in 6 feet", "quantos km são 26 milhas", "quantas libras tem 80 kg". */
     private val ASKED = Regex(
         """(?<![\p{L}])(?:how\s+many|quant[oa]s)\s+((?:$ALL_NAMES))$END\s+(?:is|are|in|make|equals?|são|sao|é|e|tem|têm|dá|da|dão|em|há\s+em|cabem\s+em)\s+(?:there\s+in\s+)?$NUM$SOURCE_TAIL""",
@@ -92,10 +98,18 @@ object UnitConversion {
     /** "26 miles = 41.84 km (1 mile = 1.609344 km)." for a plain conversion, or null. */
     fun convert(query: String, pt: Boolean): String? {
         if (RATE.containsMatchIn(query)) return null
-        val (rawNum, from, to, match) = FORWARD.find(query)?.let { Quad(it.groupValues[1], it.groupValues[2], it.groupValues[3], it.value) }
-            ?: ASKED.find(query)?.let { Quad(it.groupValues[2], it.groupValues[3], it.groupValues[1], it.value) }
+        val fwd = FORWARD.find(query)
+        val asked = if (fwd == null) ASKED.find(query) else null
+        val (rawNum, from, to, match) = fwd?.let { Quad(it.groupValues[1], it.groupValues[2], it.groupValues[3], it.value) }
+            ?: asked?.let { Quad(it.groupValues[2], it.groupValues[3], it.groupValues[1], it.value) }
             ?: return null
+        val numAt = fwd?.groups?.get(1)?.range?.first ?: asked!!.groups[2]!!.range.first
+        val unitEnd = (fwd?.groups?.get(2) ?: asked!!.groups[3]!!).range.last + 1
         val src = unitOf(from) ?: return null
+        // "5 feet 10 in to cm", "1 lb 8 oz to kg": the number is the last part of a compound quantity. Converting it alone
+        // looks exact and is wrong (validator B-2): the model takes the question.
+        PART_BEFORE.find(query.substring(0, numAt))?.let { m -> if (unitOf(m.groupValues[1])?.family == src.family) return null }
+        PART_AFTER.find(query.substring(unitEnd))?.let { m -> if (unitOf(m.groupValues[1])?.family == src.family) return null }
         val dst = unitOf(to) ?: return null
         if (src === dst || src.family != dst.family) return null
         if (src.family == "volume" && UK_GALLON.containsMatchIn(query)) return null
