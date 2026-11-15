@@ -84,15 +84,19 @@ data class AnswerCard(
             return if (q.length <= 60) q else q.take(57).trimEnd() + "…"
         }
 
-        /** The model's visual (Visual.parse, already checked against the answer) as a card. */
-        fun ofVisual(v: Visual, leftOut: List<String>, fallbackTitle: String): AnswerCard {
+        /**
+         * The model's visual (Visual.parse, already checked against the answer) as a card. Its numbers are written as the
+         * [answer] writes them: a Portuguese answer's "3.287.263" stays 3.287.263 on the card.
+         */
+        fun ofVisual(v: Visual, leftOut: List<String>, fallbackTitle: String, answer: String = ""): AnswerCard {
             val title = v.title.ifBlank { fallbackTitle }
+            fun w(s: String) = VisualCheck.asWritten(s, answer)
             return when (v) {
                 is Visual.Series -> AnswerCard(
                     when (v.kind) { Visual.SeriesKind.BARS -> Shape.BARS; Visual.SeriesKind.LINE -> Shape.LINE; Visual.SeriesKind.SHARE -> Shape.PIE },
-                    title, Body.Series(v.unit.orEmpty(), v.items.map { (l, x) -> CardRules.Point(l, (VisualScale.format(x) + " " + v.unit.orEmpty()).trim(), x) }),
+                    title, Body.Series(v.unit.orEmpty(), v.items.map { (l, x) -> CardRules.Point(l, (w(VisualScale.format(x)) + " " + v.unit.orEmpty()).trim(), x) }),
                     byModel = true, leftOut = leftOut)
-                is Visual.Table -> AnswerCard(Shape.TABLE, title, Body.Table(v.columns, v.rows), true, leftOut)
+                is Visual.Table -> AnswerCard(Shape.TABLE, title, Body.Table(v.columns, v.rows.map { r -> r.map(::w) }), true, leftOut)
                 is Visual.Steps -> AnswerCard(Shape.CHECKLIST, title, Body.Steps(v.steps), true, leftOut)
                 is Visual.Facts -> AnswerCard(Shape.FACTS, title, Body.Facts(v.facts), true, leftOut)
                 is Visual.Compare -> AnswerCard(Shape.COMPARE, title, Body.Compare(v.items), true, leftOut)

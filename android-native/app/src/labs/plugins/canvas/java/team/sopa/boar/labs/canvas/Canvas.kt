@@ -131,7 +131,7 @@ internal object Canvas {
                 // Removed (✕) or erased while it was being made: nothing is kept.
                 if (status[id] !is Status.Making) return@launch
                 when (parsed) {
-                    is Visual.Parsed.Ok -> { status.remove(id); show(ctx, id, AnswerCard.ofVisual(parsed.visual, parsed.leftOut, fallbackTitle), a.text) }
+                    is Visual.Parsed.Ok -> { status.remove(id); show(ctx, id, AnswerCard.ofVisual(parsed.visual, parsed.leftOut, fallbackTitle, a.text), a.text) }
                     is Visual.Parsed.Rejected -> status[id] = Status.Failed(rejectedKey(parsed), parsed.detail?.take(60), raw)
                     null -> status[id] = Status.Failed(if (r.exceptionOrNull() != null) "native.labs.canvas.failed" else "native.labs.canvas.noModel")
                 }
@@ -226,7 +226,7 @@ internal object Canvas {
         val kind = (o["kind"] as? JsonPrimitive)?.content
         val raw = (o["raw"] as? JsonPrimitive)?.content
         val card = if (kind != "WIDGET" && raw != null) (Visual.parse(raw, grounding(a, contextFor(ctx, a)), a.question) as? Visual.Parsed.Ok)
-            ?.let { AnswerCard.ofVisual(it.visual, it.leftOut, a.sources.firstOrNull()?.first ?: a.question.take(60)) } else null
+            ?.let { AnswerCard.ofVisual(it.visual, it.leftOut, a.sources.firstOrNull()?.first ?: a.question.take(60), a.text) } else null
         if (card != null) writeMeta(ctx, a.id) { AnswerCard.withCard(it, card) }
         f.delete()
         return card

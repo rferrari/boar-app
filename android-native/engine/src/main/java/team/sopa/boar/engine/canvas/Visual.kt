@@ -364,13 +364,26 @@ object VisualCheck {
             var anyNear = false
             for (p in places) {
                 val nearest = byLabel.mapValues { (_, ws) ->
-                    ws.minOfOrNull { w -> if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p)) } ?: Int.MAX_VALUE
+                    ws.filter { w -> !acrossSentence(w, p, numbersFirst) }
+                        .minOfOrNull { w -> if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p)) } ?: Int.MAX_VALUE
                 }.filterValues { it <= near }.minByOrNull { it.value } ?: continue
                 anyNear = true
                 if (nearest.key == label) return true
             }
             return !anyNear
         }
+        /**
+         * A name on the far side of its number (after it when names come first) and past a sentence's end is the next
+         * sentence's subject, not this number's: "…com uma área de 8.515.814 km². A Índia é…" is Brasil's area, not
+         * India's (coder's F3 check, 15 Nov: the PT card dropped Brasil).
+         */
+        private fun acrossSentence(w: Int, p: Int, numbersFirst: Boolean): Boolean {
+            val far = if (numbersFirst) w < p else w > p
+            if (!far) return false
+            val between = source.substring(minOf(w, p), maxOf(w, p))
+            return SENTENCE_END.containsMatchIn(between)
+        }
+
         fun badNumber(text: String): String? = tokens(text).firstOrNull { t -> valuesOf(t).none(::grounded) }
         fun wordsOk(text: String): Boolean = contentWords(text).let { it.isEmpty() || it.any { w -> w in words } }
     }
@@ -398,6 +411,23 @@ object VisualCheck {
             "(?:\\s*(?:%|million|millions|billion|billions|thousand|trillion|mil|milhão|milhões|bilhão|bilhões|bi|mi|k)(?![\\p{L}]))?",
         RegexOption.IGNORE_CASE,
     )
+
+    private val SENTENCE_END = Regex("""[.!?](?:\s*\[\d{1,3}])?\s+(?=\p{Lu})""")
+
+    /**
+     * [text] with each number written as [source] writes the same value ("3,287,263" in a card under a Portuguese answer
+     * that wrote "3.287.263"); a number [source] doesn't hold, or holds in two spellings, stays as it is.
+     */
+    fun asWritten(text: String, source: String): String {
+        if (source.isBlank()) return text
+        val spelled = HashMap<Double, MutableSet<String>>()
+        for (t in tokens(source)) { val vs = valuesOf(t); if (vs.size == 1) spelled.getOrPut(vs[0]) { HashSet() } += t }
+        return TOKEN.replace(text) { m ->
+            val t = m.value.trim()
+            val pick = valuesOf(t).mapNotNull { v -> spelled[v]?.singleOrNull() }.distinct().singleOrNull()
+            if (pick == null || pick == t) m.value else m.value.replace(t, pick)
+        }
+    }
 
     private fun tokens(text: String): List<String> = TOKEN.findAll(text).map { it.value.trim() }.toList()
 
