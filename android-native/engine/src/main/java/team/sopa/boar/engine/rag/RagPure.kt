@@ -60,6 +60,10 @@ object RagPure {
     fun <T> filterByMinScore(chunks: List<T>, minScore: Double, score: (T) -> Double): List<T> = chunks.filter { score(it) >= minScore }
 
     private val STOPWORDS = setOf(
+        // Portuguese function words (t9 0226): "para" matched the article Pará for "Como as monções se formam, e por que
+        // importam para a agricultura…". Folded forms, as tokenize gives them.
+        "para", "por", "pelo", "pela", "como", "que", "uma", "um", "das", "dos", "da", "do", "de", "em", "no", "na", "nos", "nas",
+        "ao", "aos", "sem", "se", "seu", "sua", "qual", "quais", "quando", "onde", "porque", "entre", "sobre",
         "a", "about", "after", "all", "also", "am", "an", "and", "any", "are", "as", "at",
         "be", "because", "been", "before", "being", "best", "better", "between", "both", "but", "by",
         "can", "could", "compare", "comparison", "describe", "detail", "details", "did",

@@ -119,8 +119,31 @@ object PtLexicon {
     private fun variants(words: List<String>): List<String> {
         val out = mutableListOf(words.joinToString(" "))
         for (i in words.indices) for (s in singularsPt(words[i])) out += (words.subList(0, i) + s + words.subList(i + 1, words.size)).joinToString(" ")
+        // "oferta e a demanda" is the lexicon's "oferta e demanda": an article inside a phrase doesn't change it.
+        if (words.size >= 3) {
+            val bare = listOf(words.first()) + words.subList(1, words.size - 1).filter { it !in INNER_ARTICLES } + words.last()
+            if (bare.size != words.size) out += bare.joinToString(" ")
+        }
         return out
     }
+    private val INNER_ARTICLES = setOf("a", "o", "as", "os")
+
+    /**
+     * Readings the lexicon gets wrong for a question (t9 0226, measured on the 30 Portuguese questions, 15 Nov), checked
+     * before it; "" reads as no name at all (the words are used up, so no shorter name is looked up for them either).
+     * Keys are folded. "aparelho" is a device, not Brickwork (the masonry bond); "capital" is "the capital of", not the
+     * article Capital city; a time unit names no article to search ("15h40… 35 minutos" found Minute, Inverse second,
+     * Sexagesimal); "inclinação da Terra" is the axial tilt, not an orbit's inclination; "céu azul" is why the sky is blue.
+     */
+    private val READINGS: Map<String, String> = mapOf(
+        "aparelho" to "", "aparelhos" to "", "capital" to "", "capitais" to "",
+        "minuto" to "", "minutos" to "", "hora" to "", "horas" to "", "segundo" to "", "segundos" to "",
+        "inclinacao da terra" to "Axial tilt", "inclinacao do eixo" to "Axial tilt", "inclinacao do eixo da terra" to "Axial tilt", "eixo da terra" to "Axial tilt",
+        "ceu azul" to "Diffuse sky radiation", "ceu e azul" to "Diffuse sky radiation",
+    )
+
+    /** "marés" -> "maré" (Tide) before the folded "mares" -> "mar" (Sea): an accented word's own singular first. */
+    private fun accentedSingulars(word: String): List<String> = listOf(Regex("s$") to "").filter { (re, _) -> re.containsMatchIn(word) && word.length > 3 }.map { (re, to) -> re.replaceFirst(word, to) }
 
     private val titleCache = java.util.WeakHashMap<Map<String, String>, Map<String, String>>()
     private fun englishTitles(lexicon: Map<String, String>): Map<String, String> =
@@ -155,7 +178,15 @@ object PtLexicon {
                 if ((i until i + len).any { used[it] }) continue
                 if (gram[0] in STOP || gram[len - 1] in STOP) continue
                 if (len == 1 && (gram[0].length < 4 || !specific(i))) continue
-                val hit = accented?.let { lexicon[it.subList(i, i + len).joinToString(" ")] }
+                val reading = variants(gram).firstNotNullOfOrNull { READINGS[it] }
+                if (reading != null) {
+                    if (reading.isEmpty()) { for (j in i until i + len) used[j] = true; continue }
+                    for (j in i until i + len) used[j] = true
+                    if (reading !in names) names += reading
+                    continue
+                }
+                val hit = accented?.let { a -> lexicon[a.subList(i, i + len).joinToString(" ")]
+                    ?: if (len == 1) accentedSingulars(a[i]).firstNotNullOfOrNull { lexicon[it]?.takeIf { v -> v.isNotEmpty() } } else null }
                     ?: variants(gram).firstNotNullOfOrNull { lexicon[it]?.takeIf { v -> v.isNotEmpty() } }
                     ?: (if (len == 1) englishTitles(lexicon)[gram[0]] else null)
                     ?: continue
