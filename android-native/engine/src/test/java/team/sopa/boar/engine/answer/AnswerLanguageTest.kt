@@ -119,3 +119,89 @@ class LanguageArmRequestTest {
         assertTrue(runner.contains("AnswerLanguage.arm = request.languageArm ?: 1") && runner.contains("finally { team.sopa.boar.engine.answer.AnswerLanguage.arm = 1 }"))
     }
 }
+
+/** Validator C-1 to C-3 (t9 0010 item 5), and the Nov 14 detection measure kept as it was. */
+class AnswerLanguageValidatorTest {
+    @After fun reset() { AnswerLanguage.appLanguage = null }
+
+    @Test fun `Spanish, French, German and a hola get no Portuguese line, in a Portuguese app too (validator C-1)`() {
+        AnswerLanguage.appLanguage = "pt"
+        for (q in listOf("hola", "¡Hola!", "¿Qué es la fotosíntesis?", "Cuál es la capital de Australia y por qué es importante",
+            "Pourquoi le ciel est bleu?", "Qu'est-ce que la photosynthèse?", "Bonjour", "Warum ist der Himmel blau?", "Wie funktioniert eine Impfung?", "Hallo")) {
+            assertEquals(q, Lang.OTHER, AnswerLanguage.of(q))
+            assertEquals(q, null, AnswerLanguage.line(AnswerLanguage.of(q), withSources = true))
+        }
+        // Portuguese with a Spanish-looking name stays Portuguese.
+        assertEquals(Lang.PT, AnswerLanguage.of("Qual é a capital de El Salvador e de Los Angeles?"))
+        assertEquals(Lang.PT, AnswerLanguage.of("O que é o El Niño?"))
+    }
+
+    @Test fun `System follows the phone's language, not English (validator C-2)`() {
+        val was = java.util.Locale.getDefault()
+        try {
+            AnswerLanguage.appLanguage = null
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("pt-BR"))
+            assertEquals(Lang.PT, AnswerLanguage.of("Napoleão"))
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("en-US"))
+            assertEquals(Lang.EN, AnswerLanguage.of("Napoleão"))
+            // A setting chosen in the app still wins over the phone.
+            AnswerLanguage.appLanguage = "pt"
+            assertEquals(Lang.PT, AnswerLanguage.of("Napoleão"))
+        } finally { java.util.Locale.setDefault(was) }
+    }
+
+    @Test fun `quoted words and a translate request don't make an English question Portuguese (validator C-3)`() {
+        AnswerLanguage.appLanguage = "pt"
+        for (q in listOf("Translate 'bom dia' to English", "Translate \"obrigado\" into English", "How do you say saudade in English?",
+            "What does 'cafuné' mean?", "What does the word \u201cgostoso\u201d mean?"))
+            assertEquals(q, Lang.EN, AnswerLanguage.of(q))
+        // The other way: a Portuguese question about an English word stays Portuguese.
+        assertEquals(Lang.PT, AnswerLanguage.of("O que significa 'deadline' em inglês?"))
+    }
+
+    @Test fun `the 40 short questions of the Nov 14 measure read as they did`() {
+        val cases = listOf(
+            "Por que o céu é azul?" to Lang.PT,
+            "Quantos ossos tem o corpo humano?" to Lang.PT,
+            "O que causa as marés?" to Lang.PT,
+            "Quem foi Santos Dumont?" to Lang.PT,
+            "e por quê?" to Lang.PT,
+            "quanto custa?" to Lang.PT,
+            "Capital da Austrália?" to null,
+            "Me explica a fotossíntese" to null,
+            "tem vacina pra dengue?" to Lang.PT,
+            "qual a altura do Everest" to Lang.PT,
+            "Napoleão" to null,
+            "como fazer pão" to Lang.PT,
+            "isso é perigoso?" to Lang.PT,
+            "e no Brasil?" to Lang.PT,
+            "Febre de 39 graus, o que faço?" to Lang.PT,
+            "Água do mar é salgada por quê" to Lang.PT,
+            "Quem descobriu o Brasil?" to Lang.PT,
+            "Diferença entre vírus e bactéria" to Lang.PT,
+            "melhor horário pra correr" to null,
+            "obrigado!" to null,
+            "Why is the sky blue?" to Lang.EN,
+            "How many bones are in the human body?" to Lang.EN,
+            "What causes tides?" to Lang.EN,
+            "Who was Napoleon?" to Lang.EN,
+            "and why?" to Lang.EN,
+            "how much?" to Lang.EN,
+            "Capital of Australia?" to Lang.EN,
+            "Explain photosynthesis" to Lang.EN,
+            "is there a dengue vaccine?" to Lang.EN,
+            "Everest height" to Lang.EN,
+            "Napoleon" to null,
+            "how to bake bread" to Lang.EN,
+            "is it dangerous?" to Lang.EN,
+            "and in Brazil?" to Lang.EN,
+            "Fever of 39, what should I do?" to Lang.EN,
+            "Why is seawater salty" to Lang.EN,
+            "Who discovered Brazil?" to Lang.EN,
+            "Virus vs bacteria" to Lang.EN,
+            "best time to run" to Lang.EN,
+            "thanks!" to Lang.EN,
+        )
+        for ((q, want) in cases) assertEquals(q, want, AnswerLanguage.clear(q))
+    }
+}
