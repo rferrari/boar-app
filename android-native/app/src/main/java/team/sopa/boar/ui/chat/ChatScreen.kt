@@ -204,7 +204,9 @@ fun ChatScreen(
                     // "Keep going" under the latest answer, outside its card, on the user's side (t9 0235): not while BOAR
                     // answers or questions wait, gone when the input has text or a newer answer arrives.
                     val last = state.messages.lastOrNull()
-                    if (last != null && last.role == "assistant" && last.text.isNotBlank() && state.answeringId == null && state.queued.isEmpty() && input.isBlank())
+                    // Not under a load note either: keepGoing refuses then, so a tap did nothing (validator A-3).
+                    if (last != null && last.role == "assistant" && last.text.isNotBlank() && state.answeringId == null && state.queued.isEmpty() && input.isBlank() &&
+                        state.loadNote == null && state.pruneNote == null)
                         item(key = "keep-going-" + last.id) { KeepGoingGroup(last, state, onStep = { step -> onKeepGoing(last.id, step) }, onAsk = { send(it) }, onFill = { input = it }) }
                 }
                 // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.

@@ -29,4 +29,11 @@ class KeepGoingOverridesTest {
         // Loading the model instead sends the held question with its overrides: userLoad doesn't drop them.
         assertTrue(!body("userLoad").contains("dropOnce()"))
     }
+
+    @Test fun `the bubbles hide while a load note is up, where a tap would do nothing (validator A-3)`() {
+        val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
+        assertTrue(chat.contains("state.loadNote == null && state.pruneNote == null)\n                        item(key = \"keep-going-\" + last.id)"))
+        // keepGoing refuses under a load note, so hiding is the only honest choice there.
+        assertTrue(body("keepGoing").contains("_state.value.loadNote != null) return"))
+    }
 }
