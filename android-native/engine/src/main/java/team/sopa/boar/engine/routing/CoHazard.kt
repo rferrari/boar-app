@@ -399,18 +399,68 @@ object CoHazard {
     const val CO_ACUTE_PT = "Leve todos para o ar livre imediatamente, ligue para o serviço de emergência e não volte para dentro até que digam que é seguro."
     const val CO_ACUTE_ES = "Saca a todos al aire libre de inmediato, llama a los servicios de emergencia y no vuelvas a entrar hasta que te digan que es seguro."
 
+    // What fires the acute card (adam, 15 Nov, t9 0110 item 1, decisions 2 and 3 of the review). Its own patterns: ACUTE
+    // above keeps the planning card out of these questions and stays as it was.
+
+    /** A symptom, per language: ACUTE's, PT.acute's and ES.acute's symptom words. */
+    private val SYMPTOM_EN = re(
+        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|feel(?:s|ing)? (?:sick|ill|weird|woozy|weak))$E""",
+    )
+    private val SYMPTOM_PT = re(
+        """$B(?:dor(?:es)? de cabe[çc]a|cabe[çc]a (?:d[óo]i|doendo|latejando|explodindo)|tontu\p{L}*|tont[oa]s?|zonz[oa]s?|enjo\p{L}*|n[áa]usea\p{L}*|vomit\p{L}*|v[ôo]mito\p{L}*|desmai\p{L}*|inconscient\p{L}*|confus\p{L}*|sonol[êe]n\p{L}*|dor no peito|falta de ar|sem ar|n[ãa]o (?:consigo|consegue) respirar|n[ãa]o (?:acorda|consegue acordar)|dif[íi]cil de acordar|fala enrolada|passando mal|(?:me )?sentindo (?:mal|estranh\p{L}*|frac[oa]))$E""",
+    )
+    private val SYMPTOM_ES = re(
+        """$B(?:dolor(?:es)? de cabeza|(?:me )?duele la cabeza|mare\p{L}*|n[áa]usea\p{L}*|v[óo]mit\p{L}*|vomit\p{L}*|desmay\p{L}*|inconsciente\p{L}*|confundid\p{L}*|confusi[óo]n|somnolen\p{L}*|dolor (?:en el|de) pecho|falta de aire|no (?:puedo|puede) respirar|no (?:despierta|puede despertar)|dif[íi]cil de despertar|(?:me )?siento (?:mal|rar[oa]|d[ée]bil))$E""",
+    )
+
     /**
-     * The acute card's language ("en", "pt", "es"), or null: carbon monoxide named, with an alarm going off, a ppm reading,
-     * or a symptom, in English, Portuguese or Spanish. The question's language decides; else the language whose acute
-     * words matched.
+     * An alarm going off, beeping or sounding, per language. Not chirping (a low battery or an alarm at its end of life),
+     * not "says", "reads", "shows", "error" or "is on": the model answers those (review decision 2).
+     */
+    private val ALARM_OFF_EN = re("""$B(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|beeping|beeps|beeped|sounding|sounds|sounded|alarming|blaring|screaming|shrieking)$E""")
+    private val ALARM_OFF_PT = re("""$B(?:alarmes?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:tocando|tocou|toca|disparou|disparando|dispara|apitando|apitou|apita|bipando|bipou|soando|soou)$E""")
+    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando)$E""")
+
+    /** A reading: "50 ppm", or an alarm that reads, says or shows a number. Above 0 only ("reads 0 ppm" is normal). */
+    private val PPM = Regex("""(?<![\d.,])(\d+(?:[.,]\d+)?)\s*ppm\b""", RegexOption.IGNORE_CASE)
+    private val READS = Regex("""(?<![\p{L}])(?:alarms?|detectors?|sensors?|monitors?|alarmes?|alarmas?|detector(?:es)?)(?![\p{L}]).{0,40}?(?<![\p{L}])(?:reads?|reading|says|shows|showing|displays?|is at|at|marca|marcando|mostra|mostrando|indica|lee|muestra)(?![\p{L}])\s*:?\s*(\d+(?:[.,]\d+)?)""", RegexOption.IGNORE_CASE)
+    private fun readingAboveZero(q: String): Boolean =
+        (PPM.findAll(q).map { it.groupValues[1] } + READS.findAll(q).map { it.groupValues[1] })
+            .any { (it.replace(',', '.').toDoubleOrNull() ?: 0.0) > 0.0 }
+
+    /**
+     * A fuel-burning device named, with or without a space: the planning card's device words in each language (electric,
+     * solar and battery generators stay out, as DEVICE and PT/ES device already leave them).
+     */
+    private fun fuelDevice(query: String): Boolean {
+        var q = QUOTES.replace(query, "'")
+        q = GENERATOR_TYPO.replace(q, "generator")
+        q = PROPANE_TYPO.replace(q, "propane")
+        q = KEROSENE_TYPO.replace(q, "kerosene")
+        if (DEVICE.containsMatchIn(q) || OVEN_HEAT.containsMatchIn(q) || ENGINE.containsMatchIn(q)) return true
+        if (HEATER.containsMatchIn(APPLIANCE.replace(q, " ")) && !INSTALLED.containsMatchIn(q)) return true
+        if (PROPANE_STOVE.containsMatchIn(q) && SPACE.containsMatchIn(KITCHEN.replace(q, " "))) return true
+        return listOf(PT, ES).any { w ->
+            w.device.containsMatchIn(q) || w.ovenHeat.containsMatchIn(q) || w.engine.containsMatchIn(q) ||
+                (w.heater.containsMatchIn(w.appliance.replace(q, " ")) && !w.installed.containsMatchIn(q))
+        }
+    }
+
+    /**
+     * The acute card's language ("en", "pt", "es"), or null. It fires for carbon monoxide named with an alarm going off,
+     * a reading above 0 or a symptom; or for a symptom with a fuel-burning device, carbon monoxide not named ("I ran the
+     * generator in the garage and now I have a headache": people often don't know it's carbon monoxide). The language
+     * whose own alarm or symptom words matched decides; else the question's.
      */
     fun acuteLanguage(query: String): String? {
         val q = QUOTES.replace(query, "'")
-        if (!CO_NAMED.containsMatchIn(q)) return null
-        val en = ACUTE.containsMatchIn(q); val pt = PT.acute.containsMatchIn(q); val es = ES.acute.containsMatchIn(q)
-        if (!(en || pt || es)) return null
-        // Which language's own alarm or symptom words matched decides first: the generic detectors read Spanish shared words
-        // ("de", "está") as Portuguese.
+        val sEn = SYMPTOM_EN.containsMatchIn(q); val sPt = SYMPTOM_PT.containsMatchIn(q); val sEs = SYMPTOM_ES.containsMatchIn(q)
+        val aEn = ALARM_OFF_EN.containsMatchIn(q); val aPt = ALARM_OFF_PT.containsMatchIn(q); val aEs = ALARM_OFF_ES.containsMatchIn(q)
+        val symptom = sEn || sPt || sEs
+        val fires = if (CO_NAMED.containsMatchIn(q)) symptom || aEn || aPt || aEs || readingAboveZero(q) else symptom && fuelDevice(query)
+        if (!fires) return null
+        val pt = sPt || aPt; val es = sEs || aEs
+        // The generic detectors read Spanish shared words ("de", "está") as Portuguese: a language's own words decide first.
         return when {
             es && !pt -> "es"
             pt && !es -> "pt"

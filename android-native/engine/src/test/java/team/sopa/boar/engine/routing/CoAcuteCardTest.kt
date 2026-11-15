@@ -70,4 +70,61 @@ class CoAcuteCardTest {
             for (w in q.rules!!.answerHas) assertTrue(q.id + " " + w, h!!.text.contains(w, ignoreCase = true))
         }
     }
+
+    /** t9's review table (14 Nov) with adam's decisions 2 and 3 (15 Nov, t9 0110 item 1): true = the acute card. */
+    private val review = listOf(
+        "my carbon monoxide alarm is going off and I feel dizzy" to true,
+        "My CO alarm keeps chirping every minute" to false,
+        "My CO alarm chirps, how do I change the battery?" to false,
+        "My CO detector reads 0 ppm, is that normal?" to false,
+        "my CO detector says error" to false,
+        "Is 50 ppm of carbon monoxide dangerous?" to true,
+        "Can carbon monoxide cause headaches?" to true,
+        "What are carbon monoxide poisoning symptoms like headache and nausea?" to true,
+        "What are the symptoms of carbon monoxide poisoning?" to false,
+        "does a carbon monoxide detector need to be on every floor?" to false,
+        "my smoke alarm is beeping" to false,
+        "CO2 levels are high and I feel dizzy" to false,
+        "I ran the generator in the garage and now I have a headache" to true,
+    )
+
+    @Test fun `the review's thirteen questions, as adam decided`() {
+        for ((q, card) in review) assertEquals(q, card, hit(q)?.tool == LabTools.CO_ACUTE)
+        // The ones without the card don't get the planning card either: the model answers them.
+        for ((q, card) in review) if (!card) assertTrue(q, hit(q) == null)
+    }
+
+    @Test fun `the same decisions in Portuguese and Spanish`() {
+        val pt = listOf(
+            "Meu alarme de monóxido de carbono está tocando e estou tonto" to "pt",
+            "O alarme de CO fica dando um bipe curto a cada minuto" to null,
+            "Meu detector de CO marca 0 ppm, é normal?" to null,
+            "O detector de monóxido mostra erro" to null,
+            "50 ppm de monóxido de carbono é perigoso?" to "pt",
+            "Monóxido de carbono causa dor de cabeça?" to "pt",
+            "Liguei o gerador na garagem e agora estou com dor de cabeça" to "pt",
+            "Acendi a churrasqueira dentro de casa e estou com tontura" to "pt",
+        )
+        val es = listOf(
+            "Mi alarma de monóxido de carbono está sonando y estoy mareado" to "es",
+            "Mi detector de CO marca 0 ppm, ¿es normal?" to null,
+            "¿50 ppm de monóxido de carbono es peligroso?" to "es",
+            "Encendí el generador en el garaje y ahora me duele la cabeza" to "es",
+        )
+        for ((q, lang) in pt + es) {
+            val h = hit(q)
+            if (lang == null) assertTrue(q, h?.tool != LabTools.CO_ACUTE)
+            else {
+                assertEquals(q, LabTools.CO_ACUTE, h?.tool)
+                val want = if (lang == "pt") CoHazard.CO_ACUTE_PT else CoHazard.CO_ACUTE_ES
+                assertTrue(q + " | " + h!!.text, h.text.startsWith(want))
+            }
+        }
+    }
+
+    @Test fun `electric, solar and battery generators stay out, with a symptom too`() {
+        for (q in listOf("I used my solar generator in the tent and now I have a headache", "My battery generator is in the garage and I feel dizzy",
+            "Jackery generator indoors, I have a headache", "Meu gerador solar está na garagem e estou com dor de cabeça"))
+            assertTrue(q, hit(q)?.tool != LabTools.CO_ACUTE)
+    }
 }
