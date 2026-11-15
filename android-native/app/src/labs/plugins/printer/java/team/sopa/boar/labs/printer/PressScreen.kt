@@ -421,7 +421,7 @@ private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").tr
 /** Press's tools are the plugin pattern's round tools (team.sopa.boar.labs.PluginTool, adam Nov 14). */
 @Composable
 private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false,
-                       size: Dp = 44.dp, onClick: () -> Unit) = team.sopa.boar.labs.PluginTool(icon, label, enabled, on, danger, dot, size, onClick)
+                       size: Dp = 44.dp, onClick: () -> Unit) = team.sopa.boar.labs.PluginTool(icon, label, enabled, on, danger, dot, size, onClick = onClick)
 
 @Composable
 private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onCaption: () -> Unit, onPlace: (PressDoc.Place) -> Unit,

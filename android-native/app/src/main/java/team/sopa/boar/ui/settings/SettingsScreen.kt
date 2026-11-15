@@ -4,6 +4,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -516,15 +521,20 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
 @Composable
 private fun ProfilePills(profile: UserProfile, onPick: (UserProfile) -> Unit) {
     val c = Boar.colors
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+    // A 48 dp touch area around each small pill, and a selected state TalkBack says (validator A-4: about 28 dp, the
+    // current one only "disabled").
+    Row(Modifier.selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
         for (p in UserProfile.entries) {
             val on = p == profile
-            Text(t("native.settings.profile.${p.key}"), style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
-                fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                modifier = Modifier.clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
-                    .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
-                    .clickable(enabled = !on, role = androidx.compose.ui.semantics.Role.Button) { onPick(p) }
-                    .padding(horizontal = 8.dp, vertical = 5.dp))
+            Box(Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp)
+                .selectable(selected = on, role = androidx.compose.ui.semantics.Role.Tab) { if (!on) onPick(p) }
+                .padding(horizontal = 2.dp), contentAlignment = Alignment.Center) {
+                Text(t("native.settings.profile.${p.key}"), style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier.clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
+                        .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
+                        .padding(horizontal = 8.dp, vertical = 5.dp))
+            }
         }
     }
 }

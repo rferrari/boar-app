@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -62,21 +64,26 @@ fun PluginSettingsGear(name: String, onClick: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PluginTool(icon: Int, label: String, enabled: Boolean = true, on: Boolean = false, danger: Boolean = false, dot: Boolean = false,
-               size: Dp = TOOL_MAX, onClick: () -> Unit) {
+               size: Dp = TOOL_MAX, touch: Dp = toolTouch, onClick: () -> Unit) {
     val c = Boar.colors
     val tint = when { danger -> c.crimson400; on -> c.emerald500; else -> c.textHeading }
-    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
-        .border(1.dp, if (on) c.emerald500 else c.borderSubtle, CircleShape)
+    // The circle is [size]; what a finger hits is at least 48 dp each way (validator A-4: 36 dp on a 320 dp phone).
+    Box(Modifier.width(maxOf(touch, size)).height(maxOf(TOUCH_MIN, size))
         .combinedClickable(enabled = enabled, role = Role.Button, onClickLabel = label, onLongClick = { Toasts.show(label) }, onClick = onClick),
         contentAlignment = Alignment.Center) {
-        Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)
-        if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 6.dp).size(7.dp).background(c.emerald500, CircleShape))
+        Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(c.bgCard)
+            .border(1.dp, if (on) c.emerald500 else c.borderSubtle, CircleShape), contentAlignment = Alignment.Center) {
+            Icon(painterResource(icon), label, Modifier.size(20.dp), tint = tint)
+            if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 6.dp).size(7.dp).background(c.emerald500, CircleShape))
+        }
     }
 }
 
 /**
- * The toolbar (adam, Nov 14: "make toolbar buttons left aligned"): one row of [count] round tools with a fixed gap, from
- * the left, each 44 dp at most and smaller when they don't fit; it never scrolls. [content] gets the tools' size.
+ * The toolbar (adam, Nov 14: "make toolbar buttons left aligned"): one row of [count] round tools from the left. Each
+ * tool's touch area is its cell (the width shared out, 52 dp at most) and its circle sits inside, 44 dp at most, so a
+ * finger always has 48 dp (validator A-4). It doesn't scroll unless the cells would be under 48 dp (seven tools on a
+ * 320 dp phone): then 48 dp cells, scrolling. [content] gets the circle's size and passes [toolTouch] to each tool.
  */
 @Composable
 fun PluginToolbar(count: Int, content: @Composable RowScope.(Dp) -> Unit) {
@@ -84,13 +91,21 @@ fun PluginToolbar(count: Int, content: @Composable RowScope.(Dp) -> Unit) {
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
-            val size = ((maxWidth - TOOL_GAP * (count - 1)) / count).coerceAtMost(TOOL_MAX)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(TOOL_GAP, Alignment.Start), verticalAlignment = Alignment.CenterVertically) {
-                content(size)
+            val cell = (maxWidth / count).coerceAtMost(TOOL_CELL_MAX)
+            val scrolls = cell < TOUCH_MIN
+            val touch = if (scrolls) TOUCH_MIN else cell
+            val size = (touch - TOOL_GAP).coerceAtMost(TOOL_MAX)
+            val row = if (scrolls) Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()) else Modifier.fillMaxWidth()
+            androidx.compose.runtime.CompositionLocalProvider(LocalToolTouch provides touch) {
+                Row(row, horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) { content(size) }
             }
         }
     }
 }
+
+/** The touch width a [PluginToolbar] gives each of its tools (its cell); 48 dp elsewhere. */
+val LocalToolTouch = androidx.compose.runtime.staticCompositionLocalOf { TOUCH_MIN }
+val toolTouch: Dp @Composable get() = LocalToolTouch.current
 
 /** The prompt bar's left round button on a plugin page: the plugin's menu, ⋯ (adam, Nov 14: "⋯ in every plugin"). */
 @Composable
@@ -102,4 +117,7 @@ fun PluginMenuIcon(label: String, tint: Color = Boar.colors.textHeading) =
 fun PluginSheetTitle(text: String) = Text(text, style = Boar.type.titleSm, color = Boar.colors.textHeading, modifier = Modifier.padding(bottom = 8.dp))
 
 val TOOL_MAX = 44.dp
+/** The smallest touch target (Android's accessibility guideline). */
+val TOUCH_MIN = 48.dp
+val TOOL_CELL_MAX = 52.dp
 val TOOL_GAP = 8.dp
