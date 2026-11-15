@@ -86,4 +86,31 @@ class CardRulesTest {
         assertEquals(listOf("Everest", "K2", "Kangchenjunga"), c.points.map { it.label })
         assertEquals(listOf(8849.0, 8611.0, 8586.0), c.points.map { it.value })
     }
+
+    @Test fun `a name never takes another item's number (validator B-8)`() {
+        val q = "What are the boiling points of water, ethanol and mercury?"
+        // Ethanol's sentence names water after the number: it is ethanol's alone, and water's comes from its own sentence.
+        val c = CardRules.find(q, "Ethanol boils at 78 °C, well below water. Water boils at 100 °C. Mercury boils at 357 °C.").firstOrNull() as Card.Chart?
+        assertEquals(listOf("Water" to 100.0, "Ethanol" to 78.0, "Mercury" to 357.0), c!!.points.map { it.label to it.value })
+        // A sentence where the comparison comes first is no one's: no card rather than a wrong bar.
+        assertTrue(CardRules.find(q, "Compared with water, ethanol boils at 78 °C. Mercury boils at 357 °C.").none { it is Card.Chart })
+    }
+
+    @Test fun `negatives keep their sign, and a chart with one is a table (validator B-9)`() {
+        val a = "The coldest inhabited places:\n- Oymyakon is -67 °C\n- Verkhoyansk is −68 °C\n- Yakutsk is -64 °C"
+        val c = CardRules.find("What are the coldest inhabited places?", a).first { it is Card.Chart } as Card.Chart
+        assertEquals(listOf(-67.0, -68.0, -64.0), c.points.map { it.value })
+        assertEquals(listOf("Oymyakon", "Verkhoyansk", "Yakutsk"), c.points.map { it.label })
+        assertEquals(listOf(Shape.TABLE), c.shapes)
+        // A dash between name and number is still a separator.
+        val peaks = CardRules.find("Tallest peaks?", "- Everest - 8,849 m\n- K2 - 8,611 m\n- Kangchenjunga - 8,586 m").first { it is Card.Chart } as Card.Chart
+        assertEquals(listOf(8849.0, 8611.0, 8586.0), peaks.points.map { it.value })
+    }
+
+    @Test fun `clock times are not facts, a label whose value holds a time is (validator B-10)`() {
+        val day = CardRules.find("What does a typical day look like?", "- Breakfast 08:00\n- Lunch 12:30\n- Dinner 19:00")
+        assertTrue(day.none { it is Card.Facts })
+        val shop = CardRules.find("When is the museum open?", "- Opening hours: 09:00 to 17:00\n- Closed: Mondays\n- Entry: free")
+        assertEquals(listOf("Opening hours", "Closed", "Entry"), (shop.first { it is Card.Facts } as Card.Facts).pairs.map { it.first })
+    }
 }

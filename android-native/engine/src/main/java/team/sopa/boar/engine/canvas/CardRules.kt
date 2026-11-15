@@ -107,27 +107,37 @@ object CardRules {
     private val LABEL = Regex("""^(?:[-*•]\s+)?\**([\p{L}][\p{L}\d '’()/-]{0,38}?)\**\s*:\s*\**\s*(.+)$""")
 
     private fun labelled(lines: List<String>): List<Pair<String, String>> =
-        consecutive(lines) { l -> LABEL.find(l)?.takeIf { !it.groupValues[1].endsWith(" ") }?.let { it.groupValues[1].trim() + "\u0000" + clean(it.groupValues[2]) } }
+        consecutive(lines) { l -> LABEL.find(l)?.takeIf { !it.groupValues[1].endsWith(" ") && !clock(it) }?.let { it.groupValues[1].trim() + "\u0000" + clean(it.groupValues[2]) } }
             .map { it.substringBefore('\u0000') to it.substringAfter('\u0000') }
             .takeIf { ps -> ps.map { it.first.lowercase() }.toSet().size == ps.size } ?: emptyList()
+
+    /**
+     * The colon is a clock time's ("Breakfast 08:00" read as Breakfast 08 -> 00), not a label's (validator B-10). A label
+     * whose value holds a time stays a fact: "Opening hours: 09:00 to 17:00".
+     */
+    private fun clock(m: MatchResult) = Regex("""\d$""").containsMatchIn(m.groupValues[1].trim('*')) && Regex("""^\**\s*\d{2}(?!\d)""").containsMatchIn(m.groupValues[2])
 
     private fun splitPoints(v: String): List<String> = v.split(Regex("""[;•]|,\s(?=[\p{Ll}])""")).map { it.trim().trimEnd('.') }.filter { it.isNotEmpty() }
 
     // ---- Chart ----
 
     private const val NUM = """\d{1,3}(?:[.,\s]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?"""
+    /** A minus only right against the digits ("-67 °C", "−67 °C"); "Everest - 8,849 m" keeps the dash as a separator (validator B-9). */
+    private const val SIGNED = """[-−](?=\d)(?:$NUM)|(?:$NUM)"""
     private const val UNITS = """%|°C|°F|º|km²|km2|sq km|m²|km|m|cm|mm|kg|g|mg|L|ml|mL|ft|feet|metres|meters|metros|miles|milhas|years|anos|million|millions|milhões|billion|bilhões|AU|K"""
-    private val LIST_POINT = Regex("""^(?:[-*•]|\d{1,2}[.)])\s+\**(\d{4}(?=\**\s*:)|[\p{L}](?:[^:\d]|(?<=\p{L})\d(?!\d*\s*(?:$UNITS)\b)){0,40}?)\**\s*(?::|—|-|–|,|at|is|em|com|tem)?\s*(?:about|around|approximately|roughly|cerca de|aproximadamente)?\s*($NUM)\s*($UNITS)(?![\p{L}\d])""", RegexOption.IGNORE_CASE)
-    private val ENUM_POINT = Regex("""(\p{Lu}[\p{L}\d'’-]*(?:\s(?:\p{Lu}[\p{L}\d'’-]*|\d+))*)\s(?:at|is|was|with|of|em|com|tem|has)?\s*(?:about|around|approximately|roughly|cerca de)?\s*\(?($NUM)\s*($UNITS)(?![\p{L}\d])""")
+    private val LIST_POINT = Regex("""^(?:[-*•]|\d{1,2}[.)])\s+\**(\d{4}(?=\**\s*:)|[\p{L}](?:[^:\d]|(?<=\p{L})\d(?!\d*\s*(?:$UNITS)\b)){0,40}?)\**\s*(?::|—|-|–|,|at|is|em|com|tem)?\s*(?:about|around|approximately|roughly|cerca de|aproximadamente)?\s*($SIGNED)\s*($UNITS)(?![\p{L}\d])""", RegexOption.IGNORE_CASE)
+    private val ENUM_POINT = Regex("""(\p{Lu}[\p{L}\d'’-]*(?:\s(?:\p{Lu}[\p{L}\d'’-]*|\d+))*)\s(?:at|is|was|with|of|em|com|tem|has)?\s*(?:about|around|approximately|roughly|cerca de)?\s*\(?($SIGNED)\s*($UNITS)(?![\p{L}\d])""")
 
     private fun chart(lines: List<String>, answer: String): Card.Chart? {
         val mark = Calculators.readsComma(answer, false)
-        fun point(label: String, num: String, unit: String) = Point(clean(label).trim().trimEnd(':', ',', '-', '—'), "$num $unit".trim(), Calculators.parseNumber(num, mark))
+        fun point(label: String, num: String, unit: String) = Point(clean(label).trim().trimEnd(':', ',', '-', '—'), "$num $unit".trim(), signed(num, mark))
         val fromList = lines.mapNotNull { l -> LIST_POINT.find(l)?.let { m -> point(m.groupValues[1], m.groupValues[2], m.groupValues[3]) to m.groupValues[3].lowercase() } }
         val series = sameUnit(fromList) ?: answer.split(Regex("""(?<=[.!?])\s+""")).asSequence()
             .map { s -> ENUM_POINT.findAll(s).map { m -> point(m.groupValues[1], m.groupValues[2], m.groupValues[3]) to m.groupValues[3].lowercase() }.toList() }
             .mapNotNull(::sameUnit).firstOrNull() ?: return null
         val (points, unit) = series
+        // Bars draw a length: with a value below zero they would show the coldest place as the hottest. The table keeps the sign.
+        if (points.any { it.value < 0 }) return Card.Chart(points, unit, listOf(Shape.TABLE))
         val shapes = mutableListOf(Shape.BARS, Shape.TABLE)
         if (unit == "%" && points.sumOf { it.value } in 95.0..105.0) shapes += Shape.PIE
         val years = points.map { it.label.toIntOrNull() }
@@ -155,8 +165,15 @@ object CardRules {
         val first = answer.split(Regex("""\n\s*\n""")).first()
         val sentences = first.split(Regex("""(?<=[.!?])\s+"""))
         val points = ArrayList<Pair<Point, String>>()
+        fun at(name: String, s: String) = Regex("""\b${Regex.escape(name)}\b""", RegexOption.IGNORE_CASE).find(s)?.range?.first
+        // A sentence's number belongs to the first item it names, named before the number: "Ethanol boils at 78 °C, well
+        // below water" is ethanol's, never water's (validator B-8).
+        fun owner(s: String): String? {
+            val firstNum = Regex(NUM).find(s)?.range?.first ?: return null
+            return names.mapNotNull { n -> at(n, s)?.let { n to it } }.filter { it.second < firstNum }.minByOrNull { it.second }?.first
+        }
         for (name in names) {
-            val hits = sentences.filter { Regex("""\b${Regex.escape(name)}\b""", RegexOption.IGNORE_CASE).containsMatchIn(it) }
+            val hits = sentences.filter { owner(it.replace(Regex("""\([^)]*\)"""), "").replace(Regex("""\[\d{1,3}]"""), "")) == name }
             val s = hits.firstOrNull() ?: return null
             val bare = s.replace(Regex("""\([^)]*\)"""), "").replace(Regex("""\[\d{1,3}]"""), "")
             // Exactly one number in the sentence: a range ("54.6 million to 401 million km") is not one value.
@@ -182,6 +199,10 @@ object CardRules {
         if (ps.map { it.first.label.lowercase() }.toSet().size != ps.size) return null
         return ps.map { it.first } to ps.first().first.written.substringAfter(' ', unit)
     }
+
+    /** The number with its sign: "-67" or "−67" reads -67.0. */
+    private fun signed(num: String, mark: Boolean): Double =
+        if (num.startsWith('-') || num.startsWith('−')) -Calculators.parseNumber(num.substring(1), mark) else Calculators.parseNumber(num, mark)
 
     private fun clean(s: String) = s.replace("**", "").replace("__", "").replace(Regex("""\s*\[\d{1,3}]"""), "").trim()
 }
