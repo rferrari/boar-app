@@ -259,7 +259,7 @@ class BoarServices private constructor(private val context: Context) {
         var chunks = retriever.retrieve(query, topK * 2, params = params)
         // A stage that fails is skipped, never fatal: the answer keeps what search found.
         for (st in stages) chunks = runCatching { st.process(query, chunks, topK) }.getOrDefault(chunks)
-        return chunks.take(topK)
+        return chunks.take(topK + team.sopa.boar.plugins.EXTRA)
     }
 
     // --- Memory pressure -----------------------------------------------------------------------------------------

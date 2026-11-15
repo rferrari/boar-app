@@ -40,6 +40,15 @@ object FactsLab : LabPlugin {
         LabTools.facts(table, query, history.filter { it.role == "user" }.map { it.text })?.let { ToolResult.Instant(it.tool, it.text) }
     }
 
+    /**
+     * A question naming two or more countries (and not answered at once above): the table's dated figures for them go to
+     * the model as one more numbered source, after the search's own (t9 0110 item 5). English names, as the table.
+     */
+    override val searchStage: team.sopa.boar.plugins.SearchStage = team.sopa.boar.plugins.SearchStage { query, chunks, topK ->
+        val extra = table?.countryContext(query)
+        if (extra == null) chunks.take(topK) else chunks.take(topK) + extra
+    }
+
     @Composable
     override fun Content() {
         val c = Boar.colors

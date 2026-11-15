@@ -185,6 +185,25 @@
         ]
       },
       "toRead": "Right: the notice has no access code; say so, and don't give the opening hours instead. BOAR gave the hours. Reconstructed from the description (SOPA card \"[App] Corrigir os 4 erros de raciocínio\"), not the tester's originals; the originals wait for someone to ask the tester (t9 0526)."
+    },
+    {
+      "id": "compare-brazil-russia",
+      "query": "Compare Brazil and Russia",
+      "category": "comparison",
+      "rules": {
+        "citesOnlyRealSources": true,
+        "answerHasAny": [
+          "17,075,400",
+          "17.075.400",
+          "17,098,246",
+          "17.098.246",
+          "17.1 million",
+          "17 million",
+          "17,1 milhões"
+        ]
+      },
+      "toRead": "Right: Russia is about twice Brazil's area (17,075,400 km² vs 8,515,767 km² in the table), Brazil has more people (214 million in 2026 vs 146 million in 2025), capitals Brasília and Moscow; the figures cited from the Facts source with its date (offline table as of 2026-10-06), not the model's memory. Needs Facts on (t9 0110 item 5).",
+      "needsLab": "facts"
     }
   ]
 }
