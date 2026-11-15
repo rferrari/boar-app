@@ -31,7 +31,14 @@ object CardRules {
     private val HOW_TO = Regex("""\b(how (do|can|to|should)|step[- ]by[- ]step|steps to|como (fa[zç]|fazer|purificar|montar|trocar|preparar|acender)|passo a passo)\b""", RegexOption.IGNORE_CASE)
     private val COMPARES = Regex("""\b(compare|comparison|difference|differ|versus|vs\.?|better than|comparar|compara[çc][ãa]o|diferen[çc]a|melhor que)\b""", RegexOption.IGNORE_CASE)
 
+    /**
+     * Longer than any answer (2,048 tokens is about 10,000 characters): ENUM_POINT is quadratic on a long capitalised
+     * token (validator B-7: 2.5 s at 20,000 characters, only from degenerate model output). Past it, no card.
+     */
+    const val MAX_ANSWER = 12_000
+
     fun find(question: String, rawAnswer: String): List<Card> {
+        if (rawAnswer.length > MAX_ANSWER) return emptyList()
         // Models write "100\u202f°C" (a narrow no-break space): the rules read it as a space (4B, the F3, Nov 14).
         val answer = rawAnswer.replace('\u202f', ' ').replace('\u00a0', ' ')
         val lines = answer.lines().map { it.trim() }

@@ -122,4 +122,15 @@ class CardRulesTest {
         val en = CardRules.find("Tallest peaks?", "- Everest: 8,849 m\n- K2: 8,611 m\n- Kangchenjunga: 8,586 m").first { it is Card.Chart } as Card.Chart
         assertEquals(listOf(8849.0, 8611.0, 8586.0), en.points.map { it.value })
     }
+
+    @Test fun `a degenerate long answer can't stall the cards (validator B-7)`() {
+        val junk = "A".repeat(40_000) + " is 5 m"
+        val t0 = System.nanoTime()
+        assertTrue(CardRules.find("How tall?", junk).isEmpty())
+        assertTrue("took ${(System.nanoTime() - t0) / 1e6} ms", (System.nanoTime() - t0) / 1e6 < 200)
+        // A real long answer under the cap still gets its card.
+        val long = "x ".repeat(4_000) + "\n- Everest: 8,849 m\n- K2: 8,611 m\n- Kangchenjunga: 8,586 m"
+        assertTrue(long.length < CardRules.MAX_ANSWER)
+        assertTrue(CardRules.find("Tallest peaks?", long).any { it is Card.Chart })
+    }
 }
