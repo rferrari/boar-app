@@ -121,4 +121,18 @@ class StagedAnswerTest {
         assertTrue(bubble.contains(".background(if (user) c.bgCardHover else c.bgSurface, shape)"))
         assertTrue(!bubble.contains(".clip(shape)"))
     }
+
+    @Test fun `a figure with a scale word is backed by the source's full number at the digits stated (t9 0400 item 3)`() {
+        val facts = listOf("Russia: population 146,119,928 (2025); area 17,075,400 km². Brazil: population 214,211,951 (2026).")
+        // The F3, 15 Nov: "146 million" was flagged against 146,119,928.
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("Russia has about 146 million people [1].", facts))
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("Russia covers 17.1 million km² and Brazil has 214 million people.", facts))
+        // Portuguese, with the source written either way.
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("A Rússia tem cerca de 146 milhões de habitantes e 17,1 milhões de km².", facts))
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("O Brasil tem 214 milhões de habitantes.", listOf("Brasil: 214.211.951 habitantes.")))
+        // Wrong at the digits stated is still flagged; a bare number keeps the old rule.
+        assertEquals(listOf("150"), StagedAnswer.unsupportedNumbers("Russia has about 150 million people.", facts))
+        assertEquals(listOf("17.2"), StagedAnswer.unsupportedNumbers("Russia covers 17.2 million km².", facts))
+        assertEquals(listOf("146"), StagedAnswer.unsupportedNumbers("Russia has 146 regions.", facts))
+    }
 }

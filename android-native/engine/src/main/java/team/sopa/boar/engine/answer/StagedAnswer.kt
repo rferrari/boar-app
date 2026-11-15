@@ -249,10 +249,44 @@ class StagedAnswer(
         fun unsupportedNumbers(text: String, evidence: List<String>): List<String> {
             fun norm(n: String) = n.trimEnd('.', ',').replace(",", "")
             val known = evidence.flatMap { e -> NUMBER.findAll(e).map { norm(it.value) } }.toSet()
+            val values by lazy { evidence.flatMap { e -> NUMBER.findAll(e).mapNotNull { valueOf(it.value.trimEnd('.', ',')) } } }
             val body = text.replace(CITATION, " ").replace(LIST_MARK, " ")
-            return NUMBER.findAll(body).map { it.value.trimEnd('.', ',') }
-                .filter { n -> norm(n).toDoubleOrNull()?.let { it > 10 } ?: true }
-                .filter { norm(it) !in known }.distinct().toList()
+            return NUMBER.findAll(body)
+                .filter { m -> norm(m.value).toDoubleOrNull()?.let { it > 10 } ?: true }
+                .filter { m -> norm(m.value) !in known && !scaledMatch(m, body, values) }
+                .map { it.value.trimEnd('.', ',') }.distinct().toList()
+        }
+
+        /** A scale word right after a number: "146 million", "1,5 bilhão", "200 mil". */
+        private val SCALE = Regex("""^\s*(thousand|million|millions|billion|billions|trillion|mil|milhão|milhao|milhões|milhoes|bilhão|bilhao|bilhões|bilhoes|trilhão|trilhões)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+
+        /**
+         * "146 million" against a source's 146,119,928 (t9 0400 item 3: flagged on the F3): a figure written with a scale
+         * word is backed when some source number, at that scale, rounds to it at the digits stated ("146", "1.5", "1,5").
+         */
+        private fun scaledMatch(m: MatchResult, body: String, values: List<Double>): Boolean {
+            val word = SCALE.find(body.substring(m.range.last + 1))?.groupValues?.get(1)?.lowercase() ?: return false
+            val scale = when {
+                word == "thousand" || word == "mil" -> 1e3
+                word.startsWith("mil") -> 1e6
+                word.startsWith("bil") -> 1e9
+                else -> 1e12
+            }
+            val raw = m.value.trimEnd('.', ',')
+            // "1,5" and "1.5" are decimals before a scale word; "1,500 million" keeps its thousands.
+            val dec = Regex("""^\d+[.,]\d{1,2}$""").matches(raw)
+            val stated = (if (dec) raw.replace(',', '.') else raw.replace(",", "").replace(".", "")).toDoubleOrNull() ?: return false
+            val places = if (dec) raw.length - raw.indexOfFirst { it == '.' || it == ',' } - 1 else 0
+            val f = Math.pow(10.0, places.toDouble())
+            return values.any { v -> Math.round(v / scale * f) / f == stated }
+        }
+
+        /** A written number's value: "146,119,928", "146.119.928" (pt), "8,515,767.5", "3,5"; null when it can't tell. */
+        private fun valueOf(n: String): Double? = when {
+            Regex("""^\d{1,3}(,\d{3})+(\.\d+)?$""").matches(n) -> n.replace(",", "").toDoubleOrNull()
+            Regex("""^\d{1,3}(\.\d{3})+(,\d+)?$""").matches(n) -> n.replace(".", "").replace(',', '.').toDoubleOrNull()
+            Regex("""^\d+,\d{1,2}$""").matches(n) -> n.replace(',', '.').toDoubleOrNull()
+            else -> n.toDoubleOrNull()
         }
     }
 }
