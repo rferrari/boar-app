@@ -3957,6 +3957,7 @@
    "q": "Qual a capital da Austrália?",
    "looksPt": false,
    "names": [
+    "Capital city",
     "Australia"
    ],
    "key": "qual a capital da australia?"
@@ -4047,6 +4048,7 @@
    "q": "What is the capital of Australia?",
    "looksPt": false,
    "names": [
+    "Capital city",
     "Australia"
    ],
    "key": "what is the capital of australia?"

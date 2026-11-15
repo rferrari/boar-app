@@ -17,10 +17,11 @@ class PtReadingsTest {
         assertEquals(listOf("Blue"), names("O que é a cor azul?"))
     }
 
-    @Test fun `a device is not Brickwork, a time unit names nothing, the capital of is not Capital city`() {
+    @Test fun `a device is not Brickwork, a time unit names nothing`() {
         assertFalse("Brickwork" in names("Um aparelho tem 12 GB de RAM. O sistema e o app ocupam 2 GB"))
         assertTrue(names("Um trem sai às 15h40 e a viagem leva 2 horas e 35 minutos. A que horas ele chega?").none { it in setOf("Minute", "Hour") })
-        assertEquals(listOf("Australia"), names("Qual é a capital da Austrália?"))
+        // "capital" keeps the lexicon's Capital city: without it the search lost Canberra (re-measure, 15 Nov).
+        assertEquals(listOf("Capital city", "Australia"), names("Qual é a capital da Austrália?"))
     }
 
     @Test fun `Earth's tilt is Axial tilt, supply and demand with its article is Supply and demand`() {

@@ -131,12 +131,11 @@ object PtLexicon {
     /**
      * Readings the lexicon gets wrong for a question (t9 0226, measured on the 30 Portuguese questions, 15 Nov), checked
      * before it; "" reads as no name at all (the words are used up, so no shorter name is looked up for them either).
-     * Keys are folded. "aparelho" is a device, not Brickwork (the masonry bond); "capital" is "the capital of", not the
-     * article Capital city; a time unit names no article to search ("15h40… 35 minutos" found Minute, Inverse second,
+     * Keys are folded. "aparelho" is a device, not Brickwork (the masonry bond); a time unit names no article to search ("15h40… 35 minutos" found Minute, Inverse second,
      * Sexagesimal); "inclinação da Terra" is the axial tilt, not an orbit's inclination; "céu azul" is why the sky is blue.
      */
     private val READINGS: Map<String, String> = mapOf(
-        "aparelho" to "", "aparelhos" to "", "capital" to "", "capitais" to "",
+        "aparelho" to "", "aparelhos" to "",
         "minuto" to "", "minutos" to "", "hora" to "", "horas" to "", "segundo" to "", "segundos" to "",
         "inclinacao da terra" to "Axial tilt", "inclinacao do eixo" to "Axial tilt", "inclinacao do eixo da terra" to "Axial tilt", "eixo da terra" to "Axial tilt",
         "ceu azul" to "Diffuse sky radiation", "ceu e azul" to "Diffuse sky radiation",
