@@ -365,6 +365,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
     fun openedCatalog() {
         heldQuestion = null
+        dropOnce()
         dropQueueWithNote()
         heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
@@ -489,6 +490,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun dismissLoadNote() {
         heldQuestion = null
+        dropOnce()
         dropQueueWithNote()
         heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
@@ -641,6 +643,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     @Volatile private var styleOnce: String? = null
     @Volatile private var deepOnce: Boolean? = null
     @Volatile private var stepOnce: String? = null
+
+    /**
+     * The held question went with its note (closed, or the catalog opened instead): what was set for it goes too, or the
+     * next typed question would run in Detailed or Deep Research, skip the plugins, and show a step's verb (validator A-2).
+     */
+    private fun dropOnce() {
+        stepOnce = null; styleOnce = null; deepOnce = null; skipToolsOnce = false; bypassed = null
+    }
 
     /**
      * A "Keep going" step under [answerId] (t9 0235): the same question again, for that answer only. Go deeper in Detailed,
