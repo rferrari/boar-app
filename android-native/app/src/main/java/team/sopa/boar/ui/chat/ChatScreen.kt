@@ -122,6 +122,10 @@ fun ChatScreen(
     onKeepGoing: (String, team.sopa.boar.engine.chat.KeepGoing.Step) -> Unit = { _, _ -> },
     /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
     onDismissLoadNote: () -> Unit = {},
+    /** The prune note (a new chat would delete the oldest under the user's limit): keep all, delete it, or close. */
+    onPruneKeepAll: () -> Unit = {},
+    onPruneDelete: () -> Unit = {},
+    onPruneCancel: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
     onLoadAnyway: (String) -> Unit = {},
     onOpenModels: () -> Unit = {},
@@ -178,6 +182,7 @@ fun ChatScreen(
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { key -> LoadingBanner(state.loadingModel, state.loadingEngine, state.loadingSince, t(key)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
+            state.pruneNote?.let { PruneNoteDialog(it, onPruneKeepAll, onPruneDelete, onPruneCancel) }
             // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
             val researchTint = if (state.deepResearch) Boar.colors.frontierText.copy(alpha = 0.06f) else Color.Transparent
             if (state.messages.isEmpty()) {
@@ -1012,4 +1017,21 @@ internal object ChatScroll {
     }
 
     fun restore(sessionId: String?): Pair<Int, Int>? = at.takeIf { sessionId != null && sessionId == session }.also { at = null }
+}
+
+/**
+ * Before a new chat deletes the oldest one under the user's limit (adam, Nov 15: "warn before deleting when a user has
+ * set a limit"; t9 0110 item 2): which chat goes, and keeping them all as the first choice. Back closes it.
+ */
+@Composable
+private fun PruneNoteDialog(n: team.sopa.boar.chat.PruneNote, onKeepAll: () -> Unit, onDelete: () -> Unit, onCancel: () -> Unit) {
+    val c = Boar.colors
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(t("native.chat.prune.title")) },
+        text = { Text(if (n.more > 0) t("native.chat.prune.textMore", "max" to n.max, "title" to n.title, "more" to n.more) else t("native.chat.prune.text", "max" to n.max, "title" to n.title)) },
+        confirmButton = { androidx.compose.material3.TextButton(onKeepAll) { Text(t("native.chat.prune.keepAll")) } },
+        dismissButton = { androidx.compose.material3.TextButton(onDelete) { Text(t("native.chat.prune.delete"), color = c.crimson400) } },
+        containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
+    )
 }

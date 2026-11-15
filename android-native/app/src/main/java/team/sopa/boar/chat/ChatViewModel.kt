@@ -132,6 +132,9 @@ sealed interface LoadNote {
     data class Risky(override val modelId: String, override val label: String, val onlyModel: Boolean) : LoadNote
 }
 
+/** [title]: the oldest chat a new one would delete; [more]: how many others go with it; [max]: the user's limit. */
+data class PruneNote(val title: String, val more: Int, val max: Int)
+
 data class ChatState(
     val sessionId: String? = null,
     val messages: List<UiMessage> = emptyList(),
@@ -152,6 +155,8 @@ data class ChatState(
     val error: String? = null,
     /** The answer model's memory note (StartLoad): it closed the app last time, or may not fit; with its actions. */
     val loadNote: LoadNote? = null,
+    /** A new chat would delete the oldest under the user's limit: asked first (t9 0110 item 2). */
+    val pruneNote: PruneNote? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
     /** The model being loaded, by name, and the engine when it isn't BOAR's own (Big Boar…), for the banner. */
@@ -357,6 +362,35 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // The user's call: a model that may not fit isn't asked about again at start.
         if (services.catalog.byId(modelId)?.let(services::isRisky) == true) services.rememberLoadAnyway(modelId)
         userLoad(modelId)
+    }
+
+    /** The first question of a new chat, held while [ChatState.pruneNote] asks; and the user's yes to deleting. */
+    @Volatile private var prunedQuestion: Pair<String, Int?>? = null
+    @Volatile private var pruneAccepted = false
+
+    /** The prune note's "Keep all chats": nothing is deleted, now or later; the question goes. */
+    fun pruneKeepAll() {
+        services.settings.maxSavedSessions = team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS
+        resumePruned()
+    }
+
+    /** The prune note's "Delete it": the question goes, and the oldest chat with it after the answer, as before. */
+    fun pruneDelete() {
+        pruneAccepted = true
+        resumePruned()
+    }
+
+    /** The prune note closed: the question goes, unasked, with what was set for it (as dismissLoadNote). */
+    fun pruneCancel() {
+        prunedQuestion = null
+        dropOnce()
+        _state.update { it.copy(pruneNote = null) }
+    }
+
+    private fun resumePruned() {
+        val held = prunedQuestion.also { prunedQuestion = null }
+        _state.update { it.copy(pruneNote = null) }
+        if (held != null) send(held.first, held.second) else pruneAccepted = false
     }
 
     /** The held-back model whose note the user closed: not shown again for it in this run. */
@@ -720,6 +754,18 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(loadNote = n) }
             return
         }
+        // A new chat under a limit the user set: say which chat it deletes before it does (adam, Nov 15; t9 0110 item 2).
+        if (_state.value.sessionId == null && !pruneAccepted && _state.value.pruneNote == null) {
+            val max = services.settings.maxSavedSessions
+            val going = runCatching { services.chats.pushedOutByNew(max) }.getOrDefault(emptyList())
+            if (going.isNotEmpty()) {
+                prunedQuestion = q to limit
+                if (serviceUp) team.sopa.boar.app.AnswerService.stop(getApplication())
+                _state.update { it.copy(pruneNote = PruneNote(going.first().title, going.size - 1, max)) }
+                return
+            }
+        }
+        pruneAccepted = false
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
         routedModelId = null

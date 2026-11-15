@@ -178,8 +178,10 @@ class AppSettings(private val file: File) {
             "autoGenerateTitles" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
             "confirmChatDelete" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
             "historyTurnThreshold" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, 6) },
-            "maxSavedSessions" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, 10) },
+            "maxSavedSessions" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, KEEP_ALL_CHATS, 10) },
         )
+        /** [maxSavedSessions]: every chat is kept. */
+        const val KEEP_ALL_CHATS = 0
         const val MODEL_LAST_USED = "modelLastUsedAt"
         const val MODEL_ADDED = "modelAddedAt"
         /** Portrait unless the user picks Auto or Landscape (Oct 18): the chat reads best upright on a phone. */
@@ -260,7 +262,11 @@ class AppSettings(private val file: File) {
     /** DEFAULT_MEMORY_SETTINGS when unset. */
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
     var historyTurnThreshold: Int get() = int("historyTurnThreshold") ?: 6; set(v) = set("historyTurnThreshold", JsonPrimitive(v))
-    var maxSavedSessions: Int get() = int("maxSavedSessions") ?: 10; set(v) = set("maxSavedSessions", JsonPrimitive(v))
+    /**
+     * How many chats are kept; 0 keeps them all, the default (adam, Nov 15: "keep all chats by default"). Only Settings
+     * writes it, so a stored value was the user's choice and stays; an install that never chose had 10 and now keeps all.
+     */
+    var maxSavedSessions: Int get() = int("maxSavedSessions") ?: KEEP_ALL_CHATS; set(v) = set("maxSavedSessions", JsonPrimitive(v))
     /** The menu's 🗑️ asks before deleting a chat (issue #92); off deletes in one tap. The user's call, on by default. */
     var confirmChatDelete: Boolean get() = bool("confirmChatDelete") ?: true; set(v) = set("confirmChatDelete", JsonPrimitive(v))
     var autoGenerateTitles: Boolean get() = bool("autoGenerateTitles") ?: true; set(v) = set("autoGenerateTitles", JsonPrimitive(v))

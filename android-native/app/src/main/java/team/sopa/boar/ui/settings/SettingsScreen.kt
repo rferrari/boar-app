@@ -94,7 +94,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (shown(SettingsPart.TONE)) ToneSection(services)
             // Models and Knowledge are in the menu (Model Catalog, Knowledge): not repeated here (rc3, slice 5).
             if (shown(SettingsPart.MEMORY)) Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
-                t("native.settings.summary.memory", "max" to s.maxSavedSessions)
+                if (s.maxSavedSessions <= 0) t("native.settings.summary.memoryAll") else t("native.settings.summary.memory", "max" to s.maxSavedSessions)
             }) {
                 var auto by remember { mutableStateOf(s.autoSummarize) }
                 SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), auto) { auto = it; s.autoSummarize = it }
@@ -104,7 +104,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var turns by remember { mutableStateOf(s.historyTurnThreshold) }
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
-                Choices(t("memorySettings.maxSavedSessions"), listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
+                Choices(t("memorySettings.maxSavedSessions"), listOf(team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS to t("native.settings.memory.all")) + listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
                 ClearChats(services)
             }
             val avatarsOn by services.vault.enabled.collectAsState()

@@ -827,4 +827,11 @@
     <string name="native_eval_saved_delete" formatted="false">Apagar</string>
     <string name="native_eval_saved_deleteTitle" formatted="false">Apagar esta execução?</string>
     <string name="native_eval_saved_deleteBody" formatted="false">As respostas são apagadas deste celular e não voltam. Exportações que você fez continuam.</string>
+    <string name="native_chat_prune_title" formatted="false">Apagar sua conversa mais antiga?</string>
+    <string name="native_chat_prune_text" formatted="false">Você guarda {{max}} conversas, então começar esta apaga “{{title}}”.</string>
+    <string name="native_chat_prune_textMore" formatted="false">Você guarda {{max}} conversas, então começar esta apaga “{{title}}” e mais {{more}}.</string>
+    <string name="native_chat_prune_keepAll" formatted="false">Guardar todas</string>
+    <string name="native_chat_prune_delete" formatted="false">Apagar</string>
+    <string name="native_settings_summary_memoryAll" formatted="false">Guarda todas as conversas</string>
+    <string name="native_settings_memory_all" formatted="false">Todas</string>
 </resources>

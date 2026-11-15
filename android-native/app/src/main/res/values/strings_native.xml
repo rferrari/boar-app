@@ -827,4 +827,11 @@
     <string name="native_eval_saved_delete" formatted="false">Delete</string>
     <string name="native_eval_saved_deleteTitle" formatted="false">Delete this run?</string>
     <string name="native_eval_saved_deleteBody" formatted="false">Its answers are deleted from this phone and can\'t be brought back. Exports you made are kept.</string>
+    <string name="native_chat_prune_title" formatted="false">Delete your oldest chat?</string>
+    <string name="native_chat_prune_text" formatted="false">You keep {{max}} chats, so starting this one deletes “{{title}}”.</string>
+    <string name="native_chat_prune_textMore" formatted="false">You keep {{max}} chats, so starting this one deletes “{{title}}” and {{more}} more.</string>
+    <string name="native_chat_prune_keepAll" formatted="false">Keep all chats</string>
+    <string name="native_chat_prune_delete" formatted="false">Delete it</string>
+    <string name="native_settings_summary_memoryAll" formatted="false">Keeps all chats</string>
+    <string name="native_settings_memory_all" formatted="false">All</string>
 </resources>

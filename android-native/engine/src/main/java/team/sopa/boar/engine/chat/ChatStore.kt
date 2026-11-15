@@ -137,6 +137,14 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
      * Keeps the newest [maxSessions] chats. [beforeDelete] gets each older chat's id first, while its messages can
      * still be read: what the plugins made for its answers is erased there too (validator P-1).
      */
+    /**
+     * The chats a new one would push out under a limit of [maxSessions], oldest first; none when every chat is kept (0)
+     * or there is room (adam, Nov 15: "warn before deleting when a user has set a limit"; t9 0110 item 2).
+     */
+    fun pushedOutByNew(maxSessions: Int): List<ChatSession> =
+        if (maxSessions <= 0) emptyList() else listSessions().drop(maxSessions - 1).asReversed()
+
+    /** 0 keeps every chat (the default since Nov 15). */
     fun prune(maxSessions: Int, beforeDelete: (String) -> Unit = {}) {
         if (maxSessions <= 0) return
         db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }
