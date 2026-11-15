@@ -44,9 +44,12 @@ class PluginPagePatternTest {
         assertTrue(menu.contains("listOfNotNull(shown) + state.gallery.filter { it != shown }.take(MENU_RECENT)") && menu.contains("native.labs.image.allDrawings"))
     }
 
-    @Test fun `the toolbars are left-aligned, one row, never scrolling`() {
+    @Test fun `the toolbars are left-aligned, one row, scrolling only where 48 dp targets don't fit`() {
         val bar = chrome.substringAfter("fun PluginToolbar(").substringBefore("\n}\n")
-        assertTrue(bar.contains("Arrangement.spacedBy(TOOL_GAP, Alignment.Start)") && !bar.contains("horizontalScroll") && bar.contains(".coerceAtMost(TOOL_MAX)"))
+        // Golden change (validator A-4, t9 0426): adam's "never scrolling" (Nov 14) holds wherever 48 dp cells fit; on a
+        // 320 dp phone with seven tools the row scrolls instead of shrinking the targets under 48 dp.
+        assertTrue(bar.contains("horizontalArrangement = Arrangement.Start") && bar.contains(".coerceAtMost(TOOL_MAX)"))
+        assertTrue(bar.contains("val scrolls = cell < TOUCH_MIN") && bar.contains("if (scrolls) Modifier.horizontalScroll("))
         assertTrue(press.contains("team.sopa.boar.labs.PluginToolbar(ADD_BUTTONS)") && designer.contains("team.sopa.boar.labs.PluginToolbar(3)"))
         // "From your last chat" is a button now.
         assertTrue(designer.contains("FromChatButton(title) { subject = title }"))
