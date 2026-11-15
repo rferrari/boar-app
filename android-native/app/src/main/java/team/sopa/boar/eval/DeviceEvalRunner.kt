@@ -265,7 +265,7 @@ class DeviceEvalRunner(
                     writeStatus(request.requestId, "state" to "running", "configs" to configs, "total" to total, "completed" to completed,
                         "installedModels" to installedIds, "runId" to runId)
                 }
-            }, retrievalMode, request.style, info)
+            }, retrievalMode, request.style, info, searchOnly = request.searchOnly == true)
             writeStatus(request.requestId, "state" to "done", "configs" to configs, "total" to total, "completed" to result.rows.size, "runId" to result.runId,
                 "resultPath" to "files/eval/${result.runId}.jsonl", "stopped" to result.stopped, "installedModels" to installedIds,
                 "scorecardPath" to "files/eval/${result.runId}.scorecard.txt", "preset" to plan?.preset?.name)
@@ -320,6 +320,8 @@ class DeviceEvalRunner(
         /** The answer style for every row; null is the default style, as before. Ignored by a preset. */
         style: String? = null,
         info: RunInfo = RunInfo(),
+        /** Only each question's search, its sources with their scores; no answer (a device request's "searchOnly"). */
+        searchOnly: Boolean = false,
     ): RunResult = withContext(Dispatchers.IO) {
         stopRequested = false
         val runId = DeviceEval.newRunId()
@@ -382,6 +384,7 @@ class DeviceEvalRunner(
                                 }
                                 val s = session
                                 if (s == null) failureRow(runId, config, q, runStyle, maxTokens, "model failed to load")
+                                else if (searchOnly) searchRow(retrieval, runId, config, q, runStyle, maxTokens, residency, loadMs, retrievalMode)
                                 else {
                                     running = s
                                     // Said before the answer, so the bench screen shows what it's doing during a long one (adam, Nov 12).
@@ -652,6 +655,39 @@ class DeviceEvalRunner(
         "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion, "tool" to tool.tool,
         "inferenceEngine" to config.engine,
     )
+
+    /**
+     * A search-only row (t9 0321): the sources the answer would get, in order, each with its similarity, fused score,
+     * match type and kind ("pack", "file" for the user's own files, "kb" for the built-in corpus). No answer is written.
+     */
+    private fun searchRow(
+        retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String, maxTokens: Int,
+        residency: String, loadMs: Double, mode: team.sopa.boar.engine.rag.RetrievalMode,
+    ): JsonObject {
+        val start = System.nanoTime()
+        var error: String? = null
+        val found = try {
+            retrieval?.retriever?.retrieve(q.query, team.sopa.boar.engine.rag.RagPure.ANSWER_CONTEXT_CHUNKS, params = mode.params()) ?: run { error = "no retrieval"; emptyList() }
+        } catch (e: Throwable) { error = e.message ?: e.toString(); emptyList() }
+        val ms = (System.nanoTime() - start) / 1e6
+        val sources = JsonArray(found.map { c ->
+            JsonObject(mapOf(
+                "title" to JsonPrimitive(c.title), "similarity" to (c.similarity?.let(::JsonPrimitive) ?: kotlinx.serialization.json.JsonNull), "score" to JsonPrimitive(c.score),
+                "match" to JsonPrimitive(c.matchType.name.lowercase()),
+                "kind" to JsonPrimitive(if (c.docId.startsWith("pack:")) "pack" else if (c.collectionId != null) "file" else "kb"),
+            ))
+        })
+        return json(
+            "modelId" to config.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to false, "retrievalUsed" to found.isNotEmpty(),
+            "modelResidency" to residency, "modelLoadMs" to loadMs, "totalLatencyMs" to ms, "retrievalMs" to ms, "tokensGenerated" to 0,
+            "outcome" to if (error == null) "success" else "failure", "errorMessage" to error, "runId" to runId, "evalSetVersion" to q.setVersion,
+            "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+            "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to "", "retrievedTitles" to found.map { it.title },
+            "retrievedSources" to sources, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, found.map { it.title }),
+            "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "inferenceEngine" to config.engine, "retrievalMode" to mode.name.lowercase(), "path" to "search-only",
+        )
+    }
 
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),
