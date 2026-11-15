@@ -242,15 +242,16 @@ object Calculators {
 
     // from context.ts; replace with the shared port when context.ts lands
     private val TEMPERATURE = JsRegex.re(
-        """(?<!\d)(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
+        """(?<![\d.,])(-?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
         "i",
     )
 
     // from context.ts; replace with the shared port when context.ts lands
     /** "What is 30 °C in Fahrenheit?": the conversion with its formula, or null. */
-    private fun temperatureConversion(query: String, pt: Boolean): String? {
+    /** [rd]: the question's decimal mark is a comma ([readsComma]); "1,500 °C" is 1500 in English (validator B-6). */
+    private fun temperatureConversion(query: String, pt: Boolean, rd: Boolean): String? {
         val m = TEMPERATURE.find(query) ?: return null
-        val value = JsNumber.parse(m.groupValues[1].replaceFirst(",", "."))
+        val value = parseNumber(m.groupValues[1], rd)
         val from = if (m.groupValues[2][0].lowercaseChar() == 'f') "F" else "C"
         val to = if (m.groupValues[3][0].lowercaseChar() == 'f') "F" else "C"
         if (from == to || !value.isFinite()) return null
@@ -266,7 +267,7 @@ object Calculators {
     private val ASKS_SAFE = JsRegex.re("""perig|segur|caminh|trilha|correr|exerc|danger|safe|hike|hiking|walk|run|exercise""", "i")
 
     private fun temperature(q: String, pt: Boolean, rd: Boolean): String? {
-        val base = temperatureConversion(q, pt) ?: return null
+        val base = temperatureConversion(q, pt, rd) ?: return null
         val c = CELSIUS.find(base.split("=").map(Js::trim).firstOrNull { HAS_C.containsMatchIn(it) } ?: "")
         val celsius = if (c != null) parseNumber(c.groupValues[1], rd) else Double.NaN
         val asks = ASKS_SAFE.containsMatchIn(q)

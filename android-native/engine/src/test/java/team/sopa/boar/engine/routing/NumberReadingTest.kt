@@ -72,4 +72,12 @@ class NumberReadingTest {
         assertTrue(padded.length < Calculators.MAX_QUERY)
         assertEquals("26 miles = 41.84 km (1 mile = 1.609344 km).", Calculators.calculate(padded, false)?.text)
     }
+
+    @Test fun `a temperature reads its number by the question's mark (validator B-6)`() {
+        assertEquals("1,500 °C = 2,732 °F (°F = °C × 9/5 + 32).", Calculators.calculate("What is 1,500 °C in Fahrenheit?", false)?.text)
+        // Unchanged: a plain value, a Portuguese decimal comma, a negative.
+        assertEquals("30 °C = 86 °F (°F = °C × 9/5 + 32).", Calculators.calculate("What is 30 °C in Fahrenheit?", false)?.text)
+        assertEquals("36,6 °C = 97,9 °F (°F = °C × 9/5 + 32).", Calculators.calculate("Quanto é 36,6 °C em Fahrenheit?", true)?.text)
+        assertEquals("-40 °F = -40 °C (°C = (°F − 32) × 5/9).", Calculators.calculate("-40 °F to Celsius", false)?.text)
+    }
 }
