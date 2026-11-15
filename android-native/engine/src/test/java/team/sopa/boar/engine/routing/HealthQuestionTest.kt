@@ -26,4 +26,16 @@ class HealthQuestionTest {
             "Which countries are bigger than India by area?",
         ).forEach { assertFalse(it, QueryContext.isHealthQuestion(it)) }
     }
+
+    @Test fun `a medicine's dose is a health question, kept short (t9 0110 item 3)`() {
+        for (q in listOf("How much paracetamol (acetaminophen) can an adult take in a day?", "ibuprofen dose for adults", "Is 1000 mg of Tylenol too much?",
+            "Quantos mg de dipirona posso tomar?", "Qual a dosagem máxima de paracetamol por dia?", "¿Cuánto ibuprofeno puedo tomar al día?",
+            "What is the maximum daily dose of aspirin?")) {
+            assertTrue(q, QueryContext.isHealthQuestion(q))
+            assertTrue(q, ShortAnswer.reason("detailed", q, null) == "health")
+        }
+        // A medicine named without a dose word, or a dose word without a medicine, is not this rule.
+        for (q in listOf("Who invented aspirin?", "How much does a car cost?", "What is the history of ibuprofen?"))
+            assertFalse(q, QueryContext.isHealthQuestion(q))
+    }
 }

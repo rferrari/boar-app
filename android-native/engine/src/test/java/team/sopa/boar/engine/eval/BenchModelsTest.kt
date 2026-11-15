@@ -107,12 +107,12 @@ class BenchModelsTest {
         val topicDir = File(assets, "topics")
         val health = BenchTopic.parse(File(topicDir, "health.v1.json").readText())
         assertEquals(listOf("health-co", "health-burn", "health-sting", "health-fever", "health-dose"), health.questions.map { it.id })
-        // Every rule says what right looks like (t9 1058). The model's four are kept short; where the chat doesn't keep it
-        // short today (the paracetamol dose: not a health question to QueryContext, found 14 Nov), the question carries its
-        // known issue, so the scorecard shows an expected failure, not a regression.
+        // Every rule says what right looks like (t9 1058). The model's four are kept short, the paracetamol dose too since
+        // a medicine with a dose word is a health question (t9 0110 item 3): no known issue left.
         for (q in health.questions.filter { it.id != "health-co" }) {
             assertTrue(q.id, q.rules!!.keptShort)
-            if (ShortAnswer.reason("detailed", q.query!!, null) != "health") assertTrue(q.id, q.knownIssue != null)
+            assertEquals(q.id, "health", ShortAnswer.reason("detailed", q.query!!, null))
+            assertTrue(q.id, q.knownIssue == null)
         }
         // health-co: right is the acute CO card first and alone (t9 1535), no known issue left.
         val co = health.questions.first { it.id == "health-co" }

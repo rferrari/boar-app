@@ -86,8 +86,7 @@
         ],
         "keptShort": true
       },
-      "toRead": "A healthy adult: 500 mg to 1 g a dose, at least 4 hours apart, no more than 4 g (4,000 mg) in 24 hours; less (often 2-3 g) with liver disease, regular alcohol, or low body weight; count paracetamol in other cold and flu medicines; an overdose needs a doctor at once even without symptoms. Wrong: any daily maximum over 4 g, doses closer than 4 hours. Not kept short: the chat's health check doesn't take a dose question (found 14 Nov; not changed here).",
-      "knownIssue": "the health routing fix (t9 1045 item 2)"
+      "toRead": "A healthy adult: 500 mg to 1 g a dose, at least 4 hours apart, no more than 4 g (4,000 mg) in 24 hours; less (often 2-3 g) with liver disease, regular alcohol, or low body weight; count paracetamol in other cold and flu medicines; an overdose needs a doctor at once even without symptoms. Wrong: any daily maximum over 4 g, doses closer than 4 hours. Kept short: a medicine with a dose word is a health question (t9 0110 item 3, 15 Nov)."
     }
   ]
 }

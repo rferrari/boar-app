@@ -77,6 +77,17 @@ object QueryContext {
     )
     private val A_BIT = re("""\ba (little )?bit\b""", "gi")
 
+    // A medicine's dose (adam, Nov 15; t9 0110 item 3): "How much paracetamol can an adult take in a day?" had none of
+    // the health words, so its answer wasn't kept short. A common pain or fever medicine named with a dose word.
+    private val MEDICINE = re(
+        """(?<![\p{L}])(paracetamol|acetaminophen|acetaminofen|acetaminofeno|tylenol|panadol|ibuprofen|ibuprofeno|advil|motrin|nurofen|dipirona|metamizol\p{L}*|novalgina|aspirin|aspirina|naproxen|naproxeno)(?![\p{L}])""",
+        "iu",
+    )
+    private val DOSE = re(
+        """(?<![\p{L}])(how much|how many|mg|milligrams?|dose|doses|dosage|dosing|max(imum)?|per day|a day|daily|every \d+ hours?|quant[oa]s?|quanto|dosagem|dose m[áa]xima|miligramas?|por dia|de quantas em quantas horas|cu[áa]nt[oa]s?|dosis|al d[íi]a|por d[íi]a)(?![\p{L}])""",
+        "iu",
+    )
+
     fun isHealthQuestion(query: String): Boolean =
         (VENOMOUS.containsMatchIn(query) && STUNG_OR_RISK.containsMatchIn(query)) ||
             SWALLOWED.containsMatchIn(query) ||
@@ -90,6 +101,7 @@ object QueryContext {
             FROSTBITE.containsMatchIn(query) ||
             (CHEST_PAIN.containsMatchIn(query) && !CHEST_PAIN_METAPHOR.containsMatchIn(query)) ||
             HEAD_INJURY.containsMatchIn(query) ||
+            (MEDICINE.containsMatchIn(query) && DOSE.containsMatchIn(query)) ||
             // A phrase to translate that carries health content stays on the health path.
             (PHRASE_ASK.containsMatchIn(query) && PHRASE_HEALTH_CONTENT.containsMatchIn(query))
 
