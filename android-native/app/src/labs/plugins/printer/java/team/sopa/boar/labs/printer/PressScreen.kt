@@ -140,6 +140,8 @@ internal fun PressScreen(lab: LabPlugin) {
     var editing by remember(project.id) { mutableStateOf<String?>(null) }
     /** A block just added: its field takes the focus with its text selected, so typing replaces it. */
     var fresh by remember { mutableStateOf<String?>(null) }
+    /** The last note the bar added: the next one goes after it (it isn't selected, see addNote). */
+    var barNote by remember { mutableStateOf<String?>(null) }
     var sheet by remember { mutableStateOf<Sheet?>(null) }
     var compiling by remember { mutableStateOf(false) }
     val scroll = remember(project.id) { ScrollState(0) }
@@ -213,15 +215,32 @@ internal fun PressScreen(lab: LabPlugin) {
         }
     }
 
-    /** A new block goes after the selected one, or at the end; it is selected and open for typing. */
+    /**
+     * A new block goes after the selected one (or after the last note the bar added), or at the end; it is selected and
+     * open for typing.
+     */
     fun addBlock(b: Block) {
-        val at = project.blocks.indexOfFirst { it.id == selected }.let { if (it < 0) project.blocks.size else it + 1 }
+        val anchor = selected ?: barNote
+        val at = project.blocks.indexOfFirst { it.id == anchor }.let { if (it < 0) project.blocks.size else it + 1 }
         PressStore.change { it.insert(b, at) }
+        barNote = null
         selected = b.id
         // A picture opens its caption, as the mock-up does; text blocks open for typing.
         editing = b.id
         fresh = b.id
         sheet = null
+    }
+
+    /**
+     * A note typed in the bar (t9 0110 item 4): placed as a block is, but neither selected nor opened, so the bar's next
+     * words are the next note, not a request to rewrite this one, and no key replaces it. The next note goes after it.
+     */
+    fun addNote(b: Block.Note) {
+        addBlock(b)
+        selected = null
+        editing = null
+        fresh = null
+        barNote = b.id
     }
 
     // + Add, Photo from this phone: Android's photo picker (no permission); the photo is copied into the project's folder.
@@ -320,7 +339,7 @@ internal fun PressScreen(lab: LabPlugin) {
                 val typed = note.trim()
                 if (typed.isNotEmpty()) {
                     if (target != null) { askOwn = typed; editing = null; sheet = Sheet.EDIT }
-                    else addBlock(Block.Note(PressStore.newId("n"), typed))
+                    else addNote(Block.Note(PressStore.newId("n"), typed))
                     note = ""
                 }
             }, onStop = {}, voiceEnabled = voice,

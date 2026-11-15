@@ -115,3 +115,16 @@ class PressFooterTest {
         for (d in listOf("values", "values-pt")) assertTrue(java.io.File("../app/src/labs/plugins/printer/res/$d/strings_lab_printer.xml").readText().contains("name=\"native_labs_printer_madeWith\""))
     }
 }
+
+/** t9 0110 item 4: a note added from Press's bar stayed selected (and open, all its text selected): the next key replaced it. */
+class PressBarNoteTest {
+    private val screen = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+
+    @Test fun `a note from the bar is placed but neither selected nor opened, and the next one follows it`() {
+        assertTrue(screen.contains("else addNote(Block.Note(PressStore.newId(\"n\"), typed))"))
+        val add = screen.substringAfter("fun addNote(b: Block.Note) {").substringBefore("\n    }")
+        for (w in listOf("addBlock(b)", "selected = null", "editing = null", "fresh = null", "barNote = b.id")) assertTrue(w, add.contains(w))
+        assertTrue(screen.contains("val anchor = selected ?: barNote"))
+    }
+}
+
