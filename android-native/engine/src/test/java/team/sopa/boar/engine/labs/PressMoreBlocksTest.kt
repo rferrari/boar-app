@@ -68,6 +68,19 @@ class PressFooterTest {
         assertTrue(PressReceipt.sourceLines(r, PressReceipt.Options(sources = false)).isEmpty())
     }
 
+    @Test fun `the user's own file names never print, a pack's source and link do (validator A-1)`() {
+        val mine = Block.Answer("m", "Chat", "Q?", "A [1] [2] [3].", listOf(
+            PressDoc.Source("Imposto 2025", "imposto-2025-joao-silva.pdf"),
+            PressDoc.Source("Nosebleed", "Wikipedia — https://en.wikipedia.org/wiki/Nosebleed (CC BY-SA 4.0)"),
+            PressDoc.Source("Notes", "  "),
+        ), 1, "Qwen3 4B", 9.5)
+        val lines = PressReceipt.sourceLines(PressReceipt.build(PressDoc.Project("q", "Mine", 1, listOf(mine))), PressReceipt.Options())
+        assertEquals(listOf("[1] Imposto 2025", "[2] Nosebleed — Wikipedia — https://en.wikipedia.org/wiki/Nosebleed (CC BY-SA 4.0)", "[3] Notes"), lines)
+        // The shapes a file name can take never pass.
+        for (f in listOf("notes.txt", "Relatório final.docx", "a — b.pdf", "IMG_2041", "Wikipedia notes.pdf")) assertTrue(f, !PressReceipt.shareable(f))
+        for (s in listOf("Wikipedia", "Wikivoyage — https://en.wikivoyage.org/wiki/Lisbon")) assertTrue(s, PressReceipt.shareable(s))
+    }
+
     @Test fun `the footer is the models on one line and Made with BOAR on the next, always`() {
         val l = PressReceipt.Labels()
         assertEquals(listOf("Qwen3 4B  ·  LFM2.5 8B", "Made offline with BOAR · 13 Nov"), PressReceipt.footer(r, l, "13 Nov", PressReceipt.Options()))

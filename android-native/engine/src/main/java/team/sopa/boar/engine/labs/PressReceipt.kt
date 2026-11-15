@@ -168,7 +168,20 @@ object PressReceipt {
         l.madeWith.replace("{{date}}", date),
     )
 
-    fun sourceText(s: PressDoc.Source) = s.title + (s.source?.takeIf { it.isNotBlank() }?.let { " — $it" } ?: "")
+    fun sourceText(s: PressDoc.Source) = s.title + (s.source?.takeIf { shareable(it) }?.let { " — $it" } ?: "")
+
+    /**
+     * A source that may print in a shared PDF or .md (validator A-1): a pack's or the corpus's "Wikipedia — https://…", or
+     * a pack's bare label. For the user's own files the source is the file name ("imposto-2025-joao-silva.pdf"): never.
+     */
+    fun shareable(source: String): Boolean {
+        val s = source.trim()
+        if (s.isEmpty()) return false
+        if (PACK_STYLE.matches(s)) return true
+        return s in team.sopa.boar.engine.rag.Packs.SOURCE_LABEL.values
+    }
+
+    private val PACK_STYLE = Regex("""[^—\n]{1,60} — https?://\S+(?: \([^)\n]{1,60}\))?""")
 
     /** "Sources [1] [3]" under an answer; null when it has none. */
     fun refsLine(numbers: List<Int>?, label: String): String? = numbers?.takeIf { it.isNotEmpty() }?.joinToString(" ", prefix = "$label ") { "[$it]" }
