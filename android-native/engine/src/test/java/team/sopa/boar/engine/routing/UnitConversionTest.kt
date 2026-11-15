@@ -137,4 +137,12 @@ class UnitConversionTest {
         // A number elsewhere in the question is not a range.
         assertEquals("26 miles = 41.84 km (1 mile = 1.609344 km).", conv("I ran 3 days and 26 miles in km is how much?"))
     }
+
+    @Test fun `a leading minus keeps its sign (validator B-4)`() {
+        assertEquals("-5 km = -3.11 miles (1 mile = 1.609344 km).", conv("-5 km to miles"))
+        assertEquals("-2 kg = -4.41 lb (1 lb = 0.45359237 kg).", conv("−2 kg to lb"))
+        // A dash between words isn't a sign; a range still goes to the model.
+        assertEquals("5 km = 3.11 miles (1 mile = 1.609344 km).", conv("Route A - 5 km to miles"))
+        assertEquals(null, conv("5-10 km to miles"))
+    }
 }

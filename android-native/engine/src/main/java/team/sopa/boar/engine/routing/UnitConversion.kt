@@ -120,8 +120,11 @@ object UnitConversion {
         if (src === dst || src.family != dst.family) return null
         if (src.family == "volume" && UK_GALLON.containsMatchIn(query)) return null
         val ptHere = pt || PT_WORDS.containsMatchIn(match)
-        val x = Calculators.parseNumber(rawNum, Calculators.readsComma(query, ptHere))
-        if (!x.isFinite() || x < 0) return null
+        // A minus right against the number is its sign ("-5 km", "−5 kg": a change, a difference), not a dash: it was
+        // dropped and the answer turned positive (validator B-4). "5-10" never gets here (RANGE_BEFORE).
+        val negative = numAt > 0 && query[numAt - 1] in "-−" && (numAt == 1 || !query[numAt - 2].isLetterOrDigit())
+        val x = Calculators.parseNumber(rawNum, Calculators.readsComma(query, ptHere)).let { if (negative) -it else it }
+        if (!x.isFinite()) return null
         val y = x * src.base / dst.base
         if (!y.isFinite()) return null
 
