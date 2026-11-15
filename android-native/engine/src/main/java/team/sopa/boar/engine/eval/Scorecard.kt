@@ -117,6 +117,7 @@ object Scorecard {
         r.answerStartsWith?.let { out += Check("answerStartsWith", answer.trimStart().startsWith(it), answer.take(80)) }
         for (s in r.answerHas) out += Check("answerHas", s.lowercase() in lower, s)
         if (r.answerHasAny.isNotEmpty()) out += Check("answerHasAny", r.answerHasAny.any { it.lowercase() in lower }, r.answerHasAny.joinToString(" / "))
+        for (g in r.answerHasEach) if (g.isNotEmpty()) out += Check("answerHasEach", g.any { it.lowercase() in lower }, g.joinToString(" / "))
         for (s in r.answerHasNot) out += Check("answerHasNot", s.lowercase() !in lower, s)
         r.language?.let { want ->
             val got = AnswerLanguage.clear(answer)?.name?.lowercase()

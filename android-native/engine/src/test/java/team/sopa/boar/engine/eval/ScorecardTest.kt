@@ -121,4 +121,14 @@ class ScorecardKnownSkippedTest {
         // With its plugin on, the question is asked and judged.
         org.junit.Assert.assertEquals(Scorecard.Verdict.PASS, Scorecard.judge(row("lab", "right", listOf("polyglot")), mapOf("t" to topic)).verdict)
     }
+
+    @Test fun `answerHasEach needs one wording of every fact - Brazil and Russia's area ratio (t9 0426 item 7)`() {
+        val topic = BenchTopic.parse(java.io.File("../app/src/main/assets/boar-data/topics/problems.v1.json").readText())
+        val r = topic.questions.first { it.id == "compare-brazil-russia" }.rules!!
+        // The F3's all66 answer: the right areas, the wrong ratio.
+        val f3 = kotlinx.serialization.json.Json.parseToJsonElement("""{"answer":"Russia spans 17,075,400 km². Russia's area is roughly three-quarters of the size of Brazil."}""") as kotlinx.serialization.json.JsonObject
+        assertEquals(setOf("answerHasEach", "answerHasNot"), Scorecard.check(f3, r).filter { it.ok == false }.map { it.rule }.toSet())
+        val right = kotlinx.serialization.json.Json.parseToJsonElement("""{"answer":"Russia (17,075,400 km²) is about twice the size of Brazil (8,515,767 km²)."}""") as kotlinx.serialization.json.JsonObject
+        assertTrue(Scorecard.check(right, r).toString(), Scorecard.check(right, r).none { it.ok == false })
+    }
 }

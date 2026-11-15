@@ -200,9 +200,29 @@
           "17.1 million",
           "17 million",
           "17,1 milhões"
+        ],
+        "answerHasEach": [
+          [
+            "twice",
+            "double",
+            "two times",
+            "2 times",
+            "about 2 ",
+            "roughly 2 ",
+            "nearly 2 ",
+            "1.9 times",
+            "2.0 times",
+            "dobro",
+            "duas vezes"
+          ]
+        ],
+        "answerHasNot": [
+          "three-quarters",
+          "three quarters",
+          "smaller than Brazil"
         ]
       },
-      "toRead": "Right: Russia is about twice Brazil's area (17,075,400 km² vs 8,515,767 km² in the table), Brazil has more people (214 million in 2026 vs 146 million in 2025), capitals Brasília and Moscow; the figures cited from the Facts source with its date (offline table as of 2026-10-06), not the model's memory. Needs Facts on (t9 0110 item 5).",
+      "toRead": "Right: Russia is about twice Brazil's area (the F3's all66 answer said \"three-quarters\": wrong) (17,075,400 km² vs 8,515,767 km² in the table), Brazil has more people (214 million in 2026 vs 146 million in 2025), capitals Brasília and Moscow; the figures cited from the Facts source with its date (offline table as of 2026-10-06), not the model's memory. Needs Facts on (t9 0110 item 5).",
       "needsLab": "facts"
     }
   ]

@@ -92,6 +92,8 @@ data class TopicRules(
     val answerHas: List<String> = emptyList(),
     /** At least one of these must be in the answer (spellings of one fact: "Canberra"). */
     val answerHasAny: List<String> = emptyList(),
+    /** One of each group must be in the answer: two facts, each in several wordings ("twice" / "double" / "2 times"). */
+    val answerHasEach: List<List<String>> = emptyList(),
     val answerHasNot: List<String> = emptyList(),
     /** "en" or "pt": the language the answer is clearly in (AnswerLanguage.clear). */
     val language: String? = null,
