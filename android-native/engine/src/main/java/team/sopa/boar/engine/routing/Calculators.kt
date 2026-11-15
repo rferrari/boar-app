@@ -49,6 +49,9 @@ object Calculators {
         return marks.singleOrNull()
     }
 
+    /** Longer than any calculator question; the number patterns cost too much past it (validator B-5). */
+    const val MAX_QUERY = 2000
+
     /**
      * A date, never a decimal mark (validator B-1: "2.450 baht no dia 14.11" read 2.45): "14.11.2026", or
      * "14.11" right after a date word ("no dia 14.11", "on 14.11", "until 3.12"). A day up to 31, a month up to 12.
@@ -287,6 +290,9 @@ object Calculators {
      * ("26 miles in km", UnitConversion) is the last try, after the temperature rule (adam, Nov 13).
      */
     fun calculate(query: String, pt: Boolean): Calculation? {
+        // A pasted table of digit groups made each pass quadratic (validator B-5: 16,000 characters, 5 s). No calculator
+        // question is that long: the model takes it.
+        if (query.length > MAX_QUERY) return null
         // The answer's language: the detector, or the rules' own Portuguese words. The numbers: the question's own mark first.
         val ptText = pt || PT_WORDS.containsMatchIn(query)
         val rd = readsComma(query, ptText)

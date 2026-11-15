@@ -59,4 +59,17 @@ class NumberReadingTest {
         assertEquals('.', Calculators.decimalMark("2,450 items at 12.50 each"))
         assertEquals('.', Calculators.decimalMark("it costs 3.7 on average"))
     }
+
+    @Test fun `a pasted chain of digit groups doesn't freeze the send (validator B-5)`() {
+        val chain = "123 ".repeat(8000) + "miles in km"
+        val t0 = System.nanoTime()
+        assertNull(Calculators.calculate(chain, false))
+        assertNull(CalcShortcut.answer(chain))
+        val ms = (System.nanoTime() - t0) / 1e6
+        assertTrue("took $ms ms", ms < 500)
+        // A calculator question under the cap still answers.
+        val padded = "x ".repeat(900) + "26 miles in km"
+        assertTrue(padded.length < Calculators.MAX_QUERY)
+        assertEquals("26 miles = 41.84 km (1 mile = 1.609344 km).", Calculators.calculate(padded, false)?.text)
+    }
 }

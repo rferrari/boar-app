@@ -97,6 +97,7 @@ object UnitConversion {
 
     /** "26 miles = 41.84 km (1 mile = 1.609344 km)." for a plain conversion, or null. */
     fun convert(query: String, pt: Boolean): String? {
+        if (query.length > Calculators.MAX_QUERY) return null
         if (RATE.containsMatchIn(query)) return null
         val fwd = FORWARD.find(query)
         val asked = if (fwd == null) ASKED.find(query) else null
