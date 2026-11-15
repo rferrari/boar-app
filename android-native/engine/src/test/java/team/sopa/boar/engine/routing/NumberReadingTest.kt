@@ -47,4 +47,16 @@ class NumberReadingTest {
         for ((q, want) in cases) assertEquals(q, want, Calculators.decimalMark(q))
         assertNull(Calculators.decimalMark("no numbers here"))
     }
+
+    @Test fun `a date never decides the thousands separator (validator B-1)`() {
+        // The date is skipped: the language decides "2.450" as before.
+        for (q in listOf("2.450 baht no dia 14.11", "2.450 baht no dia 3.12", "2.450 baht em 14.11.2026", "2.450 baht, vencimento 05.01"))
+            assertNull(q, Calculators.decimalMark(q))
+        assertTrue(Calculators.readsComma("Quanto é 2.450 baht no dia 14.11 em reais?", true))
+        assertEquals(2450.0, Calculators.parseNumber("2.450", Calculators.readsComma("2.450 baht no dia 14.11", true)), 0.0)
+        // Not dates: a decimal after "on", a voltage, a price with cents.
+        assertEquals('.', Calculators.decimalMark("27,000 mAh on 3.7 V"))
+        assertEquals('.', Calculators.decimalMark("2,450 items at 12.50 each"))
+        assertEquals('.', Calculators.decimalMark("it costs 3.7 on average"))
+    }
 }

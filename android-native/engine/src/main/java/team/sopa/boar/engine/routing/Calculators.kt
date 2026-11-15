@@ -41,12 +41,33 @@ object Calculators {
         val marks = HashSet<Char>()
         for (m in NUMBER_TOKEN.findAll(q)) {
             val t = m.value
+            if (isDate(q, m)) continue
             val seps = t.filter { it == '.' || it == ',' }
             if (seps.toSet().size == 2) { marks += seps.last(); continue }
             if (seps.length == 1 && t.substringAfter(seps[0]).length != 3) marks += seps[0]
         }
         return marks.singleOrNull()
     }
+
+    /**
+     * A date, never a decimal mark (validator B-1: "2.450 baht no dia 14.11" read 2.45): "14.11.2026", or
+     * "14.11" right after a date word ("no dia 14.11", "on 14.11", "until 3.12"). A day up to 31, a month up to 12.
+     * "3.7 V" and "on 12.50" are not dates.
+     */
+    private fun isDate(q: String, m: MatchResult): Boolean {
+        val d = DATE.matchEntire(m.value) ?: return false
+        val day = d.groupValues[1].toInt(); val month = d.groupValues[2].toInt()
+        if (day !in 1..31 || month !in 1..12) return false
+        if (d.groupValues[3].isNotEmpty()) return true
+        val before = q.substring(0, m.range.first).takeLast(14)
+        val twoDigits = d.groupValues[1].length == 2 && d.groupValues[2].length == 2
+        return DAY_WORD.containsMatchIn(before) || (twoDigits && DATE_WORD.containsMatchIn(before))
+    }
+    private val DATE = Regex("""(\d{1,2})\.(\d{1,2})(?:\.(\d{2}|\d{4}))?""")
+    /** Words that make what follows a date even when it's "3.12". */
+    private val DAY_WORD = Regex("""(?<![\p{L}])(?:dia|day|date|data|dated|datado|vencimento|due)\s*:?\s*$""", RegexOption.IGNORE_CASE)
+    /** Words that make a two-digit "14.11" a date. */
+    private val DATE_WORD = Regex("""(?<![\p{L}])(?:on|em|de|until|till|até|from|desde|by|since|before|after|antes de|depois de)\s*$""", RegexOption.IGNORE_CASE)
 
     /** Read "N,NNN" / "N.NNN" with a decimal comma: the question's own mark first ([decimalMark]), else [pt]. */
     fun readsComma(q: String, pt: Boolean): Boolean = decimalMark(q)?.let { it == ',' } ?: pt
