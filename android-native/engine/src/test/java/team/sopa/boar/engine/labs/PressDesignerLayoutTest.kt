@@ -29,7 +29,8 @@ class PressDesignerLayoutTest {
     @Test fun `with a text selected the bar asks BOAR to change it, with nothing selected it writes a note`() {
         val bar = screen.substringAfter("team.sopa.boar.ui.chat.PromptBar(note")
         assertTrue(bar.contains("if (target != null) { askOwn = typed; editing = null; sheet = Sheet.EDIT }"))
-        assertTrue(bar.contains("else addBlock(Block.Note(PressStore.newId(\"n\"), typed))"))
+        // A note goes in placed, not selected or opened (t9 0110 item 4, PressBarNoteTest).
+        assertTrue(bar.contains("else addNote(Block.Note(PressStore.newId(\"n\"), typed))"))
         assertTrue(bar.contains("\"native.labs.printer.askPlaceholder\" else \"native.labs.printer.notePlaceholder\""))
         // The sheet starts the rewrite with what was typed; nothing changes before Use (PressRewriteTest).
         assertTrue(s.contains("EditSheet(target, typed = askOwn,") && s.contains("LaunchedEffect(typed) { if (!typed.isNullOrBlank()) { own = typed; ask(PressRewrite.Option.OWN, typed); onTypedUsed() } }"))
