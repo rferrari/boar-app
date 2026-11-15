@@ -130,8 +130,16 @@ object PtLexicon {
     private val ORIGINAL_WORD = Regex("[\\p{L}\\p{N}]+(?:-[\\p{L}\\p{N}]+)*")
     private val UPPER_START = Regex("^\\p{Lu}")
 
+    /**
+     * "na natureza", "em meio à natureza", "em plena natureza", "no meio da natureza": "in the wild", a place, not the
+     * article Nature (t9 0110 item 6: "Como purificar água na natureza, passo a passo?" got Nature, Nature (journal) and
+     * Nature reserve as its sources). "a natureza", "da natureza" still name it.
+     */
+    private val IN_THE_WILD = Regex("""(?<![\p{L}])(?:na|em plena|em meio [àa]|no meio da|em contato com a|ao ar livre na) natureza(?![\p{L}])""", RegexOption.IGNORE_CASE)
+
     /** English article names a Portuguese question mentions, longest names first, each word used once. */
     fun englishNamesIn(query: String, lexicon: Map<String, String>, max: Int = 4, maxLen: Int = 5): List<String> {
+        @Suppress("NAME_SHADOWING") val query = IN_THE_WILD.replace(query, " ")
         val words = FOLDED_WORD.findAll(foldText(query)).map { it.value }.toList()
         val original = ORIGINAL_WORD.findAll(query).map { it.value }.toList()
         val accented = if (original.size == words.size) original.map { Js.nfc(it).lowercase() } else null
