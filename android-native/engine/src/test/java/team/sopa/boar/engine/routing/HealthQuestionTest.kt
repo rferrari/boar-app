@@ -38,4 +38,16 @@ class HealthQuestionTest {
         for (q in listOf("Who invented aspirin?", "How much does a car cost?", "What is the history of ibuprofen?"))
             assertFalse(q, QueryContext.isHealthQuestion(q))
     }
+
+    @Test fun `carbon monoxide named is a health question, kept short, card or not (t9 0110 item 1)`() {
+        for (q in listOf("My CO alarm keeps chirping every minute", "my CO detector says error", "Is 50 ppm of carbon monoxide dangerous?",
+            "O detector de monóxido mostra erro")) assertTrue(q, ShortAnswer.reason("detailed", q, null) == "health")
+        assertFalse(QueryContext.isHealthQuestion("CO2 levels in the office are high"))
+        assertFalse(QueryContext.isHealthQuestion("Who is the CO of the company?"))
+    }
+
+    @Test fun `the health topic runs with Cohazard on, as users get it`() {
+        val t = java.io.File("../app/src/main/assets/boar-data/topics/health.v1.json").readText()
+        assertTrue(t.contains("\"labs\": [\n    \"cohazard\"\n  ]"))
+    }
 }

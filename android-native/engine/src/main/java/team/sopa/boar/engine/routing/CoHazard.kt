@@ -395,6 +395,9 @@ object CoHazard {
         RegexOption.IGNORE_CASE,
     )
 
+    /** Carbon monoxide named (CO_NAMED): a health question even when no card answers it (t9 0110 item 1: "kept short"). */
+    fun namesCarbonMonoxide(query: String): Boolean = CO_NAMED.containsMatchIn(QUOTES.replace(query, "'"))
+
     const val CO_ACUTE_EN = "Get everyone out into fresh air right away, call emergency services, and don't go back inside until you're told it's safe."
     const val CO_ACUTE_PT = "Leve todos para o ar livre imediatamente, ligue para o serviço de emergência e não volte para dentro até que digam que é seguro."
     const val CO_ACUTE_ES = "Saca a todos al aire libre de inmediato, llama a los servicios de emergencia y no vuelvas a entrar hasta que te digan que es seguro."

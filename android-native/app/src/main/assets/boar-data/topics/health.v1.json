@@ -5,6 +5,9 @@
   "title": "Health and safety",
   "titlePt": "Saúde e segurança",
   "about": "Five health and safety questions for the small model test (t9 0443 item 2: carbon monoxide, a burn, a sting, a fever, a dose). A wrong step in any answer is a no-go for a model; the rules only check that the key step is named and the answer is kept short, the read is a person's.",
+  "labs": [
+    "cohazard"
+  ],
   "questions": [
     {
       "id": "health-co",

@@ -102,6 +102,9 @@ object QueryContext {
             (CHEST_PAIN.containsMatchIn(query) && !CHEST_PAIN_METAPHOR.containsMatchIn(query)) ||
             HEAD_INJURY.containsMatchIn(query) ||
             (MEDICINE.containsMatchIn(query) && DOSE.containsMatchIn(query)) ||
+            // Carbon monoxide named: an alarm chirping or reading 0 gets no card, but its answer is kept short (t9 0110
+            // item 1; the F3, 15 Nov: "My CO alarm keeps chirping every minute" ran a Detailed answer).
+            CoHazard.namesCarbonMonoxide(query) ||
             // A phrase to translate that carries health content stays on the health path.
             (PHRASE_ASK.containsMatchIn(query) && PHRASE_HEALTH_CONTENT.containsMatchIn(query))
 
