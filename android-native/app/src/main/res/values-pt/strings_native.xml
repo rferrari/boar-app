@@ -383,6 +383,8 @@
     <string name="native_chat_keepGoing" formatted="false">Continue</string>
     <string name="native_chat_kgGroup" formatted="false">Continue: o que perguntar depois</string>
     <string name="native_chat_kgDeeper" formatted="false">Ir mais fundo</string>
+    <string name="native_chat_kgContinue" formatted="false">Continuar</string>
+    <string name="native_chat_kgContinueSpoken" formatted="false">Continuar: o BOAR segue a partir da última resposta.</string>
     <string name="native_chat_kgResearch" formatted="false">Pesquisar isto</string>
     <string name="native_chat_kgAsk" formatted="false">Perguntar ao BOAR</string>
     <string name="native_chat_kgAskQ" formatted="false">Perguntar ao BOAR: {{q}}</string>

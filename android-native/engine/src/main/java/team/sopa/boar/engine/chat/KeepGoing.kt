@@ -6,7 +6,12 @@ package team.sopa.boar.engine.chat
  * instant answer), then follow-up questions from the answer's own sources. No model call: what the answer already has.
  */
 object KeepGoing {
-    enum class Step(val key: String) { DEEPER("deeper"), RESEARCH("research"), ASK_BOAR("ask") ;
+    /**
+     * CONTINUE (adam, 16 Nov: "i preffer send 'Continue' instead 'Go deeper'"): sends "Continue" as a message, so BOAR
+     * goes on from its last answer in the same style (a meta follow-up, DeepResearch.META_MORE). DEEPER is no longer
+     * offered; it stays so older chats' bubbles still read "Go deeper".
+     */
+    enum class Step(val key: String) { DEEPER("deeper"), CONTINUE("continue"), RESEARCH("research"), ASK_BOAR("ask") ;
         companion object { fun of(key: String?) = entries.firstOrNull { it.key == key } }
     }
 
@@ -45,7 +50,7 @@ object KeepGoing {
         if (a.instant) return Next(if (a.canBypass) Step.ASK_BOAR else null, emptyList())
         val step = when {
             a.cut || a.deepResearch || a.keptShort -> null
-            a.style == "succinct" -> Step.DEEPER
+            a.style == "succinct" -> Step.CONTINUE
             a.style == "detailed" -> Step.RESEARCH
             else -> null // Personal Files, Custom: no ladder.
         }
@@ -54,7 +59,10 @@ object KeepGoing {
     }
 
     /** The ladder under the step's verb: the rungs done filled ("● Quick › ○ Detailed › ○ Research"). */
-    fun rungsDone(step: Step): Int = when (step) { Step.DEEPER -> 1; Step.RESEARCH -> 2; Step.ASK_BOAR -> 1 }
+    fun rungsDone(step: Step): Int = when (step) { Step.DEEPER -> 1; Step.CONTINUE -> 0; Step.RESEARCH -> 2; Step.ASK_BOAR -> 1 }
+
+    /** Whether the step shows the style ladder under its verb: Continue changes no style, so it has none. */
+    fun showsLadder(step: Step): Boolean = step != Step.CONTINUE
 }
 
 /**

@@ -701,9 +701,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        // Continue is its own message ("Continue" / "Continuar"), a meta follow-up in the same style: no step mark, so the
+        // bubble shows what was sent (adam, 16 Nov).
+        if (step == team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE) { send(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.kgContinue")); return }
         stepOnce = step.key
         when (step) {
             team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> { styleOnce = "detailed"; send(q) }
+            team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> Unit
             team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> { deepOnce = true; send(q) }
             team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> askModel(answerId)
         }

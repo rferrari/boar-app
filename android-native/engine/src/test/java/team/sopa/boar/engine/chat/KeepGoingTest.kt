@@ -11,9 +11,22 @@ import team.sopa.boar.engine.chat.KeepGoing.Step
 class KeepGoingTest {
     private val two = listOf("Tell me more about Salt", "What is Dead Sea?")
 
-    @Test fun `from the model in Succinct - Go deeper, then up to two follow-ups`() {
+    // Golden change (adam, 16 Nov: "i preffer send 'Continue' instead 'Go deeper'"): Succinct offers Continue, which
+    // sends "Continue" in the same style; no style ladder under it.
+    @Test fun `from the model in Succinct - Continue, then up to two follow-ups`() {
         val n = KeepGoing.of(Answer(style = "succinct", hasSources = true), two + "A third")
-        assertEquals(Step.DEEPER, n.step); assertEquals(two, n.followUps)
+        assertEquals(Step.CONTINUE, n.step); assertEquals(two, n.followUps)
+        assertTrue(!KeepGoing.showsLadder(Step.CONTINUE) && KeepGoing.showsLadder(Step.RESEARCH))
+        // An older chat's "Go deeper" bubble still reads as it was.
+        assertEquals(Step.DEEPER, Step.of("deeper"))
+    }
+
+    @Test fun `Continue sends a meta follow-up that asks for more, EN and PT`() {
+        for ((d, word) in listOf("values" to "Continue", "values-pt" to "Continuar")) {
+            assertTrue(d, java.io.File("../app/src/main/res/$d/strings_native.xml").readText().contains("name=\"native_chat_kgContinue\" formatted=\"false\">$word<"))
+            // A meta follow-up that asks for more: it keeps the search, so it adds rather than repeats (X6, Oct 16).
+            assertTrue(word, team.sopa.boar.engine.answer.DeepResearch.isMetaFollowUp(word) && !team.sopa.boar.engine.answer.DeepResearch.isSummaryFollowUp(word))
+        }
     }
 
     @Test fun `from the model in Detailed - Research this`() =

@@ -828,7 +828,7 @@ private fun userBubbleText(m: UiMessage): String = when (team.sopa.boar.engine.c
     team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
     team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
     team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskQ", "q" to m.text)
-    null -> m.text
+    team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE, null -> m.text
 }
 
 /** A verb in the card or a bubble (t9 0235): bold, muted, a dotted underline; a 48 dp target with the button role. */
@@ -892,6 +892,7 @@ private fun KeepGoingGroup(last: UiMessage, state: ChatState, onStep: (team.sopa
         next.step?.let { step ->
             val verb = when (step) {
                 team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
+                team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> t("native.chat.kgContinue")
                 team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
                 team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAsk")
             }
@@ -900,13 +901,14 @@ private fun KeepGoingGroup(last: UiMessage, state: ChatState, onStep: (team.sopa
             val done = team.sopa.boar.engine.chat.KeepGoing.rungsDone(step)
             val spoken = when (step) {
                 team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeperSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> t("native.chat.kgContinueSpoken")
                 team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearchSpoken")
                 team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskSpoken", "name" to (speaker?.let { t(it.titleKey) } ?: ""))
             }
             Faint(spoken, onClick = { onStep(step) }) {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     VerbText(verb)
-                    Text(rungs.mapIndexed { i, n -> (if (i < done) "● " else "○ ") + n }.joinToString("  ›  "), style = Boar.type["mono.xs"], color = c.textDim)
+                    if (team.sopa.boar.engine.chat.KeepGoing.showsLadder(step)) Text(rungs.mapIndexed { i, n -> (if (i < done) "● " else "○ ") + n }.joinToString("  ›  "), style = Boar.type["mono.xs"], color = c.textDim)
                 }
             }
         }
