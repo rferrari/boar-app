@@ -123,6 +123,28 @@ object PressStore {
         change { it.eraseAnswers(ids) }
     }
 
+    /**
+     * Before Clear chat history keeps Press (CHATS_KEEP_PRESS): a drawing block points at Designer's own file, which that
+     * clear erases, so each one used is copied into its project's folder first and the block points at the copy
+     * (validator R-A3: the kept project showed missing drawings). A file that can't be copied leaves its block as it was.
+     */
+    fun adoptDrawings(context: Context) {
+        load(context)
+        val pressDir = dir(context)
+        change { lib ->
+            lib.copy(projects = lib.projects.map { p ->
+                val pd = PressFiles.projectDir(pressDir, p.id)
+                p.copy(blocks = p.blocks.map { b ->
+                    if (b !is PressDoc.Block.Picture || b.kind != PressDoc.Kind.DRAWING) return@map b
+                    val src = File(b.file)
+                    if (src.parentFile?.canonicalPath == pd.canonicalPath || !src.isFile) return@map b
+                    val dst = File(pd, "drawing-" + src.name)
+                    runCatching { pd.mkdirs(); src.copyTo(dst, overwrite = true); b.copy(file = dst.path) }.getOrDefault(b)
+                })
+            })
+        }
+    }
+
     /** Projects that hold at least one block: what "Also delete Press projects (N)" counts. */
     fun projectsWithContent(context: Context): Int {
         load(context)

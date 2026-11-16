@@ -90,7 +90,11 @@ object LabHooks {
         team.sopa.boar.plugins.AnswerModes.ownsSources = { LabRegistry.active.any { it.ownsSources } }
         // Every lab, on or off, erases what it made when the user erases the chats or forgets the PIN.
         val app = context.applicationContext
-        team.sopa.boar.plugins.UserData.erase = { scope -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } } }
+        team.sopa.boar.plugins.UserData.erase = { scope ->
+            // Press kept: its drawings are copied into its projects before Designer erases its own files (R-A3).
+            if (scope == team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS) runCatching { team.sopa.boar.labs.printer.PressStore.adoptDrawings(app) }
+            LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseUserData(app, scope) } }
+        }
         team.sopa.boar.plugins.UserData.pressProjects = { runCatching { team.sopa.boar.labs.printer.PressStore.projectsWithContent(app) }.getOrDefault(0) }
         team.sopa.boar.plugins.UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseAnswers(app, ids) } } }
         team.sopa.boar.plugins.UserData.deleteNotes = { ids -> LabRegistry.active.mapNotNull { lab -> runCatching { lab.deleteNote(app, ids) }.getOrNull() } }

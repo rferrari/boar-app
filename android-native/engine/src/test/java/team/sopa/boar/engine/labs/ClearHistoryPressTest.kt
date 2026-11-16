@@ -1,5 +1,6 @@
 package team.sopa.boar.engine.labs
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -17,7 +18,8 @@ class ClearHistoryPressTest {
         assertTrue(printer.contains("if (scope == team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS) return\n        PressStore.eraseAll(context)"))
         assertTrue(settings.contains("var alsoPress by remember { mutableStateOf(false) }"))
         assertTrue(settings.contains("alsoPress = false; press = "))
-        assertTrue(settings.contains("if (press > 0 && !alsoPress) team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS else team.sopa.boar.plugins.UserData.Scope.CHATS"))
+        // Golden change (validator R-A6): it fails safe: Press goes only when ticked, an unread count keeps it.
+        assertTrue(settings.contains("val scope = if (alsoPress) team.sopa.boar.plugins.UserData.Scope.CHATS else team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS"))
     }
 
     @Test fun `on erases them, as before`() {
@@ -39,4 +41,22 @@ class ClearHistoryPressTest {
         val labs = java.io.File("../app/src/labs/plugins").walkTopDown().filter { it.extension == "kt" }.map { it.readText() }
         assertTrue(labs.count { it.contains("Scope.CHATS_KEEP_PRESS") } == 1)
     }
+
+    @Test fun `with Press kept, its drawings are copied in before Designer erases its files (validator R-A3)`() {
+        val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+        val adopt = hooks.indexOf("PressStore.adoptDrawings(app)")
+        assertTrue(adopt > 0 && adopt < hooks.indexOf("lab.eraseUserData(app, scope)"))
+        val store = src("labs/plugins/printer/java/team/sopa/boar/labs/printer/PressStore.kt")
+        assertTrue(store.contains("src.copyTo(dst, overwrite = true); b.copy(file = dst.path)"))
+        // And a drawing copied into its project's folder isn't cleaned up as an orphan.
+        val dir = kotlin.io.path.createTempDirectory("press").toFile()
+        try {
+            val pd = PressFiles.projectDir(dir, "p1").apply { mkdirs() }
+            val copied = java.io.File(pd, "drawing-a.png").apply { writeText("x") }
+            val stray = java.io.File(pd, "old.png").apply { writeText("x") }
+            val lib = PressDoc.Library("p1", listOf(PressDoc.Project("p1", "P", 1, listOf(PressDoc.Block.Picture("pic", PressDoc.Kind.DRAWING, copied.path)))))
+            assertEquals(listOf(stray.name), PressFiles.orphans(dir, lib).map { it.name })
+        } finally { dir.deleteRecursively() }
+    }
 }
+

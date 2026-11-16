@@ -77,7 +77,9 @@ object PressFiles {
         val dirs = lib.projects.associateBy { projectDir(pressDir, it.id).name }
         return pressDir.listFiles().orEmpty().filter { it.isDirectory }.flatMap { d ->
             val p = dirs[d.name] ?: return@flatMap listOf(d)
-            val used = p.blocks.filterIsInstance<PressDoc.Block.Picture>().filter { it.kind == PressDoc.Kind.PHOTO }.map { File(it.file).name }.toSet()
+            // A photo's copy, and a drawing copied into the project when the chats were cleared with Press kept (R-A3).
+            val used = p.blocks.filterIsInstance<PressDoc.Block.Picture>()
+                .filter { it.kind == PressDoc.Kind.PHOTO || File(it.file).parentFile?.name == d.name }.map { File(it.file).name }.toSet()
             d.listFiles().orEmpty().filter { it.name !in used }
         }
     }

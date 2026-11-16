@@ -311,7 +311,8 @@ private fun ClearChats(services: BoarServices) {
         } } else null,
         confirmButton = { androidx.compose.material3.TextButton({
             services.chats.clearAll()
-            val scope = if (press > 0 && !alsoPress) team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS else team.sopa.boar.plugins.UserData.Scope.CHATS
+            // Press goes only when the box was ticked: a count that couldn't be read (0) keeps it (validator R-A6).
+            val scope = if (alsoPress) team.sopa.boar.plugins.UserData.Scope.CHATS else team.sopa.boar.plugins.UserData.Scope.CHATS_KEEP_PRESS
             runCatching { team.sopa.boar.plugins.UserData.erase(scope) }
             asking = false; done = true
         }) { Text(t("memorySettings.clearAllButton"), color = Boar.colors.crimson400) } },
