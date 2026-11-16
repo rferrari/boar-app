@@ -347,7 +347,11 @@ object LabHooks {
     fun HeaderBadges(go: (String) -> Unit) {
         Init()
         val labs = LabRegistry.active
-        if (labs.isEmpty()) return
+        // Q-B1: plugins switched off from their pages (and an off safety plugin) are listed as off, so the icon stays.
+        val offIds = if (!LabPrefs.labsOn) emptyList() else team.sopa.boar.engine.labs.PluginReach.offListed(
+            LabRegistry.visible.mapNotNull(LabRegistry::opened).map { it.id }, LabPrefs::enabled, LabPrefs.offFromPage())
+        if (!team.sopa.boar.engine.labs.PluginReach.headerIconShown(labs.map { it.id }, offIds)) return
+        val off = offIds.mapNotNull(LabRegistry::byId)
         val c = team.sopa.boar.ui.theme.Boar.colors
         val counts = labs.associate { it.id to it.headerCount() }
         // Only plugins that ask for it count on the icon (LabPlugin.countOnHeaderIcon: none today, Press's answers included).
@@ -377,6 +381,14 @@ object LabHooks {
                     SheetRow(lab.shownArt, lab.emoji, team.sopa.boar.ui.t("native.labs.${lab.id}.title"), team.sopa.boar.ui.t("native.labs.${lab.id}.body"), lab.status, true,
                         trailing = counts[lab.id]?.takeIf { it > 0 }?.let { n -> { androidx.compose.material3.Text(lab.headerCountLabel(n), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
                             color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) } }) { open = false; go("lab:${lab.id}") }
+                }
+                // Off, each one tap from its page and its switch (Q-B1).
+                if (off.isNotEmpty()) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.headerSheetOff"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = androidx.compose.ui.Modifier.padding(top = 10.dp, bottom = 6.dp))
+                off.forEach { lab ->
+                    SheetRow(lab.shownArt, lab.emoji, team.sopa.boar.ui.t("native.labs.${lab.id}.title"), team.sopa.boar.ui.t("native.labs.${lab.id}.body"), lab.status, true,
+                        trailing = { androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.offTag"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textMuted) }) {
+                        open = false; go("lab:${lab.id}") }
                 }
                 // Turning labs on and off is Pro's (the list in the menu).
                 if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.manage") + " ›", style = team.sopa.boar.ui.theme.Boar.type.body,

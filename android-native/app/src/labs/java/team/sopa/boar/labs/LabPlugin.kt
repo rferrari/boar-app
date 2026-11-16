@@ -217,6 +217,7 @@ object LabPrefs {
             switches[it.id] = team.sopa.boar.engine.labs.LabDefaults.switchOf(it.id, stored)
             unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false)
         }
+        offPage.value = p.getString(OFF_FROM_PAGE, null)?.split(',')?.filter { it.isNotBlank() }?.toSet().orEmpty()
         restart.value = p.getBoolean("autoRestart", true)
         wait.value = p.getString("waitAnimation", WAIT_TRAIL) ?: WAIT_TRAIL
     }
@@ -277,11 +278,19 @@ object LabPrefs {
         prefs?.edit()?.putBoolean("unlocked.$id", true)?.apply()
     }
 
-    fun setEnabled(id: String, on: Boolean) {
+    /** [fromPage]: the switch at the top of the plugin's own page; an off plugin from there stays listed (PluginReach). */
+    fun setEnabled(id: String, on: Boolean, fromPage: Boolean = false) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
         switches[id] = on
-        prefs?.edit()?.putBoolean("enabled.$id", on)?.apply()
+        val off = team.sopa.boar.engine.labs.PluginReach.offFromPageAfter(offFromPage(), id, on, fromPage)
+        offPage.value = off
+        prefs?.edit()?.putBoolean("enabled.$id", on)?.putString(OFF_FROM_PAGE, off.joinToString(","))?.apply()
     }
+
+    /** Plugins the user switched off from their own pages (validator Q-B1): the header sheet lists them as off. */
+    fun offFromPage(): Set<String> = offPage.value
+    private val offPage = androidx.compose.runtime.mutableStateOf<Set<String>>(emptySet())
+    private const val OFF_FROM_PAGE = "offFromPage"
 
     fun string(key: String): String? = prefs?.getString(key, null)
 

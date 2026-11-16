@@ -171,10 +171,27 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
 fun PluginPageSwitch(lab: LabPlugin) {
     val c = Boar.colors
     val on = LabPrefs.enabled(lab.id)
+    // Q-B1: below Pro a safety plugin (Cohazard) shows its switch only while it's off, to come back on.
+    if (!team.sopa.boar.engine.labs.PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)) return
     val label = t("native.labs.pageSwitch", "name" to t("native.labs.${lab.id}.title"))
-    androidx.compose.material3.Switch(on, { LabPrefs.setEnabled(lab.id, it) },
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
+    androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true) },
         modifier = Modifier.semantics { contentDescription = label },
         colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+}
+
+/**
+ * The question before a safety plugin goes off (Q-B1, t9 0115): "Turn off the carbon monoxide safety card?". Returns
+ * what opens it; [off] runs only on "Turn off", and Cancel or Back changes nothing.
+ */
+@Composable
+fun rememberSafetyOff(id: String, off: () -> Unit): () -> Unit {
+    var asking by remember(id) { mutableStateOf(false) }
+    if (asking) androidx.compose.material3.AlertDialog(onDismissRequest = { asking = false },
+        title = { Text(t("native.labs.safetyOff.title")) }, text = { Text(t("native.labs.safetyOff.text")) },
+        confirmButton = { androidx.compose.material3.TextButton({ asking = false; off() }) { Text(t("native.labs.safetyOff.confirm")) } },
+        dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
+    return { asking = true }
 }
 
 /**
@@ -406,7 +423,8 @@ private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
             }
             Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
-        androidx.compose.material3.Switch(on, { LabPrefs.setEnabled(lab.id, it) },
+        val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false) }
+        androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v) },
             colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
     }
 }

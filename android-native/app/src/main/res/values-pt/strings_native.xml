@@ -843,4 +843,9 @@
     <string name="native_settings_lower_delete" formatted="false">Apagar</string>
     <string name="native_settings_experimentalNoteBelowPro" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Cada plugin tem um botão de ligar e desligar no topo da sua própria página: abra pelo botão de plugins no topo da conversa ou pela linha “está desligado” embaixo de uma resposta. Se algum der problema, desligue lá e, se puder, abra uma issue no GitHub.</string>
     <string name="native_labs_pageSwitch" formatted="false">{{name}} ligado ou desligado</string>
+    <string name="native_labs_headerSheetOff" formatted="false">DESLIGADOS</string>
+    <string name="native_labs_offTag" formatted="false">Desligado</string>
+    <string name="native_labs_safetyOff_title" formatted="false">Desligar o cartão de segurança do monóxido de carbono?</string>
+    <string name="native_labs_safetyOff_text" formatted="false">O BOAR deixará de mostrar primeiro o aviso de monóxido de carbono quando uma pergunta parecer intoxicação. Você pode ligá-lo de novo na página dele.</string>
+    <string name="native_labs_safetyOff_confirm" formatted="false">Desligar</string>
 </resources>

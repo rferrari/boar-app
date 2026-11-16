@@ -28,7 +28,7 @@ class SmallsWordsTest {
     }
 
     @Test fun `both plugin sheets use one row, status chips behind a switch (off since Nov 12)`() {
-        assertTrue(hooks.contains("private fun SheetRow(") && Regex("SheetRow\\(").findAll(hooks).count() == 3)
+        assertTrue(hooks.contains("private fun SheetRow(") && Regex("SheetRow\\(").findAll(hooks).count() == 4) // Golden change (Q-B1): the header sheet's Off rows use it too
         assertTrue(hooks.contains("if (PluginsUi.SHOW_STATUS && (status == LabStatus.ALPHA || status == LabStatus.BETA)) StatusChip(status)"))
     }
 

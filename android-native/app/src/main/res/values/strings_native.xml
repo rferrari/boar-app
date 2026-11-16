@@ -843,4 +843,9 @@
     <string name="native_settings_lower_delete" formatted="false">Delete them</string>
     <string name="native_settings_experimentalNoteBelowPro" formatted="false">These features are still being tested and may change or go away. Each plugin has an on/off switch at the top of its own page: open it from the plugin button at the top of the chat, or from the “is off” line under an answer. If one misbehaves, switch it off there, and if you can, open an issue on GitHub.</string>
     <string name="native_labs_pageSwitch" formatted="false">{{name}} on or off</string>
+    <string name="native_labs_headerSheetOff" formatted="false">OFF</string>
+    <string name="native_labs_offTag" formatted="false">Off</string>
+    <string name="native_labs_safetyOff_title" formatted="false">Turn off the carbon monoxide safety card?</string>
+    <string name="native_labs_safetyOff_text" formatted="false">BOAR will no longer show the carbon monoxide warning first when a question sounds like poisoning. You can turn it back on from its page.</string>
+    <string name="native_labs_safetyOff_confirm" formatted="false">Turn off</string>
 </resources>

@@ -8,8 +8,10 @@ class PluginsIconTest {
     private val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
     private val icon = hooks.substringAfter("fun HeaderBadges(").substringBefore("\n    }\n")
 
-    @Test fun `no lab on, no icon`() {
-        assertTrue(icon.contains("val labs = LabRegistry.active\n        if (labs.isEmpty()) return"))
+    // Golden change (validator Q-B1, t9 0115): no lab on and none listed as off, no icon; a plugin switched off from its
+    // page keeps the icon so it can be found again (PluginReachTest has the behaviour).
+    @Test fun `no lab on and none listed as off, no icon`() {
+        assertTrue(icon.contains("if (!team.sopa.boar.engine.labs.PluginReach.headerIconShown(labs.map { it.id }, offIds)) return"))
     }
 
     @Test fun `the list holds the last five used among the labs that are on, each opening its page`() {

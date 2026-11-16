@@ -14,9 +14,10 @@ class PluginPageSwitchTest {
         assertTrue(scaffold.contains("actions = { PluginPageSwitch(lab); if (lab.hasSettings) PluginSettingsGear(name)"))
         assertTrue(scaffold.contains("            PluginPageSwitch(lab)\n        }\n    }) {"))
         val sw = labs.substringAfter("fun PluginPageSwitch(").substringBefore("\n}\n")
-        assertTrue(sw.contains("LabPrefs.enabled(lab.id)") && sw.contains("LabPrefs.setEnabled(lab.id, it)") && sw.contains("contentDescription = label"))
-        // Not tied to a profile.
-        assertTrue(!sw.contains("proProfile"))
+        assertTrue(sw.contains("LabPrefs.enabled(lab.id)") && sw.contains("LabPrefs.setEnabled(lab.id, v, fromPage = true)") && sw.contains("contentDescription = label"))
+        // Golden change (validator Q-B1, t9 0115): tied to the profile for safety plugins only, through PluginReach
+        // (PluginReachTest has the behaviour); every other plugin's switch shows in every profile.
+        assertTrue(sw.contains("PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)") && sw.contains("PluginReach.asksBeforeOff(lab.id, v)"))
     }
 
     @Test fun `below Pro, Settings says where the switch is, in EN and PT`() {
