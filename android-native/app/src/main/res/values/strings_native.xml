@@ -836,4 +836,5 @@
     <string name="native_settings_memory_all" formatted="false">All</string>
     <string name="native_settings_clearChatsPress" formatted="false">Also delete Press projects ({{count}}) and their photos</string>
     <string name="native_chat_noSource" formatted="false">No source in this phone\'s library covers this; the answer is from the model alone.</string>
+    <string name="native_labs_printer_rOwnFile" formatted="false">Your own file</string>
 </resources>

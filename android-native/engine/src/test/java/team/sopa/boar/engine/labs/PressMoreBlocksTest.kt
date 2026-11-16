@@ -75,7 +75,8 @@ class PressFooterTest {
             PressDoc.Source("Notes", "  "),
         ), 1, "Qwen3 4B", 9.5)
         val lines = PressReceipt.sourceLines(PressReceipt.build(PressDoc.Project("q", "Mine", 1, listOf(mine))), PressReceipt.Options())
-        assertEquals(listOf("[1] Imposto 2025", "[2] Nosebleed — Wikipedia — https://en.wikipedia.org/wiki/Nosebleed (CC BY-SA 4.0)", "[3] Notes"), lines)
+        // Golden change (validator R-A1): a user's file prints a neutral line, not its title (the file name, often).
+        assertEquals(listOf("[1] Your own file", "[2] Nosebleed — Wikipedia — https://en.wikipedia.org/wiki/Nosebleed (CC BY-SA 4.0)", "[3] Notes"), lines)
         // The shapes a file name can take never pass.
         for (f in listOf("notes.txt", "Relatório final.docx", "a — b.pdf", "IMG_2041", "Wikipedia notes.pdf")) assertTrue(f, !PressReceipt.shareable(f))
         for (s in listOf("Wikipedia", "Wikivoyage — https://en.wikivoyage.org/wiki/Lisbon")) assertTrue(s, PressReceipt.shareable(s))
@@ -125,6 +126,24 @@ class PressBarNoteTest {
         val add = screen.substringAfter("fun addNote(b: Block.Note) {").substringBefore("\n    }")
         for (w in listOf("addBlock(b)", "selected = null", "editing = null", "fresh = null", "barNote = b.id")) assertTrue(w, add.contains(w))
         assertTrue(screen.contains("val anchor = selected ?: barNote"))
+    }
+}
+
+/** Validator R-A1: a user's file name never prints in a shared PDF or .md, through its title either. */
+class PressOwnFileNameTest {
+    @Test fun `the Sources section, the receipt and the Markdown never print a user's file title`() {
+        val mine = Block.Answer("m", "Chat", "Q?", "A [1] [2].", listOf(
+            PressDoc.Source("imposto-2025-joao-silva", "imposto-2025-joao-silva.pdf"),
+            PressDoc.Source("Tax", "Wikipedia — https://en.wikipedia.org/wiki/Tax"),
+        ), 1, "Qwen3 4B", 9.5)
+        val p = PressDoc.Project("q", "Mine", 1, listOf(mine))
+        val r = PressReceipt.build(p)
+        val lines = PressReceipt.sourceLines(r, PressReceipt.Options(), "Arquivo seu")
+        assertEquals(listOf("[1] Arquivo seu", "[2] Tax — Wikipedia — https://en.wikipedia.org/wiki/Tax"), lines)
+        val md = PressReceipt.markdown(p, PressReceipt.Labels(), "today", "x", "Sources", "Drawing", r, "Photo", PressReceipt.Options())
+        assertTrue(md, "joao-silva" !in md)
+        val canvas = java.io.File("../app/src/labs/plugins/canvas/java/team/sopa/boar/labs/canvas/CanvasLab.kt").readText()
+        assertTrue(!canvas.contains("a.sources.map { it.first }") && canvas.contains("PressReceipt.shareable(src)"))
     }
 }
 

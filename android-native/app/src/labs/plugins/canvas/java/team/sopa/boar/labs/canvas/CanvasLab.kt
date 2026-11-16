@@ -93,11 +93,11 @@ object CanvasLab : LabPlugin {
             cards.isNotEmpty() -> {
                 val best = cards.first()
                 LabAction("📊", t("native.labs.canvas.make.card"), art = art, detail = foundLine(cards)) {
-                    Canvas.show(ctx, a.id, AnswerCard.of(best, best.shapes.first(), AnswerCard.titleFor(best, a.question, a.sources.map { it.first })), a.text)
+                    Canvas.show(ctx, a.id, AnswerCard.of(best, best.shapes.first(), AnswerCard.titleFor(best, a.question, titleSources(a))), a.text)
                 }
             }
             else -> {
-                val fallback = AnswerCard.titleFor(CardRules.Card.Steps(emptyList()), a.question, a.sources.map { it.first })
+                val fallback = AnswerCard.titleFor(CardRules.Card.Steps(emptyList()), a.question, titleSources(a))
                 LabAction("📊", t("native.labs.canvas.nothingHere"), enabled = free, art = art, detail = t("native.labs.canvas.askModel")) {
                     Canvas.start(ctx, a, fallback)
                 }
@@ -141,7 +141,7 @@ object CanvasLab : LabPlugin {
         // The pill that is on: the choice whose card, in its shape, is the one shown.
         val current = remember(choices, card) { choices.firstOrNull { ch -> ch.shape == card.shape && AnswerCard.of(cards[ch.card], ch.shape, "").body == card.body } }
         CardView(card, choices, current, ticks = Canvas.ticksOf(a.id),
-            onPick = { ch -> Canvas.show(ctx, a.id, AnswerCard.of(cards[ch.card], ch.shape, AnswerCard.titleFor(cards[ch.card], a.question, a.sources.map { it.first })), a.text) },
+            onPick = { ch -> Canvas.show(ctx, a.id, AnswerCard.of(cards[ch.card], ch.shape, AnswerCard.titleFor(cards[ch.card], a.question, titleSources(a))), a.text) },
             onTick = { Canvas.tick(ctx, a.id, it) },
             onRemove = { Canvas.show(ctx, a.id, null, a.text) })
     }
@@ -384,3 +384,10 @@ private fun palette(): List<Color> {
     val c = Boar.colors
     return listOf(c.emerald500, c.cyan400, c.amber400, c.crimson400, c.textAccentViolet, c.emerald600, c.cyan600, c.amber600)
 }
+
+/**
+ * The sources a card's title may come from: a pack's, never a user's own file, whose title is its file name (validator
+ * R-A1: the title printed bold in a shared PDF or .md).
+ */
+internal fun titleSources(a: team.sopa.boar.plugins.AnswerRef): List<String> =
+    a.sources.filter { (_, src) -> src != null && team.sopa.boar.engine.labs.PressReceipt.shareable(src) }.map { it.first }

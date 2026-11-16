@@ -72,7 +72,7 @@ class PressPage(
     val rows: List<PressReceipt.Row> get() = PressReceipt.rows(receipt, labels, date, version)
 
     /** The Sources section at the end, one line per source with its pack; empty when off or there are none. */
-    val sourceLines: List<String> get() = PressReceipt.sourceLines(receipt, options)
+    val sourceLines: List<String> get() = PressReceipt.sourceLines(receipt, options, labels.ownFile)
 
     /** The footer: the models' line when on, and "Made offline with BOAR", always (PressReceipt.footer). */
     val footer: List<String> get() = PressReceipt.footer(receipt, labels, date, options)
@@ -106,6 +106,7 @@ class PressPage(
             portrait = I18n.t(ctx, "native.labs.printer.rPortrait"),
             wide = I18n.t(ctx, "native.labs.printer.rWide"),
             low = I18n.t(ctx, "native.labs.printer.rLow"),
+            ownFile = I18n.t(ctx, "native.labs.printer.rOwnFile"),
             medium = I18n.t(ctx, "native.labs.printer.rMedium"),
             high = I18n.t(ctx, "native.labs.printer.rHigh"),
             // Designer's own name for the style when this build has it; else the key, capitalised.

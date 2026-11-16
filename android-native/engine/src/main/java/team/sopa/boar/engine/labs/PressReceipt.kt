@@ -108,6 +108,8 @@ object PressReceipt {
         val low: String = "low quality",
         val medium: String = "medium quality",
         val high: String = "high quality",
+        /** A user's own file in the Sources section: its name never prints (validator R-A1). */
+        val ownFile: String = "Your own file",
         val styleName: (String) -> String = { k -> k.replaceFirstChar { it.titlecase(Locale.ROOT) } },
     )
 
@@ -138,7 +140,7 @@ object PressReceipt {
         if (r.answers > 0) add(Row(l.answers, listOf(r.answers.toString()) + r.models.map(::modelText)))
         if (r.drawings.isNotEmpty()) add(Row(l.drawings, r.drawings.map { drawingText(it, l) }))
         if (r.photos > 0) add(Row(l.photos, listOf(l.photosValue.replace("{{count}}", r.photos.toString()))))
-        if (r.sources.isNotEmpty()) add(Row(l.sources, r.sources.map(::sourceText), numbered = true))
+        if (r.sources.isNotEmpty()) add(Row(l.sources, r.sources.map { sourceText(it, l.ownFile) }, numbered = true))
     }
 
     /**
@@ -148,8 +150,8 @@ object PressReceipt {
     data class Options(val date: Boolean = true, val sources: Boolean = true, val models: Boolean = true, val speed: Boolean = false)
 
     /** The Sources section at the end: one line per source, by its [n], with the pack it came from ("Wikipedia"). */
-    fun sourceLines(r: Receipt, o: Options): List<String> =
-        if (!o.sources) emptyList() else r.sources.mapIndexed { i, s -> "[${i + 1}] " + sourceText(s).trim() }
+    fun sourceLines(r: Receipt, o: Options, ownFile: String = Labels().ownFile): List<String> =
+        if (!o.sources) emptyList() else r.sources.mapIndexed { i, s -> "[${i + 1}] " + sourceText(s, ownFile).trim() }
 
     /** A model with its speed in brackets: "Qwen3 4B (9.5 tok/s)", or the slowest to the fastest. */
     fun modelWithSpeed(m: ModelLine): String = when {
@@ -168,7 +170,16 @@ object PressReceipt {
         l.madeWith.replace("{{date}}", date),
     )
 
-    fun sourceText(s: PressDoc.Source) = s.title + (s.source?.takeIf { shareable(it) }?.let { " — $it" } ?: "")
+    /**
+     * A source as the Sources section prints it. A pack's prints its title and "Label — https://…"; a user's own file
+     * (its source is the file name, and its title the file name without the extension, DocumentImport.parse) prints
+     * [ownFile] only, under its own [n] (validator R-A1: "[1] imposto-2025-joao-silva").
+     */
+    fun sourceText(s: PressDoc.Source, ownFile: String = Labels().ownFile): String = when {
+        s.source.isNullOrBlank() -> s.title
+        shareable(s.source) -> s.title + " — " + s.source
+        else -> ownFile
+    }
 
     /**
      * A source that may print in a shared PDF or .md (validator A-1): a pack's or the corpus's "Wikipedia — https://…", or
@@ -232,7 +243,7 @@ object PressReceipt {
             is Block.Unknown -> {}
         }
         // The Sources section, then the footer, as on the paper (adam, Nov 14), the footer in small italics under a rule.
-        sourceLines(r, o).takeIf { it.isNotEmpty() }?.let { append("## ").append(sourcesLabel).append("\n\n").append(it.joinToString("  \n")).append("\n\n") }
+        sourceLines(r, o, l.ownFile).takeIf { it.isNotEmpty() }?.let { append("## ").append(sourcesLabel).append("\n\n").append(it.joinToString("  \n")).append("\n\n") }
         append("---\n\n").append(footer(r, l, date, o).joinToString("  \n") { "_${it}_" }).append('\n')
     }
 }
