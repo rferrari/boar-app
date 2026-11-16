@@ -148,4 +148,11 @@ class CardRulesTest {
             assertEquals(listOf(8849.0, 8611.0, 300.0), c.points.map { it.value })
         } finally { team.sopa.boar.engine.answer.AnswerLanguage.appLanguage = was }
     }
+
+    @Test fun `a label ending in a number with a value that isn't a time stays a fact (validator R-B5)`() {
+        val levels = CardRules.find("What does each level give?", "- Level 3: 10 points\n- Level 4: 20 points\n- Level 5: 30 points")
+        assertEquals(listOf("Level 3", "Level 4", "Level 5"), (levels.first { it is Card.Facts } as Card.Facts).pairs.map { it.first })
+        // Times are still times.
+        assertTrue(CardRules.find("What does a typical day look like?", "- Breakfast 08:00\n- Lunch 12:30\n- Dinner 19:00 - 20:00").none { it is Card.Facts })
+    }
 }

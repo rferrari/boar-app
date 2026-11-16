@@ -123,7 +123,9 @@ object CardRules {
      * The colon is a clock time's ("Breakfast 08:00" read as Breakfast 08 -> 00), not a label's (validator B-10). A label
      * whose value holds a time stays a fact: "Opening hours: 09:00 to 17:00".
      */
-    private fun clock(m: MatchResult) = Regex("""\d$""").containsMatchIn(m.groupValues[1].trim('*')) && Regex("""^\**\s*\d{2}(?!\d)""").containsMatchIn(m.groupValues[2])
+    private fun clock(m: MatchResult) = Regex("""\d$""").containsMatchIn(m.groupValues[1].trim('*')) && CLOCK_VALUE.matches(m.groupValues[2].trim())
+    /** What's left of a time after the colon: the minutes alone, with h/am/pm, or a range ("00", "30h", "00 - 13:00"); not "10 points" (R-B5). */
+    private val CLOCK_VALUE = Regex("""^\**\s*\d{2}(?:\s*(?:h|am|pm|a\.m\.|p\.m\.))?\**(?:\s*(?:-|–|to|até|a)\s*\d{1,2}(?::\d{2})?(?:\s*(?:h|am|pm))?)?\s*$""", RegexOption.IGNORE_CASE)
 
     private fun splitPoints(v: String): List<String> = v.split(Regex("""[;•]|,\s(?=[\p{Ll}])""")).map { it.trim().trimEnd('.') }.filter { it.isNotEmpty() }
 
