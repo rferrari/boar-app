@@ -64,13 +64,15 @@ object UnitConversion {
     private val FORWARD = Regex("""$NUM$SOURCE_TAIL\s+$TO\s+(?:(?:the|o|a|os|as)\s+)?((?:$ALL_NAMES))$END""", RegexOption.IGNORE_CASE)
 
     /** A quantity right before the converted number: "5 feet " in "5 feet 10 in to cm", "1 lb and " in "1 lb and 8 oz". */
-    private val PART_BEFORE = Regex("""\d\s*((?:$ALL_NAMES))$END\s*(?:,|and|e|&)?\s*$""", RegexOption.IGNORE_CASE)
+    private val PART_BEFORE = Regex("""\d\s*((?:$ALL_NAMES))$END\s*(?:,|and|e|&|plus|mais|y)?\s*$""", RegexOption.IGNORE_CASE)
 
     /** A bare number and a range word right before the converted number: "5 and ", "5-", "5 to ", "5 a ", "5 ou ". */
-    private val RANGE_BEFORE = Regex("""\d(?:[.,]\d+)?\s*(?:and|to|or|-|–|—|a|e|até|ou)\s*$""", RegexOption.IGNORE_CASE)
+    private val RANGE_BEFORE = Regex("""\d(?:[.,]\d+)?\s*(?:and|to|or|-|–|—|a|e|até|ou)\s*[-−]?$""", RegexOption.IGNORE_CASE)
 
     /** A quantity right after the converted one: " 10 inches" in "how many cm is 5 feet 10 inches". */
-    private val PART_AFTER = Regex("""^\s*(?:,|and|e|&)?\s*\d+(?:[.,]\d+)?\s*((?:$ALL_NAMES))$END""", RegexOption.IGNORE_CASE)
+    private val PART_AFTER = Regex("""^\s*(?:,|and|e|&|plus|mais|y)?\s*\d+(?:[.,]\d+)?\s*((?:$ALL_NAMES))$END""", RegexOption.IGNORE_CASE)
+    /** A bare number right after the converted quantity ("5 feet 10", the inches unsaid): a compound too (R-B3). */
+    private val BARE_AFTER = Regex("""^\s*(?:and|e|plus|mais)?\s*\d+(?:[.,]\d+)?\s*(?:\?|$|\s+(?:in|to|into|em|para)\b)""", RegexOption.IGNORE_CASE)
 
     /** "how many km is 26 miles", "how many cm in 6 feet", "quantos km são 26 milhas", "quantas libras tem 80 kg". */
     private val ASKED = Regex(
@@ -114,6 +116,7 @@ object UnitConversion {
         // looks exact and is wrong (validator B-2): the model takes the question.
         PART_BEFORE.find(query.substring(0, numAt))?.let { m -> if (unitOf(m.groupValues[1])?.family == src.family) return null }
         PART_AFTER.find(query.substring(unitEnd))?.let { m -> if (unitOf(m.groupValues[1])?.family == src.family) return null }
+        if (src.family == "length" && BARE_AFTER.containsMatchIn(query.substring(unitEnd))) return null
         // "between 5 and 10 miles in km", "5-10 miles", "de 5 a 10 milhas": a range, not its last number (validator B-3).
         if (RANGE_BEFORE.containsMatchIn(query.substring(0, numAt))) return null
         val dst = unitOf(to) ?: return null

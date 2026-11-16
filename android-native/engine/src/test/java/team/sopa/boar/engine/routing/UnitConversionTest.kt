@@ -145,4 +145,13 @@ class UnitConversionTest {
         assertEquals("5 km = 3.11 miles (1 mile = 1.609344 km).", conv("Route A - 5 km to miles"))
         assertEquals(null, conv("5-10 km to miles"))
     }
+
+    @Test fun `the compound and range holes go to the model too (validator R-B3)`() {
+        for (q in listOf("5 feet plus 10 inches in cm", "how many cm are 5 feet 10", "-5 to -3 km in miles", "5 pés mais 10 polegadas em cm"))
+            assertEquals(q, null, conv(q))
+        // Single conversions still answer.
+        assertEquals("5 miles = 8.05 km (1 mile = 1.609344 km).", conv("5 miles in km"))
+        assertEquals("5 feet = 152.4 cm (1 foot = 30.48 cm).", conv("how many cm is 5 feet"))
+        assertEquals("10 inches = 25.4 cm (1 inch = 2.54 cm).", conv("I am 5 feet and about 10 inches tall; convert 10 inches to cm"))
+    }
 }
