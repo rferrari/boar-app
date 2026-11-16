@@ -157,11 +157,17 @@ object PtLexicon {
      * article Nature (t9 0110 item 6: "Como purificar água na natureza, passo a passo?" got Nature, Nature (journal) and
      * Nature reserve as its sources). "a natureza", "da natureza" still name it.
      */
-    private val IN_THE_WILD = Regex("""(?<![\p{L}])(?:na|em plena|em meio [àa]|no meio da|em contato com a|ao ar livre na) natureza(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    private val IN_THE_WILD = Regex("""(?<![\p{L}])(?:na|em plena|em meio [àa]|no meio da|em contato com a|ao ar livre na) natureza(?![\p{L}])(?!\s+human[ao])""", RegexOption.IGNORE_CASE)
+    /** "In the wild" is something done there: survive, camp, purify, find… (validator R-D2: "o papel do homem na natureza" is Nature). */
+    private val WILD_ACTION = Regex("""(?<![\p{L}])(?:como|sobreviver|acampar|acampamento|purificar|filtrar|achar|encontrar|cozinhar|dormir|caminhar|trilha|fazer fogo|acender|perdid[oa]|passo a passo|seguro)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    /** "céu azul" is the sky's light only in a why or how question (R-D3: not "Céu Azul Futebol Clube", not Photoshop). */
+    private val WHY_HOW = Regex("""(?<![\p{L}])(?:por ?que|porqu[eê]|como|o que (?:faz|torna|deixa)|explique|explica)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    private val PHOTO_OR_NAME = Regex("""(?<![\p{L}])(?:photoshop|desenhar|pintar|clube|futebol|bras[íi]lia)(?![\p{L}])""", RegexOption.IGNORE_CASE)
 
     /** English article names a Portuguese question mentions, longest names first, each word used once. */
     fun englishNamesIn(query: String, lexicon: Map<String, String>, max: Int = 4, maxLen: Int = 5): List<String> {
-        @Suppress("NAME_SHADOWING") val query = IN_THE_WILD.replace(query, " ")
+        val sky = WHY_HOW.containsMatchIn(query) && !PHOTO_OR_NAME.containsMatchIn(query)
+        @Suppress("NAME_SHADOWING") val query = if (WILD_ACTION.containsMatchIn(query)) IN_THE_WILD.replace(query, " ") else query
         val words = FOLDED_WORD.findAll(foldText(query)).map { it.value }.toList()
         val original = ORIGINAL_WORD.findAll(query).map { it.value }.toList()
         val accented = if (original.size == words.size) original.map { Js.nfc(it).lowercase() } else null
@@ -177,7 +183,7 @@ object PtLexicon {
                 if ((i until i + len).any { used[it] }) continue
                 if (gram[0] in STOP || gram[len - 1] in STOP) continue
                 if (len == 1 && (gram[0].length < 4 || !specific(i))) continue
-                val reading = variants(gram).firstNotNullOfOrNull { READINGS[it] }
+                val reading = variants(gram).firstNotNullOfOrNull { READINGS[it] }?.takeUnless { it == "Diffuse sky radiation" && !sky }
                 if (reading != null) {
                     if (reading.isEmpty()) { for (j in i until i + len) used[j] = true; continue }
                     for (j in i until i + len) used[j] = true

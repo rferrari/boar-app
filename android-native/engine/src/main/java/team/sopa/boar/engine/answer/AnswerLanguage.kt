@@ -41,7 +41,7 @@ object AnswerLanguage {
 
     // Spanish, French and German: words none of Portuguese or English uses ("es", "una", "pourquoi", "nicht"), two or
     // more, or a greeting alone (validator C-1: "hola" got "Responda em Português" in a Portuguese app).
-    private val ES_WORDS = Regex("""(?<![\p{L}])(qué|cómo|cuándo|dónde|por qué|es|una|mi|muy|tiene|puedo|hacer|están|el|los|las|del|al|y|pero|también|hola|gracias|cuál|cuánto|cuántos|hay)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    private val ES_WORDS = Regex("""(?<![\p{L}])(qué|cómo|cuándo|dónde|por qué|es|una|un|mi|muy|tiene|puedo|hacer|están|el|los|las|del|al|y|pero|también|hola|gracias|cuál|cuánto|cuántos|hay)(?![\p{L}])""", RegexOption.IGNORE_CASE)
     private val FR_WORDS = Regex("""(?<![\p{L}])(je|vous|nous|ce|le|est-ce|qu'est|pourquoi|quelle|quel|quels|quelles|les|avec|dans|sont|c'est|bonjour|merci|combien|très|ça|où|est|il|elle|pour|sur|une|des)(?![\p{L}])""", RegexOption.IGNORE_CASE)
     private val DE_WORDS = Regex("""(?<![\p{L}])(ich|du|warum|wie|ist|sind|und|nicht|mit|eine|ein|der|den|dem|hallo|danke|bitte|welche|wieviel|wo|wer|was ist|kann|ich bin)(?![\p{L}])""", RegexOption.IGNORE_CASE)
     private val GREETING_OTHER = Regex("""^\s*(?:¡?hola|bonjour|salut|hallo|guten (?:tag|morgen|abend)|buenos (?:días|dias)|buenas(?: tardes| noches)?)\b[\s!.,?¿¡]*\p{L}*[\s!.?]*$""", RegexOption.IGNORE_CASE)
@@ -60,6 +60,9 @@ object AnswerLanguage {
         val t = QUOTED.replace(text, " ").takeIf { it.isNotBlank() } ?: text
         if (GREETING_OTHER.matches(t) || other(t)) return Lang.OTHER
         if (QueryContext.isPortugueseQuestion(t) || PtLexicon.looksPortuguese(t)) return Lang.PT
+        // One English word beside Portuguese ones is a title ("Resumo de The Matrix", "Letra de Let It Be"): can't
+        // tell, the conversation or the app decides (validator R-D1).
+        if (distinct(EN_WORDS, t) == 1 && PT_SMALL.containsMatchIn(t)) return null
         return if (EN_WORDS.containsMatchIn(t)) Lang.EN else null
     }
 
@@ -71,10 +74,18 @@ object AnswerLanguage {
         if (QueryContext.isSpanishQuestion(t)) return true
         val es = distinct(ES_WORDS, t); val fr = distinct(FR_WORDS, t); val de = distinct(DE_WORDS, t)
         val best = maxOf(es, fr, de)
-        if (best < 2) return false
         val pt = distinct(PT_WORDS, t); val en = distinct(EN_WORDS, t)
+        // One marker word is enough in a sentence of three words or more with no Portuguese or English word at all
+        // ("Wie viele Einwohner hat Berlin", "combien de temps dure un vol"; validator R-D5). A lone "gracias" stays
+        // ambiguous.
+        if (best == 1 && pt == 0 && en == 0 && WORD.findAll(t).count() >= 3) return true
+        if (best < 2) return false
         return best > pt && best > en
     }
+
+    private val WORD = Regex("""\p{L}+""")
+    /** Portuguese small words a title in English sits among: "Resumo de The Matrix". */
+    private val PT_SMALL = Regex("""(?<![\p{L}])(de|do|da|dos|das|em|no|na|para|sobre|resumo|letra|significado|tradução)(?![\p{L}])""", RegexOption.IGNORE_CASE)
 
     private val PT_WORDS = Regex("""(?<![\p{L}])(não|é|são|está|você|como|qual|quais|quanto|quantos|porque|por que|uma|um|do|da|dos|das|no|na|nos|nas|em|para|com|isso|meu|minha|tem|têm|faz|fazer|posso|olá|oi|obrigado|obrigada)(?![\p{L}])""", RegexOption.IGNORE_CASE)
 

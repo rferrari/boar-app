@@ -60,10 +60,6 @@ object RagPure {
     fun <T> filterByMinScore(chunks: List<T>, minScore: Double, score: (T) -> Double): List<T> = chunks.filter { score(it) >= minScore }
 
     private val STOPWORDS = setOf(
-        // Portuguese function words (t9 0226): "para" matched the article Pará for "Como as monções se formam, e por que
-        // importam para a agricultura…". Folded forms, as tokenize gives them.
-        "para", "por", "pelo", "pela", "como", "que", "uma", "um", "das", "dos", "da", "do", "de", "em", "no", "na", "nos", "nas",
-        "ao", "aos", "sem", "se", "seu", "sua", "qual", "quais", "quando", "onde", "porque", "entre", "sobre",
         "a", "about", "after", "all", "also", "am", "an", "and", "any", "are", "as", "at",
         "be", "because", "been", "before", "being", "best", "better", "between", "both", "but", "by",
         "can", "could", "compare", "comparison", "describe", "detail", "details", "did",
@@ -98,11 +94,25 @@ object RagPure {
     }
 
     /** The question's content words as an FTS5 OR query, each quoted; null when only filler is left. */
+    /**
+     * Portuguese function words (t9 0226): "para" matched the article Pará for "Como as monções se formam, e por que
+     * importam para a agricultura…". Only for a Portuguese question (validator R-D4: "What is DOS?", "What is Na?",
+     * "Uma Thurman" lost their keyword). Folded forms, as tokenize gives them.
+     */
+    /** An English question ("What is Na?"): a short one reads as Portuguese to looksPortuguese. */
+    private val EN_QUESTION = Regex("""(?<![\p{L}])(?:what|who|whom|which|how|why|when|where|is|are|was|were|does|do|did|the|of|and)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+
+    private val PT_STOPWORDS = setOf(
+        "para", "por", "pelo", "pela", "como", "que", "uma", "um", "das", "dos", "da", "do", "de", "em", "no", "na", "nos", "nas",
+        "ao", "aos", "sem", "se", "seu", "sua", "qual", "quais", "quando", "onde", "porque", "entre", "sobre",
+    )
+
     fun buildLexicalQuery(query: String): LexicalQuery? {
         val seen = HashSet<String>()
         val terms = ArrayList<LexicalTerm>()
+        val pt = (PtLexicon.looksPortuguese(query) || team.sopa.boar.engine.routing.QueryContext.isPortugueseQuestion(query)) && !EN_QUESTION.containsMatchIn(query)
         for (token in tokenize(query)) {
-            if (token.length < 2 || token in STOPWORDS) continue
+            if (token.length < 2 || token in STOPWORDS || (pt && token in PT_STOPWORDS)) continue
             val forms = listOf(token) + singularsOf(token)
             if (forms.any { it in seen }) continue
             seen += forms
