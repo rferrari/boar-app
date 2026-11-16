@@ -118,8 +118,9 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 lowering?.let { (v, going) ->
                     androidx.compose.material3.AlertDialog({ lowering = null },
                         title = { Text(t("native.settings.lower.title")) },
-                        text = { Text(if (going.size > 1) t("native.settings.lower.textMore", "max" to v, "title" to going.first().title, "more" to going.size - 1)
-                            else t("native.settings.lower.text", "max" to v, "title" to going.first().title)) },
+                        text = { Text(team.sopa.boar.plugins.UserData.withPluginsLine(
+                            if (going.size > 1) t("native.settings.lower.textMore", "max" to v, "title" to going.first().title, "more" to going.size - 1)
+                            else t("native.settings.lower.text", "max" to v, "title" to going.first().title), t("native.chat.prune.plugins"))) },
                         confirmButton = { androidx.compose.material3.TextButton({
                             max = team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS; s.maxSavedSessions = max; lowering = null
                         }) { Text(t("native.chat.prune.keepAll")) } },

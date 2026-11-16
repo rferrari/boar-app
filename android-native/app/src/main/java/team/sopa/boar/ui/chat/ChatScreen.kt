@@ -1034,7 +1034,9 @@ private fun PruneNoteDialog(n: team.sopa.boar.chat.PruneNote, onKeepAll: () -> U
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(t("native.chat.prune.title")) },
-        text = { Text(if (n.more > 0) t("native.chat.prune.textMore", "max" to n.max, "title" to n.title, "more" to n.more) else t("native.chat.prune.text", "max" to n.max, "title" to n.title)) },
+        text = { Text(team.sopa.boar.plugins.UserData.withPluginsLine(
+            if (n.more > 0) t("native.chat.prune.textMore", "max" to n.max, "title" to n.title, "more" to n.more) else t("native.chat.prune.text", "max" to n.max, "title" to n.title),
+            t("native.chat.prune.plugins"))) },
         confirmButton = { androidx.compose.material3.TextButton(onKeepAll) { Text(t("native.chat.prune.keepAll")) } },
         dismissButton = { androidx.compose.material3.TextButton(onDelete) { Text(t("native.chat.prune.delete"), color = c.crimson400) } },
         containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,

@@ -832,6 +832,7 @@
     <string name="native_chat_prune_textMore" formatted="false">You keep {{max}} chats, so starting this one deletes “{{title}}” and {{more}} more.</string>
     <string name="native_chat_prune_keepAll" formatted="false">Keep all chats</string>
     <string name="native_chat_prune_delete" formatted="false">Delete it</string>
+    <string name="native_chat_prune_plugins" formatted="false">Their answers also leave your Press projects, and the cards and Designer pictures made from them are deleted.</string>
     <string name="native_settings_summary_memoryAll" formatted="false">Keeps all chats</string>
     <string name="native_settings_memory_all" formatted="false">All</string>
     <string name="native_settings_clearChatsPress" formatted="false">Also delete Press projects ({{count}}) and their photos</string>

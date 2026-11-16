@@ -98,6 +98,7 @@ object LabHooks {
         team.sopa.boar.plugins.UserData.pressProjects = { runCatching { team.sopa.boar.labs.printer.PressStore.projectsWithContent(app) }.getOrDefault(0) }
         team.sopa.boar.plugins.UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseAnswers(app, ids) } } }
         team.sopa.boar.plugins.UserData.deleteNotes = { ids -> LabRegistry.active.mapNotNull { lab -> runCatching { lab.deleteNote(app, ids) }.getOrNull() } }
+        team.sopa.boar.plugins.UserData.pluginsKeepAnswers = { LabPrefs.labsOn }
     }
 
     /** route to label key; empty while Labs is off. */

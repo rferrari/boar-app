@@ -832,6 +832,7 @@
     <string name="native_chat_prune_textMore" formatted="false">Você guarda {{max}} conversas, então começar esta apaga “{{title}}” e mais {{more}}.</string>
     <string name="native_chat_prune_keepAll" formatted="false">Guardar todas</string>
     <string name="native_chat_prune_delete" formatted="false">Apagar</string>
+    <string name="native_chat_prune_plugins" formatted="false">As respostas delas também saem dos seus projetos do Press, e os cartões e as imagens do Designer feitos a partir delas são apagados.</string>
     <string name="native_settings_summary_memoryAll" formatted="false">Guarda todas as conversas</string>
     <string name="native_settings_memory_all" formatted="false">Todas</string>
     <string name="native_settings_clearChatsPress" formatted="false">Apagar também os projetos do Press ({{count}}) e suas fotos</string>
