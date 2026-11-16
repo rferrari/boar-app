@@ -421,7 +421,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
                 // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
                 else if (loaded) runNext(fresh = true)
-                else dropQueueWithNote()
+                // A failed load: the held question went, and what was set for it goes too, or the next typed question
+                // would run Detailed or with Deep Research (validator R-A5).
+                else { dropOnce(); dropQueueWithNote() }
             }
         }
     }

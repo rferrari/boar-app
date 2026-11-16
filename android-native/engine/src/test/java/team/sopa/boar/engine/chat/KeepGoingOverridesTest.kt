@@ -1,5 +1,6 @@
 package team.sopa.boar.engine.chat
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -27,7 +28,9 @@ class KeepGoingOverridesTest {
         val drop = body("dropOnce")
         for (v in listOf("stepOnce = null", "styleOnce = null", "deepOnce = null", "skipToolsOnce = false", "bypassed = null")) assertTrue(v, drop.contains(v))
         // Loading the model instead sends the held question with its overrides: userLoad doesn't drop them.
-        assertTrue(!body("userLoad").contains("dropOnce()"))
+        // Only the failed load drops them (R-A5); a load that works sends the held question with them.
+        assertEquals(1, Regex("dropOnce\\(\\)").findAll(body("userLoad")).count())
+        assertTrue(body("userLoad").contains("if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)"))
     }
 
     @Test fun `the bubbles hide while a load note is up, where a tap would do nothing (validator A-3)`() {
@@ -35,5 +38,9 @@ class KeepGoingOverridesTest {
         assertTrue(chat.contains("state.loadNote == null && state.pruneNote == null)\n                        item(key = \"keep-going-\" + last.id)"))
         // keepGoing refuses under a load note, so hiding is the only honest choice there.
         assertTrue(body("keepGoing").contains("_state.value.loadNote != null) return"))
+    }
+
+    @Test fun `a failed load drops the overrides with the held question (validator R-A5)`() {
+        assertTrue(body("userLoad").contains("else { dropOnce(); dropQueueWithNote() }"))
     }
 }
