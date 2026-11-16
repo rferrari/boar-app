@@ -25,6 +25,6 @@ class PruneTextTest {
         val chat = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText().substringAfter("private fun PruneNoteDialog(").substringBefore("\n}\n")
         val settings = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText().substringAfter("lowering?.let {").substringBefore("ClearChats(services)")
         for (s in listOf(chat, settings)) assertTrue(s.contains("UserData.withPluginsLine(") && s.contains("t(\"native.chat.prune.plugins\")"))
-        assertTrue(java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText().contains("UserData.pluginsKeepAnswers = { LabPrefs.labsOn }"))
+        assertTrue(java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText().contains("UserData.pluginsKeepAnswers = { true }"))
     }
 }

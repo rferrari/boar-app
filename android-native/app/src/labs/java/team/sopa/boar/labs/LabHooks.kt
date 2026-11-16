@@ -98,7 +98,9 @@ object LabHooks {
         team.sopa.boar.plugins.UserData.pressProjects = { runCatching { team.sopa.boar.labs.printer.PressStore.projectsWithContent(app) }.getOrDefault(0) }
         team.sopa.boar.plugins.UserData.eraseAnswers = { ids -> LabRegistry.ALL.forEach { lab -> runCatching { lab.eraseAnswers(app, ids) } } }
         team.sopa.boar.plugins.UserData.deleteNotes = { ids -> LabRegistry.active.mapNotNull { lab -> runCatching { lab.deleteNote(app, ids) }.getOrNull() } }
-        team.sopa.boar.plugins.UserData.pluginsKeepAnswers = { LabPrefs.labsOn }
+        // Always in a Boar Labs build: eraseAnswers runs on every plugin even with Boar Labs off, so the line is true then too
+        // (CodeRabbit on all73: off, the dialog hid it while Press projects still lost the answers).
+        team.sopa.boar.plugins.UserData.pluginsKeepAnswers = { true }
     }
 
     /** route to label key; empty while Labs is off. */

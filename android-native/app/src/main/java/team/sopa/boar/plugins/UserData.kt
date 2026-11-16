@@ -31,9 +31,9 @@ object UserData {
     @Volatile var deleteNotes: (answerIds: List<String>) -> List<String> = { emptyList() }
 
     /**
-     * True while Boar Labs is on: the plugins keep things made from answers (Press projects, cards, Designer pictures)
-     * and a deleted chat takes them along (eraseAnswers runs on every plugin, on or off). The two "delete your oldest
-     * chats" dialogs say so (validator Q-B2; t9 0115). Set by Boar Labs; false in a build without it.
+     * True in a build with Boar Labs: the plugins keep things made from answers (Press projects, cards, Designer
+     * pictures) and a deleted chat takes them along (eraseAnswers runs on every plugin, on or off, Boar Labs on or off).
+     * The two "delete your oldest chats" dialogs say so (validator Q-B2; t9 0115). Set by Boar Labs; false without it.
      */
     @Volatile var pluginsKeepAnswers: () -> Boolean = { false }
 
