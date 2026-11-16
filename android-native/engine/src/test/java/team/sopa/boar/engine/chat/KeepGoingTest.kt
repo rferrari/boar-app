@@ -131,3 +131,22 @@ class KeepGoingWiringTest {
         assertTrue(java.io.File("../app/src/main/res/values-pt/strings_native.xml").readText().contains(">Seguir adiante<"))
     }
 }
+
+/** all75 on the F3: Keep going's "Continue" searched the word "continue" and cited "training should continue" from a book. */
+class ContinueSearchTest {
+    private val history = team.sopa.boar.engine.rag.ConversationHistory(turns = listOf(
+        team.sopa.boar.engine.rag.ConversationTurn("user", "How does photosynthesis work?"),
+        team.sopa.boar.engine.rag.ConversationTurn("assistant", "Photosynthesis converts light energy into chemical energy."),
+    ))
+
+    @Test fun `Continue and its kin search the previous question`() {
+        for (q in listOf("Continue", "Continuar", "go on", "tell me more", "prossiga"))
+            assertEquals(q, "How does photosynthesis work?", team.sopa.boar.engine.answer.FollowUp.plan(q, history).direct)
+        // A summary isn't one: it is written from the last answer (aboutConversation), not searched.
+        assertNull(team.sopa.boar.engine.answer.FollowUp.plan("a short summary please", history).direct)
+        // What actually gets searched.
+        val searched = ArrayList<String>()
+        team.sopa.boar.engine.answer.FollowUp.search("Continue", history) { searched += it; listOf("x") }
+        assertEquals(listOf("How does photosynthesis work?"), searched)
+    }
+}
