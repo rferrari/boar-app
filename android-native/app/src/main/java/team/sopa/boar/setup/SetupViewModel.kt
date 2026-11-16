@@ -557,6 +557,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
                 }
             })
             services.reloadPacks()
+            // BOAR's own guide and FAQ: the search model is here now (BoarServices.syncBoarPack).
+            runCatching { services.syncBoarPack() }
             _state.update { it.copy(indexPhase = IndexPhase.READY) }
             importQueued()
         } catch (e: kotlinx.coroutines.CancellationException) {

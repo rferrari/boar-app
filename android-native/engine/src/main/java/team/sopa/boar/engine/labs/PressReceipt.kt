@@ -189,6 +189,8 @@ object PressReceipt {
         val s = source.trim()
         if (s.isEmpty()) return false
         if (PACK_STYLE.matches(s)) return true
+        // BOAR's own guide and FAQ (BoarPack): public text, never a user's file.
+        if (team.sopa.boar.engine.rag.BoarPack.isBoarSource(s)) return true
         return s in team.sopa.boar.engine.rag.Packs.SOURCE_LABEL.values
     }
 

@@ -277,6 +277,22 @@ class BoarServices private constructor(private val context: Context) {
         if (critical && host.residentIsExternal()) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
     }
 
+    private val boarSync = Mutex()
+
+    /**
+     * BOAR's own passages (the guide and the FAQ, every language, BoarPack) in the index, as this build ships them
+     * (t9 0225, 0233): removed when gone or changed, embedded when new. Nothing to embed after the first start of a build.
+     * Returns how many it embedded; 0 when the search model isn't installed yet (setup calls it again after its index).
+     */
+    suspend fun syncBoarPack(): Int = boarSync.withLock {
+        runCatching {
+            val guides = context.assets.list("boar-guide").orEmpty().filter { it.endsWith(".md") }
+                .associate { it.removeSuffix(".md") to asset("boar-guide/$it") }
+            val faq = runCatching { asset("boar-faq/faq.json") }.getOrNull()
+            knowledgeBase.syncBoar(team.sopa.boar.engine.rag.BoarPack.passages(guides, faq)) { embed(it) }
+        }.getOrDefault(0)
+    }
+
     val retriever: Retriever by lazy {
         Retriever(knowledgeBase, { packs }, { text -> runBlocking { embed(text) } }, { lexicon })
     }
@@ -584,7 +600,7 @@ class BoarServices private constructor(private val context: Context) {
                 // The CPU build is chosen once per process, from the user's tweak (Auto by default).
                 val app = context.applicationContext
                 BoarEngine.init(app.applicationInfo.nativeLibraryDir, AppSettings(File(app.filesDir, "settings.json")).engineTweaks.cpuBuild)
-                BoarServices(app).also { instance = it; DebugLog.init(app, it.settings) }
+                BoarServices(app).also { instance = it; DebugLog.init(app, it.settings); it.lifeScope.launch { it.syncBoarPack() } }
             }
         }
     }

@@ -38,7 +38,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
     }
 
     /** Seed chunks (bundled corpus and corpus packs, not imported documents). */
-    fun seedChunkCount(): Long = db.query("SELECT COUNT(*) FROM chunks WHERE collection_id IS NULL") { it.long(0) }.first()
+    fun seedChunkCount(): Long = db.query("SELECT COUNT(*) FROM chunks WHERE collection_id IS NULL$NOT_BOAR") { it.long(0) }.first()
 
     fun hasChunk(chunkId: String): Boolean = db.query("SELECT 1 FROM chunks WHERE chunk_id = ?", listOf(chunkId)) { 1 }.isNotEmpty()
 
@@ -94,7 +94,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
      */
     fun seedArticles(seed: Long, limit: Int): List<Pair<String, String>> = db.query(
         // Only the opening: the quiz shows an article's first sentence, and a few thousand bodies would be megabytes.
-        "SELECT title, substr(body, 1, 600) AS head FROM chunks WHERE collection_id IS NULL AND title IS NOT NULL ORDER BY chunk_id",
+        "SELECT title, substr(body, 1, 600) AS head FROM chunks WHERE collection_id IS NULL AND title IS NOT NULL$NOT_BOAR ORDER BY chunk_id",
     ) { (it.string("title") ?: "") to (it.string("head") ?: "") }.filter { it.first.isNotBlank() }.shuffled(kotlin.random.Random(seed)).take(limit)
     /** One document's parts (the built-in library's, or a file in Personal Files), for reading it whole (SourceArticle). */
     fun docParts(docId: String): List<Chunk> =
@@ -153,7 +153,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
                JOIN chunks c ON c.chunk_id = f.chunk_id
                LEFT JOIN chunk_embeddings e ON e.chunk_id = f.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}
+               WHERE chunks_fts MATCH ? AND (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}$NOT_BOAR_C
                ORDER BY rank LIMIT ?""",
             listOf(lq.match, limit * LEXICAL_CANDIDATE_MULTIPLIER),
         ) {
@@ -177,7 +177,7 @@ class KnowledgeBase(private val db: SqlDatabase) {
                FROM chunk_embeddings e
                JOIN chunks c ON c.chunk_id = e.chunk_id
                LEFT JOIN custom_collections cc ON cc.id = c.collection_id
-               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}""",
+               WHERE (c.collection_id IS NULL OR cc.active = 1)${if (ownOnly) OWN_ONLY else ""}$NOT_BOAR_C""",
         ) {
             val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
             Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
@@ -219,7 +219,52 @@ class KnowledgeBase(private val db: SqlDatabase) {
             score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
     }.sortedByDescending { it.score }.take(limit)
 
+    /**
+     * BOAR's own passages (BoarPack) closest to the question, by meaning and by keyword, each with its similarity and its
+     * source ("BOAR Guide", "BOAR FAQ, written by Amandita"). No floor here: BoarPack.rank applies its own.
+     */
+    fun boarSearch(query: String, queryVec: FloatArray, limit: Int): List<Chunk> {
+        val semantic = db.query(
+            """SELECT c.chunk_id, c.doc_id, c.title, c.body, c.source, e.embedding FROM chunks c
+               JOIN chunk_embeddings e ON e.chunk_id = c.chunk_id WHERE c.collection_id IS NULL AND c.chunk_id GLOB '${BoarPack.PREFIX}*'""",
+        ) {
+            val sim = RagPure.cosine(queryVec, fromBlob(it.blob("embedding")!!))
+            Chunk(it.string("chunk_id")!!, it.string("doc_id")!!, it.string("title") ?: "", it.string("body") ?: "", it.string("source"), null,
+                score = sim, similarity = sim, matchType = MatchType.SEMANTIC)
+        }
+        val lexical = RagPure.buildLexicalQuery(query)?.let { lq ->
+            db.query(
+                """SELECT f.chunk_id FROM chunks_fts f JOIN chunks c ON c.chunk_id = f.chunk_id
+                   WHERE chunks_fts MATCH ? AND c.collection_id IS NULL AND c.chunk_id GLOB '${BoarPack.PREFIX}*' LIMIT ?""",
+                listOf(lq.match, limit * LEXICAL_CANDIDATE_MULTIPLIER),
+            ) { it.string(0)!! }.toSet()
+        }.orEmpty()
+        // A keyword hit counts as a hybrid hit: the question names what the passage is about.
+        return semantic.map { c -> if (c.chunkId in lexical) c.copy(matchType = MatchType.HYBRID) else c }
+            .sortedByDescending { (it.similarity ?: 0.0) + if (it.matchType == MatchType.HYBRID) 0.05 else 0.0 }.take(limit)
+    }
+
+    /**
+     * Makes BOAR's passages in the index exactly [passages]: removes the ones the app no longer ships (an older text),
+     * embeds the missing ones. Returns how many it embedded.
+     */
+    suspend fun syncBoar(passages: List<BoarPack.Passage>, embed: suspend (String) -> FloatArray): Int {
+        val want = passages.associateBy { it.id }
+        val have = db.query("SELECT chunk_id FROM chunks WHERE collection_id IS NULL AND chunk_id GLOB '${BoarPack.PREFIX}*'") { it.string(0)!! }.toSet()
+        (have - want.keys).takeIf { it.isNotEmpty() }?.let { deleteSeedChunks(it.toList()) }
+        var n = 0
+        for (p in passages) if (p.id !in have) {
+            val v = embed("${p.title}\n${p.body}")
+            if (v.isEmpty()) return n
+            insertChunk(Chunk(p.id, p.id, p.title, p.body, source = p.source), v); n++
+        }
+        return n
+    }
+
     companion object {
+        /** BOAR's own passages stay out of everything but [boarSearch]: the search, the seed count, the Daily Quiz. */
+        private const val NOT_BOAR = " AND chunk_id NOT GLOB 'boar-*'"
+        private const val NOT_BOAR_C = " AND c.chunk_id NOT GLOB 'boar-*'"
         /** Extra BM25 candidates so the coverage gate has something to choose from. */
         const val LEXICAL_CANDIDATE_MULTIPLIER = 4
         const val FILE = "SQLite/aoair_knowledge.db"
