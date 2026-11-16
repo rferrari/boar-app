@@ -36,4 +36,20 @@ class AnswerCardPtTest {
         val swapped = """{"type":"bars","title":"Pop","unit":"million","items":[{"label":"Paris","value":0.5},{"label":"Lyon","value":2.1}]}"""
         assertTrue(Visual.parse(swapped, en) !is Visual.Parsed.Ok || (Visual.parse(swapped, en) as Visual.Parsed.Ok).leftOut.isNotEmpty())
     }
+
+    @Test fun `a swapped card is refused in every layout, sentences apart too (validator R-B1)`() {
+        val swapped = """{"type":"bars","title":"Pop","unit":"million","items":[{"label":"Paris","value":0.5},{"label":"Lyon","value":2.1}]}"""
+        val right = """{"type":"bars","title":"Pop","unit":"million","items":[{"label":"Paris","value":2.1},{"label":"Lyon","value":0.5}]}"""
+        for (text in listOf(
+            "Paris has 2.1 million people. Lyon has 0.5 million people.",
+            "Paris. It has 2.1 million people. Lyon. It has 0.5 million people.",
+            "Paris is a city. It has 2.1 million people. Lyon is a city. It has 0.5 million people.",
+            "## Paris\nIt has 2.1 million people.\n## Lyon\nIt has 0.5 million people.",
+        )) {
+            val bad = Visual.parse(swapped, text)
+            assertTrue(text + " -> " + bad, bad !is Visual.Parsed.Ok || (bad as Visual.Parsed.Ok).leftOut.isNotEmpty())
+            val ok = Visual.parse(right, text)
+            assertTrue(text + " -> " + ok, ok is Visual.Parsed.Ok && ok.leftOut.isEmpty())
+        }
+    }
 }

@@ -363,10 +363,13 @@ object VisualCheck {
             val byLabel = labels.distinct().associateWith { placesAmong(it, labels) }
             var anyNear = false
             for (p in places) {
-                val nearest = byLabel.mapValues { (_, ws) ->
-                    ws.filter { w -> !acrossSentence(w, p, numbersFirst) }
-                        .minOfOrNull { w -> if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p)) } ?: Int.MAX_VALUE
-                }.filterValues { it <= near }.minByOrNull { it.value } ?: continue
+                fun dist(w: Int) = if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p))
+                fun nearestOf(keep: (Int) -> Boolean) = byLabel.mapValues { (_, ws) -> ws.filter(keep).minOfOrNull(::dist) ?: Int.MAX_VALUE }
+                    .filterValues { it <= near }
+                // The next sentence's subject doesn't take this number, but only while another name stays near: emptying
+                // the field made every label pair by default, and a swapped card passed again (validator R-B1).
+                val nearest = (nearestOf { w -> !acrossSentence(w, p, numbersFirst) }.takeIf { it.isNotEmpty() } ?: nearestOf { true })
+                    .minByOrNull { it.value } ?: continue
                 anyNear = true
                 if (nearest.key == label) return true
             }
