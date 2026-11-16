@@ -252,7 +252,8 @@ class StagedAnswer(
             val values by lazy { evidence.flatMap { e -> NUMBER.findAll(e).mapNotNull { valueOf(it.value.trimEnd('.', ',')) } } }
             val body = text.replace(CITATION, " ").replace(LIST_MARK, " ")
             return NUMBER.findAll(body)
-                .filter { m -> norm(m.value).toDoubleOrNull()?.let { it > 10 } ?: true }
+                // Small counts are the model's own wording ("3 steps"), unless a scale word makes them big ("1.5 million").
+                .filter { m -> norm(m.value).toDoubleOrNull()?.let { it > 10 } ?: true || SCALE.containsMatchIn(body.substring(m.range.last + 1)) }
                 .filter { m -> norm(m.value) !in known && !scaledMatch(m, body, values) }
                 .map { it.value.trimEnd('.', ',') }.distinct().toList()
         }
@@ -273,10 +274,15 @@ class StagedAnswer(
                 else -> 1e12
             }
             val raw = m.value.trimEnd('.', ',')
-            // "1,5" and "1.5" are decimals before a scale word; "1,500 million" keeps its thousands.
-            val dec = Regex("""^\d+[.,]\d{1,2}$""").matches(raw)
-            val stated = (if (dec) raw.replace(',', '.') else raw.replace(",", "").replace(".", "")).toDoubleOrNull() ?: return false
-            val places = if (dec) raw.length - raw.indexOfFirst { it == '.' || it == ',' } - 1 else 0
+            // The scale word says the mark (validator R-B6: "1.234 million" was read 1,234 million, a 1000x accept):
+            // English "million" takes a decimal dot ("1.234 million", "1,500 million" in thousands), Portuguese "milhões"
+            // a decimal comma ("1,234 milhões", "1.500 milhões" in thousands).
+            val ptWord = word != "thousand" && word != "million" && word != "millions" && word != "billion" && word != "billions" && word != "trillion"
+            val decimalMark = if (ptWord) ',' else '.'
+            val single = raw.count { it == '.' || it == ',' } == 1
+            val dec = single && raw.contains(decimalMark)
+            val stated = (if (dec) raw.replace(if (ptWord) "." else ",", "").replace(',', '.') else raw.replace(",", "").replace(".", "")).toDoubleOrNull() ?: return false
+            val places = if (dec) raw.length - raw.indexOf(decimalMark) - 1 else 0
             val f = Math.pow(10.0, places.toDouble())
             return values.any { v -> Math.round(v / scale * f) / f == stated }
         }

@@ -135,4 +135,15 @@ class StagedAnswerTest {
         assertEquals(listOf("17.2"), StagedAnswer.unsupportedNumbers("Russia covers 17.2 million km².", facts))
         assertEquals(listOf("146"), StagedAnswer.unsupportedNumbers("Russia has 146 regions.", facts))
     }
+
+    @Test fun `the scale word says which mark is decimal (validator R-B6)`() {
+        val billion = listOf("The fund holds 1,234,000,000 dollars.")
+        // "1.234 million" is 1,234,000: not backed by 1,234,000,000 (was a 1000x false accept).
+        assertEquals(listOf("1.234"), StagedAnswer.unsupportedNumbers("It holds 1.234 million dollars.", billion))
+        assertEquals(listOf("1,234"), StagedAnswer.unsupportedNumbers("Tem 1,234 milhões de dólares.", billion))
+        // The right readings still pass.
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("It holds 1,234 million dollars.", billion))
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("It holds 1.234 billion dollars.", billion))
+        assertEquals(emptyList<String>(), StagedAnswer.unsupportedNumbers("Tem 1,234 bilhão de dólares.", billion))
+    }
 }
