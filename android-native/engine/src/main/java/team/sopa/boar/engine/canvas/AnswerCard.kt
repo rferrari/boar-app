@@ -89,19 +89,30 @@ data class AnswerCard(
          * [answer] writes them: a Portuguese answer's "3.287.263" stays 3.287.263 on the card.
          */
         fun ofVisual(v: Visual, leftOut: List<String>, fallbackTitle: String, answer: String = ""): AnswerCard {
-            val title = v.title.ifBlank { fallbackTitle }
-            fun w(s: String) = VisualCheck.asWritten(s, answer)
+            // The answer's [n] marks don't belong on the card: Press renumbers the answer, not the card (validator R-E2).
+            fun c(s: String) = s.replace(CITE, "").trim()
+            val title = c(v.title).ifBlank { fallbackTitle }
+            fun w(s: String) = VisualCheck.asWritten(c(s), answer)
             return when (v) {
-                is Visual.Series -> AnswerCard(
-                    when (v.kind) { Visual.SeriesKind.BARS -> Shape.BARS; Visual.SeriesKind.LINE -> Shape.LINE; Visual.SeriesKind.SHARE -> Shape.PIE },
-                    title, Body.Series(v.unit.orEmpty(), v.items.map { (l, x) -> CardRules.Point(l, (w(VisualScale.format(x)) + " " + v.unit.orEmpty()).trim(), x) }),
-                    byModel = true, leftOut = leftOut)
-                is Visual.Table -> AnswerCard(Shape.TABLE, title, Body.Table(v.columns, v.rows.map { r -> r.map(::w) }), true, leftOut)
-                is Visual.Steps -> AnswerCard(Shape.CHECKLIST, title, Body.Steps(v.steps), true, leftOut)
-                is Visual.Facts -> AnswerCard(Shape.FACTS, title, Body.Facts(v.facts), true, leftOut)
-                is Visual.Compare -> AnswerCard(Shape.COMPARE, title, Body.Compare(v.items), true, leftOut)
+                is Visual.Series -> {
+                    // A negative value as a bar or a line is drawn by its length: the coldest place would look the hottest.
+                    // A table keeps the sign (validator R-E1, as B-9 did for the rules' charts).
+                    val shape = when {
+                        v.items.any { it.second < 0 } && v.kind != Visual.SeriesKind.SHARE -> Shape.TABLE
+                        v.kind == Visual.SeriesKind.BARS -> Shape.BARS
+                        v.kind == Visual.SeriesKind.LINE -> Shape.LINE
+                        else -> Shape.PIE
+                    }
+                    AnswerCard(shape, title, Body.Series(c(v.unit.orEmpty()), v.items.map { (l, x) -> CardRules.Point(c(l), (w(VisualScale.format(x)) + " " + c(v.unit.orEmpty())).trim(), x) }),
+                        byModel = true, leftOut = leftOut)
+                }
+                is Visual.Table -> AnswerCard(Shape.TABLE, title, Body.Table(v.columns.map(::c), v.rows.map { r -> r.map(::w) }), true, leftOut)
+                is Visual.Steps -> AnswerCard(Shape.CHECKLIST, title, Body.Steps(v.steps.map(::c)), true, leftOut)
+                is Visual.Facts -> AnswerCard(Shape.FACTS, title, Body.Facts(v.facts.map { (k, x) -> c(k) to w(x) }), true, leftOut)
+                is Visual.Compare -> AnswerCard(Shape.COMPARE, title, Body.Compare(v.items.map { (n, ps) -> c(n) to ps.map(::c) }), true, leftOut)
             }
         }
+        private val CITE = Regex("""\s*\[\d{1,3}(?:\s*[,–-]\s*\d{1,3})*]""")
 
         /** A pie's parts as whole percents adding up to 100 (VisualScale.percents). */
         fun percents(s: Body.Series): List<Int> = VisualScale.percents(s.points.map { it.value })

@@ -40,7 +40,8 @@ class CardsPluginTest {
 
     @Test fun `one row in the sheet, which says what the rules found before the tap`() {
         val actions = lab.substringAfter("override fun answerActions(").substringBefore("override fun AnswerExtra(")
-        assertTrue(actions.contains("CardRules.find(a.question, a.text)"))
+        // Found off the main thread now (validator R-E4): cardsOf runs CardRules.find on Dispatchers.Default.
+        assertTrue(actions.contains("val cards = cardsOf(a.question, a.text)") && lab.contains("withContext(kotlinx.coroutines.Dispatchers.Default) {\n            runCatching { CardRules.find(question, text) }"))
         assertEquals(4, Regex("LabAction\\(").findAll(actions.substringBefore("private fun foundLine(")).count())
         assertTrue(actions.contains("detail = foundLine(cards)") && actions.contains("detail = t(\"native.labs.canvas.askModel\")"))
         // The model only from the "Nothing to draw here" row.

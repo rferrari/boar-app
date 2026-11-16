@@ -36,6 +36,7 @@ object CardRules {
      * token (validator B-7: 2.5 s at 20,000 characters, only from degenerate model output). Past it, no card.
      */
     const val MAX_ANSWER = 12_000
+    private const val MAX_SENTENCE = 600
 
     fun find(question: String, rawAnswer: String): List<Card> {
         if (rawAnswer.length > MAX_ANSWER) return emptyList()
@@ -140,6 +141,8 @@ object CardRules {
         fun point(label: String, num: String, unit: String) = Point(clean(label).trim().trimEnd(':', ',', '-', '—'), "$num $unit".trim(), signed(num, mark))
         val fromList = lines.mapNotNull { l -> LIST_POINT.find(l)?.let { m -> point(m.groupValues[1], m.groupValues[2], m.groupValues[3]) to m.groupValues[3].lowercase() } }
         val series = sameUnit(fromList) ?: answer.split(Regex("""(?<=[.!?])\s+""")).asSequence()
+            // A "sentence" past 600 characters is a degenerate run, not prose: ENUM_POINT is quadratic on one (R-E4).
+            .filter { it.length <= MAX_SENTENCE }
             .map { s -> ENUM_POINT.findAll(s).map { m -> point(m.groupValues[1], m.groupValues[2], m.groupValues[3]) to m.groupValues[3].lowercase() }.toList() }
             .mapNotNull(::sameUnit).firstOrNull() ?: return null
         val (points, unit) = series

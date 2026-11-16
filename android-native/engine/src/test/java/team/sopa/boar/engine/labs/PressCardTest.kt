@@ -18,8 +18,10 @@ class PressCardTest {
     @Test fun `an answer's card and its ticks are kept in the project`() {
         val back = PressDoc.parse(PressDoc.toJson(lib(steps)))
         assertEquals(steps, back.current.answers.single().card)
-        // An edit of the text keeps the card.
-        assertEquals(steps, back.editText("m1", PressDoc.Field.TEXT, "Boil it.").current.answers.single().card)
+        // Golden change (validator R-E3): an edit of the text drops the card, which showed the old text's figures.
+        assertNull(back.editText("m1", PressDoc.Field.TEXT, "Boil it.").current.answers.single().card)
+        // Its heading edited, the card stays.
+        assertEquals(steps, back.editText("m1", PressDoc.Field.HEADING, "Water").current.answers.single().card)
     }
 
     @Test fun `a projects file from before Cards still reads, with no card`() {

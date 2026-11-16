@@ -82,7 +82,7 @@ object CanvasLab : LabPlugin {
     override fun answerActions(a: AnswerRef): List<LabAction> {
         val ctx = LocalContext.current
         if (!Canvas.allowed(a)) return emptyList()
-        val cards = remember(a.question, a.text) { runCatching { CardRules.find(a.question, a.text) }.getOrDefault(emptyList()) }
+        val cards = cardsOf(a.question, a.text)
         val shown = Canvas.shown(ctx, a)
         val st = Canvas.status(a.id)
         val free = !Canvas.busy() && !a.chatBusy
@@ -134,9 +134,8 @@ object CanvasLab : LabPlugin {
         }
         val card = Canvas.shown(ctx, a) ?: return
         // The switch: every shape of every card the rules found; none for the model's card (it has the one it made).
-        val cards = remember(a.question, a.text, card.byModel) {
-            if (card.byModel) emptyList() else runCatching { CardRules.find(a.question, a.text) }.getOrDefault(emptyList())
-        }
+        val found = cardsOf(a.question, if (card.byModel) "" else a.text)
+        val cards = if (card.byModel) emptyList() else found
         val choices = remember(cards) { AnswerCard.choices(cards) }
         // The pill that is on: the choice whose card, in its shape, is the one shown.
         val current = remember(choices, card) { choices.firstOrNull { ch -> ch.shape == card.shape && AnswerCard.of(cards[ch.card], ch.shape, "").body == card.body } }
@@ -391,3 +390,15 @@ private fun palette(): List<Color> {
  */
 internal fun titleSources(a: team.sopa.boar.plugins.AnswerRef): List<String> =
     a.sources.filter { (_, src) -> src != null && team.sopa.boar.engine.labs.PressReceipt.shareable(src) }.map { it.first }
+
+/**
+ * The rules' cards for an answer, found off the main thread (validator R-E4: CardRules.find can take a second on a long
+ * degenerate answer, and it ran in composition when the plugins sheet opened). Empty until found.
+ */
+@androidx.compose.runtime.Composable
+private fun cardsOf(question: String, text: String): List<CardRules.Card> =
+    androidx.compose.runtime.produceState(emptyList<CardRules.Card>(), question, text) {
+        value = if (text.isBlank()) emptyList() else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            runCatching { CardRules.find(question, text) }.getOrDefault(emptyList())
+        }
+    }.value

@@ -128,6 +128,12 @@ class CardRulesTest {
         val t0 = System.nanoTime()
         assertTrue(CardRules.find("How tall?", junk).isEmpty())
         assertTrue("took ${(System.nanoTime() - t0) / 1e6} ms", (System.nanoTime() - t0) / 1e6 < 200)
+        // Under the cap too (validator R-E4: 11,900 "A" took 1.18 s).
+        for (junk2 in listOf("A".repeat(11_900), "É".repeat(11_900), "Mount " + "A".repeat(11_000) + " is 5 m. K2 is 8,611 m.")) {
+            val t1 = System.nanoTime()
+            CardRules.find("How tall?", junk2)
+            assertTrue("took ${(System.nanoTime() - t1) / 1e6} ms", (System.nanoTime() - t1) / 1e6 < 200)
+        }
         // A real long answer under the cap still gets its card.
         val long = "x ".repeat(4_000) + "\n- Everest: 8,849 m\n- K2: 8,611 m\n- Kangchenjunga: 8,586 m"
         assertTrue(long.length < CardRules.MAX_ANSWER)
