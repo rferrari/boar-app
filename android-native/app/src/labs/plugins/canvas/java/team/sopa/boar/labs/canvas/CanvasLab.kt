@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -245,8 +246,10 @@ private fun CardBody(card: AnswerCard, ticks: Set<Int>, onTick: (Int) -> Unit) {
         is AnswerCard.Body.Steps -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             b.items.forEachIndexed { i, s ->
                 val done = i in ticks
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(role = Role.Checkbox) { onTick(i) }.padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                // A checkbox TalkBack reads as checked or not, 48 dp tall at least (validator R-E6: ~34 dp, no state).
+                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(8.dp))
+                    .toggleable(value = done, role = Role.Checkbox) { onTick(i) }.padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(22.dp).clip(CircleShape).background(if (done) c.emerald500 else c.bgSubtle)
                         .border(1.dp, if (done) c.emerald500 else c.borderDefault, CircleShape), contentAlignment = Alignment.Center) {
                         Text(if (done) "✓" else "${i + 1}", style = type["mono.xs"], color = if (done) c.textInverse else c.textSecondary, fontWeight = FontWeight.Bold)

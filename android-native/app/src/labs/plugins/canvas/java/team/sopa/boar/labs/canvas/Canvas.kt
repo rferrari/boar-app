@@ -115,8 +115,13 @@ internal object Canvas {
     fun start(ctx: Context, a: AnswerRef, fallbackTitle: String) {
         if (busy() || a.chatBusy) return
         val id = a.id
+        // The chat's model, held as Press's rewrite holds it: a question sent meanwhile waits, saying why, and nothing
+        // else starts on it (validator R-E5). Busy now: said, not queued behind it.
+        val services = team.sopa.boar.app.BoarServices.get(ctx)
+        if (!services.claimModelForLab()) { status[id] = Status.Failed("native.labs.canvas.busy"); return }
         status[id] = Status.Making
         jobs[id] = scope.launch {
+          try {
             val none = VisualContext.Earlier(emptyList(), "")
             val earlier = runCatching { earlier(ctx, a) }.getOrDefault(none)
             // A number the answer leaves out may be in its own sources (Brazil's area in "Economy of Brazil").
@@ -138,6 +143,7 @@ internal object Canvas {
             }
             android.util.Log.i("BoarLabs", "cards $id: model -> ${status[id]?.javaClass?.simpleName ?: "card"}")
             jobs.remove(id)
+          } finally { services.releaseModelForLab() }
         }
     }
 

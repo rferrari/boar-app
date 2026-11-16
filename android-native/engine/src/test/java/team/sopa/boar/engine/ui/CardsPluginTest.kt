@@ -84,4 +84,12 @@ class CardsPluginTest {
         // A pie or a line prints as its table; no image, no share.
         assertTrue(pdf.contains("AnswerCard.asTable(card)") && !pdf.contains("Shape.PIE") && !pdf.contains("Shape.LINE"))
     }
+
+    @Test fun `the model's card holds the chat's model, and the checklist reads as checkboxes (validator R-E5, R-E6)`() {
+        val canvas = File("../app/src/labs/plugins/canvas/java/team/sopa/boar/labs/canvas/Canvas.kt").readText()
+        assertTrue(canvas.contains("if (!services.claimModelForLab()) { status[id] = Status.Failed(\"native.labs.canvas.busy\"); return }"))
+        assertTrue(canvas.contains("} finally { services.releaseModelForLab() }"))
+        assertTrue(lab.contains(".toggleable(value = done, role = Role.Checkbox) { onTick(i) }") && lab.contains("heightIn(min = 48.dp)"))
+        for (d in listOf("values", "values-pt")) assertTrue(File("../app/src/labs/plugins/canvas/res/$d/strings_lab_canvas.xml").readText().contains("name=\"native_labs_canvas_busy\""))
+    }
 }
