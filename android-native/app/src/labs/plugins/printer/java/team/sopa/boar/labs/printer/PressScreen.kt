@@ -718,6 +718,7 @@ private const val ADD_BUTTONS = 7
 @Composable
 private fun SettingsSheet(lab: LabPlugin, showBreaks: Boolean, o: PressReceipt.Options, onBreaks: (Boolean) -> Unit, onOptions: (PressReceipt.Options) -> Unit) {
     SheetTitle(t("native.labs.printer.settings"))
+    team.sopa.boar.labs.PluginSwitchRow(lab)
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageBreaks"), t("native.labs.printer.pageBreaksNote"), showBreaks, onBreaks)
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showDate"), null, o.date) { onOptions(o.copy(date = it)) }
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSources"), t("native.labs.printer.showSourcesNote"), o.sources) { onOptions(o.copy(sources = it)) }

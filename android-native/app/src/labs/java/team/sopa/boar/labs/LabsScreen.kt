@@ -122,7 +122,8 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
     if (lab.fullPage) {
         val name = t("native.labs.${lab.id}.title")
         Shell(name, onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
-            actions = { PluginPageSwitch(lab); if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } }) {
+            // A page with a gear keeps only the gear: its on/off is the first row of the gear's sheet (adam, 16 Nov; t9 0450).
+            actions = { if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } else PluginPageSwitch(lab) }) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
         }
@@ -178,6 +179,20 @@ fun PluginPageSwitch(lab: LabPlugin) {
     androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true) },
         modifier = Modifier.semantics { contentDescription = label },
         colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+}
+
+/**
+ * The plugin's on/off as the first row of its own settings sheet (Designer, Press: adam, 16 Nov; t9 0450), with the
+ * page switch's rules (PluginReach: Cohazard's below Pro; the question before a safety plugin goes off).
+ */
+@Composable
+fun PluginSwitchRow(lab: LabPlugin) {
+    val on = LabPrefs.enabled(lab.id)
+    if (!team.sopa.boar.engine.labs.PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)) return
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.switchRow", "name" to t("native.labs.${lab.id}.title")), t("native.labs.switchRowNote"), on) { v ->
+        if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true)
+    }
 }
 
 /**

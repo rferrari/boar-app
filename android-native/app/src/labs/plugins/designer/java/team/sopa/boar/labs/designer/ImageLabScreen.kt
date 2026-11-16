@@ -663,6 +663,7 @@ private fun SettingsSheet(state: ImageLabState, vm: ImageLabViewModel, onClose: 
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.settingsTitle"), style = Boar.type.titleSm, color = c.textHeading)
+            team.sopa.boar.labs.PluginSwitchRow(ImageGenLab)
             // The same choice as Settings › Boar Labs: the sketch (Designer) and trail (elsewhere), or the Matrix rain everywhere.
             team.sopa.boar.ui.models.ChipRow(t("native.labs.wait.setting"),
                 listOf(team.sopa.boar.labs.LabPrefs.WAIT_TRAIL to t("native.labs.image.waitSketch"), team.sopa.boar.labs.LabPrefs.WAIT_MATRIX to t("native.labs.wait.matrix")),

@@ -318,7 +318,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Libere avatares do Boar enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Os Plugins já vêm ligados, com os plugins testados ligados e os outros desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Ferramentas extras no menu e nas respostas. Podem ser ligadas ou desligadas. Algumas já vêm ligadas; ligue as outras que quiser em Plugins. Se alguma der problema, desligue e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
     <string name="native_debugLog_title" formatted="false">Log de depuração</string>
     <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>
@@ -845,7 +845,7 @@
     <string name="native_settings_lower_text" formatted="false">Guardar {{max}} conversas apaga “{{title}}”.</string>
     <string name="native_settings_lower_textMore" formatted="false">Guardar {{max}} conversas apaga “{{title}}” e mais {{more}}.</string>
     <string name="native_settings_lower_delete" formatted="false">Apagar</string>
-    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Cada plugin tem um botão de ligar e desligar no topo da sua própria página: abra pelo botão de plugins no topo da conversa ou pela linha “está desligado” embaixo de uma resposta. Se algum der problema, desligue lá e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Ferramentas extras no menu e nas respostas. Podem ser ligadas ou desligadas.</string>
     <string name="native_labs_pageSwitch" formatted="false">{{name}} ligado ou desligado</string>
     <string name="native_labs_headerSheetOff" formatted="false">DESLIGADOS</string>
     <string name="native_labs_offTag" formatted="false">Desligado</string>
@@ -854,4 +854,6 @@
     <string name="native_labs_safetyOff_confirm" formatted="false">Desligar</string>
     <string name="native_settings_liveSpeed" formatted="false">Mostrar a velocidade ao responder</string>
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo da conversa enquanto o BOAR escreve.</string>
+    <string name="native_labs_switchRow" formatted="false">{{name}} ligado</string>
+    <string name="native_labs_switchRowNote" formatted="false">Desligado, continua aqui para ligar de novo.</string>
 </resources>

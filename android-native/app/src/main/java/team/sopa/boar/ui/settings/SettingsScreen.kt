@@ -172,7 +172,7 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
             if (shown(SettingsPart.SECURITY)) SecuritySection(services, onPin)
             if (tech && shown(SettingsPart.TELEMETRY)) TelemetrySection(services)
             if (shown(SettingsPart.TWEAKS)) TweaksSection(services, tech, shown(SettingsPart.TECHNICAL_DETAILS), { tech = it }, onOpen)
-            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen)
+            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen, tech) { tech = it }
             if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
             // The last row, in every profile: About BOAR (also on the BOAR mark in the menu).
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Boar.colors.bgCard).clickable { onOpen("about") }.padding(horizontal = 14.dp, vertical = 14.dp),
@@ -509,25 +509,9 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
             t("native.tweaks.resetAll"), style = Boar.type.body, color = Boar.colors.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { save(EngineTweaks()) }.padding(vertical = 6.dp),
         )
-        // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
-        // No Sources layout choice since Nov 12: one design for everyone (the block above the answer, or Staged's quotes).
-        // Staged answers, core since Nov 12: on by default, this is the fallback switch (Pro).
-        var stagedOn by remember { mutableStateOf(s.stagedQuotes) }
-        if (SettingsPart.STAGED_QUOTES.shownIn(s.userProfile)) SwitchRow(t("native.tweaks.stagedQuotes"), t("native.tweaks.stagedQuotesNote"), stagedOn) { stagedOn = it; s.stagedQuotes = it }
-        // Moved from Settings → Models (rc3, slice 5); stays in effect in every profile, its default on.
-        var free by remember { mutableStateOf(s.freeMemoryInBackground) }
-        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
-        var freeAfter by remember { mutableStateOf(s.freeMemoryAfterMinutes) }
-        Choices(
-            t("native.tweaks.freeMemoryAfter"),
-            listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.immediately"))) +
-                team.sopa.boar.engine.settings.FreeMemory.CHOICES_MINUTES.map { it to t("native.tweaks.minutes", "n" to it) },
-            // A saved Immediately (0) is what Auto does now, so it shows as Auto.
-            freeAfter.takeIf { it != 0 },
-        ) { freeAfter = it; s.freeMemoryAfterMinutes = it }
-        Note(t("native.tweaks.freeMemoryAfterNote"))
-        // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
-        if (technicalShown) SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
+        // Staged quotes, Free memory and Show technical details are in Experimental in a Boar Labs build (adam, 16 Nov;
+        // t9 0450); a build without it has no Experimental section, so they stay here.
+        if (!team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) MovedToExperimental(services, technical, technicalShown, onTechnical)
         // Always here for builders, menu or not: run the evaluation set and submit a report.
         LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
         Note(t("native.tweaks.evaluationNote"))
@@ -582,9 +566,38 @@ private fun ProfileUpdateToast(services: BoarServices, profile: UserProfile) {
     }
 }
 
+/**
+ * Staged quotes, Free memory (and after how long) and Show technical details (Pro): in Experimental in a Boar Labs build,
+ * in Advanced tweaks otherwise (adam, 16 Nov; t9 0450).
+ */
+@Composable
+private fun MovedToExperimental(services: BoarServices, technical: Boolean, technicalShown: Boolean, onTechnical: (Boolean) -> Unit) {
+    val s = services.settings
+    @Composable fun autoOf(value: Any) = t("native.tweaks.autoValue", "value" to value)
+        // Not an engine knob: changing it doesn't reload the model, and Reset all tweaks leaves it (Reset settings doesn't).
+        // No Sources layout choice since Nov 12: one design for everyone (the block above the answer, or Staged's quotes).
+        // Staged answers, core since Nov 12: on by default, this is the fallback switch (Pro).
+    var stagedOn by remember { mutableStateOf(s.stagedQuotes) }
+        if (SettingsPart.STAGED_QUOTES.shownIn(s.userProfile)) SwitchRow(t("native.tweaks.stagedQuotes"), t("native.tweaks.stagedQuotesNote"), stagedOn) { stagedOn = it; s.stagedQuotes = it }
+        // Moved from Settings → Models (rc3, slice 5); stays in effect in every profile, its default on.
+        var free by remember { mutableStateOf(s.freeMemoryInBackground) }
+        SwitchRow(t("native.settings.freeMemory"), t("native.settings.freeMemoryNote"), free) { free = it; s.freeMemoryInBackground = it }
+        var freeAfter by remember { mutableStateOf(s.freeMemoryAfterMinutes) }
+        Choices(
+            t("native.tweaks.freeMemoryAfter"),
+            listOf<Pair<Int?, String>>(null to autoOf(t("native.tweaks.immediately"))) +
+                team.sopa.boar.engine.settings.FreeMemory.CHOICES_MINUTES.map { it to t("native.tweaks.minutes", "n" to it) },
+            // A saved Immediately (0) is what Auto does now, so it shows as Auto.
+            freeAfter.takeIf { it != 0 },
+        ) { freeAfter = it; s.freeMemoryAfterMinutes = it }
+        Note(t("native.tweaks.freeMemoryAfterNote"))
+        // One switch for everything technical in the chat and the menu (the receipt's time and speed stay for everyone).
+        if (technicalShown) SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
+}
+
 /** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
 @Composable
-private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit) {
+private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit, technical: Boolean, onTechnical: (Boolean) -> Unit) {
     Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
         // Below Pro there is no plugin list here: the note says where the switch is (validator A-5; adam, Nov 15).
         Note(t(if (shown(SettingsPart.LABS_SETTINGS)) "native.settings.experimentalNote" else "native.settings.experimentalNoteBelowPro"))
@@ -597,6 +610,8 @@ private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) ->
             val avatarsOn by services.vault.enabled.collectAsState()
             SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
         }
+        // Pro only, as in Advanced tweaks before (t9 0450).
+        if (shown(SettingsPart.TWEAKS)) MovedToExperimental(services, technical, shown(SettingsPart.TECHNICAL_DETAILS), onTechnical)
         if (shown(SettingsPart.LABS_SETTINGS)) {
             team.sopa.boar.labs.LabHooks.SettingsRow()
             // Pro → Boar Labs: the compact list with a switch per lab (rc3).

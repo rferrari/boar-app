@@ -318,7 +318,7 @@
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Unlock boar avatars as you use BOAR and wear them in the chat; some unlock new themes.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">These features are still being tested and may change or go away. Plugins start on, with the tested plugins on and the rest off: switch on the ones you want, beta (tested on phones) or alpha (early). If one misbehaves, switch it off here, and if you can, open an issue on GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Extra tools in the menu and under answers. Each one can be switched on or off. Some start on; switch on the others you want in Plugins. If one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
     <string name="native_debugLog_title" formatted="false">Debug log</string>
     <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
@@ -845,7 +845,7 @@
     <string name="native_settings_lower_text" formatted="false">Keeping {{max}} chats deletes “{{title}}”.</string>
     <string name="native_settings_lower_textMore" formatted="false">Keeping {{max}} chats deletes “{{title}}” and {{more}} more.</string>
     <string name="native_settings_lower_delete" formatted="false">Delete them</string>
-    <string name="native_settings_experimentalNoteBelowPro" formatted="false">These features are still being tested and may change or go away. Each plugin has an on/off switch at the top of its own page: open it from the plugin button at the top of the chat, or from the “is off” line under an answer. If one misbehaves, switch it off there, and if you can, open an issue on GitHub.</string>
+    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Extra tools in the menu and under answers. Each one can be switched on or off.</string>
     <string name="native_labs_pageSwitch" formatted="false">{{name}} on or off</string>
     <string name="native_labs_headerSheetOff" formatted="false">OFF</string>
     <string name="native_labs_offTag" formatted="false">Off</string>
@@ -854,4 +854,6 @@
     <string name="native_labs_safetyOff_confirm" formatted="false">Turn off</string>
     <string name="native_settings_liveSpeed" formatted="false">Show speed while answering</string>
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens per second, at the top of the chat while BOAR writes.</string>
+    <string name="native_labs_switchRow" formatted="false">{{name}} on</string>
+    <string name="native_labs_switchRowNote" formatted="false">Off, it stays here to switch on again.</string>
 </resources>
