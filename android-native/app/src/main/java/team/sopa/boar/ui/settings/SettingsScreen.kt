@@ -109,7 +109,27 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var turns by remember { mutableStateOf(s.historyTurnThreshold) }
                 Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
-                Choices(t("memorySettings.maxSavedSessions"), listOf(team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS to t("native.settings.memory.all")) + listOf(5, 10, 25, 50).map { it to "$it" }, max) { max = it; s.maxSavedSessions = it }
+                // A limit under the chats there are asks first, naming the oldest (validator R-A4; adam, Nov 15: "ok").
+                var lowering by remember { mutableStateOf<Pair<Int, List<team.sopa.boar.engine.chat.ChatSession>>?>(null) }
+                Choices(t("memorySettings.maxSavedSessions"), listOf(team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS to t("native.settings.memory.all")) + listOf(5, 10, 25, 50).map { it to "$it" }, max) { v ->
+                    val going = runCatching { services.chats.pushedOutAt(v) }.getOrDefault(emptyList())
+                    if (going.isEmpty()) { max = v; s.maxSavedSessions = v } else lowering = v to going
+                }
+                lowering?.let { (v, going) ->
+                    androidx.compose.material3.AlertDialog({ lowering = null },
+                        title = { Text(t("native.settings.lower.title")) },
+                        text = { Text(if (going.size > 1) t("native.settings.lower.textMore", "max" to v, "title" to going.first().title, "more" to going.size - 1)
+                            else t("native.settings.lower.text", "max" to v, "title" to going.first().title)) },
+                        confirmButton = { androidx.compose.material3.TextButton({
+                            max = team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS; s.maxSavedSessions = max; lowering = null
+                        }) { Text(t("native.chat.prune.keepAll")) } },
+                        dismissButton = { androidx.compose.material3.TextButton({
+                            max = v; s.maxSavedSessions = v; lowering = null
+                            // Now, with what the plugins made for them (P-1), as the chat's own prune does.
+                            runCatching { services.chats.prune(v) { id -> team.sopa.boar.plugins.UserData.eraseAnswers(services.chats.messages(id).filter { it.role == "assistant" }.map { it.id }) } }
+                        }) { Text(t("native.settings.lower.delete"), color = Boar.colors.crimson400) } },
+                        containerColor = Boar.colors.bgCard, titleContentColor = Boar.colors.textHeading, textContentColor = Boar.colors.textSecondary)
+                }
                 ClearChats(services)
             }
             val avatarsOn by services.vault.enabled.collectAsState()

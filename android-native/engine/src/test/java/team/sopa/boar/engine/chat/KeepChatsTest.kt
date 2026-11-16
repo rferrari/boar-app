@@ -66,4 +66,21 @@ class KeepChatsTest {
                     "native_chat_prune_delete", "native_settings_summary_memoryAll", "native_settings_memory_all")) assertTrue("$d $k", x.contains("name=\"$k\""))
         }
     }
+
+    @Test fun `lowering the limit names the chats it would delete, and asks first (validator R-A4)`() {
+        val s = store()
+        repeat(8) { s.createSession("chat $it") }
+        assertEquals(listOf("chat 0", "chat 1", "chat 2"), s.pushedOutAt(5).map { it.title })
+        assertTrue(s.pushedOutAt(10).isEmpty() && s.pushedOutAt(AppSettings.KEEP_ALL_CHATS).isEmpty())
+        // Settings: the choice waits behind the dialog when chats would go; Keep all sets All; Delete them prunes with
+        // the plugins' data; Back changes nothing.
+        val st = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
+        assertTrue(st.contains("if (going.isEmpty()) { max = v; s.maxSavedSessions = v } else lowering = v to going"))
+        assertTrue(st.contains("max = team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS; s.maxSavedSessions = max; lowering = null"))
+        assertTrue(st.contains("services.chats.prune(v) { id -> team.sopa.boar.plugins.UserData.eraseAnswers("))
+        for (d in listOf("values", "values-pt")) {
+            val x = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
+            for (k in listOf("native_settings_lower_title", "native_settings_lower_text", "native_settings_lower_textMore", "native_settings_lower_delete")) assertTrue("$d $k", x.contains("name=\"$k\""))
+        }
+    }
 }

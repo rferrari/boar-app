@@ -144,6 +144,13 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
     fun pushedOutByNew(maxSessions: Int): List<ChatSession> =
         if (maxSessions <= 0) emptyList() else listSessions().drop(maxSessions - 1).asReversed()
 
+    /**
+     * The chats a lower limit of [maxSessions] would delete, oldest first (validator R-A4: lowering the limit deleted
+     * without a word). None for 0 (keep all) or when they fit.
+     */
+    fun pushedOutAt(maxSessions: Int): List<ChatSession> =
+        if (maxSessions <= 0) emptyList() else listSessions().drop(maxSessions).asReversed()
+
     /** 0 keeps every chat (the default since Nov 15). */
     fun prune(maxSessions: Int, beforeDelete: (String) -> Unit = {}) {
         if (maxSessions <= 0) return
