@@ -15,7 +15,8 @@ class ProfileNamesTest {
             ">Pro: ajustes avançados e afine tudo.</string>", ">O Iniciante, mais como o BOAR responde")) assertTrue(line, pt.contains(line))
         // No "Simple"/"Simples" left as the profile's name, in the strings or the guides.
         assertTrue(!Regex("profile_\\w+\" formatted=\"false\">(?:O )?Simples?\\b").containsMatchIn(en + pt))
-        for (g in listOf("en", "pt")) assertTrue(g, !java.io.File("../app/src/main/assets/boar-guide/$g.md").readText().contains(Regex("Settings → Profile.*Simple:|Perfil escolhe.*Simples:")))
+        // Anywhere in the guides, which BOAR now answers from (BoarPack): "A new install starts on Simple" was missed.
+        for (g in listOf("en", "pt")) assertTrue(g, !java.io.File("../app/src/main/assets/boar-guide/$g.md").readText().contains(Regex("\\bSimples?\\b")))
         // The id doesn't move: stored settings stay.
         assertTrue(UserProfile.entries.any { it.name == "SIMPLE" })
     }

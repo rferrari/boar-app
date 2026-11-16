@@ -88,6 +88,13 @@ class BoarPackTest {
             assertFalse(q, BoarPack.aboutBoar(q))
     }
 
+    @Test fun `the guide's list of plugins that start on is LabDefaults ON`() {
+        val title = { id: String -> java.io.File("../app/src/labs").walk().filter { it.name.endsWith(".xml") && it.parentFile.name == "values" }
+            .firstNotNullOfOrNull { Regex("name=\"native_labs_${id}_title\" formatted=\"false\">([^<]+)<").find(it.readText())?.groupValues?.get(1) } ?: id }
+        val listed = Regex("The tested plugins start on \\(([^)]+)\\)").find(guides.getValue("en"))!!.groupValues[1].split(", ").toSet()
+        assertEquals(team.sopa.boar.engine.labs.LabDefaults.ON.map(title).toSet(), listed)
+    }
+
     @Test fun `a shared PDF prints BOAR's sources, they are not the user's files`() {
         assertTrue(team.sopa.boar.engine.labs.PressReceipt.shareable("BOAR Guide") && team.sopa.boar.engine.labs.PressReceipt.shareable("FAQ do BOAR, escrito pela Amandita"))
         assertFalse(team.sopa.boar.engine.labs.PressReceipt.shareable("BOAR Guide notes.pdf"))
