@@ -26,7 +26,9 @@ class LabRangesTest {
         assertEquals(listOf(Mark.WITHIN, Mark.ABOVE, Mark.WITHIN, Mark.BELOW), LabRanges.rows(pt).map { it.mark })
         val lines = "- LDL: 162 mg/dL (below 130 mg/dL)\n- HDL: 48 mg/dL (above 40 mg/dL)"
         assertEquals(listOf(Mark.ABOVE, Mark.WITHIN), LabRanges.rows(lines).map { it.mark })
-        assertTrue(LabRanges.note(pt, pt = true)!!.contains("Colesterol total: 231 mg/dL, ACIMA da faixa (abaixo de 190 mg/dL)"))
+        // Golden change (t9 0115 item 5): the range as a reference, so "ACIMA da faixa de abaixo de 190" isn't read into it.
+        assertTrue(LabRanges.note(pt, pt = true)!!.contains("Colesterol total: 231 mg/dL, ACIMA da faixa (ref. abaixo de 190 mg/dL)"))
+        assertTrue(LabRanges.note(blood, pt = false)!!.contains("231 mg/dL, ABOVE its range (ref. below 190 mg/dL)"))
     }
 
     @Test fun `a row the code can't read is left unmarked, never guessed`() {

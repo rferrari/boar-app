@@ -73,6 +73,8 @@ object LabRanges {
         // Said as BOAR's, not the file's: it shows in the Sources view with the passage.
         val head = if (pt) "Calculado pelo BOAR com os números deste arquivo (não está escrito no arquivo); cada resultado e a sua faixa:" else
             "Computed by BOAR from this file's own numbers (not written in the file); each result against its range:"
-        return head + "\n" + rs.joinToString("\n") { "- ${it.name}: ${it.value}, ${word(it.mark)} (${it.range})" }
+        // The range as a reference, "(ref. below 190 mg/dL)": "ACIMA da faixa (abaixo de 190)" came back from the model as
+        // "ACIMA da faixa de abaixo de 190" (t9 0115 item 5).
+        return head + "\n" + rs.joinToString("\n") { "- ${it.name}: ${it.value}, ${word(it.mark)} (ref. ${it.range})" }
     }
 }
