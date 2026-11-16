@@ -322,6 +322,18 @@ class VisualTest {
         assertEquals(Visual.Reason.UNPAIRED, reason(bars(0.5, 2.1), nameFirst))
     }
 
+    // Validator Q-A3 (t9 0115): one sentence per item, each starting with its number, refused the right card 3 of 3.
+    @Test fun `Q-A3 a sentence that starts with its number is its own, and a swap is still refused`() {
+        fun bars(vararg p: Pair<String, Double>) = """{"type":"bars","unit":"million","items":[${p.joinToString(",") { """{"label":"${it.first}","value":${it.second}}""" }}]}"""
+        val three = "2.1 million people live in Paris. 0.5 million people live in Lyon. 0.9 million people live in Marseille."
+        assertTrue(Visual.parse(bars("Paris" to 2.1, "Lyon" to 0.5, "Marseille" to 0.9), three) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 0.5, "Lyon" to 2.1, "Marseille" to 0.9), three))
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 2.1, "Lyon" to 0.9, "Marseille" to 0.5), three))
+        val two = "2.1 million people live in Paris. 0.5 million live in Lyon."
+        assertTrue(Visual.parse(bars("Paris" to 2.1, "Lyon" to 0.5), two) is Visual.Parsed.Ok)
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 0.5, "Lyon" to 2.1), two))
+    }
+
     @Test fun `V-3 a label inside a longer one isn't confused with it`() {
         val sudan = "South Sudan has 11 million people and Sudan has 48 million."
         assertTrue(Visual.parse("""{"type":"bars","unit":"million","items":[{"label":"Sudan","value":48},{"label":"South Sudan","value":11}]}""", sudan) is Visual.Parsed.Ok)

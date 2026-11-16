@@ -346,10 +346,29 @@ object VisualCheck {
             // Which side of its number a name is written on, read from this answer and this visual (validator V-3): the
             // reading under which more of the visual's items stand by their own name. "Paris has 2.1 million" puts the
             // name first; "2.1 million in Paris" puts it after. A swap fits neither reading, so it's still refused.
-            val numbersFirst = items.size >= 2 && orderCache.getOrPut(items) {
+            // The answer's own sentences decide first (validator Q-A3): a partial swap could pick the reading that suited
+            // it ("Paris 2.1, Lyon 0.9" passed against "…in Paris. 0.5 million… in Lyon. 0.9 million… in Marseille.").
+            val numbersFirst = items.size >= 2 && (writtenNumbersFirst(labels) ?: orderCache.getOrPut(items) {
                 items.count { (l, v) -> pairedAs(l, v, labels, true) } > items.count { (l, v) -> pairedAs(l, v, labels, false) }
-            }
+            })
             return pairedAs(label, x, labels, numbersFirst)
+        }
+
+        /**
+         * Which side of their numbers the answer writes these [labels] on, from its sentences alone: a label with numbers
+         * before it in its sentence and none after votes numbers-first, the opposite votes names-first. Null on a tie.
+         */
+        private fun writtenNumbersFirst(labels: List<String>): Boolean? {
+            val ends = listOf(0) + SENTENCE_END.findAll(source).map { it.range.last + 1 }.toList() + source.length
+            var first = 0; var after = 0
+            for (l in labels.distinct()) for (w in placesAmong(l, labels)) {
+                val i = ends.indexOfLast { it <= w }.coerceAtLeast(0)
+                val (from, to) = ends[i] to ends.getOrElse(i + 1) { source.length }
+                val before = at.any { (p, _) -> p in from until w }
+                val later = at.any { (p, _) -> p in (w + l.length) until to }
+                if (before && !later) first++ else if (later && !before) after++
+            }
+            return if (first == after) null else first > after
         }
 
         /**
@@ -383,8 +402,11 @@ object VisualCheck {
         private fun acrossSentence(w: Int, p: Int, numbersFirst: Boolean): Boolean {
             val far = if (numbersFirst) w < p else w > p
             if (!far) return false
-            val between = source.substring(minOf(w, p), maxOf(w, p))
-            return SENTENCE_END.containsMatchIn(between)
+            // One character past the span, so a sentence that starts with the number itself ends the one before it
+            // ("…in Paris. 0.5 million people live in Lyon": validator Q-A3).
+            val between = source.substring(minOf(w, p), minOf(source.length, maxOf(w, p) + 1))
+            // A clause break on the far side too: "…in Paris, 0.5 million in Lyon" is Lyon's 0.5 (Q-A3).
+            return SENTENCE_END.containsMatchIn(between) || CLAUSE_END.containsMatchIn(between)
         }
 
         fun badNumber(text: String): String? = tokens(text).firstOrNull { t -> valuesOf(t).none(::grounded) }
@@ -415,7 +437,8 @@ object VisualCheck {
         RegexOption.IGNORE_CASE,
     )
 
-    private val SENTENCE_END = Regex("""[.!?](?:\s*\[\d{1,3}])?\s+(?=\p{Lu})""")
+    private val CLAUSE_END = Regex("""[,;]\s|\s(?:and|e|y)\s""", RegexOption.IGNORE_CASE)
+    private val SENTENCE_END = Regex("""[.!?](?:\s*\[\d{1,3}])?\s+(?=\p{Lu}|\d)""")
 
     /**
      * [text] with each number written as [source] writes the same value ("3,287,263" in a card under a Portuguese answer
