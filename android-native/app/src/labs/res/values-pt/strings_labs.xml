@@ -40,7 +40,7 @@
     <string name="native_labs_section_review" formatted="false">EM REVISÃO</string>
     <string name="native_labs_section_testing" formatted="false">EM TESTE · SEM DATA DE LANÇAMENTO</string>
     <string name="native_labs_listNote" formatted="false">Ligue ou desligue um plugin aqui mesmo. Toque num plugin para abrir a página dele e as configurações próprias. Um plugin ligado funciona em qualquer perfil.</string>
-    <string name="native_labs_showTiles" formatted="false">Mostrar em cartões</string>
+    <string name="native_labs_showTiles" formatted="false">Mostrar em blocos</string>
     <string name="native_labs_openList" formatted="false">Abrir os Plugins</string>
     <string name="native_labs_wait_setting" formatted="false">Animação de espera</string>
     <string name="native_labs_wait_trail" formatted="false">Rastro do Boar</string>

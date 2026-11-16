@@ -127,6 +127,7 @@ class KeepGoingWiringTest {
                 assertTrue("$d $k", x.contains("name=\"native_chat_$k\""))
         }
         assertTrue(java.io.File("../app/src/main/res/values/strings_native.xml").readText().contains(">Keep going<"))
-        assertTrue(java.io.File("../app/src/main/res/values-pt/strings_native.xml").readText().contains(">Continue<"))
+        // Golden change (t9 0125 language review): PT "Seguir adiante", since "Continuar" is now the Continue step under it.
+        assertTrue(java.io.File("../app/src/main/res/values-pt/strings_native.xml").readText().contains(">Seguir adiante<"))
     }
 }

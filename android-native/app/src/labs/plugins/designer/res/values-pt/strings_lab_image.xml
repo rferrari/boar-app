@@ -41,7 +41,7 @@
     <string name="native_labs_image_shape_banner" formatted="false">Paisagem</string>
     <string name="native_labs_image_illustrateNeedsModel" formatted="false">Ilustrar (baixe antes o modelo de desenho em Plugins, Designer)</string>
     <string name="native_labs_image_removeModel" formatted="false">Remover o modelo de imagem (683 MB)</string>
-    <string name="native_labs_image_removeConfirm" formatted="false">Remover o modelo de imagem? Seus desenhos ficam. Para desenhar de novo, o BOAR baixa ele outra vez (683 MB, internet uma vez).</string>
+    <string name="native_labs_image_removeConfirm" formatted="false">Remover o modelo de imagem? Seus desenhos ficam. Para desenhar de novo, o BOAR baixa o modelo outra vez (683 MB, internet uma vez).</string>
     <string name="native_labs_image_remove" formatted="false">Remover</string>
     <string name="native_labs_image_drawFailed" formatted="false">O desenho parou antes de terminar. Tente de novo.</string>
     <string name="native_labs_image_lowMemory" formatted="false">Memória livre insuficiente para desenhar agora. Feche outros apps ou libere a memória do BOAR e tente de novo.</string>
@@ -79,7 +79,7 @@
     <string name="native_labs_image_menu" formatted="false">Menu do Designer</string>
     <string name="native_labs_image_drawings" formatted="false">Desenhos</string>
     <string name="native_labs_image_allDrawings" formatted="false">Todos os desenhos ({{count}})</string>
-    <string name="native_labs_image_settingsTitle" formatted="false">Ajustes do Designer</string>
+    <string name="native_labs_image_settingsTitle" formatted="false">Configurações do Designer</string>
     <string name="native_labs_image_waitSketch" formatted="false">Esboço</string>
     <string name="native_labs_image_qualityLabel" formatted="false">Qualidade</string>
     <string name="native_labs_image_quality_low" formatted="false">Baixa</string>

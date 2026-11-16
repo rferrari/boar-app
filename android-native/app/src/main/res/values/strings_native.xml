@@ -575,7 +575,7 @@
     <string name="native_tour_pin_body" formatted="false">A PIN seals your chats and blanks BOAR\'s screen in recent apps and screenshots. Imported documents aren\'t encrypted yet.</string>
     <string name="native_tour_pin_where" formatted="false">Settings → PIN lock</string>
     <string name="native_tour_labs_title" formatted="false">Plugins</string>
-    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. They all start off: switch on the ones you want.\n\nAlso try Designer, which draws a picture from your answer; Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nLabs don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
+    <string name="native_tour_labs_body" formatted="false">Experiments, labelled beta or alpha. The tested ones start on and the rest off: switch on the ones you want.\n\nAlso try Designer, which draws a picture from your answer; Press, which turns answers into a PDF; and Big Boar, which runs a 35B model from storage.\n\nPlugins don\'t slow the answers, but the ones that load a model (Designer, Big Boar, Wisp) use extra memory while they run.\n\nIf one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Settings → Experimental → Plugins</string>
     <string name="native_tour_end_title" formatted="false">That\'s the tour</string>
     <string name="native_tour_end_body" formatted="false">BOAR is ready when the download is. You can see this tour again from Settings.</string>

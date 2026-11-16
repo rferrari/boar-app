@@ -380,8 +380,8 @@
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
     <string name="native_answering_text" formatted="false">A resposta continua enquanto você usa outros apps.</string>
-    <string name="native_chat_keepGoing" formatted="false">Continue</string>
-    <string name="native_chat_kgGroup" formatted="false">Continue: o que perguntar depois</string>
+    <string name="native_chat_keepGoing" formatted="false">Seguir adiante</string>
+    <string name="native_chat_kgGroup" formatted="false">Seguir adiante: o que perguntar depois</string>
     <string name="native_chat_kgDeeper" formatted="false">Ir mais fundo</string>
     <string name="native_chat_kgContinue" formatted="false">Continuar</string>
     <string name="native_chat_kgContinueSpoken" formatted="false">Continuar: o BOAR segue a partir da última resposta.</string>
@@ -393,7 +393,7 @@
     <string name="native_chat_kgResearchRung" formatted="false">Pesquisa</string>
     <string name="native_chat_kgBoar" formatted="false">BOAR</string>
     <string name="native_chat_kgDeeperSpoken" formatted="false">Ir mais fundo: a mesma pergunta de novo, em Detalhada.</string>
-    <string name="native_chat_kgResearchSpoken" formatted="false">Pesquisar isto: a mesma pergunta de novo, com a Pesquisa profunda.</string>
+    <string name="native_chat_kgResearchSpoken" formatted="false">Pesquisar isto: a mesma pergunta de novo, com a Pesquisa Profunda.</string>
     <string name="native_chat_kgAskSpoken" formatted="false">Perguntar ao BOAR: o modelo responde esta pergunta no lugar de {{name}}.</string>
     <string name="native_chat_kgFollowSpoken" formatted="false">Perguntar: {{q}}</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
@@ -575,7 +575,7 @@
     <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
     <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
     <string name="native_tour_labs_title" formatted="false">Plugins</string>
-    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.\n\nExperimente também o Designer, que desenha uma imagem a partir da resposta; o Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs plugins não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Os testados começam ligados e os outros desligados: ligue os que quiser.\n\nExperimente também o Designer, que desenha uma imagem a partir da resposta; o Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs plugins não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
     <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Plugins</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
@@ -791,13 +791,13 @@
     <string name="native_eval_level_complete" formatted="false">Completo</string>
     <string name="native_eval_level_fast_note" formatted="false">Sucinto, no 1.7B (ou no único modelo de resposta).</string>
     <string name="native_eval_level_medium_note" formatted="false">Sucinto, no 1.7B e no 4B.</string>
-    <string name="native_eval_level_complete_note" formatted="false">Sucinto e Detalhado nos dois modelos, e Pesquisa profunda no tema de pesquisa.</string>
+    <string name="native_eval_level_complete_note" formatted="false">Sucinto e Detalhado nos dois modelos, e Pesquisa Profunda no tema de pesquisa.</string>
     <string name="native_eval_level_byHand_note" formatted="false">Os modelos que você marcar, no estilo padrão.</string>
     <string name="native_eval_topic_title" formatted="false">Tema</string>
     <string name="native_eval_topic_draft" formatted="false">Rascunho: as regras ainda não contam.</string>
     <string name="native_eval_planModels" formatted="false">Modelos: {{models}}</string>
     <string name="native_eval_expected" formatted="false">Previsto: cerca de {{time}} para {{answers}} respostas</string>
-    <string name="native_eval_expected_untimed" formatted="false">mais {{count}} respostas de Pesquisa profunda que ninguém cronometrou ainda</string>
+    <string name="native_eval_expected_untimed" formatted="false">mais {{count}} respostas de Pesquisa Profunda que ninguém cronometrou ainda</string>
     <string name="native_eval_expected_fromPrevious" formatted="false">pela última execução {{level}} neste celular</string>
     <string name="native_eval_expected_fromSeed" formatted="false">pelas medianas do F3</string>
     <string name="native_eval_scorecard_title" formatted="false">Placar</string>
@@ -808,7 +808,7 @@
     <string name="native_eval_scorecard_down" formatted="false">caiu</string>
     <string name="native_eval_scorecard_same" formatted="false">igual</string>
     <string name="native_eval_scorecard_model" formatted="false">primeira palavra {{first}} · resposta inteira {{whole}} · pico {{peak}}</string>
-    <string name="native_eval_scorecard_note" formatted="false">O computador só pontua o que uma regra consegue checar (o texto exato de um plugin, o idioma, os cards, as fontes, os números). O resto é para ler.</string>
+    <string name="native_eval_scorecard_note" formatted="false">O computador só pontua o que uma regra consegue checar (o texto exato de um plugin, o idioma, os cartões, as fontes, os números). O resto é para ler.</string>
     <string name="native_eval_verdict_PASS" formatted="false">passou</string>
     <string name="native_eval_verdict_FAIL" formatted="false">falhou</string>
     <string name="native_eval_verdict_KNOWN" formatted="false">problema conhecido</string>
@@ -821,9 +821,9 @@
     <string name="native_eval_saved_answers" formatted="false">{{count}} respostas</string>
     <string name="native_eval_saved_state_running" formatted="false">rodando</string>
     <string name="native_eval_saved_state_done" formatted="false">concluída</string>
-    <string name="native_eval_saved_state_stopped" formatted="false">interrompida</string>
+    <string name="native_eval_saved_state_stopped" formatted="false">parada</string>
     <string name="native_eval_saved_state_failed" formatted="false">falhou</string>
-    <string name="native_eval_saved_state_interrupted" formatted="false">cortada</string>
+    <string name="native_eval_saved_state_interrupted" formatted="false">interrompida</string>
     <string name="native_eval_saved_opened" formatted="false">Execução salva · {{date}}</string>
     <string name="native_eval_saved_close" formatted="false">Fechar</string>
     <string name="native_eval_saved_delete" formatted="false">Apagar</string>
@@ -839,7 +839,7 @@
     <string name="native_settings_memory_all" formatted="false">Todas</string>
     <string name="native_settings_clearChatsPress" formatted="false">Apagar também os projetos do Press ({{count}}) e suas fotos</string>
     <string name="native_chat_noSource" formatted="false">Nenhuma fonte da biblioteca deste celular cobre isto; a resposta vem só do modelo.</string>
-    <string name="native_labs_printer_rOwnFile" formatted="false">Arquivo seu</string>
+    <string name="native_labs_printer_rOwnFile" formatted="false">Seu próprio arquivo</string>
     <string name="native_settings_lower_title" formatted="false">Apagar suas conversas mais antigas?</string>
     <string name="native_settings_lower_text" formatted="false">Guardar {{max}} conversas apaga “{{title}}”.</string>
     <string name="native_settings_lower_textMore" formatted="false">Guardar {{max}} conversas apaga “{{title}}” e mais {{more}}.</string>
@@ -852,5 +852,5 @@
     <string name="native_labs_safetyOff_text" formatted="false">O BOAR deixará de mostrar primeiro o aviso de monóxido de carbono quando uma pergunta parecer intoxicação. Você pode ligá-lo de novo na página dele.</string>
     <string name="native_labs_safetyOff_confirm" formatted="false">Desligar</string>
     <string name="native_settings_liveSpeed" formatted="false">Mostrar a velocidade ao responder</string>
-    <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo do chat enquanto o BOAR escreve.</string>
+    <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo da conversa enquanto o BOAR escreve.</string>
 </resources>
