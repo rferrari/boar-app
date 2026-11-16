@@ -221,7 +221,9 @@ object CardRules {
      * hill).
      */
     private fun markOf(answer: String, question: String): Boolean {
-        val lang = team.sopa.boar.engine.answer.AnswerLanguage.clear(answer) ?: team.sopa.boar.engine.answer.AnswerLanguage.clear(question)
+        // The answer's language, else the question's, else the app's (AnswerLanguage.of ends on the app setting; R-B2:
+        // "Montanhas mais altas?" says too little).
+        val lang = team.sopa.boar.engine.answer.AnswerLanguage.clear(answer) ?: team.sopa.boar.engine.answer.AnswerLanguage.of(question)
         return Calculators.readsComma(answer, lang == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT)
     }
 

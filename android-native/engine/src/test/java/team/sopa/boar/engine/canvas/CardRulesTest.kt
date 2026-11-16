@@ -139,4 +139,13 @@ class CardRulesTest {
         assertTrue(long.length < CardRules.MAX_ANSWER)
         assertTrue(CardRules.find("Tallest peaks?", long).any { it is Card.Chart })
     }
+
+    @Test fun `a short Portuguese question in a Portuguese app reads dotted thousands as thousands (validator R-B2)`() {
+        val was = team.sopa.boar.engine.answer.AnswerLanguage.appLanguage
+        try {
+            team.sopa.boar.engine.answer.AnswerLanguage.appLanguage = "pt"
+            val c = CardRules.find("Montanhas mais altas?", "- Everest: 8.849 m\n- K2: 8.611 m\n- Morro: 300 m").first { it is Card.Chart } as Card.Chart
+            assertEquals(listOf(8849.0, 8611.0, 300.0), c.points.map { it.value })
+        } finally { team.sopa.boar.engine.answer.AnswerLanguage.appLanguage = was }
+    }
 }
