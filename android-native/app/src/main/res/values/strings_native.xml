@@ -108,6 +108,7 @@
     <string name="native_about_post_credits" formatted="false">Standing on open work, each under its own license.</string>
     <string name="native_about_creditWikipedia" formatted="false">Wikipedia (the built-in library and the Vital Articles pack)</string>
     <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (where BOAR\'s models download from)</string>
+    <string name="native_about_creditFaq" formatted="false">The BOAR FAQ, written by Amandita (@AAmandita_) from her Zebra Talks interview</string>
     <string name="native_about_packsTitle" formatted="false">Knowledge packs</string>
     <string name="native_about_packsBody" formatted="false">Packs from R4to\'s R&amp;D Labs</string>
     <string name="native_about_teamTitle" formatted="false">Core team, on X</string>

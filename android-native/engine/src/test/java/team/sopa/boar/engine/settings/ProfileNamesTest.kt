@@ -12,7 +12,7 @@ class ProfileNamesTest {
         for (line in listOf(">Starter</string>", ">Starter: set up the essentials.</string>", ">Explorer: discover more features.</string>",
             ">Pro: advanced settings and tweaks.</string>", ">Starter, plus how BOAR answers")) assertTrue(line, en.contains(line))
         for (line in listOf(">Iniciante</string>", ">Iniciante: configure o essencial.</string>", ">Explorador: descubra mais recursos.</string>",
-            ">Pro: ajustes avançados e afine tudo.</string>", ">O Iniciante, mais como o BOAR responde")) assertTrue(line, pt.contains(line))
+            ">Pro: ajustes avançados.</string>", ">O Iniciante, mais como o BOAR responde")) assertTrue(line, pt.contains(line))
         // No "Simple"/"Simples" left as the profile's name, in the strings or the guides.
         assertTrue(!Regex("profile_\\w+\" formatted=\"false\">(?:O )?Simples?\\b").containsMatchIn(en + pt))
         // Anywhere in the guides, which BOAR now answers from (BoarPack): "A new install starts on Simple" was missed.

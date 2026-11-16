@@ -41,6 +41,10 @@ class BoarPackTest {
         // October's facts that rc3 changed are gone.
         for (old in listOf("Qwen2.5-1.5B", "Executive Summary", "Resumo executivo", "copied over a cable", "copiados por cabo", "you can choose to share an evaluation")) assertFalse(old, faq.contains(old))
         assertTrue(faq.contains("Amandita"))
+        // Credited in About & Info too, EN and PT (t9 0315).
+        val credits = java.io.File("../app/src/main/java/team/sopa/boar/ui/about/AboutCredits.kt").readText()
+        assertTrue(credits.contains("\"native.about.creditFaq\" to \"MIT\""))
+        for (d in listOf("values", "values-pt")) assertTrue(d, java.io.File("../app/src/main/res/$d/strings_native.xml").readText().contains(Regex("name=\"native_about_creditFaq\"[^>]*>[^<]*Amandita \\(@AAmandita_\\)[^<]*Zebra Talks")))
     }
 
     private fun kotlinx.serialization.json.JsonElement.jsonObjectEntries(): List<String> =

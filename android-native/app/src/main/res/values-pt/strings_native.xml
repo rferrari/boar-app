@@ -108,6 +108,7 @@
     <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença.</string>
     <string name="native_about_creditWikipedia" formatted="false">Wikipédia (a biblioteca embutida e o pacote Vital Articles)</string>
     <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (de onde os modelos do BOAR são baixados)</string>
+    <string name="native_about_creditFaq" formatted="false">O FAQ do BOAR, escrito pela Amandita (@AAmandita_) a partir da entrevista dela no Zebra Talks</string>
     <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
     <string name="native_about_packsBody" formatted="false">Pacotes feitos pelo R&amp;D Labs, de R4to</string>
     <string name="native_about_teamTitle" formatted="false">Equipe principal, no X</string>
@@ -761,7 +762,7 @@
     <string name="native_nav_chat" formatted="false">Conversa</string>
     <string name="native_settings_profile_simpleShort" formatted="false">Iniciante: configure o essencial.</string>
     <string name="native_settings_profile_explorerShort" formatted="false">Explorador: descubra mais recursos.</string>
-    <string name="native_settings_profile_proShort" formatted="false">Pro: ajustes avançados e afine tudo.</string>
+    <string name="native_settings_profile_proShort" formatted="false">Pro: ajustes avançados.</string>
     <string name="native_settings_profile_downNote" formatted="false">Plugins e Ajustes avançados pausam abaixo do Pro. Suas configurações ficam salvas.</string>
     <string name="native_drawer_searchChats" formatted="false">Buscar conversas</string>
     <string name="native_drawer_group_today" formatted="false">Hoje</string>
