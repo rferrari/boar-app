@@ -95,6 +95,9 @@ object PtLexicon {
         "o", "os", "que", "como", "porque", "qual", "quais", "uma", "um", "sao", "nao", "e", "das", "dos", "nas", "nos", "numa", "num",
         "pelo", "pela", "onde", "quando", "quanto", "quantos", "existem", "fazer", "faco", "devo", "entre", "diferenca", "depois", "antes",
         "em", "para", "com", "se", "posso", "pode", "tem", "funciona",
+        // t9 0026 (blood test e): "resuma meu exame de sangue" (no accent, 5 words) read as not Portuguese, so the English
+        // pass ("Blood test") never ran and the user's English file wasn't found. A possessive is never English.
+        "meu", "minha", "meus", "minhas", "resuma",
     ) // "por que" can't match a single word, as in the TS regex
     private val ASCII_WORD = Regex("[a-z0-9]+")
     private val ACCENTED = Regex("(^|[^\\p{L}])[a-zà-ÿ]*[ãõçâêôáéíóú]\\p{L}*")
@@ -139,6 +142,9 @@ object PtLexicon {
         "minuto" to "", "minutos" to "", "hora" to "", "horas" to "", "segundo" to "", "segundos" to "",
         "inclinacao da terra" to "Axial tilt", "inclinacao do eixo" to "Axial tilt", "inclinacao do eixo da terra" to "Axial tilt", "eixo da terra" to "Axial tilt",
         "ceu azul" to "Diffuse sky radiation", "ceu e azul" to "Diffuse sky radiation",
+        // Lab and health terms the lexicon lacks (t9 0026). Bare "receita" stays out: in the packs it's also a recipe.
+        "triglicerideos" to "Triglyceride", "triglicerides" to "Triglyceride", "creatinina" to "Creatinine",
+        "receita medica" to "Prescription", "receitas medicas" to "Prescription",
     )
 
     /** "marés" -> "maré" (Tide) before the folded "mares" -> "mar" (Sea): an accented word's own singular first. */
