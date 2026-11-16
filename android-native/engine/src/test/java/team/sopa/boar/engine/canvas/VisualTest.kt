@@ -329,6 +329,11 @@ class VisualTest {
         assertTrue(Visual.parse(bars("Paris" to 2.1, "Lyon" to 0.5, "Marseille" to 0.9), three) is Visual.Parsed.Ok)
         assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 0.5, "Lyon" to 2.1, "Marseille" to 0.9), three))
         assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 2.1, "Lyon" to 0.9, "Marseille" to 0.5), three))
+        // Mixed orders, each sentence its own (CodeRabbit on all73).
+        val mixed = "Paris has 2.1 million people. 0.5 million people live in Lyon. Marseille has 0.9 million people."
+        val kept = (Visual.parse(bars("Paris" to 2.1, "Lyon" to 0.5, "Marseille" to 0.9), mixed) as Visual.Parsed.Ok).visual as Visual.Series
+        assertEquals(3, kept.items.size)
+        assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 0.5, "Lyon" to 2.1, "Marseille" to 0.9), mixed))
         val two = "2.1 million people live in Paris. 0.5 million live in Lyon."
         assertTrue(Visual.parse(bars("Paris" to 2.1, "Lyon" to 0.5), two) is Visual.Parsed.Ok)
         assertEquals(Visual.Reason.UNPAIRED, reason(bars("Paris" to 0.5, "Lyon" to 2.1), two))

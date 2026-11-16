@@ -15,6 +15,9 @@ class VisualPairingMatrixTest { @Test fun `every layout keeps the right card who
         { n, v -> "- ${n[0]} — ${v[0]} million\n- ${n[1]} — ${v[1]} million\n- ${n[2]} — ${v[2]} million" },
         { n, v -> "${v[0]} million (${n[0]}), ${v[1]} million (${n[1]}), ${v[2]} million (${n[2]})." },
         { n, v -> "The largest is ${n[0]} with ${v[0]} million. Next comes ${n[1]}, with ${v[1]} million. Then ${n[2]} at ${v[2]} million." },
+        // Mixed orders (CodeRabbit on all73).
+        { n, v -> "${n[0]} has ${v[0]} million people. ${v[1]} million people live in ${n[1]}. ${n[2]} has ${v[2]} million people." },
+        { n, v -> "${v[0]} million people live in ${n[0]}. ${n[1]} has ${v[1]} million. ${v[2]} million live in ${n[2]}." },
     )
     fun perms(l: List<Int>): List<List<Int>> = if (l.size <= 1) listOf(l) else l.flatMap { x -> perms(l - x).map { listOf(x) + it } }
     var right = 0; var rightN = 0; var wrong = 0; var wrongN = 0

@@ -382,6 +382,11 @@ object VisualCheck {
             val byLabel = labels.distinct().associateWith { placesAmong(it, labels) }
             var anyNear = false
             for (p in places) {
+                // A sentence (or line) that names exactly one of the labels: its number is that label's, whichever side
+                // it's written on (CodeRabbit on all73: "Paris has 2.1 million people. 0.5 million people live in Lyon.
+                // Marseille has 0.9 million people." mixes both orders). Distance decides only otherwise.
+                val here = byLabel.filterValues { ws -> ws.any { w -> sameSentence(w, p) } }.keys
+                if (here.size == 1) { anyNear = true; if (here.first() == label) return true; continue }
                 fun dist(w: Int) = if (numbersFirst) (if (w >= p) (w - p) / 2 else (p - w)) else (if (w <= p) (p - w) / 2 else (w - p))
                 fun nearestOf(keep: (Int) -> Boolean) = byLabel.mapValues { (_, ws) -> ws.filter(keep).minOfOrNull(::dist) ?: Int.MAX_VALUE }
                     .filterValues { it <= near }
@@ -394,6 +399,12 @@ object VisualCheck {
             }
             return !anyNear
         }
+        /** No sentence end or line break between [w] and [p] (looking one character past the later one). */
+        private fun sameSentence(w: Int, p: Int): Boolean {
+            val between = source.substring(minOf(w, p), minOf(source.length, maxOf(w, p) + 1))
+            return !SENTENCE_END.containsMatchIn(between) && '\n' !in between
+        }
+
         /**
          * A name on the far side of its number (after it when names come first) and past a sentence's end is the next
          * sentence's subject, not this number's: "…com uma área de 8.515.814 km². A Índia é…" is Brasil's area, not
