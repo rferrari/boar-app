@@ -15,15 +15,24 @@ class PressScrubTest {
         val a = Block.Answer("a1", chatTitle = "imposto-2025", question = "what does imposto-2025.pdf say about tax?",
             text = "Imposto-2025.PDF lists a refund [1]. Income tax is progressive [2].", sources = listOf(own, pack),
             card = team.sopa.boar.engine.canvas.AnswerCard(team.sopa.boar.engine.canvas.CardRules.Shape.FACTS, "imposto-2025",
-                team.sopa.boar.engine.canvas.AnswerCard.Body.Facts(listOf("Refund" to "120")), true))
+                team.sopa.boar.engine.canvas.AnswerCard.Body.Facts(listOf("Refund" to "120", "File" to "imposto-2025.pdf")), true))
         val out = PressReceipt.scrubOwnFiles(project(a), "Your own file").answers.single()
         assertEquals("what does Your own file say about tax?", out.question)
         assertEquals("Your own file", out.chatTitle)
         assertEquals("Your own file lists a refund [1]. Income tax is progressive [2].", out.text)
         assertEquals("Your own file", out.card!!.title)
+        // Its body too (CodeRabbit on all73).
+        assertEquals(listOf("Refund" to "120", "File" to "Your own file"), (out.card!!.body as team.sopa.boar.engine.canvas.AnswerCard.Body.Facts).pairs)
         // Through the Markdown export too: the name appears nowhere.
         val md = PressReceipt.markdown(PressReceipt.scrubOwnFiles(project(a), "Your own file"), PressReceipt.Labels(), "16 Nov 2026", "x", "Sources", "Drawing")
         assertTrue(md, !md.contains("imposto", ignoreCase = true))
+    }
+
+    @Test fun `both exports scrub before they write, PDF and Markdown`() {
+        val press = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText()
+        assertTrue(press.contains("PdfCompiler.compile(out, PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date))"))
+        assertTrue(press.contains("PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date).markdown("))
+        assertTrue(!Regex("PressPage\\.of\\(ctx, project, date\\)").containsMatchIn(press))
     }
 
     @Test fun `what the user typed in Press stays, and a pack's names stay`() {

@@ -208,8 +208,17 @@ object PressReceipt {
         fun x(t: String) = t.replace(re, ownFile)
         return project.copy(blocks = project.blocks.map { b ->
             if (b !is PressDoc.Block.Answer) b
-            else b.copy(question = x(b.question), chatTitle = x(b.chatTitle), text = x(b.text), card = b.card?.let { it.copy(title = x(it.title)) })
+            else b.copy(question = x(b.question), chatTitle = x(b.chatTitle), text = x(b.text), card = b.card?.let { it.copy(title = x(it.title), body = scrubBody(it.body, ::x)) })
         })
+    }
+
+    /** Every text a card's body holds, through [x] (CodeRabbit on all73: a Facts value could still hold the file's name). */
+    private fun scrubBody(b: team.sopa.boar.engine.canvas.AnswerCard.Body, x: (String) -> String): team.sopa.boar.engine.canvas.AnswerCard.Body = when (b) {
+        is team.sopa.boar.engine.canvas.AnswerCard.Body.Series -> b.copy(unit = x(b.unit), points = b.points.map { it.copy(label = x(it.label), written = x(it.written)) })
+        is team.sopa.boar.engine.canvas.AnswerCard.Body.Table -> b.copy(header = b.header.map(x), rows = b.rows.map { r -> r.map(x) })
+        is team.sopa.boar.engine.canvas.AnswerCard.Body.Steps -> b.copy(items = b.items.map(x))
+        is team.sopa.boar.engine.canvas.AnswerCard.Body.Facts -> b.copy(pairs = b.pairs.map { (k, v) -> x(k) to x(v) })
+        is team.sopa.boar.engine.canvas.AnswerCard.Body.Compare -> b.copy(sides = b.sides.map { (n, ps) -> x(n) to ps.map(x) })
     }
 
     private val PACK_STYLE = Regex("""[^—\n]{1,60} — https?://\S+(?: \([^)\n]{1,60}\))?""")
