@@ -58,6 +58,6 @@ class HealthQuestionTest {
         assertTrue(ShortAnswer.reason("personal", "what did my landlord say?", null) == null)
         val vm = java.io.File("../app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
         assertTrue(vm.contains("val style = if (shortReason != null && !personal) \"succinct\" else chosenStyle"))
-        assertTrue(vm.contains("if (personal && shortReason != null) listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT)"))
+        assertTrue(vm.contains("team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT.takeIf { personal && shortReason != null }"))
     }
 }

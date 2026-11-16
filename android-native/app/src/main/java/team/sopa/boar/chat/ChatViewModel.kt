@@ -815,7 +815,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
             val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
             val (systemPrompt, baseReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
-            val styleReminder = if (personal && shortReason != null) listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT).joinToString(" ") else baseReminder
+            // A Local Files summary: in the model's words, each result with the mark the code gave it (t9 2330 a).
+            val ptQ = team.sopa.boar.engine.answer.AnswerLanguage.of(q) == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT
+            val summaryLine = if (personal && PersonalFiles.asksSummary(q)) (if (ptQ) PersonalFiles.SUMMARY_PT else PersonalFiles.SUMMARY_EN) else null
+            val styleReminder = listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT.takeIf { personal && shortReason != null }, summaryLine)
+                .joinToString(" ").ifBlank { null }
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
@@ -1020,7 +1024,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.second
                     metrics = r.third
                 } else {
-                    val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
+                    val plain: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
+                    // A user's file with results and ranges gets each one marked in code, given to the model with the
+                    // passage (t9 2330 b: the 1.7B read 231 against "below 190" as fine).
+                    val search: (String, Int) -> List<Chunk> = { s, k -> plain(s, k).map { c ->
+                        if (c.collectionId == null) c else team.sopa.boar.engine.answer.LabRanges.note(c.body, ptQ)?.let { n -> c.copy(body = c.body + "\n\n" + n) } ?: c
+                    } }
                     val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
                     // Nothing found in the files: the fixed line in the user's language, then where to switch a collection on

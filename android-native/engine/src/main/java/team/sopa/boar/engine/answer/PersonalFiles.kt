@@ -19,6 +19,20 @@ object PersonalFiles {
 
     fun isOn(style: String?): Boolean = style == STYLE
 
+    /** The question asks for a summary (t9 2330 a): "summarize", "summary", "overview", "resuma", "resumo", "em resumo". */
+    private val SUMMARY = Regex("""(?<![\p{L}])(?:summari[sz]e|summary|overview|sum up|resum[aeo]|resumir|em resumo|sintetize|panorama)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    fun asksSummary(question: String): Boolean = SUMMARY.containsMatchIn(question)
+
+    /**
+     * What a summary of the user's file asks of the model (t9 2330 a): its own words, never the file copied (the F3:
+     * "summarize" pasted the blood test, table and all), the file's numbers as written, and each result with the mark the
+     * code gave it (LabRanges), never its own comparison.
+     */
+    const val SUMMARY_EN = "This is a request for a summary: write 3 to 5 sentences in your own words; never copy the file or its table. " +
+        "Give the file's numbers as it writes them. For each result that has a mark (WITHIN, ABOVE or BELOW its range), say that mark exactly; never compare numbers yourself."
+    const val SUMMARY_PT = "Isto é um pedido de resumo: escreva de 3 a 5 frases com suas palavras; nunca copie o arquivo ou a tabela. " +
+        "Dê os números como o arquivo escreve. Para cada resultado com marcação (DENTRO, ACIMA ou ABAIXO da faixa), diga essa marcação exatamente; nunca compare números você mesmo."
+
     /** A Labs tool's answer is kept only from a safety card (`safety-*`), as under Deep Research. */
     fun keepsTool(toolId: String): Boolean = toolId.startsWith("safety-")
 
