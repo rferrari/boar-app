@@ -841,4 +841,6 @@
     <string name="native_settings_lower_text" formatted="false">Guardar {{max}} conversas apaga “{{title}}”.</string>
     <string name="native_settings_lower_textMore" formatted="false">Guardar {{max}} conversas apaga “{{title}}” e mais {{more}}.</string>
     <string name="native_settings_lower_delete" formatted="false">Apagar</string>
+    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. Cada plugin tem um botão de ligar e desligar no topo da sua própria página: abra pelo botão de plugins no topo da conversa ou pela linha “está desligado” embaixo de uma resposta. Se algum der problema, desligue lá e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_labs_pageSwitch" formatted="false">{{name}} ligado ou desligado</string>
 </resources>

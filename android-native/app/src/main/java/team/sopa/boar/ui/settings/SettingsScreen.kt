@@ -581,7 +581,8 @@ private fun ProfileUpdateToast(services: BoarServices, profile: UserProfile) {
 @Composable
 private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit) {
     Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
-        Note(t("native.settings.experimentalNote"))
+        // Below Pro there is no plugin list here: the note says where the switch is (validator A-5; adam, Nov 15).
+        Note(t(if (shown(SettingsPart.LABS_SETTINGS)) "native.settings.experimentalNote" else "native.settings.experimentalNoteBelowPro"))
         // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default. First: it was BOAR's first experiment (adam, Nov 10).
         val s = services.settings
         var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }

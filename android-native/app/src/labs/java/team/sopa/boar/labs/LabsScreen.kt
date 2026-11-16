@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -120,7 +122,7 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
     if (lab.fullPage) {
         val name = t("native.labs.${lab.id}.title")
         Shell(name, onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
-            actions = if (lab.hasSettings) ({ PluginSettingsGear(name) { PluginSettings.open = lab.id } }) else null) {
+            actions = { PluginPageSwitch(lab); if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } }) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
             Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
         }
@@ -141,6 +143,7 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
                 }
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
             }
+            PluginPageSwitch(lab)
         }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
@@ -149,13 +152,29 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
             ReviewMark(20.dp)
             Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
         }
-        // The switch is in the Plugins list only (adam, Nov 12). Off, the page still shows everything: an alert on top, the
+        // The switch is on the page too, in every profile (adam, Nov 15: "send plugin switch fix"; validator A-5: below Pro
+        // there was nowhere to turn an off plugin on). Off, the page still shows everything: an alert on top, the
         // settings editable (saved for when it's on; editing never turns it on, and an off plugin fills no slot).
         // In Pro, Back goes to the Plugins list (LabHooks.backFrom), so the alert's link is the same way back.
         // No "this plugin is off" banner (adam, Nov 13): the switch is in the Plugins list.
         lab.Content()
         AboutPlugin(lab)
     }
+}
+
+/**
+ * A plugin's on/off switch on its own page (adam, Nov 15; validator A-5), in every profile: the chat's "X is off" line
+ * opens this page, so the user can turn it on where they land. The full Plugins list stays Pro's. Spoken as
+ * "<name> on/off".
+ */
+@Composable
+fun PluginPageSwitch(lab: LabPlugin) {
+    val c = Boar.colors
+    val on = LabPrefs.enabled(lab.id)
+    val label = t("native.labs.pageSwitch", "name" to t("native.labs.${lab.id}.title"))
+    androidx.compose.material3.Switch(on, { LabPrefs.setEnabled(lab.id, it) },
+        modifier = Modifier.semantics { contentDescription = label },
+        colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
 }
 
 /**

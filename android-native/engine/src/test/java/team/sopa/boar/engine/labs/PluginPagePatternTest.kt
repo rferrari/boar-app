@@ -16,7 +16,8 @@ class PluginPagePatternTest {
 
     @Test fun `the header gear is on Press and Designer and on no other plugin`() {
         val scaffold = read("labs/java/team/sopa/boar/labs/LabsScreen.kt")
-        assertTrue(scaffold.contains("actions = if (lab.hasSettings) ({ PluginSettingsGear(name) { PluginSettings.open = lab.id } }) else null"))
+        // The gear still only where hasSettings; the plugin's on/off switch sits before it now (A-5, PluginPageSwitchTest).
+        assertTrue(scaffold.contains("actions = { PluginPageSwitch(lab); if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } }"))
         assertTrue(read("labs/java/team/sopa/boar/labs/LabPlugin.kt").contains("val hasSettings: Boolean get() = false"))
         val with = java.io.File("../app/src/labs/plugins").walk().filter { it.extension == "kt" && it.readText().contains("override val hasSettings = true") }.map { it.name }.toSet()
         assertEquals(setOf("PrinterLab.kt", "ImageLabScreen.kt"), with)
