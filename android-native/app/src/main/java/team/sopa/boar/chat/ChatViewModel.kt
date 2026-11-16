@@ -150,6 +150,8 @@ data class ChatState(
     val deepResearch: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
+    /** The live tok/s in the header while BOAR answers (Display & theme; AppSettings.showLiveSpeed). */
+    val liveSpeed: Boolean = false,
     /** Advanced tweaks → Sources layout "above" (B+): the sources open above each answer, not listed under it. */
     val sourcesAbove: Boolean = false,
     val error: String? = null,
@@ -200,7 +202,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
         _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
     }
-    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
+    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+        liveSpeed = services.settings.showLiveSpeed))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
     /** A chat title or summary still being written; a new question stops it (one model, one generation). */
@@ -450,7 +453,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshSettings() {
         refreshTone()
         refreshModel()
-        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats, liveSpeed = services.settings.showLiveSpeed,
             sourcesAbove = services.settings.sourcesLayout == team.sopa.boar.engine.settings.AppSettings.SOURCES_ABOVE) }
         // Setup's "How to ask" page: its question waits in the input, once.
         services.settings.pendingFirstQuestion?.let { q -> services.settings.pendingFirstQuestion = null; _state.update { it.copy(prefill = q) } }

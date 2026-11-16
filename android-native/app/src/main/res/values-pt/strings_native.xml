@@ -849,4 +849,6 @@
     <string name="native_labs_safetyOff_title" formatted="false">Desligar o cartão de segurança do monóxido de carbono?</string>
     <string name="native_labs_safetyOff_text" formatted="false">O BOAR deixará de mostrar primeiro o aviso de monóxido de carbono quando uma pergunta parecer intoxicação. Você pode ligá-lo de novo na página dele.</string>
     <string name="native_labs_safetyOff_confirm" formatted="false">Desligar</string>
+    <string name="native_settings_liveSpeed" formatted="false">Mostrar a velocidade ao responder</string>
+    <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo do chat enquanto o BOAR escreve.</string>
 </resources>

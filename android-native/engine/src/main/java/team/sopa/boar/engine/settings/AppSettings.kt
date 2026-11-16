@@ -156,7 +156,7 @@ class AppSettings(private val file: File) {
         /** What "Reset settings" clears ([resetPreferences]). */
         val PREFERENCE_KEYS = listOf(
             "themeId", "fontScale", "screenOrientation", "personalityId", "maxTokens", "deepResearchMode", "researchBannerHidden",
-            "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "voiceInputEnabled", "hapticsEnabled",
+            "adaptiveRoutingEnabled", "routingPreset", "engineTweaks", "showLiveStats", "showLiveSpeed", "voiceInputEnabled", "hapticsEnabled",
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout", "stagedQuotes",
         )
@@ -253,6 +253,9 @@ class AppSettings(private val file: File) {
     // On by default: the bounty's judges and early users want the numbers (time to first word, speed, memory).
     // Below Pro the technical details stay out of sight (rc3 profiles).
     var showLiveStats: Boolean get() = proActive && (bool("showLiveStats") ?: true); set(v) = set("showLiveStats", JsonPrimitive(v))
+
+    /** Display & theme → the live speed (tok/s) in the chat's header while BOAR answers; off by default (adam, 16 Nov), in every profile. */
+    var showLiveSpeed: Boolean get() = bool("showLiveSpeed") ?: false; set(v) = set("showLiveSpeed", JsonPrimitive(v))
 
     /** Settings → Free memory when I leave BOAR (on by default): see [FreeMemory]. */
     var freeMemoryInBackground: Boolean get() = bool("freeMemoryInBackground") ?: true; set(v) = set("freeMemoryInBackground", JsonPrimitive(v))

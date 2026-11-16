@@ -849,4 +849,6 @@
     <string name="native_labs_safetyOff_title" formatted="false">Turn off the carbon monoxide safety card?</string>
     <string name="native_labs_safetyOff_text" formatted="false">BOAR will no longer show the carbon monoxide warning first when a question sounds like poisoning. You can turn it back on from its page.</string>
     <string name="native_labs_safetyOff_confirm" formatted="false">Turn off</string>
+    <string name="native_settings_liveSpeed" formatted="false">Show speed while answering</string>
+    <string name="native_settings_liveSpeedNote" formatted="false">Tokens per second, at the top of the chat while BOAR writes.</string>
 </resources>

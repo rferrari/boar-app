@@ -150,6 +150,9 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 }
                 var haptics by remember { mutableStateOf(s.hapticsEnabled) }
                 if (shown(SettingsPart.HAPTICS)) SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
+                // The live tok/s while BOAR answers, off by default, in every profile (adam, 16 Nov).
+                var speed by remember { mutableStateOf(s.showLiveSpeed) }
+                SwitchRow(t("native.settings.liveSpeed"), t("native.settings.liveSpeedNote"), speed) { speed = it; s.showLiveSpeed = it }
             }
             // Boarverse on: the Vault gets its own section, a teaser and the way in (the avatar is chosen above, with the theme).
             if (avatarsOn && shown(SettingsPart.AVATARS)) Section(t("native.vault.title"), team.sopa.boar.R.drawable.ic_settings_avatars) {

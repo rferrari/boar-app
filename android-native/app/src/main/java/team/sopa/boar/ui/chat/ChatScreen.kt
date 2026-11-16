@@ -289,8 +289,8 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
                 RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald, modifier = Modifier.spokenAs(t("chatHeader.newChatSession"))) }
             }
         }
-        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
-        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
+        // Live speed in the header: its own switch in Display & theme, off by default (adam, 16 Nov).
+        val tps = if (state.activity == Activity.Generating && state.liveSpeed) state.liveTokPerSec else null
         if (tps != null) Row(Modifier.padding(bottom = team.sopa.boar.ui.HeaderMetrics.PAD), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             tps?.let {
