@@ -407,22 +407,22 @@ object CoHazard {
 
     /** A symptom, per language: ACUTE's, PT.acute's and ES.acute's symptom words. */
     private val SYMPTOM_EN = re(
-        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|(?:feel(?:s|ing)?|felt) (?:sick|ill|weird|woozy|weak|dizzy|faint|nauseous|lightheaded|light-headed))$E""",
+        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|woozy|(?:head|room)(?: is|'s) spinning|flu-like|sick to (?:my|his|her|their|our) stomachs?|(?:feel(?:s|ing)?|felt) (?:sick(?! of)|ill|weird|woozy|weak|dizzy|faint|nauseous|lightheaded|light-headed|awful|terrible|horrible|off|unwell|groggy))$E""",
     )
     private val SYMPTOM_PT = re(
-        """$B(?:dor(?:es)? de cabe[çc]a|cabe[çc]a (?:d[óo]i|doendo|latejando|explodindo)|tontu\p{L}*|tont[oa]s?|zonz[oa]s?|enjo\p{L}*|n[áa]usea\p{L}*|vomit\p{L}*|v[ôo]mito\p{L}*|desmai\p{L}*|inconscient\p{L}*|confus\p{L}*|sonol[êe]n\p{L}*|dor no peito|falta de ar|sem ar|n[ãa]o (?:consigo|consegue) respirar|n[ãa]o (?:acorda|consegue acordar)|dif[íi]cil de acordar|fala enrolada|passando mal|(?:me )?sentindo (?:mal|estranh\p{L}*|frac[oa]))$E""",
+        """$B(?:dor(?:es)? de cabe[çc]a|cabe[çc]a (?:d[óo]i|doendo|latejando|explodindo)|tontu\p{L}*|tont[oa]s?|zonz[oa]s?|enjo\p{L}*|n[áa]usea\p{L}*|vomit\p{L}*|v[ôo]mito\p{L}*|desmai\p{L}*|inconscient\p{L}*|confus\p{L}*|sonol[êe]n\p{L}*|dor no peito|falta de ar|sem ar|n[ãa]o (?:consigo|consegue) respirar|n[ãa]o (?:acorda|consegue acordar)|dif[íi]cil de acordar|fala enrolada|passando mal|(?:me )?sentindo (?:mal|estranh\p{L}*|frac[oa])|(?:me )?senti(?:-me)? (?:mal|estranh\p{L}*|frac[oa]|tont[oa]))$E""",
     )
     private val SYMPTOM_ES = re(
-        """$B(?:dolor(?:es)? de cabeza|(?:me )?duele la cabeza|mare\p{L}*|n[áa]usea\p{L}*|v[óo]mit\p{L}*|vomit\p{L}*|desmay\p{L}*|inconsciente\p{L}*|confundid\p{L}*|confusi[óo]n|somnolen\p{L}*|dolor (?:en el|de) pecho|falta de aire|no (?:puedo|puede) respirar|no (?:despierta|puede despertar)|dif[íi]cil de despertar|(?:me )?siento (?:mal|rar[oa]|d[ée]bil))$E""",
+        """$B(?:dolor(?:es)? de cabeza|(?:me )?duele la cabeza|mare\p{L}*|n[áa]usea\p{L}*|v[óo]mit\p{L}*|vomit\p{L}*|desmay\p{L}*|inconsciente\p{L}*|confundid\p{L}*|confusi[óo]n|somnolen\p{L}*|dolor (?:en el|de) pecho|falta de aire|no (?:puedo|puede) respirar|no (?:despierta|puede despertar)|dif[íi]cil de despertar|(?:me )?siento (?:mal|rar[oa]|d[ée]bil)|(?:me )?sentí (?:mal|rar[oa]|d[ée]bil|maread[oa])|muy dormid[oa]s?)$E""",
     )
 
     /**
      * An alarm going off, beeping or sounding, per language. Not chirping (a low battery or an alarm at its end of life),
      * not "says", "reads", "shows", "error" or "is on": the model answers those (review decision 2).
      */
-    private val ALARM_OFF_EN = re("""$B(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|be{2,}p(?:ing|s|ed)?|sounding|sounds|sounded|alarming|blaring|screaming|shrieking|ringing|rings|rang|buzzing|buzzes|buzzed|wailing|triggered|activated|won'?t stop)$E""")
+    private val ALARM_OFF_EN = re("""$B(?:alarm[!.,]*\s+alarm$E|(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|be{2,}p(?:ing|s|ed)?|sounding|sounds|sounded|alarming|blaring|screaming|shrieking|ringing|rings|rang|buzzing|buzzes|buzzed|wailing|triggered|activated|won'?t stop|keeps? (?:going|beeping|sounding|ringing))$E)""")
     private val ALARM_OFF_PT = re("""$B(?:alarmes?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:tocando|tocou|toca|disparou|disparando|dispara|apitando|apitou|apita|bipando|bipou|soando|soou|n[ãa]o para de (?:apitar|tocar|bipar|disparar))$E""")
-    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando|no para de (?:sonar|pitar))$E""")
+    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando|no (?:para|deja) de (?:sonar|pitar))$E""")
 
     /** A reading: "50 ppm", or an alarm that reads, says or shows a number. Above 0 only ("reads 0 ppm" is normal). */
     private val PPM = Regex("""(?<![\d.,])(\d+(?:[.,]\d+)?)\s*ppm\b""", RegexOption.IGNORE_CASE)
@@ -441,8 +441,12 @@ object CoHazard {
      * was running all night". Counted for the acute card only, never when the question says electric, solar or battery.
      */
     private val HOME_APPLIANCE = re(
-        """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno a gas|cocina a gas)$E""",
+        """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|coal stoves?|camp(?:ing)? stoves?|fire ?pits?|braziers?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno (?:a|de) gas|cocina (?:a|de) gas|estufa de gas)$E""",
     )
+    /** Money, not air (validator Q-A2): "a headache from the bill", "sick after the boiler repair bill". Only when CO isn't named. */
+    private val MONEY = re("""$B(?:bills?|invoices?|quotes?|estimates?|costs?|price|prices|paying|pay|paid|expensive)$E""")
+    /** Carbon dioxide named: a CO2 alarm going off is not this card's (Q-A2); only when CO itself isn't named. */
+    private val CO2 = re("""$B(?:co2|co₂|carbon dioxide|di[óo]xido de carbono)$E""")
     private val ELECTRIC = re("""$B(?:electric\w*|el[ée]tric\w*|el[ée]ctric\w*|solar|battery|bateria|bater[íi]a|induction|indu[çc][ãa]o|inducci[óo]n|heat pump|bomba de calor)$E""")
 
     private val ES_ONLY = re("""$B(?:el|mi|mis|sótano|s[óo]tano|est[áa] en|hay|tengo|estoy|tenemos|qué|cómo|garaje|cocina|habitaci[óo]n)$E""")
@@ -480,7 +484,7 @@ object CoHazard {
         val fires = if (CO_NAMED.containsMatchIn(q)) symptom || alarm || readingAboveZero(q)
             // An alarm going off and someone feeling ill, nothing named (R-C1b): carbon monoxide until shown otherwise,
             // unless it's smoke or fire.
-            else symptom && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q)))
+            else symptom && !MONEY.containsMatchIn(q) && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q) && !CO2.containsMatchIn(q)))
         if (!fires) return null
         val pt = sPt || aPt; val es = sEs || aEs
         // The generic detectors read Spanish shared words ("de", "está") as Portuguese: a language's own words decide first.
