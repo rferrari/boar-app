@@ -90,7 +90,7 @@ data class AnswerCard(
          */
         fun ofVisual(v: Visual, leftOut: List<String>, fallbackTitle: String, answer: String = ""): AnswerCard {
             // The answer's [n] marks don't belong on the card: Press renumbers the answer, not the card (validator R-E2).
-            fun c(s: String) = s.replace(CITE, "").trim()
+            fun c(s: String) = CiteMarks.strip(s).trim()
             val title = c(v.title).ifBlank { fallbackTitle }
             fun w(s: String) = VisualCheck.asWritten(c(s), answer)
             return when (v) {
@@ -112,7 +112,6 @@ data class AnswerCard(
                 is Visual.Compare -> AnswerCard(Shape.COMPARE, title, Body.Compare(v.items.map { (n, ps) -> c(n) to ps.map(::c) }), true, leftOut)
             }
         }
-        private val CITE = Regex("""\s*\[\d{1,3}(?:\s*[,–-]\s*\d{1,3})*]""")
 
         /** A pie's parts as whole percents adding up to 100 (VisualScale.percents). */
         fun percents(s: Body.Series): List<Int> = VisualScale.percents(s.points.map { it.value })

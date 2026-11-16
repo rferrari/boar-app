@@ -229,5 +229,6 @@ object CardRules {
         return Calculators.readsComma(answer, lang == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT)
     }
 
-    private fun clean(s: String) = s.replace("**", "").replace("__", "").replace(Regex("""\s*\[\d{1,3}]"""), "").trim()
+    // Every mark shape, the model's cards' too (CiteMarks; validator Q-A4: a rules card kept "[1, 2]" in a step).
+    private fun clean(s: String) = CiteMarks.strip(s.replace("**", "").replace("__", "")).trim()
 }
