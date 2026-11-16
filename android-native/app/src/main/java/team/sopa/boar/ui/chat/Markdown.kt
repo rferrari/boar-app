@@ -92,7 +92,8 @@ fun MarkdownMessage(content: String, streaming: Boolean, modifier: Modifier = Mo
     val type = Boar.type
     SelectionContainer {
         Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            for (block in parseBlocks(content)) when (block) {
+            // A table outside code becomes "Test: Result (Reference)" lines: no raw pipes (t9 2200 d).
+            for (block in parseBlocks(content).map { if (it is MdBlock.Text) MdBlock.Text(team.sopa.boar.engine.answer.TableLines.of(it.content)) else it }) when (block) {
                 is MdBlock.Code -> Column(
                     Modifier.fillMaxWidth().background(c.bgBlack, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp),
                 ) {

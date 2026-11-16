@@ -810,10 +810,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
             // A follow-up in such a chat too ("and for how long?" after a burn question).
             val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
-            val style = if (shortReason != null) "succinct" else chosenStyle
+            // Local Files keeps its files-only prompt: kept short by a reminder instead (t9 2200 c).
+            val style = if (shortReason != null && !personal) "succinct" else chosenStyle
             // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
             val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
+            val (systemPrompt, baseReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
+            val styleReminder = if (personal && shortReason != null) listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT).joinToString(" ") else baseReminder
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).

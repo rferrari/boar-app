@@ -26,6 +26,8 @@ class ShortAnswerTest {
 
     @Test fun `other styles are left alone`() {
         assertNull(ShortAnswer.reason("succinct", "How do I treat a minor kitchen burn?", null))
-        assertNull(ShortAnswer.reason("personal", "And for how long?", "How do I treat a minor kitchen burn?"))
+        // Golden change (t9 2200 c): Local Files is kept short for health too, with its own prompt; not for anything else.
+        assertEquals("health", ShortAnswer.reason("personal", "And for how long?", "How do I treat a minor kitchen burn?"))
+        assertNull(ShortAnswer.reason("personal", "How should I store my seed phrase?", null))
     }
 }

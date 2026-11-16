@@ -75,6 +75,10 @@ object QueryContext {
         """\b(how (do|would|can|should) (i|you|we) say|how to say|how do (you|i) greet|what('s| is| are) [^?]{1,40} in ($LANGUAGE_NAMES)|translate)\b|(?<![\p{L}])(como (se )?diz|como (eu )?(falo|digo|cumprimento)|como se fala|como se escreve|como [ée] [^?]{1,40} em ($LANGUAGE_NAMES))(?![\p{L}])""",
         "iu",
     )
+    private val LAB_RESULTS = re(
+        """(?<![\p{L}])(blood (?:test|tests|work|results|panel|count)|lab (?:test|tests|results|report)|cholesterol|ldl|hdl|triglycerides?|glucose|hba1c|a1c|hemoglobin|haemoglobin|exames? de sangue|exames? laboratoriais|exames? de laborat[óo]rio|hemograma|colesterol|glicose|glicemia|triglicer[íi]deos?|an[áa]lisis de sangre|an[áa]lisis cl[íi]nicos)(?![\p{L}])""",
+        "iu",
+    )
     private val A_BIT = re("""\ba (little )?bit\b""", "gi")
 
     // A medicine's dose (adam, Nov 15; t9 0110 item 3): "How much paracetamol can an adult take in a day?" had none of
@@ -105,6 +109,8 @@ object QueryContext {
             // Carbon monoxide named: an alarm chirping or reading 0 gets no card, but its answer is kept short (t9 0110
             // item 1; the F3, 15 Nov: "My CO alarm keeps chirping every minute" ran a Detailed answer).
             CoHazard.namesCarbonMonoxide(query) ||
+            // Lab results (t9 2200 c: "hows health blood test? summarize" wasn't health).
+            LAB_RESULTS.containsMatchIn(query) ||
             // A phrase to translate that carries health content stays on the health path.
             (PHRASE_ASK.containsMatchIn(query) && PHRASE_HEALTH_CONTENT.containsMatchIn(query))
 

@@ -50,4 +50,14 @@ class HealthQuestionTest {
         val t = java.io.File("../app/src/main/assets/boar-data/topics/health.v1.json").readText()
         assertTrue(t.contains("\"labs\": [\n    \"cohazard\"\n  ]"))
     }
+
+    @Test fun `lab results are health, and a Local Files health answer is kept short with its own prompt (t9 2200 c)`() {
+        for (q in listOf("hows health blood test? summarize", "summarize my blood test", "resuma meu exame de sangue", "what does my LDL mean?", "meu colesterol está alto?"))
+            assertTrue(q, QueryContext.isHealthQuestion(q))
+        assertTrue(ShortAnswer.reason("personal", "summarize my blood test", null) == "health")
+        assertTrue(ShortAnswer.reason("personal", "what did my landlord say?", null) == null)
+        val vm = java.io.File("../app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
+        assertTrue(vm.contains("val style = if (shortReason != null && !personal) \"succinct\" else chosenStyle"))
+        assertTrue(vm.contains("if (personal && shortReason != null) listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT)"))
+    }
 }
