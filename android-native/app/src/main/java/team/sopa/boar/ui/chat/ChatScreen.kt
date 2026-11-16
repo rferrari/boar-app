@@ -668,7 +668,7 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                 m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp)) }
                 if (m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
                 // Nothing in the library backs it: said, not left to guess (t9 0226 point 4).
-                if (team.sopa.boar.engine.answer.NoSource.shows(m.receipt?.retrievalMs != null, m.sources.size, m.receipt?.tool != null, ref.question, m.text))
+                if (team.sopa.boar.engine.answer.NoSource.shows(m.receipt?.retrievalMs != null, m.sources.size, m.receipt?.tool != null, ref.question, m.text, m.receipt?.style))
                     Text(t("native.chat.noSource"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp))
                 // Then the plugins' notes (an error, a refusal), oldest first: a new one is always the last line (adam, Nov 14).
                 team.sopa.boar.labs.LabHooks.AnswerNotes(ref)

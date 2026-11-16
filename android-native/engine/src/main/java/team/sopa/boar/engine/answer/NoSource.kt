@@ -8,8 +8,11 @@ import team.sopa.boar.engine.routing.ShortAnswer
  * Never under small talk ("hey, what's up?" isn't looked up) or a plugin's instant answer.
  */
 object NoSource {
-    private val CITE = Regex("""\[\d{1,3}]""")
-
-    fun shows(searched: Boolean, sources: Int, instant: Boolean, question: String, answer: String): Boolean =
-        searched && sources == 0 && !instant && answer.isNotBlank() && !CITE.containsMatchIn(answer) && !ShortAnswer.isSmallTalk(question)
+    /**
+     * [style]: the receipt's answer style. Personal Files with nothing found writes its own fixed line, no model ran, so
+     * "the answer is from the model alone" would be false under it (validator R-C11). With 0 sources a [1] in the
+     * answer is made up (or code like items[1]): it no longer hides the line (R-C12).
+     */
+    fun shows(searched: Boolean, sources: Int, instant: Boolean, question: String, answer: String, style: String? = null): Boolean =
+        searched && sources == 0 && !instant && answer.isNotBlank() && !PersonalFiles.isOn(style) && !ShortAnswer.isSmallTalk(question)
 }
