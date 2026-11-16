@@ -444,7 +444,9 @@ object CoHazard {
         """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|coal stoves?|camp(?:ing)? stoves?|fire ?pits?|braziers?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno (?:a|de) gas|cocina (?:a|de) gas|estufa de gas)$E""",
     )
     /** Money, not air (validator Q-A2): "a headache from the bill", "sick after the boiler repair bill". Only when CO isn't named. */
-    private val MONEY = re("""$B(?:bills?|invoices?|quotes?|estimates?|costs?|price|prices|paying|pay|paid|expensive)$E""")
+    // Only when the symptom is blamed on the money (CodeRabbit on all73): "I cannot pay for heating, so I ran the generator
+    // inside and now I have a headache" is an exposure, and a money word elsewhere must not veto the card.
+    private val MONEY = re("""$B(?:headaches?|sick|ill|dizzy|nause\w*|stressed)$E[^.!?]{0,12}?$B(?:from|after|over|about|because of|due to)$E(?:\s+[\p{L}'-]+){0,4}?\s+(?:bills?|invoices?|quotes?|estimates?|costs?|prices?)$E""")
     /** Carbon dioxide named: a CO2 alarm going off is not this card's (Q-A2); only when CO itself isn't named. */
     private val CO2 = re("""$B(?:co2|co₂|carbon dioxide|di[óo]xido de carbono)$E""")
     private val ELECTRIC = re("""$B(?:electric\w*|el[ée]tric\w*|el[ée]ctric\w*|solar|battery|bateria|bater[íi]a|induction|indu[çc][ãa]o|inducci[óo]n|heat pump|bomba de calor)$E""")

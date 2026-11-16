@@ -39,6 +39,10 @@ class CoAcuteWordingTailTest {
             "I felt sick after the boiler repair bill",
             "CO2 alarm beeping and I feel sick",
         )) assertEquals(q, null, lang(q))
+        // Still a card: money named, but the headache is the generator's (CodeRabbit on all73).
+        for (q in listOf("I cannot pay for heating, so I ran the generator inside and now I have a headache",
+            "the furnace repair was expensive, it ran all night and we all have headaches",
+            "we paid for propane and the space heater was on in the bedroom, now I'm dizzy")) assertEquals(q, "en", lang(q))
         // Still a card: a bill named elsewhere doesn't hide a real exposure with carbon monoxide named.
         assertEquals("en", lang("carbon monoxide alarm going off and I have a headache, we just paid the boiler bill"))
     }
