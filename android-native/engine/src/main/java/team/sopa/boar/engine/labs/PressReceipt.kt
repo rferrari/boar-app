@@ -192,6 +192,24 @@ object PressReceipt {
         return s in team.sopa.boar.engine.rag.Packs.SOURCE_LABEL.values
     }
 
+    /**
+     * The project as it is shared (PDF, .md): each user's own file named in what came from the chat (the question, the
+     * chat title, the answer's text, its card's title) reads [ownFile] (validator Q-B3, t9 0115: "### what does
+     * imposto-2025-joao-silva.pdf say about tax?"). What the user typed in Press (headings, notes, the project's name) is
+     * theirs and stays. The sources aren't touched: they already print as [ownFile].
+     */
+    fun scrubOwnFiles(project: PressDoc.Project, ownFile: String): PressDoc.Project {
+        val names = project.answers.flatMap { it.sources }.mapNotNull { s -> s.source?.trim()?.takeIf { it.isNotEmpty() && !shareable(it) }?.let { it to s.title.trim() } }
+            .flatMap { (file, title) -> listOf(file, file.substringBeforeLast('.'), title) }.filter { it.length >= 4 }.distinct().sortedByDescending { it.length }
+        if (names.isEmpty()) return project
+        val re = Regex(names.joinToString("|", "(?<![\\p{L}\\p{N}_])(?:", ")(?![\\p{L}\\p{N}_])") { Regex.escape(it) }, RegexOption.IGNORE_CASE)
+        fun x(t: String) = t.replace(re, ownFile)
+        return project.copy(blocks = project.blocks.map { b ->
+            if (b !is PressDoc.Block.Answer) b
+            else b.copy(question = x(b.question), chatTitle = x(b.chatTitle), text = x(b.text), card = b.card?.let { it.copy(title = x(it.title)) })
+        })
+    }
+
     private val PACK_STYLE = Regex("""[^—\n]{1,60} — https?://\S+(?: \([^)\n]{1,60}\))?""")
 
     /** "Sources [1] [3]" under an answer; null when it has none. */

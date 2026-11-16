@@ -198,7 +198,7 @@ internal fun PressScreen(lab: LabPlugin) {
             val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
             val started = System.currentTimeMillis()
             val ok = withContext(Dispatchers.IO) {
-                runCatching { PdfCompiler.compile(out, PressPage.of(ctx, project, date)) { PressPictures.fileOf(ctx, project.id, it) } }
+                runCatching { PdfCompiler.compile(out, PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date)) { PressPictures.fileOf(ctx, project.id, it) } }
             }
             delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
             compiling = false
@@ -210,7 +210,7 @@ internal fun PressScreen(lab: LabPlugin) {
         val drawingLabel = I18n.t(ctx, "native.labs.printer.mdDrawing")
         val photoLabel = I18n.t(ctx, "native.labs.printer.mdPhoto")
         scope.launch {
-            markdown = withContext(Dispatchers.IO) { PressPage.of(ctx, project, date).markdown(drawingLabel, photoLabel) }
+            markdown = withContext(Dispatchers.IO) { PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date).markdown(drawingLabel, photoLabel) }
             saveMd.launch(slug(project.name) + ".md")
         }
     }
