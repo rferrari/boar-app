@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_colibri_title" formatted="false">Boar Wisp</string>
-    <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B on colibri, a tiny pure-C engine: a quarter of each layer\'s experts stay in memory, the rest stream from storage.</string>
+    <string name="native_labs_colibri_body" formatted="false">OLMoE-1B-7B on a tiny C engine that streams its experts from storage.</string>
     <string name="native_labs_colibri_engine" formatted="false">ENGINE</string>
     <string name="native_labs_colibri_engineOk" formatted="false">colibri is in this build</string>
     <string name="native_labs_colibri_engineMissing" formatted="false">Not in this version: parked while under review</string>
@@ -13,4 +13,5 @@
     <string name="native_labs_colibri_note" formatted="false">No reasoning, English only, and a small model: an engine experiment more than an assistant. Adaptive routing is skipped while it\'s selected.</string>
     <string name="native_labs_colibri_review" formatted="false">Too slow for an assistant on our test phones: a short answer takes minutes. Big Boar runs a model 5× bigger, faster. Parked while under review: its engine is not in this version.</string>
     <string name="native_labs_colibri_reviewShort" formatted="false">under 1 tok/s</string>
+    <string name="native_labs_colibri_about" formatted="false">OLMoE-1B-7B on colibri, a tiny pure-C engine: a quarter of each layer\'s experts stay in memory, the rest stream from storage.</string>
 </resources>

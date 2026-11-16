@@ -100,6 +100,31 @@ class Facts(json: String) {
     /** Entities the question names, in question order, longest n-gram first; a word inside a found name never counts again. */
     fun factEntities(query: String): List<Entity> = resolve(query).ents
 
+    /**
+     * The table's dated figures for the countries [query] names, as one more source for the model, when it names two or
+     * more (adam, Nov 15; t9 0110 item 5: "Compare Brazil and Russia" got the model's own figures). Population with its
+     * year, area and capital, each country on its line, and the table's date. Null for fewer than two countries.
+     */
+    fun countryContext(query: String): Chunk? {
+        val countries = runCatching { factEntities(query) }.getOrDefault(emptyList()).filter { it.k == "country" }.distinctBy { it.q }
+        if (countries.size < 2) return null
+        val lines = countries.map { e ->
+            listOfNotNull(
+                e.pop?.let { (n, y) -> "population ${fmt(n)}" + (y?.let { " (${JsNumber.toString(it)})" } ?: "") },
+                e.area?.let { "area ${fmt(it)} km²" },
+                e.cap?.takeIf { it.isNotEmpty() }?.let { "capital ${list(it)}" },
+            ).takeIf { it.isNotEmpty() }?.let { "${e.n}: ${it.joinToString("; ")}." }
+        }.filterNotNull()
+        if (lines.size < 2) return null
+        return Chunk(
+            chunkId = "facts:countries:" + countries.joinToString(",") { it.q },
+            docId = "facts:table",
+            title = "Facts: " + list(countries.map { it.n }),
+            body = lines.joinToString("\n") + "\nFigures from Wikidata (CC0), offline table as of $snapshot.",
+            source = "Wikidata (CC0), offline table as of $snapshot",
+        )
+    }
+
     /** As [factEntities], plus whether any name resolved to two or more entities (r2 gate 3: then the question is not answered). */
     private fun resolve(query: String): Resolved {
         // r4 rule 2: each "the" typo is read as "the" only if, so read, a resolved name starts at the next word.

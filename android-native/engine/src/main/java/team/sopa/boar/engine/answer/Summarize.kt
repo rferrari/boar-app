@@ -19,8 +19,17 @@ object Summarize {
      * reasoning itself, and the start of the user's message when nothing follows it.
      */
     suspend fun title(generator: StageGenerator, firstUserMessage: String, timeoutMs: Long? = null): String {
-        val answer = AnswerText.stripThinking(generator.generate(TITLE_INSTRUCTION, "\"$firstUserMessage\"", 16, 0.3f, timeoutMs, null).text)
+        val answer = AnswerText.stripThinking(generator.generate(TITLE_INSTRUCTION, titleInput(firstUserMessage), 16, 0.3f, timeoutMs, null).text)
         return cleanTitle(answer.ifBlank { fallbackTitle(firstUserMessage) })
+    }
+
+    /**
+     * The title's input: the quoted message, and for a Portuguese chat r4to's short line after it (t9 0420: what the user
+     * reads is in the user's language; the drawer shows the title). English input is as before.
+     */
+    fun titleInput(firstUserMessage: String): String {
+        val line = AnswerLanguage.line(AnswerLanguage.of(firstUserMessage), withSources = false)
+        return "\"$firstUserMessage\"" + (line?.let { "\n\n$it" } ?: "")
     }
 
     /** The first six words of the message, without closing punctuation. */

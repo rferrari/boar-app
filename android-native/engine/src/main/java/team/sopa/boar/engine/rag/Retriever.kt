@@ -26,7 +26,15 @@ class Retriever(
     fun retrieve(
         query: String, topK: Int = 6, queryVec: FloatArray? = null, includeWikiPacks: Boolean = true, params: RetrievalParams = RetrievalParams.DEFAULT,
     ): List<Chunk> {
-        if (!params.ownOnly) return OwnFiles.dropCoveredCards(retrieveAll(query, topK, queryVec, includeWikiPacks, params))
+        if (!params.ownOnly) {
+            // A question about BOAR itself: its own passages (guide and FAQ, BoarPack) first, then the search as before.
+            if (!BoarPack.aboutBoar(query)) return OwnFiles.dropCoveredCards(retrieveAll(query, topK, queryVec, includeWikiPacks, params))
+            val vec = queryVec ?: embed(query)
+            val lang = if (team.sopa.boar.engine.answer.AnswerLanguage.of(query) == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT) "pt" else "en"
+            val boar = BoarPack.rank(kb.boarSearch(query, vec, topK * 2), lang).take(BOAR_MAX)
+            val rest = OwnFiles.dropCoveredCards(retrieveAll(query, topK, vec, includeWikiPacks, params))
+            return (boar + rest).distinctBy { it.chunkId }.take(topK)
+        }
         // Personal Files: a file the question names is searched alone; a question about all the files brings each one's
         // opening part after what the search found, since no single passage is close to "summarize my files".
         val files = kb.ownFiles()
@@ -123,6 +131,8 @@ class Retriever(
     }
 
     companion object {
+        /** BOAR's own passages an answer about it gets at most, before the rest of the search. */
+        const val BOAR_MAX = 3
         private val DISAMBIG_TITLE = Regex("(?i)\\(disambiguation\\)\\z")
         private val REFERS = Regex("(?i)${Js.B0}may (also )?refer to${Js.B1}")
 

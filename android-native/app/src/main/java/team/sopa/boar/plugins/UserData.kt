@@ -6,8 +6,37 @@ package team.sopa.boar.plugins
  * all of it, when the PIN is forgotten (the chats are erased with the key) or the user purges the app.
  */
 object UserData {
-    enum class Scope { CHATS, EVERYTHING }
+    /**
+     * CHATS_KEEP_PRESS: Clear chat history with "Also delete Press projects" off (adam, Nov 15; t9 0115): every plugin
+     * erases as for CHATS except Press, whose projects stay with the answers already in them.
+     */
+    enum class Scope { CHATS, CHATS_KEEP_PRESS, EVERYTHING }
+
+    /** How many Press projects hold something (an empty starter doesn't count); 0 without Press. Set by Boar Labs. */
+    @Volatile var pressProjects: () -> Int = { 0 }
 
     /** Set by Boar Labs at start; runs every lab's eraser, switched on or not. */
     @Volatile var erase: (Scope) -> Unit = {}
+
+    /**
+     * One chat deleted (the drawer's 🗑️): what the plugins made for its answers ([answerIds]) goes with it, as the chat's
+     * own messages do (validator P-1: a visual's file stayed). Set by Boar Labs at start.
+     */
+    @Volatile var eraseAnswers: (answerIds: List<String>) -> Unit = {}
+
+    /**
+     * The lines the chat's delete row shows: what deleting it takes from the plugins switched on (Press: "Its answers
+     * leave the Press basket", only when some are in it; adam, Nov 12). Already in the user's language. Set by Boar Labs.
+     */
+    @Volatile var deleteNotes: (answerIds: List<String>) -> List<String> = { emptyList() }
+
+    /**
+     * True in a build with Boar Labs: the plugins keep things made from answers (Press projects, cards, Designer
+     * pictures) and a deleted chat takes them along (eraseAnswers runs on every plugin, on or off, Boar Labs on or off).
+     * The two "delete your oldest chats" dialogs say so (validator Q-B2; t9 0115). Set by Boar Labs; false without it.
+     */
+    @Volatile var pluginsKeepAnswers: () -> Boolean = { false }
+
+    /** The dialogs' text: [chats], then the plugins' line when [pluginsKeepAnswers] (Q-B2). */
+    fun withPluginsLine(chats: String, pluginsLine: String): String = team.sopa.boar.engine.settings.PruneText.of(chats, pluginsLine, pluginsKeepAnswers())
 }

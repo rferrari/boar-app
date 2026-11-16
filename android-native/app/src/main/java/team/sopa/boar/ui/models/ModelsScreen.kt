@@ -61,17 +61,10 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
     val c = Boar.colors
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().background(c.bgSurface).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("‹ " + t("common.back"), style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.clickable(onClick = onBack).padding(4.dp))
-            Column {
-                Text(t("modelCatalogScreen.title"), style = Boar.type.titleLg, color = c.textHeading)
-                Text(t("modelCatalogScreen.subtitle"), style = Boar.type.caption, color = c.textMuted)
-            }
-        }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
+        team.sopa.boar.ui.PageHeader(t("modelCatalogScreen.title"), onBack, subtitle = t("modelCatalogScreen.subtitle"))
         // The user's sort and filter (ModelOrder): Smart puts the active model first, then downloads, then the
         // phone's models by last use. Knowledge packs are on the Knowledge screen, as in the Expo app (KnowledgePacks
-        // below); the embedding model is BOAR's own search engine, not a choice, so it's in Settings → Models.
+        // below); the embedding model is BOAR's own search engine, not a choice: only a warning when it's missing.
         val all = state.items.filter { it.kind != AssetKind.CORPUS && it.kind != AssetKind.EMBEDDING }
         val facts = ModelOrder.Facts(
             active = state.activeLlm, onPhone = state.rows.filterValues { it.present }.keys,
@@ -81,8 +74,20 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
         // The order holds while the catalog is open: a download that starts, fails or ends doesn't move its card away
         // from the user's finger (Oct 20). It's sorted again when the sort, the filter or the set of models changes.
         val order = remember(state.sort, state.filter, all.size) { sorted.map { it.id } }
-        val models = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
+        val frozen = sorted.sortedBy { a -> order.indexOf(a.id).let { if (it < 0) Int.MAX_VALUE else it } }
+        // Except downloads (adam, Nov 13): one that starts goes to the top, where its progress is easy to follow, and stays
+        // there until the catalog is closed, so a download that ends or fails doesn't jump away either.
+        val pinned = remember { mutableSetOf<String>() }.apply { addAll(facts.downloading) }
+        val models = ModelOrder.downloadsFirst(frozen, pinned) { it.id }
         LazyColumn(contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // The search model missing (its warning lived in Settings → Models until rc3, slice 5): it reads the packs and
+            // the documents, so nothing is found without it. Said first, where models are.
+            state.items.firstOrNull { it.kind == AssetKind.EMBEDDING }?.takeIf { state.rows[it.id]?.present == false }?.let { emb ->
+                item {
+                    Text("⚠ " + t("native.settings.embeddingMissing", "model" to emb.shortName), style = Boar.type.body, color = c.amber400,
+                        modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, androidx.compose.foundation.shape.RoundedCornerShape(10.dp)).padding(12.dp))
+                }
+            }
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
             item {
@@ -93,7 +98,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
                     ), state.sort, vm::setSort)
                     ChipRow(t("native.models.show"), listOf(
                         ModelOrder.Filter.ALL to t("native.models.filterAll"), ModelOrder.Filter.ON_PHONE to t("native.models.filterOnPhone"),
-                        ModelOrder.Filter.DOWNLOADING to t("native.models.filterDownloading"), ModelOrder.Filter.MINE to t("native.models.filterMine"),
+                        ModelOrder.Filter.MINE to t("native.models.filterMine"),
                     ), state.filter, vm::setFilter)
                 }
             }

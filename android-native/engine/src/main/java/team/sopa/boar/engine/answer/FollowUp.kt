@@ -101,6 +101,9 @@ object FollowUp {
     fun plan(query: String, history: ConversationHistory?): Plan {
         val previous = previousQuestion(query, history) ?: return Plan()
         val combined = "$previous ${Js.trim(query)}"
+        // "Continue", "go on", "prossiga": more on the previous question, whose words are the search (all75 on the F3:
+        // Keep going's "Continue" searched the word itself and cited a book's "training should continue").
+        if (DeepResearch.isMetaFollowUp(query) && !DeepResearch.isSummaryFollowUp(query)) return Plan(direct = previous)
         if (POINTS_BACK.containsMatchIn(query) || thereAsPlace(query)) return Plan(direct = combined, previous = previous)
         if (Compress.tokenizeTerms(query).size <= SHORT_FOLLOW_UP_TERMS && !namesItsOwnSubject(query)) return Plan(fallback = combined)
         return Plan()

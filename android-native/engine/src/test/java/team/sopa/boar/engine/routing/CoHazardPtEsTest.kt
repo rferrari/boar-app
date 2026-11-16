@@ -55,14 +55,24 @@ class CoHazardPtEsTest {
         }
     }
 
-    @Test fun `symptoms, alarms and other questions in Portuguese and Spanish don't`() {
+    @Test fun `with carbon monoxide named, an alarm or symptoms get the acute card in their language (t9 1535)`() {
+        assertEquals(CoHazard.CO_ACUTE_PT, LabTools.coHazard("O alarme de monóxido está apitando no porão, o que eu faço?")?.text?.substringBefore("\n"))
+        assertEquals(CoHazard.CO_ACUTE_ES, LabTools.coHazard("La alarma de CO está sonando en el sótano, ¿qué hago?")?.text?.substringBefore("\n"))
+    }
+
+    @Test fun `a symptom with a fuel-burning device gets the acute card, carbon monoxide not named (adam, t9 0110 item 1)`() {
+        // Golden change: these four got no card before (CO had to be named). adam's decision 3 of the review: this is the
+        // classic poisoning case, people often don't know it's carbon monoxide.
+        for ((q, text) in listOf(
+            "estou com dor de cabeça perto do gerador" to CoHazard.CO_ACUTE_PT,
+            "Liguei o gerador na garagem e agora estou com tontura, o que faço?" to CoHazard.CO_ACUTE_PT,
+            "Usamos o fogareiro na barraca e meu filho está vomitando" to CoHazard.CO_ACUTE_PT,
+            "me duele la cabeza, el generador está en el garaje" to CoHazard.CO_ACUTE_ES,
+        )) assertEquals(q, text, LabTools.coHazard(q)?.text?.substringBefore("\n"))
+    }
+
+    @Test fun `other questions in Portuguese and Spanish don't`() {
         for (q in listOf(
-            "estou com dor de cabeça perto do gerador",
-            "Liguei o gerador na garagem e agora estou com tontura, o que faço?",
-            "O alarme de monóxido está apitando no porão, o que eu faço?",
-            "Usamos o fogareiro na barraca e meu filho está vomitando",
-            "me duele la cabeza, el generador está en el garaje",
-            "La alarma de CO está sonando en el sótano, ¿qué hago?",
             "qual a capital do Quênia",
             "Qual é a distância de Paris a Roma?",
             "¿Cuál es la capital de Kenia?",

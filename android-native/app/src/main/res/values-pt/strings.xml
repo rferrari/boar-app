@@ -13,7 +13,7 @@
     <string name="time_hoursAgo" formatted="false">há {{count}}h</string>
     <string name="time_daysAgo" formatted="false">há {{count}}d</string>
     <string name="drawer_subtitle" formatted="false">Inteligência Local Adaptativa</string>
-    <string name="drawer_newChat" formatted="false">Nova Sessão de Pesquisa</string>
+    <string name="drawer_newChat" formatted="false">Nova conversa</string>
     <string name="drawer_recentSessions" formatted="false">Sessões recentes</string>
     <string name="modelCatalogScreen_title" formatted="false">Catálogo de Modelos</string>
     <string name="modelCatalogScreen_subtitle" formatted="false">Modelos que rodam offline, sem servidor</string>
@@ -240,14 +240,14 @@
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">NÚCLEO LLM LOCAL</string>
     <string name="chatHeader_cycleTone" formatted="false">Mudar como o BOAR responde</string>
-    <string name="chatHeader_newChatSession" formatted="false">Nova sessão de chat</string>
+    <string name="chatHeader_newChatSession" formatted="false">Nova conversa</string>
     <string name="chatHeader_deepResearch" formatted="false">Pesquisa Aprofundada</string>
     <string name="chatHeader_deepResearchActive" formatted="false">Pesquisa Aprofundada Ativa</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
-    <string name="chatHeader_onlineTitle" formatted="false">Você está online</string>
-    <string name="chatHeader_onlineBody" formatted="false">Seu celular está conectado à internet. O BOAR não precisa dela: respostas, busca e sua biblioteca funcionam neste celular. Só baixar modelos ou pacotes e buscar modelos no Hugging Face usam a conexão. Ative o modo avião para vê-lo funcionar totalmente offline.</string>
-    <string name="chatHeader_offlineTitle" formatted="false">Você está offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">Sem conexão com a internet. Tudo funciona: respostas, busca e sua biblioteca estão neste celular.</string>
+    <string name="chatHeader_onlineTitle" formatted="false">Online, mas não precisamos.</string>
+    <string name="chatHeader_onlineBody" formatted="false">O BOAR funciona igual com ou sem sinal.\n\nA conexão só serve para **baixar modelos ou pacotes**, **buscar no Hugging Face** e compartilhar resultados de avaliação, se você ligar isso.</string>
+    <string name="chatHeader_offlineTitle" formatted="false">Offline, como planejado.</string>
+    <string name="chatHeader_offlineBody" formatted="false">O BOAR não precisa de internet.\n\nSua biblioteca está **neste celular**, pode perguntar.</string>
     <string name="chatScreen_initializingCore" formatted="false">Inicializando núcleo offline local…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Carregando pesos GGUF locais…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexando base de conhecimento offline…</string>
@@ -283,18 +283,9 @@
     <string name="chatScreen_stageTimedOut" formatted="false">Uma etapa da pesquisa demorou demais e foi interrompida</string>
     <string name="chatScreen_interruptedByBackground" formatted="false">Pausado — o app foi para segundo plano. Pergunte novamente para continuar.</string>
     <string name="aboutScreen_title" formatted="false">Sobre o BOAR</string>
-    <string name="aboutScreen_heroSubtitle" formatted="false">Inteligência local adaptativa</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
-    <string name="aboutScreen_buildDevelopment" formatted="false">Build de desenvolvimento</string>
-    <string name="aboutScreen_buildRelease" formatted="false">Build de release</string>
-    <string name="aboutScreen_airGappedTitle" formatted="false">IA soberana e isolada da rede</string>
-    <string name="aboutScreen_airGappedBody" formatted="false">O BOAR é um sistema de IA móvel offline-first que explora roteamento adaptativo de modelos, recuperação local e inferência sensível a recursos. Ele realiza inferência local de LLM via llama.rn / llama.cpp e busca híbrida local (SQLite FTS5 + embeddings no dispositivo) sem nenhuma dependência de nuvem.</string>
-    <string name="aboutScreen_hardwareTitle" formatted="false">Arquitetura de hardware e orçamento</string>
-    <string name="aboutScreen_hardwareBody" formatted="false">Atende a restrições rígidas de uso em campo: a memória residente permanece limitada a 12GB de RAM usando pesos mapeados em memória (mmap), e o armazenamento total é auditado contra um limite de 50GB.</string>
-    <string name="aboutScreen_benchmarkTitle" formatted="false">Teste você mesmo</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo de carregamento do modelo, tempo até o primeiro token, tokens/s, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Telemetria de Execução → 🧪 Avaliar para comparar qualquer modelo instalado nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
-    <string name="aboutScreen_repoTitle" formatted="false">Repositório de código aberto</string>
-    <string name="aboutScreen_repoBody" formatted="false">O código-fonte, os manifestos de modelos quantizados e os scripts de indexação offline estão disponíveis em:</string>
+    <string name="aboutScreen_buildDevelopment" formatted="false">Versão de desenvolvimento</string>
+    <string name="aboutScreen_buildRelease" formatted="false">Versão oficial</string>
     <string name="sourceFootnotes_title" formatted="false">Fontes consultadas</string>
     <string name="sourceFootnotes_localIndex" formatted="false">ÍNDICE LOCAL</string>
     <string name="promptIdeasCarousel_title" formatted="false">Prompts de pesquisa de referência</string>
@@ -308,7 +299,7 @@
     <string name="personalities_succinct_description" formatted="false">Mais rápido — 2–3 parágrafos curtos ou tópicos, sem introdução. Padrão para celular.</string>
     <string name="personalities_detailed_label" formatted="false">Completo e Detalhado</string>
     <string name="personalities_detailed_description" formatted="false">Explicações estruturadas e completas, com comparações e raciocínio.</string>
-    <string name="personalities_personal_label" formatted="false">Arquivos pessoais</string>
+    <string name="personalities_personal_label" formatted="false">Arquivos locais</string>
     <string name="personalities_personal_description" formatted="false">Responde só a partir dos seus arquivos: notas, PDFs, planilhas.</string>
     <string name="personalities_custom_label" formatted="false">Personalizado</string>
     <string name="personalities_custom_description" formatted="false">Escreva seu próprio prompt de sistema.</string>
@@ -599,17 +590,17 @@
     <string name="flows_onboarding_compactLowRam" formatted="false">Este celular tem {{ram}} de memória ou menos, por isso o Rápido está selecionado. Você ainda pode escolher o Mais preciso.</string>
     <string name="flows_onboarding_canLeaveTitle" formatted="false">Pode sair do BOAR</string>
     <string name="flows_onboarding_indexReading" formatted="false">Arquivando: {{title}}</string>
-    <string name="flows_onboarding_loadingLines_l1" formatted="false">Alimentando o javali…</string>
-    <string name="flows_onboarding_loadingLines_l2" formatted="false">O javali parou para farejar uma trufa…</string>
+    <string name="flows_onboarding_loadingLines_l1" formatted="false">Alimentando o Boar…</string>
+    <string name="flows_onboarding_loadingLines_l2" formatted="false">O Boar parou para farejar uma trufa…</string>
     <string name="flows_onboarding_loadingLines_l3" formatted="false">Afiando as presas…</string>
     <string name="flows_onboarding_loadingLines_l4" formatted="false">Separando as bolotas por assunto…</string>
-    <string name="flows_onboarding_loadingLines_l5" formatted="false">Ensinando o javali a ler notas de rodapé…</string>
+    <string name="flows_onboarding_loadingLines_l5" formatted="false">Ensinando o Boar a ler notas de rodapé…</string>
     <string name="flows_onboarding_loadingLines_l6" formatted="false">Cavando fatos debaixo do carvalho…</string>
-    <string name="flows_onboarding_loadingLines_l7" formatted="false">O javali está lendo a enciclopédia inteira. Devagar.</string>
+    <string name="flows_onboarding_loadingLines_l7" formatted="false">O Boar está lendo a enciclopédia inteira. Devagar.</string>
     <string name="flows_onboarding_loadingLines_l8" formatted="false">Arrumando lanches para a viagem sem internet…</string>
     <string name="flows_onboarding_loadingLines_l9" formatted="false">Conferindo cada fonte duas vezes…</string>
     <string name="flows_onboarding_loadingLines_l10" formatted="false">Rolando na lama do conhecimento…</string>
-    <string name="flows_onboarding_loadingLines_l11" formatted="false">O javali achou um atalho. Era uma árvore.</string>
+    <string name="flows_onboarding_loadingLines_l11" formatted="false">O Boar achou um atalho. Era uma árvore.</string>
     <string name="flows_onboarding_loadingLines_l12" formatted="false">Contando páginas com os cascos…</string>
     <string name="flows_onboarding_modelTitle" formatted="false">Escolha o modelo de respostas</string>
     <string name="flows_onboarding_modelSub" formatted="false">Ele escreve as respostas neste celular. Você pode trocar depois em Modelos.</string>

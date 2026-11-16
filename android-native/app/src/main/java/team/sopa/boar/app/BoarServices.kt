@@ -41,6 +41,20 @@ class BoarServices private constructor(private val context: Context) {
     /** The app's files dir, where models, packs and the chat database live. */
     val filesDir: java.io.File get() = files
     val settings = AppSettings(File(files, "settings.json"))
+
+    init {
+        // Staged answers are core since Nov 12 (adam): the setting decides. The old plugin's switch, once: off stays off.
+        team.sopa.boar.plugins.AnswerModes.staged = { settings.stagedQuotes }
+        runCatching {
+            val labs = context.getSharedPreferences("labs", android.content.Context.MODE_PRIVATE)
+            // An unreadable settings.json is never replaced by {"stagedQuotes":false}: the key waits for a start that can
+            // read it, and the setting is on meanwhile (validator S-3).
+            if (labs.contains("enabled.staged") && settings.readable) {
+                team.sopa.boar.engine.answer.StagedMigration.settingFrom(labs.getBoolean("enabled.staged", false))?.let { settings.stagedQuotes = it }
+                labs.edit().remove("enabled.staged").apply()
+            }
+        }
+    }
     private val baseCatalog: Catalog = Catalog.parse(asset("boar-data/catalog.json"))
     private val discoveredFile = File(files, "discovered_models.json")
     private val discoveredJson = kotlinx.serialization.json.Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -131,7 +145,14 @@ class BoarServices private constructor(private val context: Context) {
     fun fileOf(asset: CatalogAsset) = asset.externalPath?.let(::File) ?: File(files, asset.filename)
 
     /** Installed: a file, or an engine plugin's model folder. */
-    fun isInstalled(asset: CatalogAsset) = fileOf(asset).let { it.isFile || (asset.externalPath != null && it.isDirectory) }
+    /**
+     * On the phone and whole: a download in progress (or stopped half way) isn't installed (StartLoad.complete). A Labs
+     * engine's model copied over USB ([CatalogAsset.externalPath]) is there as soon as its file or folder is.
+     */
+    fun isInstalled(asset: CatalogAsset) = fileOf(asset).let {
+        if (asset.externalPath != null) it.isFile || it.isDirectory
+        else team.sopa.boar.engine.models.StartLoad.complete(it.isFile, it.length(), asset.sizeBytes)
+    }
     /** Everything BOAR keeps on the phone: models, packs, the knowledge base with imported documents, chats, settings. */
     fun storageUsedBytes(): Long = files.walkTopDown().filter { it.isFile }.sumOf { it.length() }
 
@@ -155,11 +176,13 @@ class BoarServices private constructor(private val context: Context) {
      */
     fun answerModel(): CatalogAsset? {
         val m = activeModel() ?: return null
-        if (!loadGuard.isBlocked(m.id)) return m
         val llms = installed(AssetKind.LLM)
-        val pick = team.sopa.boar.engine.models.StartLoad.fallback(llms.map(::startModel), loadGuard::isBlocked, settings.lastLoadedModelId)
-        return pick?.let { p -> llms.firstOrNull { it.id == p.id } }
+        val pick = team.sopa.boar.engine.models.StartLoad.answering(startModel(m), llms.map(::startModel), loadGuard::isBlocked, settings.lastLoadedModelId)
+        return pick?.let { p -> if (p.id == m.id) m else llms.firstOrNull { it.id == p.id } }
     }
+
+    /** The user's model is held back (its last load closed the app) and [answerModel] answers in its place, or none does. */
+    fun answeringInstead(): Boolean = activeModel()?.let { loadGuard.isBlocked(it.id) } == true
 
     /** A model a Labs engine streams from storage (Big Boar) isn't held to the RAM check: it never loads whole. */
     private fun startModel(a: CatalogAsset) = team.sopa.boar.engine.models.StartLoad.Model(a.id, a.sizeBytes, streamed = !runsOnBuiltIn(a))
@@ -236,7 +259,7 @@ class BoarServices private constructor(private val context: Context) {
         var chunks = retriever.retrieve(query, topK * 2, params = params)
         // A stage that fails is skipped, never fatal: the answer keeps what search found.
         for (st in stages) chunks = runCatching { st.process(query, chunks, topK) }.getOrDefault(chunks)
-        return chunks.take(topK)
+        return chunks.take(topK + team.sopa.boar.plugins.EXTRA)
     }
 
     // --- Memory pressure -----------------------------------------------------------------------------------------
@@ -252,6 +275,22 @@ class BoarServices private constructor(private val context: Context) {
     fun onTrimMemory(level: Int) {
         val critical = level == android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE
         if (critical && host.residentIsExternal()) lifeScope.launch { host.unloadIfIdle("memory pressure $level") }
+    }
+
+    private val boarSync = Mutex()
+
+    /**
+     * BOAR's own passages (the guide and the FAQ, every language, BoarPack) in the index, as this build ships them
+     * (t9 0225, 0233): removed when gone or changed, embedded when new. Nothing to embed after the first start of a build.
+     * Returns how many it embedded; 0 when the search model isn't installed yet (setup calls it again after its index).
+     */
+    suspend fun syncBoarPack(): Int = boarSync.withLock {
+        runCatching {
+            val guides = context.assets.list("boar-guide").orEmpty().filter { it.endsWith(".md") }
+                .associate { it.removeSuffix(".md") to asset("boar-guide/$it") }
+            val faq = runCatching { asset("boar-faq/faq.json") }.getOrNull()
+            knowledgeBase.syncBoar(team.sopa.boar.engine.rag.BoarPack.passages(guides, faq)) { embed(it) }
+        }.getOrDefault(0)
     }
 
     val retriever: Retriever by lazy {
@@ -438,7 +477,27 @@ class BoarServices private constructor(private val context: Context) {
 
     fun addStopper(stop: () -> Unit) { stoppers += stop }
     fun removeStopper(stop: () -> Unit) { stoppers -= stop }
-    private fun modelBusy(): Boolean = busyChecks.any { runCatching { it() }.getOrDefault(false) }
+    private fun modelBusy(): Boolean = labHolds.get() > 0 || busyChecks.any { runCatching { it() }.getOrDefault(false) }
+
+    /** A lab writing with the chat's model (Press's rewrite): the chat waits for it, and it waits for the chat (G-4). */
+    private val labHolds = java.util.concurrent.atomic.AtomicInteger(0)
+
+    /**
+     * Nothing uses the model: a lab holds it, checked and claimed in one step, so a chat answer, title or preload can't
+     * start in between (validator G-4). False when something does; the lab says busy. Release with [releaseModelForLab].
+     */
+    @Synchronized fun claimModelForLab(): Boolean {
+        if (modelBusy()) return false
+        labHolds.incrementAndGet()
+        return true
+    }
+
+    fun releaseModelForLab() { labHolds.updateAndGet { maxOf(0, it - 1) } }
+
+    /** True while a lab holds the model. */
+    val isLabUsingModel: Boolean get() = labHolds.get() > 0
+    /** Read-only: the chat (or anything that registered a busy check) is using the model now; Press's rewrite waits for it. */
+    val isModelBusy: Boolean get() = modelBusy()
 
     /** Stops every answer, title and summary and waits up to [timeoutMs] for them to end; true when nothing runs. Blocking. */
     fun stopAnswersAndWait(timeoutMs: Long = 15_000): Boolean {
@@ -503,7 +562,15 @@ class BoarServices private constructor(private val context: Context) {
     }
 
     /** Loads the active model if it isn't resident; null when no model is installed or it fails to load. */
-    suspend fun activeSession(): team.sopa.boar.engine.TextModel? {
+    /**
+     * The answer model, loaded. While a lab holds it (Press's rewrite, up to its 2 minutes) everyone else waits here first:
+     * the chat's answer, title, summary and preload (validator G-4: the guard ran one way). [forLab] is the holder itself.
+     */
+    suspend fun activeSession(forLab: Boolean = false): team.sopa.boar.engine.TextModel? {
+        if (!forLab) {
+            val until = android.os.SystemClock.elapsedRealtime() + 150_000
+            while (labHolds.get() > 0 && android.os.SystemClock.elapsedRealtime() < until) kotlinx.coroutines.delay(250)
+        }
         val m = answerModel() ?: return null
         host.load(m.id) ?: return null
         return host.current()
@@ -533,7 +600,7 @@ class BoarServices private constructor(private val context: Context) {
                 // The CPU build is chosen once per process, from the user's tweak (Auto by default).
                 val app = context.applicationContext
                 BoarEngine.init(app.applicationInfo.nativeLibraryDir, AppSettings(File(app.filesDir, "settings.json")).engineTweaks.cpuBuild)
-                BoarServices(app).also { instance = it; DebugLog.init(app, it.settings) }
+                BoarServices(app).also { instance = it; DebugLog.init(app, it.settings); it.lifeScope.launch { it.syncBoarPack() } }
             }
         }
     }

@@ -56,7 +56,7 @@ class LabToolsCombinationTest {
 
         /** The labs in the order the tool slot tries them: LabTools.slotRank, then the grid's (plugin.properties order; all four are beta). */
         val slotOrder: List<String> = TOOLS.sortedBy { id ->
-            File("../app/src/labs/plugins/$id/plugin.properties").readLines().first { it.startsWith("order=") }.removePrefix("order=").toInt()
+            File(team.sopa.boar.engine.labs.LabDirs.of(id), "plugin.properties").readLines().first { it.startsWith("order=") }.removePrefix("order=").toInt()
         }.sortedBy(LabTools::slotRank)
 
         fun run(id: String, q: String, turns: List<String> = emptyList()): LabTools.Hit? = when (id) {
@@ -68,11 +68,11 @@ class LabToolsCombinationTest {
         }
 
         val TOOL_PREFIX = mapOf("calc" to listOf("calculator-", "temperature-"), "distance" to listOf("calculator-travel-distance"),
-            "facts" to listOf("facts-"), "cohazard" to listOf("safety-fact-co-hazard"))
+            "facts" to listOf("facts-"), "cohazard" to listOf("safety-fact-co-hazard", "safety-fact-co-acute"))
         fun owner(hit: LabTools.Hit): String = when {
             hit.tool == "calculator-travel-distance" -> "distance"
             hit.tool.startsWith("facts-") -> "facts"
-            hit.tool == "safety-fact-co-hazard" -> "cohazard"
+            hit.tool == "safety-fact-co-hazard" || hit.tool == LabTools.CO_ACUTE -> "cohazard"
             else -> "calc"
         }
 

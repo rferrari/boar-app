@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_sanctuary_title" formatted="false">Sanctuary</string>
-    <string name="native_labs_sanctuary_body" formatted="false">Knowledge packs you collect, keep and open on this phone: whole libraries, offline.</string>
+    <string name="native_labs_sanctuary_body" formatted="false">Collect knowledge packs and open them offline.</string>
+    <string name="native_labs_sanctuary_about" formatted="false">Knowledge packs you collect, keep and open on this phone: whole libraries, offline.</string>
 </resources>

@@ -39,10 +39,11 @@ import team.sopa.boar.ui.theme.wash
  * and [onRead] opens the whole article or file (SourceReaderScreen, Oct 24).
  */
 @Composable
-fun SourceFootnotes(sources: List<Source>, title: String? = null, onRead: (Source) -> Unit = {}) {
+fun SourceFootnotes(sources: List<Source>, title: String? = null, onRead: (Source) -> Unit = {}, key: String? = null) {
     val c = Boar.colors
     val mono = Boar.type["mono.xs"]
-    var expanded by remember { mutableStateOf<Int?>(null) }
+    // Kept per answer: back from Read the whole article, the same source is still open.
+    var expanded by ChatFolds.remember<Int?>(key?.let { "$it/sources" }, null)
     Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(Boar.colors.wash(0.08f)))
         Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {

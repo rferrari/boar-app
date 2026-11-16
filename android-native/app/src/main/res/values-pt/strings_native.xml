@@ -49,17 +49,31 @@
     <string name="native_settings_adaptiveTitle" formatted="false">Roteamento adaptativo</string>
     <string name="native_settings_adaptiveNote" formatted="false">Escolhe um modelo por pergunta entre os instalados.</string>
     <string name="native_drawer_settings" formatted="false">Configurações</string>
-    <string name="native_about_airGappedBody" formatted="false">BOAR é um sistema de IA móvel que funciona offline, explorando roteamento adaptativo de modelos, busca local e inferência consciente dos recursos. Roda os modelos com o llama.cpp, embutido no app, e a busca híbrida local (SQLite FTS5 + embeddings no aparelho), sem nenhuma dependência de nuvem.</string>
     <string name="native_about_siteTitle" formatted="false">Site oficial</string>
-    <string name="native_about_siteBody" formatted="false">Novidades e atualizações saem no nosso site oficial. Cuidado com golpes: confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
     <string name="native_about_verify" formatted="false">Não confie, verifique.</string>
     <string name="native_about_copied" formatted="false">Copiado</string>
-    <string name="native_about_holdToCopy" formatted="false">Toque e segure um endereço para copiar.</string>
+    <string name="native_about_holdToCopy" formatted="false">Toque ou segure um endereço para copiar. Nada abre a partir desta página.</string>
     <string name="native_receipt_mode" formatted="false">Modo</string>
     <string name="native_receipt_style_succinct" formatted="false">Sucinto e direto</string>
     <string name="native_receipt_style_detailed" formatted="false">Completo e detalhado</string>
-    <string name="native_receipt_style_personal" formatted="false">Arquivos pessoais</string>
+    <string name="native_receipt_style_personal" formatted="false">Arquivos locais</string>
     <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
+    <string name="native_receipt_path_staged" formatted="false">Resposta em etapas</string>
+    <string name="native_receipt_stages" formatted="false">Etapas</string>
+    <string name="native_receipt_stage_sources" formatted="false">fontes</string>
+    <string name="native_receipt_stage_introFirst" formatted="false">primeira palavra</string>
+    <string name="native_receipt_stage_detailsFirst" formatted="false">detalhes</string>
+    <string name="native_staged_facts" formatted="false">DAS FONTES ({{count}})</string>
+    <string name="native_staged_factsNote" formatted="false">Citado das fontes, não é a resposta do BOAR. Toque em uma para ver o trecho.</string>
+    <string name="native_staged_readArticle" formatted="false">Ler o artigo inteiro ›</string>
+    <string name="native_staged_added" formatted="false">+{{count}} fontes encontradas durante a resposta</string>
+    <string name="native_staged_step_sources" formatted="false">Buscando na biblioteca…</string>
+    <string name="native_staged_step_intro" formatted="false">Escrevendo uma resposta curta…</string>
+    <string name="native_staged_step_research" formatted="false">Procurando mais fontes…</string>
+    <string name="native_staged_step_details" formatted="false">Acrescentando os detalhes…</string>
+    <string name="native_staged_step_check" formatted="false">Conferindo os números…</string>
+    <string name="native_staged_checkOk" formatted="false">Todos os números desta resposta estão nas fontes.</string>
+    <string name="native_staged_checkMissing" formatted="false">Não encontrado nas fontes: {{numbers}}. Confira antes de confiar.</string>
     <string name="native_receipt_path_deep" formatted="false">Pesquisa Profunda</string>
     <string name="native_receipt_path_chat" formatted="false">Desta conversa</string>
     <string name="native_receipt_path_adaptive" formatted="false">Roteamento adaptativo</string>
@@ -67,22 +81,37 @@
     <string name="native_receipt_tool" formatted="false">Ferramenta</string>
     <string name="native_receipt_instant" formatted="false">instantâneo</string>
     <string name="native_about_tagline" formatted="false">Suas perguntas.\nSeu celular. Sua IA.</string>
-    <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal. Código aberto (MIT).</string>
-    <string name="native_about_post_why" formatted="false">Quando a IA vive só no servidor de outra pessoa, quem roda o servidor tem um interruptor.\n\nPreferimos que ninguém tenha. Por isso o modelo vive no seu celular, e nenhum servidor recebe suas perguntas.</string>
-    <string name="native_about_post_offline" formatted="false">Um download na configuração. Depois, modo avião tudo bem: o BOAR responde com a biblioteca do seu celular, com o llama.cpp embutido, e mostra os artigos que usou.</string>
-    <string name="native_about_post_receipt" formatted="false">Cada resposta registra como rodou: o modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes. Meça o seu celular em Menu → Avaliação.</string>
-    <string name="native_about_post_budget" formatted="false">Antes de carregar um modelo, o BOAR confere se ele cabe na memória do seu celular. Os downloads ficam dentro de um limite de 50 GB.</string>
-    <string name="native_about_post_open" formatted="false">Código aberto, MIT. O código, a lista de modelos e os scripts que montam os pacotes de conhecimento:</string>
+    <string name="native_about_versionHold" formatted="false">Toque e segure para copiar para um relato de problema.</string>
+    <string name="native_about_copyAddress" formatted="false">Copiar {{address}}</string>
+    <string name="native_about_section_what" formatted="false">O que é o BOAR</string>
+    <string name="native_about_section_privacy" formatted="false">Sua privacidade</string>
+    <string name="native_about_section_measure" formatted="false">Meça você mesmo</string>
+    <string name="native_about_section_links" formatted="false">Links</string>
+    <string name="native_about_section_plugins" formatted="false">Plugins ligados</string>
+    <string name="native_about_section_credits" formatted="false">Créditos</string>
+    <string name="native_about_privacy_model" formatted="false">O modelo vive no seu celular</string>
+    <string name="native_about_privacy_modelNote" formatted="false">Nenhum servidor recebe suas perguntas, então ninguém pode desligar o BOAR por você.</string>
+    <string name="native_about_privacy_offline" formatted="false">Um download na configuração</string>
+    <string name="native_about_privacy_offlineNote" formatted="false">Depois, funciona em modo avião: o BOAR responde com a biblioteca do seu celular e mostra os artigos que usou.</string>
+    <string name="native_about_privacy_connection" formatted="false">A conexão</string>
+    <string name="native_about_privacy_connectionNote" formatted="false">Só para baixar modelos ou pacotes, buscar no Hugging Face e compartilhar resultados de avaliação, se você ligar isso.</string>
+    <string name="native_about_measure_receipt" formatted="false">Cada resposta registra como rodou</string>
+    <string name="native_about_measure_receiptNote" formatted="false">O modelo, o tempo até a primeira palavra, tokens por segundo, memória e fontes.</string>
+    <string name="native_about_measure_eval" formatted="false">Meça o seu celular</string>
+    <string name="native_about_measure_evalNote" formatted="false">Configurações, Ajustes avançados, Avaliação (perfil Pro).</string>
+    <string name="native_about_measure_budget" formatted="false">Conferido antes de carregar</string>
+    <string name="native_about_measure_budgetNote" formatted="false">O BOAR confere cada modelo com a memória do seu celular. Os downloads ficam dentro de um limite de 50 GB de armazenamento; no Pro dá para mudar isso nas configurações dos plugins.</string>
+    <string name="native_about_sourceTitle" formatted="false">Código-fonte</string>
+    <string name="native_about_sourceNote" formatted="false">Código aberto, MIT.</string>
+    <string name="native_about_bio" formatted="false">Pesquisa com IA offline no seu celular. Respostas com fontes, sem precisar de sinal.</string>
     <string name="native_about_post_verify" formatted="false">As novidades saem só destes endereços. Confira o endereço antes de baixar qualquer coisa que diga ser o BOAR.</string>
-    <string name="native_about_post_packs" formatted="false">Pacotes de conhecimento do R&amp;D Lab do R4to:</string>
-    <string name="native_about_post_team" formatted="false">Equipe principal, no X:</string>
-    <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença:</string>
+    <string name="native_about_post_credits" formatted="false">Feito sobre trabalho aberto, cada um com sua licença.</string>
     <string name="native_about_creditWikipedia" formatted="false">Wikipédia (a biblioteca embutida e o pacote Vital Articles)</string>
     <string name="native_about_creditHuggingFace" formatted="false">Hugging Face (de onde os modelos do BOAR são baixados)</string>
+    <string name="native_about_creditFaq" formatted="false">O FAQ do BOAR, escrito pela Amandita (@AAmandita_) a partir da entrevista dela no Zebra Talks</string>
     <string name="native_about_packsTitle" formatted="false">Pacotes de conhecimento</string>
-    <string name="native_about_packsBody" formatted="false">Pacotes do R&amp;D Lab do R4to.</string>
-    <string name="native_about_teamTitle" formatted="false">Equipe principal</string>
-    <string name="native_about_teamBody" formatted="false">No X:</string>
+    <string name="native_about_packsBody" formatted="false">Pacotes feitos pelo R&amp;D Labs, de R4to</string>
+    <string name="native_about_teamTitle" formatted="false">Equipe principal, no X</string>
     <string name="native_drawer_evaluation" formatted="false">🧪 Avaliação</string>
     <string name="native_eval_modelsTitle" formatted="false">Modelos ({{chosen}} de {{count}} escolhidos)</string>
     <string name="native_eval_answersTitle" formatted="false">Respostas ({{count}})</string>
@@ -114,8 +143,8 @@
     <string name="native_pin_wrong" formatted="false">PIN errado.</string>
     <string name="native_pin_wait" formatted="false">Tentativas demais. Espere {{seconds}} s.</string>
     <string name="native_pin_forgot" formatted="false">Esqueceu o PIN?</string>
-    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas e arquivos pessoais?</string>
-    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagar remove também seus Arquivos pessoais e o PIN. Modelos e pacotes de conhecimento ficam.</string>
+    <string name="native_pin_forgotTitle" formatted="false">Apagar suas conversas e arquivos locais?</string>
+    <string name="native_pin_forgotBody" formatted="false">Sem o PIN, suas conversas não podem ser abertas, nem por nós. Apagar remove também seus Arquivos locais e o PIN. Modelos e pacotes de conhecimento ficam.</string>
     <string name="native_pin_forgotConfirm" formatted="false">Apagar conversas e arquivos</string>
     <string name="native_pin_forgotCountdown" formatted="false">Fecha em {{seconds}} s</string>
     <string name="native_pin_forgotFailed" formatted="false">Não deu para apagar tudo. Seu PIN continua ativo: tente de novo.</string>
@@ -138,12 +167,12 @@
     <string name="native_settings_clearChatsDone" formatted="false">Histórico de conversas apagado.</string>
     <string name="native_settings_openCatalog" formatted="false">Abrir o catálogo de modelos</string>
     <string name="native_settings_openKnowledge" formatted="false">Abrir Conhecimento BOAR</string>
-    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos pessoais</string>
+    <string name="native_settings_openDocuments" formatted="false">Abrir Arquivos locais</string>
     <string name="native_settings_activeModel" formatted="false">Respondendo com: {{model}}</string>
     <string name="native_settings_installedCount" formatted="false">{{count}} instalados</string>
     <string name="native_settings_packsInstalled" formatted="false">Pacotes de conhecimento no celular: {{packs}}</string>
     <string name="native_settings_noPacks" formatted="false">Nenhum pacote ainda: só a biblioteca embutida.</string>
-    <string name="native_settings_documents" formatted="false">Arquivos pessoais: {{count}} coleções</string>
+    <string name="native_settings_documents" formatted="false">Arquivos locais: {{count}} coleções</string>
     <string name="native_telemetry_device" formatted="false">Aparelho</string>
     <string name="native_telemetry_chip" formatted="false">Chip</string>
     <string name="native_telemetry_cores" formatted="false">Núcleos</string>
@@ -187,61 +216,61 @@
     <string name="native_browse_kindMoe" formatted="false">Mistura de especialistas</string>
     <string name="native_browse_files" formatted="false">Arquivos</string>
     <!-- Truffle Vault -->
-    <string name="native_truffle_cosmo" formatted="false">Javali Cósmico</string>
-    <string name="native_truffle_quantum" formatted="false">Javali Quântico</string>
-    <string name="native_truffle_tactical" formatted="false">Javali Tático</string>
-    <string name="native_truffle_hacker" formatted="false">Javali Código</string>
-    <string name="native_truffle_solarpunk" formatted="false">Javali Solarpunk</string>
-    <string name="native_truffle_nomad" formatted="false">Javali Nômade</string>
-    <string name="native_truffle_synthetic" formatted="false">Javali Ciber</string>
-    <string name="native_truffle_senior" formatted="false">Javali Sênior</string>
-    <string name="native_truffle_mecha" formatted="false">Javali Mecha</string>
-    <string name="native_truffle_plasma" formatted="false">Javali Plasma</string>
-    <string name="native_truffle_steampunk" formatted="false">Javali Steampunk</string>
-    <string name="native_truffle_retrowave" formatted="false">Javali Retrowave</string>
-    <string name="native_truffle_ice" formatted="false">Javali Gélido</string>
-    <string name="native_truffle_volcanic" formatted="false">Javali Magma</string>
-    <string name="native_truffle_astronaut" formatted="false">Javali Astro</string>
-    <string name="native_truffle_stealth" formatted="false">Javali Furtivo</string>
-    <string name="native_truffle_biolum" formatted="false">Javali Neon</string>
-    <string name="native_truffle_knight" formatted="false">Javali Cavaleiro</string>
-    <string name="native_truffle_void" formatted="false">Javali Vazio</string>
-    <string name="native_truffle_atomic" formatted="false">Javali Atômico</string>
-    <string name="native_truffle_lunar" formatted="false">Javali Lunar</string>
+    <string name="native_truffle_cosmo" formatted="false">Boar Cósmico</string>
+    <string name="native_truffle_quantum" formatted="false">Boar Quântico</string>
+    <string name="native_truffle_tactical" formatted="false">Boar Tático</string>
+    <string name="native_truffle_hacker" formatted="false">Boar Código</string>
+    <string name="native_truffle_solarpunk" formatted="false">Boar Solarpunk</string>
+    <string name="native_truffle_nomad" formatted="false">Boar Nômade</string>
+    <string name="native_truffle_synthetic" formatted="false">Boar Ciber</string>
+    <string name="native_truffle_senior" formatted="false">Boar Sênior</string>
+    <string name="native_truffle_mecha" formatted="false">Boar Mecha</string>
+    <string name="native_truffle_plasma" formatted="false">Boar Plasma</string>
+    <string name="native_truffle_steampunk" formatted="false">Boar Steampunk</string>
+    <string name="native_truffle_retrowave" formatted="false">Boar Retrowave</string>
+    <string name="native_truffle_ice" formatted="false">Boar Gélido</string>
+    <string name="native_truffle_volcanic" formatted="false">Boar Magma</string>
+    <string name="native_truffle_astronaut" formatted="false">Boar Astro</string>
+    <string name="native_truffle_stealth" formatted="false">Boar Furtivo</string>
+    <string name="native_truffle_biolum" formatted="false">Boar Neon</string>
+    <string name="native_truffle_knight" formatted="false">Boar Cavaleiro</string>
+    <string name="native_truffle_void" formatted="false">Boar Vazio</string>
+    <string name="native_truffle_atomic" formatted="false">Boar Atômico</string>
+    <string name="native_truffle_lunar" formatted="false">Boar Lunar</string>
     <string name="native_truffle_digital_nomad" formatted="false">Nômade Digital</string>
-    <string name="native_truffle_chrono" formatted="false">Javali Crono</string>
-    <string name="native_truffle_ethereal" formatted="false">Javali Etéreo</string>
-    <string name="native_truffle_sovereign" formatted="false">Javali Soberano</string>
+    <string name="native_truffle_chrono" formatted="false">Boar Crono</string>
+    <string name="native_truffle_ethereal" formatted="false">Boar Etéreo</string>
+    <string name="native_truffle_sovereign" formatted="false">Boar Soberano</string>
     <string name="native_truffle_guardian" formatted="false">Guardião Solar</string>
-    <string name="native_truffle_tactical_city" formatted="false">Javali Urbano</string>
-    <string name="native_truffle_pixel_hacker" formatted="false">Javali Pixel</string>
-    <string name="native_truffle_moe" formatted="false">Javali Tensor</string>
-    <string name="native_truffle_explorer" formatted="false">Javali Explorador</string>
-    <string name="native_truffle_spirit" formatted="false">Javali Espírito</string>
-    <string name="native_truffle_planter" formatted="false">Javali Floresta</string>
-    <string name="native_truffle_cloud" formatted="false">Javali Airgap</string>
-    <string name="native_truffle_elder" formatted="false">Javali Ancião</string>
-    <string name="native_truffle_fomo_unicorn" formatted="false">Javali Unicórnio</string>
-    <string name="native_truffle_tactical_ii" formatted="false">Javali SpecOps</string>
-    <string name="native_truffle_totem" formatted="false">Javali Totem</string>
-    <string name="native_truffle_hammock" formatted="false">Javali Descanso</string>
-    <string name="native_truffle_snow" formatted="false">Javali Neve</string>
-    <string name="native_truffle_hacker_ii" formatted="false">Javali Kernel</string>
+    <string name="native_truffle_tactical_city" formatted="false">Boar Urbano</string>
+    <string name="native_truffle_pixel_hacker" formatted="false">Boar Pixel</string>
+    <string name="native_truffle_moe" formatted="false">Boar Tensor</string>
+    <string name="native_truffle_explorer" formatted="false">Boar Explorador</string>
+    <string name="native_truffle_spirit" formatted="false">Boar Espírito</string>
+    <string name="native_truffle_planter" formatted="false">Boar Floresta</string>
+    <string name="native_truffle_cloud" formatted="false">Boar Airgap</string>
+    <string name="native_truffle_elder" formatted="false">Boar Ancião</string>
+    <string name="native_truffle_fomo_unicorn" formatted="false">Boar Unicórnio</string>
+    <string name="native_truffle_tactical_ii" formatted="false">Boar SpecOps</string>
+    <string name="native_truffle_totem" formatted="false">Boar Totem</string>
+    <string name="native_truffle_hammock" formatted="false">Boar Descanso</string>
+    <string name="native_truffle_snow" formatted="false">Boar Neve</string>
+    <string name="native_truffle_hacker_ii" formatted="false">Boar Kernel</string>
     <string name="native_vault_title" formatted="false">Avatares do Boar</string>
     <string name="native_vault_intro" formatted="false">Você libera avatares usando o BOAR. Tudo é contado neste celular e nunca sai dele.</string>
     <string name="native_vault_card" formatted="false">{{n}} de {{total}} avatares liberados</string>
     <string name="native_vault_open" formatted="false">Abrir Avatares do Boar →</string>
     <string name="native_vault_boar" formatted="false">Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
-    <string name="native_vault_iconNote" formatted="false">Muda o javali da conversa e do menu.</string>
-    <string name="native_vault_iconNoteLauncher" formatted="false">Muda o javali da conversa agora, e o ícone do app quando você sai do BOAR.</string>
+    <string name="native_vault_iconNote" formatted="false">Muda o Boar da conversa e do menu.</string>
+    <string name="native_vault_iconNoteLauncher" formatted="false">Muda o Boar da conversa agora, e o ícone do app quando você sai do BOAR.</string>
     <string name="native_vault_equipped" formatted="false">Em uso</string>
     <string name="native_vault_equip" formatted="false">Usar</string>
     <string name="native_vault_unlockedOn" formatted="false">Liberado em {{date}}</string>
     <string name="native_vault_fresh" formatted="false">Novo avatar: {{name}}</string>
-    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos Labs e pelos avatares.</string>
+    <string name="native_vault_themesLocked" formatted="false">Mais {{n}} temas são liberados pelos plugins e pelos avatares.</string>
     <string name="native_vault_themes" formatted="false">Temas</string>
-    <string name="native_vault_labClue" formatted="false">Liberado por um Lab</string>
+    <string name="native_vault_labClue" formatted="false">Liberado por um plugin</string>
     <string name="native_rule_ALWAYS" formatted="false">Óculos de visão noturna, para todos.</string>
     <string name="native_rule_FIRST_ANSWER" formatted="false">Faça sua primeira pergunta ao BOAR.</string>
     <string name="native_rule_FIRST_SOURCED" formatted="false">Receba uma resposta com uma fonte.</string>
@@ -263,8 +292,8 @@
     <string name="native_rule_CHATS_100" formatted="false">Comece 100 conversas.</string>
     <string name="native_rule_DOCUMENT" formatted="false">Dê ao BOAR um documento seu.</string>
     <string name="native_rule_EXPORT" formatted="false">Exporte uma coleção.</string>
-    <string name="native_rule_QUIZ_FIRST" formatted="false">Em algum lugar do Boar Labs, uma pergunta está esperando.</string>
-    <string name="native_rule_QUIZ_DAYS_7" formatted="false">Responda às perguntas do mesmo lab durante uma semana.</string>
+    <string name="native_rule_QUIZ_FIRST" formatted="false">Em algum lugar dos Plugins, uma pergunta está esperando.</string>
+    <string name="native_rule_QUIZ_DAYS_7" formatted="false">Responda às perguntas do mesmo plugin durante uma semana.</string>
     <string name="native_rule_PACK" formatted="false">Baixe um pacote de conhecimento.</string>
     <string name="native_rule_PACKS_2" formatted="false">Tenha dois pacotes de conhecimento.</string>
     <string name="native_rule_HF_MODEL" formatted="false">Adicione um modelo do Hugging Face.</string>
@@ -287,9 +316,9 @@
     <string name="native_rule_AIRPLANE_DAYS_14" formatted="false">14 dias fora da rede, em qualquer ordem.</string>
     <string name="native_vault_section" formatted="false">Boarverse</string>
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
-    <string name="native_vault_experimentalNote" formatted="false">Libere avatares de javali enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
+    <string name="native_vault_experimentalNote" formatted="false">Libere avatares do Boar enquanto usa o BOAR e use-os na conversa; alguns liberam novos temas.</string>
     <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Estes recursos ainda estão em teste e podem mudar ou sair do app. O Boar Labs já vem ligado, com todos os labs desligados: ligue os que quiser, beta (testados em celulares) ou alpha (no começo). Se algum der problema, desligue aqui e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_settings_experimentalNote" formatted="false">Ferramentas extras no menu e nas respostas. Podem ser ligadas ou desligadas. Algumas já vêm ligadas; ligue as outras que quiser em Plugins. Se alguma der problema, desligue e, se puder, abra uma issue no GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Descobrir modelos GGUF</string>
     <string name="native_debugLog_title" formatted="false">Log de depuração</string>
     <string name="native_debugLog_note" formatted="false">Guarda neste celular um arquivo de como o BOAR o usa: memória, bateria, temperatura, velocidade da CPU, carregamento de modelos, velocidade das respostas, downloads e travamentos. Nunca o que você pergunta nem o que o BOAR responde. Nada é enviado: salve o arquivo e compartilhe você mesmo. Gasta um pouco de bateria.</string>
@@ -311,9 +340,9 @@
     <string name="native_tweaks_preset_coolNote" formatted="false">Para um celular quente: 1 thread, lotes pequenos, contexto menor, sem raciocínio, no máximo 5 minutos por etapa. O mais lento.</string>
     <string name="native_tweaks_presetCustom" formatted="false">Personalizado: seus próprios ajustes abaixo. Escolha uma predefinição para recomeçar a partir dela.</string>
     <string name="native_tweaks_drawerStats" formatted="false">Memória e armazenamento no menu</string>
-    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor do Labs, como o Big Boar) e o espaço dos modelos.</string>
+    <string name="native_tweaks_drawerStatsNote" formatted="false">Barras no fim do menu: tudo o que o BOAR ocupa na memória (o app e qualquer motor de plugin, como o Big Boar) e o espaço dos modelos.</string>
     <string name="native_models_engineTag" formatted="false">motor {{engine}} · lê do armazenamento</string>
-    <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Boar Labs → {{engine}})</string>
+    <string name="native_models_placeOverUsb" formatted="false">Copie pelo USB (Plugins → {{engine}})</string>
     <string name="native_models_selectUseEngine" formatted="false">Selecionar e Usar · motor {{engine}}</string>
     <string name="native_tweaks_evaluation" formatted="false">Avaliação (para quem desenvolve)</string>
     <string name="native_tweaks_evaluationNote" formatted="false">Roda o conjunto de avaliação do BOAR neste celular e envia o relatório. Versões para quem desenvolve também a mostram no menu.</string>
@@ -325,7 +354,6 @@
     <string name="native_models_show" formatted="false">Mostrar</string>
     <string name="native_models_filterAll" formatted="false">Todos</string>
     <string name="native_models_filterOnPhone" formatted="false">Neste celular</string>
-    <string name="native_models_filterDownloading" formatted="false">Baixando</string>
     <string name="native_models_filterMine" formatted="false">Adicionados por você</string>
     <string name="native_models_emptyFilter" formatted="false">Nenhum modelo aqui. Escolha Todos para ver todos.</string>
     <string name="native_models_nowUsing" formatted="false">Agora respondendo com {{model}}</string>
@@ -334,7 +362,7 @@
     <string name="native_models_inYourModels" formatted="false">Nos seus modelos</string>
     <string name="native_models_useNow" formatted="false">Usar agora</string>
     <string name="native_settings_embeddingOk" formatted="false">Modelo de busca (pacotes e documentos): {{model}} ✓</string>
-    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo em Recuperação.</string>
+    <string name="native_settings_embeddingMissing" formatted="false">Modelo de busca (para pacotes e documentos): {{model}}, não está no celular. Rode a configuração de novo: Configurações → Recomeçar.</string>
     <string name="native_browse_discoverSubtitle" formatted="false">Explorar modelos do Hugging Face</string>
     <string name="native_chat_errorNoModel" formatted="false">Nenhum modelo de resposta está carregado. Abra o Catálogo de Modelos para escolher um.</string>
     <string name="native_common_somethingWrong" formatted="false">Algo deu errado. Tente de novo.</string>
@@ -353,6 +381,22 @@
     <string name="native_answering_channel" formatted="false">Respondendo</string>
     <string name="native_answering_title" formatted="false">O BOAR está respondendo…</string>
     <string name="native_answering_text" formatted="false">A resposta continua enquanto você usa outros apps.</string>
+    <string name="native_chat_keepGoing" formatted="false">Seguir adiante</string>
+    <string name="native_chat_kgGroup" formatted="false">Seguir adiante: o que perguntar depois</string>
+    <string name="native_chat_kgDeeper" formatted="false">Ir mais fundo</string>
+    <string name="native_chat_kgContinue" formatted="false">Continuar</string>
+    <string name="native_chat_kgContinueSpoken" formatted="false">Continuar: o BOAR segue a partir da última resposta.</string>
+    <string name="native_chat_kgResearch" formatted="false">Pesquisar isto</string>
+    <string name="native_chat_kgAsk" formatted="false">Perguntar ao BOAR</string>
+    <string name="native_chat_kgAskQ" formatted="false">Perguntar ao BOAR: {{q}}</string>
+    <string name="native_chat_kgQuick" formatted="false">Rápida</string>
+    <string name="native_chat_kgDetailed" formatted="false">Detalhada</string>
+    <string name="native_chat_kgResearchRung" formatted="false">Pesquisa</string>
+    <string name="native_chat_kgBoar" formatted="false">BOAR</string>
+    <string name="native_chat_kgDeeperSpoken" formatted="false">Ir mais fundo: a mesma pergunta de novo, em Detalhada.</string>
+    <string name="native_chat_kgResearchSpoken" formatted="false">Pesquisar isto: a mesma pergunta de novo, com a Pesquisa Profunda.</string>
+    <string name="native_chat_kgAskSpoken" formatted="false">Perguntar ao BOAR: o modelo responde esta pergunta no lugar de {{name}}.</string>
+    <string name="native_chat_kgFollowSpoken" formatted="false">Perguntar: {{q}}</string>
     <string name="native_chat_tryAgain" formatted="false">Tentar de novo</string>
     <string name="native_chat_holdToReuse" formatted="false">Toque e segure qualquer mensagem sua para copiá-la de volta para o campo de texto.</string>
     <string name="native_chat_stopping" formatted="false">Parando…</string>
@@ -414,7 +458,6 @@
     <string name="native_chat_suggestions_b21" formatted="false">Dengue: sintomas, transmissão e por que a segunda infecção é mais arriscada</string>
     <string name="native_chat_suggestionTopics_b21" formatted="false">Saúde</string>
     <string name="native_tweaks_moeWhenNeeded" formatted="false">Quando não couber</string>
-    <string name="native_aboutScreen_benchmarkBody" formatted="false">O BOAR mede cada resposta no seu próprio celular: tempo para carregar o modelo, tempo até a primeira palavra, tokens por segundo, pico de memória e quais fontes foram usadas. Rode a avaliação embutida em Configurações → Ajustes avançados → Avaliação para comparar os modelos instalados nas mesmas perguntas, ou rode pelo computador via adb (veja o AGENTS.md no GitHub).</string>
     <string name="native_tweaks_runWarning" formatted="false">Respostas mais rápidas. O celular esquenta mais e gasta mais bateria, e as respostas não têm limite de tempo (use Parar). Melhor carregando.</string>
     <string name="native_tweaks_runWarningLowRam" formatted="false">Este celular tem menos de 8 GB de RAM: modelos grandes podem ficar sem memória.</string>
     <string name="native_tweaks_runWarningGo" formatted="false">Correr</string>
@@ -461,11 +504,11 @@
     <string name="native_tweaks_freeMemoryAfterNote" formatted="false">Quanto tempo o BOAR espera em segundo plano antes de descarregar o modelo, quando Liberar memória quando eu sair do BOAR está ligado. Auto descarrega assim que você sai, depois de terminar uma resposta em andamento; a próxima pergunta carrega de novo.</string>
     <string name="native_tweaks_immediately" formatted="false">Na hora</string>
     <string name="native_drawer_closeStillSaving" formatted="false">Ainda salvando a resposta. Tente de novo em instantes.</string>
-    <string name="native_drawer_close" formatted="false">Fechar o BOAR (libera memória)</string>
+    <string name="native_drawer_close" formatted="false">Fechar o BOAR</string>
     <string name="native_drawer_closeConfirm" formatted="false">Uma resposta ainda está sendo escrita. Fechar mesmo assim?</string>
     <string name="native_drawer_deleteConfirm" formatted="false">Apagar este chat?</string>
     <string name="native_drawer_deleteButton" formatted="false">Apagar</string>
-    <string name="native_documents_importedHint" formatted="false">Importado em \"{{name}}\". Para perguntar sobre esses arquivos, mude o estilo de resposta para Arquivos pessoais: ele responde só a partir dos seus arquivos.</string>
+    <string name="native_documents_importedHint" formatted="false">Importado em \"{{name}}\". Para perguntar sobre esses arquivos, mude o estilo de resposta para Arquivos locais: ele responde só a partir dos seus arquivos.</string>
     <string name="native_documents_askAboutThem" formatted="false">Perguntar sobre eles</string>
     <string name="native_drawer_deleteConfirmMessage" formatted="false">\"{{title}}\" e as respostas dele somem. Não dá para desfazer.</string>
     <string name="native_settings_confirmChatDelete" formatted="false">Perguntar antes de apagar um chat</string>
@@ -503,7 +546,7 @@
     <string name="native_tour_again" formatted="false">Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_whileYouWait" formatted="false">Enquanto espera</string>
     <string name="native_tour_cardTitle" formatted="false">Faça o tour de 2 minutos</string>
-    <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Labs</string>
+    <string name="native_tour_cardSub" formatted="false">Estilos, Pesquisa Profunda, fontes, Plugins</string>
     <string name="native_tour_start" formatted="false">Começar o tour</string>
     <string name="native_tour_seeTour" formatted="false">Ver o tour</string>
     <string name="native_tour_lineDownloading" formatted="false">Baixando · {{pct}}%</string>
@@ -515,7 +558,7 @@
     <string name="native_tour_theme_body" formatted="false">Escolha um tema. Ele muda na hora, e dá para trocar de novo quando quiser.</string>
     <string name="native_tour_theme_where" formatted="false">Configurações → Exibição e tema</string>
     <string name="native_tour_styles_title" formatted="false">Escolha como o BOAR responde</string>
-    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Arquivos pessoais para responder só a partir dos seus documentos.</string>
+    <string name="native_tour_styles_body" formatted="false">Sucinto e Direto para respostas rápidas, Completo e Detalhado para explicações inteiras (o padrão), Arquivos locais para responder só a partir dos seus documentos.</string>
     <string name="native_tour_styles_where" formatted="false">O botão de estilo no chat, ou Configurações → Como o BOAR responde</string>
     <string name="native_tour_deep_title" formatted="false">Pesquisa Profunda</string>
     <string name="native_tour_deep_body" formatted="false">Para perguntas grandes: o BOAR pesquisa em várias etapas e escreve uma resposta mais longa. Leva mais tempo. Quando está ligada, o chat brilha e o 🔬 acende, então você sempre sabe.</string>
@@ -523,8 +566,8 @@
     <string name="native_tour_sources_title" formatted="false">Fontes e recibos</string>
     <string name="native_tour_sources_body" formatted="false">Uma resposta da biblioteca lista os artigos que usou: toque em um para ler. Um recibo mostra o modelo, a velocidade e o tempo.</string>
     <string name="native_tour_sources_where" formatted="false">Embaixo de cada resposta</string>
-    <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos pessoais</string>
-    <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos pessoais e pergunte sobre eles com o estilo Arquivos pessoais.</string>
+    <string name="native_tour_knowledge_title" formatted="false">Conhecimento BOAR e seus Arquivos locais</string>
+    <string name="native_tour_knowledge_body" formatted="false">O Conhecimento BOAR é a biblioteca Vital Articles no seu celular. Importe suas notas, PDFs e planilhas em Arquivos locais e pergunte sobre eles com o estilo Arquivos locais.</string>
     <string name="native_tour_knowledge_where" formatted="false">Menu → Conhecimento</string>
     <string name="native_tour_models_title" formatted="false">Modelos</string>
     <string name="native_tour_models_body" formatted="false">Troque o modelo de resposta, encontre outros no Hugging Face e deixe o BOAR liberar a memória quando você sair dele.</string>
@@ -532,9 +575,9 @@
     <string name="native_tour_pin_title" formatted="false">PIN</string>
     <string name="native_tour_pin_body" formatted="false">Um PIN sela suas conversas e deixa a tela do BOAR em branco nos apps recentes e nas capturas de tela. Documentos importados ainda não são criptografados.</string>
     <string name="native_tour_pin_where" formatted="false">Configurações → Bloqueio por PIN</string>
-    <string name="native_tour_labs_title" formatted="false">Boar Labs</string>
-    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.\n\nExperimente também o Boar Designer, que desenha uma imagem a partir da resposta; o Boar Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs labs não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
-    <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Boar Labs</string>
+    <string name="native_tour_labs_title" formatted="false">Plugins</string>
+    <string name="native_tour_labs_body" formatted="false">Experimentos, marcados beta ou alpha. Os testados começam ligados e os outros desligados: ligue os que quiser.\n\nExperimente também o Designer, que desenha uma imagem a partir da resposta; o Press, que transforma respostas em PDF; e o Big Boar, que roda um modelo de 35B a partir do armazenamento.\n\nOs plugins não deixam as respostas mais lentas, mas os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam.\n\nSe algum der problema, desligue e, se puder, abra uma issue no GitHub.</string>
+    <string name="native_tour_labs_where" formatted="false">Configurações → Experimental → Plugins</string>
     <string name="native_tour_end_title" formatted="false">Fim do tour</string>
     <string name="native_tour_end_body" formatted="false">O BOAR fica pronto quando o download terminar. Dá para ver este tour de novo nas Configurações.</string>
     <string name="native_tour_linePaused" formatted="false">Configuração pausada · toque para ver</string>
@@ -545,24 +588,24 @@
     <string name="native_tour_sample_receipt" formatted="false">12 s · 11 tok/s · Qwen3 4B</string>
     <string name="native_tour_sample_styleButton" formatted="false">O botão de estilo, ao lado de onde você digita</string>
     <string name="native_tour_sample_doc" formatted="false">manual-de-campo.pdf</string>
-    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Arquivos pessoais</string>
-    <string name="native_tour_sample_ask" formatted="false">Pergunte com 🗂️ Arquivos pessoais</string>
+    <string name="native_tour_sample_docMeta" formatted="false">42 páginas · em Arquivos locais</string>
+    <string name="native_tour_sample_ask" formatted="false">Pergunte com 🗂️ Arquivos locais</string>
     <string name="native_tour_adaptive_title" formatted="false">Roteamento adaptativo</string>
     <string name="native_tour_adaptive_body" formatted="false">Vem desligado. Ligue e o BOAR escolhe qual dos seus modelos instalados responde cada pergunta, e como. Vale a pena quando você tem mais de um modelo.</string>
     <string name="native_tour_adaptive_where" formatted="false">Configurações → Experimental</string>
     <string name="native_models_compat_streamed" formatted="false">Maior que a RAM · o {{engine}} lê do armazenamento</string>
     <string name="native_download_errorGated" formatted="false">Este modelo exige uma conta no Hugging Face e aceitar a licença. O BOAR baixa sem conta, então não consegue baixar este.</string>
     <string name="native_browse_gated" formatted="false">Exige uma conta no Hugging Face: o BOAR não consegue baixar.</string>
-    <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai liberar avatares: cada um é um javali para usar, e alguns liberam novos temas. Descobrir o que libera cada um faz parte da graça.</string>
+    <string name="native_vault_teaser" formatted="false">Continue usando o BOAR e você vai liberar avatares: cada um é um Boar para usar, e alguns liberam novos temas. Descobrir o que libera cada um faz parte da graça.</string>
     <string name="native_documents_moreFiles" formatted="false">+{{count}} outros</string>
     <string name="native_documents_unsupported" formatted="false">O BOAR não consegue ler {{name}}: ele importa .txt, .md, .csv, .json e .pdf. Salve a página em um desses formatos (o navegador salva como PDF) e importe de novo.</string>
-    <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos pessoais.</string>
-    <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos pessoais.</string>
+    <string name="native_personal_notFound" formatted="false">Não encontrei isso nos seus Arquivos locais.</string>
+    <string name="native_personal_notFoundHint" formatted="false">Confira se a coleção está ligada em Conhecimento → Arquivos locais.</string>
     <string name="native_personal_notFoundAskHint" formatted="false">Tente perguntar sobre algo que seus arquivos dizem, com as palavras deles, ou peça um resumo dos seus arquivos.</string>
-    <string name="native_documents_personalTitle" formatted="false">Arquivos pessoais</string>
-    <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos pessoais.</string>
-    <string name="native_documents_personalFolded_one" formatted="false">Arquivos pessoais · {{count}} coleção</string>
-    <string name="native_documents_personalFolded_other" formatted="false">Arquivos pessoais · {{count}} coleções</string>
+    <string name="native_documents_personalTitle" formatted="false">Arquivos locais</string>
+    <string name="native_documents_personalNote" formatted="false">Pergunte sobre eles com o estilo Arquivos locais.</string>
+    <string name="native_documents_personalFolded_one" formatted="false">Arquivos locais · {{count}} coleção</string>
+    <string name="native_documents_personalFolded_other" formatted="false">Arquivos locais · {{count}} coleções</string>
     <!-- A source read whole (ui/chat/SourceReader.kt) -->
     <string name="native_sourceFootnotes_readAll" formatted="false">Ler o artigo inteiro ›</string>
     <string name="native_reader_loading" formatted="false">Abrindo…</string>
@@ -603,21 +646,21 @@
     <string name="native_setupGuide_files_added" formatted="false">Adicionado</string>
     <string name="native_setupGuide_files_queued" formatted="false">A seguir</string>
     <string name="native_setupGuide_files_collection" formatted="false">Arquivos da configuração</string>
-    <string name="native_setupGuide_files_where" formatted="false">Depois: Menu → Conhecimento → Arquivos pessoais</string>
+    <string name="native_setupGuide_files_where" formatted="false">Depois: Menu → Conhecimento → Arquivos locais</string>
     <string name="native_setupGuide_ask_title" formatted="false">Como perguntar</string>
     <string name="native_setupGuide_ask_sub" formatted="false">O BOAR busca sua pergunta na biblioteca e responde com o que encontrou.</string>
     <string name="native_setupGuide_ask_tip1" formatted="false">Faça a pergunta inteira: \"Como deixar a água boa para beber?\" encontra mais que \"água\".</string>
     <string name="native_setupGuide_ask_tip2" formatted="false">Continue como faria com uma pessoa: \"e se eu não puder ferver?\" mantém o assunto.</string>
     <string name="native_setupGuide_ask_tip3" formatted="false">Os artigos que a resposta usou aparecem embaixo dela: toque em um para ler. Segure sua pergunta para copiá-la de volta.</string>
-    <string name="native_setupGuide_ask_tipFiles" formatted="false">Para responder só com seus arquivos, escolha o estilo Arquivos pessoais no botão de estilo.</string>
+    <string name="native_setupGuide_ask_tipFiles" formatted="false">Para responder só com seus arquivos, escolha o estilo Arquivos locais no botão de estilo.</string>
     <string name="native_setupGuide_ask_pick" formatted="false">Sua primeira pergunta</string>
     <string name="native_setupGuide_ask_pickNote" formatted="false">Ela vai estar esperando na conversa quando o BOAR abrir. Você envia quando quiser.</string>
     <string name="native_setupGuide_ask_own" formatted="false">Ou escreva a sua…</string>
-    <string name="native_setupGuide_files_howToAsk" formatted="false">Para perguntar sobre eles, mude o estilo da conversa para Arquivos pessoais (o botão de estilo, ao lado de onde você digita). Aí o BOAR responde só com seus arquivos, e avisa quando eles não têm a resposta.</string>
+    <string name="native_setupGuide_files_howToAsk" formatted="false">Para perguntar sobre eles, mude o estilo da conversa para Arquivos locais (o botão de estilo, ao lado de onde você digita). Aí o BOAR responde só com seus arquivos, e avisa quando eles não têm a resposta.</string>
     <string name="native_setupGuide_pin_title" formatted="false">Trancar o BOAR com um PIN?</string>
     <string name="native_setupGuide_pin_sub" formatted="false">Só para o BOAR: o bloqueio de tela do seu celular não muda.</string>
     <string name="native_setupGuide_pin_on" formatted="false">PIN ativado. O BOAR vai pedir o PIN a partir de agora.</string>
-    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, o BOAR apaga suas conversas e Arquivos pessoais para recomeçar; modelos e pacotes de conhecimento ficam.</string>
+    <string name="native_setupGuide_pin_note" formatted="false">Seus arquivos importados ainda não são criptografados. Se esquecer o PIN, o BOAR apaga suas conversas e Arquivos locais para recomeçar; modelos e pacotes de conhecimento ficam.</string>
     <string name="native_setupGuide_notify_title" formatted="false">Notificações</string>
     <string name="native_setupGuide_notify_sub" formatted="false">Uma notificação, só enquanto o BOAR responde.</string>
     <string name="native_setupGuide_notify_why" formatted="false">Por que o Android pede: desde o Android 13, um app precisa da sua permissão para mostrar qualquer notificação. O BOAR pede uma vez, aqui. Ele nunca manda anúncios nem lembretes: só avisa que está respondendo.</string>
@@ -626,11 +669,11 @@
     <string name="native_setupGuide_privacy_title" formatted="false">Privacidade e memória</string>
     <string name="native_setupGuide_privacy_sub" formatted="false">Como o BOAR trata suas conversas e a memória do celular.</string>
     <string name="native_setupGuide_privacy_where" formatted="false">Tudo isso também está nas Configurações.</string>
-    <string name="native_setupGuide_labs_title" formatted="false">Boar Labs</string>
+    <string name="native_setupGuide_labs_title" formatted="false">Plugins</string>
     <string name="native_setupGuide_labs_sub" formatted="false">Experimentos, marcados beta ou alpha. Todos começam desligados: ligue os que quiser.</string>
     <string name="native_setupGuide_labs_beta" formatted="false">Beta: testados em celulares</string>
     <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: no começo, menos testados</string>
-    <string name="native_setupGuide_labs_note" formatted="false">Os Labs não deixam as respostas mais lentas. Os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Todos ficam em Configurações → Experimental → Boar Labs.</string>
+    <string name="native_setupGuide_labs_note" formatted="false">Os plugins não deixam as respostas mais lentas. Os que carregam um modelo (Designer, Big Boar, Wisp) usam memória extra enquanto rodam. Todos ficam em Configurações → Experimental → Plugins.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Quase lá</string>
     <string name="native_setupGuide_ready_sub" formatted="false">O BOAR abre assim que o download e o índice terminarem.</string>
     <string name="native_setupGuide_ready_choices" formatted="false">Suas escolhas</string>
@@ -650,7 +693,7 @@
     <string name="native_setupGuide_files_remove" formatted="false">Remover {{name}}</string>
     <string name="native_setupGuide_answers_personalLater" formatted="false">Responde só com seus próprios arquivos. Toque para adicionar alguns primeiro.</string>
     <string name="native_setupGuide_answers_addFilesTitle" formatted="false">Adicionar seus arquivos primeiro?</string>
-    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos pessoais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
+    <string name="native_setupGuide_answers_addFilesBody" formatted="false">Arquivos locais responde só com seus próprios arquivos. Adicione alguns na página de arquivos, depois volte e escolha aqui.</string>
     <string name="native_setupGuide_answers_switch" formatted="false">Na conversa, o botão de estilo ao lado de onde você digita mostra este ícone e troca quando quiser.</string>
     <string name="native_setupGuide_privacy_notifyTitle" formatted="false">“O BOAR está respondendo…”</string>
     <string name="native_setupGuide_privacy_notifyBody" formatted="false">Enquanto o BOAR escreve uma resposta, esta notificação mostra que ele continua trabalhando, mesmo se você trocar de app ou bloquear o celular. Toque nela para voltar. Ela some quando a resposta termina.</string>
@@ -669,4 +712,148 @@
     <string name="native_a11y_backspace" formatted="false">Apagar dígito</string>
     <string name="native_a11y_done" formatted="false">Confirmar</string>
     <string name="native_a11y_back" formatted="false">Voltar</string>
+    <string name="native_settings_profile_title" formatted="false">Perfil</string>
+    <string name="native_settings_profile_simple" formatted="false">Iniciante</string>
+    <string name="native_settings_profile_simpleNote" formatted="false">Só o essencial: idioma, aparência, PIN, modelos e recomeçar.</string>
+    <string name="native_settings_profile_explorer" formatted="false">Explorador</string>
+    <string name="native_settings_profile_explorerNote" formatted="false">O Iniciante, mais como o BOAR responde, conhecimento, conversas, voz e Boarverse.</string>
+    <string name="native_settings_profile_pro" formatted="false">Pro</string>
+    <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações dos Plugins. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
+    <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
+    <string name="native_settings_profile_updatedBelowPro" formatted="false">Os detalhes técnicos (a velocidade ao vivo no topo da conversa, os detalhes de desempenho da resposta, as barras de memória e armazenamento do menu) agora ficam no Pro.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">Estes plugins agora estão ligados: {{labs}}. Desligue nos Plugins, no perfil Pro.</string>
+    <string name="native_settings_languageVoice" formatted="false">Idioma e voz</string>
+    <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
+    <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>
+    <string name="native_setup_encyclopediaExtra" formatted="false">+{{size}} a mais que o Essencial: 50.000 artigos da Wikipédia a mais. Os modelos de resposta e de busca são os mesmos.</string>
+    <string name="native_sources_title" formatted="false">Fontes ({{count}})</string>
+    <string name="native_sources_passages" formatted="false">{{count}} trechos</string>
+    <string name="native_tweaks_sourcesLayout" formatted="false">Posição das fontes</string>
+    <string name="native_tweaks_sourcesToday" formatted="false">Embaixo da resposta</string>
+    <string name="native_tweaks_sourcesAbove" formatted="false">Acima da resposta</string>
+    <string name="native_staged_moreSources" formatted="false">+{{count}} fontes</string>
+    <string name="native_staged_lessSources" formatted="false">Menos fontes ‹</string>
+    <string name="native_about_plugins" formatted="false">{{count}} ligados</string>
+    <string name="native_about_noPlugins" formatted="false">Nenhum ligado</string>
+    <string name="native_labs_headerIcon" formatted="false">Plugins ligados</string>
+    <string name="native_labs_headerSheet" formatted="false">PLUGINS RECENTES</string>
+    <string name="native_labs_manage" formatted="false">Gerenciar plugins</string>
+    <string name="native_labs_printer_inBasketCount" formatted="false">📎 {{count}} na cesta</string>
+    <string name="native_sources_earlier" formatted="false">ANTES NO TRECHO</string>
+    <string name="native_sources_sameArticle" formatted="false">MAIS DESTE ARTIGO</string>
+    <string name="native_chat_connectionOnly" formatted="false">O ponto só mostra a conexão. O BOAR responde igual offline.</string>
+    <string name="native_chat_answerModel" formatted="false">Modelo de resposta</string>
+    <string name="native_chat_noModels" formatted="false">Ainda não há modelo de resposta neste celular.</string>
+    <string name="native_chat_modelBusy" formatted="false">Espere a resposta terminar para trocar o modelo.</string>
+    <string name="native_chat_openCatalog" formatted="false">Abrir o Catálogo de Modelos</string>
+    <string name="native_chat_connectionDetails" formatted="false">Toque duas vezes para ver os detalhes</string>
+    <string name="native_chat_queueFull" formatted="false">Até 5 perguntas podem esperar. Envie esta quando uma delas tiver rodado.</string>
+    <string name="native_chat_queueDropped" formatted="false">O BOAR foi fechado: {{count}} perguntas na fila foram descartadas.</string>
+    <string name="native_chat_clearQueue" formatted="false">Limpar fila</string>
+    <string name="native_chat_queueNote" formatted="false">Elas rodam uma de cada vez, depois desta resposta.</string>
+    <string name="native_chat_toBottom" formatted="false">Ir para a última resposta</string>
+    <string name="native_a11y_reasoning" formatted="false">Mostrar ou esconder o raciocínio</string>
+    <string name="native_a11y_copyAnswer" formatted="false">Copiar a resposta</string>
+    <string name="native_a11y_rateUp" formatted="false">Boa resposta</string>
+    <string name="native_a11y_rateDown" formatted="false">Resposta ruim</string>
+    <string name="native_a11y_pluginActions" formatted="false">Plugins para esta resposta</string>
+    <string name="native_chat_queueDroppedNote" formatted="false">{{count}} perguntas na fila foram descartadas: elas também precisam desse modelo.</string>
+    <string name="native_chat_mergeQueue" formatted="false">Juntar numa só pergunta</string>
+    <string name="native_nav_chat" formatted="false">Conversa</string>
+    <string name="native_settings_profile_simpleShort" formatted="false">Iniciante: configure o essencial.</string>
+    <string name="native_settings_profile_explorerShort" formatted="false">Explorador: descubra mais recursos.</string>
+    <string name="native_settings_profile_proShort" formatted="false">Pro: ajustes avançados.</string>
+    <string name="native_settings_profile_downNote" formatted="false">Plugins e Ajustes avançados pausam abaixo do Pro. Suas configurações ficam salvas.</string>
+    <string name="native_drawer_searchChats" formatted="false">Buscar conversas</string>
+    <string name="native_drawer_group_today" formatted="false">Hoje</string>
+    <string name="native_drawer_group_yesterday" formatted="false">Ontem</string>
+    <string name="native_drawer_group_earlier" formatted="false">Antes</string>
+    <string name="native_drawer_deleted" formatted="false">Apagada: {{title}}</string>
+    <string name="native_drawer_undo" formatted="false">Desfazer</string>
+    <string name="native_drawer_chatActions" formatted="false">Opções da conversa</string>
+    <string name="native_drawer_rename" formatted="false">Renomear</string>
+    <string name="native_drawer_saveName" formatted="false">Salvar o nome</string>
+    <string name="native_drawer_deleteChat" formatted="false">Apagar</string>
+    <string name="native_drawer_added" formatted="false">Adicionado</string>
+    <string name="native_docs_queueFull" formatted="false">Até 5 coleções podem esperar. Adicione esta quando uma terminar.</string>
+    <string name="native_docs_running" formatted="false">Adicionando: {{name}}</string>
+    <string name="native_docs_waiting" formatted="false">{{name}} · {{count}} arquivos</string>
+    <string name="native_docs_queueNote" formatted="false">Elas são adicionadas uma de cada vez. Fechar o BOAR descarta as que ainda esperam.</string>
+    <string name="native_chat_openPlugin" formatted="false">Abrir {{name}}</string>
+    <string name="native_chat_pluginOff" formatted="false">{{name}} está desligado. Ligue em Plugins ›</string>
+    <string name="native_chat_showAll" formatted="false">Mostrar tudo</string>
+    <string name="native_docs_subtitle" formatted="false">Pacotes e arquivos que o BOAR consulta</string>
+    <string name="native_tweaks_stagedQuotes" formatted="false">Citações em etapas</string>
+    <string name="native_tweaks_stagedQuotesNote" formatted="false">Mostra as citações das fontes antes da resposta. Desligue se as respostas parecerem erradas no seu modelo.</string>
+    <string name="native_eval_preset_title" formatted="false">Predefinição</string>
+    <string name="native_eval_preset_byHand" formatted="false">À mão</string>
+    <string name="native_eval_level_fast" formatted="false">Rápido</string>
+    <string name="native_eval_level_medium" formatted="false">Médio</string>
+    <string name="native_eval_level_complete" formatted="false">Completo</string>
+    <string name="native_eval_level_fast_note" formatted="false">Sucinto, no 1.7B (ou no único modelo de resposta).</string>
+    <string name="native_eval_level_medium_note" formatted="false">Sucinto, no 1.7B e no 4B.</string>
+    <string name="native_eval_level_complete_note" formatted="false">Sucinto e Detalhado nos dois modelos, e Pesquisa Profunda no tema de pesquisa.</string>
+    <string name="native_eval_level_byHand_note" formatted="false">Os modelos que você marcar, no estilo padrão.</string>
+    <string name="native_eval_topic_title" formatted="false">Tema</string>
+    <string name="native_eval_topic_draft" formatted="false">Rascunho: as regras ainda não contam.</string>
+    <string name="native_eval_planModels" formatted="false">Modelos: {{models}}</string>
+    <string name="native_eval_expected" formatted="false">Previsto: cerca de {{time}} para {{answers}} respostas</string>
+    <string name="native_eval_expected_untimed" formatted="false">mais {{count}} respostas de Pesquisa Profunda que ninguém cronometrou ainda</string>
+    <string name="native_eval_expected_fromPrevious" formatted="false">pela última execução {{level}} neste celular</string>
+    <string name="native_eval_expected_fromSeed" formatted="false">pelas medianas do F3</string>
+    <string name="native_eval_scorecard_title" formatted="false">Placar</string>
+    <string name="native_eval_scorecard_passed" formatted="false">{{passed}}/{{checked}} passaram</string>
+    <string name="native_eval_scorecard_toRead" formatted="false">{{count}} para ler</string>
+    <string name="native_eval_scorecard_was" formatted="false">antes {{passed}}/{{checked}}</string>
+    <string name="native_eval_scorecard_up" formatted="false">subiu</string>
+    <string name="native_eval_scorecard_down" formatted="false">caiu</string>
+    <string name="native_eval_scorecard_same" formatted="false">igual</string>
+    <string name="native_eval_scorecard_model" formatted="false">primeira palavra {{first}} · resposta inteira {{whole}} · pico {{peak}}</string>
+    <string name="native_eval_scorecard_note" formatted="false">O computador só pontua o que uma regra consegue checar (o texto exato de um plugin, o idioma, os cartões, as fontes, os números). O resto é para ler.</string>
+    <string name="native_eval_verdict_PASS" formatted="false">passou</string>
+    <string name="native_eval_verdict_FAIL" formatted="false">falhou</string>
+    <string name="native_eval_verdict_KNOWN" formatted="false">problema conhecido</string>
+    <string name="native_eval_verdict_SKIPPED" formatted="false">pulada</string>
+    <string name="native_eval_verdict_TO_READ" formatted="false">para ler</string>
+    <string name="native_eval_saved_title" formatted="false">Execuções salvas ({{count}})</string>
+    <string name="native_eval_saved_empty" formatted="false">Nenhuma execução salva ainda. Cada execução fica neste celular até você apagar.</string>
+    <string name="native_eval_saved_byHand" formatted="false">à mão</string>
+    <string name="native_eval_saved_adb" formatted="false">pelo adb</string>
+    <string name="native_eval_saved_answers" formatted="false">{{count}} respostas</string>
+    <string name="native_eval_saved_state_running" formatted="false">rodando</string>
+    <string name="native_eval_saved_state_done" formatted="false">concluída</string>
+    <string name="native_eval_saved_state_stopped" formatted="false">parada</string>
+    <string name="native_eval_saved_state_failed" formatted="false">falhou</string>
+    <string name="native_eval_saved_state_interrupted" formatted="false">interrompida</string>
+    <string name="native_eval_saved_opened" formatted="false">Execução salva · {{date}}</string>
+    <string name="native_eval_saved_close" formatted="false">Fechar</string>
+    <string name="native_eval_saved_delete" formatted="false">Apagar</string>
+    <string name="native_eval_saved_deleteTitle" formatted="false">Apagar esta execução?</string>
+    <string name="native_eval_saved_deleteBody" formatted="false">As respostas são apagadas deste celular e não voltam. Exportações que você fez continuam.</string>
+    <string name="native_chat_prune_title" formatted="false">Apagar sua conversa mais antiga?</string>
+    <string name="native_chat_prune_text" formatted="false">Você guarda {{max}} conversas, então começar esta apaga “{{title}}”.</string>
+    <string name="native_chat_prune_textMore" formatted="false">Você guarda {{max}} conversas, então começar esta apaga “{{title}}” e mais {{more}}.</string>
+    <string name="native_chat_prune_keepAll" formatted="false">Guardar todas</string>
+    <string name="native_chat_prune_delete" formatted="false">Apagar</string>
+    <string name="native_chat_prune_plugins" formatted="false">As respostas delas também saem dos seus projetos do Press, e os cartões e as imagens do Designer feitos a partir delas são apagados.</string>
+    <string name="native_settings_summary_memoryAll" formatted="false">Guarda todas as conversas</string>
+    <string name="native_settings_memory_all" formatted="false">Todas</string>
+    <string name="native_settings_clearChatsPress" formatted="false">Apagar também os projetos do Press ({{count}}) e suas fotos</string>
+    <string name="native_chat_noSource" formatted="false">Nenhuma fonte da biblioteca deste celular cobre isto; a resposta vem só do modelo.</string>
+    <string name="native_labs_printer_rOwnFile" formatted="false">Seu próprio arquivo</string>
+    <string name="native_settings_lower_title" formatted="false">Apagar suas conversas mais antigas?</string>
+    <string name="native_settings_lower_text" formatted="false">Guardar {{max}} conversas apaga “{{title}}”.</string>
+    <string name="native_settings_lower_textMore" formatted="false">Guardar {{max}} conversas apaga “{{title}}” e mais {{more}}.</string>
+    <string name="native_settings_lower_delete" formatted="false">Apagar</string>
+    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Ferramentas extras no menu e nas respostas. Podem ser ligadas ou desligadas.</string>
+    <string name="native_labs_pageSwitch" formatted="false">{{name}} ligado ou desligado</string>
+    <string name="native_labs_headerSheetOff" formatted="false">DESLIGADOS</string>
+    <string name="native_labs_offTag" formatted="false">Desligado</string>
+    <string name="native_labs_safetyOff_title" formatted="false">Desligar o cartão de segurança do monóxido de carbono?</string>
+    <string name="native_labs_safetyOff_text" formatted="false">O BOAR deixará de mostrar primeiro o aviso de monóxido de carbono quando uma pergunta parecer intoxicação. Você pode ligá-lo de novo na página dele.</string>
+    <string name="native_labs_safetyOff_confirm" formatted="false">Desligar</string>
+    <string name="native_settings_liveSpeed" formatted="false">Mostrar a velocidade ao responder</string>
+    <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo da conversa enquanto o BOAR escreve.</string>
+    <string name="native_labs_switchRow" formatted="false">{{name}} ligado</string>
+    <string name="native_labs_switchRowNote" formatted="false">Desligado, continua aqui para ligar de novo.</string>
 </resources>

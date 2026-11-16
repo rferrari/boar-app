@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Boar icon pack style, 512 grid (Nov 10, adam): Close BOAR as a power symbol, an open ring and a bar, same weight as the pack's lines. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp"
+    android:viewportWidth="512" android:viewportHeight="512">
+    <path android:strokeColor="#FF000000" android:strokeWidth="40" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M176,128 A176,176 0 1 0 336,128" />
+    <path android:strokeColor="#FF000000" android:strokeWidth="40" android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M256,72 L256,248" />
+</vector>

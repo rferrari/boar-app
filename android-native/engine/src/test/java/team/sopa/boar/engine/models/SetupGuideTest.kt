@@ -8,7 +8,7 @@ import team.sopa.boar.engine.models.SetupGuide.Page
 
 class SetupGuideTest {
     @Test fun `every page in a Labs build without a PIN, ending on Ready`() =
-        assertEquals(listOf(Page.LOOK, Page.FILES, Page.ANSWERS, Page.ASK, Page.FIRST, Page.PIN, Page.NOTIFY, Page.PRIVACY, Page.LABS, Page.READY),
+        assertEquals(listOf(Page.LOOK, Page.FILES, Page.ANSWERS, Page.PIN, Page.NOTIFY, Page.PRIVACY, Page.LABS, Page.READY),
             SetupGuide.pages(experimental = true, pinSetBefore = false, notifications = true))
 
     @Test fun `no notifications page where Android doesn't ask (before 13)`() =
@@ -60,5 +60,11 @@ class SetupGuideTest {
         assertEquals("notes (2).txt", SetupGuide.freeName("notes.txt", setOf("notes.txt")))
         assertEquals("notes (3).txt", SetupGuide.freeName("notes.txt", setOf("notes.txt", "notes (2).txt")))
         assertEquals("README (2)", SetupGuide.freeName("README", setOf("README")))
+    }
+
+    @Test fun `no How to ask or Your first question page, and a setup saved on one starts over`() {
+        val pages = SetupGuide.pages(experimental = true, pinSetBefore = false, notifications = true)
+        assertFalse(Page.ASK in pages || Page.FIRST in pages)
+        assertEquals(0, SetupGuide.resume(experimental = true, pinPage = true, pinSetNow = false, notifications = true, page = "FIRST").second)
     }
 }

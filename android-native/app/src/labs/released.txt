@@ -1,0 +1,22 @@
+# Boar Labs a release build includes (rc3), each with the engine tests that cover it: "id: TestClass TestClass".
+# - A lab not listed here is left out of release builds; debug builds keep every lab.
+# - A classified teaser with no code always ships as a teaser. One with code (the Daily Quiz) ships as a teaser only,
+#   with its code left out, unless it is listed.
+# - LabManifestTest fails when a listed lab has no tests, a test named here doesn't exist, or a lab that starts on
+#   (LabDefaults.ON, or the ALPHA ones waiting in PENDING_ALPHA) isn't listed.
+# canvas (Cards) is back, on by default (t9 0207 item 5, Nov 14: so the test APK carries it); it counts as done only after
+# the validator's gate and adam's hand test.
+# Not listed: bmoe (Big Boar) and colibri (Boar Wisp). adam, 2026-11-10: out of releases for now, results weren't good
+# enough; they're for advanced users, in debug and Labs builds (-Pboar.labs.released=false), not for everyone.
+pulse: VitalsTest PluginAnswersTest
+image: ImageSafetyTest IllustrateGateTest
+printer: PressDocTest PressReceiptTest PictureFitTest PressCardTest
+polyglot: LanguageGateTest
+calc: LabToolsCombinationTest LabToolsCompoundTest UnitBridgeTest
+distance: TravelDistanceTest
+facts: FactsTest
+cohazard: CoHazardTest CoHazardPtEsTest
+compass: CompassTest PluginAnswersTest
+lunar: MoonPhaseTest PluginAnswersTest
+guard: NumGuardTest VerdictGuardTest
+canvas: CardRulesTest AnswerCardTest VisualTest VisualContextTest

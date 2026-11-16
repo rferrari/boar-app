@@ -8,17 +8,8 @@ import android.view.textclassifier.TextClassificationManager
 import android.view.textclassifier.TextClassifier
 import android.view.textclassifier.TextLanguage
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
 import team.sopa.boar.engine.rag.ConversationTurn
 import team.sopa.boar.engine.routing.LanguageGate
@@ -76,23 +67,14 @@ object PolyglotLab : LabPlugin {
 
     @Composable
     override fun Content() {
-        val c = Boar.colors
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.polyglot.answers")) { Text(t("native.labs.polyglot.answersList"), style = Boar.type.body, color = c.textPrimary) }
-            Card(t("native.labs.polyglot.try")) {
-                for (i in 1..3) Text("“${t("native.labs.polyglot.example$i")}”", style = Boar.type.caption, color = c.textSecondary)
-            }
-            Text(t("native.labs.polyglot.note"), style = Boar.type["mono.xs"], color = c.textDim)
-        }
-    }
-
-    @Composable
-    private fun Card(label: String, content: @Composable () -> Unit) {
-        val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(label, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
-            content()
-        }
+        val ui = LocalContext.current
+        // The languages BOAR is tested in come from LanguageGate.ALLOWED (en, pt, es), named in the app's language.
+        val names = LanguageGate.ALLOWED.map { languageName(it, ui) }
+        val languages = if (names.size < 2) names.joinToString() else names.dropLast(1).joinToString(", ") + " " + t("native.labs.polyglot.and") + " " + names.last()
+        // The example's reply is the reply string itself, for Russian, so it can't drift from what the chat shows.
+        team.sopa.boar.labs.AnswerPage(t("native.labs.polyglot.summary", "languages" to languages), t("native.labs.polyglot.exampleQ"),
+            t("native.labs.polyglot.reply", "language" to languageName("ru", ui)),
+            (1..3).map { t("native.labs.polyglot.example$it") }, t("native.labs.polyglot.how"))
     }
 }
 

@@ -33,6 +33,10 @@ data class Receipt(
     val tool: String? = null,
     /** Why BOAR answered in another style than the one picked ("health": kept brief); null when it used the pick. */
     val styleNote: String? = null,
+    /** Boar Staged answers: when each step happened, ms from the start ("sources", "introFirst", "detailsFirst", "total"…). */
+    val stages: Map<String, Double>? = null,
+    /** An instant plugin answer shown at typing speed (presentation only; [totalMs] is the real time). */
+    val typed: Boolean = false
 ) {
     fun toJson() = JsonObject(listOfNotNull(
         "totalMs" to JsonPrimitive(totalMs), "ttftMs" to JsonPrimitive(ttftMs), "tokPerSec" to JsonPrimitive(tokPerSec), "tokens" to JsonPrimitive(tokens),
@@ -41,6 +45,7 @@ data class Receipt(
         style?.let { "style" to JsonPrimitive(it) }, path?.let { "path" to JsonPrimitive(it) }, task?.let { "task" to JsonPrimitive(it) },
         if (checked) "checked" to JsonPrimitive(true) else null, tool?.let { "tool" to JsonPrimitive(it) },
         styleNote?.let { "styleNote" to JsonPrimitive(it) },
+        stages?.let { m -> "stages" to JsonObject(m.mapValues { JsonPrimitive(it.value) }) },
     ).toMap())
 
     companion object {
@@ -48,7 +53,8 @@ data class Receipt(
             fun d(k: String) = o[k]?.jsonPrimitive?.content?.toDoubleOrNull()
             fun s(k: String) = o[k]?.jsonPrimitive?.content
             return Receipt(d("totalMs")!!, d("ttftMs")!!, d("tokPerSec")!!, d("tokens")!!.toInt(), s("model"),
-                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt(), s("style"), s("path"), s("task"), s("checked") == "true", s("tool"), s("styleNote"))
+                d("retrievalMs"), d("prefillMs"), d("contextTokens")?.toInt(), s("style"), s("path"), s("task"), s("checked") == "true", s("tool"), s("styleNote"),
+                (o["stages"] as? JsonObject)?.mapNotNull { (k, v) -> v.jsonPrimitive.content.toDoubleOrNull()?.let { k to it } }?.toMap())
         }
     }
 }

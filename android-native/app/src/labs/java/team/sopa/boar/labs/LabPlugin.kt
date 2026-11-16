@@ -2,7 +2,9 @@ package team.sopa.boar.labs
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.setValue
 import team.sopa.boar.BuildConfig
 import team.sopa.boar.plugins.AnswerRef
 
@@ -10,7 +12,7 @@ import team.sopa.boar.plugins.AnswerRef
  * Boar Labs plugins (src/labs). Hidden until the user turns on Settings → Advanced tweaks → Boar Labs, at the very
  * bottom, which only builds with EXPERIMENTAL_FEATURES=true show (app/build.gradle.kts); off, no lab shows anywhere.
  *
- * Each lab is one folder, src/labs/plugins/<id>/ (plugin.properties, java/, res/), found by the build; see
+ * Each lab is one folder, src/labs/plugins/<folder>/ (usually its id; Designer is plugins/designer, id "image") (plugin.properties, java/, res/), found by the build; see
  * docs/PLUGINS.md and the _template folder:
  * - add: copy _template, rename it; nothing outside the folder changes;
  * - remove: delete the folder;
@@ -42,14 +44,48 @@ interface LabPlugin {
     /** The experiment's page, below the shared header (LabScaffold). */
     @Composable fun Content() {}
 
+    /**
+     * The plugin's [Content] fills the page under the header (adam, Nov 13: Designer and Press are canvases): no header
+     * block with the art and description, no page scroll, no padding and no "About this plugin" fold. The plugin lays out
+     * its own space (it gets the whole height, already inside the page) and shows [AboutPluginFold] where it keeps its
+     * settings (a sheet). The off alert and the review note still show above it.
+     */
+    val fullPage: Boolean get() = false
+
+    /**
+     * The page has a settings sheet: a gear in the header, beside ✕ (adam, Nov 14: "Gear in the header… only on header").
+     * Its tap sets [PluginSettings.open] to [id]; the page opens its sheet.
+     */
+    val hasSettings: Boolean get() = false
+
+    /** A full page's subtitle in the page header (Press: the open project's name; adam, Nov 12). Null: none. */
+    @Composable fun pageSubtitle(): String? = null
+
     /** Rows in the 🧩 sheet a finished answer's footer opens: one button there however many labs add actions. */
     @Composable fun answerActions(a: AnswerRef): List<LabAction> = emptyList()
 
     /** Content under a finished answer, above its footer. */
     @Composable fun AnswerExtra(a: AnswerRef) {}
 
-    /** A small badge in the chat header; [go] opens a route ("lab:<id>"). */
-    @Composable fun HeaderBadge(go: (String) -> Unit) {}
+    /**
+     * Short messages about this answer (an error, a refusal): drawn under the answer's separator with BOAR's own notes,
+     * before the receipt, oldest first, so a new one is the last line (adam, Nov 14: "the plugin error message… should be
+     * after the chat response separator as well… if we have a new message, it should go as last one").
+     */
+    @Composable fun answerNotes(a: AnswerRef): List<LabNote> = emptyList()
+
+    /** What this lab holds for the user (Press: pages in the basket), counted on the chat header's plugins icon; 0 for none. */
+    @Composable fun headerCount(): Int = 0
+
+    /**
+     * [headerCount] adds to the number on the chat header's plugins icon: a hidden switch, off for every plugin (adam, Nov
+     * 14: "i cant clean up that, so annoy me… keep as hidden settings for plugins to display notification or not"). The
+     * count still reads beside the plugin in the icon's list.
+     */
+    val countOnHeaderIcon: Boolean get() = false
+
+    /** How [headerCount] reads beside the lab in the header's list ("3 in the basket"). */
+    @Composable fun headerCountLabel(n: Int): String = "$n"
 
     /** Rows on a model's card in the Model Catalog, under its memory badge (Big Boar's engine choice). */
     @Composable fun CatalogCardExtra(asset: team.sopa.boar.engine.models.CatalogAsset) {}
@@ -69,6 +105,12 @@ interface LabPlugin {
      */
     fun eraseUserData(context: Context, scope: team.sopa.boar.plugins.UserData.Scope) {}
 
+    /** Erases what this lab made for these answers, when their chat is deleted (UserData.eraseAnswers). Runs even when off. */
+    fun eraseAnswers(context: Context, answerIds: List<String>) {}
+
+    /** A line for the chat's delete row when [eraseAnswers] would take something of these answers; null otherwise. Asked only when on. */
+    fun deleteNote(context: Context, answerIds: List<String>): String? = null
+
     /** The search slot: a step after search for every answer (a reranker); see team.sopa.boar.plugins.SearchStage. */
     val searchStage: team.sopa.boar.plugins.SearchStage? get() = null
 
@@ -78,8 +120,20 @@ interface LabPlugin {
     /** The tool slot: looks at the question before the model and answers it or adds context (team.sopa.boar.plugins.AnswerTools). */
     val answerTool: team.sopa.boar.plugins.AnswerTool? get() = null
 
+    /** Whether [query] is clearly this plugin's question (for "Lunar is off" under a model answer). */
+    fun recognizes(query: String): Boolean = false
+
+    /** Rows in a chat's long-press sheet in the menu (Press: Add to Press). */
+    val chatActions: List<team.sopa.boar.plugins.ChatAction> get() = emptyList()
+
     /** The check slot: reads a model's finished answer and may repair it (team.sopa.boar.plugins.AnswerChecks). */
     val answerCheck: team.sopa.boar.plugins.AnswerCheck? get() = null
+
+    /** The answer-mode slot: the chat answers in steps, sources first (team.sopa.boar.plugins.AnswerModes). */
+    val stagedAnswers: Boolean get() = false
+
+    /** This lab shows an answer's sources itself: the chat hides its own list under the answers this lab drew. */
+    val ownsSources: Boolean get() = false
 
     /**
      * adb only (BenchActivity run=labtest): exercises this lab without its screen, reporting each check through [say] as
@@ -89,7 +143,13 @@ interface LabPlugin {
 }
 
 /** One row in an answer's 🧩 sheet. [done]: already applied to this answer (checked); [enabled] false: in progress. */
-class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null, val onClick: () -> Unit)
+/** [onEdit]: a ✎ on the action's row that opens its settings first (Designer: style and size, adam Nov 11); the row itself acts at once. */
+/**
+ * [detail]: the row's second line, what the action will do for this answer before the tap (Cards, adam Nov 14: "Create a
+ * card" over "A chart of 3 numbers"); null for none.
+ */
+class LabAction(val emoji: String, val label: String, val done: Boolean = false, val enabled: Boolean = true, val art: Int? = null,
+                val onEdit: (() -> Unit)? = null, val detail: String? = null, val onClick: () -> Unit)
 
 /** A tile for something in testing: no screen, no slots. Its boar shows as a silhouette until it launches. */
 /**
@@ -136,18 +196,30 @@ object LabRegistry {
 
 /** Per-lab switches and small settings, in SharedPreferences "labs". The switches are Compose state. */
 object LabPrefs {
+    /** For the answer tools that read the phone (Nomad, Vitals): set at the first init. */
+    @Volatile var appContext: Context? = null
     private var prefs: android.content.SharedPreferences? = null
     private val switches = mutableStateMapOf<String, Boolean>()
     private val on = androidx.compose.runtime.mutableStateOf(false)
 
     fun init(context: Context) {
         if (prefs != null) return
+        appContext = context.applicationContext
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // Every lab starts off (owner, Oct 24; the instant ones started on since Oct 20): the user picks them, from
-        // setup's Labs page or the grid. A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
-        LabRegistry.ALL.forEach { switches[it.id] = p.getBoolean("enabled.${it.id}", false); unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false) }
+        // The master switch first: chosenOn below counts a lab only while Boar Labs is on.
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
+        // rc3: the labs on adam's list start on, the rest off (LabDefaults); a switch the user flipped stays as they set it.
+        // A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
+        val stored = LabRegistry.ALL.associate { it.id to if (p.contains("enabled.${it.id}")) p.getBoolean("enabled.${it.id}", false) else null }
+        chosenOn = team.sopa.boar.engine.labs.LabDefaults.userChoseOn(labsOn, stored.values)
+        LabRegistry.ALL.forEach {
+            val stored = stored[it.id]
+            switches[it.id] = team.sopa.boar.engine.labs.LabDefaults.switchOf(it.id, stored)
+            unlocks[it.id] = p.getBoolean("unlocked.${it.id}", false)
+        }
+        offPage.value = p.getString(OFF_FROM_PAGE, null)?.split(',')?.filter { it.isNotBlank() }?.toSet().orEmpty()
         restart.value = p.getBoolean("autoRestart", true)
+        wait.value = p.getString("waitAnimation", WAIT_TRAIL) ?: WAIT_TRAIL
     }
 
     /** The master switch at the bottom of Advanced tweaks: on by default in the Labs build; off, no lab shows anywhere. */
@@ -162,6 +234,33 @@ object LabPrefs {
     private val restart = androidx.compose.runtime.mutableStateOf(true)
 
     fun enabled(id: String) = switches[id] ?: false
+
+    /** The waiting animation (rc3 slice 4): the boar's trail, or the matrix rain as before. */
+    const val WAIT_TRAIL = "trail"
+    const val WAIT_MATRIX = "matrix"
+    var waitAnimation: String
+        get() = wait.value
+        set(v) { wait.value = v; prefs?.edit()?.putString("waitAnimation", v)?.apply() }
+    private val wait = androidx.compose.runtime.mutableStateOf(WAIT_TRAIL)
+
+    /**
+     * The user switched a lab on themselves (not a default): an rc2 install that used Boar Labs becomes Pro
+     * (UserProfile.forUpdate). Default-on labs don't count, or every update would become Pro.
+     */
+    fun anyChosenOn() = chosenOn
+
+    /** Default-on labs this install never switched itself: on because of the update (LabDefaults.turnedOnByUpdate). */
+    fun turnedOnByUpdate(): List<String> {
+        val p = prefs ?: return emptyList()
+        if (!labsOn) return emptyList()
+        return team.sopa.boar.engine.labs.LabDefaults.turnedOnByUpdate(LabRegistry.visible.map { it.id }) { id ->
+            if (p.contains("enabled.$id")) p.getBoolean("enabled.$id", false) else null
+        }
+    }
+    private var chosenOn = false
+
+    /** The user is on Pro: Boar Labs' own places (menu, list, setup page, tour card) show (LabDefaults.managementShown). */
+    var proProfile by androidx.compose.runtime.mutableStateOf(false)
 
     /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
     private val reveals = mutableStateMapOf<String, Boolean>()
@@ -179,13 +278,37 @@ object LabPrefs {
         prefs?.edit()?.putBoolean("unlocked.$id", true)?.apply()
     }
 
-    fun setEnabled(id: String, on: Boolean) {
+    /** [fromPage]: the switch at the top of the plugin's own page; an off plugin from there stays listed (PluginReach). */
+    fun setEnabled(id: String, on: Boolean, fromPage: Boolean = false) {
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
         switches[id] = on
-        prefs?.edit()?.putBoolean("enabled.$id", on)?.apply()
+        val off = team.sopa.boar.engine.labs.PluginReach.offFromPageAfter(offFromPage(), id, on, fromPage)
+        offPage.value = off
+        prefs?.edit()?.putBoolean("enabled.$id", on)?.putString(OFF_FROM_PAGE, off.joinToString(","))?.apply()
     }
 
+    /** Plugins the user switched off from their own pages (validator Q-B1): the header sheet lists them as off. */
+    fun offFromPage(): Set<String> = offPage.value
+    private val offPage = androidx.compose.runtime.mutableStateOf<Set<String>>(emptySet())
+    private const val OFF_FROM_PAGE = "offFromPage"
+
     fun string(key: String): String? = prefs?.getString(key, null)
+
+    /** The plugins used last, newest first (RecentPlugins): kept apart from settings, not logged as one. */
+    val recent = androidx.compose.runtime.mutableStateListOf<String>()
+
+    fun used(id: String) {
+        val next = team.sopa.boar.engine.labs.RecentPlugins.used(recent.ifEmpty { string(RECENT)?.split(',')?.filter { it.isNotBlank() }.orEmpty() }, id)
+        recent.clear(); recent.addAll(next)
+        prefs?.edit()?.putString(RECENT, next.joinToString(","))?.apply()
+    }
+
+    fun recentIds(): List<String> {
+        if (recent.isEmpty()) string(RECENT)?.split(',')?.filter { it.isNotBlank() }?.let { recent.addAll(it) }
+        return recent.toList()
+    }
+
+    private const val RECENT = "recent"
 
     fun putString(key: String, value: String) {
         // Measurements the labs keep (image.times.*) are not settings.
@@ -198,3 +321,6 @@ object LabPrefs {
 object LabContext {
     @Volatile var app: Context? = null
 }
+
+/** A plugin's note under an answer ([LabPlugin.answerNotes]): its text, when it happened (the order), and whether it's an error. */
+data class LabNote(val text: String, val at: Long, val error: Boolean = true)

@@ -27,6 +27,8 @@ yarn-error.*
 # local env files (copy .env.example to .env)
 .env
 .env*.local
+# the team phones' names by adb serial (scripts/eval-dashboard.mjs)
+scripts/phones.local.json
 
 # MCP servers point at our own projects; each developer adds theirs
 .mcp.json

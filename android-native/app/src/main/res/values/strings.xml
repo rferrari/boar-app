@@ -14,7 +14,7 @@
     <string name="time_hoursAgo" formatted="false">{{count}}h ago</string>
     <string name="time_daysAgo" formatted="false">{{count}}d ago</string>
     <string name="drawer_subtitle" formatted="false">Adaptive Local Intelligence</string>
-    <string name="drawer_newChat" formatted="false">New Research Session</string>
+    <string name="drawer_newChat" formatted="false">New chat</string>
     <string name="drawer_recentSessions" formatted="false">Recent sessions</string>
     <string name="modelCatalogScreen_title" formatted="false">Model Catalog</string>
     <string name="modelCatalogScreen_subtitle" formatted="false">Models that run offline, without a server</string>
@@ -241,14 +241,14 @@
     <string name="chatHeader_offline" formatted="false">OFFLINE</string>
     <string name="chatHeader_localLlmCore" formatted="false">LOCAL LLM CORE</string>
     <string name="chatHeader_cycleTone" formatted="false">Change how BOAR answers</string>
-    <string name="chatHeader_newChatSession" formatted="false">New Chat Session</string>
+    <string name="chatHeader_newChatSession" formatted="false">New chat</string>
     <string name="chatHeader_deepResearch" formatted="false">Deep Research</string>
     <string name="chatHeader_deepResearchActive" formatted="false">Deep Research Active</string>
     <string name="chatHeader_online" formatted="false">ONLINE</string>
-    <string name="chatHeader_onlineTitle" formatted="false">You\'re online</string>
-    <string name="chatHeader_onlineBody" formatted="false">Your phone is connected to the internet. BOAR doesn\'t need it: answers, search and your library all work on this phone. Only downloading models or packs and searching Hugging Face for models use the connection. Turn on airplane mode to see it work fully offline.</string>
-    <string name="chatHeader_offlineTitle" formatted="false">You\'re offline</string>
-    <string name="chatHeader_offlineBody" formatted="false">No internet connection. Everything works: answers, search and your library are all on this phone.</string>
+    <string name="chatHeader_onlineTitle" formatted="false">Online, but we don\'t need it.</string>
+    <string name="chatHeader_onlineBody" formatted="false">BOAR works the same with or without signal.\n\nThe connection is only for **downloading models or packs**, **searching Hugging Face** and sharing evaluation results, if you turn that on.</string>
+    <string name="chatHeader_offlineTitle" formatted="false">Offline, as intended.</string>
+    <string name="chatHeader_offlineBody" formatted="false">BOAR doesn\'t need the internet.\n\nYour library is **on this phone**, so ask away.</string>
     <string name="chatScreen_initializingCore" formatted="false">Initializing local offline core…</string>
     <string name="chatScreen_mountingWeights" formatted="false">Mounting local GGUF weights…</string>
     <string name="chatScreen_indexingKnowledgeBase" formatted="false">Indexing offline knowledge base…</string>
@@ -284,18 +284,9 @@
     <string name="chatScreen_stageTimedOut" formatted="false">A research step took too long and was cut short</string>
     <string name="chatScreen_interruptedByBackground" formatted="false">Paused — app was backgrounded. Ask again to continue.</string>
     <string name="aboutScreen_title" formatted="false">About BOAR</string>
-    <string name="aboutScreen_heroSubtitle" formatted="false">Adaptive local intelligence</string>
     <string name="aboutScreen_versionBadge" formatted="false">v{{version}} • {{build}}</string>
     <string name="aboutScreen_buildDevelopment" formatted="false">Development build</string>
     <string name="aboutScreen_buildRelease" formatted="false">Release build</string>
-    <string name="aboutScreen_airGappedTitle" formatted="false">Air-gapped sovereign AI</string>
-    <string name="aboutScreen_airGappedBody" formatted="false">BOAR is an offline-first mobile AI system exploring adaptive model routing, local retrieval, and resource-aware inference. It performs local LLM inference via llama.rn / llama.cpp and local hybrid retrieval (SQLite FTS5 + on-device embeddings) with zero cloud dependencies.</string>
-    <string name="aboutScreen_hardwareTitle" formatted="false">Hardware architecture &amp; budget</string>
-    <string name="aboutScreen_hardwareBody" formatted="false">Complies with strict mobile field constraints: resident memory remains capped under 12GB RAM using memory-mapped weights (mmap), and total storage is audited against a 50GB storage envelope.</string>
-    <string name="aboutScreen_benchmarkTitle" formatted="false">Benchmark it yourself</string>
-    <string name="aboutScreen_benchmarkBody" formatted="false">BOAR measures every answer on your own phone: model load time, time to first token, tokens/sec, peak memory and which sources were used. Run the built-in evaluation from Execution Telemetry → 🧪 Evaluate to compare any installed model on the same questions, or run it from a computer over adb (see AGENTS.md on GitHub).</string>
-    <string name="aboutScreen_repoTitle" formatted="false">Open source repository</string>
-    <string name="aboutScreen_repoBody" formatted="false">Source code, quantized model manifests, and offline indexing scripts are available at:</string>
     <string name="sourceFootnotes_title" formatted="false">Retrieved sources</string>
     <string name="sourceFootnotes_localIndex" formatted="false">LOCAL INDEX</string>
     <string name="promptIdeasCarousel_title" formatted="false">Research prompt benchmarks</string>
@@ -309,7 +300,7 @@
     <string name="personalities_succinct_description" formatted="false">Fastest — 2–3 brief paragraphs or bullets, no preamble. Default for mobile.</string>
     <string name="personalities_detailed_label" formatted="false">Thorough &amp; Detailed</string>
     <string name="personalities_detailed_description" formatted="false">Structured, thorough explanations with comparisons and reasoning.</string>
-    <string name="personalities_personal_label" formatted="false">Personal Files</string>
+    <string name="personalities_personal_label" formatted="false">Local Files</string>
     <string name="personalities_personal_description" formatted="false">Answers only from your own files: notes, PDFs, spreadsheets.</string>
     <string name="personalities_custom_label" formatted="false">Custom</string>
     <string name="personalities_custom_description" formatted="false">Write your own system prompt.</string>

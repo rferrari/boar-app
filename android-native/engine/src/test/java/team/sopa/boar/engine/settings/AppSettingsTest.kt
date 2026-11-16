@@ -48,6 +48,7 @@ class AppSettingsTest {
     @Test fun `reset settings clears preferences and keeps models, the PIN, the language and the custom prompt`() {
         val f = file(null)
         val s = AppSettings(f)
+        s.userProfile = UserProfile.PRO  // technical details and tweaks count in Pro only
         s.setActiveModelId("llm", "qwen3-4b")
         s.pinSalt = "salt"; s.pinWrapped = "wrapped"
         s.languageId = "pt"; s.customSystemPrompt = "Be brief."

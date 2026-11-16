@@ -55,6 +55,22 @@ data class EvalRequest(
      * styles by the runner; null is the default style. Native only.
      */
     val style: String? = null,
+    /**
+     * A bench preset ("fast", "fast-plugins", "complete-research"; [BenchPresets]): its level picks the models (unless
+     * [models] names them) and the styles, its topics the questions. Null: the request as before. Native only.
+     */
+    val preset: BenchPreset? = null,
+    /**
+     * The language fix's arm for this run (t9 0420 item 5): 0 no language line (the "before"), 1 the line (users), 2 also
+     * the style reminder in Portuguese, 3 also the style prompt. Null: as the build ships (1). Bench only.
+     */
+    val languageArm: Int? = null,
+    /**
+     * Search only (t9 0321, the ebook case): each question's search runs and its sources are written with their scores
+     * (title, similarity, fused score, match type, pack or the user's file); no answer. Bench only, over adb: the bench
+     * screen has no way to ask for it. Null or false: the run as before.
+     */
+    val searchOnly: Boolean? = null,
 )
 
 data class ModelRef(val id: String, val label: String)
@@ -144,7 +160,24 @@ object DeviceEval {
             (v as? JsonPrimitive)?.takeIf { it.isString && !it.content.isBlankJs() }?.content?.let(::jsTrim)
                 ?: throw EvalRequestException("\"style\" must be a style id")
         }
+        // adam, Nov 14: presets by level and topic. "preset": "fast-plugins", or "level" with "topics".
+        val preset = raw["preset"]?.let { v ->
+            (v as? JsonPrimitive)?.takeIf { it.isString }?.content?.let(BenchPresets::parse)
+                ?: throw EvalRequestException("\"preset\" must be a level (fast, medium, complete), then a topic: \"fast-plugins\"")
+        } ?: raw["level"]?.let { v ->
+            val level = (v as? JsonPrimitive)?.takeIf { it.isString }?.content?.let(BenchLevel::of)
+                ?: throw EvalRequestException("\"level\" must be fast, medium or complete")
+            BenchPreset(level, stringList(raw["topics"], "topics")?.takeIf { it.isNotEmpty() } ?: listOf(BenchPresets.CORE))
+        }
+        if (preset != null && (raw["questions"] != null || raw["queries"] != null)) {
+            throw EvalRequestException("a preset brings its own questions: leave out \"questions\" and \"queries\"")
+        }
         return EvalRequest(
+            preset = preset,
+            searchOnly = raw["searchOnly"]?.let { v -> if (!v.isBool()) throw EvalRequestException("\"searchOnly\" must be a boolean"); (v as JsonPrimitive).content == "true" },
+            languageArm = (raw["languageArm"] as? JsonPrimitive)?.content?.toIntOrNull()?.also {
+                if (it !in 0..3) throw EvalRequestException("\"languageArm\" must be 0, 1, 2 or 3")
+            },
             requestId = id,
             style = style,
             engine = engine,

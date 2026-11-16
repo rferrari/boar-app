@@ -23,6 +23,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import team.sopa.boar.app.BoarServices
+import team.sopa.boar.engine.chat.AskModelContext
 import team.sopa.boar.engine.GenerationMetrics
 import team.sopa.boar.engine.answer.AnswerEvent
 import team.sopa.boar.engine.answer.AnswerPipeline
@@ -38,6 +39,10 @@ import team.sopa.boar.engine.answer.PlanExecutor
 import team.sopa.boar.engine.answer.ResearchStage
 import team.sopa.boar.engine.answer.SessionEngine
 import team.sopa.boar.engine.answer.Summarize
+import team.sopa.boar.engine.answer.StagedAnswer
+import team.sopa.boar.engine.answer.StagedEvent
+import team.sopa.boar.engine.answer.StagedRequest
+import team.sopa.boar.engine.answer.StagedStep
 import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.StartLoad
 import team.sopa.boar.engine.rag.Chunk
@@ -71,7 +76,37 @@ data class UiMessage(
     val nextLimit: Int? = null,
     /** Why it failed (a native.chat.error* key): stays under the answer after the next question and in the saved chat. */
     val error: String? = null,
+    /** Boar Staged answers: the steps and what they found; null for an answer written the usual way. */
+    val staged: StagedView? = null,
+    /** A plugin that would have answered this question but is off (its id): one line under the answer (adam, Nov 12). */
+    val offPlugin: String? = null,
+    /**
+     * A user message sent by a "Keep going" step (KeepGoing.Step.key): its [text] is the real question, the bubble shows
+     * the verb (adam, Nov 14: "A", the verb alone). Null for a typed question.
+     */
+    val step: String? = null,
 )
+
+/**
+ * What a staged answer shows over its text (team.sopa.boar.engine.answer.StagedAnswer): the step running now, the
+ * sentences from the sources that answer (each with its passage), the passages the research step added, the numbers no
+ * source has, and when each step happened. Kept with the answer, so a reopened chat shows it too.
+ */
+data class StagedView(
+    val step: team.sopa.boar.engine.answer.StagedStep? = null,
+    val keyFacts: List<KeyFactView> = emptyList(),
+    val added: Int = 0,
+    val unsupported: List<String>? = null,
+    val times: Map<String, Double> = emptyMap(),
+    val stopped: Boolean = false,
+    /** A health question: each sentence shows with its passage, never alone. */
+    val withPassages: Boolean = false,
+    /** The other sources (not among [keyFacts], and what the research step added), behind "+N sources" (adam, Nov 10). */
+    val more: List<KeyFactView> = emptyList(),
+)
+
+/** A key fact as shown: the sentence, the passage it comes from (opened by a tap), and its source for the reader. */
+data class KeyFactView(val sentence: String, val passage: String, val source: Source)
 
 /** What the assistant is doing for the message being answered. */
 sealed interface Activity {
@@ -97,6 +132,9 @@ sealed interface LoadNote {
     data class Risky(override val modelId: String, override val label: String, val onlyModel: Boolean) : LoadNote
 }
 
+/** [title]: the oldest chat a new one would delete; [more]: how many others go with it; [max]: the user's limit. */
+data class PruneNote(val title: String, val more: Int, val max: Int)
+
 data class ChatState(
     val sessionId: String? = null,
     val messages: List<UiMessage> = emptyList(),
@@ -112,9 +150,15 @@ data class ChatState(
     val deepResearch: Boolean = false,
     /** Advanced tweaks → Show technical details (AppSettings.showLiveStats). */
     val technicalDetails: Boolean = false,
+    /** The live tok/s in the header while BOAR answers (Display & theme; AppSettings.showLiveSpeed). */
+    val liveSpeed: Boolean = false,
+    /** Advanced tweaks → Sources layout "above" (B+): the sources open above each answer, not listed under it. */
+    val sourcesAbove: Boolean = false,
     val error: String? = null,
     /** The answer model's memory note (StartLoad): it closed the app last time, or may not fit; with its actions. */
     val loadNote: LoadNote? = null,
+    /** A new chat would delete the oldest under the user's limit: asked first (t9 0110 item 2). */
+    val pruneNote: PruneNote? = null,
     /** While the model loads or the corpus indexes: the line the Expo app shows under the header (chatScreen.*). */
     val loadingKey: String? = null,
     /** The model being loaded, by name, and the engine when it isn't BOAR's own (Big Boar…), for the banner. */
@@ -136,7 +180,13 @@ data class ChatState(
     val suggestions: List<String> = emptyList(),
     /** The question picked in setup, for the input box once (not sent). */
     val prefill: String? = null,
+    /** A chat just deleted from the menu, still undoable (id to title); really deleted when its time runs out. */
+    val pendingDelete: Pair<String, String>? = null,
+    /** Questions sent while BOAR was answering, waiting their turn (PromptQueue), first to run first. */
+    val queued: List<QueuedPrompt> = emptyList(),
 )
+
+data class QueuedPrompt(val id: Long, val text: String)
 
 /**
  * The chat (port of ChatScreen.tsx's send flow): Deep Research when it's on, adaptive routing when that's on, the
@@ -152,7 +202,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val safeScope = viewModelScope + team.sopa.boar.app.Safe.handler(app) { _ ->
         _state.update { it.copy(answeringId = null, answeringModel = null, activity = null, stopping = false, error = "generic") }
     }
-    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats))
+    private val _state = MutableStateFlow(ChatState(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats,
+        liveSpeed = services.settings.showLiveSpeed))
     val state: StateFlow<ChatState> = _state
     private var job: Job? = null
     /** A chat title or summary still being written; a new question stops it (one model, one generation). */
@@ -178,7 +229,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** For Free memory when I leave BOAR: the model isn't unloaded while an answer, title, summary or preload runs. */
     private val busy: () -> Boolean = { job?.isActive == true || background?.isActive == true || preloading?.isActive == true }
     /** Leaving the screen during a Labs engine answer stops it, as Stop does (BoarServices.onBackground). Declared before init. */
-    private val stopper: () -> Unit = { stop() }
+    /** Ends everything before the model is unloaded, switched or its engine closed: the queue goes too (validator Q-1). */
+    private val stopper: () -> Unit = { stopAll() }
 
     init {
         refreshModel()
@@ -188,9 +240,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         services.addBusyCheck(busy)
         services.addStopper(stopper)
         services.addForegroundHook(onForeground)
+        // Questions that were waiting when the app was closed are gone: say so, once.
+        queuePrefs().getInt(QUEUE_WAITING, 0).takeIf { it > 0 }?.let { n ->
+            queuePrefs().edit().putInt(QUEUE_WAITING, 0).apply()
+            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(app, "native.chat.queueDropped", "count" to n))
+        }
         // "Forgot PIN" erased the chats: the one open here goes too (it stayed on screen above an empty history, X6).
         safeScope.launch {
             services.pinLock.erased.drop(1).collect {
+                queue.clear(); publishQueue()
+                // Forgot PIN erased every chat: an undoable delete has nothing left to undo.
+                pendingDeleteJob?.cancel(); pendingDeleteJob = null; _state.update { it.copy(pendingDelete = null) }
                 job?.cancel()
                 _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
             }
@@ -211,7 +271,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun closeAndFreeMemory(onStage: suspend (String) -> Unit = {}): Boolean {
         // Each step as it really happens, for the closing animation (Boar Labs): stopping, saving, freeing.
         if (_state.value.answeringId != null) onStage("stopping")
-        stop()
+        // Closing: nothing waiting may start on the model being freed (validator Q-1).
+        stopAll()
         onStage("saving")
         // The stopped answer saves what it wrote as it ends; until it has, closing would lose it.
         if (kotlinx.coroutines.withTimeoutOrNull(CLOSE_WAIT_MS) { job?.join() } == null && job?.isActive == true) {
@@ -306,9 +367,44 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         userLoad(modelId)
     }
 
+    /** The first question of a new chat, held while [ChatState.pruneNote] asks; and the user's yes to deleting. */
+    @Volatile private var prunedQuestion: Pair<String, Int?>? = null
+    @Volatile private var pruneAccepted = false
+
+    /** The prune note's "Keep all chats": nothing is deleted, now or later; the question goes. */
+    fun pruneKeepAll() {
+        services.settings.maxSavedSessions = team.sopa.boar.engine.settings.AppSettings.KEEP_ALL_CHATS
+        resumePruned()
+    }
+
+    /** The prune note's "Delete it": the question goes, and the oldest chat with it after the answer, as before. */
+    fun pruneDelete() {
+        pruneAccepted = true
+        resumePruned()
+    }
+
+    /** The prune note closed: the question goes, unasked, with what was set for it (as dismissLoadNote). */
+    fun pruneCancel() {
+        prunedQuestion = null
+        dropOnce()
+        _state.update { it.copy(pruneNote = null) }
+    }
+
+    private fun resumePruned() {
+        val held = prunedQuestion.also { prunedQuestion = null }
+        _state.update { it.copy(pruneNote = null) }
+        if (held != null) send(held.first, held.second) else pruneAccepted = false
+    }
+
+    /** The held-back model whose note the user closed: not shown again for it in this run. */
+    private var heldBackClosed: String? = null
+
     /** The note's "Model Catalog" / "Pick another model": the caller opens the catalog. */
     fun openedCatalog() {
         heldQuestion = null
+        dropOnce()
+        dropQueueWithNote()
+        heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
 
@@ -324,7 +420,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 refreshModel()
                 // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
                 _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
-                if (loaded && held != null) send(held)
+                // The held question keeps its place: first, before any that waited behind it.
+                if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
+                // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
+                else if (loaded) runNext(fresh = true)
+                // A failed load: the held question went, and what was set for it goes too, or the next typed question
+                // would run Detailed or with Deep Research (validator R-A5).
+                else { dropOnce(); dropQueueWithNote() }
             }
         }
     }
@@ -351,7 +453,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshSettings() {
         refreshTone()
         refreshModel()
-        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats) }
+        _state.update { it.copy(deepResearch = services.settings.deepResearchMode, technicalDetails = services.settings.showLiveStats, liveSpeed = services.settings.showLiveSpeed,
+            sourcesAbove = services.settings.sourcesLayout == team.sopa.boar.engine.settings.AppSettings.SOURCES_ABOVE) }
         // Setup's "How to ask" page: its question waits in the input, once.
         services.settings.pendingFirstQuestion?.let { q -> services.settings.pendingFirstQuestion = null; _state.update { it.copy(prefill = q) } }
         // The open chat was erased (Clear all chat history, or a forgotten PIN): start a new one.
@@ -362,6 +465,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     fun showToast(key: String) = team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), key))
     fun hideToast() = _state.update { it.copy(toast = null) }
     fun prefilled() = _state.update { it.copy(prefill = null) }
+
+    /** A plugin page's Try row, long-pressed: the question waits in the input box to edit (AskFromPlugin). */
+    fun prefillWith(q: String) = _state.update { it.copy(prefill = q) }
 
     /** ONLINE / OFFLINE in the header (connectivity.pure.ts isOnline: connected and the internet not known unreachable). */
     private fun watchConnectivity(app: Application) {
@@ -394,12 +500,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         val tested = if (own.size >= 3) own else (own + suggestionData.validation.byModel.keys.flatMap { suggestionData.forModel(it, lang, installed) }).distinct()
         // Plus the short questions of BOAR's own 17-question evaluation, so each new chat shows a different few.
         ideaPool = (tested + BENCH_IDEAS).distinct()
-        _state.update { it.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas()) }
+        // Ideas whose source is a pack the user downloaded (not the built-in library) come up more often (IdeaPicker).
+        val packs = installed.toSet()
+        ideaFromPacks = tested.filter { k -> suggestionData.sources.firstOrNull { it.key == k }?.corpus?.any { it in packs && it != "builtin" } == true }.toSet()
+        // The pick is held back (its last load closed the app): the note says so for as long as it is, not only once after
+        // the crash, so the header naming another model than the Model Catalog's pick is never left unexplained (X6, Nov 4).
+        val heldBack = services.activeModel()?.takeIf { services.answeringInstead() && it.id != heldBackClosed }
+        _state.update { s ->
+            s.copy(modelLabel = label, noModel = m == null, suggestions = pickIdeas(),
+                loadNote = s.loadNote ?: heldBack?.let { a -> LoadNote.Crashed(a.id, shortLabel(a.label), label, services.installed(AssetKind.LLM).none { it.id != a.id }) })
+        }
         // A note that no longer holds (the model was loaded, unblocked or replaced) goes away.
         val note = _state.value.loadNote
         val holds = when (note) {
             null -> true
-            is LoadNote.Crashed -> services.loadGuard.isBlocked(note.modelId)
+            // Picking another model in the Model Catalog closes it (adam, Nov 10): the note is about the pick, and the pick
+            // changed. It stays while the crashed model is still blocked and still the pick.
+            is LoadNote.Crashed -> services.loadGuard.isBlocked(note.modelId) &&
+                team.sopa.boar.engine.models.LoadNotes.stillAbout(note.modelId, services.activeModel()?.id)
             is LoadNote.Risky -> services.startDecision().let { it is StartLoad.Decision.AskRisky && it.modelId == note.modelId }
         }
         if (!holds) _state.update { it.copy(loadNote = null) }
@@ -411,6 +529,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun dismissLoadNote() {
         heldQuestion = null
+        dropOnce()
+        dropQueueWithNote()
+        heldBackClosed = (_state.value.loadNote as? LoadNote.Crashed)?.modelId ?: heldBackClosed
         _state.update { it.copy(loadNote = null) }
     }
 
@@ -419,11 +540,55 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(deepResearch = on) }
     }
 
-    private fun pickIdeas() = ideaPool.shuffled().take(IDEAS_SHOWN)
+    private var ideaFromPacks: Set<String> = emptySet()
+
+    /** Three ideas, never the three shown last (kept across launches), packs' ideas weighted up (adam, Nov 12). */
+    private fun pickIdeas(): List<String> {
+        val prefs = getApplication<Application>().getSharedPreferences("ideas", android.content.Context.MODE_PRIVATE)
+        val last = prefs.getString("last", null)?.split('\n')?.toSet().orEmpty()
+        val picked = team.sopa.boar.engine.chat.IdeaPicker.pick(ideaPool, ideaFromPacks, last, IDEAS_SHOWN)
+        prefs.edit().putString("last", picked.joinToString("\n")).apply()
+        return picked
+    }
 
     fun newChat() {
         if (job?.isActive == true) return
         _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
+    }
+
+    /**
+     * Delete from the menu with Undo (adam, Nov 12): the chat leaves the list at once and is really deleted
+     * (deleteSession, plugin files included) after ChatList.UNDO_MS. Undo in that time leaves everything as it was. A
+     * second delete first finishes the one before. If BOAR is closed in that time, the chat stays (the safe side).
+     */
+    fun deleteWithUndo(id: String, title: String) {
+        if (job?.isActive == true && _state.value.sessionId == id) return
+        finishPendingDelete()
+        if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }
+        _state.update { it.copy(pendingDelete = id to title) }
+        pendingDeleteJob = safeScope.launch {
+            kotlinx.coroutines.delay(team.sopa.boar.engine.chat.ChatList.UNDO_MS)
+            finishPendingDelete()
+        }
+    }
+
+    fun undoDelete() {
+        pendingDeleteJob?.cancel(); pendingDeleteJob = null
+        _state.update { it.copy(pendingDelete = null) }
+    }
+
+    private var pendingDeleteJob: kotlinx.coroutines.Job? = null
+
+    private fun finishPendingDelete() {
+        val (id, _) = _state.value.pendingDelete ?: return
+        pendingDeleteJob?.cancel(); pendingDeleteJob = null
+        _state.update { it.copy(pendingDelete = null) }
+        deleteSession(id)
+    }
+
+    fun renameSession(id: String, title: String) {
+        val t = title.trim().take(80).ifEmpty { return }
+        safeScope.launch(Dispatchers.IO) { runCatching { services.chats.setTitle(id, t) }.onFailure { showToast("native.chat.dbFailed") } }
     }
 
     /** The drawer's 🗑️: the chat and its messages; the open one becomes a new chat. */
@@ -431,8 +596,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         // Not the chat still being answered: its answer would be saved into a deleted session.
         if (job?.isActive == true && _state.value.sessionId == id) return
         // A database error (disk full, a damaged file) is told in a toast; uncaught here it would close the app.
-        safeScope.launch(Dispatchers.IO) { runCatching { services.chats.deleteSession(id) }.onFailure { showToast("native.chat.dbFailed") } }
-        if (_state.value.sessionId == id) newChat()
+        safeScope.launch(Dispatchers.IO) {
+            // What the labs made for this chat's answers goes first, while the answers can still be listed.
+            runCatching { team.sopa.boar.plugins.UserData.eraseAnswers(services.chats.messages(id).filter { it.role == "assistant" }.map { it.id }) }
+            // Once more if the delete fails (a busy database): the plugins' files are already gone, so the chat must not stay
+            // half deleted; a second failure is logged and told (validator M-6).
+            runCatching { services.chats.deleteSession(id) }
+                .recoverCatching { kotlinx.coroutines.delay(300); services.chats.deleteSession(id) }
+                .onFailure { e -> android.util.Log.w("BOAR", "chat delete failed after its plugin files were erased", e); showToast("native.chat.dbFailed") }
+        }
+        if (_state.value.sessionId == id) { queue.clear(); publishQueue(); newChat() }
     }
 
     fun openSession(id: String) {
@@ -440,7 +613,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         safeScope.launch {
             val msgs = runCatching {
                 withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
-                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta))
+                    UiMessage(r.id, r.role, r.text, sourcesFromMeta(r.meta), r.feedback, receipt = receiptFromMeta(r.meta), error = errorFromMeta(r.meta),
+                        staged = receiptFromMeta(r.meta).let { stagedFromMeta(r.meta, it) }, step = if (r.role == "user") stepFromMeta(r.meta) else null)
                 }
             }.getOrElse { showToast("native.chat.dbFailed"); return@launch }
             _state.update { it.copy(sessionId = id, messages = msgs, error = null) }
@@ -461,6 +635,16 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Stop and clear the queue: for the paths that end everything and then unload, switch or close the model (Close
+     * BOAR, the Model Catalog's switch or delete, leaving during a Labs engine answer). The Stop button uses [stop],
+     * which ends only the answer in progress (validator Q-1).
+     */
+    fun stopAll() {
+        if (!queue.isEmpty()) { queue.clear(); publishQueue() }
+        stop()
+    }
+
     fun stop() {
         stopRequested = true
         if (_state.value.answeringId != null) _state.update { it.copy(stopping = true) }
@@ -470,17 +654,67 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     /** Asks the question of [answerId] again (an answer that came back empty). */
     /** Asks the question of [answerId] again with the Labs plugins skipped, so the model answers it ("Ask BOAR instead"). */
     fun askModel(answerId: String) {
+        // Not queued: the "skip the plugins" flag belongs to this question only, so not while others wait either (it would
+        // be taken by the next one in line; CodeRabbit).
+        if (job?.isActive == true || handoff || !queue.isEmpty() || _state.value.loadNote != null) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
         skipToolsOnce = true
+        // The plugin's answer stays in the chat, and its result goes to the model to explain, numbers unchanged (adam, Nov 12).
+        val instant = messages.getOrNull(i)
+        bypassed = instant?.receipt?.tool?.let { tool -> ToolResult.Context(tool, AskModelContext.of(instant.text)) }
         send(q)
     }
+
+    /** A tap on an instant answer being typed: the rest at once (InstantTyping). */
+    @Volatile private var skipTyping = false
+    fun skipTyping() { skipTyping = true }
+    private fun rest(text: String, from: Int) = text.substring(from.coerceAtMost(text.length))
+
+    /** What the bypassed plugin answered, for the model's prompt on [askModel]'s question only. */
+    @Volatile private var bypassed: ToolResult.Context? = null
 
     /** Set by [askModel] for the next question only. */
     @Volatile private var skipToolsOnce = false
 
+    /** "Keep going" (t9 0235): for the next question only, the style ("detailed"), Deep Research, and the step it came from. */
+    @Volatile private var styleOnce: String? = null
+    @Volatile private var deepOnce: Boolean? = null
+    @Volatile private var stepOnce: String? = null
+
+    /**
+     * The held question went with its note (closed, or the catalog opened instead): what was set for it goes too, or the
+     * next typed question would run in Detailed or Deep Research, skip the plugins, and show a step's verb (validator A-2).
+     */
+    private fun dropOnce() {
+        stepOnce = null; styleOnce = null; deepOnce = null; skipToolsOnce = false; bypassed = null
+    }
+
+    /**
+     * A "Keep going" step under [answerId] (t9 0235): the same question again, for that answer only. Go deeper in Detailed,
+     * Research this with Deep Research, Ask BOAR as askModel. The style and the Deep Research switch stay as the user set
+     * them, as redoWithLimit leaves the limit. Not while BOAR answers or questions wait (the bubbles hide then).
+     */
+    fun keepGoing(answerId: String, step: team.sopa.boar.engine.chat.KeepGoing.Step) {
+        if (job?.isActive == true || handoff || !queue.isEmpty() || _state.value.loadNote != null) return
+        val messages = _state.value.messages
+        val i = messages.indexOfFirst { it.id == answerId }
+        val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
+        // Continue is its own message ("Continue" / "Continuar"), a meta follow-up in the same style: no step mark, so the
+        // bubble shows what was sent (adam, 16 Nov).
+        if (step == team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE) { send(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.kgContinue")); return }
+        stepOnce = step.key
+        when (step) {
+            team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> { styleOnce = "detailed"; send(q) }
+            team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> Unit
+            team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> { deepOnce = true; send(q) }
+            team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> askModel(answerId)
+        }
+    }
+
     fun retry(answerId: String) {
+        if (job?.isActive == true) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -489,6 +723,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Asks [answerId]'s question again with a higher token limit, for this answer only (the setting stays as it is). */
     fun redoWithLimit(answerId: String, limit: Int) {
+        if (job?.isActive == true) return
         val messages = _state.value.messages
         val i = messages.indexOfFirst { it.id == answerId }
         val q = messages.take(i.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text ?: return
@@ -496,21 +731,61 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** [limit] overrides the answer's token limit (the "Allow more and redo" note); null uses the setting. */
-    fun send(query: String, limit: Int? = null) {
+    fun send(query: String, limit: Int? = null) = send(query, limit, fromQueue = false, serviceUp = false)
+
+    /**
+     * While BOAR answers, a question waits its turn (PromptQueue, adam Nov 10) and runs after, as the chat's next turn.
+     * [fromQueue]: the queue starting it (it doesn't join the queue again). [serviceUp]: the answer notification is still
+     * up from the answer before.
+     */
+    private fun send(query: String, limit: Int?, fromQueue: Boolean, serviceUp: Boolean) {
         val q = query.trim()
-        if (q.isEmpty() || job?.isActive == true) return
+        if (q.isEmpty()) return
+        // While an answer runs, or between its end and the next waiting question's start, or while questions wait: the
+        // question joins the end of the queue, so nothing jumps it (validator Q-2).
+        if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {
+            if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
+            // Waiting with nothing running (behind a note the user answered): start the oldest one now.
+            if (job?.isActive != true && !handoff && _state.value.loadNote == null) runNext(fresh = true)
+            return
+        }
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
         gateNote()?.let { n ->
+            // A second question while the note shows waits behind the first instead of replacing it (validator Q-4,
+            // CodeRabbit); the queue starts after the held one once the model loads, or goes with the note.
+            if (heldQuestion != null && _state.value.loadNote != null) {
+                if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
+                return
+            }
             heldQuestion = q
+            // A waiting question that stops here ends the answer notification the queue kept up.
+            if (serviceUp) team.sopa.boar.app.AnswerService.stop(getApplication())
             _state.update { it.copy(loadNote = n) }
             return
         }
+        // A new chat under a limit the user set: say which chat it deletes before it does (adam, Nov 15; t9 0110 item 2).
+        if (_state.value.sessionId == null && !pruneAccepted && _state.value.pruneNote == null) {
+            val max = services.settings.maxSavedSessions
+            val going = runCatching { services.chats.pushedOutByNew(max) }.getOrDefault(emptyList())
+            if (going.isNotEmpty()) {
+                prunedQuestion = q to limit
+                if (serviceUp) team.sopa.boar.app.AnswerService.stop(getApplication())
+                _state.update { it.copy(pruneNote = PruneNote(going.first().title, going.size - 1, max)) }
+                return
+            }
+        }
+        pruneAccepted = false
         team.sopa.boar.app.Haptics.sent(getApplication())
         stopRequested = false
         routedModelId = null
         answeredById = null
         // Started while BOAR is on screen (Android allows it only then); keeps BOAR alive if the user leaves mid-answer.
-        team.sopa.boar.app.AnswerService.start(getApplication())
+        if (!serviceUp) team.sopa.boar.app.AnswerService.start(getApplication())
+        // The app's language is the answer's last word when the question can't tell (AnswerLanguage, t9 0420).
+        team.sopa.boar.engine.answer.AnswerLanguage.appLanguage = services.settings.languageId
+        val stepNow = stepOnce.also { stepOnce = null }
+        val styleNow = styleOnce.also { styleOnce = null }
+        val deepNow = deepOnce.also { deepOnce = null }
         job = safeScope.launch(Dispatchers.Default) {
             stopBackground()
             val chats = services.chats
@@ -522,7 +797,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             val sessionId = try {
                 // The question stands in as the title until the model writes one.
                 (_state.value.sessionId ?: chats.createSession().also { s -> chats.setTitle(s.id, q.take(60)) }.id)
-                    .also { chats.addMessage(it, "user", q, userId) }
+                    .also { chats.addMessage(it, "user", q, userId); if (stepNow != null) chats.setMessageMeta(userId, stepMeta(stepNow)) }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 _state.update { it.copy(error = e.message ?: e.toString(), messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", "")) }
@@ -530,22 +805,28 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             _state.update {
                 it.copy(sessionId = sessionId, error = null, answeringId = answerId, answerStartedAt = android.os.SystemClock.elapsedRealtime(), activity = Activity.Retrieving, liveTokPerSec = null,
-                    messages = it.messages + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", ""))
+                    messages = it.messages + UiMessage(userId, "user", q, step = stepNow) + UiMessage(answerId, "assistant", ""))
             }
             val settings = services.settings
             // Health and first aid answer in Succinct even when Detailed is picked: a sentence-level audit of 15 Detailed
             // answers (r4to, Oct 17) found 20 % of claims wrong, 5 of them safety errors ("a first-degree burn is painless").
-            val chosenStyle = settings.personalityId ?: services.personalities.defaultId
+            val chosenStyle = styleNow ?: settings.personalityId ?: services.personalities.defaultId
             // Personal Files: only the user's own files, whole; no Deep Research, router, answer check or Labs tools
             // but the safety cards (PersonalFiles). ShortAnswer already leaves it alone (Detailed only).
             val personal = PersonalFiles.isOn(chosenStyle)
             // Health and seed-phrase questions answer short even under Detailed: a padded detail there can hurt (r4to's audits).
             // A follow-up in such a chat too ("and for how long?" after a burn question).
             val shortReason = team.sopa.boar.engine.routing.ShortAnswer.reason(chosenStyle, q, prior.lastOrNull { it.role == "user" }?.text)
-            val style = if (shortReason != null) "succinct" else chosenStyle
+            // Local Files keeps its files-only prompt: kept short by a reminder instead (t9 2200 c).
+            val style = if (shortReason != null && !personal) "succinct" else chosenStyle
             // A small answer model (the 1.5B) gets Detailed without D4's "Always do what the user asks" (r4to, Oct 18).
             val smallModel = (services.answerModel()?.sizeBytes ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
-            val (systemPrompt, styleReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
+            val (systemPrompt, baseReminder) = services.personalities.promptFor(style, settings.customSystemPrompt, smallModel)
+            // A Local Files summary: in the model's words, each result with the mark the code gave it (t9 2330 a).
+            val ptQ = team.sopa.boar.engine.answer.AnswerLanguage.of(q) == team.sopa.boar.engine.answer.AnswerLanguage.Lang.PT
+            val summaryLine = if (personal && PersonalFiles.asksSummary(q)) (if (ptQ) PersonalFiles.SUMMARY_PT else PersonalFiles.SUMMARY_EN) else null
+            val styleReminder = listOfNotNull(baseReminder, team.sopa.boar.engine.routing.ShortAnswer.PERSONAL_SHORT.takeIf { personal && shortReason != null }, summaryLine)
+                .joinToString(" ").ifBlank { null }
             val history = ConversationHistory(
                 summary = runCatching { chats.listSessions().firstOrNull { it.id == sessionId }?.summary }.getOrNull(),
                 // Within a token budget: earlier answers cut to their opening sentences (HistoryBudget).
@@ -569,15 +850,22 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             var tokens = 0
             // The mode this question runs in, kept for the Vault even if Deep Research is switched while it answers. It
             // steps aside in Personal Files.
-            val deep = _state.value.deepResearch && !personal
+            val deep = (deepNow ?: _state.value.deepResearch) && !personal
             // The limit the answer could hit, set once the model is loaded; the adaptive router picks its own.
             var limited: Int? = null
             // The tool slot (Boar Labs): an instant answer needs no model, a context is read by it. Not for a recap; under Deep
             // Research only a safety answer (Boar Cohazard): the CO question went to the model there (F3, Oct 19).
+            var instantAt = 0L
+            var typedAt = false
             val skipTools = skipToolsOnce.also { skipToolsOnce = false }
-            val tool = if (skipTools || aboutConversation(q, history, conversation)) null
+            val bypass = bypassed.also { bypassed = null }
+            val tool = if (skipTools) bypass?.takeIf { !(deep || personal) }
+            else if (aboutConversation(q, history, conversation)) null
             else AnswerTools.run(q, prior.map { ConversationTurn(it.role, if (it.role == "assistant") AnswerText.stripThinking(it.text) else it.text) })
                 ?.takeIf { !(deep || personal) || PersonalFiles.keepsTool(it.tool) }
+                // A merged queue goes to the model whole: an instant answer would take one question and drop the rest (validator
+                // Q-8). A safety answer isn't lost: the model reads it first.
+                ?.let { r -> if (r is ToolResult.Instant && team.sopa.boar.engine.chat.PromptMerge.isMerged(q)) (if (r.tool.startsWith("safety-")) ToolResult.Context(r.tool, team.sopa.boar.engine.chat.PromptMerge.safetyContext(r.text)) else null) else r }
             val instant = tool as? ToolResult.Instant
             val toolPrompt = AnswerTools.systemPrompt(systemPrompt, tool)
             // Saved as it's written, marked interrupted until it ends: if Android closes BOAR mid-answer (Xiaomi did 10-35 s
@@ -593,10 +881,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
             savePartial(force = true)
-            fun onPiece(piece: String) {
+            /** One streamed piece: [edit] changes the text shown (appends the piece, or rebuilds it). */
+            fun onText(edit: (StringBuilder) -> Unit) {
                 tokens++
                 if (firstAt == 0L) firstAt = System.nanoTime()
-                text.append(piece)
+                edit(text)
                 savePartial()
                 val elapsed = (System.nanoTime() - firstAt) / 1e9
                 _state.update { s ->
@@ -604,9 +893,21 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString()) else it })
                 }
             }
+            fun onPiece(piece: String) = onText { it.append(piece) }
+            /** A write-up thrown away for a new one (Deep Research's fallback, Staged's redo): the screen starts empty again. */
+            fun restartText() {
+                text.setLength(0)
+                _state.update { s -> s.copy(messages = s.messages.map { if (it.id == answerId) it.copy(text = "") else it }) }
+            }
+            // Boar Staged answers: the default path only (not Personal Files, Deep Research, a recap or small talk). It loads
+            // the model itself, after the search, so the sources show while a cold model loads.
+            val staged = instant == null && !personal && !deep && team.sopa.boar.plugins.AnswerModes.staged() &&
+                !aboutConversation(q, history, conversation) && !team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q)
+            var stagedView: StagedView? = null
+            var stagedTimes: Map<String, Double>? = null
             try {
                 // An instant answer doesn't load the model.
-                val session = if (instant != null) null else services.activeSession()
+                val session = if (instant != null || staged) null else services.activeSession()
                 if (session != null) answeredById = services.host.residentId()
                 // Read after the load: Auto fits the length to the context the model was opened with.
                 val budget = (limit ?: settings.answerTokens(services.host.openedContext)).let {
@@ -623,7 +924,81 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     // Stop pressed while the model loaded: the load can't be interrupted, the answer can be skipped.
                 } else if (instant != null) {
                     limited = null
-                    onPiece(instant.text)
+                    instantAt = System.nanoTime()
+                    // Shown at typing speed (InstantTyping): presentation only, the receipt keeps the real time above.
+                    // A tap on the answer (skipTyping) or Stop shows the rest at once; the safety answer never types.
+                    val app = getApplication<Application>()
+                    val animOff = android.provider.Settings.Global.getFloat(app.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+                    val reader = (app.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager)?.isTouchExplorationEnabled == true
+                    skipTyping = false
+                    if (!team.sopa.boar.engine.chat.InstantTyping.typed(instant.tool, animOff, reader)) onPiece(instant.text)
+                    else {
+                        var shownLen = 0
+                        for (piece in team.sopa.boar.engine.chat.InstantTyping.pieces(instant.text)) {
+                            if (skipTyping || stopRequested) { onPiece(rest(instant.text, shownLen)); shownLen = instant.text.length; break }
+                            onPiece(piece); shownLen += piece.length
+                            kotlinx.coroutines.delay(team.sopa.boar.engine.chat.InstantTyping.STEP_MS)
+                        }
+                        if (shownLen < instant.text.length) onPiece(instant.text.substring(shownLen))
+                        typedAt = true
+                    }
+                } else if (staged) {
+                    path = "staged"
+                    val (introReminder, detailsReminder) = stagedReminders(style, smallModel)
+                    var view = StagedView(withPassages = shortReason != null)
+                    val stagedIntro = StringBuilder()
+                    val stagedDetails = StringBuilder()
+                    fun show(v: StagedView, shownSources: List<Source>? = null) {
+                        view = v
+                        stagedView = v
+                        _state.update { s -> s.copy(messages = s.messages.map { if (it.id == answerId) it.copy(staged = v, sources = shownSources ?: it.sources) else it }) }
+                    }
+                    StagedAnswer(services::search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
+                        .answer(StagedRequest(q, toolPrompt, introReminder, detailsReminder, budget, history, settings.engineTweaks.thinkingEnabled),
+                            load = {
+                                services.activeSession()?.also {
+                                    answeredById = services.host.residentId()
+                                    // Auto fits the length to the context the model was opened with, known only now.
+                                    limited = limit ?: settings.answerTokens(services.host.openedContext)
+                                }
+                            },
+                            shouldStop = { stopRequested })
+                        .collect { e ->
+                            when (e) {
+                                is StagedEvent.Step -> {
+                                    show(view.copy(step = e.step))
+                                    _state.update { it.copy(activity = if (e.step == StagedStep.SOURCES) Activity.Retrieving else if (text.isEmpty()) Activity.Thinking else it.activity) }
+                                }
+                                is StagedEvent.Cards -> {
+                                    sources = e.sources
+                                    retrievalMs = e.retrievalMs
+                                    val shownAt = e.keyFacts.map { it.source }.toSet()
+                                    show(view.copy(keyFacts = keyFactViews(e.keyFacts, e.sources),
+                                        more = e.sources.filterIndexed { i, _ -> i !in shownAt }.map { factView(q, it) }), groupSources(e.sources))
+                                }
+                                is StagedEvent.Piece -> {
+                                    // The intro and the details kept apart and shown joined, as they're saved: one paragraph
+                                    // break between them, not one per piece (one token per line, X6, Nov 9).
+                                    if (e.step == StagedStep.DETAILS) stagedDetails.append(e.text) else stagedIntro.append(e.text)
+                                    onText { it.setLength(0); it.append(team.sopa.boar.engine.answer.StagedAnswer.join(stagedIntro.toString(), stagedDetails.toString())) }
+                                }
+                                is StagedEvent.Restart -> { stagedIntro.setLength(0); stagedDetails.setLength(0); restartText() }
+                                is StagedEvent.MoreSources -> {
+                                    sources = sources + e.added
+                                    show(view.copy(added = view.added + e.added.size, more = view.more + e.added.map { factView(q, it) }), groupSources(sources))
+                                }
+                                is StagedEvent.Checked -> show(view.copy(unsupported = e.unsupported))
+                                is StagedEvent.Done -> {
+                                    sources = e.sources
+                                    metrics = e.metrics
+                                    stagedTimes = e.times.toMap()
+                                    // The saved text: the intro, then the details, thinking left out (as the TS stores it).
+                                    text.setLength(0); text.append(e.text)
+                                    show(view.copy(step = null, times = e.times.toMap(), stopped = e.stopped))
+                                    if (e.noModel) _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
+                                }
+                            }
+                        }
                 } else if (session == null) {
                     _state.update { it.copy(noModel = true, error = team.sopa.boar.engine.UserErrors.NO_MODEL) }
                 } else if (way == team.sopa.boar.engine.routing.AnswerPath.RESEARCH || way == team.sopa.boar.engine.routing.AnswerPath.RECAP) {
@@ -636,6 +1011,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         shouldStop = { stopRequested },
                         previousAnswer = lastAnswer?.text?.let(AnswerText::stripThinking),
                         conversation = conversation,
+                        // The write-up in the question's language (t9 0420): DeepResearch had the slot, nothing filled it.
+                        answerLanguage = team.sopa.boar.engine.answer.AnswerLanguage.line(
+                            team.sopa.boar.engine.answer.AnswerLanguage.of(q, prior.filter { it.role == "user" }.map { it.text }), withSources = research),
+                        onRestart = ::restartText,
                     )
                     sources = r.citations
                     // Written from the last answer: its numbers [n] are that answer's sources.
@@ -652,7 +1031,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     timedOut = r.second
                     metrics = r.third
                 } else {
-                    val search: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
+                    val plain: (String, Int) -> List<Chunk> = if (personal) { s, k -> services.search(s, k, PersonalFiles.retrieval()) } else services::search
+                    // A user's file with results and ranges gets each one marked in code, given to the model with the
+                    // passage (t9 2330 b: the 1.7B read 231 against "below 190" as fine).
+                    val search: (String, Int) -> List<Chunk> = { s, k -> plain(s, k).map { c ->
+                        if (c.collectionId == null) c else team.sopa.boar.engine.answer.LabRanges.note(c.body, ptQ)?.let { n -> c.copy(body = c.body + "\n\n" + n) } ?: c
+                    } }
                     val pipeline = AnswerPipeline(session, search, { Classify.classifyTask(it).value }, { Classify.isRetrievalIrrelevant(TaskType.of(it)) })
                     val base = AnswerRequest(q, toolPrompt, styleReminder, budget, history, enableThinking = settings.engineTweaks.thinkingEnabled)
                     // Nothing found in the files: the fixed line in the user's language, then where to switch a collection on
@@ -677,12 +1061,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             // Ended without a word, no error and not stopped: say so (with Try again) instead of an empty bubble.
             if (text.isBlank() && !stopRequested && _state.value.error == null) _state.update { it.copy(error = team.sopa.boar.engine.UserErrors.EMPTY_ANSWER) }
-            val passages = sources.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) }
             // One source per article, best first; the answer's numbers follow (a reused list is already grouped).
-            val grouped = SourceGroups.group(passages, { SourceGroups.articleKey(it.source, it.docId, it.title) }, { it.similarity ?: it.relevance }) { g ->
-                g.first().copy(similarity = g.mapNotNull { it.similarity }.maxOrNull(), relevance = g.mapNotNull { it.relevance }.maxOrNull(),
-                    body = g.joinToString("\n…\n") { it.body })
-            }
+            val grouped = groupedSources(sources)
             val shown = reusedSources ?: grouped.items
             if (reusedSources == null) SourceGroups.renumber(text.toString(), grouped.renumber).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
             if (personal) PersonalFiles.dropHedge(text.toString()).let { if (it != text.toString()) { text.setLength(0); text.append(it) } }
@@ -695,12 +1075,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             else AnswerChecks.run(q, text.toString())
             if (repair != null) { text.setLength(0); text.append(repair.text) }
             // An instant answer generated nothing: its receipt has the time and the tool, no speed.
-            val measured = if (instant != null) Receipt(totalMs = (System.nanoTime() - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0)
+            val measured = if (instant != null) Receipt(totalMs = ((instantAt.takeIf { it > 0 } ?: System.nanoTime()) - startAt) / 1e6, ttftMs = (firstAt - startAt) / 1e6, tokPerSec = 0.0, tokens = 0, typed = typedAt)
             else receiptOf(startAt, firstAt, tokens, metrics, retrievalMs)
             val receipt = measured?.let { r ->
                 val (task, checked) = if (path == "adaptive") (lastAdaptive ?: (null to false)) else (null to false)
-                r.copy(style = style, path = path, task = task, checked = checked,
-                    tool = listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
+                r.copy(style = style, path = path, task = task, checked = checked, stages = stagedTimes,
+                    // The model's own answer on "Ask BOAR instead": the plugin's result it read isn't its speaker.
+                    tool = listOfNotNull(tool?.tool?.takeIf { tool !== bypass }, repair?.tool).joinToString("+").ifEmpty { null },
                     styleNote = shortReason?.takeIf { it != team.sopa.boar.engine.routing.ShortAnswer.SMALL_TALK })
             }
             val cutAt = limited?.takeIf { !stopped && !timedOut && text.isNotBlank() && AnswerLimit.reached(metrics?.generatedTokens ?: tokens, it) }
@@ -708,9 +1089,12 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 chats.upsertMessage(sessionId, "assistant", text.toString(), answerId)
                 // Always written: it replaces the interrupted mark of the partial saves.
-                chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey))
+                chats.setMessageMeta(answerId, metaOf(shown, receipt, errorKey, stagedView))
                 afterAnswer(sessionId, isNewSession, stopped, prior + UiMessage(userId, "user", q) + UiMessage(answerId, "assistant", text.toString()), systemPrompt, sources.isNotEmpty())
-                chats.prune(settings.maxSavedSessions)
+                // Older chats over the limit go, and what the plugins made for their answers goes with them (validator P-1).
+                chats.prune(settings.maxSavedSessions) { id ->
+                    team.sopa.boar.plugins.UserData.eraseAnswers(chats.messages(id).filter { it.role == "assistant" }.map { it.id })
+                }
                 // Boar Polyglot's "doesn't speak it yet" reply isn't an answer.
                 if (text.isNotBlank() && tool?.tool != team.sopa.boar.engine.routing.LanguageGate.TOOL) services.vault.answered(
                     sourced = shown.isNotEmpty(), deep = deep, portuguese = team.sopa.boar.engine.rag.PtLexicon.looksPortuguese(q),
@@ -724,12 +1108,63 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             if (!stopped && text.isNotEmpty()) team.sopa.boar.app.Haptics.finished(getApplication())
             _state.update { s ->
                 s.copy(answeringId = null, answeringModel = null, activity = null, stopping = false,
-                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey) else it })
+                    messages = s.messages.map { if (it.id == answerId) it.copy(text = text.toString(), sources = shown, stopped = stopped, timedOut = timedOut, receipt = receipt, cutAt = cutAt, nextLimit = nextLimit, error = errorKey, staged = stagedView,
+                        offPlugin = if (instant == null && !stopped) runCatching { AnswerTools.offPlugin(q) }.getOrNull() else null) else it })
             }
         }
         // However the answer ends (done, stopped, failed, or cancelled before it started), the notification goes with it.
-        job?.invokeOnCompletion { team.sopa.boar.app.AnswerService.stop(getApplication()) }
+        // The next waiting question then starts; Stop ends only the answer in progress, not the queue.
+        job?.invokeOnCompletion {
+            // From here until the next waiting question has started, a new question joins the queue (validator Q-2).
+            handoff = true
+            safeScope.launch(Dispatchers.Main) {
+                handoff = false
+                runNext(fresh = false)
+            }
+        }
     }
+
+    /** True between an answer's end and the next waiting question's start. */
+    @Volatile private var handoff = false
+
+    /**
+     * Starts the oldest waiting question, or ends the answer notification when none waits. [fresh]: nothing kept the
+     * notification up (a start after the load note), so the question starts it as a typed one does.
+     */
+    private fun runNext(fresh: Boolean) {
+        val next = queue.next()
+        if (next == null) { if (!fresh) team.sopa.boar.app.AnswerService.stop(getApplication()); return }
+        publishQueue()
+        // Defensive: something started meanwhile; the question goes back to the front, not the end.
+        if (job?.isActive == true) { queue.pushFront(next); publishQueue(); return }
+        send(next.text, null, fromQueue = true, serviceUp = !fresh)
+    }
+
+    /** The load note closed, or the model didn't load: the waiting questions need that model too, so they go, said once. */
+    private fun dropQueueWithNote() {
+        if (queue.isEmpty()) return
+        val n = queue.size
+        queue.clear(); publishQueue()
+        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.queueDroppedNote", "count" to n))
+    }
+
+    private val queue = team.sopa.boar.engine.chat.PromptQueue()
+
+    private fun queuePrefs() = getApplication<Application>().getSharedPreferences("chat_queue", android.content.Context.MODE_PRIVATE)
+
+    /** The queue on screen, and its size kept so a closed app can say what it dropped. */
+    private fun publishQueue() {
+        _state.update { it.copy(queued = queue.waiting.map { q -> QueuedPrompt(q.id, q.text) }) }
+        queuePrefs().edit().putInt(QUEUE_WAITING, queue.size).apply()
+    }
+
+    fun removeQueued(id: Long) { queue.remove(id); publishQueue() }
+
+    fun clearQueue() { queue.clear(); publishQueue() }
+
+    /** The waiting questions become one, answered together (adam, Nov 12). */
+    /** A safety question (the CO card) stays its own turn, ahead of the merged one, whether Cohazard is on or not. */
+    fun mergeQueue() { if (queue.merge { team.sopa.boar.engine.routing.LabTools.coHazard(it) != null }) publishQueue() }
 
     /**
      * Stops a title or summary still being written, as ChatScreen.tsx does (cancelBackgroundTask), instead of making the
@@ -871,12 +1306,72 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         Json.parseToJsonElement(meta ?: return null).jsonObject["receipt"]?.jsonObject?.let(Receipt::fromJson)
     }.getOrNull()
 
-    private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
+    /** A Keep going step on its user message (the text stays the real question). */
+    private fun stepMeta(step: String) = JsonObject(mapOf("step" to JsonPrimitive(step))).toString()
+    private fun stepFromMeta(meta: String?): String? = runCatching { Json.parseToJsonElement(meta ?: return null).jsonObject["step"]?.jsonPrimitive?.content }.getOrNull()
+
+    private fun metaOf(sources: List<Source>, receipt: Receipt?, errorKey: String? = null, staged: StagedView? = null): String = JsonObject(listOfNotNull("sources" to JsonArray(sources.map { s ->
         JsonObject(listOfNotNull(
             "title" to JsonPrimitive(s.title), s.source?.let { "source" to JsonPrimitive(it) }, s.relevance?.let { "relevance" to JsonPrimitive(it) },
             s.similarity?.let { "similarity" to JsonPrimitive(it) }, s.docId?.let { "docId" to JsonPrimitive(it) }, "body" to JsonPrimitive(s.body),
         ).toMap())
-    }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }).toMap()).toString()
+    }), receipt?.let { "receipt" to it.toJson() }, errorKey?.let { "error" to JsonPrimitive(it) }, staged?.let { "staged" to stagedJson(it) }).toMap()).toString()
+
+    /** A staged answer's key facts and check, kept with it (the times are in the receipt). */
+    private fun factsJson(l: List<KeyFactView>) = JsonArray(l.map { k -> JsonObject(mapOf("sentence" to JsonPrimitive(k.sentence), "passage" to JsonPrimitive(k.passage),
+        "title" to JsonPrimitive(k.source.title), "docId" to JsonPrimitive(k.source.docId ?: ""), "source" to JsonPrimitive(k.source.source ?: ""))) })
+
+    // "+N sources" and the health passages are kept too, so a reopened chat shows the same card (validator S-1).
+    private fun stagedJson(v: StagedView) = JsonObject(listOfNotNull(
+        "keyFacts" to factsJson(v.keyFacts),
+        if (v.more.isNotEmpty()) "more" to factsJson(v.more) else null,
+        if (v.withPassages) "withPassages" to JsonPrimitive(true) else null,
+        "added" to JsonPrimitive(v.added), v.unsupported?.let { u -> "unsupported" to JsonArray(u.map(::JsonPrimitive)) },
+        if (v.stopped) "stopped" to JsonPrimitive(true) else null,
+    ).toMap())
+
+    private fun stagedFromMeta(meta: String?, receipt: Receipt?): StagedView? = runCatching {
+        val o = Json.parseToJsonElement(meta ?: return null).jsonObject["staged"]?.jsonObject ?: return null
+        fun facts(key: String) = o[key]?.jsonArray.orEmpty().map { e ->
+            val k = e.jsonObject
+            fun s(key: String) = k[key]?.jsonPrimitive?.content.orEmpty()
+            KeyFactView(s("sentence"), s("passage"), Source(s("title"), s("source").ifEmpty { null }, null, null, s("docId").ifEmpty { null }, s("passage")))
+        }
+        StagedView(
+            keyFacts = facts("keyFacts"),
+            more = facts("more"),
+            withPassages = o["withPassages"]?.jsonPrimitive?.content == "true",
+            added = o["added"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+            unsupported = o["unsupported"]?.jsonArray?.map { it.jsonPrimitive.content },
+            times = receipt?.stages.orEmpty(),
+            stopped = o["stopped"]?.jsonPrimitive?.content == "true",
+        )
+    }.getOrNull()
+
+    private fun groupedSources(chunks: List<Chunk>) =
+        SourceGroups.group(chunks.map { Source(it.title, it.source, it.relevance, it.similarity, it.docId, it.body) },
+            { SourceGroups.articleKey(it.source, it.docId, it.title) }, { it.similarity ?: it.relevance }) { g ->
+            g.first().copy(similarity = g.mapNotNull { it.similarity }.maxOrNull(), relevance = g.mapNotNull { it.relevance }.maxOrNull(),
+                body = g.joinToString("\n…\n") { it.body })
+        }
+
+    /** The sources as the chat lists them while a staged answer is written: one per article, best first. */
+    private fun groupSources(chunks: List<Chunk>): List<Source> = groupedSources(chunks).items
+
+    /** A source as a line of "+N sources": its best sentence for [q] (or its first), its passage and the source to read. */
+    private fun factView(q: String, c: Chunk) = KeyFactView(team.sopa.boar.engine.answer.StagedAnswer.factOf(q, c), c.body,
+        Source(c.title, c.source, c.relevance, c.similarity, c.docId, c.body))
+
+    private fun keyFactViews(facts: List<team.sopa.boar.engine.answer.KeyFact>, chunks: List<Chunk>) = facts.mapNotNull { f ->
+        chunks.getOrNull(f.source)?.let { c -> KeyFactView(f.sentence, c.body, Source(c.title, c.source, c.relevance, c.similarity, c.docId, c.body)) }
+    }
+
+    /** The intro's style line (Succinct's) and the details' (the style picked; none when the answer is kept short). */
+    private fun stagedReminders(style: String, smallModel: Boolean): Pair<String?, String?> {
+        val succinct = services.personalities.promptFor("succinct", null, smallModel).second
+        val picked = services.personalities.promptFor(style, services.settings.customSystemPrompt, smallModel).second
+        return succinct to picked.takeIf { style != "succinct" }
+    }
 
     private fun errorFromMeta(meta: String?): String? = runCatching {
         Json.parseToJsonElement(meta ?: return null).jsonObject["error"]?.jsonPrimitive?.content
@@ -913,6 +1408,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
         /** Prompt ideas shown in an empty chat, drawn again for each new chat. */
         const val IDEAS_SHOWN = 3
+        /** How many questions were waiting (PromptQueue), so a closed app can say it dropped them. */
+        private const val QUEUE_WAITING = "waiting"
 
         /**
          * Short questions (two lines at most) from the evaluations: b1…b9 from BOAR's 17-question set (eval-set.json),

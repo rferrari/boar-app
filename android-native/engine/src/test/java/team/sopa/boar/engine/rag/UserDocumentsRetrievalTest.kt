@@ -74,4 +74,24 @@ class UserDocumentsRetrievalTest {
     @Test fun `in Personal Files a switched-off collection is not searched`() {
         assertEquals(emptyList<Chunk>(), retriever(kbWithDocument(active = false)).retrieve(question, params = ownOnly))
     }
+
+    @Test fun `a Portuguese file sharing only function words with the question doesn't outrank the library (the ebook case)`() {
+        // The F3, 15 Nov (all62): "Quais são as três montanhas mais altas, e qual a altura de cada uma?" cited only the
+        // user's investment ebook (part 16/17), which matched "qual", "cada", "uma"… by keyword. Fixed on all64 by the
+        // Portuguese function words as stop words (t9 0400 item 2): this keeps it fixed.
+        val q = "Quais são as três montanhas mais altas, e qual a altura de cada uma?"
+        // Function words only, as many as the old search needed to let it in (6 of the question's 10 terms then).
+        val ebook = "Quais são as opções mais seguras? Qual a melhor forma de investir? Cada uma tem riscos; qual escolher depende de " +
+            "você e de uma análise cuidadosa, e não há uma resposta que sirva para cada caso."
+        val kb = KnowledgeBase(JdbcSqlite()).apply {
+            insertChunk(Chunk("wiki-everest", "mountain", "Mountain", "The highest mountains are Mount Everest, K2 and Kangchenjunga."), questionVec)
+            createCollection("ebook", "ebook", "eBook_investimentos_internacional.pdf", 1, 1, 50_000, now = 1)
+            insertChunk(Chunk("ebook-16", "ebook", "eBook_investimentos_internacional (part 16/17)", ebook, collectionId = "ebook"), weakVec)
+        }
+        val found = retriever(kb).retrieve(q, 4, questionVec)
+        assertTrue(found.map { it.title }.toString(), found.none { it.collectionId == "ebook" })
+        assertEquals("Mountain", found.firstOrNull()?.title)
+        // Its own words still bring a file in: the rule above isn't weakened.
+        assertTrue(retriever(kb).retrieve("Qual a melhor forma de investir em opções?", 4, questionVec).any { it.collectionId == "ebook" })
+    }
 }

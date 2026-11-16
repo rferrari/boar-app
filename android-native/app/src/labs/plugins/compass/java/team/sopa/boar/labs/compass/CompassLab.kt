@@ -54,6 +54,17 @@ object CompassLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_nomad
     override val status = LabStatus.ALPHA
 
+    /** "Which way is north?": answered from the compass sensor, with "hold the phone flat" when it's tilted (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isDirectionQuestion(query)
+
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        if (!team.sopa.boar.engine.labs.PluginAnswers.isDirectionQuestion(query)) null
+        else {
+            val (heading, tilt) = team.sopa.boar.labs.LabPrefs.appContext?.let { team.sopa.boar.labs.PhoneReads.heading(it) } ?: (null to null)
+            team.sopa.boar.plugins.ToolResult.Instant("compass-heading", team.sopa.boar.engine.labs.PluginAnswers.directionAnswer(query, heading, tilt))
+        }
+    }
+
     /** How much of each new reading goes into the shown heading: smooth enough to read, quick enough to follow. */
     private const val SMOOTHING = 0.15f
     /** The fallback's raw accelerometer and magnetometer readings are noisy: each new one counts this much. */
@@ -76,13 +87,12 @@ object CompassLab : LabPlugin {
             val g = FloatArray(3); val m = FloatArray(3); var haveG = false; var haveM = false
             val rot = FloatArray(9); val orient = FloatArray(3)
             fun show(deg: Float) {
-                // Smoothed along the shortest way round, so 359° → 1° doesn't swing through 180°.
-                val delta = ((deg - heading + 540) % 360) - 180
-                heading = if (!seen) deg else (heading + SMOOTHING * delta + 360) % 360
+                // Smoothed along the shortest way round, so 359° → 1° doesn't swing through 180° (engine/labs/Compass).
+                heading = team.sopa.boar.engine.labs.Compass.smooth(heading, deg, !seen, SMOOTHING)
                 seen = true
             }
             fun lowPass(v: FloatArray, into: FloatArray, first: Boolean) {
-                for (i in 0 until 3) into[i] = if (first) v[i] else into[i] + RAW_SMOOTHING * (v[i] - into[i])
+                for (i in 0 until 3) into[i] = team.sopa.boar.engine.labs.Compass.lowPass(into[i], v[i], first, RAW_SMOOTHING)
             }
             val listener = object : SensorEventListener {
                 override fun onSensorChanged(e: SensorEvent) {
@@ -90,7 +100,7 @@ object CompassLab : LabPlugin {
                         Sensor.TYPE_ROTATION_VECTOR -> {
                             SensorManager.getRotationMatrixFromVector(rot, e.values)
                             SensorManager.getOrientation(rot, orient)
-                            show(((Math.toDegrees(orient[0].toDouble()) + 360) % 360).toFloat())
+                            show(team.sopa.boar.engine.labs.Compass.headingOf(orient[0].toDouble()))
                             return
                         }
                         Sensor.TYPE_ACCELEROMETER -> { lowPass(e.values, g, !haveG); haveG = true }
@@ -99,7 +109,7 @@ object CompassLab : LabPlugin {
                     }
                     if (haveG && haveM && SensorManager.getRotationMatrix(rot, null, g, m)) {
                         SensorManager.getOrientation(rot, orient)
-                        show(((Math.toDegrees(orient[0].toDouble()) + 360) % 360).toFloat())
+                        show(team.sopa.boar.engine.labs.Compass.headingOf(orient[0].toDouble()))
                     }
                 }
                 override fun onAccuracyChanged(s: Sensor, a: Int) { if (s.type == Sensor.TYPE_MAGNETIC_FIELD) accuracy = a }
@@ -109,30 +119,34 @@ object CompassLab : LabPlugin {
             sm.registerListener(listener, mag, SensorManager.SENSOR_DELAY_UI)
             onDispose { sm.unregisterListener(listener) }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (accel == null || mag == null) {
-                Text(t("native.labs.compass.noSensor"), style = Boar.type.body, color = c.textSecondary)
-                return@Column
+        // The live dial first, then the page template under it (Nov 12): a real example, Try, and the rest folded.
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (accel == null || mag == null) {
+                    Text(t("native.labs.compass.noSensor"), style = Boar.type.body, color = c.textSecondary)
+                    return@Column
+                }
+                // The number moves in whole degrees and only once the heading has moved at least 1°, so it doesn't flicker
+                // between two values while the phone is still.
+                var shownDeg by remember { mutableIntStateOf(0) }
+                shownDeg = team.sopa.boar.engine.labs.Compass.shown(shownDeg, heading)
+                val deg = shownDeg
+                Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (seen) "$deg° ${t("native.labs.compass.dir.${cardinal(deg)}")}" else "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
+                    Rose(heading, Modifier.fillMaxWidth(0.85f).aspectRatio(1f), c.textAccentEmerald, c.crimson400, c.textMuted, c.borderDefault)
+                }
+                if (accuracy <= SensorManager.SENSOR_STATUS_ACCURACY_LOW)
+                    Text("⚠ " + t("native.labs.compass.calibrate"), style = Boar.type.body, color = c.amber400,
+                        modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).padding(12.dp))
             }
-            // The number moves in whole degrees and only once the heading has moved at least 1°, so it doesn't flicker
-            // between two values while the phone is still.
-            var shownDeg by remember { mutableIntStateOf(0) }
-            if (abs(((heading - shownDeg + 540) % 360) - 180) >= 1f) shownDeg = heading.roundToInt() % 360
-            val deg = shownDeg
-            Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (seen) "$deg° ${t("native.labs.compass.dir.${cardinal(deg)}")}" else "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
-                Rose(heading, Modifier.fillMaxWidth(0.85f).aspectRatio(1f), c.textAccentEmerald, c.crimson400, c.textMuted, c.borderDefault)
-            }
-            if (accuracy <= SensorManager.SENSOR_STATUS_ACCURACY_LOW)
-                Text("⚠ " + t("native.labs.compass.calibrate"), style = Boar.type.body, color = c.amber400,
-                    modifier = Modifier.fillMaxWidth().background(c.amberBgSubtle, RoundedCornerShape(10.dp)).padding(12.dp))
-            Text(t("native.labs.compass.note"), style = Boar.type["mono.xs"], color = c.textDim)
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.compass.exampleQ"), t("native.labs.compass.exampleA"),
+                (1..2).map { t("native.labs.compass.example$it") }, t("native.labs.compass.how"))
         }
     }
 
     /** "n", "ne", "e"… for the 8 directions, each 45° wide. */
-    fun cardinal(deg: Int): String = listOf("n", "ne", "e", "se", "s", "sw", "w", "nw")[((deg + 22) % 360) / 45]
+    fun cardinal(deg: Int): String = team.sopa.boar.engine.labs.Compass.cardinal(deg)
 
     /** The dial turns so its N points to magnetic north; the marker at the top is where the phone points. */
     @Composable

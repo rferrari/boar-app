@@ -22,6 +22,8 @@ object AboutCredits {
     val sources: List<Pair<String, String>> = listOf(
         "native.about.creditWikipedia" to "CC BY-SA 4.0",
         "native.about.creditHuggingFace" to "—",
+        // The FAQ BOAR answers from (BoarPack; adam: "Amandita credit ok", t9 0315).
+        "native.about.creditFaq" to "MIT",
     )
 
     /** Set at start by a build that ships more (Boar Labs: its engines and models). */

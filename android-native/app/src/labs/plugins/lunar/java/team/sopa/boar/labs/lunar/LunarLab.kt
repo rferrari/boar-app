@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.lunar
 
+import team.sopa.boar.engine.labs.MoonPhase
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,6 +49,14 @@ object LunarLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_lunar
     override val status = LabStatus.ALPHA
 
+    /** A question about the moon now ("what phase is the moon tonight"): answered here, from the date (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isMoonQuestion(query)
+
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        if (!team.sopa.boar.engine.labs.PluginAnswers.isMoonQuestion(query)) null
+        else team.sopa.boar.plugins.ToolResult.Instant("lunar-phase", team.sopa.boar.engine.labs.PluginAnswers.moonAnswer(query, System.currentTimeMillis()))
+    }
+
     /**
      * Time zones south of the equator: the default hemisphere until the user picks one. The time zone, not the language:
      * a phone in Brazil set to English (US) said "north" (X6, Oct 16).
@@ -93,7 +102,10 @@ object LunarLab : LabPlugin {
                 }
             }
             Month(now, monthOffset, isSouth, onMove = { monthOffset += it })
-            Text(t("native.labs.lunar.note"), style = Boar.type["mono.xs"], color = c.textDim)
+            // The page template under the live moon (Nov 12). The example's reply is the chat's own answer, worked out now.
+            val q = t("native.labs.lunar.exampleQ")
+            team.sopa.boar.labs.AnswerPage(null, q, team.sopa.boar.engine.labs.PluginAnswers.moonAnswer(q, now),
+                (1..2).map { t("native.labs.lunar.example$it") }, t("native.labs.lunar.how"))
         }
     }
 
