@@ -532,7 +532,7 @@ private fun TweaksSection(services: BoarServices, technical: Boolean, technicalS
 }
 
 /**
- * Settings → Profile (rc3): Simple, Explorer or Pro, each with one plain sentence. After an update gave the user a
+ * Settings → Profile (rc3): Starter (id SIMPLE), Explorer or Pro, each with one plain sentence. After an update gave the user a
  * profile, it opens once with a note saying which one and why.
  */
 /**

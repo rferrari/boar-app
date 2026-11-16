@@ -710,10 +710,10 @@
     <string name="native_a11y_done" formatted="false">Done</string>
     <string name="native_a11y_back" formatted="false">Back</string>
     <string name="native_settings_profile_title" formatted="false">Profile</string>
-    <string name="native_settings_profile_simple" formatted="false">Simple</string>
+    <string name="native_settings_profile_simple" formatted="false">Starter</string>
     <string name="native_settings_profile_simpleNote" formatted="false">Just the essentials: language, look, PIN, models and starting over.</string>
     <string name="native_settings_profile_explorer" formatted="false">Explorer</string>
-    <string name="native_settings_profile_explorerNote" formatted="false">Simple, plus how BOAR answers, knowledge, chats, voice and Boarverse.</string>
+    <string name="native_settings_profile_explorerNote" formatted="false">Starter, plus how BOAR answers, knowledge, chats, voice and Boarverse.</string>
     <string name="native_settings_profile_pro" formatted="false">Pro</string>
     <string name="native_settings_profile_proNote" formatted="false">Everything, plus Advanced tweaks, technical details and plugin settings. Below Pro, these go back to Auto; your choices return when you pick Pro again (Reset settings clears them).</string>
     <string name="native_settings_profile_updated" formatted="false">New in this version: profiles. BOAR picked {{profile}} from your settings. Change it any time.</string>
@@ -757,9 +757,9 @@
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} waiting questions were dropped: they need that model too.</string>
     <string name="native_chat_mergeQueue" formatted="false">Merge into one question</string>
     <string name="native_nav_chat" formatted="false">Chat</string>
-    <string name="native_settings_profile_simpleShort" formatted="false">Simple: the essentials, nothing to set up.</string>
-    <string name="native_settings_profile_explorerShort" formatted="false">Explorer: more control, plugins, memory, voice.</string>
-    <string name="native_settings_profile_proShort" formatted="false">Pro: everything, with Advanced tweaks and plugin settings.</string>
+    <string name="native_settings_profile_simpleShort" formatted="false">Starter: set up the essentials.</string>
+    <string name="native_settings_profile_explorerShort" formatted="false">Explorer: discover more features.</string>
+    <string name="native_settings_profile_proShort" formatted="false">Pro: advanced settings and tweaks.</string>
     <string name="native_settings_profile_downNote" formatted="false">Plugins and Advanced tweaks pause below Pro. Your settings are kept.</string>
     <string name="native_drawer_searchChats" formatted="false">Search chats</string>
     <string name="native_drawer_group_today" formatted="false">Today</string>

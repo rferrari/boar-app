@@ -710,10 +710,10 @@
     <string name="native_a11y_done" formatted="false">Confirmar</string>
     <string name="native_a11y_back" formatted="false">Voltar</string>
     <string name="native_settings_profile_title" formatted="false">Perfil</string>
-    <string name="native_settings_profile_simple" formatted="false">Simples</string>
+    <string name="native_settings_profile_simple" formatted="false">Iniciante</string>
     <string name="native_settings_profile_simpleNote" formatted="false">Só o essencial: idioma, aparência, PIN, modelos e recomeçar.</string>
     <string name="native_settings_profile_explorer" formatted="false">Explorador</string>
-    <string name="native_settings_profile_explorerNote" formatted="false">O Simples, mais como o BOAR responde, conhecimento, conversas, voz e Boarverse.</string>
+    <string name="native_settings_profile_explorerNote" formatted="false">O Iniciante, mais como o BOAR responde, conhecimento, conversas, voz e Boarverse.</string>
     <string name="native_settings_profile_pro" formatted="false">Pro</string>
     <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações dos Plugins. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
     <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
@@ -757,9 +757,9 @@
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} perguntas na fila foram descartadas: elas também precisam desse modelo.</string>
     <string name="native_chat_mergeQueue" formatted="false">Juntar numa só pergunta</string>
     <string name="native_nav_chat" formatted="false">Conversa</string>
-    <string name="native_settings_profile_simpleShort" formatted="false">Simples: o essencial, nada para configurar.</string>
-    <string name="native_settings_profile_explorerShort" formatted="false">Explorador: mais controle, plugins, memória, voz.</string>
-    <string name="native_settings_profile_proShort" formatted="false">Pro: tudo, com Ajustes avançados e configurações de plugins.</string>
+    <string name="native_settings_profile_simpleShort" formatted="false">Iniciante: configure o essencial.</string>
+    <string name="native_settings_profile_explorerShort" formatted="false">Explorador: descubra mais recursos.</string>
+    <string name="native_settings_profile_proShort" formatted="false">Pro: ajustes avançados e afine tudo.</string>
     <string name="native_settings_profile_downNote" formatted="false">Plugins e Ajustes avançados pausam abaixo do Pro. Suas configurações ficam salvas.</string>
     <string name="native_drawer_searchChats" formatted="false">Buscar conversas</string>
     <string name="native_drawer_group_today" formatted="false">Hoje</string>
