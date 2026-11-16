@@ -70,7 +70,7 @@ class PressFooterTest {
 
     @Test fun `the user's own file names never print, a pack's source and link do (validator A-1)`() {
         val mine = Block.Answer("m", "Chat", "Q?", "A [1] [2] [3].", listOf(
-            PressDoc.Source("Imposto 2025", "imposto-2025-joao-silva.pdf"),
+            PressDoc.Source("Imposto 2025", "imposto-2025.pdf"),
             PressDoc.Source("Nosebleed", "Wikipedia — https://en.wikipedia.org/wiki/Nosebleed (CC BY-SA 4.0)"),
             PressDoc.Source("Notes", "  "),
         ), 1, "Qwen3 4B", 9.5)
@@ -133,7 +133,7 @@ class PressBarNoteTest {
 class PressOwnFileNameTest {
     @Test fun `the Sources section, the receipt and the Markdown never print a user's file title`() {
         val mine = Block.Answer("m", "Chat", "Q?", "A [1] [2].", listOf(
-            PressDoc.Source("imposto-2025-joao-silva", "imposto-2025-joao-silva.pdf"),
+            PressDoc.Source("imposto-2025", "imposto-2025.pdf"),
             PressDoc.Source("Tax", "Wikipedia — https://en.wikipedia.org/wiki/Tax"),
         ), 1, "Qwen3 4B", 9.5)
         val p = PressDoc.Project("q", "Mine", 1, listOf(mine))
@@ -141,7 +141,7 @@ class PressOwnFileNameTest {
         val lines = PressReceipt.sourceLines(r, PressReceipt.Options(), "Arquivo seu")
         assertEquals(listOf("[1] Arquivo seu", "[2] Tax — Wikipedia — https://en.wikipedia.org/wiki/Tax"), lines)
         val md = PressReceipt.markdown(p, PressReceipt.Labels(), "today", "x", "Sources", "Drawing", r, "Photo", PressReceipt.Options())
-        assertTrue(md, "joao-silva" !in md)
+        assertTrue(md, "imposto-2025" !in md)
         val canvas = java.io.File("../app/src/labs/plugins/canvas/java/team/sopa/boar/labs/canvas/CanvasLab.kt").readText()
         assertTrue(!canvas.contains("a.sources.map { it.first }") && canvas.contains("PressReceipt.shareable(src)"))
     }

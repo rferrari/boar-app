@@ -173,7 +173,7 @@ object PressReceipt {
     /**
      * A source as the Sources section prints it. A pack's prints its title and "Label — https://…"; a user's own file
      * (its source is the file name, and its title the file name without the extension, DocumentImport.parse) prints
-     * [ownFile] only, under its own [n] (validator R-A1: "[1] imposto-2025-joao-silva").
+     * [ownFile] only, under its own [n] (validator R-A1: "[1] imposto-2025").
      */
     fun sourceText(s: PressDoc.Source, ownFile: String = Labels().ownFile): String = when {
         s.source.isNullOrBlank() -> s.title
@@ -183,7 +183,7 @@ object PressReceipt {
 
     /**
      * A source that may print in a shared PDF or .md (validator A-1): a pack's or the corpus's "Wikipedia — https://…", or
-     * a pack's bare label. For the user's own files the source is the file name ("imposto-2025-joao-silva.pdf"): never.
+     * a pack's bare label. For the user's own files the source is the file name ("imposto-2025.pdf"): never.
      */
     fun shareable(source: String): Boolean {
         val s = source.trim()
@@ -195,7 +195,7 @@ object PressReceipt {
     /**
      * The project as it is shared (PDF, .md): each user's own file named in what came from the chat (the question, the
      * chat title, the answer's text, its card's title) reads [ownFile] (validator Q-B3, t9 0115: "### what does
-     * imposto-2025-joao-silva.pdf say about tax?"). What the user typed in Press (headings, notes, the project's name) is
+     * imposto-2025.pdf say about tax?"). What the user typed in Press (headings, notes, the project's name) is
      * theirs and stays. The sources aren't touched: they already print as [ownFile].
      */
     fun scrubOwnFiles(project: PressDoc.Project, ownFile: String): PressDoc.Project {

@@ -51,8 +51,12 @@ function jsonlFiles(dir) {
   });
 }
 
-/** The team's phones by adb serial, so the page says "F3" and "X6". */
-const PHONES = { "5485cf25": "F3 (POCO F3)", SSYLAQFILNBEKBEQ: "X6" };
+/**
+ * Names for the team's phones by adb serial, so the page says "F3" and "X6": read from scripts/phones.local.json
+ * ({"<serial>": "<name>"}, gitignored) when it exists; otherwise each phone is labelled by its serial.
+ */
+const PHONES_FILE = join(repo, "scripts", "phones.local.json");
+const PHONES = existsSync(PHONES_FILE) ? JSON.parse(readFileSync(PHONES_FILE, "utf8")) : {};
 
 const files = [...jsonlFiles(runsDir), ...jsonlFiles(join(repo, "docs", "evidence"))];
 const seen = new Map();

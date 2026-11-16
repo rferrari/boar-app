@@ -794,7 +794,7 @@
     <string name="native_eval_level_complete_note" formatted="false">Succinct and Detailed on both models, and Deep Research for the research topic.</string>
     <string name="native_eval_level_byHand_note" formatted="false">The models you tick, in the default style.</string>
     <string name="native_eval_topic_title" formatted="false">Topic</string>
-    <string name="native_eval_topic_draft" formatted="false">Draft, for t9\'s review: its rules don\'t count yet.</string>
+    <string name="native_eval_topic_draft" formatted="false">Draft: its rules don\'t count yet.</string>
     <string name="native_eval_planModels" formatted="false">Models: {{models}}</string>
     <string name="native_eval_expected" formatted="false">Expected: about {{time}} for {{answers}} answers</string>
     <string name="native_eval_expected_untimed" formatted="false">plus {{count}} Deep Research answers nobody has timed yet</string>

@@ -794,7 +794,7 @@
     <string name="native_eval_level_complete_note" formatted="false">Sucinto e Detalhado nos dois modelos, e Pesquisa profunda no tema de pesquisa.</string>
     <string name="native_eval_level_byHand_note" formatted="false">Os modelos que você marcar, no estilo padrão.</string>
     <string name="native_eval_topic_title" formatted="false">Tema</string>
-    <string name="native_eval_topic_draft" formatted="false">Rascunho, para revisão do t9: as regras ainda não contam.</string>
+    <string name="native_eval_topic_draft" formatted="false">Rascunho: as regras ainda não contam.</string>
     <string name="native_eval_planModels" formatted="false">Modelos: {{models}}</string>
     <string name="native_eval_expected" formatted="false">Previsto: cerca de {{time}} para {{answers}} respostas</string>
     <string name="native_eval_expected_untimed" formatted="false">mais {{count}} respostas de Pesquisa profunda que ninguém cronometrou ainda</string>
