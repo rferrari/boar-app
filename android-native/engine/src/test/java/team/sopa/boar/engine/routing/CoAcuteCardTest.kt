@@ -127,4 +127,49 @@ class CoAcuteCardTest {
             "Jackery generator indoors, I have a headache", "Meu gerador solar está na garagem e estou com dor de cabeça"))
             assertTrue(q, hit(q)?.tool != LabTools.CO_ACUTE)
     }
+
+    /** The validator's gate of eaa0161c, part C (t9 2226 item 1): the acute card's false negatives. */
+    @Test fun `home fuel appliances count with a symptom, vented or not (R-C1)`() {
+        for (q in listOf("We all have headaches, the gas furnace was running all night",
+            "my head hurts and we have a gas water heater in the closet, the alarm keeps going off",
+            "headache and nausea, the whole house, the boiler was serviced yesterday",
+            "everyone in the house has a headache since the furnace was repaired",
+            "we lit the wood stove and now we feel dizzy", "headache after sitting by the fireplace all evening",
+            "the pellet stove is on and my kids are vomiting", "usamos a lareira e estamos com dor de cabeça e tontura"))
+            assertEquals(q, LabTools.CO_ACUTE, hit(q)?.tool)
+        // Electric ones stay out.
+        for (q in listOf("I have a headache, the electric heater is on", "my electric furnace is on and I have a headache"))
+            assertTrue(q, hit(q)?.tool != LabTools.CO_ACUTE)
+    }
+
+    @Test fun `an alarm going off and a symptom fire with nothing named, not with smoke (R-C1b)`() {
+        for (q in listOf("the alarm is going off and I feel dizzy", "alarm beeping, headache, nausea, whole family"))
+            assertEquals(q, LabTools.CO_ACUTE, hit(q)?.tool)
+        assertTrue(hit("the smoke alarm is going off and I feel dizzy")?.tool != LabTools.CO_ACUTE)
+        assertTrue(hit("fire alarm ringing and I have a headache")?.tool != LabTools.CO_ACUTE)
+    }
+
+    @Test fun `past tense, more alarm verbs, typos and Portuguese past forms (R-C2, R-C3)`() {
+        for (q in listOf("I felt sick after the generator ran", "I felt weak after the propane heater",
+            "I felt sick after the pressure washer ran in the basement",
+            "my CO alarm is ringing", "the carbon monoxide detector is buzzing", "co alarm just triggered and I'm dizzy",
+            "carbon monixide alarm going off", "carbon monoxid detector beeeping", "monoxide alarm going off", "c.o. alarm going off",
+            "o alarme de monóxido não para de apitar", "la alarma de monóxido no para de sonar",
+            "liguei o carro na garagem e estou com dor de cabeça"))
+            assertEquals(q, LabTools.CO_ACUTE, hit(q)?.tool)
+    }
+
+    @Test fun `a Spanish reading gets the Spanish card (R-C4)`() {
+        for (q in listOf("el detector de monóxido marca 60 ppm", "mi alarma de monóxido de carbono indica 40",
+            "el monóxido de carbono está en 50 ppm en el sótano"))
+            assertTrue(q, hit(q)!!.text.startsWith(CoHazard.CO_ACUTE_ES))
+        assertTrue(hit("o detector de monóxido marca 60 ppm")!!.text.startsWith(CoHazard.CO_ACUTE_PT))
+    }
+
+    @Test fun `adam's no-card cases stay no-card`() {
+        for ((q, card) in review) assertEquals(q, card, hit(q)?.tool == LabTools.CO_ACUTE)
+        for (q in listOf("my smoke alarm is beeping", "CO2 levels are high and I feel dizzy", "My CO alarm keeps chirping every minute",
+            "I used my solar generator in the tent and now I have a headache", "I have a headache and feel dizzy"))
+            assertTrue(q, hit(q)?.tool != LabTools.CO_ACUTE)
+    }
 }

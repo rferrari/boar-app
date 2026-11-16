@@ -253,7 +253,7 @@ object CoHazard {
         ),
         engine = re(
             """$B(?:carros?|caminhonetes?|caminh[ãa]o|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|ro[çc]adeiras?|motosserras?|quadriciclos?|vans?|suvs?)$E.{0,40}$B(?:ligad[oa]s?|funcionando|rodando|em ponto morto|em marcha lenta|esquentando|aquecendo|ligar|ligando)$E""" +
-                """|$B(?:ligar|ligando|esquentar|aquecer|dar partida)$E.{0,25}$B(?:carros?|caminhonetes?|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|suvs?)$E""",
+                """|$B(?:ligar|ligando|liguei|ligamos|ligou|ligaram|deixei ligado|deixamos ligado|esquentar|aquecer|dar partida|dei partida)$E.{0,25}$B(?:carros?|caminhonetes?|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|suvs?)$E""",
         ),
         engineSpace = re("""$B(?:garage(?:m|ns)|abrigos?|por[ãa]o|dep[óo]sito|galp[ãa]o|fechad[oa]s?)$E"""),
         placement = re(
@@ -391,7 +391,7 @@ object CoHazard {
 
     /** Carbon monoxide named: never "CO" alone (CO2, Colorado, a company), never a smoke alarm. */
     private val CO_NAMED = Regex(
-        """(?<![\p{L}\p{N}])(?:carbon[ -]monoxide|mon[óo]xido de carbono|co (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:alarmes?|alarmas?|detector(?:es)?|sensor(?:es)?|intoxica[çc][ãa]o|intoxicaci[óo]n|envenenamento|envenenamiento|n[íi]vel|nivel) (?:de|por) (?:co|mon[óo]xido))(?![\p{L}\p{N}])""",
+        """(?<![\p{L}\p{N}])(?:carbon[ -]?mon[oi]x(?:i|y)?de?s?|mon[óo]xido de carbono|mon[oi]xide (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:co|c\.o\.?) (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:alarmes?|alarmas?|detector(?:es)?|sensor(?:es)?|intoxica[çc][ãa]o|intoxicaci[óo]n|envenenamento|envenenamiento|n[íi]vel|nivel) (?:de|por) (?:co|mon[óo]xido))(?![\p{L}\p{N}])""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -407,7 +407,7 @@ object CoHazard {
 
     /** A symptom, per language: ACUTE's, PT.acute's and ES.acute's symptom words. */
     private val SYMPTOM_EN = re(
-        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|feel(?:s|ing)? (?:sick|ill|weird|woozy|weak))$E""",
+        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|(?:feel(?:s|ing)?|felt) (?:sick|ill|weird|woozy|weak|dizzy|faint|nauseous|lightheaded|light-headed))$E""",
     )
     private val SYMPTOM_PT = re(
         """$B(?:dor(?:es)? de cabe[çc]a|cabe[çc]a (?:d[óo]i|doendo|latejando|explodindo)|tontu\p{L}*|tont[oa]s?|zonz[oa]s?|enjo\p{L}*|n[áa]usea\p{L}*|vomit\p{L}*|v[ôo]mito\p{L}*|desmai\p{L}*|inconscient\p{L}*|confus\p{L}*|sonol[êe]n\p{L}*|dor no peito|falta de ar|sem ar|n[ãa]o (?:consigo|consegue) respirar|n[ãa]o (?:acorda|consegue acordar)|dif[íi]cil de acordar|fala enrolada|passando mal|(?:me )?sentindo (?:mal|estranh\p{L}*|frac[oa]))$E""",
@@ -420,9 +420,9 @@ object CoHazard {
      * An alarm going off, beeping or sounding, per language. Not chirping (a low battery or an alarm at its end of life),
      * not "says", "reads", "shows", "error" or "is on": the model answers those (review decision 2).
      */
-    private val ALARM_OFF_EN = re("""$B(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|beeping|beeps|beeped|sounding|sounds|sounded|alarming|blaring|screaming|shrieking)$E""")
-    private val ALARM_OFF_PT = re("""$B(?:alarmes?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:tocando|tocou|toca|disparou|disparando|dispara|apitando|apitou|apita|bipando|bipou|soando|soou)$E""")
-    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando)$E""")
+    private val ALARM_OFF_EN = re("""$B(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|be{2,}p(?:ing|s|ed)?|sounding|sounds|sounded|alarming|blaring|screaming|shrieking|ringing|rings|rang|buzzing|buzzes|buzzed|wailing|triggered|activated|won'?t stop)$E""")
+    private val ALARM_OFF_PT = re("""$B(?:alarmes?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:tocando|tocou|toca|disparou|disparando|dispara|apitando|apitou|apita|bipando|bipou|soando|soou|n[ãa]o para de (?:apitar|tocar|bipar|disparar))$E""")
+    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando|no para de (?:sonar|pitar))$E""")
 
     /** A reading: "50 ppm", or an alarm that reads, says or shows a number. Above 0 only ("reads 0 ppm" is normal). */
     private val PPM = Regex("""(?<![\d.,])(\d+(?:[.,]\d+)?)\s*ppm\b""", RegexOption.IGNORE_CASE)
@@ -435,8 +435,24 @@ object CoHazard {
      * A fuel-burning device named, with or without a space: the planning card's device words in each language (electric,
      * solar and battery generators stay out, as DEVICE and PT/ES device already leave them).
      */
+    /**
+     * Fuel appliances in the home (validator R-C1): the planning card leaves installed and vented ones out ("not this
+     * hazard" when planning), but with symptoms they are the commonest cause: "we all have headaches, the gas furnace
+     * was running all night". Counted for the acute card only, never when the question says electric, solar or battery.
+     */
+    private val HOME_APPLIANCE = re(
+        """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno a gas|cocina a gas)$E""",
+    )
+    private val ELECTRIC = re("""$B(?:electric\w*|el[ée]tric\w*|el[ée]ctric\w*|solar|battery|bateria|bater[íi]a|induction|indu[çc][ãa]o|inducci[óo]n|heat pump|bomba de calor)$E""")
+
+    private val ES_ONLY = re("""$B(?:el|mi|mis|sótano|s[óo]tano|est[áa] en|hay|tengo|estoy|tenemos|qué|cómo|garaje|cocina|habitaci[óo]n)$E""")
+
+    /** Smoke or fire named: an alarm going off with a symptom is then the smoke alarm's question, not this card's (R-C1b). */
+    private val SMOKE = re("""$B(?:smoke|fire|burning smell|fuma[çc]a|fogo|inc[êe]ndio|humo|fuego|incendio)$E""")
+
     private fun fuelDevice(query: String): Boolean {
         var q = QUOTES.replace(query, "'")
+        if (HOME_APPLIANCE.containsMatchIn(q) && !ELECTRIC.containsMatchIn(q)) return true
         q = GENERATOR_TYPO.replace(q, "generator")
         q = PROPANE_TYPO.replace(q, "propane")
         q = KEROSENE_TYPO.replace(q, "kerosene")
@@ -460,7 +476,11 @@ object CoHazard {
         val sEn = SYMPTOM_EN.containsMatchIn(q); val sPt = SYMPTOM_PT.containsMatchIn(q); val sEs = SYMPTOM_ES.containsMatchIn(q)
         val aEn = ALARM_OFF_EN.containsMatchIn(q); val aPt = ALARM_OFF_PT.containsMatchIn(q); val aEs = ALARM_OFF_ES.containsMatchIn(q)
         val symptom = sEn || sPt || sEs
-        val fires = if (CO_NAMED.containsMatchIn(q)) symptom || aEn || aPt || aEs || readingAboveZero(q) else symptom && fuelDevice(query)
+        val alarm = aEn || aPt || aEs
+        val fires = if (CO_NAMED.containsMatchIn(q)) symptom || alarm || readingAboveZero(q)
+            // An alarm going off and someone feeling ill, nothing named (R-C1b): carbon monoxide until shown otherwise,
+            // unless it's smoke or fire.
+            else symptom && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q)))
         if (!fires) return null
         val pt = sPt || aPt; val es = sEs || aEs
         // The generic detectors read Spanish shared words ("de", "está") as Portuguese: a language's own words decide first.
@@ -468,6 +488,9 @@ object CoHazard {
             es && !pt -> "es"
             pt && !es -> "pt"
             QueryContext.isSpanishQuestion(query) -> "es"
+            // A reading alone ("el detector de monóxido marca 60 ppm") has no alarm or symptom words: Spanish's own small
+            // words decide before the Portuguese detector and the shared "monóxido" (R-C4).
+            ES_ONLY.containsMatchIn(q) -> "es"
             QueryContext.isPortugueseQuestion(query) -> "pt"
             Regex("""mon[óo]xido""", RegexOption.IGNORE_CASE).containsMatchIn(q) -> "pt"
             else -> "en"
