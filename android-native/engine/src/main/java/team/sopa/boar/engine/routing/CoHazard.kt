@@ -444,9 +444,6 @@ object CoHazard {
         """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|coal stoves?|camp(?:ing)? stoves?|fire ?pits?|braziers?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno (?:a|de) gas|cocina (?:a|de) gas|estufa de gas)$E""",
     )
     /** Money, not air (validator Q-A2): "a headache from the bill", "sick after the boiler repair bill". Only when CO isn't named. */
-    // Only when the symptom is blamed on the money (CodeRabbit on all73): "I cannot pay for heating, so I ran the generator
-    // inside and now I have a headache" is an exposure, and a money word elsewhere must not veto the card.
-    private val MONEY = re("""$B(?:headaches?|sick|ill|dizzy|nause\w*|stressed)$E[^.!?]{0,12}?$B(?:from|after|over|about|because of|due to)$E(?:\s+[\p{L}'-]+){0,4}?\s+(?:bills?|invoices?|quotes?|estimates?|costs?|prices?)$E""")
     /** Carbon dioxide named: a CO2 alarm going off is not this card's (Q-A2); only when CO itself isn't named. */
     private val CO2 = re("""$B(?:co2|co₂|carbon dioxide|di[óo]xido de carbono)$E""")
     private val ELECTRIC = re("""$B(?:electric\w*|el[ée]tric\w*|el[ée]ctric\w*|solar|battery|bateria|bater[íi]a|induction|indu[çc][ãa]o|inducci[óo]n|heat pump|bomba de calor)$E""")
@@ -486,7 +483,9 @@ object CoHazard {
         val fires = if (CO_NAMED.containsMatchIn(q)) symptom || alarm || readingAboveZero(q)
             // An alarm going off and someone feeling ill, nothing named (R-C1b): carbon monoxide until shown otherwise,
             // unless it's smoke or fire.
-            else symptom && !MONEY.containsMatchIn(q) && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q) && !CO2.containsMatchIn(q)))
+            // Frozen (adam, 23 Nov; t9 0435): no money-word veto (validator P-A3: it hid real exposures in two-clause
+            // messages); a card shown when a person wouldn't give one errs to the safe side.
+            else symptom && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q) && !CO2.containsMatchIn(q)))
         if (!fires) return null
         val pt = sPt || aPt; val es = sEs || aEs
         // The generic detectors read Spanish shared words ("de", "está") as Portuguese: a language's own words decide first.

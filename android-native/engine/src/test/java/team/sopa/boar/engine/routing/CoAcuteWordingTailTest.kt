@@ -32,13 +32,20 @@ class CoAcuteWordingTailTest {
         assertEquals("es", lang("mi hijo está muy dormido y la estufa a gas está encendida"))
     }
 
-    @Test fun `no card where a person wouldn't give one (Q-A2)`() {
+    @Test fun `no card where a person wouldn't give one (Q-A2), and money never hides one (P-A3)`() {
         for (q in listOf(
             "my gas stove is great, I feel sick of cooking",
-            "the boiler broke and I have a headache from the bill",
-            "I felt sick after the boiler repair bill",
             "CO2 alarm beeping and I feel sick",
         )) assertEquals(q, null, lang(q))
+        // Golden change (adam, 23 Nov: the CO card frozen; t9 0435): no money-word veto. A headache blamed on a bill
+        // near a boiler now gets the card (the safe side), and the two-clause exposures the veto hid get it again.
+        for (q in listOf(
+            "the boiler broke and I have a headache from the bill",
+            "I felt sick after the boiler repair bill",
+            "I got a headache from the gas bill, then I ran the generator inside and now I feel dizzy",
+            "stressed about the heating bill, we ran the propane heater all night and I have a headache",
+            "headache from the cost of heating, ran the generator indoors",
+        )) assertEquals(q, "en", lang(q))
         // Still a card: money named, but the headache is the generator's (CodeRabbit on all73).
         for (q in listOf("I cannot pay for heating, so I ran the generator inside and now I have a headache",
             "the furnace repair was expensive, it ran all night and we all have headaches",
