@@ -99,8 +99,11 @@ object RagPure {
      * importam para a agricultura…". Only for a Portuguese question (validator R-D4: "What is DOS?", "What is Na?",
      * "Uma Thurman" lost their keyword). Folded forms, as tokenize gives them.
      */
-    /** An English question ("What is Na?"): a short one reads as Portuguese to looksPortuguese. */
-    private val EN_QUESTION = Regex("""(?<![\p{L}])(?:what|who|whom|which|how|why|when|where|is|are|was|were|does|do|did|the|of|and)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    /**
+     * An English question ("What is Na?"): a short one reads as Portuguese to looksPortuguese. No "do": it is Portuguese
+     * too ("da agricultura do Brasil"), and kept every Portuguese function word as a keyword (validator P-C6, t9 0435).
+     */
+    private val EN_QUESTION = Regex("""(?<![\p{L}])(?:what|who|whom|which|how|why|when|where|is|are|was|were|does|did|the|of|and)(?![\p{L}])""", RegexOption.IGNORE_CASE)
 
     private val PT_STOPWORDS = setOf(
         "para", "por", "pelo", "pela", "como", "que", "uma", "um", "das", "dos", "da", "do", "de", "em", "no", "na", "nos", "nas",
