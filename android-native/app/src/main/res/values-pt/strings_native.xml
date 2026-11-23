@@ -856,4 +856,5 @@
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo da conversa enquanto o BOAR escreve.</string>
     <string name="native_labs_switchRow" formatted="false">{{name}} ligado</string>
     <string name="native_labs_switchRowNote" formatted="false">Desligado, continua aqui para ligar de novo.</string>
+    <string name="native_vault_allTile" formatted="false">Todos {{count}} ›</string>
 </resources>

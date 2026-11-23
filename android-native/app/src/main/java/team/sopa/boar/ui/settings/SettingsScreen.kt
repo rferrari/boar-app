@@ -141,7 +141,8 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 var theme by remember { mutableStateOf(s.themeId) }
                 if (shown(SettingsPart.THEME)) team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
                     onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
-                if (avatarsOn && shown(SettingsPart.AVATARS)) team.sopa.boar.ui.appearance.AvatarPicker(services.vault)
+                // Boar Avatars live here now, a few with the last box opening them all (adam, 23 Nov): no section of their own.
+                if (avatarsOn && shown(SettingsPart.AVATARS)) team.sopa.boar.ui.appearance.AvatarPicker(services.vault) { onOpen("vault") }
                 var scale by remember { mutableStateOf(s.fontScale) }
                 if (shown(SettingsPart.TEXT_SIZE)) Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
                 var orientation by remember { mutableStateOf(s.screenOrientation) }
@@ -153,11 +154,6 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 // The live tok/s while BOAR answers, off by default, in every profile (adam, 16 Nov).
                 var speed by remember { mutableStateOf(s.showLiveSpeed) }
                 SwitchRow(t("native.settings.liveSpeed"), t("native.settings.liveSpeedNote"), speed) { speed = it; s.showLiveSpeed = it }
-            }
-            // Boarverse on: the Vault gets its own section, a teaser and the way in (the avatar is chosen above, with the theme).
-            if (avatarsOn && shown(SettingsPart.AVATARS)) Section(t("native.vault.title"), team.sopa.boar.R.drawable.ic_settings_avatars) {
-                Note(t("native.vault.teaser"))
-                team.sopa.boar.ui.appearance.VaultEntry { onOpen("vault") }
             }
             // Language and voice in one section (adam: "both has only 1 option each"): the language for everyone, the voice
             // rows from Explorer. Voice listens in the app's language (VoiceInput).

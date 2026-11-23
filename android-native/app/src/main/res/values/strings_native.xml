@@ -856,4 +856,5 @@
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens per second, at the top of the chat while BOAR writes.</string>
     <string name="native_labs_switchRow" formatted="false">{{name}} on</string>
     <string name="native_labs_switchRowNote" formatted="false">Off, it stays here to switch on again.</string>
+    <string name="native_vault_allTile" formatted="false">All {{count}} ›</string>
 </resources>
