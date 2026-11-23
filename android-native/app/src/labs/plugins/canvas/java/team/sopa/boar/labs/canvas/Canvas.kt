@@ -120,8 +120,7 @@ internal object Canvas {
         val services = team.sopa.boar.app.BoarServices.get(ctx)
         if (!services.claimModelForLab()) { status[id] = Status.Failed("native.labs.canvas.busy"); return }
         status[id] = Status.Making
-        jobs[id] = scope.launch {
-          try {
+        val job = scope.launch {
             val none = VisualContext.Earlier(emptyList(), "")
             val earlier = runCatching { earlier(ctx, a) }.getOrDefault(none)
             // A number the answer leaves out may be in its own sources (Brazil's area in "Economy of Brazil").
@@ -143,8 +142,11 @@ internal object Canvas {
             }
             android.util.Log.i("BoarLabs", "cards $id: model -> ${status[id]?.javaClass?.simpleName ?: "card"}")
             jobs.remove(id)
-          } finally { services.releaseModelForLab() }
         }
+        // Released however the job ends, even cancelled before its body ran (validator P-A2: a try/finally inside the
+        // body never ran then, and every later chat question waited 150 s until a restart).
+        job.invokeOnCompletion { services.releaseModelForLab() }
+        jobs[id] = job
     }
 
     /** Stops the model's card for [id] and forgets its state (✕ on a wait or a failure). */
@@ -210,7 +212,8 @@ internal object Canvas {
 
     /** The model's reply; null when no model is loaded. No session.cancel() of its own: the chat's Stop cancels it. */
     private suspend fun generate(ctx: Context, a: AnswerRef, earlier: VisualContext.Earlier, sources: VisualContext.Earlier): String? {
-        val session = BoarServices.get(ctx).activeSession() ?: return null
+        // As the lab that holds the model (validator P-A1): without forLab the card waited 150 s for its own hold.
+        val session = BoarServices.get(ctx).activeSession(forLab = true) ?: return null
         return SessionEngine(session).generate(Visual.PROMPT, VisualContext.prompt(a.question, a.text, earlier, sources),
             nPredict = 700, temperature = 0.2f, timeoutMs = 180_000, onToken = null).text
     }
