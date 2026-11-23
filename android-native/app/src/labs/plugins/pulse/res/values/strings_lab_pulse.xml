@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_pulse_title" formatted="false">Boar Vitals</string>
-    <string name="native_labs_pulse_body" formatted="false">Watch your phone work: heat, every core\'s clock, memory and the chip BOAR runs on.</string>
+    <string name="native_labs_pulse_title" formatted="false">Vitals</string>
+    <string name="native_labs_pulse_body" formatted="false">Watch your phone work: heat, battery, cores and memory.</string>
     <string name="native_labs_pulse_heat" formatted="false">HEAT</string>
     <string name="native_labs_pulse_heatNote" formatted="false">last {{seconds}} s · min {{min}} °C · max {{max}} °C</string>
     <string name="native_labs_pulse_cores" formatted="false">CORES</string>
@@ -17,8 +17,13 @@
     <string name="native_labs_pulse_thermal_light" formatted="false">warm</string>
     <string name="native_labs_pulse_thermal_moderate" formatted="false">hot: Android may slow it down</string>
     <string name="native_labs_pulse_thermal_severe" formatted="false">too hot: Android is slowing it down</string>
-    <string name="native_labs_pulse_tip" formatted="false">Leave this open, ask BOAR something or draw an image, then come back to see what it cost.</string>
+    <string name="native_labs_pulse_tip" formatted="false">Leave this open, ask something or draw, then come back to see what it cost.</string>
     <string name="native_labs_pulse_ramApp" formatted="false">app</string>
     <string name="native_labs_pulse_ramMapped" formatted="false">model file {{size}} GB</string>
     <string name="native_labs_pulse_ramEngine" formatted="false">{{name}} engine</string>
+    <string name="native_labs_pulse_exampleQ" formatted="false">Is my phone getting hot?</string>
+    <string name="native_labs_pulse_exampleA" formatted="false">Battery at 64%, charging; battery temperature 33.0 °C (cool); 3.1 GB of 11.2 GB memory free; 8 processor cores. Read on this phone just now; Vitals shows more.</string>
+    <string name="native_labs_pulse_example1" formatted="false">Is my phone getting hot?</string>
+    <string name="native_labs_pulse_example2" formatted="false">How much memory does my phone have free?</string>
+    <string name="native_labs_pulse_how" formatted="false">• Heat, battery, every core\'s clock, memory and the chip BOAR runs on, read on this phone.\n• You can also ask in the chat how hot your phone is.</string>
 </resources>

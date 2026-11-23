@@ -8,9 +8,15 @@ import team.sopa.boar.engine.rag.Chunk
  * BoarServices.search. With no stage, search is exactly the built-in one.
  */
 fun interface SearchStage {
-    /** [chunks] in search order (twice [topK] when a stage is on, for it to choose from); return at most [topK]. */
+    /**
+     * [chunks] in search order (twice [topK] when a stage is on, for it to choose from); return at most [topK], plus at
+     * most [EXTRA] dated table sources after them (Facts' country figures, t9 0110 item 5).
+     */
     fun process(query: String, chunks: List<Chunk>, topK: Int): List<Chunk>
 }
+
+/** How many sources a search stage may add after the search's own [topK]. */
+const val EXTRA = 1
 
 object PipelineStages {
     /** Set by Boar Labs at start: the search stages of the labs switched on now, in grid order. */

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_bmoe_title" formatted="false">Big Boar</string>
-    <string name="native_labs_bmoe_body" formatted="false">Um modelo de 35B no seu celular: o BigMoeOnEdge mantém na memória os pesos usados sempre e lê do armazenamento os especialistas de cada palavra. Lento, mas um 35B de verdade.</string>
+    <string name="native_labs_bmoe_body" formatted="false">Um modelo de 35B que lê os especialistas do armazenamento. Lento, mas de verdade.</string>
     <string name="native_labs_bmoe_engine" formatted="false">MOTOR</string>
     <string name="native_labs_bmoe_engineOk" formatted="false">O BigMoeOnEdge está nesta versão</string>
     <string name="native_labs_bmoe_engineMissing" formatted="false">Não está nesta versão: rode scripts/build-lab-engines.sh e compile de novo</string>
@@ -19,6 +19,7 @@
     <string name="native_labs_bmoe_card_red" formatted="false">🦣 Grande demais para a memória deste celular: o Big Boar consegue rodar, mais devagar.</string>
     <string name="native_labs_bmoe_card_yellow" formatted="false">O Big Boar usa menos memória.</string>
     <string name="native_labs_bmoe_card_boarTooBig" formatted="false">BOAR · grande demais</string>
-    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Boar Labs → Big Boar consegue rodar, mais devagar.</string>
+    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Plugins → Big Boar consegue rodar, mais devagar.</string>
     <string name="native_labs_bmoe_browseHint" formatted="false">🦣 O Big Boar consegue rodar este</string>
+    <string name="native_labs_bmoe_about" formatted="false">Um modelo de 35B no seu celular: o BigMoeOnEdge mantém na memória os pesos usados sempre e lê do armazenamento os especialistas de cada palavra. Lento, mas um 35B de verdade.</string>
 </resources>

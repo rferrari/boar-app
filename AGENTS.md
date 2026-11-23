@@ -11,7 +11,8 @@ BOAR 2.x is a native Android app:
   application id `team.sopa.aoair` (kept from 1.x so a release installs over it).
 - `android-native/engine`: llama.cpp, SQLite and zstd through JNI (`libboar_engine.so`),
   plus the retrieval, routing, model and evaluation code. Most unit tests live here.
-- `android-native/app/src/labs/plugins/<id>/`: Boar Labs plugins, one folder each
+- `android-native/app/src/labs/plugins/<folder>/`: Boar Labs plugins, one folder each, usually named by the
+  lab id (Designer: `plugins/designer`, id `image`)
   (`docs/PLUGINS.md`).
 
 The rest of the repo root:
@@ -60,14 +61,15 @@ git clone --recursive https://github.com/rferrari/boar-app.git
 cd boar-app
 git submodule update --init          # only if you cloned without --recursive
 cd android-native
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
-# -> app/build/outputs/apk/release/app-release.apk
-adb install -r app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease -Pboar.experimentalFeatures=true
+# -> app/build/outputs/apk/release/boar-2.0.0.apk
+adb install -r app/build/outputs/apk/release/boar-2.0.0.apk
 ./gradlew --stop                     # don't leave the Gradle daemon running
 ```
 
-Without `-Pboar.versionName` the version is `2.0.0-dev`. The 2.0.0 releases are built with
-`-Pboar.experimentalFeatures=true` (Boar Labs included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5. About
+Without `-Pboar.versionName` the version is `2.0.0`, and the release APK is named after the version
+(`boar-<versionName>.apk`). The 2.0.0 releases are built with `-Pboar.experimentalFeatures=true` (Boar Labs
+included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5, 2.0.0 has 8. About
 shows the version, the git commit and the build date.
 
 Other build types:
@@ -111,19 +113,20 @@ environment, or as a Gradle property with `-P`.
 | | `boar.appIdSuffix` | none | `.labs` gives `team.sopa.aoair.labs`, labelled "BOAR Labs", installed beside BOAR with its own data |
 | | `boar.labs.executables` | true | In experimental builds, false leaves the labs' engines out of the APK |
 | | `boar.labs.hide` | empty | Lab ids to leave out of the grid, comma-separated |
+| | `boar.labs.released` | by task | `true` builds only the labs in `app/src/labs/released.txt` (each with its tests), code included; every build does this unless all its tasks are Debug or Devtest. `false` keeps every lab (a Labs build for advanced users) |
 | | `boar.labs.declassify` | empty | Classified labs that have code (`object=` and `classified=`) built as themselves, comma-separated; e.g. `dailyQuiz` |
 
 A Labs build that installs beside the normal BOAR:
 
 ```bash
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.versionName=2.0.0-rc1
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.labs.released=false
 ```
 
 ## Boar Labs engines
 
 Big Boar (`libbmoe_cli.so`), Boar Wisp (`libcolibri_olmoe.so`) and Boar Designer
 (`libsdcli.so`, `libsdcli_i8mm.so`) run their own executables. They are prebuilt into
-`android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a/`, which is gitignored, so a
+`android-native/app/src/labs/plugins/<folder>/jniLibs/arm64-v8a/` (Designer: `plugins/designer`), which is gitignored, so a
 fresh clone doesn't have them. They are packed into the APK only in experimental builds, and never for a lab under
 review (`review=true` in its `plugin.properties`: Boar Wisp). Google Play Protect blocks an APK with engines it
 doesn't trust ("Harmful app blocked"), so each engine that ships has to earn its place.
@@ -166,8 +169,8 @@ First launch shows a one-time setup that downloads:
 - a knowledge package: Encyclopedia (with the Wikipedia Vital Articles pack, about 164 MB,
   from the GitHub release `knowledge-pack-v1`) when it fits in the free space, else Essential.
 
-While it downloads, a "While you wait" card opens a BOAR tour (also in Settings → System
-Recovery & Danger Zone → See the tour). The app is gated behind this download. After it, BOAR
+While it downloads, setup walks through its own pages (look, answer styles, your files, the
+PIN, notifications, privacy, plugins). The app is gated behind this download. After it, BOAR
 works without a network connection. Models are stored in the app's `files/` folder.
 
 ## Before pushing: CodeRabbit review
@@ -232,6 +235,12 @@ Before and during a run:
 To check a Hugging Face GGUF before anyone downloads it, read its header (the first few MB)
 for `general.architecture` and `tokenizer.chat_template`. The architecture must be
 supported by the llama.cpp submodule at its pinned commit.
+
+Presets: `scripts/bench-preset.sh fast-plugins` starts a level (`fast`: Succinct on the 1.7B; `medium`: Succinct on the
+1.7B and the 4B; `complete`: Succinct and Detailed on both, plus Deep Research for the research topic) with a topic
+(`android-native/app/src/main/assets/boar-data/topics/<id>.v<n>.json`; the level alone runs the fixed 17), follows
+the status, pulls the run and prints its scorecard. The request is `{"requestId":…,"preset":"fast-plugins"}`. Every run
+is also listed on the app's Evaluations page.
 
 A request can also name the Boar Labs plugins that answer and check, with `"labs": [ids]`
 (for example `"labs":["calc","facts"]`), as in the chat with only those labs on. Without it,

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_labs_guard_title" formatted="false">Boar Guarda</string>
-    <string name="native_labs_guard_body" formatted="false">Corrige um Sim, Não ou vencedor que os próprios números ou datas do modelo contradizem, depois que ele responde.</string>
-    <string name="native_labs_guard_answers" formatted="false">VERIFICA</string>
-    <string name="native_labs_guard_answersList" formatted="false">• Antes ou depois de um ano: um Não ao lado da primeira data da própria resposta, que diz Sim\n• Qual é maior, mais denso, mais alto ou mais pesado, A ou B: um vencedor que os próprios números da resposta, na mesma unidade, desmentem\n• Quais são maiores que X: \"nenhum\" ao lado de \"X é o sétimo maior\"</string>
-    <string name="native_labs_guard_try" formatted="false">EXPERIMENTE</string>
+    <string name="native_labs_guard_title" formatted="false">Guarda</string>
+    <string name="native_labs_guard_body" formatted="false">Corrige um sim, não ou vencedor que os próprios números do modelo contradizem.</string>
     <string name="native_labs_guard_example1" formatted="false">Did astronauts walk on the Moon before 1970?</string>
     <string name="native_labs_guard_example2" formatted="false">Which is more densely populated, Japan or Germany, and by how much?</string>
     <string name="native_labs_guard_example3" formatted="false">Which countries are bigger than India by area?</string>
-    <string name="native_labs_guard_note" formatted="false">Ele só lê a resposta pronta: você vê o texto do modelo enquanto ele escreve e o corrigido no fim. Os fatos ficam e o veredito errado é reescrito a partir deles, sem as autocorreções e repetições do modelo; nada é gerado de novo. Quando não tem certeza, deixa a resposta como está: unidades diferentes, faixas que se sobrepõem, um número que pode ser de outra coisa. Nunca em perguntas de saúde, respostas instantâneas ou Pesquisa Profunda. Os detalhes da resposta mostram Ferramenta quando ele mudou algo. Só em inglês. Portado do verificador de veredito de r4to (BOAR R&amp;D).</string>
+    <string name="native_labs_guard_summary" formatted="false">O Guarda confere uma resposta pronta com os próprios números dela e corrige um Sim, Não ou vencedor que eles contradizem.</string>
+    <string name="native_labs_guard_before" formatted="false">“Astronautas pisaram na Lua antes de 1970?” → “Não. A Apollo 11 pousou na Lua em 20 de julho de 1969.”</string>
+    <string name="native_labs_guard_after" formatted="false">“Sim. A Apollo 11 pousou na Lua em 20 de julho de 1969.” A própria data da resposta diz Sim, então o Guarda corrige o Não.</string>
+    <string name="native_labs_guard_how" formatted="false">• O Guarda espera a resposta terminar.\n• Você vê o texto do modelo enquanto ele escreve, depois o corrigido.\n• Ele confere três coisas:\n• Antes ou depois de um ano: o Sim ou Não contra a primeira data da própria resposta.\n• Qual é maior, mais denso, mais alto ou mais pesado: o vencedor contra os números da própria resposta, na mesma unidade.\n• Ele acrescenta a diferença.\n• Quais são maiores que X: “nenhum” contra a posição que a própria resposta dá (“sétimo maior” quer dizer seis).\n• Os fatos ficam; só o veredito é reescrito, sem as autocorreções e repetições do modelo.\n• Nada é gerado de novo.\n• Quando não tem certeza, não muda nada: unidades diferentes, faixas que se sobrepõem, um número que pode ser de outra coisa.\n• Nunca em perguntas de saúde, respostas instantâneas ou Pesquisa Profunda.\n• Os detalhes da resposta mostram Ferramenta quando ele mudou algo.\n• Só em inglês.\n• Baseado no verificador de veredito de r4to (BOAR R&amp;D).</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="native_labs_bmoe_title" formatted="false">Big Boar</string>
-    <string name="native_labs_bmoe_body" formatted="false">A 35B model on your phone: BigMoeOnEdge keeps the always-used weights in memory and reads each word\'s experts from storage. Slow, but a real 35B.</string>
+    <string name="native_labs_bmoe_body" formatted="false">A 35B model that reads its experts from storage. Slow, but real.</string>
     <string name="native_labs_bmoe_engine" formatted="false">ENGINE</string>
     <string name="native_labs_bmoe_engineOk" formatted="false">BigMoeOnEdge is in this build</string>
     <string name="native_labs_bmoe_engineMissing" formatted="false">Not in this build: run scripts/build-lab-engines.sh, then rebuild</string>
@@ -19,6 +19,7 @@
     <string name="native_labs_bmoe_card_red" formatted="false">🦣 Too big for this phone\'s memory: Big Boar can run it, slower.</string>
     <string name="native_labs_bmoe_card_yellow" formatted="false">Big Boar uses less memory.</string>
     <string name="native_labs_bmoe_card_boarTooBig" formatted="false">BOAR · too big</string>
-    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Boar Labs → Big Boar can run it, slower.</string>
+    <string name="native_labs_bmoe_card_off" formatted="false">🦣 Plugins → Big Boar can run it, slower.</string>
     <string name="native_labs_bmoe_browseHint" formatted="false">🦣 Big Boar can run this</string>
+    <string name="native_labs_bmoe_about" formatted="false">A 35B model on your phone: BigMoeOnEdge keeps the always-used weights in memory and reads each word\'s experts from storage. Slow, but a real 35B.</string>
 </resources>

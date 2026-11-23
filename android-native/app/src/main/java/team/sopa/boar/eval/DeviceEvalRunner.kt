@@ -23,7 +23,15 @@ import team.sopa.boar.engine.answer.AnswerRequest
 import team.sopa.boar.engine.answer.Personalities
 import team.sopa.boar.engine.answer.PersonalFiles
 import team.sopa.boar.engine.db.NativeSqlite
+import team.sopa.boar.engine.eval.BenchModels
+import team.sopa.boar.engine.eval.BenchPass
+import team.sopa.boar.engine.eval.BenchPlan
+import team.sopa.boar.engine.eval.BenchPresets
+import team.sopa.boar.engine.eval.BenchTopic
 import team.sopa.boar.engine.eval.DeviceEval
+import team.sopa.boar.engine.eval.RunMeta
+import team.sopa.boar.engine.eval.SavedRunStore
+import team.sopa.boar.engine.eval.Scorecard
 import team.sopa.boar.engine.eval.EvalConfig
 import team.sopa.boar.engine.eval.EvalQuery
 import team.sopa.boar.engine.eval.EvalRequest
@@ -61,15 +69,57 @@ class DeviceEvalRunner(
     /** The app version on every row, so a saved or exported run says which build answered. */
     /** Tools and checks of the running request's labs; null: the app's (AnswerTools, AnswerChecks). */
     @Volatile private var runLabs: Pair<List<team.sopa.boar.plugins.AnswerTool>, List<team.sopa.boar.plugins.AnswerCheck>>? = null
+    /** The ids of the labs a run switched on (rows say them: a question that needs one is skipped when it's off). */
+    @Volatile private var runLabIds: List<String>? = null
+    /** The request's labs ask for staged answers (Boar Staged Answers); null: the app's (AnswerModes). */
+    @Volatile private var runStagedRequested: Boolean? = null
+    @Volatile private var runStaged: Boolean? = null
     private val appVersion: String = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?" 
 
     private fun asset(name: String) = context.assets.open("boar-data/$name").bufferedReader().readText()
+
+    /** Every run kept on the phone, listed on the Evaluations page (adam, Nov 14: "i run, closed, and now, cant review?"). */
+    val store = SavedRunStore(evalDir)
+
+    /**
+     * Shared storage the adb runs copy to (Android/data/<pkg>/files/eval-out): the status after every row, not only at
+     * the end (t9 0521 item 6: over adb a run showed no progress). Null: nothing copied.
+     */
+    @Volatile var mirrorDir: File? = null
+
+    private fun mirror(f: File) {
+        val out = mirrorDir ?: return
+        runCatching { if (f.isFile) f.copyTo(File(out, f.relativeTo(evalDir).path), overwrite = true) }
+    }
 
     private fun writeStatus(requestId: String, vararg fields: Pair<String, Any?>) {
         requestsDir.mkdirs()
         val all = listOf<Pair<String, Any?>>("requestId" to requestId) + fields.toList() + listOf("updatedAt" to System.currentTimeMillis())
         val o = json(*all.toTypedArray())
-        atomicWrite(File(requestsDir, "$requestId.status.json"), o.toString())
+        val f = File(requestsDir, "$requestId.status.json")
+        atomicWrite(f, o.toString())
+        mirror(f)
+    }
+
+    /**
+     * The labs that answer and check in the next run started from the Evaluations page (a topic's, like the plugins
+     * topic's); null: the labs switched on in the app. Labs this build leaves out are skipped.
+     */
+    fun setLabs(ids: List<String>?) {
+        if (ids != null) {
+            team.sopa.boar.labs.LabPrefs.init(context)
+            if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
+        }
+        val labs = ids?.filter { it != "staged" }?.mapNotNull { team.sopa.boar.labs.LabRegistry.byId(it) }
+        runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        runLabIds = labs?.map { it.id }
+        runStaged = ids?.contains("staged")
+    }
+
+    /** The topic files (assets/boar-data/topics), the newest version of each, by id. */
+    fun topics(): Map<String, BenchTopic> {
+        val names = context.assets.list("boar-data/topics").orEmpty().toList()
+        return BenchTopic.newest(names).mapNotNull { n -> runCatching { BenchTopic.parse(asset("topics/$n")) }.getOrNull() }.associateBy { it.id }
     }
 
     /** Waits up to [waitMs] for a request and runs it. Returns true when one ran. */
@@ -92,13 +142,31 @@ class DeviceEvalRunner(
         true
     }
 
-    /** Installed language models from the catalog, in catalog order. */
+    /**
+     * Installed language models from the catalog, in catalog order: complete files only, the app's own rule
+     * (StartLoad.complete, the size the catalog names). A partial download (Qwen3-4B, X6, Nov 10) was listed and failed
+     * to load as "corrupted or incomplete".
+     */
     fun installedModels(): List<Pair<ModelRef, File>> {
-        val catalog = Json.parseToJsonElement(asset("catalog.json")).jsonObject["models"]!!.jsonArray.map { it.jsonObject }
-        return catalog.filter { it["kind"]!!.jsonPrimitive.content == "llm" }.mapNotNull { m ->
-            val f = File(files, m["filename"]!!.jsonPrimitive.content)
-            if (f.isFile) ModelRef(m["id"]!!.jsonPrimitive.content, m["label"]!!.jsonPrimitive.content) to f else null
+        val catalog = team.sopa.boar.engine.models.Catalog.parse(asset("catalog.json"))
+        // Then the bench-only models (bench-models.json, t9 0443): read here and nowhere else, so no user list has them.
+        return BenchModels.llms(catalog, benchOnlyModels()).mapNotNull { m ->
+            val f = if (m.testOnly) benchFileOf(m) else File(files, m.filename)
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), m.sizeBytes)) ModelRef(m.id, m.label) to f else null
         } + discoveredModels() + labEngineModels()
+    }
+
+    private fun benchOnlyModels() = runCatching { BenchModels.parse(asset(BenchModels.ASSET)) }
+        .onFailure { log("[EVAL] ${BenchModels.ASSET}: $it") }.getOrDefault(emptyList())
+
+    /**
+     * A bench-only model's file, copied over USB: files/<filename> (run-as, a debuggable build), else the app's shared
+     * folder Android/data/<pkg>/files/<filename>, which adb can write on a release build too.
+     */
+    private fun benchFileOf(m: team.sopa.boar.engine.models.CatalogAsset): File {
+        val own = File(files, m.filename)
+        if (own.isFile) return own
+        return context.getExternalFilesDir(null)?.let { File(it, m.filename) } ?: own
     }
 
     /** Models the user added from Hugging Face (Discover GGUF models) and downloaded: evaluated like the catalog's. */
@@ -106,7 +174,7 @@ class DeviceEvalRunner(
         val services = team.sopa.boar.app.BoarServices.get(context)
         services.catalog.models.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && it.id.startsWith("hf-") }.mapNotNull { a ->
             val f = services.fileOf(a)
-            if (f.isFile && f.length() == a.sizeBytes) ModelRef(a.id, a.shortName) to f else null
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), a.sizeBytes)) ModelRef(a.id, a.shortName) to f else null
         }
     }.getOrDefault(emptyList())
 
@@ -116,13 +184,19 @@ class DeviceEvalRunner(
         if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
         return team.sopa.boar.labs.LabRegistry.ALL.flatMap { it.engine?.models().orEmpty() }.mapNotNull { a ->
             val f = a.externalPath?.let(::File) ?: File(files, a.filename)
-            if (f.isFile) ModelRef(a.id, a.label) to f else null
+            if (team.sopa.boar.engine.models.StartLoad.complete(f.isFile, f.length(), a.sizeBytes)) ModelRef(a.id, a.label) to f else null
         }
     }
 
     fun evalSets(): EvalSets = EvalSets.parse(asset("eval-set.json"))
 
     private suspend fun run(request: EvalRequest) {
+        // The language arm for this run only (t9 0420), back to what users get when it ends.
+        team.sopa.boar.engine.answer.AnswerLanguage.arm = request.languageArm ?: 1
+        try { runRequest(request) } finally { team.sopa.boar.engine.answer.AnswerLanguage.arm = 1 }
+    }
+
+    private suspend fun runRequest(request: EvalRequest) {
         val installed = installedModels()
         val installedIds = installed.map { it.first.id }
         if (request.pipeline == "answer") {
@@ -136,15 +210,35 @@ class DeviceEvalRunner(
             return
         }
         resolved as Resolved.Ok
+        // A preset (adam, Nov 14): its level's models (or the request's), styles and passes, its topics' questions and labs.
+        val topics = if (request.preset != null) topics() else emptyMap()
+        val plan = request.preset?.let { preset ->
+            val own = request.models?.takeIf { it.isNotEmpty() }?.let { resolved.configs.filterIsInstance<EvalConfig.Model>().map { c -> ModelRef(c.modelId, c.label) } }
+            when (val p = BenchPresets.plan(preset, installed.map { it.first }, topics, sets, own, request.labs)) {
+                is BenchPresets.Planned.Err -> { writeStatus(request.requestId, "state" to "failed", "error" to p.error, "installedModels" to installedIds); return }
+                is BenchPresets.Planned.Ok -> p.plan
+            }
+        }
+        val runConfigsList: List<EvalConfig> = plan?.models?.map { m ->
+            resolved.configs.filterIsInstance<EvalConfig.Model>().firstOrNull { it.modelId == m.id } ?: EvalConfig.Model(m.id, m.label, request.engine ?: EvalConfig.BUILTIN)
+        } ?: resolved.configs
+        val runQueries = plan?.queries ?: resolved.queries
+        val requestLabs = plan?.labs ?: request.labs
         // The request's labs: their tools and checks for this run only, whatever is switched on in the app.
-        if (request.labs != null) {
+        if (requestLabs != null) {
             team.sopa.boar.labs.LabPrefs.init(context)
             if (team.sopa.boar.labs.LabContext.app == null) team.sopa.boar.labs.LabContext.app = context.applicationContext
         }
-        val labs = request.labs?.map { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
+        // "staged" in a request's labs still asks for Staged answers (core since Nov 12, no longer a lab).
+        runStagedRequested = requestLabs?.contains("staged")
+        val labs = requestLabs?.filter { it != "staged" }?.mapNotNull { id -> team.sopa.boar.labs.LabRegistry.byId(id) ?: run {
+            // A topic's lab this build leaves out is skipped (its questions then fail their rule); a request's own fails the run.
+            if (request.labs == null) { log("[EVAL] lab \"$id\" is not in this build: skipped"); return@mapNotNull null }
             writeStatus(request.requestId, "state" to "failed", "error" to "unknown lab \"$id\"", "installedModels" to installedIds); return
         } }
         runLabs = labs?.let { l -> l.sortedBy { team.sopa.boar.engine.routing.LabTools.slotRank(it.id) }.mapNotNull { it.answerTool } to l.mapNotNull { it.answerCheck } }
+        runLabIds = labs?.map { it.id }
+        runStaged = runStagedRequested
         // How search ranks: the request's "retrieval", else BALANCED (today's search). Per run, never kept on the runner.
         val retrievalMode = request.retrieval?.let { m -> team.sopa.boar.engine.rag.RetrievalMode.entries.first { it.name.lowercase() == m } }
             ?: team.sopa.boar.engine.rag.RetrievalMode.BALANCED
@@ -153,19 +247,28 @@ class DeviceEvalRunner(
             writeStatus(request.requestId, "state" to "failed", "error" to "unknown style \"${request.style}\"", "installedModels" to installedIds)
             return
         }
-        val configs = resolved.configs.map { it.id }
-        val total = resolved.configs.size * resolved.queries.size
-        writeStatus(request.requestId, "state" to "accepted", "configs" to configs, "total" to total, "completed" to 0, "installedModels" to installedIds)
-        log("[EVAL] device request ${request.requestId}: ${configs.joinToString(", ")} x ${resolved.queries.size} queries")
+        val configs = runConfigsList.map { it.id }
+        val total = plan?.answers ?: (runConfigsList.size * runQueries.size)
+        writeStatus(request.requestId, "state" to "accepted", "configs" to configs, "total" to total, "completed" to 0, "installedModels" to installedIds,
+            "preset" to plan?.preset?.name)
+        log("[EVAL] device request ${request.requestId}: ${configs.joinToString(", ")} x ${runQueries.size} queries" + (plan?.let { " (preset ${it.preset.name})" } ?: ""))
         var completed = 0
+        var runId: String? = null
         try {
-            val result = runConfigs(resolved.configs, resolved.queries, object : Listener {
+            val info = RunInfo(source = "adb", requestId = request.requestId, plan = plan, topics = topics)
+            val result = runConfigs(runConfigsList, runQueries, object : Listener {
+                override fun onStart(id: String) { runId = id }
                 override fun onProgress(p: Progress) = writeStatus(request.requestId, "state" to "running", "configs" to configs, "total" to total,
-                    "completed" to completed, "current" to "${p.config.id} / ${p.query.id}", "installedModels" to installedIds)
-                override fun onRow(row: JsonObject) { completed++ }
-            }, retrievalMode, request.style)
+                    "completed" to completed, "current" to "${p.config.id} / ${p.query.id}", "installedModels" to installedIds, "runId" to runId)
+                override fun onRow(row: JsonObject) {
+                    completed++
+                    writeStatus(request.requestId, "state" to "running", "configs" to configs, "total" to total, "completed" to completed,
+                        "installedModels" to installedIds, "runId" to runId)
+                }
+            }, retrievalMode, request.style, info, searchOnly = request.searchOnly == true)
             writeStatus(request.requestId, "state" to "done", "configs" to configs, "total" to total, "completed" to result.rows.size, "runId" to result.runId,
-                "resultPath" to "files/eval/${result.runId}.jsonl", "stopped" to result.stopped, "installedModels" to installedIds)
+                "resultPath" to "files/eval/${result.runId}.jsonl", "stopped" to result.stopped, "installedModels" to installedIds,
+                "scorecardPath" to "files/eval/${result.runId}.scorecard.txt", "preset" to plan?.preset?.name)
         } catch (e: Throwable) {
             writeStatus(request.requestId, "state" to "failed", "configs" to configs, "total" to total, "completed" to completed, "error" to (e.message ?: e.toString()), "installedModels" to installedIds)
             throw e
@@ -173,14 +276,32 @@ class DeviceEvalRunner(
     }
 
     class Progress(val configIndex: Int, val configCount: Int, val queryIndex: Int, val queryCount: Int, val config: EvalConfig, val query: EvalQuery)
-    class RunResult(val runId: String, val rows: List<JsonObject>, val file: File, val stopped: Boolean)
+    class RunResult(val runId: String, val rows: List<JsonObject>, val file: File, val stopped: Boolean, val scorecard: Scorecard.Card? = null)
     interface Listener {
+        /** The run's id, before its first answer. */
+        fun onStart(runId: String) {}
         fun onProgress(p: Progress) {}
         fun onRow(row: JsonObject) {}
     }
 
+    /**
+     * Who started a run and, for a preset, its plan: kept in <runId>.meta.json for the saved list, and on every row
+     * (level, topic) so the scorecard can tell topics apart.
+     */
+    class RunInfo(
+        val source: String = "app",
+        val requestId: String? = null,
+        val plan: BenchPlan? = null,
+        /** The topic files, for the scorecard; empty: read them here. */
+        val topics: Map<String, BenchTopic> = emptyMap(),
+    )
+
     @Volatile private var stopRequested = false
     @Volatile private var running: team.sopa.boar.engine.TextModel? = null
+
+    /** The run going now, so the saved list doesn't call it interrupted. */
+    @Volatile var activeRunId: String? = null
+        private set
 
     /** Stops after the current answer, which is cut short and recorded as cancelled; the rows so far stay saved. */
     fun stop() {
@@ -190,16 +311,21 @@ class DeviceEvalRunner(
 
     /**
      * Answers every query with every configuration, one model loaded at a time, saving eval/<runId>.jsonl after each
-     * row (evalHarness.runEvaluation). Used by device requests and the Evaluation screen.
+     * row (evalHarness.runEvaluation). Used by device requests and the Evaluation screen. A preset ([RunInfo.plan]) runs
+     * each of its passes (Succinct, Detailed, Deep Research) per model; otherwise one pass in [style].
      */
     suspend fun runConfigs(
         configs: List<EvalConfig>, queries: List<EvalQuery>, listener: Listener,
         retrievalMode: team.sopa.boar.engine.rag.RetrievalMode = team.sopa.boar.engine.rag.RetrievalMode.BALANCED,
-        /** The answer style for every row; null is the default style, as before. */
+        /** The answer style for every row; null is the default style, as before. Ignored by a preset. */
         style: String? = null,
+        info: RunInfo = RunInfo(),
+        /** Only each question's search, its sources with their scores; no answer (a device request's "searchOnly"). */
+        searchOnly: Boolean = false,
     ): RunResult = withContext(Dispatchers.IO) {
         stopRequested = false
         val runId = DeviceEval.newRunId()
+        activeRunId = runId
         evalDir.mkdirs()
         val rowsFile = File(evalDir, "$runId.jsonl")
         val rows = ArrayList<JsonObject>()
@@ -207,9 +333,10 @@ class DeviceEvalRunner(
         val personalities = Personalities.parse(asset("personalities.json"))
         // As the chat answers by default: the default style's prompt and reminder (the small-model variant below 2 GB),
         // at that style's Auto length (Detailed 1,024); or the run's style, at its own (Personal Files 768).
-        val runStyle = style ?: personalities.defaultId
-        val personal = PersonalFiles.isOn(runStyle)
-        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(runStyle)
+        val plan = info.plan
+        val passes = plan?.passes ?: listOf(BenchPass(style ?: personalities.defaultId))
+        val idsOf: (BenchPass) -> Set<String>? = { p -> plan?.passQueries?.get(p.key)?.toSet() }
+        val perConfig = passes.sumOf { p -> idsOf(p)?.size ?: queries.size }
         val topology = CpuTopology.read()
         // The same Auto context as the chat (contextSizeForRam).
         val totalRam = runCatching {
@@ -218,16 +345,28 @@ class DeviceEvalRunner(
         val retrieval = openRetrieval(topology)
         // The context every model is opened with here (Auto), which Personal Files' whole parts must fit.
         val contextSize = EngineTweaks().resolve(topology, totalRam).params.nCtx
+        val topics = plan?.let { _ -> info.topics.ifEmpty { this@DeviceEvalRunner.topics() } }
+        var meta = RunMeta(runId, System.currentTimeMillis(), appVersion, configs.mapNotNull { (it as? EvalConfig.Model)?.modelId ?: it.id },
+            plan?.preset?.level?.id, plan?.preset?.topics.orEmpty(), plan?.preset?.topics.orEmpty().mapNotNull { t -> topics?.get(t)?.let { t to it.version } }.toMap(),
+            passes.map { it.key }, info.source, info.requestId)
+        fun saveMeta(m: RunMeta) { meta = m; store.writeMeta(m); mirror(store.metaFile(runId)) }
+        saveMeta(meta)
+        listener.onStart(runId)
         try {
             run@ for ((ci, config) in configs.withIndex()) {
                 var session: team.sopa.boar.engine.TextModel? = null
                 var loadMs = 0.0
                 var residency = "cold"
+                var qi = 0
                 try {
-                    for ((qi, q) in queries.withIndex()) {
+                    for (pass in passes) for (q in queries) {
+                        if (idsOf(pass)?.contains(q.id) == false) continue
                         if (stopRequested) break@run
-                        val current = "${config.id} / ${q.id}"
-                        listener.onProgress(Progress(ci, configs.size, qi, queries.size, config, q))
+                        val runStyle = pass.style
+                        val personal = PersonalFiles.isOn(runStyle)
+                        val maxTokens = team.sopa.boar.engine.settings.AppSettings.autoMaxTokens(runStyle)
+                        val current = "${config.id} / ${pass.key} / ${q.id}"
+                        listener.onProgress(Progress(ci, configs.size, qi++, perConfig, config, q))
                         atomicWrite(File(evalDir, "$runId.run.json"), json(
                             "runId" to runId, "configs" to configs.map { it.id }, "queries" to queries.map { it.id }, "current" to current,
                         ).toString())
@@ -245,25 +384,39 @@ class DeviceEvalRunner(
                                 }
                                 val s = session
                                 if (s == null) failureRow(runId, config, q, runStyle, maxTokens, "model failed to load")
+                                else if (searchOnly) searchRow(retrieval, runId, config, q, runStyle, maxTokens, residency, loadMs, retrievalMode)
                                 else {
                                     running = s
+                                    // Said before the answer, so the bench screen shows what it's doing during a long one (adam, Nov 12).
+                                    log("[EVAL] ${q.id}: answering on ${config.modelId} (${pass.key})…")
                                     val small = (installed.firstOrNull { it.first.id == config.modelId }?.second?.length() ?: Long.MAX_VALUE) < team.sopa.boar.engine.answer.Personalities.SMALL_MODEL_BYTES
                                     // The chat's short-answer rules too: small talk, health and seed-phrase questions answer in
                                     // Succinct, and small talk at Succinct's length (ShortAnswer, ChatViewModel).
                                     val style = if (team.sopa.boar.engine.routing.ShortAnswer.reason(runStyle, q.query, null) != null) "succinct" else runStyle
                                     val (systemPrompt, styleReminder) = personalities.promptFor(style, null, small)
                                     val limit = if (team.sopa.boar.engine.routing.ShortAnswer.isSmallTalk(q.query)) minOf(maxTokens, team.sopa.boar.engine.settings.AppSettings.AUTO_MAX_TOKENS) else maxTokens
-                                    val r = answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs, retrievalMode,
+                                    val r = if (pass.deep) deepRow(s, retrieval, runId, config, q, style, systemPrompt, limit, residency, loadMs, retrievalMode)
+                                    else answerRow(s, retrieval, runId, config, q, style, systemPrompt, styleReminder, limit, residency, loadMs, retrievalMode,
                                         if (personal) contextSize else null)
                                     running = null
                                     if (stopRequested) JsonObject(r + ("outcome" to JsonPrimitive("cancelled"))) else r
                                 }
                             }
                         }
-                        // Every row says the run's style, whatever the question answered in (personalityId).
-                        val styled = JsonObject(row + ("style" to JsonPrimitive(runStyle)))
+                        // Every row says the pass's style, whatever the question answered in (personalityId); a preset's
+                        // rows also say its level and the question's topic.
+                        val extra = listOfNotNull(
+                            "style" to JsonPrimitive(runStyle),
+                            plan?.let { "level" to JsonPrimitive(it.preset.level.id) },
+                            plan?.topicOf?.get(q.id)?.let { "topic" to JsonPrimitive(it) },
+                            plan?.topicOf?.get(q.id)?.let { t -> topics?.get(t)?.let { "topicVersion" to JsonPrimitive(it.version) } },
+                            runLabIds?.let { ids -> "labsOn" to kotlinx.serialization.json.JsonArray(ids.map { JsonPrimitive(it) }) },
+                        )
+                        val styled = JsonObject(row + extra)
                         rows += styled
                         atomicWrite(rowsFile, rows.joinToString("") { it.toString() + "\n" })
+                        mirror(rowsFile)
+                        saveMeta(meta.copy(rows = rows.size))
                         listener.onRow(styled)
                         log("[EVAL] ${q.id}: ${styled["outcome"]} ${styled["tokPerSec"] ?: ""}")
                     }
@@ -273,10 +426,80 @@ class DeviceEvalRunner(
                 }
             }
             File(evalDir, "$runId.run.json").delete()
-            RunResult(runId, rows, rowsFile, stopRequested)
+            // The scorecard (t9 0521 item 4), against the last run of the same level and topics; kept as text for adb.
+            val all = store.list(active = runId)
+            val previous = store.previous(meta, all)?.let { store.rows(it.runId) }
+            val card = runCatching { Scorecard.of(rows, topics ?: info.topics.ifEmpty { this@DeviceEvalRunner.topics() }, previous) }.getOrNull()
+            card?.let { c ->
+                val f = File(evalDir, "$runId.scorecard.txt")
+                atomicWrite(f, Scorecard.text(c))
+                mirror(f)
+                Scorecard.text(c).lines().filter { it.isNotBlank() }.forEach { log("[EVAL] score $it") }
+            }
+            saveMeta(meta.copy(state = if (stopRequested) RunMeta.STATE_STOPPED else RunMeta.STATE_DONE, rows = rows.size, finishedAt = System.currentTimeMillis()))
+            RunResult(runId, rows, rowsFile, stopRequested, card)
+        } catch (e: Throwable) {
+            runCatching { saveMeta(meta.copy(state = RunMeta.STATE_FAILED, rows = rows.size, finishedAt = System.currentTimeMillis(), error = e.message ?: e.toString())) }
+            throw e
         } finally {
+            activeRunId = null
             retrieval?.close()
         }
+    }
+
+    /**
+     * A Deep Research row (the complete level's research topic; adam, Nov 14): DeepResearch as the chat runs it, the
+     * write-up in the question's language. Same fields as [answerRow], path "deep"; ttftMs is the write-up's first word.
+     */
+    private suspend fun deepRow(
+        s: team.sopa.boar.engine.TextModel, retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String,
+        systemPrompt: String, maxTokens: Int, residency: String, loadMs: Double, mode: team.sopa.boar.engine.rag.RetrievalMode,
+    ): JsonObject {
+        val params = mode.params()
+        val tweaks = EngineTweaks()
+        val peak = PeakRss().apply { start() }
+        val start = System.nanoTime()
+        var firstToken = 0L
+        var tokens = 0
+        var result: team.sopa.boar.engine.answer.ResearchResult? = null
+        var error: String? = null
+        try {
+            result = team.sopa.boar.engine.answer.DeepResearch(team.sopa.boar.engine.answer.SessionEngine(s),
+                { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, tweaks::stageTimeoutMs, tweaks::writeUpTimeoutMs)
+                .run(q.query, systemPrompt, null, maxTokens,
+                    onToken = { tokens++; if (firstToken == 0L) firstToken = System.nanoTime() },
+                    shouldStop = { stopRequested },
+                    answerLanguage = team.sopa.boar.engine.answer.AnswerLanguage.line(team.sopa.boar.engine.answer.AnswerLanguage.of(q.query), withSources = true))
+        } catch (e: Throwable) {
+            error = e.message ?: e.toString()
+        }
+        val end = System.nanoTime()
+        val peakRss = peak.stop()
+        val r = result
+        val answer = r?.answer.orEmpty()
+        val outcome = if (error == null && answer.isNotBlank()) "success" else "failure"
+        val ttftMs = if (firstToken > 0) (firstToken - start) / 1e6 else null
+        val genLatency = if (firstToken > 0) (end - firstToken) / 1e6 else null
+        val titles = r?.citations?.map { it.title } ?: emptyList()
+        val taskType = classify(q.query)
+        val m = r?.metrics
+        return json(
+            "modelId" to config.modelId, "taskType" to taskType, "adaptiveRoutingUsed" to false,
+            "reasonCodes" to DeviceEval.fixedPlanReasonCodes(!retrievalIrrelevant(taskType), config.modelId),
+            "retrievalUsed" to titles.isNotEmpty(), "modelSwitches" to 0, "crossMessageModelSwitch" to false,
+            "modelResidency" to residency, "modelLoadMs" to loadMs, "ttftMs" to ttftMs, "generationLatencyMs" to genLatency,
+            "totalLatencyMs" to (end - start) / 1e6, "tokensGenerated" to tokens, "tokPerSec" to DeviceEval.tokensPerSecond(tokens, genLatency),
+            "peakRssBytes" to peakRss, "outcome" to outcome, "errorMessage" to (error ?: if (outcome == "failure") "empty answer" else null),
+            "runId" to runId, "evalSetVersion" to q.setVersion,
+            "promptTokens" to m?.promptTokensDecoded, "promptMs" to m?.prefillMs, "predictedTokens" to m?.generatedTokens, "predictedMs" to m?.decodeMs,
+            "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+            "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to if (s.hasChatTemplate) "chat-template" else "plain",
+            "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
+            "fileSources" to r?.citations.orEmpty().filter { it.collectionId != null }.map { it.title },
+            "timedOut" to (r?.timedOut == true), "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "inferenceEngine" to config.engine, "retrievalMode" to mode.name.lowercase(),
+            "path" to BenchPass.PATH_DEEP, "subQuestions" to r?.subQuestions,
+        )
     }
 
     /** The knowledge base, embedder and packs at the Expo app's paths; null when the knowledge base is missing. */
@@ -353,6 +576,9 @@ class DeviceEvalRunner(
             ?.takeIf { !personal || PersonalFiles.keepsTool(it.tool) }
         if (tool is ToolResult.Instant) return toolRow(runId, config, q, personalityId, maxTokens, residency, loadMs, tool, (System.nanoTime() - toolStart) / 1e6)
         val params = if (personal) PersonalFiles.retrieval(mode.params()) else mode.params()
+        if (!personal && (runStaged ?: team.sopa.boar.plugins.AnswerModes.staged()))
+            return stagedRow(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, runId, config, q, personalityId,
+                AnswerTools.systemPrompt(systemPrompt, tool), styleReminder, maxTokens, residency, loadMs, mode, tool)
         val pipeline = AnswerPipeline(s, { query, k -> retrieval?.retriever?.retrieve(query, k, params = params) ?: emptyList() }, classify, retrievalIrrelevant)
         val peak = PeakRss().apply { start() }
         val start = System.nanoTime()
@@ -404,6 +630,7 @@ class DeviceEvalRunner(
             "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
             "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to d?.promptFormat,
             "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
+            "fileSources" to d?.sources.orEmpty().filter { it.collectionId != null }.map { it.title },
             "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
             "tool" to listOfNotNull(tool?.tool, repair?.tool).joinToString("+").ifEmpty { null },
             // Which engine wrote it (builtin, mapped or bigboar); Big Boar runs in its own process, so peakRssBytes is the app's only.
@@ -429,6 +656,39 @@ class DeviceEvalRunner(
         "inferenceEngine" to config.engine,
     )
 
+    /**
+     * A search-only row (t9 0321): the sources the answer would get, in order, each with its similarity, fused score,
+     * match type and kind ("pack", "file" for the user's own files, "kb" for the built-in corpus). No answer is written.
+     */
+    private fun searchRow(
+        retrieval: Retrieval?, runId: String, config: EvalConfig.Model, q: EvalQuery, personalityId: String, maxTokens: Int,
+        residency: String, loadMs: Double, mode: team.sopa.boar.engine.rag.RetrievalMode,
+    ): JsonObject {
+        val start = System.nanoTime()
+        var error: String? = null
+        val found = try {
+            retrieval?.retriever?.retrieve(q.query, team.sopa.boar.engine.rag.RagPure.ANSWER_CONTEXT_CHUNKS, params = mode.params()) ?: run { error = "no retrieval"; emptyList() }
+        } catch (e: Throwable) { error = e.message ?: e.toString(); emptyList() }
+        val ms = (System.nanoTime() - start) / 1e6
+        val sources = JsonArray(found.map { c ->
+            JsonObject(mapOf(
+                "title" to JsonPrimitive(c.title), "similarity" to (c.similarity?.let(::JsonPrimitive) ?: kotlinx.serialization.json.JsonNull), "score" to JsonPrimitive(c.score),
+                "match" to JsonPrimitive(c.matchType.name.lowercase()),
+                "kind" to JsonPrimitive(if (c.docId.startsWith("pack:")) "pack" else if (c.collectionId != null) "file" else "kb"),
+            ))
+        })
+        return json(
+            "modelId" to config.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to false, "retrievalUsed" to found.isNotEmpty(),
+            "modelResidency" to residency, "modelLoadMs" to loadMs, "totalLatencyMs" to ms, "retrievalMs" to ms, "tokensGenerated" to 0,
+            "outcome" to if (error == null) "success" else "failure", "errorMessage" to error, "runId" to runId, "evalSetVersion" to q.setVersion,
+            "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+            "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to "", "retrievedTitles" to found.map { it.title },
+            "retrievedSources" to sources, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, found.map { it.title }),
+            "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "inferenceEngine" to config.engine, "retrievalMode" to mode.name.lowercase(), "path" to "search-only",
+        )
+    }
+
     private fun failureRow(runId: String, config: EvalConfig, q: EvalQuery, personalityId: String, maxTokens: Int, error: String) = json(
         "modelId" to (config as? EvalConfig.Model)?.modelId, "taskType" to classify(q.query), "adaptiveRoutingUsed" to (config is EvalConfig.Adaptive),
         "outcome" to "failure", "errorMessage" to error, "tokensGenerated" to 0, "runId" to runId, "evalSetVersion" to q.setVersion,
@@ -438,38 +698,77 @@ class DeviceEvalRunner(
         "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
     )
 
+    /**
+     * A Boar Staged Answers row: the same fields as [answerRow], plus when each step showed up (ms from the start, the
+     * model already loaded: stagedSourcesMs, stagedIntroFirstMs, stagedIntroDoneMs, stagedResearchMs, stagedDetailsFirstMs),
+     * the passages the research step added, and the numbers no source has. ttftMs is the intro's first word.
+     */
+    private suspend fun stagedRow(
+        s: team.sopa.boar.engine.TextModel, retrieve: (String, Int) -> List<team.sopa.boar.engine.rag.Chunk>, runId: String, config: EvalConfig.Model, q: EvalQuery,
+        personalityId: String, systemPrompt: String, styleReminder: String?, maxTokens: Int, residency: String, loadMs: Double,
+        mode: team.sopa.boar.engine.rag.RetrievalMode, tool: ToolResult?,
+    ): JsonObject {
+        val introReminder = Personalities.parse(asset("personalities.json")).promptFor("succinct", null).second
+        val peak = PeakRss().apply { start() }
+        val start = System.nanoTime()
+        var tokens = 0
+        var done: team.sopa.boar.engine.answer.StagedEvent.Done? = null
+        var error: String? = null
+        try {
+            team.sopa.boar.engine.answer.StagedAnswer(retrieve, classify, retrievalIrrelevant)
+                .answer(team.sopa.boar.engine.answer.StagedRequest(q.query, systemPrompt, introReminder, styleReminder.takeIf { personalityId != "succinct" }, maxTokens),
+                    load = { s }, shouldStop = { stopRequested })
+                .collect { e ->
+                    when (e) {
+                        is team.sopa.boar.engine.answer.StagedEvent.Piece -> tokens++
+                        is team.sopa.boar.engine.answer.StagedEvent.Done -> done = e
+                        else -> {}
+                    }
+                }
+        } catch (e: Throwable) {
+            error = e.message ?: e.toString()
+        }
+        val end = System.nanoTime()
+        val peakRss = peak.stop()
+        val d = done
+        val answer = d?.text.orEmpty()
+        val t = d?.times
+        val outcome = if (error == null && answer.isNotBlank()) "success" else "failure"
+        val genLatency = t?.let { tt -> tt.introFirstMs?.let { (end - start) / 1e6 - it } }
+        val titles = d?.sources?.map { it.title } ?: emptyList()
+        val taskType = classify(q.query)
+        val m = d?.metrics
+        return json(
+            "modelId" to config.modelId, "taskType" to taskType, "adaptiveRoutingUsed" to false,
+            "reasonCodes" to DeviceEval.fixedPlanReasonCodes(!retrievalIrrelevant(taskType), config.modelId),
+            "retrievalUsed" to titles.isNotEmpty(), "modelSwitches" to 0, "crossMessageModelSwitch" to false,
+            "modelResidency" to residency, "modelLoadMs" to loadMs, "ttftMs" to t?.introFirstMs, "generationLatencyMs" to genLatency,
+            "totalLatencyMs" to (end - start) / 1e6, "tokensGenerated" to tokens, "tokPerSec" to DeviceEval.tokensPerSecond(tokens, genLatency),
+            "peakRssBytes" to peakRss, "outcome" to outcome, "errorMessage" to (error ?: if (outcome == "failure") "empty answer" else null),
+            "runId" to runId, "evalSetVersion" to q.setVersion, "retrievalMs" to d?.retrievalMs,
+            "promptTokens" to m?.promptTokensDecoded, "promptMs" to m?.prefillMs, "cachedTokens" to m?.let { it.promptTokens - it.promptTokensDecoded },
+            "predictedTokens" to m?.generatedTokens, "predictedMs" to m?.decodeMs,
+            "configId" to config.id, "configLabel" to config.label, "personalityId" to personalityId, "maxTokens" to maxTokens,
+            "queryId" to q.id, "category" to q.category, "query" to q.query, "answer" to answer, "promptFormat" to if (s.hasChatTemplate) "chat-template" else "plain",
+            "retrievedTitles" to titles, "expectedKbTitles" to q.expectedKbTitles, "expectedKbHit" to DeviceEval.expectedKbHit(q.expectedKbTitles, titles),
+            "timedOut" to false, "createdAt" to System.currentTimeMillis(), "engine" to "native", "appVersion" to appVersion,
+            "tool" to tool?.tool, "inferenceEngine" to config.engine, "retrievalMode" to mode.name.lowercase(),
+            "path" to "staged", "stagedSourcesMs" to t?.sourcesMs, "stagedIntroFirstMs" to t?.introFirstMs, "stagedIntroDoneMs" to t?.introDoneMs,
+            "stagedResearchMs" to t?.researchMs, "stagedDetailsFirstMs" to t?.detailsFirstMs,
+            "stagedKeyFacts" to d?.keyFacts?.size, "stagedSources" to d?.sources?.size, "stagedIntro" to d?.intro,
+            "unsupportedNumbers" to d?.unsupported,
+            // The user's own files among the sources (a custom collection), for the scorecard's noFileSources rule.
+            "fileSources" to d?.sources.orEmpty().filter { it.collectionId != null }.map { it.title },
+        )
+    }
+
     companion object {
         const val TAG = "BOAR_EVAL"
         /** Big Boar's engine id (BmoeLab). */
         private const val BIG_BOAR_ENGINE = "bmoe"
 
-        /** evalRowsToCsv: the same columns, arrays joined with "|". */
-        val CSV_COLUMNS = listOf("runId", "evalSetVersion", "configId", "configLabel", "routingPreset", "personalityId", "maxTokens",
-            "queryId", "category", "query", "modelId", "promptFormat", "taskType", "adaptiveRoutingUsed", "retrievalUsed",
-            "retrievedTitles", "expectedKbTitles", "expectedKbHit", "reasonCodes", "modelSwitches", "crossMessageModelSwitch",
-            "modelResidency", "modelLoadMs", "ttftMs", "retrievalMs", "contextTokensBefore", "contextTokensAfter",
-            "generationLatencyMs", "promptTokens", "promptMs", "cachedTokens", "predictedTokens", "predictedMs", "totalLatencyMs",
-            "tokensGenerated", "tokPerSec", "peakRssBytes", "outcome", "errorMessage", "timedOut", "answer", "createdAt", "appVersion", "tool", "retrievalMode", "style", "notFound")
-
-        fun toCsv(rows: List<JsonObject>): String =
-            (listOf(CSV_COLUMNS.joinToString(",")) + rows.map { r -> CSV_COLUMNS.joinToString(",") { csvCell(r[it]) } }).joinToString("\n")
-
-        private fun csvCell(v: kotlinx.serialization.json.JsonElement?): String {
-            val s = when (v) {
-                null, kotlinx.serialization.json.JsonNull -> return ""
-                is JsonArray -> v.joinToString("|") { cellText(it) }
-                else -> cellText(v)
-            }
-            return if (s.contains(Regex("[\",\n]"))) "\"" + s.replace("\"", "\"\"") + "\"" else s
-        }
-
-        /** String(value) for a JSON value: whole numbers without ".0", as JavaScript prints them. */
-        private fun cellText(v: kotlinx.serialization.json.JsonElement): String {
-            val p = v as? JsonPrimitive ?: return v.toString()
-            if (p.isString) return p.content
-            val d = p.content.toDoubleOrNull()
-            return if (d != null && d == Math.floor(d) && !d.isInfinite() && Math.abs(d) < 1e21 && p.content.contains('.')) d.toLong().toString() else p.content
-        }
+        /** evalRowsToCsv (EvalExport in the engine, so a saved run's export is tested). */
+        fun toCsv(rows: List<JsonObject>): String = team.sopa.boar.engine.eval.EvalExport.csv(rows)
     }
 }
 

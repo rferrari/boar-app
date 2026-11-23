@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the Boar Labs engine plugins' executables for Android arm64 into their plugin folders
-# (android-native/app/src/labs/plugins/<id>/jniLibs/arm64-v8a, gitignored). Each engine runs as its own process:
+# (android-native/app/src/labs/plugins/<folder>/jniLibs/arm64-v8a, gitignored). Each engine runs as its own process:
 #
 #   colibri       (https://github.com/JustVugg/colibri, Apache-2.0)      -> plugins/colibri: libcolibri_olmoe.so
 #                 pure-C MoE engine that streams experts from storage; OLMoE only.

@@ -95,6 +95,9 @@ object PtLexicon {
         "o", "os", "que", "como", "porque", "qual", "quais", "uma", "um", "sao", "nao", "e", "das", "dos", "nas", "nos", "numa", "num",
         "pelo", "pela", "onde", "quando", "quanto", "quantos", "existem", "fazer", "faco", "devo", "entre", "diferenca", "depois", "antes",
         "em", "para", "com", "se", "posso", "pode", "tem", "funciona",
+        // t9 0026 (blood test e): "resuma meu exame de sangue" (no accent, 5 words) read as not Portuguese, so the English
+        // pass ("Blood test") never ran and the user's English file wasn't found. A possessive is never English.
+        "meu", "minha", "meus", "minhas", "resuma",
     ) // "por que" can't match a single word, as in the TS regex
     private val ASCII_WORD = Regex("[a-z0-9]+")
     private val ACCENTED = Regex("(^|[^\\p{L}])[a-zà-ÿ]*[ãõçâêôáéíóú]\\p{L}*")
@@ -119,8 +122,33 @@ object PtLexicon {
     private fun variants(words: List<String>): List<String> {
         val out = mutableListOf(words.joinToString(" "))
         for (i in words.indices) for (s in singularsPt(words[i])) out += (words.subList(0, i) + s + words.subList(i + 1, words.size)).joinToString(" ")
+        // "oferta e a demanda" is the lexicon's "oferta e demanda": an article inside a phrase doesn't change it.
+        if (words.size >= 3) {
+            val bare = listOf(words.first()) + words.subList(1, words.size - 1).filter { it !in INNER_ARTICLES } + words.last()
+            if (bare.size != words.size) out += bare.joinToString(" ")
+        }
         return out
     }
+    private val INNER_ARTICLES = setOf("a", "o", "as", "os")
+
+    /**
+     * Readings the lexicon gets wrong for a question (t9 0226, measured on the 30 Portuguese questions, 15 Nov), checked
+     * before it; "" reads as no name at all (the words are used up, so no shorter name is looked up for them either).
+     * Keys are folded. "aparelho" is a device, not Brickwork (the masonry bond); a time unit names no article to search ("15h40… 35 minutos" found Minute, Inverse second,
+     * Sexagesimal); "inclinação da Terra" is the axial tilt, not an orbit's inclination; "céu azul" is why the sky is blue.
+     */
+    private val READINGS: Map<String, String> = mapOf(
+        "aparelho" to "", "aparelhos" to "",
+        "minuto" to "", "minutos" to "", "hora" to "", "horas" to "", "segundo" to "", "segundos" to "",
+        "inclinacao da terra" to "Axial tilt", "inclinacao do eixo" to "Axial tilt", "inclinacao do eixo da terra" to "Axial tilt", "eixo da terra" to "Axial tilt",
+        "ceu azul" to "Diffuse sky radiation", "ceu e azul" to "Diffuse sky radiation",
+        // Lab and health terms the lexicon lacks (t9 0026). Bare "receita" stays out: in the packs it's also a recipe.
+        "triglicerideos" to "Triglyceride", "triglicerides" to "Triglyceride", "creatinina" to "Creatinine",
+        "receita medica" to "Prescription", "receitas medicas" to "Prescription",
+    )
+
+    /** "marés" -> "maré" (Tide) before the folded "mares" -> "mar" (Sea): an accented word's own singular first. */
+    private fun accentedSingulars(word: String): List<String> = listOf(Regex("s$") to "").filter { (re, _) -> re.containsMatchIn(word) && word.length > 3 }.map { (re, to) -> re.replaceFirst(word, to) }
 
     private val titleCache = java.util.WeakHashMap<Map<String, String>, Map<String, String>>()
     private fun englishTitles(lexicon: Map<String, String>): Map<String, String> =
@@ -130,8 +158,22 @@ object PtLexicon {
     private val ORIGINAL_WORD = Regex("[\\p{L}\\p{N}]+(?:-[\\p{L}\\p{N}]+)*")
     private val UPPER_START = Regex("^\\p{Lu}")
 
+    /**
+     * "na natureza", "em meio à natureza", "em plena natureza", "no meio da natureza": "in the wild", a place, not the
+     * article Nature (t9 0110 item 6: "Como purificar água na natureza, passo a passo?" got Nature, Nature (journal) and
+     * Nature reserve as its sources). "a natureza", "da natureza" still name it.
+     */
+    private val IN_THE_WILD = Regex("""(?<![\p{L}])(?:na|em plena|em meio [àa]|no meio da|em contato com a|ao ar livre na) natureza(?![\p{L}])(?!\s+human[ao])""", RegexOption.IGNORE_CASE)
+    /** "In the wild" is something done there: survive, camp, purify, find… (validator R-D2: "o papel do homem na natureza" is Nature). */
+    private val WILD_ACTION = Regex("""(?<![\p{L}])(?:como|sobreviver|acampar|acampamento|purificar|filtrar|achar|encontrar|cozinhar|dormir|caminhar|trilha|fazer fogo|acender|perdid[oa]|passo a passo|seguro)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    /** "céu azul" is the sky's light only in a why or how question (R-D3: not "Céu Azul Futebol Clube", not Photoshop). */
+    private val WHY_HOW = Regex("""(?<![\p{L}])(?:por ?que|porqu[eê]|como|o que (?:faz|torna|deixa)|explique|explica)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+    private val PHOTO_OR_NAME = Regex("""(?<![\p{L}])(?:photoshop|desenhar|pintar|clube|futebol|bras[íi]lia)(?![\p{L}])""", RegexOption.IGNORE_CASE)
+
     /** English article names a Portuguese question mentions, longest names first, each word used once. */
     fun englishNamesIn(query: String, lexicon: Map<String, String>, max: Int = 4, maxLen: Int = 5): List<String> {
+        val sky = WHY_HOW.containsMatchIn(query) && !PHOTO_OR_NAME.containsMatchIn(query)
+        @Suppress("NAME_SHADOWING") val query = if (WILD_ACTION.containsMatchIn(query)) IN_THE_WILD.replace(query, " ") else query
         val words = FOLDED_WORD.findAll(foldText(query)).map { it.value }.toList()
         val original = ORIGINAL_WORD.findAll(query).map { it.value }.toList()
         val accented = if (original.size == words.size) original.map { Js.nfc(it).lowercase() } else null
@@ -147,7 +189,15 @@ object PtLexicon {
                 if ((i until i + len).any { used[it] }) continue
                 if (gram[0] in STOP || gram[len - 1] in STOP) continue
                 if (len == 1 && (gram[0].length < 4 || !specific(i))) continue
-                val hit = accented?.let { lexicon[it.subList(i, i + len).joinToString(" ")] }
+                val reading = variants(gram).firstNotNullOfOrNull { READINGS[it] }?.takeUnless { it == "Diffuse sky radiation" && !sky }
+                if (reading != null) {
+                    if (reading.isEmpty()) { for (j in i until i + len) used[j] = true; continue }
+                    for (j in i until i + len) used[j] = true
+                    if (reading !in names) names += reading
+                    continue
+                }
+                val hit = accented?.let { a -> lexicon[a.subList(i, i + len).joinToString(" ")]
+                    ?: if (len == 1) accentedSingulars(a[i]).firstNotNullOfOrNull { lexicon[it]?.takeIf { v -> v.isNotEmpty() } } else null }
                     ?: variants(gram).firstNotNullOfOrNull { lexicon[it]?.takeIf { v -> v.isNotEmpty() } }
                     ?: (if (len == 1) englishTitles(lexicon)[gram[0]] else null)
                     ?: continue

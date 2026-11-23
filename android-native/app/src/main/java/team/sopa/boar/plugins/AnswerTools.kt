@@ -38,8 +38,14 @@ object AnswerTools {
      */
     @Volatile var speaker: (tool: String) -> Speaker? = { null }
 
-    /** [titleKey]: the plugin's name (native.labs.<id>.title); [canBypass]: "Ask BOAR instead" is offered (not for safety). */
-    data class Speaker(val titleKey: String, val art: Int?, val emoji: String, val canBypass: Boolean)
+    /**
+     * [titleKey]: the plugin's name (native.labs.<id>.title); [canBypass]: "Ask BOAR instead" is offered (not for safety);
+     * [id]: the plugin's id, so a tap on its picture and name opens its page (adam, Nov 13).
+     */
+    data class Speaker(val titleKey: String, val art: Int?, val emoji: String, val canBypass: Boolean, val id: String? = null)
+
+    /** The id of a plugin that's off but would have answered [query] (Lunar for "what phase is the moon"); null otherwise. Set by Labs. */
+    @Volatile var offPlugin: (query: String) -> String? = { null }
 
     /** The system prompt with a [ToolResult.Context]'s text after it; unchanged otherwise. */
     fun systemPrompt(base: String, r: ToolResult?): String = if (r is ToolResult.Context) "$base\n\n${r.text}" else base

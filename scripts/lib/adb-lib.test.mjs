@@ -4,7 +4,7 @@ import { isDebuggable, isPackageListed, parseAdbDevices, selectDevice } from "./
 describe("device selection", () => {
   const out = [
     "List of devices attached",
-    "SSYLAQFILNBEKBEQ\tdevice",
+    "TEST0SERIAL0001\tdevice",
     "emulator-5554\tunauthorized",
     "R58M\toffline",
     "",
@@ -12,14 +12,14 @@ describe("device selection", () => {
 
   it("parses adb devices output", () => {
     expect(parseAdbDevices(out)).toEqual([
-      { serial: "SSYLAQFILNBEKBEQ", state: "device" },
+      { serial: "TEST0SERIAL0001", state: "device" },
       { serial: "emulator-5554", state: "unauthorized" },
       { serial: "R58M", state: "offline" },
     ]);
   });
 
   it("uses the single authorized device", () => {
-    expect(selectDevice(parseAdbDevices(out))).toEqual({ serial: "SSYLAQFILNBEKBEQ" });
+    expect(selectDevice(parseAdbDevices(out))).toEqual({ serial: "TEST0SERIAL0001" });
   });
 
   it("explains unauthorized, offline, missing and ambiguous devices", () => {

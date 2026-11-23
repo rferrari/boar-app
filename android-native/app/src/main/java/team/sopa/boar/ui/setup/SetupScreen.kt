@@ -1,5 +1,6 @@
 package team.sopa.boar.ui.setup
 
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -88,7 +89,7 @@ fun SetupScreen(state: SetupState, vm: SetupViewModel, language: String, onLangu
         state.step == 1 -> Welcome(state, language, onLanguage, onSkip) { vm.next() }
         state.step == 2 -> ModelStep(state, vm, onBrowse)
         state.step == 3 -> PackageStep(state, vm)
-        state.details -> InstallStep(state, vm, onGuide = { vm.showDetails(false) }) { backOpen = true }
+        state.details -> InstallStep(state, vm, onGuide = { vm.showDetails(false) }, onDone = onDone) { backOpen = true }
         else -> SetupGuidePage(state, vm, themeId, onTheme, onFontScale, onDone)
     }
     if (backOpen) {
@@ -275,7 +276,7 @@ private fun Welcome(state: SetupState, language: String, onLanguage: (String) ->
 private fun ModelStep(state: SetupState, vm: SetupViewModel, onBrowse: () -> Unit) {
     val c = Boar.colors
     StepScreen(footer = {
-        PrimaryButton(t("flows.onboarding.continue"), enabled = state.chosenId != null, trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.next() }
+        PrimaryButton(t("flows.onboarding.continue"), enabled = state.chosenId != null, trailing = team.sopa.boar.R.drawable.ic_arrow_forward) { vm.continueFromModel() }
         BackLink(t("flows.onboarding.back")) { vm.back() }
     }) {
         StepHeader(1, t("flows.onboarding.modelTitle"), t("flows.onboarding.modelSub"))
@@ -330,6 +331,8 @@ private fun PackageStep(state: SetupState, vm: SetupViewModel) {
                         "speed" to Units.formatBytes(REFERENCE_BYTES_PER_SEC)) else null,
                 )
                 if (meta.isNotEmpty()) Meta(meta.joinToString(" · "))
+                // The choice shows only when space is short: say what the bigger one really adds (the models are the same).
+                if (p.pkg == SetupPackage.ENCYCLOPEDIA) Meta(t("native.setup.encyclopediaExtra", "size" to Units.formatBytes(vm.encyclopediaExtraBytes())), c.textAccentEmerald)
                 if (p.shortfallBytes > 0) Meta(t("flows.onboarding.noSpace", "size" to Units.formatBytes(p.shortfallBytes)), c.crimson400)
             }
         }
@@ -347,12 +350,18 @@ private fun categoryOf(d: AssetProgress) = when (d.asset.kind) {
 }
 
 @Composable
-internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> Unit, onBack: () -> Unit) {
+internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> Unit, onDone: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     val indexing = state.indexPhase == IndexPhase.BUILDING || state.indexPhase == IndexPhase.ERROR
     StepScreen(footer = {
+        // Everything on the phone and the packs organized: Open BOAR from here too, as the guide's last page offers
+        // (adam on the F3, t9 0120: the downloads view was a dead end). It follows the state, so a download that finished
+        // in the background shows it on return.
+        if (state.finished) {
+            PrimaryButton(t("flows.onboarding.open"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onDone)
+            SecondaryButton(t("native.setupGuide.backToGuide"), onClick = onGuide)
         // Back to the page the user was on; the download keeps going under it.
-        PrimaryButton(t("native.setupGuide.backToGuide"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onGuide)
+        } else PrimaryButton(t("native.setupGuide.backToGuide"), trailing = team.sopa.boar.R.drawable.ic_arrow_forward, onClick = onGuide)
         if (!state.transferring && state.indexPhase != IndexPhase.BUILDING && !state.finished) BackLink(t("flows.onboarding.back"), onBack)
     }) {
         StepHeader(if (state.indexPhase == IndexPhase.WAITING) 3 else 4,
@@ -420,7 +429,7 @@ internal fun InstallStep(state: SetupState, vm: SetupViewModel, onGuide: () -> U
                     Row(Modifier.fillMaxWidth().padding(start = 28.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(d.asset.label, style = Boar.type.subtext, color = c.textSecondary, modifier = Modifier.weight(1f), maxLines = 2)
                         if (d.error != null) Text(t("flows.row.retry"), style = Boar.type.caption, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { vm.retry() }.padding(6.dp))
+                            modifier = Modifier.minimumInteractiveComponentSize().clip(RoundedCornerShape(6.dp)).clickable { vm.retry() }.padding(6.dp))
                         else Text(when {
                             d.done -> t("flows.onboarding.ready")
                             d.verifying -> t("flows.onboarding.checking")
@@ -514,7 +523,7 @@ fun currentLanguage(saved: String?): String = saved ?: LocalConfiguration.curren
 
 /** The tour's top line, from the same numbers as the download screen: bytes while files arrive, then the index. */
 @Composable
-internal fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress {
+internal fun setupProgress(state: SetupState): SetupProgress {
     val downloading = !state.allPresent
     val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
         else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f
@@ -527,5 +536,8 @@ internal fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgres
         downloading -> t("native.tour.lineDownloading", "pct" to (fraction * 100).toInt()) + eta
         else -> t("native.tour.lineIndexing", "done" to state.indexDone, "total" to state.indexTotal) + eta
     }
-    return team.sopa.boar.ui.tour.TourProgress(line, fraction, state.finished, problem)
+    return SetupProgress(line, fraction, state.finished, problem)
 }
+
+/** The download's line under setup's guide pages: what it's doing, how far, done, or a problem. */
+data class SetupProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean = false)

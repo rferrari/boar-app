@@ -34,7 +34,15 @@ data class Catalog(
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
-        fun parse(text: String): Catalog = json.decodeFromString(serializer(), text)
+
+        /**
+         * A [CatalogAsset.testOnly] entry is dropped here, so no list the user sees (setup, tiers, the Model Catalog,
+         * the chat's model) can hold one even if it lands in catalog.json by mistake. Bench-only models live in
+         * bench-models.json, read only by the bench ([team.sopa.boar.engine.eval.BenchModels]).
+         */
+        fun parse(text: String): Catalog = json.decodeFromString(serializer(), text).let { c ->
+            if (c.models.none { it.testOnly }) c else c.copy(models = c.models.filterNot { it.testOnly })
+        }
     }
 }
 
@@ -68,6 +76,11 @@ data class CatalogAsset(
     val answerTier: AnswerTier? = null,
     /** No longer suggested (manifest.ts `hidden`): listed only where it's already on the phone, and it keeps working there. */
     val hidden: Boolean = false,
+    /**
+     * A model only the bench runs (a test of a candidate, t9 0443: Qwen3-0.6B). Never in a user list: [Catalog.parse]
+     * drops it, and its entry lives in bench-models.json, not catalog.json.
+     */
+    val testOnly: Boolean = false,
     val bundled: Boolean = false,
     val format: String? = null,
     val requires: List<String> = emptyList(),

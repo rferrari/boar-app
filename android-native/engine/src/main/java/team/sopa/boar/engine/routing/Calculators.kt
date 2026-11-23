@@ -9,7 +9,7 @@ import team.sopa.boar.engine.rag.Js
  * toLocaleString does for en-US / pt-BR.
  */
 object Calculators {
-    /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water". */
+    /** kind: "temperature" | "fuel-economy" | "naismith" | "currency" | "battery" | "water" | "conversion". */
     data class Calculation(val kind: String, val text: String)
 
     // Starts only where a run of digits starts: from every digit inside a long run, \d+ backtracked over the rest of it,
@@ -31,6 +31,62 @@ object Calculators {
         return JsNumber.parse(s)
     }
 
+    /**
+     * The question's decimal mark, read from its own numbers before its language (t9 0330: "27.000 mAh 3,7 V no avião"
+     * wasn't detected as Portuguese and 27.000 read as 27). A comma before 1, 2 or 4+ digits ("3,7") or after a dot
+     * ("1.200,5") says the comma is decimal; the same for the dot ("3.7", "1,200.5"). Exactly one of the two decides
+     * every "N.NNN" and "N,NNN" in the question; both or neither: null, the language decides.
+     */
+    fun decimalMark(q: String): Char? {
+        val marks = HashSet<Char>()
+        for (m in NUMBER_TOKEN.findAll(q)) {
+            val t = m.value
+            if (isDate(q, m)) continue
+            val seps = t.filter { it == '.' || it == ',' }
+            if (seps.toSet().size == 2) { marks += seps.last(); continue }
+            if (seps.length == 1 && t.substringAfter(seps[0]).length != 3) marks += seps[0]
+        }
+        return marks.singleOrNull()
+    }
+
+    /** Longer than any calculator question; the number patterns cost too much past it (validator B-5). */
+    const val MAX_QUERY = 2000
+
+    /**
+     * A date, never a decimal mark (validator B-1: "2.450 baht no dia 14.11" read 2.45): "14.11.2026", or
+     * "14.11" right after a date word ("no dia 14.11", "on 14.11", "until 3.12"). A day up to 31, a month up to 12.
+     * "3.7 V" and "on 12.50" are not dates.
+     */
+    private fun isDate(q: String, m: MatchResult): Boolean {
+        val d = DATE.matchEntire(m.value) ?: return false
+        val day = d.groupValues[1].toInt(); val month = d.groupValues[2].toInt()
+        if (day !in 1..31 || month !in 1..12) return false
+        if (d.groupValues[3].isNotEmpty()) return true
+        val before = q.substring(0, m.range.first).takeLast(14)
+        val twoDigits = d.groupValues[1].length == 2 && d.groupValues[2].length == 2
+        return DAY_WORD.containsMatchIn(before) || (twoDigits && DATE_WORD.containsMatchIn(before))
+    }
+    private val DATE = Regex("""(\d{1,2})\.(\d{1,2})(?:\.(\d{2}|\d{4}))?""")
+    /** Words that make what follows a date even when it's "3.12". */
+    private val DAY_WORD = Regex("""(?<![\p{L}])(?:dia|day|date|data|dated|datado|vencimento|due)\s*:?\s*$""", RegexOption.IGNORE_CASE)
+    /** Words that make a two-digit "14.11" a date. */
+    private val DATE_WORD = Regex("""(?<![\p{L}])(?:on|em|de|until|till|até|from|desde|by|since|before|after|antes de|depois de)\s*$""", RegexOption.IGNORE_CASE)
+
+    /** Read "N,NNN" / "N.NNN" with a decimal comma: the question's own mark first ([decimalMark]), else [pt]. */
+    fun readsComma(q: String, pt: Boolean): Boolean = decimalMark(q)?.let { it == ',' } ?: pt
+
+    private val NUMBER_TOKEN = Regex("""(?<![\d.,])\d+(?:[.,]\d+)+""")
+    private val THOUSANDS = Regex("""\d{1,3}(?:[.,]\d{3})+""")
+
+    /** A whole count written with thousands marks, "27.000" or "27,000": 27000 in every language (a battery's mAh). */
+    private fun wholeNumber(raw: String): Double? = raw.trim().takeIf { THOUSANDS.matches(it) }?.filter(Char::isDigit)?.toDouble()
+
+    /**
+     * Portuguese in the rules' own words (t9 0330), for the answer's language when the detector misses a short question:
+     * "27.000 mAh 3,7 V no avião" has no question word. QueryContext is not touched.
+     */
+    private val PT_WORDS = JsRegex.re("""\b(?:avi[ãa]o|voo|voar|bagagem|companhia|litros?|milhas?|gal[ãa]o|gal[õo]es|quil[ôo]metros?|quanto|quantos|quantas|posso|pode|levar|meu|minha|tenho|preciso|gorjeta|c[âa]mbio)\b""", "i")
+
     private fun fmt(n: Double, pt: Boolean, digits: Int = 2) = JsNumber.locale(n, pt, digits)
 
     // (a) Fuel economy: L/100 km <-> miles per gallon (US 235.215, UK 282.481).
@@ -40,13 +96,13 @@ object Calculators {
     private val MPG = JsRegex.re("""$NUM\s*(?:mpg|milhas? por gal[ãa]o|miles? per (?:us |uk |imperial )?gallon)""", "i")
     private val ASKS_L100 = JsRegex.re("""l\s*\/\s*100|litros? (a cada|por) 100|liters? per 100""", "i")
 
-    private fun fuelEconomy(q: String, pt: Boolean): String? {
+    private fun fuelEconomy(q: String, pt: Boolean, rd: Boolean): String? {
         val uk = UK.containsMatchIn(q)
         val k = if (uk) 282.481 else 235.215
         val gal = if (pt) (if (uk) "galão imperial" else "galão americano") else if (uk) "UK gallon" else "US gallon"
         val l100 = L100.find(q)
         if (l100 != null && ASKS_MPG.containsMatchIn(q)) {
-            val x = parseNumber(l100.groupValues[1], pt)
+            val x = parseNumber(l100.groupValues[1], rd)
             if (!(x > 0)) return null
             val mpg = k / x
             return if (pt) {
@@ -57,7 +113,7 @@ object Calculators {
         }
         val mpgM = MPG.find(q)
         if (mpgM != null && ASKS_L100.containsMatchIn(q)) {
-            val x = parseNumber(mpgM.groupValues[1], pt)
+            val x = parseNumber(mpgM.groupValues[1], rd)
             if (!(x > 0)) return null
             return if (pt) {
                 "${fmt(x, pt)} milhas por galão ($gal) = ${fmt(k / x, pt)} L/100 km. Conta: L/100 km = ${fmt(k, pt, 3)} ÷ mpg."
@@ -73,13 +129,13 @@ object Calculators {
     private val KM = JsRegex.re("""$NUM\s*km\b""", "i")
     private val METERS = JsRegex.re("""$NUM\s*m\b(?![a-z])""", "i")
 
-    private fun naismith(q: String, pt: Boolean): String? {
+    private fun naismith(q: String, pt: Boolean, rd: Boolean): String? {
         if (!NAISMITH.containsMatchIn(q)) return null
         val km = KM.find(q)
         val up = METERS.find(q.replaceFirst(km?.value ?: "", ""))
         if (km == null) return null
-        val d = parseNumber(km.groupValues[1], pt)
-        val a = if (up != null) parseNumber(up.groupValues[1], pt) else 0.0
+        val d = parseNumber(km.groupValues[1], rd)
+        val a = if (up != null) parseNumber(up.groupValues[1], rd) else 0.0
         val h = d / 5 + a / 600
         val hh = kotlin.math.floor(h)
         val mm = JsNumber.round((h - hh) * 60)
@@ -104,13 +160,13 @@ object Calculators {
     private val SPACE_DOT = JsRegex.re("""\s+\.""")
     private val SPACES_2 = JsRegex.re("""\s{2,}""")
 
-    private fun currency(q: String, pt: Boolean): String? {
+    private fun currency(q: String, pt: Boolean, rd: Boolean): String? {
         val rate = RATE.find(q) ?: return null
-        val r = parseNumber(rate.groupValues[2], pt)
+        val r = parseNumber(rate.groupValues[2], rd)
         val rest = q.replaceFirst(rate.value, " ")
         val amountM = AMOUNT.find(PERCENT.replace(rest, " "))
         if (amountM == null || !(r > 0)) return null
-        val amount = parseNumber(amountM.groupValues[1], pt)
+        val amount = parseNumber(amountM.groupValues[1], rd)
         val unitFrom = Js.trim(amountM.groups[2]?.value ?: rate.groups[3]?.value ?: "")
         val cur = rate.groupValues[1]
         val unitTo = if (ES_END.replaceFirst(cur, "").lowercase().startsWith("d")) (if (pt) "dólares" else "US dollars") else cur
@@ -118,7 +174,7 @@ object Calculators {
         var text = "${fmt(amount, pt)} $unitFrom ÷ ${fmt(r, pt)} = ${fmt(converted, pt)} $unitTo."
         val tipM = PERCENT.find(q)
         if (tipM != null && TIP.containsMatchIn(q)) {
-            val t = parseNumber(tipM.groupValues[1], pt)
+            val t = parseNumber(tipM.groupValues[1], rd)
             val total = converted * (1 + t / 100)
             text += if (pt) {
                 " Com ${fmt(t, pt)}% de gorjeta: ${fmt(total, pt)} $unitTo (gorjeta de ${fmt(converted * (t / 100), pt)})."
@@ -129,32 +185,23 @@ object Calculators {
         return SPACES_2.replace(SPACE_DOT.replace(text, "."), " ")
     }
 
-    // (d) Battery energy: Wh = mAh × V / 1000, with the airline limits (IATA/FAA: up to 100 Wh in carry-on; 100-160 Wh
-    // with the airline's approval; above 160 Wh not allowed; spare batteries never in checked bags).
+    // (d) Battery energy: Wh = mAh × V / 1000. With flight words, one neutral line instead of a verdict (adam, Nov 14; t9
+    // 0143): the limits are set by airlines and IATA and they change (a power bank above 100 Wh is "Forbidden" in IATA's
+    // 2026 guidance, and the 100-160 Wh approval goes from the DGR in 2027); an offline app can't know the rule of the day.
     private val MAH = JsRegex.re("""$NUM\s*mah\b""", "i")
     private val VOLTS = JsRegex.re("""$NUM\s*v\b""", "i")
     private val FLIGHT = JsRegex.re("""avi[ãa]o|voo|voar|bagagem|companhia a[ée]rea|plane|flight|fly|airline|carry[- ]on|luggage""", "i")
 
-    private fun battery(q: String, pt: Boolean): String? {
+    const val FLIGHT_NOTE_EN = " Airlines set their battery limits in Wh, and the rules change: check your airline before you fly."
+    const val FLIGHT_NOTE_PT = " As companhias aéreas definem os limites de bateria em Wh, e as regras mudam: confira com a sua antes de voar."
+
+    private fun battery(q: String, pt: Boolean, rd: Boolean): String? {
         val mah = MAH.find(q) ?: return null
         val v = VOLTS.find(q) ?: return null
-        val wh = (parseNumber(mah.groupValues[1], pt) * parseNumber(v.groupValues[1], pt)) / 1000
-        var text = "${fmt(parseNumber(mah.groupValues[1], pt), pt, 0)} mAh × ${fmt(parseNumber(v.groupValues[1], pt), pt)} V ÷ 1000 = ${fmt(wh, pt)} Wh."
-        if (FLIGHT.containsMatchIn(q)) {
-            text += when {
-                wh <= 100 -> if (pt) {
-                    " Sim, pode levar no avião: até 100 Wh é permitido na bagagem de mão (não na despachada)."
-                } else {
-                    " Yes, you can take it on a plane: up to 100 Wh is allowed in carry-on baggage (not in checked bags)."
-                }
-                wh <= 160 -> if (pt) {
-                    " Entre 100 e 160 Wh, só na bagagem de mão e com aprovação da companhia aérea."
-                } else {
-                    " Between 100 and 160 Wh it needs the airline's approval, in carry-on baggage only."
-                }
-                else -> if (pt) " Acima de 160 Wh, não é permitido em voos de passageiros." else " Above 160 Wh it is not allowed on passenger flights."
-            }
-        }
+        val capacity = wholeNumber(mah.groupValues[1]) ?: parseNumber(mah.groupValues[1], rd)
+        val wh = (capacity * parseNumber(v.groupValues[1], rd)) / 1000
+        var text = "${fmt(capacity, pt, 0)} mAh × ${fmt(parseNumber(v.groupValues[1], rd), pt)} V ÷ 1000 = ${fmt(wh, pt)} Wh."
+        if (FLIGHT.containsMatchIn(q)) text += if (pt) FLIGHT_NOTE_PT else FLIGHT_NOTE_EN
         return text
     }
 
@@ -167,7 +214,7 @@ object Calculators {
     private const val COUNT =
         """(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|um|uma|dois|duas|três|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze)"""
 
-    private fun count(w: String, pt: Boolean): Double = WORD_NUMBERS[w.lowercase()]?.toDouble() ?: parseNumber(w, pt)
+    private fun count(w: String, rd: Boolean): Double = WORD_NUMBERS[w.lowercase()]?.toDouble() ?: parseNumber(w, rd)
 
     // (f) Water for a trip: people × days × litres per person per day; 1 L of water weighs about 1 kg.
     private val WATER = JsRegex.re("""(?<![\p{L}])(water|[áa]gua)(?![\p{L}])""", "iu")
@@ -175,15 +222,15 @@ object Calculators {
     private val PEOPLE = JsRegex.re("""\b(?:somos|we are|we're)\s+$COUNT\b|\b$COUNT\s+(?:of us|people|persons|pessoas|adultos|adults|hikers)\b""", "i")
     private val DAYS = JsRegex.re("""\b$COUNT[\s-]+(?:days?|dias?)\b""", "i")
 
-    private fun water(q: String, pt: Boolean): String? {
+    private fun water(q: String, pt: Boolean, rd: Boolean): String? {
         if (!WATER.containsMatchIn(q)) return null
         val perDay = PER_DAY.find(q)
         val people = PEOPLE.find(q)
         val days = DAYS.find(q)
         if (perDay == null || people == null || days == null) return null
-        val l = parseNumber(perDay.groupValues[1], pt)
-        val p = count(people.groups[1]?.value ?: people.groups[2]!!.value, pt)
-        val d = count(days.groupValues[1], pt)
+        val l = parseNumber(perDay.groupValues[1], rd)
+        val p = count(people.groups[1]?.value ?: people.groups[2]!!.value, rd)
+        val d = count(days.groupValues[1], rd)
         if (!(l > 0 && p > 0 && d > 0)) return null
         val total = l * p * d
         return if (pt) {
@@ -195,15 +242,16 @@ object Calculators {
 
     // from context.ts; replace with the shared port when context.ts lands
     private val TEMPERATURE = JsRegex.re(
-        """(?<!\d)(-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
+        """(?<!\d)(-?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?)\s*(?:°|º|degrees?|graus?)?\s*(c|celsius|centigrade|f|fahrenheit)\b[^?]*?\b(?:in|to|into|em|para)\s+(?:degrees?\s+|graus?\s+)?(celsius|centigrade|fahrenheit|c|f)\b""",
         "i",
     )
 
     // from context.ts; replace with the shared port when context.ts lands
     /** "What is 30 °C in Fahrenheit?": the conversion with its formula, or null. */
-    private fun temperatureConversion(query: String, pt: Boolean): String? {
+    /** [rd]: the question's decimal mark is a comma ([readsComma]); "1,500 °C" is 1500 in English (validator B-6). */
+    private fun temperatureConversion(query: String, pt: Boolean, rd: Boolean): String? {
         val m = TEMPERATURE.find(query) ?: return null
-        val value = JsNumber.parse(m.groupValues[1].replaceFirst(",", "."))
+        val value = parseNumber(m.groupValues[1], rd)
         val from = if (m.groupValues[2][0].lowercaseChar() == 'f') "F" else "C"
         val to = if (m.groupValues[3][0].lowercaseChar() == 'f') "F" else "C"
         if (from == to || !value.isFinite()) return null
@@ -218,10 +266,10 @@ object Calculators {
     private val HAS_C = JsRegex.re("°C")
     private val ASKS_SAFE = JsRegex.re("""perig|segur|caminh|trilha|correr|exerc|danger|safe|hike|hiking|walk|run|exercise""", "i")
 
-    private fun temperature(q: String, pt: Boolean): String? {
-        val base = temperatureConversion(q, pt) ?: return null
+    private fun temperature(q: String, pt: Boolean, rd: Boolean): String? {
+        val base = temperatureConversion(q, pt, rd) ?: return null
         val c = CELSIUS.find(base.split("=").map(Js::trim).firstOrNull { HAS_C.containsMatchIn(it) } ?: "")
-        val celsius = if (c != null) parseNumber(c.groupValues[1], pt) else Double.NaN
+        val celsius = if (c != null) parseNumber(c.groupValues[1], rd) else Double.NaN
         val asks = ASKS_SAFE.containsMatchIn(q)
         if (!celsius.isFinite() || !(asks && celsius >= 32)) return base
         val note = if (celsius >= 40) {
@@ -238,18 +286,28 @@ object Calculators {
         return base + note
     }
 
-    /** The exact answer to an arithmetic question, or null. Order: the most specific first. */
+    /**
+     * The exact answer to an arithmetic question, or null. Order: the most specific first. A plain unit conversion
+     * ("26 miles in km", UnitConversion) is the last try, after the temperature rule (adam, Nov 13).
+     */
     fun calculate(query: String, pt: Boolean): Calculation? {
-        val tries: List<Pair<String, (String, Boolean) -> String?>> = listOf(
+        // A pasted table of digit groups made each pass quadratic (validator B-5: 16,000 characters, 5 s). No calculator
+        // question is that long: the model takes it.
+        if (query.length > MAX_QUERY) return null
+        // The answer's language: the detector, or the rules' own Portuguese words. The numbers: the question's own mark first.
+        val ptText = pt || PT_WORDS.containsMatchIn(query)
+        val rd = readsComma(query, ptText)
+        val tries: List<Pair<String, (String, Boolean, Boolean) -> String?>> = listOf(
             "battery" to ::battery,
             "fuel-economy" to ::fuelEconomy,
             "naismith" to ::naismith,
             "currency" to ::currency,
             "water" to ::water,
             "temperature" to ::temperature,
+            "conversion" to { q, p, _ -> UnitConversion.convert(q, p) },
         )
         for ((kind, fn) in tries) {
-            val text = fn(query, pt)
+            val text = fn(query, ptText, rd)
             if (!text.isNullOrEmpty()) return Calculation(kind, text)
         }
         return null

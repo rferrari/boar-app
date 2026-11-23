@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.pulse
 
+import team.sopa.boar.engine.labs.Vitals
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -63,6 +64,15 @@ object DevicePulseLab : LabPlugin {
     override val art = team.sopa.boar.R.drawable.truffle_synthetic
     override val status = LabStatus.LIVE
 
+    /** "How hot is my phone?": answered from the battery and memory, read now (adam, Nov 12). */
+    override fun recognizes(query: String) = team.sopa.boar.engine.labs.PluginAnswers.isPhoneQuestion(query)
+
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        val ctx = team.sopa.boar.labs.LabPrefs.appContext
+        if (ctx == null || !team.sopa.boar.engine.labs.PluginAnswers.isPhoneQuestion(query)) null
+        else team.sopa.boar.plugins.ToolResult.Instant("vitals-phone", team.sopa.boar.engine.labs.PluginAnswers.phoneAnswer(query, team.sopa.boar.labs.PhoneReads.phone(ctx)))
+    }
+
     private const val HISTORY = 120
 
     private data class Sample(
@@ -79,16 +89,15 @@ object DevicePulseLab : LabPlugin {
 
     private fun read(ctx: Context): Sample {
         val battery = ctx.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val temp = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)?.takeIf { it != Int.MIN_VALUE }?.div(10.0)
+        val temp = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)?.let(Vitals::batteryTempC)
         val level = battery?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale = battery?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val plugged = (battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
         val thermal = if (Build.VERSION.SDK_INT >= 29) (ctx.getSystemService(Context.POWER_SERVICE) as PowerManager).currentThermalStatus else null
         val mem = ActivityManager.MemoryInfo().also { (ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(it) }
         // The phone's own core ids (cpu0…cpuN, not always without gaps), not the count of online cores.
-        val cores = File("/sys/devices/system/cpu").listFiles { f -> f.name.matches(Regex("cpu\\d+")) }.orEmpty()
-            .map { it.name.removePrefix("cpu").toInt() }.sorted()
-        fun khz(core: Int, file: String) = runCatching { File("/sys/devices/system/cpu/cpu$core/cpufreq/$file").readText().trim().toInt() / 1000 }.getOrNull()
+        val cores = Vitals.coreIds(File("/sys/devices/system/cpu").list().orEmpty().toList())
+        fun khz(core: Int, file: String) = Vitals.mhzOf(runCatching { File("/sys/devices/system/cpu/cpu$core/cpufreq/$file").readText() }.getOrNull())
         return Sample(
             tempC = temp,
             thermal = thermal,
@@ -97,7 +106,7 @@ object DevicePulseLab : LabPlugin {
             ramFree = mem.availMem,
             ramTotal = mem.totalMem,
             boar = AppMemory.breakdown(),
-            batteryPct = if (level >= 0 && scale > 0) level * 100 / scale else null,
+            batteryPct = Vitals.batteryPercent(level, scale),
             charging = plugged,
         )
     }
@@ -118,7 +127,9 @@ object DevicePulseLab : LabPlugin {
         }
         val s = now ?: return
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(t("native.labs.pulse.heat")) {
+            // Heat and battery side by side (adam, Nov 12): heat takes three quarters, battery one.
+            Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Card(t("native.labs.pulse.heat"), Modifier.weight(3f).fillMaxHeight()) {
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(s.tempC?.let { String.format(Locale.US, "%.1f °C", it) } ?: "—", style = Boar.type.headline, color = heatColor(s.tempC), fontWeight = FontWeight.ExtraBold)
                     Text(thermalLabel(s.thermal), style = Boar.type.caption, color = c.textMuted, modifier = Modifier.padding(bottom = 4.dp))
@@ -127,10 +138,25 @@ object DevicePulseLab : LabPlugin {
                 Text(t("native.labs.pulse.heatNote", "min" to (temps.minOrNull()?.let { String.format(Locale.US, "%.1f", it) } ?: "—"),
                     "max" to (temps.maxOrNull()?.let { String.format(Locale.US, "%.1f", it) } ?: "—"), "seconds" to temps.size), style = Boar.type["mono.xs"], color = c.textDim)
             }
-            Card(t("native.labs.pulse.cores")) {
-                s.coresMhz.forEachIndexed { i, mhz ->
-                    val max = s.coresMaxMhz.getOrNull(i)
-                    Meter("cpu$i", mhz?.let { "$it MHz" } ?: "—", if (mhz != null && max != null && max > 0) mhz.toFloat() / max else 0f, c.cyan400)
+            Card(t("native.labs.pulse.battery"), Modifier.weight(1f).fillMaxHeight()) {
+                Text(s.batteryPct?.let { "$it%" } ?: "—", style = Boar.type.headline, color = c.textHeading, fontWeight = FontWeight.ExtraBold)
+                if (s.charging) Text("⚡", style = Boar.type.title, color = c.textAccentAmber)
+            }
+            }
+            // The cores as vertical bars, side by side (adam, Nov 12): the unit said once in the title, each bar its GHz and number.
+            Card(t("native.labs.pulse.cores") + " · GHz") {
+                Row(Modifier.fillMaxWidth().height(110.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
+                    s.coresMhz.forEachIndexed { i, mhz ->
+                        val max = s.coresMaxMhz.getOrNull(i)
+                        val frac = if (mhz != null && max != null && max > 0) mhz.toFloat() / max else 0f
+                        Column(Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(mhz?.let { String.format(Locale.US, "%.1f", it / 1000.0) } ?: "—", style = Boar.type["mono.xs"], color = c.textSecondary, maxLines = 1, softWrap = false)
+                            Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(3.dp)).background(Boar.colors.track(0.4f)), contentAlignment = Alignment.BottomCenter) {
+                                Box(Modifier.fillMaxWidth().fillMaxHeight(frac.coerceIn(0f, 1f)).background(c.cyan400))
+                            }
+                            Text("$i", style = Boar.type["mono.xs"], color = c.textMuted)
+                        }
+                    }
                 }
             }
             Card(t("native.labs.pulse.memory")) {
@@ -145,10 +171,12 @@ object DevicePulseLab : LabPlugin {
             Card(t("native.labs.pulse.chip")) {
                 Line(t("native.labs.pulse.engine"), BoarEngine.loadedVariant ?: "—")
                 Line(t("native.labs.pulse.features"), CpuVariants.readFeatures().filter { it in KEY_FEATURES }.sorted().joinToString(" ").ifEmpty { "—" })
-                Line(t("native.labs.pulse.battery"), (s.batteryPct?.let { "$it%" } ?: "—") + if (s.charging) " ⚡" else "")
                 Line(t("native.labs.pulse.device"), "${Build.MANUFACTURER} ${Build.MODEL} · ${socName()}")
             }
             Text(t("native.labs.pulse.tip"), style = Boar.type.caption, color = c.textMuted)
+            // The page template under the live meters (Nov 12): Try, then How it works with the example inside it (adam, Nov 13).
+            team.sopa.boar.labs.AnswerPage(null, t("native.labs.pulse.exampleQ"), t("native.labs.pulse.exampleA"),
+                (1..2).map { t("native.labs.pulse.example$it") }, t("native.labs.pulse.how"))
         }
     }
 
@@ -159,11 +187,11 @@ object DevicePulseLab : LabPlugin {
     private fun gb(b: Long) = String.format(Locale.US, "%.1f", b / 1073741824.0)
 
     @Composable
-    private fun heatColor(t: Double?): Color = when {
-        t == null -> Boar.colors.textDim
-        t < 38 -> Boar.colors.textAccentEmerald
-        t < 42 -> Color(0xFFF5B83D)
-        else -> Boar.colors.crimson500
+    private fun heatColor(t: Double?): Color = when (Vitals.heat(t)) {
+        Vitals.Heat.UNKNOWN -> Boar.colors.textDim
+        Vitals.Heat.COOL -> Boar.colors.textAccentEmerald
+        Vitals.Heat.WARM -> Color(0xFFF5B83D)
+        Vitals.Heat.HOT -> Boar.colors.crimson500
     }
 
     @Composable
@@ -176,9 +204,9 @@ object DevicePulseLab : LabPlugin {
     }
 
     @Composable
-    private fun Card(title: String, content: @Composable () -> Unit) {
+    private fun Card(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
         val c = Boar.colors
-        Column(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
+        Column(modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(12.dp)).border(1.dp, c.borderSubtle, RoundedCornerShape(12.dp)).padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             content()

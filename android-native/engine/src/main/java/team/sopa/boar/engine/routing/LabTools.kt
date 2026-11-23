@@ -38,10 +38,16 @@ object LabTools {
         return table?.answer(query)?.let { Hit("facts-${it.template}", it.text) }
     }
 
-    /** Boar Cohazard: planning questions about a fuel-burning device in an enclosed space. English as before; then the
-     * Portuguese and Spanish patterns (draft answers in the question's language), whatever the language detectors say:
-     * "gerador na garagem fechada" has none of their words. */
+    /** The acute carbon monoxide card's tool id: Cohazard's, no bypass, never merged (as the planning card). */
+    const val CO_ACUTE = "safety-fact-co-acute"
+
+    /** Boar Cohazard: the acute card first, then planning questions about a fuel-burning device in an enclosed space.
+     * English as before; then the Portuguese and Spanish patterns (draft answers in the question's language), whatever
+     * the language detectors say: "gerador na garagem fechada" has none of their words. */
     fun coHazard(query: String): Hit? {
+        // An alarm going off, a reading above 0 or a symptom with carbon monoxide named, or a symptom with a fuel-burning
+        // device: the acute card first, in any of the three languages (t9 1535, 0110).
+        CoHazard.acuteLanguage(query)?.let { return Hit(CO_ACUTE, CoHazard.acuteAnswer(query, it)) }
         if (!notEnglish(query) && CoHazard.isCoHazardQuestion(query)) return Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query))
         return CoHazard.coHazardLanguage(query)?.let { Hit("safety-fact-co-hazard", CoHazard.coHazardAnswer(query, it)) }
     }
@@ -62,7 +68,11 @@ object LabTools {
     fun <T, R : Any> first(items: List<T>, run: (T) -> R?): R? = items.firstNotNullOfOrNull { runCatching { run(it) }.getOrNull() }
 
     /** The check slot reads only a model's finished answer: not an instant tool answer, a stopped, timed-out or failed one,
-     * an empty one, or one written by Deep Research or a recap ([path] other than null or "adaptive"). */
+     * an empty one, or one written by Deep Research or a recap ([path] other than null, "adaptive" or "staged"). Staged
+     * answers are checked too (adam, Nov 14: Staged is the main answer style, on by default; Guard missed "No countries
+     * are bigger than India" in one). */
     fun checksAnswer(instant: Boolean, stopped: Boolean, timedOut: Boolean, failed: Boolean, path: String?, blank: Boolean): Boolean =
-        !instant && !stopped && !timedOut && !failed && (path == null || path == "adaptive") && !blank
+        !instant && !stopped && !timedOut && !failed && path in CHECKED_PATHS && !blank
+
+    private val CHECKED_PATHS = setOf(null, "adaptive", "staged")
 }

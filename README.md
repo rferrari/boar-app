@@ -38,8 +38,7 @@ believe: [MANIFESTO.md](MANIFESTO.md).
 ## Install
 
 1. Download the APK from the [releases page](https://github.com/rferrari/boar-app/releases)
-   (any 64-bit ARM phone, Android 8 or newer). Version 2.0.0-rc1 is a pre-release, a release
-   candidate for 2.0.0.
+   (any 64-bit ARM phone, Android 8 or newer). The current release is 2.0.0.
 2. Check it against the `.sha256` file next to it, then open it on the phone or run
    `adb install <file>.apk`.
 3. On first launch, setup downloads three things: the answer model, the search model
@@ -47,7 +46,7 @@ believe: [MANIFESTO.md](MANIFESTO.md).
    `knowledge-pack-v1` release). The answer model is Qwen3 4B (about 2.5 GB) on 12 GB phones
    (Android reports 10 GB or more) and Qwen3 1.7B (about 1.1 GB) below that. If the phone is
    short on space, setup offers a smaller package without the Vital Articles pack. While it
-   downloads, you can take a short BOAR tour.
+   downloads, setup walks you through BOAR's main choices.
 
 No internet at all, not even once? The release also has an **offline APK**
 (`boar-…-offline-arm64.apk`, about 2 GB) with Qwen3 1.7B, the search model, the Vital Articles
@@ -88,8 +87,8 @@ NDK 27.1.12297006 and CMake 3.22.1, and JDK 17.
 ```bash
 git clone --recursive https://github.com/rferrari/boar-app.git
 cd boar-app/android-native
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
-# -> app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease -Pboar.experimentalFeatures=true
+# -> app/build/outputs/apk/release/boar-2.0.0.apk
 ```
 
 Without the release key the APK is debug-signed. That is fine for your own phone.

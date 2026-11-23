@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -63,7 +65,7 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
     // Back from a lab's page (Done) to the grid where it was: the grid leaves the screen while a lab is open.
     val scroll = rememberScrollState(gridScroll)
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { gridScroll = scroll.value } }
-    Shell(t("native.labs.title"), onClose, scroll = scroll) {
+    Shell(t("native.labs.title"), onClose, scroll = scroll, backTo = t("native.labs.title")) {
         Hero(labs)
         // Three groups by status: the labs you can use (live first, then beta, in plugin.properties order), the ones
         // under review, and the locked ones still in testing with no release date.
@@ -115,11 +117,22 @@ fun LabsScreen(onOpen: (String) -> Unit, onClose: () -> Unit) {
 
 /** One experiment's page: the shared header (emoji, name, status) above the plugin's own content. */
 @Composable
-fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
+fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Unit) {
     val c = Boar.colors
+    if (lab.fullPage) {
+        val name = t("native.labs.${lab.id}.title")
+        Shell(name, onClose, backTo = t("native.labs.title"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
+            // A page with a gear keeps only the gear: its on/off is the first row of the gear's sheet (adam, 16 Nov; t9 0450).
+            actions = { if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } else PluginPageSwitch(lab) }) {
+            if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
+            Box(Modifier.fillMaxWidth().weight(1f)) { lab.Content() }
+        }
+        return
+    }
     // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
     // grid, and the on/off switch, all in one block; the page below is the lab's.
-    Shell(t("native.labs.${lab.id}.title"), onClose, header = {
+    // Back names where it goes: the Plugins list in Pro, the chat below Pro (LabHooks.backFrom).
+    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = t("native.labs.title"), onExit = onExit, header = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 ?: Text(lab.emoji, fontSize = 36.sp)
@@ -127,19 +140,11 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(t("native.labs.${lab.id}.title"), style = Boar.type.title, color = c.textHeading, maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                    StatusChip(lab.status)
+                    if (PluginsUi.SHOW_STATUS) StatusChip(lab.status)
                 }
                 Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted)
             }
-            DoneButton(onClose)
-        }
-        Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(t("native.labs.enabled"), style = Boar.type.titleSm.copy(fontSize = 13.sp), color = c.textHeading)
-                Text(t("native.labs.enabledNote"), style = Boar.type["mono.xs"], color = c.textDim)
-            }
-            androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
-                colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500))
+            PluginPageSwitch(lab)
         }
     }) {
         // UNDER REVIEW: the lab works, but the user reads why it's under review before using it.
@@ -148,7 +153,79 @@ fun LabScaffold(lab: LabPlugin, onClose: () -> Unit) {
             ReviewMark(20.dp)
             Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400)
         }
-        if (LabPrefs.enabled(lab.id)) lab.Content() else Text(t("native.labs.disabled"), style = Boar.type.caption, color = c.textMuted)
+        // The switch is on the page too, in every profile (adam, Nov 15: "send plugin switch fix"; validator A-5: below Pro
+        // there was nowhere to turn an off plugin on). Off, the page still shows everything: an alert on top, the
+        // settings editable (saved for when it's on; editing never turns it on, and an off plugin fills no slot).
+        // In Pro, Back goes to the Plugins list (LabHooks.backFrom), so the alert's link is the same way back.
+        // No "this plugin is off" banner (adam, Nov 13): the switch is in the Plugins list.
+        lab.Content()
+        AboutPlugin(lab)
+    }
+}
+
+/**
+ * A plugin's on/off switch on its own page (adam, Nov 15; validator A-5), in every profile: the chat's "X is off" line
+ * opens this page, so the user can turn it on where they land. The full Plugins list stays Pro's. Spoken as
+ * "<name> on/off".
+ */
+@Composable
+fun PluginPageSwitch(lab: LabPlugin) {
+    val c = Boar.colors
+    val on = LabPrefs.enabled(lab.id)
+    val label = t("native.labs.pageSwitch", "name" to t("native.labs.${lab.id}.title"))
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true, confirmed = true) }
+    androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true) },
+        modifier = Modifier.semantics { contentDescription = label },
+        colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+}
+
+/**
+ * The plugin's on/off as the first row of its own settings sheet (Designer, Press: adam, 16 Nov; t9 0450), with the
+ * page switch's rules (PluginReach: Cohazard's below Pro; the question before a safety plugin goes off).
+ */
+@Composable
+fun PluginSwitchRow(lab: LabPlugin) {
+    val on = LabPrefs.enabled(lab.id)
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true, confirmed = true) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.switchRow", "name" to t("native.labs.${lab.id}.title")), t("native.labs.switchRowNote"), on) { v ->
+        if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true)
+    }
+}
+
+/**
+ * The question before a safety plugin goes off (Q-B1, t9 0115): "Turn off the carbon monoxide safety card?". Returns
+ * what opens it; [off] runs only on "Turn off", and Cancel or Back changes nothing.
+ */
+@Composable
+fun rememberSafetyOff(id: String, off: () -> Unit): () -> Unit {
+    var asking by remember(id) { mutableStateOf(false) }
+    if (asking) androidx.compose.material3.AlertDialog(onDismissRequest = { asking = false },
+        title = { Text(t("native.labs.safetyOff.title")) }, text = { Text(t("native.labs.safetyOff.text")) },
+        confirmButton = { androidx.compose.material3.TextButton({ asking = false; off() }) { Text(t("native.labs.safetyOff.confirm")) } },
+        dismissButton = { androidx.compose.material3.TextButton({ asking = false }) { Text(t("common.cancel")) } })
+    return { asking = true }
+}
+
+/**
+ * The same footer on every plugin page (adam, Nov 12): "About this plugin", folded, with the longer explanation the
+ * list's two-sentence line leaves out.
+ */
+@Composable
+private fun AboutPlugin(lab: LabPlugin) = AboutPluginFold(lab)
+
+/** "About this plugin", folded: a full-page plugin (LabPlugin.fullPage) shows it in its own settings sheet. */
+@Composable
+fun AboutPluginFold(lab: LabPlugin) {
+    val c = Boar.colors
+    val key = "native.labs.${lab.id}.about"
+    val about = t(key).takeIf { it != key && it.isNotBlank() } ?: return
+    var open by androidx.compose.runtime.saveable.rememberSaveable(lab.id) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(10.dp)).background(c.bgCard), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("ⓘ " + t("native.labs.aboutPlugin"), style = Boar.type.body, color = c.textHeading, modifier = Modifier.weight(1f))
+            Text(if (open) "▴" else "▾", style = Boar.type.body, color = c.textMuted)
+        }
+        if (open) Text(about, style = Boar.type.body, color = c.textSecondary, modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp))
     }
 }
 
@@ -157,25 +234,27 @@ private fun Shell(
     title: String, onClose: () -> Unit,
     header: (@Composable ColumnScope.() -> Unit)? = null,
     scroll: androidx.compose.foundation.ScrollState? = null,
+    backTo: String? = null,
+    subtitle: String? = null,
+    /** The plugin lays out the whole height itself (LabPlugin.fullPage): no scroll, no padding. */
+    full: Boolean = false,
+    /** The header's ✕: to the chat, past the Plugins list (plugin pages only). */
+    onExit: (() -> Unit)? = null,
+    /** Before ✕: a full page's settings gear (PluginSettingsGear). */
+    actions: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Boar.colors
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding().imePadding()) {
-        if (header != null) Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
-        else Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.weight(1f))
-            DoneButton(onClose)
+        // The app's page header (t9, Nov 12: the Plugins pages had their own); a plugin's own block comes under it.
+        team.sopa.boar.ui.PageHeader(title, onClose, subtitle = subtitle, backTo = backTo, onClose = onExit, actions = actions)
+        if (header != null) {
+            Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
+            Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-        Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+        if (full) Column(Modifier.weight(1f).fillMaxWidth(), content = content)
+        else Column(Modifier.weight(1f).verticalScroll(scroll ?: rememberScrollState()).padding(12.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
-}
-
-@Composable
-private fun DoneButton(onClose: () -> Unit) {
-    val c = Boar.colors
-    Text(t("common.done"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.ExtraBold,
-        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Boar.colors.wash(0.08f)).clickable(onClick = onClose).padding(horizontal = 10.dp, vertical = 4.dp))
 }
 
 /** The lab's console: the lines type themselves once, with a blinking cursor after. */
@@ -297,3 +376,91 @@ private val REVEAL_TAPS = 11..20
 private fun ReviewMark(size: androidx.compose.ui.unit.Dp) = androidx.compose.material3.Icon(
     androidx.compose.ui.res.painterResource(team.sopa.boar.R.drawable.ic_settings_recovery), null,
     Modifier.size(size), tint = Boar.colors.amber400)
+
+/**
+ * Boar Labs as a compact list (rc3, adam, Nov 10): one row per lab with its picture, name, one line, status and an
+ * on/off switch, so nothing needs a page just to switch on. Tapping a row opens the lab's page for its own settings.
+ * Classified labs are listed by status only, blacked out like the tiles. The tile grid stays one tap away ([onTiles]).
+ */
+@Composable
+fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val labs = LabRegistry.visible
+    // The page's intro is the header's subtitle (adam, Nov 12: subtitles only where a first-timer needs one).
+    Shell(t("native.labs.title"), onClose, subtitle = t("native.labs.listSubtitle")) {
+        // Search (adam, Nov 11): by name or the line under it; the teasers hide while searching.
+        var query by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+        androidx.compose.foundation.text.BasicTextField(query, { query = it }, singleLine = true,
+            textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = androidx.compose.ui.graphics.SolidColor(c.textAccentEmerald),
+            modifier = Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(8.dp)).border(1.dp, c.borderElevated, RoundedCornerShape(8.dp)).padding(12.dp),
+            decorationBox = { inner -> if (query.isEmpty()) Text(t("native.labs.search"), style = Boar.type.body, color = c.textMuted); inner() })
+        val (allOpen, classified) = labs.partition { LabRegistry.opened(it) != null }
+        val open = allOpen.filter { team.sopa.boar.engine.labs.RecentPlugins.matches(query, t("native.labs.${it.id}.title"), t("native.labs.${it.id}.body")) }
+        for (lab in open) LabRow(lab, onOpen)
+        if (open.isEmpty()) Text(t("native.labs.searchNone"), style = Boar.type.caption, color = c.textMuted)
+        // Plugins in testing with no release date are hidden (adam, Nov 12); PluginsUi.SHOW_UPCOMING brings them back to
+        // promote what's next.
+        if (PluginsUi.SHOW_UPCOMING && classified.isNotEmpty() && query.isBlank()) {
+            Text(t("native.labs.section.testing"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+            for (lab in classified) Row(Modifier.fillMaxWidth().background(c.bgCard, RoundedCornerShape(10.dp)).padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                LabArt(lab, locked = true)
+                Column(Modifier.weight(1f)) {
+                    Text(redact(t("native.labs.${lab.id}.title")), style = Boar.type.body, color = c.textSecondary)
+                    Text(redactAll(t("native.labs.${lab.id}.body")), style = Boar.type.caption, color = c.textDim, maxLines = 1)
+                }
+                StatusChip(lab.status)
+            }
+        }
+        // The list is the only view (adam, Nov 12); the tiles stay behind PluginsUi.SHOW_TILES.
+        if (PluginsUi.SHOW_TILES) Text(t("native.labs.showTiles"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable(onClick = onTiles).padding(vertical = 6.dp))
+    }
+}
+
+/** One lab in [LabsList]: tap the row for its page, flip the switch to turn it on or off right here. */
+@Composable
+private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
+    val c = Boar.colors
+    val on = LabPrefs.enabled(lab.id)
+    // One look, on or off: the switch says which (adam, 23 Nov).
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard)
+        .border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).clickable { onOpen("lab:${lab.id}") }.padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        LabArt(lab, locked = false)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(t("native.labs.${lab.id}.title"), style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (PluginsUi.SHOW_STATUS) StatusChip(lab.status)
+            }
+            Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+        val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, confirmed = true) }
+        androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v) },
+            colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
+    }
+}
+
+/** A lab's picture at list size, or its emoji until it has one (Staged Answers, Canvas); a classified one dark. */
+@Composable
+private fun LabArt(lab: LabPlugin, locked: Boolean) {
+    val c = Boar.colors
+    Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).background(c.bgCardElevated), contentAlignment = Alignment.Center) {
+        lab.shownArt?.let { res ->
+            androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(res), null, Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop, colorFilter = if (locked) SILHOUETTE else null)
+        } ?: Text(lab.emoji, fontSize = 24.sp, modifier = Modifier.alpha(if (locked) 0.25f else 1f))
+    }
+}
+
+/** What hides upcoming plugins and the tile view, kept so they can come back (adam, Nov 12). */
+object PluginsUi {
+    /** Plugins in testing with no release date (the classified teasers): hidden until there's something to promote. */
+    const val SHOW_UPCOMING = false
+    /** The tile view of the Plugins page: the list is the only view. */
+    const val SHOW_TILES = false
+    /** The ALPHA/BETA/LIVE chips (adam, Nov 12: dropped from what users see); the status stays an internal gate. */
+    const val SHOW_STATUS = false
+}
+

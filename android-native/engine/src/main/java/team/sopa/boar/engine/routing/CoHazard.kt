@@ -253,7 +253,7 @@ object CoHazard {
         ),
         engine = re(
             """$B(?:carros?|caminhonetes?|caminh[ãa]o|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|ro[çc]adeiras?|motosserras?|quadriciclos?|vans?|suvs?)$E.{0,40}$B(?:ligad[oa]s?|funcionando|rodando|em ponto morto|em marcha lenta|esquentando|aquecendo|ligar|ligando)$E""" +
-                """|$B(?:ligar|ligando|esquentar|aquecer|dar partida)$E.{0,25}$B(?:carros?|caminhonetes?|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|suvs?)$E""",
+                """|$B(?:ligar|ligando|liguei|ligamos|ligou|ligaram|deixei ligado|deixamos ligado|esquentar|aquecer|dar partida|dei partida)$E.{0,25}$B(?:carros?|caminhonetes?|ve[íi]culos?|motor(?:es)?|motos?|motocicletas?|cortador(?:es)? de grama|suvs?)$E""",
         ),
         engineSpace = re("""$B(?:garage(?:m|ns)|abrigos?|por[ãa]o|dep[óo]sito|galp[ãa]o|fechad[oa]s?)$E"""),
         placement = re(
@@ -383,6 +383,131 @@ object CoHazard {
     // DRAFT translation of the reviewed EN text (Oct 18): needs r4to's review before it leaves Labs. The country table
     // has no Spanish lines, so a Spanish answer always ends with this one.
     private const val EMERGENCY_LINE_ES = "En una emergencia, llama al número de emergencias local (911 en EE. UU., 112 en Europa)."
+
+    // ---- The acute card (adam: "send co safety fix", Nov 14; t9 1535) ----
+    // The planning card above stays out of an alarm going off or symptoms (ACUTE: "not this planning answer"); until now
+    // nothing else answered them, so the most urgent carbon monoxide question had the model alone, not kept short. This
+    // card is the planning card's own last sentence in each language, nothing new, then the emergency number line.
+
+    /** Carbon monoxide named: never "CO" alone (CO2, Colorado, a company), never a smoke alarm. */
+    private val CO_NAMED = Regex(
+        """(?<![\p{L}\p{N}])(?:carbon[ -]?mon[oi]x(?:i|y)?de?s?|mon[óo]xido de carbono|mon[oi]xide (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:co|c\.o\.?) (?:poisoning|alarms?|detectors?|monitors?|sensors?|levels?|readings?)|(?:alarmes?|alarmas?|detector(?:es)?|sensor(?:es)?|intoxica[çc][ãa]o|intoxicaci[óo]n|envenenamento|envenenamiento|n[íi]vel|nivel) (?:de|por) (?:co|mon[óo]xido))(?![\p{L}\p{N}])""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Carbon monoxide named (CO_NAMED): a health question even when no card answers it (t9 0110 item 1: "kept short"). */
+    fun namesCarbonMonoxide(query: String): Boolean = CO_NAMED.containsMatchIn(QUOTES.replace(query, "'"))
+
+    const val CO_ACUTE_EN = "Get everyone out into fresh air right away, call emergency services, and don't go back inside until you're told it's safe."
+    const val CO_ACUTE_PT = "Leve todos para o ar livre imediatamente, ligue para o serviço de emergência e não volte para dentro até que digam que é seguro."
+    const val CO_ACUTE_ES = "Saca a todos al aire libre de inmediato, llama a los servicios de emergencia y no vuelvas a entrar hasta que te digan que es seguro."
+
+    // What fires the acute card (adam, 15 Nov, t9 0110 item 1, decisions 2 and 3 of the review). Its own patterns: ACUTE
+    // above keeps the planning card out of these questions and stays as it was.
+
+    /** A symptom, per language: ACUTE's, PT.acute's and ES.acute's symptom words. */
+    private val SYMPTOM_EN = re(
+        """$B(?:headaches?|head (?:hurts|is (?:pounding|killing me|splitting))|pounding head|dizz\w*|nause\w*|vomit\w*|throwing up|threw up|throw(?:s|n)? up|passed out|faint\w*|unconscious|confus\w*|drowsy|sleepy|chest pain|can'?t breathe|short of breath|barely waking|(?:won'?t|can'?t|hard to|not) wak(?:e|ing)(?: up)?|slurr\w*|woozy|(?:head|room)(?: is|'s) spinning|flu-like|sick to (?:my|his|her|their|our) stomachs?|(?:feel(?:s|ing)?|felt) (?:sick(?! of)|ill|weird|woozy|weak|dizzy|faint|nauseous|lightheaded|light-headed|awful|terrible|horrible|off|unwell|groggy))$E""",
+    )
+    private val SYMPTOM_PT = re(
+        """$B(?:dor(?:es)? de cabe[çc]a|cabe[çc]a (?:d[óo]i|doendo|latejando|explodindo)|tontu\p{L}*|tont[oa]s?|zonz[oa]s?|enjo\p{L}*|n[áa]usea\p{L}*|vomit\p{L}*|v[ôo]mito\p{L}*|desmai\p{L}*|inconscient\p{L}*|confus\p{L}*|sonol[êe]n\p{L}*|dor no peito|falta de ar|sem ar|n[ãa]o (?:consigo|consegue) respirar|n[ãa]o (?:acorda|consegue acordar)|dif[íi]cil de acordar|fala enrolada|passando mal|(?:me )?sentindo (?:mal|estranh\p{L}*|frac[oa])|(?:me )?senti(?:-me)? (?:mal|estranh\p{L}*|frac[oa]|tont[oa]))$E""",
+    )
+    private val SYMPTOM_ES = re(
+        """$B(?:dolor(?:es)? de cabeza|(?:me )?duele la cabeza|mare\p{L}*|n[áa]usea\p{L}*|v[óo]mit\p{L}*|vomit\p{L}*|desmay\p{L}*|inconsciente\p{L}*|confundid\p{L}*|confusi[óo]n|somnolen\p{L}*|dolor (?:en el|de) pecho|falta de aire|no (?:puedo|puede) respirar|no (?:despierta|puede despertar)|dif[íi]cil de despertar|(?:me )?siento (?:mal|rar[oa]|d[ée]bil)|(?:me )?sentí (?:mal|rar[oa]|d[ée]bil|maread[oa])|muy dormid[oa]s?)$E""",
+    )
+
+    /**
+     * An alarm going off, beeping or sounding, per language. Not chirping (a low battery or an alarm at its end of life),
+     * not "says", "reads", "shows", "error" or "is on": the model answers those (review decision 2).
+     */
+    private val ALARM_OFF_EN = re("""$B(?:alarm[!.,]*\s+alarm$E|(?:alarms?|detectors?|sensors?)$E.{0,60}$B(?:going off|goes off|went off|gone off|go off|be{2,}p(?:ing|s|ed)?|sounding|sounds|sounded|alarming|blaring|screaming|shrieking|ringing|rings|rang|buzzing|buzzes|buzzed|wailing|triggered|activated|won'?t stop|keeps? (?:going|beeping|sounding|ringing))$E)""")
+    private val ALARM_OFF_PT = re("""$B(?:alarmes?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:tocando|tocou|toca|disparou|disparando|dispara|apitando|apitou|apita|bipando|bipou|soando|soou|n[ãa]o para de (?:apitar|tocar|bipar|disparar))$E""")
+    private val ALARM_OFF_ES = re("""$B(?:alarmas?|detector(?:es)?|sensor(?:es)?)$E.{0,60}$B(?:sonando|son[óo]|suena|pitando|pit[óo]|pita|se activ[óo]|se dispar[óo]|se est[áa] disparando|no (?:para|deja) de (?:sonar|pitar))$E""")
+
+    /** A reading: "50 ppm", or an alarm that reads, says or shows a number. Above 0 only ("reads 0 ppm" is normal). */
+    private val PPM = Regex("""(?<![\d.,])(\d+(?:[.,]\d+)?)\s*ppm\b""", RegexOption.IGNORE_CASE)
+    private val READS = Regex("""(?<![\p{L}])(?:alarms?|detectors?|sensors?|monitors?|alarmes?|alarmas?|detector(?:es)?)(?![\p{L}]).{0,40}?(?<![\p{L}])(?:reads?|reading|says|shows|showing|displays?|is at|at|marca|marcando|mostra|mostrando|indica|lee|muestra)(?![\p{L}])\s*:?\s*(\d+(?:[.,]\d+)?)""", RegexOption.IGNORE_CASE)
+    private fun readingAboveZero(q: String): Boolean =
+        (PPM.findAll(q).map { it.groupValues[1] } + READS.findAll(q).map { it.groupValues[1] })
+            .any { (it.replace(',', '.').toDoubleOrNull() ?: 0.0) > 0.0 }
+
+    /**
+     * A fuel-burning device named, with or without a space: the planning card's device words in each language (electric,
+     * solar and battery generators stay out, as DEVICE and PT/ES device already leave them).
+     */
+    /**
+     * Fuel appliances in the home (validator R-C1): the planning card leaves installed and vented ones out ("not this
+     * hazard" when planning), but with symptoms they are the commonest cause: "we all have headaches, the gas furnace
+     * was running all night". Counted for the acute card only, never when the question says electric, solar or battery.
+     */
+    private val HOME_APPLIANCE = re(
+        """$B(?:furnaces?|boilers?|water heaters?|(?:gas|propane|kerosene|oil|space|portable|patio) heaters?|heaters?|wood ?stoves?|wood[- ]burning stoves?|pellet stoves?|log ?burners?|fireplaces?|chimneys?|gas (?:hob|stove|oven|range|cooker|fire)s?|coal stoves?|camp(?:ing)? stoves?|fire ?pits?|braziers?|fornalhas?|caldeiras?|aquecedor(?:es)?(?: a g[áa]s| de [áa]gua| a lenha)?|lareiras?|fog[ãa]o a (?:lenha|g[áa]s)|fog[õo]es a (?:lenha|g[áa]s)|salamandras?|calderas?|calentador(?:es)?|chimeneas?|estufas?(?: de le[ñn]a| a gas)?|horno (?:a|de) gas|cocina (?:a|de) gas|estufa de gas)$E""",
+    )
+    /** Money, not air (validator Q-A2): "a headache from the bill", "sick after the boiler repair bill". Only when CO isn't named. */
+    /** Carbon dioxide named: a CO2 alarm going off is not this card's (Q-A2); only when CO itself isn't named. */
+    private val CO2 = re("""$B(?:co2|co₂|carbon dioxide|di[óo]xido de carbono)$E""")
+    private val ELECTRIC = re("""$B(?:electric\w*|el[ée]tric\w*|el[ée]ctric\w*|solar|battery|bateria|bater[íi]a|induction|indu[çc][ãa]o|inducci[óo]n|heat pump|bomba de calor)$E""")
+
+    private val ES_ONLY = re("""$B(?:el|mi|mis|sótano|s[óo]tano|est[áa] en|hay|tengo|estoy|tenemos|qué|cómo|garaje|cocina|habitaci[óo]n)$E""")
+
+    /** Smoke or fire named: an alarm going off with a symptom is then the smoke alarm's question, not this card's (R-C1b). */
+    private val SMOKE = re("""$B(?:smoke|fire|burning smell|fuma[çc]a|fogo|inc[êe]ndio|humo|fuego|incendio)$E""")
+
+    private fun fuelDevice(query: String): Boolean {
+        var q = QUOTES.replace(query, "'")
+        if (HOME_APPLIANCE.containsMatchIn(q) && !ELECTRIC.containsMatchIn(q)) return true
+        q = GENERATOR_TYPO.replace(q, "generator")
+        q = PROPANE_TYPO.replace(q, "propane")
+        q = KEROSENE_TYPO.replace(q, "kerosene")
+        if (DEVICE.containsMatchIn(q) || OVEN_HEAT.containsMatchIn(q) || ENGINE.containsMatchIn(q)) return true
+        if (HEATER.containsMatchIn(APPLIANCE.replace(q, " ")) && !INSTALLED.containsMatchIn(q)) return true
+        if (PROPANE_STOVE.containsMatchIn(q) && SPACE.containsMatchIn(KITCHEN.replace(q, " "))) return true
+        return listOf(PT, ES).any { w ->
+            w.device.containsMatchIn(q) || w.ovenHeat.containsMatchIn(q) || w.engine.containsMatchIn(q) ||
+                (w.heater.containsMatchIn(w.appliance.replace(q, " ")) && !w.installed.containsMatchIn(q))
+        }
+    }
+
+    /**
+     * The acute card's language ("en", "pt", "es"), or null. It fires for carbon monoxide named with an alarm going off,
+     * a reading above 0 or a symptom; or for a symptom with a fuel-burning device, carbon monoxide not named ("I ran the
+     * generator in the garage and now I have a headache": people often don't know it's carbon monoxide). The language
+     * whose own alarm or symptom words matched decides; else the question's.
+     */
+    fun acuteLanguage(query: String): String? {
+        val q = QUOTES.replace(query, "'")
+        val sEn = SYMPTOM_EN.containsMatchIn(q); val sPt = SYMPTOM_PT.containsMatchIn(q); val sEs = SYMPTOM_ES.containsMatchIn(q)
+        val aEn = ALARM_OFF_EN.containsMatchIn(q); val aPt = ALARM_OFF_PT.containsMatchIn(q); val aEs = ALARM_OFF_ES.containsMatchIn(q)
+        val symptom = sEn || sPt || sEs
+        val alarm = aEn || aPt || aEs
+        val fires = if (CO_NAMED.containsMatchIn(q)) symptom || alarm || readingAboveZero(q)
+            // An alarm going off and someone feeling ill, nothing named (R-C1b): carbon monoxide until shown otherwise,
+            // unless it's smoke or fire.
+            // Frozen (adam, 23 Nov; t9 0435): no money-word veto (validator P-A3: it hid real exposures in two-clause
+            // messages); a card shown when a person wouldn't give one errs to the safe side.
+            else symptom && (fuelDevice(query) || (alarm && !SMOKE.containsMatchIn(q) && !CO2.containsMatchIn(q)))
+        if (!fires) return null
+        val pt = sPt || aPt; val es = sEs || aEs
+        // The generic detectors read Spanish shared words ("de", "está") as Portuguese: a language's own words decide first.
+        return when {
+            es && !pt -> "es"
+            pt && !es -> "pt"
+            QueryContext.isSpanishQuestion(query) -> "es"
+            // A reading alone ("el detector de monóxido marca 60 ppm") has no alarm or symptom words: Spanish's own small
+            // words decide before the Portuguese detector and the shared "monóxido" (R-C4).
+            ES_ONLY.containsMatchIn(q) -> "es"
+            QueryContext.isPortugueseQuestion(query) -> "pt"
+            Regex("""mon[óo]xido""", RegexOption.IGNORE_CASE).containsMatchIn(q) -> "pt"
+            else -> "en"
+        }
+    }
+
+    /** The acute card in [lang]: the planning card's own advice, then the emergency number line it uses. */
+    fun acuteAnswer(query: String, lang: String): String = when (lang) {
+        "pt" -> "$CO_ACUTE_PT\n\n${EmergencyNumbers.emergencyNumbersLine(query, true) ?: EMERGENCY_LINE_PT}"
+        "es" -> "$CO_ACUTE_ES\n\n$EMERGENCY_LINE_ES"
+        else -> "$CO_ACUTE_EN\n\n${EmergencyNumbers.emergencyNumbersLine(query, false) ?: EMERGENCY_LINE_EN}"
+    }
 
     /** The language of a Portuguese or Spanish CO planning question ("pt" or "es"), or null. Both match (shared words
      * like "dentro" with each one's device): the Spanish detector decides. */

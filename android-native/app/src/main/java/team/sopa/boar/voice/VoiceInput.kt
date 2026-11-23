@@ -46,6 +46,9 @@ class VoiceInput(private val context: Context) {
         r.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            // The app's language when the user picked one (rc3, adam: "voice follows the app language"); System leaves the
+            // phone's own. A recognizer without that language falls back to its default.
+            languageTag(team.sopa.boar.app.BoarServices.get(context).settings.languageId)?.let { putExtra(RecognizerIntent.EXTRA_LANGUAGE, it) }
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         })
     }
@@ -63,6 +66,9 @@ class VoiceInput(private val context: Context) {
     }
 
     companion object {
+        /** The recognizer's language for the app's: "pt" → pt-BR, "en" → en-US; null (System) leaves the phone's. */
+        fun languageTag(languageId: String?): String? = when (languageId) { "pt" -> "pt-BR"; "en" -> "en-US"; else -> null }
+
         fun available(context: Context): Boolean =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
     }

@@ -15,7 +15,8 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
     .map { dir ->
         val p = Properties().apply { dir.resolve("plugin.properties").reader(Charsets.UTF_8).use { load(it) } }
         val id = p.getProperty("id")?.trim() ?: error("${dir.name}/plugin.properties: no id")
-        require(id == dir.name) { "${dir.name}/plugin.properties: id=$id must match the folder name" }
+        // The folder may differ from the id (plugins/designer holds id=image, adam Nov 12: the id is in users' saved
+        // prefs, routes and eval requests); ids are unique, checked below.
         val obj = p.getProperty("object")?.trim()
         val classified = p.getProperty("classified")?.trim()
         // Both: a working lab kept as a teaser in normal builds, built as itself with -Pboar.labs.declassify=<id> (Oct 24).
@@ -23,15 +24,42 @@ val labPlugins: List<LabPluginDir> = file("src/labs/plugins").listFiles().orEmpt
         LabPluginDir(dir, id, obj, classified, p.getProperty("order")?.trim()?.toInt() ?: 100, p.getProperty("review")?.trim()?.toBoolean() ?: false)
     }
     .sortedWith(compareBy({ it.order }, { it.id }))
+    .also { l -> l.groupBy { it.id }.filterValues { it.size > 1 }.keys.let { d -> require(d.isEmpty()) { "two plugin folders with the same id: $d" } } }
+
+/**
+ * The labs a release build includes (src/labs/released.txt, rc3): "id: TestClass…" lines. Every build is a release
+ * build here unless all its tasks say Debug or Devtest: `assemble`, `build`, `bundle` and abbreviations like `aR` make
+ * a release variant too, and once built all 18 labs into it (validator B-1). -Pboar.labs.released=true or false wins.
+ */
+val releasedLabs: Set<String> = file("src/labs/released.txt").takeIf { it.isFile }?.readLines().orEmpty()
+    .map { it.substringBefore('#').trim() }.filter { it.isNotEmpty() }.map { it.substringBefore(':').trim() }.toSet()
+val releaseLabsOnly: Boolean = providers.gradleProperty("boar.labs.released").orNull?.trim()?.let { v ->
+    // Only true or false (validator R-4: "1", "yes" or a typo read as false and kept every lab without a word).
+    when (v.lowercase()) { "true" -> true; "false" -> false; else -> error("-Pboar.labs.released must be true or false, not \"$v\"") }
+} ?: gradle.startParameter.taskNames.let { tasks ->
+    // Release mode when any task builds a release variant: one naming Release (or aR), a bare assemble, build or bundle
+    // (validator R-3: "assembleDebug assemble" built a release with every lab), or none naming Debug or Devtest (or aD).
+    val name = { t: String -> t.substringAfterLast(':') }
+    tasks.any { it.contains("Release", ignoreCase = true) || name(it) in setOf("aR", "assemble", "build", "bundle") } ||
+        tasks.none { t -> t.contains("Debug", ignoreCase = true) || t.contains("Devtest", ignoreCase = true) || name(t) == "aD" }
+}
+/** In this build: every lab, or on a release build the listed ones and the code-free teasers. */
+fun LabPluginDir.inBuild(): Boolean = !releaseLabsOnly || id in releasedLabs || obj == null
 
 // The registry the app reads (LabRegistry.ALL), written from the plugin folders: no shared list to edit.
 val labsRegistryDir = layout.buildDirectory.dir("generated/labsRegistry")
 val generateLabsRegistry by tasks.registering {
     // Labs a builder brings out of classified: -Pboar.labs.declassify=dailyQuiz (comma-separated ids).
     val declassified = (providers.gradleProperty("boar.labs.declassify").orNull ?: "").split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-    val entries = labPlugins.map { p ->
-        // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
-        if (p.classified != null && (p.obj == null || p.id !in declassified)) "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (p.obj != null) ", ${p.obj}" else ""})" else p.obj!!
+    val entries = labPlugins.mapNotNull { p ->
+        // A release build: a classified lab with code that isn't listed ships as a teaser only, without its code.
+        val code = p.obj?.takeIf { !releaseLabsOnly || p.id in releasedLabs }
+        when {
+            // A classified lab with code keeps it behind the teaser: a leak (the Labs easter egg) unlocks it (ClassifiedLab.inner).
+            p.classified != null && (code == null || p.id !in declassified) -> "ClassifiedLab(\"${p.id}\", \"${p.classified}\"${if (code != null) ", $code" else ""})"
+            p.inBuild() -> p.obj!!
+            else -> null
+        }
     }
     inputs.property("entries", entries)
     outputs.dir(labsRegistryDir)
@@ -106,10 +134,11 @@ android {
         manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        // 2.0.0-rc2 was 5; the X6's Mesh test build used 6. rc3 is 7, so it installs over both and keeps the models.
+        versionCode = 8
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
-        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
+        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0"
         val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
         val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
         buildConfigField("String", "GIT_SHA", "\"${gitSha}${if (gitDirty) "+" else ""}\"")
@@ -154,6 +183,15 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     // Instrumented tests run against the throwaway devtest install (./gradlew :app:assembleDevtestAndroidTest).
     testBuildType = "devtest"
+    // The release APK is named after its version: boar-2.0.0.apk (t9 1725); a test build's name carries its own
+    // -Pboar.versionName (boar-2.0.0-rc3-dev-allNN.apk).
+    @Suppress("DEPRECATION")
+    applicationVariants.all {
+        val variant = this
+        if (variant.buildType.name == "release") outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "boar-${variant.versionName}.apk"
+        }
+    }
     packaging { jniLibs { useLegacyPackaging = true } }
     if (truffleLauncherIcons) {
         // Merged over main for every build type: the launcher entry moves to the aliases.
@@ -168,9 +206,11 @@ android {
     sourceSets["main"].res.srcDir("src/labs/res")
     sourceSets["main"].java.srcDir(labsRegistryDir)
     for (plugin in labPlugins) {
-        sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
+        // A lab left out of this build leaves its code out too (validator B-3); its strings stay for a teaser's tile.
+        if (plugin.inBuild()) sourceSets["main"].java.srcDir(plugin.dir.resolve("java"))
         sourceSets["main"].res.srcDir(plugin.dir.resolve("res"))
-        if (labsExecutables && !plugin.review) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
+        // A release build packs only the listed labs' executables (released.txt).
+        if (labsExecutables && !plugin.review && plugin.inBuild()) sourceSets["main"].jniLibs.srcDir(plugin.dir.resolve("jniLibs"))
     }
 }
 

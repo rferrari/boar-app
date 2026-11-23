@@ -1,12 +1,21 @@
-# Boar Labs plugins
+# Plugins
 
-Boar Labs is the native app's room for experiments. Each experiment ("lab") is a **plugin**: one folder that the build
+Plugins (code name: labs; ids, folders, classes and `plugin.properties` keep it) is the native app's room for experiments. Each experiment ("lab") is a **plugin**: one folder that the build
 finds by itself. Adding a lab is adding a folder; removing it is deleting the folder. Nothing outside the folder changes.
 
 Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.env`, the environment, or
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
-**Settings → Experimental → Boar Labs** starts on, and each lab has its own **Enabled** switch on its page. Every lab
-starts off: the user turns on the ones they want, on setup's Labs page or in the grid. A build without the flag has none of this.
+**Settings → Experimental → Plugins** starts on, and each lab has an on/off switch in the Plugins list and on its
+page. A lab is off unless it is in the default-on list (`engine/.../labs/LabDefaults.kt`, `ON`): only LIVE or BETA labs
+go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. The menu item and the list
+show in every profile (adam, 23 Nov); Boar Labs' own settings (the master switch, the waiting animation) are Pro's. A
+lab that is on works in every profile. A build without the flag has none of this.
+
+A release build (any build whose tasks aren't all Debug or Devtest, or `-Pboar.labs.released=true`) includes only the labs listed in
+`android-native/app/src/labs/released.txt`, each with the engine tests that cover it (`id: TestClass TestClass`); its
+code and executables (jniLibs) are built only for those. A classified teaser with no code always ships; one with code ships as a
+teaser only unless listed. `LabManifestTest` fails when a listed lab has no tests, a named test doesn't exist, or a lab
+that starts on isn't listed. A new lab ships once it has tests and a line there; debug builds keep every lab.
 
 ## The rules every lab follows
 - Runs on the phone, offline. No network calls except downloading the lab's own model when the user asks (Big Boar,
@@ -30,7 +39,7 @@ The order in `ChatViewModel.send` (`android-native/app/src/main/java/team/sopa/b
    Then Deep Research if it is on; then a recap of the chat; then adaptive routing if it is on (and the active model
    runs on BOAR's own engine); else the default path (the plain pipeline: search, then the model).
 3. **The check slot.** After the model, on the default and adaptive paths only, the enabled labs' `answerCheck`s
-   (Boar Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
+   (Guard) may repair the answer. Never after an instant answer, Deep Research, a recap, "Ask BOAR instead", or a
    stopped, timed-out, failed or empty answer.
 
 **Personal Files** (the answer style `personal`, `engine/…/answer/PersonalFiles.kt`) changes all three: in the tool slot
@@ -43,7 +52,7 @@ without calling the model. Search stages (`PipelineStages`) still run; they only
 ## A lab's folder
 
 ```
-android-native/app/src/labs/plugins/<id>/
+android-native/app/src/labs/plugins/<folder>/        usually the id; Designer is plugins/designer with id=image
   plugin.properties                    required
   java/team/sopa/boar/labs/<id>/…      the lab's code (a LabPlugin object)
   res/values/strings_lab_<id>.xml      English strings
@@ -56,11 +65,16 @@ and, in experimental builds, `jniLibs/` to the app, and writes the registry the 
 `build/generated/labsRegistry`). **Folders whose name starts with `_` are skipped.** Use them for templates or for a lab
 you're parking.
 
+**Renaming a folder keeps the id.** The id is in users' saved preferences (`<id>.*`), the route `lab:<id>`,
+`released.txt`, evaluation requests (`"labs":[ids]`) and the string keys `native.labs.<id>.*`, so a rename moves the
+folder and the Kotlin package only. `plugins/designer` (Boar Designer) holds `id=image`. Its gitignored `jniLibs/`
+moves with the folder on disk (`git mv` takes it along); check that the script that builds it writes to the new path.
+
 ### plugin.properties
 
 ```properties
 # Boar Labs plugin (docs/PLUGINS.md)
-id=pulse                                         # must equal the folder name
+id=pulse                                         # unique; usually the folder name, kept when a folder is renamed
 object=team.sopa.boar.labs.pulse.DevicePulseLab  # the LabPlugin object…
 order=20                                         # grid position (lower first; ties by id)
 ```
@@ -118,7 +132,7 @@ object MyLab : LabPlugin {
 | Member | Slot | What it does |
 |---|---|---|
 | `id`, `emoji`, `status` | — | Identity; `id` is the route (`lab:<id>`), the string prefix, the switch key |
-| `Content()` | **Page** | The lab's screen inside Boar Labs, under the shared header (title, status, Enabled switch) |
+| `Content()` | **Page** | The lab's screen inside Plugins, under the shared header (title, status, Enabled switch) |
 | `answerActions(a: AnswerRef)` | **🧩 under an answer** | Rows in the one 🧩 sheet under each finished answer. Return `LabAction(emoji, label, done, enabled, onClick)` |
 | `AnswerExtra(a: AnswerRef)` | **Under an answer** | Something shown under a finished answer, above its footer (e.g. an illustration) |
 | `HeaderBadge(go)` | **Chat header** | A small badge at the top of the chat; `go("lab:<id>")` opens the lab |
@@ -152,7 +166,7 @@ file.
 |---|---|---|
 | `LIVE` | green | It works well |
 | `BETA` | cyan | It works, still rough |
-| `ALPHA` | amber | Early; starts off |
+| `ALPHA` | amber | Early; starts off (never in the default-on list) |
 | `REVIEW` | amber, with `⚠ reviewShort` under the title | It works but was **measured** short of usable (too slow, unreliable). The page opens with an amber `⚠ review` warning, then the lab works as normal, unless it also sets `review=true`: then its engine is left out, the page stays open to read, and it can't answer. Example: colibri, "under 1 tok/s". |
 | `CLASSIFIED` | dim, locked, description struck through | A teaser; set with `classified=` in plugin.properties |
 
@@ -160,13 +174,13 @@ The grid shows live, then beta, alpha, under review and classified labs, in plug
 
 ## Executables
 
-Some labs run a program of their own (Boar Designer's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
+Some labs run a program of their own (Designer's `sd-cli`, Big Boar's `bmoe-cli`). Android only lets an app run
 files it extracted from its native library folder, so they ship as `lib<name>.so` in the lab's
 `jniLibs/arm64-v8a/`, which is gitignored and built by a script:
 
 | Script | Builds |
 |---|---|
-| `scripts/build-sd-cli.sh` | Boar Designer's `libsdcli.so`, `libsdcli_i8mm.so` |
+| `scripts/build-sd-cli.sh` | Designer's `libsdcli.so`, `libsdcli_i8mm.so` |
 | `scripts/build-lab-engines.sh` | `libbmoe_cli.so` (Big Boar), `libcolibri_olmoe.so` (Boar Wisp) |
 
 Rules:
@@ -224,10 +238,10 @@ Delete files even if they can't be read, and reset any state the lab keeps in me
 ```bash
 cd android-native
 ./gradlew :app:assembleRelease -Pboar.experimentalFeatures=true   # add -Pboar.allowDebugLog=true for the debug log
-adb install -r app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/boar-*.apk
 ```
 
-On the phone, check that Settings → Experimental → Boar Labs is on, then open the menu → Boar Labs ⚛️ → your lab.
+On the phone, check that Settings → Experimental → Plugins is on, then open the menu → Plugins ⚛️ → your lab.
 
 To leave a lab out of one build without deleting it, use `-Pboar.labs.hide=<id>,<id>`. To park it, rename its folder to
 start with `_`.
@@ -235,5 +249,5 @@ start with `_`.
 ## Shared pieces
 - `LabsScreen.kt`: the grid, the console, `LabScaffold` (each lab's header and Enabled switch), `StatusChip`.
 - `LabHooks.kt`: what the app calls (menu entry, routes, Settings row, the slots, the engine and erase hooks).
-- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Boar Designer uses it while drawing).
+- `MatrixRain.kt`: green falling code, for "the phone is working on it" (Designer uses it while drawing).
 - Framework strings: `src/labs/res/values{,-pt}/strings_labs.xml`.

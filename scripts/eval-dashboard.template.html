@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BOAR evaluations</title>
+<style>
+:root {
+  --bg: #f7f6f2; --surface: #ffffff; --ink: #1b1b19; --ink2: #4a4a45; --muted: #77766f; --line: #e1e0d9; --axis: #c3c2b7;
+  --accent: #2a6fdb; --accentWash: rgba(42,111,219,0.10); --bar: #2a6fdb; --barTrack: #e6eefb;
+  --good: #0ca30c; --goodText: #006300; --warn: #b77900; --bad: #d03b3b; --chip: #efeee8;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121211; --surface: #1a1a19; --ink: #f1f0ea; --ink2: #c9c8c0; --muted: #94938b; --line: #2c2c2a; --axis: #383835;
+  --accent: #6ea4ff; --accentWash: rgba(110,164,255,0.12); --bar: #6ea4ff; --barTrack: #22304a;
+  --good: #0ca30c; --goodText: #0ca30c; --warn: #fab219; --bad: #ef6b6b; --chip: #242422;
+} }
+:root[data-theme="dark"] {
+  --bg: #121211; --surface: #1a1a19; --ink: #f1f0ea; --ink2: #c9c8c0; --muted: #94938b; --line: #2c2c2a; --axis: #383835;
+  --accent: #6ea4ff; --accentWash: rgba(110,164,255,0.12); --bar: #6ea4ff; --barTrack: #22304a;
+  --good: #0ca30c; --goodText: #0ca30c; --warn: #fab219; --bad: #ef6b6b; --chip: #242422;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { padding: 20px 24px 8px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+h1 { font-size: 22px; margin: 0; }
+h2 { font-size: 15px; margin: 28px 0 8px; }
+.sub { color: var(--muted); font-size: 13px; }
+main { padding: 0 24px 40px; max-width: 1400px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--muted); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .note { color: var(--muted); font-size: 12px; }
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-top: 18px; position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 2; }
+.filters label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 3px; }
+select, input[type=search] { background: var(--surface); color: var(--ink); border: 1px solid var(--axis); border-radius: 8px; padding: 6px 8px; font: inherit; min-width: 150px; }
+button.theme { margin-left: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--axis); border-radius: 8px; padding: 6px 10px; font: inherit; cursor: pointer; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; position: sticky; top: 0; background: var(--surface); cursor: pointer; user-select: none; }
+th.num, td.num { text-align: right; }
+td.q { white-space: normal; min-width: 260px; max-width: 420px; }
+tr.row { cursor: pointer; }
+tr.row:hover td { background: var(--accentWash); }
+tr.detail td { white-space: normal; background: var(--bg); }
+.status { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.status svg { width: 14px; height: 14px; }
+.ok { color: var(--goodText); } .fail { color: var(--bad); } .warn { color: var(--warn); } .na { color: var(--muted); font-weight: 400; }
+.chip { display: inline-block; background: var(--chip); border-radius: 6px; padding: 1px 7px; font-size: 12px; color: var(--ink2); }
+.meter { display: inline-block; width: 70px; height: 6px; background: var(--barTrack); border-radius: 3px; vertical-align: middle; margin-left: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--bar); border-radius: 3px; }
+.answer { white-space: pre-wrap; font-size: 13px; color: var(--ink2); max-width: 1000px; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; font-size: 12px; color: var(--muted); margin: 6px 0 10px; }
+.kv b { color: var(--ink2); font-weight: 500; }
+.matrix td { text-align: center; } .matrix td.q { text-align: left; }
+.empty { padding: 30px; color: var(--muted); text-align: center; }
+.foot { color: var(--muted); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BOAR evaluations</h1>
+  <span class="sub" id="built"></span>
+</header>
+<main>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="filters">
+    <label>Run<select id="fRun"></select></label>
+    <label>Model<select id="fModel"></select></label>
+    <label>Question<select id="fQuestion"></select></label>
+    <label>Path<select id="fPath"></select></label>
+    <label>Search<input type="search" id="fText" placeholder="question or answer text"></label>
+    <button class="theme" id="theme" type="button">Light / dark</button>
+  </div>
+
+  <h2>Runs</h2>
+  <div class="card"><table id="runs"></table></div>
+
+  <h2>Questions × models <span class="sub">median of the filtered answers: tokens per second, and how many succeeded</span></h2>
+  <div class="card"><table class="matrix" id="matrix"></table></div>
+
+  <h2>Every answer <span class="sub">click a row for the answer, its sources and the grading notes</span></h2>
+  <div class="card"><table id="answers"></table></div>
+
+  <p class="foot">Built by <code>node scripts/eval-dashboard.mjs --pull</code> from the phones' result files (one row per answer, what the
+  phone measured). Nothing is scored automatically: "Source" is whether the expected Wikipedia article was among the sources,
+  "Numbers" is the number check (numbers in the answer that no source has). Judge the text with the grading notes.</p>
+</main>
+<script>
+const ROWS = /*DATA*/null;
+const QUESTIONS = /*QUESTIONS*/null;
+const BUILT = /*BUILT*/null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sec = (ms) => typeof ms === "number" ? (ms / 1000).toFixed(1) + " s" : "–";
+const num = (x, d = 1) => typeof x === "number" ? x.toFixed(d) : "–";
+const median = (xs) => { const v = xs.filter((x) => typeof x === "number").sort((a, b) => a - b); if (!v.length) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; };
+const model = (r) => r.configLabel || r.modelId || r.configId || "?";
+const runDate = (r) => r.createdAt ? new Date(r.createdAt).toLocaleString() : "";
+const ICON = {
+  ok: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8.5l3 3 7-7"/></svg>',
+  fail: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+  warn: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v6M8 12v.5"/></svg>',
+};
+const status = (kind, label) => `<span class="status ${kind}">${ICON[kind] ?? ""}${esc(label)}</span>`;
+const outcome = (r) => r.outcome === "success" ? status("ok", "Success") : r.outcome === "cancelled" ? status("warn", "Stopped") : status("fail", "Failed");
+const sourceHit = (r) => !(r.expectedKbTitles || []).length ? '<span class="na">n/a</span>' : r.expectedKbHit ? status("ok", "Found") : status("fail", "Missed");
+const numbers = (r) => r.unsupportedNumbers == null ? '<span class="na">–</span>' : r.unsupportedNumbers.length ? status("warn", r.unsupportedNumbers.length + " unsourced") : status("ok", "OK");
+
+function options(sel, values, all) {
+  sel.innerHTML = `<option value="">${all}</option>` + values.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+}
+const runs = [...new Map(ROWS.map((r) => [r.runId, r])).values()];
+options($("fRun"), runs.map((r) => [r.runId, `${runDate(r)} · ${r._device || ""} · ${r.runId.slice(5, 24)}`]), "All runs");
+options($("fModel"), [...new Set(ROWS.map(model))].sort().map((m) => [m, m]), "All models");
+options($("fQuestion"), [...new Set(ROWS.map((r) => r.queryId))].sort().map((q) => [q, q + " · " + (QUESTIONS[q]?.query || "").slice(0, 50)]), "All questions");
+options($("fPath"), [...new Set(ROWS.map((r) => r.path || "normal"))].sort().map((p) => [p, p === "staged" ? "Staged" : p]), "Any path");
+$("built").textContent = `${ROWS.length} answers · ${runs.length} runs · built ${new Date(BUILT).toLocaleString()}`;
+
+function filtered() {
+  const run = $("fRun").value, m = $("fModel").value, q = $("fQuestion").value, p = $("fPath").value, t = $("fText").value.toLowerCase();
+  return ROWS.filter((r) => (!run || r.runId === run) && (!m || model(r) === m) && (!q || r.queryId === q) && (!p || (r.path || "normal") === p) &&
+    (!t || (r.query || "").toLowerCase().includes(t) || (r.answer || "").toLowerCase().includes(t)));
+}
+
+function tiles(rs) {
+  const ok = rs.filter((r) => r.outcome === "success").length;
+  const withSrc = rs.filter((r) => (r.expectedKbTitles || []).length);
+  const hit = withSrc.filter((r) => r.expectedKbHit).length;
+  const t = [
+    ["Answers", rs.length, `${new Set(rs.map((r) => r.runId)).size} runs`],
+    ["Succeeded", rs.length ? Math.round(ok * 100 / rs.length) + "%" : "–", `${ok} of ${rs.length}`],
+    ["Expected source found", withSrc.length ? Math.round(hit * 100 / withSrc.length) + "%" : "–", `${hit} of ${withSrc.length} with one`],
+    ["Median speed", num(median(rs.map((r) => r.tokPerSec))) + " tok/s", "generation"],
+    ["Median first word", sec(median(rs.map((r) => r.ttftMs))), "from the question"],
+    ["Median total", sec(median(rs.map((r) => r.totalLatencyMs))), "whole answer"],
+  ];
+  $("tiles").innerHTML = t.map(([l, v, n]) => `<div class="tile"><div class="label">${l}</div><div class="value">${v}</div><div class="note">${n}</div></div>`).join("");
+}
+
+function runsTable(rs) {
+  const by = new Map();
+  for (const r of rs) { if (!by.has(r.runId)) by.set(r.runId, []); by.get(r.runId).push(r); }
+  const list = [...by.entries()];
+  if (!list.length) { $("runs").innerHTML = '<tr><td class="empty">No runs match.</td></tr>'; return; }
+  $("runs").innerHTML = "<tr><th>When</th><th>Phone</th><th>Run</th><th>Models</th><th>Path</th><th class='num'>Answers</th><th>Succeeded</th><th class='num'>Median tok/s</th><th class='num'>Median first word</th><th class='num'>Median total</th><th>App</th></tr>" +
+    list.map(([id, a]) => {
+      const ok = a.filter((r) => r.outcome === "success").length;
+      return `<tr class="row" data-run="${esc(id)}"><td>${esc(runDate(a[0]))}</td><td>${esc(a[0]._device)}</td><td><span class="chip">${esc(id.slice(5, 24))}</span></td>
+        <td>${esc([...new Set(a.map(model))].join(", "))}</td><td>${esc([...new Set(a.map((r) => r.path || "normal"))].join(", "))}</td>
+        <td class="num">${a.length}</td><td>${ok === a.length ? status("ok", `${ok} of ${a.length}`) : status(ok ? "warn" : "fail", `${ok} of ${a.length}`)}</td>
+        <td class="num">${num(median(a.map((r) => r.tokPerSec)))}</td><td class="num">${sec(median(a.map((r) => r.ttftMs)))}</td><td class="num">${sec(median(a.map((r) => r.totalLatencyMs)))}</td>
+        <td>${esc(a[0].appVersion || "")}</td></tr>`;
+    }).join("");
+  for (const tr of $("runs").querySelectorAll("tr.row")) tr.onclick = () => { $("fRun").value = tr.dataset.run; render(); };
+}
+
+function matrix(rs) {
+  const ms = [...new Set(rs.map(model))].sort(), qs = [...new Set(rs.map((r) => r.queryId))].sort();
+  if (!ms.length) { $("matrix").innerHTML = '<tr><td class="empty">Nothing to show.</td></tr>'; return; }
+  const max = Math.max(1, ...rs.map((r) => r.tokPerSec || 0));
+  $("matrix").innerHTML = `<tr><th>Question</th>${ms.map((m) => `<th>${esc(m)}</th>`).join("")}</tr>` + qs.map((q) => `<tr><td class="q"><b>${esc(q)}</b><br><span class="sub">${esc(QUESTIONS[q]?.query || "")}</span></td>` +
+    ms.map((m) => {
+      const a = rs.filter((r) => r.queryId === q && model(r) === m);
+      if (!a.length) return '<td class="na">–</td>';
+      const ok = a.filter((r) => r.outcome === "success").length, tps = median(a.map((r) => r.tokPerSec));
+      return `<td title="${a.length} answers">${num(tps)}<span class="meter"><i style="width:${Math.round((tps || 0) * 100 / max)}%"></i></span><br>${ok === a.length ? status("ok", `${ok}/${a.length}`) : status(ok ? "warn" : "fail", `${ok}/${a.length}`)}</td>`;
+    }).join("") + "</tr>").join("");
+}
+
+let sortKey = "createdAt", sortDir = -1;
+const COLS = [
+  ["createdAt", "When"], ["model", "Model"], ["queryId", "Question"], ["path", "Path"], ["outcome", "Outcome"], ["source", "Source"], ["numbers", "Numbers"],
+  ["tokPerSec", "tok/s", 1], ["ttftMs", "First word", 1], ["stagedIntroDoneMs", "Short answer done", 1], ["totalLatencyMs", "Total", 1], ["tokensGenerated", "Tokens", 1],
+];
+function answers(rs) {
+  const val = (r, k) => k === "model" ? model(r) : k === "source" ? (r.expectedKbHit ? 1 : 0) : k === "numbers" ? (r.unsupportedNumbers || []).length : r[k];
+  const sorted = [...rs].sort((a, b) => { const x = val(a, sortKey), y = val(b, sortKey); return (x > y ? 1 : x < y ? -1 : 0) * sortDir; });
+  if (!sorted.length) { $("answers").innerHTML = '<tr><td class="empty">No answers match.</td></tr>'; return; }
+  $("answers").innerHTML = "<tr>" + COLS.map(([k, l, n]) => `<th class="${n ? "num" : ""}" data-k="${k}">${l}${sortKey === k ? (sortDir < 0 ? " ↓" : " ↑") : ""}</th>`).join("") + "</tr>" +
+    sorted.map((r, i) => `<tr class="row" data-i="${i}"><td>${esc(runDate(r))}</td><td>${esc(model(r))}</td><td class="q"><b>${esc(r.queryId)}</b> ${esc(r.query || "")}</td>
+      <td>${r.path === "staged" ? '<span class="chip">Staged</span>' : esc(r.path || "normal")}</td><td>${outcome(r)}</td><td>${sourceHit(r)}</td><td>${numbers(r)}</td>
+      <td class="num">${num(r.tokPerSec)}</td><td class="num">${sec(r.ttftMs)}</td><td class="num">${sec(r.stagedIntroDoneMs)}</td><td class="num">${sec(r.totalLatencyMs)}</td><td class="num">${r.tokensGenerated ?? "–"}</td></tr>`).join("");
+  for (const th of $("answers").querySelectorAll("th")) th.onclick = () => { const k = th.dataset.k; sortDir = sortKey === k ? -sortDir : -1; sortKey = k; answers(rs); };
+  for (const tr of $("answers").querySelectorAll("tr.row")) tr.onclick = () => {
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains("detail")) { next.remove(); return; }
+    const r = sorted[+tr.dataset.i], q = QUESTIONS[r.queryId] || {};
+    const kv = [["Grading notes", q.notes || "–"], ["Expected source", (r.expectedKbTitles || []).join(", ") || "–"], ["Sources used", (r.retrievedTitles || []).join(", ") || "–"],
+      ["Unsourced numbers", (r.unsupportedNumbers || []).join(", ") || "–"], ["Staged times", r.path === "staged" ? `quotes ${sec(r.stagedSourcesMs)} · first word ${sec(r.stagedIntroFirstMs)} · short answer done ${sec(r.stagedIntroDoneMs)} · details start ${sec(r.stagedDetailsFirstMs)} · end ${sec(r.totalLatencyMs)}` : "–"],
+      ["Prompt", `${r.promptTokens ?? "–"} tokens evaluated, ${r.cachedTokens ?? "–"} from the cache`], ["Model load", sec(r.modelLoadMs)], ["Style", r.style || r.personalityId || "–"],
+      ["Error", r.errorMessage || "–"], ["Run", `${r.runId} · ${r._device || ""} · app ${r.appVersion || ""}`]];
+    tr.insertAdjacentHTML("afterend", `<tr class="detail"><td colspan="${COLS.length}"><div class="kv">${kv.map(([k, v]) => `<span>${k}</span><b>${esc(v)}</b>`).join("")}</div><div class="answer">${esc(r.answer || "(no answer)")}</div></td></tr>`);
+  };
+}
+
+function render() { const rs = filtered(); tiles(rs); runsTable(rs); matrix(rs); answers(rs); }
+for (const id of ["fRun", "fModel", "fQuestion", "fPath"]) $(id).onchange = render;
+$("fText").oninput = render;
+$("theme").onclick = () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+};
+render();
+</script>
+</body>
+</html>

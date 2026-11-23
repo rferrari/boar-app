@@ -1,5 +1,13 @@
 package team.sopa.boar.ui.chat
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import team.sopa.boar.engine.chat.ConnectionPill
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.material3.minimumInteractiveComponentSize
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.collectAsState
 import androidx.compose.animation.core.RepeatMode
@@ -22,6 +30,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -108,8 +118,14 @@ fun ChatScreen(
     onRedo: (String, Int) -> Unit = { _, _ -> },
     onRetry: (String) -> Unit = {},
     onAskModel: (String) -> Unit = {},
+    /** "Keep going" (t9 0235): a step under the latest answer (its id and the step). */
+    onKeepGoing: (String, team.sopa.boar.engine.chat.KeepGoing.Step) -> Unit = { _, _ -> },
     /** The memory note (LoadNote): close it, its actions by model id, and the Model Catalog. */
     onDismissLoadNote: () -> Unit = {},
+    /** The prune note (a new chat would delete the oldest under the user's limit): keep all, delete it, or close. */
+    onPruneKeepAll: () -> Unit = {},
+    onPruneDelete: () -> Unit = {},
+    onPruneCancel: () -> Unit = {},
     onRetryLessMemory: (String) -> Unit = {},
     onLoadAnyway: (String) -> Unit = {},
     onOpenModels: () -> Unit = {},
@@ -122,9 +138,17 @@ fun ChatScreen(
     voiceEnabled: Boolean = false,
     /** A source's "Read the whole article": the reader page for it. */
     onReadSource: (team.sopa.boar.chat.Source) -> Unit = {},
+    /** The queue's ✕ and Clear queue. */
+    onRemoveQueued: (Long) -> Unit = {},
+    onClearQueue: () -> Unit = {},
+    onMergeQueue: () -> Unit = {},
+    onSkipTyping: () -> Unit = {},
 ) {
     val c = Boar.colors
-    val list = rememberLazyListState()
+    // Back from the article reader (or any page), the chat is where it was (adam, Nov 12): the same answer in view.
+    val returning = remember { ChatScroll.restore(state.sessionId) }
+    val list = rememberLazyListState(returning?.first ?: 0, returning?.second ?: 0)
+    androidx.compose.runtime.DisposableEffect(state.sessionId) { onDispose { ChatScroll.save(state.sessionId, list.firstVisibleItemIndex, list.firstVisibleItemScrollOffset, list.canScrollForward) } }
     var input by remember { mutableStateOf("") }
     LaunchedEffect(state.prefill) { state.prefill?.let { input = it; onPrefilled() } }
     // Android 13+: "BOAR is answering…" (AnswerService) needs the notification permission, which nothing asked for
@@ -139,11 +163,13 @@ fun ChatScreen(
     val last = state.messages.lastOrNull()
     // Follow the end of the answer while it streams, unless the user scrolled up to read: a drag that ends short of
     // the bottom stops following, reaching the bottom again resumes it, and a new message always does.
-    var follow by remember { mutableStateOf(true) }
+    var follow by remember { mutableStateOf(returning == null) }
     LaunchedEffect(list) {
         snapshotFlow { list.isScrollInProgress }.collect { moving -> if (!moving) follow = !list.canScrollForward }
     }
-    LaunchedEffect(state.messages.size) { follow = true }
+    // A new message follows the end; coming back to the same chat doesn't.
+    var seenSize by remember { mutableStateOf(if (returning != null) state.messages.size else -1) }
+    LaunchedEffect(state.messages.size) { if (state.messages.size != seenSize) { seenSize = state.messages.size; follow = true } }
     LaunchedEffect(state.messages.size, last?.text?.length, list.isScrollInProgress) {
         // Jump to the end of the last message (the offset is clamped to the list's end); not animated, since this
         // runs on every streamed token.
@@ -156,6 +182,7 @@ fun ChatScreen(
             if (state.deepResearch && !state.researchBannerHidden) DeepResearchBanner(onHideResearchBanner)
             state.loadingKey?.let { key -> LoadingBanner(state.loadingModel, state.loadingEngine, state.loadingSince, t(key)) }
             state.loadNote?.let { LoadNoteBanner(it, onDismissLoadNote, onRetryLessMemory, onLoadAnyway, onOpenModels) }
+            state.pruneNote?.let { PruneNoteDialog(it, onPruneKeepAll, onPruneDelete, onPruneCancel) }
             // Deep Research on: the chat area takes a light tint of its color, so the mode shows at a glance.
             val researchTint = if (state.deepResearch) Boar.colors.frontierText.copy(alpha = 0.06f) else Color.Transparent
             if (state.messages.isEmpty()) {
@@ -163,15 +190,36 @@ fun ChatScreen(
                     EmptyState(state.suggestions, onAsk = { send(it) }, onFill = { input = it })
                 }
             } else {
+                Box(Modifier.weight(1f).fillMaxWidth()) {
                 LazyColumn(
                     // A readable line length on a wide screen (landscape, tablets), centred; a phone held upright is narrower.
-                    Modifier.weight(1f).background(researchTint).widthIn(max = MAX_CHAT_WIDTH).fillMaxWidth().align(Alignment.CenterHorizontally), state = list,
+                    Modifier.fillMaxSize().background(researchTint).widthIn(max = MAX_CHAT_WIDTH).align(Alignment.TopCenter), state = list,
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource) }
+                    items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource,
+                        // "Lunar is off": the Plugins list, with its switch (every profile since t9 1725).
+                        onReadPlugin = { _ -> onOpenRoute("labs") }, onSkipTyping = onSkipTyping,
+                        onOpenPlugin = { id -> onOpenRoute("lab:$id") }) }
+                    // "Keep going" under the latest answer, outside its card, on the user's side (t9 0235): not while BOAR
+                    // answers or questions wait, gone when the input has text or a newer answer arrives.
+                    val last = state.messages.lastOrNull()
+                    // Not under a load note either: keepGoing refuses then, so a tap did nothing (validator A-3).
+                    if (last != null && last.role == "assistant" && last.text.isNotBlank() && state.answeringId == null && state.queued.isEmpty() && input.isBlank() &&
+                        state.loadNote == null && state.pruneNote == null)
+                        item(key = "keep-going-" + last.id) { KeepGoingGroup(last, state, onStep = { step -> onKeepGoing(last.id, step) }, onAsk = { send(it) }, onFill = { input = it }) }
+                }
+                // ↓ when the chat isn't at its end (adam, Nov 11): back to the latest answer and its buttons in one tap.
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                if (list.canScrollForward) Box(
+                    Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 12.dp).size(44.dp).clip(CircleShape)
+                        .background(c.bgCardElevated).border(1.dp, c.borderElevated, CircleShape)
+                        .clickable(onClickLabel = t("native.chat.toBottom")) { scope.launch { list.animateScrollToItem(state.messages.size - 1, Int.MAX_VALUE / 2) } },
+                    contentAlignment = Alignment.Center,
+                ) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_down, 22.dp, c.textHeading, description = t("native.chat.toBottom")) }
                 }
             }
+            if (state.queued.isNotEmpty()) QueueStrip(state.queued, onRemoveQueued, onClearQueue, onMergeQueue)
             InputBar(input, { input = it }, state.answeringId != null, onSend = {
                 // The answer gets the whole screen: the keyboard closes on send.
                 send(input); input = ""; keyboard?.hide(); focus.clearFocus()
@@ -179,6 +227,9 @@ fun ChatScreen(
         }
     }
 }
+
+/** The answer's ▲ ▼ rating, hidden until ratings are used for something (adam, Nov 11). */
+private const val SHOW_RATING = false
 
 /** The chat column's widest: about 75 characters of body text. */
 private val MAX_CHAT_WIDTH = 720.dp
@@ -213,55 +264,34 @@ private fun Ambient() {
 }
 
 /** ChatHeader.tsx */
-/** The header's boar, full screen: the art, its name, a tap anywhere closes it. */
-@Composable
-private fun AvatarFull(truffle: String?, onClose: () -> Unit) {
-    val c = Boar.colors
-    androidx.compose.ui.window.Dialog(onDismissRequest = onClose, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(
-            Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)).clickable(onClick = onClose).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
-        ) {
-            Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(truffle, R.drawable.mascot)), null,
-                Modifier.fillMaxWidth().then(Modifier.aspectRatio(1f)).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Fit)
-            Text(if (truffle != null) t("native.truffle.$truffle") else "BOAR", style = Boar.type.titleLg, color = c.textHeading, modifier = Modifier.padding(top = 16.dp))
-        }
-    }
-}
-
 @Composable
 private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, onOpenRoute: (String) -> Unit, onSetDeepResearch: (Boolean) -> Unit) {
     val c = Boar.colors
     val type = Boar.type
-    Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.fillMaxWidth().background(c.bgSurface).padding(horizontal = 12.dp)) {
+        // The bar every page header copies (HeaderMetrics): 62 dp, the 42 dp round buttons centred in it, and the title's two
+        // lines get the whole height (t9 1950: in a 42 dp row the second line was cut off above Standard text).
+        Row(Modifier.height(team.sopa.boar.ui.HeaderMetrics.HEIGHT), verticalAlignment = Alignment.CenterVertically) {
             RoundButton(Boar.colors.wash(0.05f), null, onMenu) { team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_menu, 22.dp, description = t("native.a11y.menu")) }
             Row(Modifier.weight(1f).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // An equipped boar is square art: a rounded square keeps its ears and tusks, a circle would cut them.
-                val truffle = team.sopa.boar.appearance.LocalTruffle.current
-                var big by remember { mutableStateOf(false) }
-                Image(painterResource(team.sopa.boar.appearance.TruffleVault.avatar(truffle, R.drawable.mascot)), null,
-                    Modifier.size(42.dp).clip(if (truffle != null) RoundedCornerShape(10.dp) else CircleShape).clickable { big = true }, contentScale = ContentScale.Fit)
-                if (big) AvatarFull(truffle) { big = false }
+                // No boar here: the menu shows it, once is enough (adam, Nov 10).
                 Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("BOAR", style = type.titleLg.copy(letterSpacing = 0.5.sp), color = c.textHeading)
-                        StatusPill(state.online)
-                    }
+                    Text("BOAR", style = team.sopa.boar.ui.HeaderMetrics.titleStyle(type).copy(letterSpacing = 0.5.sp), color = c.textHeading, maxLines = 1)
                     // While adaptive routing has another model write the answer: "→ that model", then back to the pick.
-                    val headerModel = state.answeringModel?.takeIf { state.answeringId != null }?.let { "→ $it" } ?: state.modelLabel
-                    Text((headerModel ?: t("chatHeader.localLlmCore")).uppercase(), style = type["mono.xs"], color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 1.dp))
+                    val headerModel = team.sopa.boar.engine.chat.HeaderModel.label(state.answeringId != null, state.answeringModel, state.modelLabel)
+                    // The connection lives on the model line (adam picked D of mockup-header-pill.html, Nov 12): its dot before the
+                    // model's name, and for 2 s the name gives way to ONLINE or OFFLINE, same line, same size. The title never changes.
+                    ConnectionLine(state.online, (headerModel ?: t("chatHeader.localLlmCore")).uppercase(), busy = state.answeringId != null) { onOpenRoute("models") }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 team.sopa.boar.labs.LabHooks.HeaderBadges(onOpenRoute)
-                DeepResearchButton(state.deepResearch, onSetDeepResearch)
-                RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald) }
+                RoundButton(c.emeraldBgSubtle, c.emeraldBorder, onNewChat) { Text("+", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = c.textAccentEmerald, modifier = Modifier.spokenAs(t("chatHeader.newChatSession"))) }
             }
         }
-        // Live speed in the header is a technical detail (Advanced tweaks → Show technical details).
-        val tps = if (state.activity == Activity.Generating && state.technicalDetails) state.liveTokPerSec else null
-        if (tps != null) Row(verticalAlignment = Alignment.CenterVertically) {
+        // Live speed in the header: its own switch in Display & theme, off by default (adam, 16 Nov).
+        val tps = if (state.activity == Activity.Generating && state.liveSpeed) state.liveTokPerSec else null
+        if (tps != null) Row(Modifier.padding(bottom = team.sopa.boar.ui.HeaderMetrics.PAD), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             tps?.let {
                 Row(
@@ -278,36 +308,6 @@ private fun Header(state: ChatState, onMenu: () -> Unit, onNewChat: () -> Unit, 
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
 }
 
-/**
- * Deep Research beside New chat: 🔬 lit when on, dim when off. A tap opens what it does and its switch, so it's found
- * and understood in one place (the style sheet has the same switch).
- */
-@Composable
-private fun DeepResearchButton(on: Boolean, onSet: (Boolean) -> Unit) {
-    val c = Boar.colors
-    var open by remember { mutableStateOf(false) }
-    Box {
-        RoundButton(if (on) c.frontierBadgeBg else Boar.colors.wash(0.05f), if (on) c.frontierBadgeBorder else c.borderSubtle, { open = true }) {
-            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 22.dp, if (on) c.frontierText else c.textHeading, Modifier.alpha(if (on) 1f else 0.45f), t("personalitySettings.deepResearchTitle"))
-        }
-        androidx.compose.material3.DropdownMenu(open, { open = false }, Modifier.background(c.bgCardElevated).widthIn(max = 300.dp)) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 18.dp)
-                            Text(t("personalitySettings.deepResearchTitle"), style = Boar.type.titleSm, color = c.textHeading)
-                        }
-                        Text(t(if (on) "native.chat.deepResearchOn" else "native.chat.deepResearchOff"), style = Boar.type["mono.xs"], color = if (on) c.frontierText else c.textDim, fontWeight = FontWeight.Bold)
-                    }
-                    androidx.compose.material3.Switch(on, onSet, colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
-                }
-                Text(t("native.chat.deepResearchExplain"), style = Boar.type.subtext, color = c.textSecondary)
-            }
-        }
-    }
-}
-
 @Composable
 private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content: @Composable () -> Unit) {
     var m = Modifier.size(42.dp).clip(CircleShape).background(bg)
@@ -315,48 +315,100 @@ private fun RoundButton(bg: Color, border: Color?, onClick: () -> Unit, content:
     Box(m.clickable(onClick = onClick), contentAlignment = Alignment.Center) { content() }
 }
 
-/** The brand's moon blue (brand book: moonlight means no signal), for the OFFLINE pill. */
+/** The brand's moon blue (brand book: moonlight means no signal), for the offline ring. */
 private val MOON = Color(0xFF9EC7F0)
 
+/**
+ * The connection, on the header's second line (adam, Nov 12: option D, "the metamorphic one"): a small dot (amber online,
+ * a greyed moon-blue ring offline) before the model's name. When BOAR opens and when the connection really changes
+ * (ConnectionPill: once per state, after it has held), the name becomes "ONLINE" or "OFFLINE" for about 2 s, in the dot's
+ * color, then turns back into the name. A tap shows the word for about 4 s; a tap while it shows opens what the connection
+ * is used for. Nothing changes size: it is one line of the same text style, cross-faded. Reduce motion: instant.
+ */
 @Composable
-private fun StatusPill(online: Boolean) {
+private fun ConnectionLine(online: Boolean, model: String, busy: Boolean = false, onCatalog: () -> Unit = {}) {
     val c = Boar.colors
-    // The word shows only when it fits: with Large text and Labs badges the header is tight ("ONLIN / E", then "ONL").
-    // Without room the pill is just its dot. Told apart by hue and by shape (Oct 16, both were yellow in Moonlight):
-    // OFFLINE is a moon-blue outline, the calm state; ONLINE is a filled gold pill, noticed without reading "danger".
-    var fits by remember { mutableStateOf(true) }
-    val tint = if (online) c.amber400 else MOON
-    // One warm glow when the signal comes back (OFFLINE to ONLINE), then the pill rests: not at app start, never
-    // repeating, and none when Android's animations are off (Settings, Accessibility, Remove animations).
+    val type = Boar.type
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val glow = remember { androidx.compose.animation.core.Animatable(0f) }
-    var was by remember { mutableStateOf(online) }
+    val animOff = remember { android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+    var expanded by remember { mutableStateOf(false) }
+    var info by remember { mutableStateOf(false) }
+    var tapped by remember { mutableStateOf(0) }
     LaunchedEffect(online) {
-        val back = online && !was
-        was = online
-        if (!back) { glow.snapTo(0f); return@LaunchedEffect }
-        val animOff = android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-        if (animOff) return@LaunchedEffect
-        glow.animateTo(1f, androidx.compose.animation.core.tween(250))
-        glow.animateTo(0f, androidx.compose.animation.core.tween(1200))
+        // On open at once; a change only once it has held, so a flapping signal doesn't flash the word.
+        if (ConnectionPill.lastShown != null) kotlinx.coroutines.delay(ConnectionPill.SETTLE_MS)
+        if (!ConnectionPill.shouldShow(online)) return@LaunchedEffect
+        ConnectionPill.lastShown = online
+        expanded = true
+        kotlinx.coroutines.delay(ConnectionPill.SHOW_MS)
+        expanded = false
     }
-    Row(
-        Modifier.drawBehind {
-            val g = glow.value
-            if (g > 0f) drawRoundRect(
-                brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                    listOf(c.amber400.copy(alpha = 0.55f * g), Color.Transparent), center = center, radius = size.maxDimension * 0.9f),
-                topLeft = androidx.compose.ui.geometry.Offset(-size.width * 0.35f, -size.height * 1.2f),
-                size = androidx.compose.ui.geometry.Size(size.width * 1.7f, size.height * 3.4f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height * 1.7f))
-        }.background(if (online) c.amber400.copy(alpha = 0.22f) else Color.Transparent, RoundedCornerShape(4.dp))
-            .border(1.dp, tint.copy(alpha = if (online) 0.9f else 0.6f), RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = if (fits) 1.dp else 4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        Box(Modifier.size(5.dp).background(tint, CircleShape))
-        if (fits) Text(t(if (online) "chatHeader.online" else "chatHeader.offline"), fontFamily = BrandType.familyFor("monospace", 800).first, fontSize = 8.sp,
-            fontWeight = FontWeight.ExtraBold, color = tint, maxLines = 1, softWrap = false,
-            onTextLayout = { if (it.hasVisualOverflow) fits = false })
+    LaunchedEffect(tapped) {
+        if (tapped == 0) return@LaunchedEffect
+        expanded = true
+        kotlinx.coroutines.delay(ConnectionPill.TAP_SHOW_MS)
+        expanded = false
+    }
+    val tint = if (online) c.amber400 else MOON
+    val label = t(if (online) "chatHeader.online" else "chatHeader.offline")
+    val spoken = label + ". " + model + ". " + t("native.chat.connectionDetails")
+    val style = team.sopa.boar.ui.HeaderMetrics.subtitleStyle(type)
+    // First tap: the word; a tap on the word: the dialog. A screen reader gets one action that opens the dialog.
+    Row(Modifier.clip(RoundedCornerShape(6.dp))
+        .clearAndSetSemantics { contentDescription = spoken; role = androidx.compose.ui.semantics.Role.Button; onClick(label) { info = true; true } }
+        .clickable { if (expanded) info = true else tapped++ },
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Box(Modifier.size(6.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.55f), CircleShape)))
+        androidx.compose.animation.Crossfade(expanded, animationSpec = androidx.compose.animation.core.tween(if (animOff) 0 else 250), label = "connection") { word ->
+            if (word) Text(label, style = style, color = tint, fontWeight = FontWeight.Bold, maxLines = 1)
+            else Text(model, style = style, color = c.textDim, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+    }
+    // A tap on the word: what the connection is for, and the answer model, with the way to change it (adam, Nov 13).
+    if (info) ConnectionSheet(online, busy, onCatalog = { info = false; onCatalog() }) { info = false }
+}
+
+/**
+ * The sheet behind the header's second line (adam, Nov 13): the connection is only an indicator (BOAR answers the same
+ * offline), and the answer model: the ones on this phone, a tap to answer with another, and the Model Catalog. The catalog's
+ * own view model does the switch, so it stops a running answer first and loads the model, exactly as "Select & Use" does.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun ConnectionSheet(online: Boolean, busy: Boolean, onCatalog: () -> Unit, onClose: () -> Unit) {
+    val c = Boar.colors
+    val models: team.sopa.boar.models.ModelsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val ms by models.state.collectAsState()
+    LaunchedEffect(Unit) { models.refresh() }
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = c.bgCardElevated) {
+        Column(Modifier.navigationBarsPadding().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.size(8.dp).then(if (online) Modifier.background(c.amber400, CircleShape) else Modifier.border(1.5.dp, MOON.copy(alpha = 0.7f), CircleShape)))
+                Text(t(if (online) "chatHeader.onlineTitle" else "chatHeader.offlineTitle"), style = Boar.type.titleSm, color = c.textHeading)
+            }
+            Text(team.sopa.boar.ui.boldMarks(t(if (online) "chatHeader.onlineBody" else "chatHeader.offlineBody")), style = Boar.type.body, color = c.textSecondary)
+            Text(t("native.chat.connectionOnly"), style = Boar.type.caption, color = c.textMuted)
+            Box(Modifier.fillMaxWidth().padding(top = 6.dp).height(1.dp).background(c.borderDefault))
+            Text(t("native.chat.answerModel").uppercase(), style = Boar.type.caption.copy(letterSpacing = 1.sp), color = c.textMuted, modifier = Modifier.padding(top = 6.dp))
+            // The answer models on this phone; the active one is checked. Not while an answer is being written.
+            val installed = ms.items.filter { it.kind == team.sopa.boar.engine.models.AssetKind.LLM && ms.rows[it.id]?.present == true }
+            if (installed.isEmpty()) Text(t("native.chat.noModels"), style = Boar.type.caption, color = c.textMuted)
+            installed.forEach { a ->
+                val active = a.id == ms.activeLlm
+                Row(Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp).clip(RoundedCornerShape(10.dp))
+                    .clickable(enabled = !active && !busy && ms.activating == null, role = androidx.compose.ui.semantics.Role.Button) { models.use(a); onClose() }
+                    .padding(horizontal = 8.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(if (active) "✓" else " ", style = Boar.type.body, color = c.textAccentEmerald, modifier = Modifier.widthIn(min = 16.dp))
+                    Text(a.shortName, style = Boar.type.body, color = if (active) c.textAccentEmerald else c.textPrimary, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                        modifier = Modifier.weight(1f).alpha(if (busy && !active) 0.5f else 1f))
+                    Text(team.sopa.boar.engine.models.Units.formatBytes(a.sizeBytes), style = Boar.type.caption, color = c.textMuted)
+                }
+            }
+            if (busy) Text(t("native.chat.modelBusy"), style = Boar.type.caption, color = c.amber400)
+            Text(t("native.chat.openCatalog") + " ›", style = Boar.type.body, color = c.textAccentCyan, fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onCatalog).padding(horizontal = 8.dp, vertical = 14.dp))
+        }
     }
 }
 
@@ -367,7 +419,7 @@ private fun DeepResearchBanner(onClose: () -> Unit) {
         team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_deep_research, 12.dp, c.frontierText)
         Text(t("chatScreen.deepResearchBanner"), style = Boar.type["mono.xs"].copy(fontSize = 9.sp, letterSpacing = 0.4.sp), color = c.frontierText,
             fontWeight = FontWeight.Bold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(vertical = 5.dp))
-        // Closed for good: the header chip still shows Deep Research is on.
+        // Closed for good: the input's border and the chat's tint still show Deep Research is on (no header button since Nov 11).
         Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
             team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_close, 14.dp, c.frontierText, description = t("native.a11y.close"))
         }
@@ -426,39 +478,6 @@ private fun LoadNoteBanner(
         }
     }
     Box(Modifier.fillMaxWidth().height(1.dp).background(c.amberBorder))
-}
-
-/** Dictation: tap to listen (asks for the microphone the first time), tap again to stop; the words go into the input. */
-@Composable
-private fun MicButton(text: String, onText: (String) -> Unit, enabled: Boolean, size: androidx.compose.ui.unit.Dp = 48.dp) {
-    val c = Boar.colors
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    if (!team.sopa.boar.voice.VoiceInput.available(ctx)) return
-    val voice = remember { team.sopa.boar.voice.VoiceInput(ctx) }
-    var listening by remember { mutableStateOf(false) }
-    val before = remember { mutableStateOf("") }
-    val disposed = remember { booleanArrayOf(false) }
-    // The permission answer comes later: by then an answer may have started and disabled the mic.
-    val enabledNow = androidx.compose.runtime.rememberUpdatedState(enabled)
-    DisposableEffect(Unit) { onDispose { disposed[0] = true; voice.stop() } }
-    fun listen() {
-        before.value = text.trimEnd()
-        listening = true
-        val join = { said: String -> listOf(before.value, said).filter { it.isNotBlank() }.joinToString(" ") }
-        voice.start(onPartial = { onText(join(it)) }, onResult = { onText(join(it)) }, onEnd = { listening = false })
-    }
-    val permission = androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted -> if (granted && !disposed[0] && enabledNow.value) listen() }
-    Box(Modifier.size(size).alpha(if (enabled) 1f else 0.35f).clip(CircleShape).background(if (listening) c.crimson600 else c.bgInput)
-        .border(1.dp, if (listening) c.crimsonBorder else c.borderDefault, CircleShape)
-        .clickable(enabled = enabled) {
-            when {
-                listening -> { voice.stop(); listening = false }
-                androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED -> listen()
-                else -> permission.launch(android.Manifest.permission.RECORD_AUDIO)
-            }
-        }, contentAlignment = Alignment.Center) {
-        if (listening) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stopListening")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_mic, 20.dp, c.textHeading, description = t("native.a11y.mic"))
-    }
 }
 
 /** "Loading Qwen3 4B · 3 s" (and "with Big Boar" for an engine plugin): which model, and that it's still going. */
@@ -528,7 +547,8 @@ private fun activityLabel(a: Activity?): String = when (a) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> Unit, onReuse: (String) -> Unit, onRedo: (String, Int) -> Unit, onRetry: (String) -> Unit, onAskModel: (String) -> Unit = {},
-    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}) {
+    onReadSource: (team.sopa.boar.chat.Source) -> Unit = {}, onReadPlugin: (String) -> Unit = {}, onSkipTyping: () -> Unit = {},
+    onOpenPlugin: (String) -> Unit = {}) {
     val c = Boar.colors
     val type = Boar.type
     val user = m.role == "user"
@@ -540,8 +560,10 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
     val shape = if (user) RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 8.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val maxW = maxWidth * 0.92f
-        var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW).clip(shape)
-            .background(if (user) c.bgCardHover else c.bgSurface)
+        // The shape is drawn, not clipped: a clip on a very tall answer (Staged's quotes open) stopped taps on its lower
+        // half, the 🧩, Copy and rating row included (X6, Nov 10). Nothing inside draws past the padding.
+        var mod = Modifier.align(if (user) Alignment.CenterEnd else Alignment.CenterStart).widthIn(min = if (user) 0.dp else 200.dp, max = maxW)
+            .background(if (user) c.bgCardHover else c.bgSurface, shape)
         // A Deep Research answer keeps its mark in the history: the border and the header in the mode's color.
         val researched = !user && m.receipt?.path == "deep"
         if (!user) mod = mod.border(if (researched) 1.5.dp else 1.dp, if (researched) c.frontierBadgeBorder else c.borderDefault, shape)
@@ -549,7 +571,12 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
         Column(mod.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             // A Labs plugin's instant answer speaks as that plugin (AnswerTools.speaker): its art and name, not BOAR's.
             val speaker = if (user) null else m.receipt?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
-            Row(Modifier.padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // A plugin's picture and name open its page (adam, Nov 13), in every profile; the ✕ there comes back to the chat.
+            val speakerPage = speaker?.id?.takeIf { !streaming && team.sopa.boar.labs.LabPrefs.labsOn }
+            val pluginName = speaker?.let { t(it.titleKey) }
+            Row((if (speakerPage != null) Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = androidx.compose.ui.semantics.Role.Button,
+                    onClickLabel = t("native.chat.openPlugin", "name" to pluginName.orEmpty())) { onOpenPlugin(speakerPage) } else Modifier)
+                .padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (!user) {
                     val art = speaker?.art
                     if (speaker != null && art == null) Text(speaker.emoji, fontSize = 15.sp)
@@ -559,13 +586,27 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                     color = if (user) c.textAccentCyan else c.textAccentEmerald, fontWeight = FontWeight.SemiBold)
             }
             if (user) {
-                Text(m.text, style = type.bodyLg, color = c.textPrimary)
+                // A Keep going step shows its verb (adam, Nov 14: "A"); the text, copy and hold stay the real question.
+                val shownText = userBubbleText(m)
+                Text(shownText, style = type.bodyLg, color = c.textPrimary,
+                    modifier = if (shownText != m.text) Modifier.semantics { contentDescription = shownText + ". " + m.text } else Modifier)
                 return@Column
             }
             val split = AnswerText.splitThinking(m.text)
             // Sources are attached when the reply finishes, so invented citations are cleaned only then.
             val shown = if (streaming) split.answer else AnswerText.splitInlineBullets(AnswerText.cleanCitations(split.answer, m.sources.size))
             val reasoningStyle = Modifier.drawBehind { drawRect(c.borderDefault, size = size.copy(width = 2.dp.toPx())) }.padding(start = 8.dp, bottom = 8.dp)
+            // Layout B+ (Advanced tweaks → Sources layout): the sources open above the answer, never removed when it starts;
+            // a tap there or on an [n] in the answer opens the passage in a sheet.
+            val question = state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty()
+            // One sources design for everyone (adam, Nov 12): the block above the answer, or Staged's quote cards when Staged
+            // shows them. A tap on a source, a quote or an [n] opens the article at the passage that backs the answer.
+            fun read(n: Int) { m.sources.getOrNull(n - 1)?.let(onReadSource) }
+            val above = m.sources.isNotEmpty() && m.staged == null
+            if (above) SourcesAbove(m.id, question, m.sources) { read(it) }
+            // Boar Staged answers: what the sources say comes first, before and above the answer's text (with B+ the block
+            // above says it, so Staged's quote cards don't show).
+            if (!above) m.staged?.let { StagedCard(it, streaming, m.text.isNotEmpty(), onReadSource, key = m.id) }
             when {
                 m.text.isEmpty() && streaming -> ProcessingIndicator(if (state.stopping) t("native.chat.stopping") else activityLabel(state.activity),
                     if (state.stopping) null else activityDetail(state.activity), startedAt)
@@ -579,7 +620,9 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
                         fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
                 else -> {
                     if (reasoningShown && split.thinking != null) Text(split.thinking!!, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim, modifier = reasoningStyle)
-                    MarkdownMessage(shown, streaming)
+                    // A tap while an instant answer types shows the rest at once (InstantTyping).
+                    if (streaming) Box(Modifier.clickable(onClickLabel = t("native.chat.showAll")) { onSkipTyping() }) { MarkdownMessage(shown, true) }
+                    else MarkdownMessage(shown, streaming, onCite = if (m.sources.isNotEmpty() && !streaming) ({ n -> if (n in 1..m.sources.size) read(n) }) else null)
                 }
             }
             // The answer failed (no model, an engine or storage error): a plain line, never the exception text.
@@ -589,50 +632,63 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
             if (!streaming && !m.stopped && errorKey != null) {
                 Text(t(errorKey), style = type.bodyLg, color = c.crimson400)
                 if ((errorKey == UserErrors.chatKey(UserErrors.EMPTY_ANSWER) || errorKey == UserErrors.INTERRUPTED_KEY) && state.answeringId == null)
-                    ActionButton("↻", t("native.chat.tryAgain")) { onRetry(m.id) }
+                    VerbLine(t("native.chat.tryAgain")) { onRetry(m.id) }
                 // Holding a question already copies it back to the input (onReuse); say so where it helps.
                 Text(t("native.chat.holdToReuse"), style = Boar.type.subtext, color = c.textPrimary, modifier = Modifier.padding(top = 2.dp))
             }
             // Stopped before writing anything: these are what the search found, not what the answer cites.
-            // BOAR answered in another style than the one picked (a health question under Detailed): say so, once, under it.
-            if (!streaming) m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 2.dp)) }
-            if (m.sources.isNotEmpty()) SourceFootnotes(m.sources, if (m.stopped && !streaming && shown.isBlank()) t("native.chat.foundBeforeStop") else null, onRead = onReadSource)
+            // No list under the answer any more: the sources are shown once, above it (adam, Nov 12).
+            // The question was a plugin's, but it's off (Nov 12): one line, a tap goes where it's turned on.
+            if (!streaming) m.offPlugin?.let { id ->
+                Text(t("native.chat.pluginOff", "name" to t("native.labs.$id.title")), style = Boar.type.subtext, color = c.textAccentCyan,
+                    modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp)).clickable { onReadPlugin(id) }.padding(vertical = 4.dp))
+            }
             if (m.stopped) Badge("⏹ " + t("chatScreen.stoppedByUser"))
             if (m.timedOut) Badge("⏱ " + t("chatScreen.stageTimedOut"))
-            // The plugin answered without the model: the same question, plugins skipped (never for the CO safety answer).
-            // Its own row on the right, bigger, with BOAR's mascot: a way out of the plugin's answer, not one of its controls.
-            if (!streaming && speaker?.canBypass == true && state.answeringId == null) Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.CenterEnd) {
-                ActionButton(null, t("native.chat.askBoarInstead"), art = R.drawable.mascot) { onAskModel(m.id) }
-            }
-            // The cut is a note; the way to run it again with more tokens is its own button on the next line, in the
-            // accent, so the two never squeeze into one row.
+            // No "Ask BOAR instead" pill (t9 0235): it is the "Ask BOAR" step under the latest answer (KeepGoingGroup).
+            // The cut, one quiet line, then its verb (t9 0235: repairs stay in the card, in the same verb style).
             m.cutAt?.let { limit ->
-                Column(Modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Badge("✂ " + t("native.chat.cutAtLimit", "limit" to limit))
-                    if (m.nextLimit != null && state.answeringId == null) ActionButton("↻", t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
+                Column(Modifier.padding(top = 4.dp)) {
+                    Text(t("native.chat.cutAtLimit", "limit" to limit) + ".", style = Boar.type.subtext, color = c.textMuted)
+                    if (m.nextLimit != null && state.answeringId == null) VerbLine(t("native.chat.allowMore", "limit" to m.nextLimit)) { onRedo(m.id, m.nextLimit) }
                 }
             }
             var receiptOpen by remember { mutableStateOf(false) }
             // Plugin slots (Boar Labs): what this answer hands them, and their content under it.
             val ref = team.sopa.boar.plugins.AnswerRef(m.id, state.sessionId,
                 state.messages.take(state.messages.indexOfFirst { it.id == m.id }.coerceAtLeast(0)).lastOrNull { it.role == "user" }?.text.orEmpty(),
-                shown, m.sources.map { it.title to it.source }, state.answeringId != null, m.receipt?.model, m.receipt?.tokPerSec, m.receipt?.tool, m.receipt?.styleNote)
+                shown, m.sources.map { it.title to it.source }, state.answeringId != null, m.receipt?.model, m.receipt?.tokPerSec, m.receipt?.tool, m.receipt?.styleNote,
+                m.sources.map { it.title to it.body })
             if (m.text.isNotEmpty() && !streaming) team.sopa.boar.labs.LabHooks.AnswerExtras(ref)
             if (m.text.isNotEmpty() && !streaming) {
                 Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(0.5.dp).background(c.borderSubtle))
+                // Notes about the answer go under the separator, with the receipt, not against its text (adam, Nov 14: "more
+                // near response text then a footer notice"). BOAR answered in another style than the one picked (a health
+                // question under Detailed); "Every number … is in its sources", when there are sources to check against.
+                m.receipt?.styleNote?.let { Text(t("native.chat.styleNote.$it"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp)) }
+                if (m.sources.isNotEmpty()) m.staged?.let { StagedCheck(it) }
+                // Nothing in the library backs it: said, not left to guess (t9 0226 point 4).
+                if (team.sopa.boar.engine.answer.NoSource.shows(m.receipt?.retrievalMs != null, m.sources.size, m.receipt?.tool != null, ref.question, m.text, m.receipt?.style))
+                    Text(t("native.chat.noSource"), style = Boar.type.subtext, color = c.textDim, modifier = Modifier.padding(top = 6.dp))
+                // Then the plugins' notes (an error, a refusal), oldest first: a new one is always the last line (adam, Nov 14).
+                team.sopa.boar.labs.LabHooks.AnswerNotes(ref)
                 Row(Modifier.padding(top = 6.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { onRate(m.id, "up") }
-                    FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder) { onRate(m.id, "down") }
-                    // The receipt fills the gap between rating and copy (main's ReceiptToggle), tapped open below.
-                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    // Rating hidden (adam, Nov 11): nothing uses ratings yet. The code stays for when something does.
+                    if (SHOW_RATING) {
+                        FooterButton("▲", null, m.feedback == "up", c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.rateUp")) { onRate(m.id, "up") }
+                        FooterButton("▼", null, m.feedback == "down", c.crimson400, c.crimsonBgSubtle, c.crimsonBorder, t("native.a11y.rateDown")) { onRate(m.id, "down") }
+                    }
+                    // The receipt on the left, the buttons on the right (adam, Nov 14: with the rating gone, time and tokens move
+                    // left); it fills the row up to the buttons and is tapped open below (main's ReceiptToggle).
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                         // Everyone sees time and speed; the measured details open only with technical details on.
                         m.receipt?.let { r -> if (state.technicalDetails) ReceiptToggle(r, receiptOpen) { receiptOpen = !receiptOpen } else ReceiptShort(r) }
                     }
-                    if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) { reasoningShown = !reasoningShown }
+                    if (split.thinking != null) FooterButton("💭", null, reasoningShown, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.reasoning")) { reasoningShown = !reasoningShown }
                     team.sopa.boar.labs.LabHooks.AnswerActions(ref)
                     var copied by remember { mutableStateOf(false) }
                     // With 💭 open, the reasoning is copied too: reviewing a thinking model needs both.
-                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder) {
+                    FooterButton("⧉", null, copied, c.textAccentEmerald, c.emeraldBgSubtle, c.emeraldBorder, t("native.a11y.copyAnswer")) {
                         clipboard.setText(AnnotatedString(if (reasoningShown && split.thinking != null) "💭 ${split.thinking}\n\n---\n\n$shown" else shown)); copied = true
                     }
                 }
@@ -645,24 +701,25 @@ private fun Bubble(m: UiMessage, state: ChatState, onRate: (String, String) -> U
 /** A tool's instant answer generated nothing: "0.0 s · instant" instead of a speed. */
 private fun Receipt.instant() = tool != null && tokens == 0
 
-private fun receiptShort(r: Receipt, rate: String) = listOf(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
+/** "18 s · 10.4 tok/s"; an instant answer only its time (adam, Nov 13: no "shown at typing speed"; "instant" is in the opened receipt). */
+private fun receiptShort(r: Receipt, rate: String?) = listOfNotNull(ReceiptFormat.seconds(r.totalMs), rate).joinToString(" · ")
 
 @Composable
-private fun receiptRate(r: Receipt) = if (r.instant()) t("native.receipt.instant") else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
+private fun receiptRate(r: Receipt): String? = if (r.instant()) null else t("chat.receipt.speed", "rate" to ReceiptFormat.rate(r.tokPerSec))
 
 /** The receipt everyone sees: "18 s · 10.4 tok/s", nothing to open. */
 @Composable
 private fun ReceiptShort(r: Receipt) =
     Text(receiptShort(r, receiptRate(r)), style = Boar.type["mono.xs"], color = Boar.colors.textMuted,
         // Two lines with Large text rather than losing "tok/s" off the end.
-        maxLines = 2, textAlign = TextAlign.End, modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp))
+        maxLines = 2, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 8.dp).padding(end = 4.dp))
 
 /** The answer's receipt (main's ReceiptToggle): time and speed, tapped open for the measured details. */
 @Composable
 private fun ReceiptToggle(r: Receipt, open: Boolean, onToggle: () -> Unit) {
     val short = receiptShort(r, receiptRate(r))
-    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.End,
-        modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp, horizontal = 4.dp))
+    Text("$short " + if (open) "▴" else "▾", style = Boar.type["mono.xs"], color = Boar.colors.textMuted, maxLines = 2, textAlign = TextAlign.Start,
+        modifier = Modifier.clickable(onClickLabel = t("chat.receipt.details"), onClick = onToggle).padding(vertical = 8.dp).padding(end = 4.dp))
 }
 
 @Composable
@@ -685,6 +742,7 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
                 "deep" -> t("native.receipt.path.deep")
                 "chat" -> t("native.receipt.path.chat")
                 "adaptive" -> listOfNotNull(t("native.receipt.path.adaptive"), r.task, if (r.checked) t("native.receipt.checked") else null).joinToString(" · ")
+                "staged" -> t("native.receipt.path.staged")
                 else -> null
             },
         ).joinToString(" · ")
@@ -692,12 +750,15 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
     return listOfNotNull(
         mode?.let { t("native.receipt.mode") to it },
         r.retrievalMs?.let { t("chat.receipt.search") to ReceiptFormat.seconds(it) },
+        // A staged answer: when each step showed up, from the question.
+        r.stages?.let { st -> t("native.receipt.stages") to listOf("sources", "introFirst", "detailsFirst").mapNotNull { k -> st[k]?.let { t("native.receipt.stage.$k") + " " + ReceiptFormat.seconds(it) } }.joinToString(" · ") },
         r.prefillMs?.let { t("chat.receipt.prefill") to ReceiptFormat.seconds(it) },
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },
         t("chat.receipt.start") to ReceiptFormat.seconds(r.ttftMs),
         r.model?.let { t("chat.receipt.model") to it },
         r.tool?.let { t("native.receipt.tool") to it },
-        if (r.instant()) null else t("chat.receipt.speedLabel") to t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}"),
+        // An instant answer's speed is "instant", here and not on the short line (adam, Nov 13).
+        t("chat.receipt.speedLabel") to (if (r.instant()) t("native.receipt.instant") else t("chat.receipt.speedBoth", "rate" to ReceiptFormat.rate(r.tokPerSec), "words" to "${ReceiptFormat.words(r.tokPerSec)}")),
         if (r.instant()) null else t("chat.receipt.words") to count(r.tokens),
         t("chat.receipt.total") to ReceiptFormat.seconds(r.totalMs),
     )
@@ -712,9 +773,8 @@ private fun ThinkingTail(thinking: String, modifier: Modifier) {
     val c = Boar.colors
     val tail = thinking.takeLast(400).let { t -> if (t.length < thinking.length) t.substringAfter(' ', t) else t }.replace(Regex("\\s+"), " ").trim()
     val box = with(androidx.compose.ui.platform.LocalDensity.current) { (17.sp * 3).toDp() }
-    // 💭 stays put at the top left while it reasons; only the text beside it scrolls.
-    Row(modifier.fillMaxWidth().height(box), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("💭", fontSize = 12.sp, lineHeight = 17.sp)
+    // One 💭 only: the wait line above already says "💭 Reasoning…" (two balloons, X6, Nov 10). Only the text scrolls.
+    Row(modifier.fillMaxWidth().height(box)) {
         Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
             // Taller than the box and bottom-aligned: the newest line stays at the bottom, older ones slide out at the top.
             Text(tail, fontSize = 12.sp, lineHeight = 17.sp, fontStyle = FontStyle.Italic, color = c.textDim,
@@ -762,6 +822,115 @@ private const val LOADING_LINE_SECONDS = 4
  * Something to do about an answer (Try again, Allow more, Ask BOAR instead): on its own line, full size, in the accent,
  * never squeezed next to a note. The footer's small chips ([FooterButton]) are for its icons only.
  */
+/** What a user's bubble shows: the question, or a Keep going step's verb (the text stays the question). */
+@Composable
+private fun userBubbleText(m: UiMessage): String = when (team.sopa.boar.engine.chat.KeepGoing.Step.of(m.step)) {
+    team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
+    team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
+    team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskQ", "q" to m.text)
+    team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE, null -> m.text
+}
+
+/** A verb in the card or a bubble (t9 0235): bold, muted, a dotted underline; a 48 dp target with the button role. */
+@Composable
+private fun VerbLine(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val c = Boar.colors
+    val line = c.textMuted
+    Box(modifier.heightIn(min = 48.dp).clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick), contentAlignment = Alignment.CenterStart) {
+        Text(label, style = Boar.type.body, color = c.textMuted, fontWeight = FontWeight.Bold, modifier = Modifier.drawBehind {
+            val y = size.height - 1.dp.toPx()
+            drawLine(line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(),
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(1.5.dp.toPx(), 3.dp.toPx())), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+        })
+    }
+}
+
+/**
+ * "Keep going" (adam, Nov 13-14; t9 0235): a small label and up to three faint bubbles under the latest answer, on the
+ * user's side: the user's bubble shape, a dashed border, a light fill. The step first (its verb, then the ladder with the
+ * rungs done filled), then follow-up questions. A tap asks; holding a follow-up puts it in the input.
+ */
+@Composable
+private fun KeepGoingGroup(last: UiMessage, state: ChatState, onStep: (team.sopa.boar.engine.chat.KeepGoing.Step) -> Unit, onAsk: (String) -> Unit, onFill: (String) -> Unit) {
+    val c = Boar.colors
+    val question = state.messages.dropLast(1).lastOrNull { it.role == "user" }?.text.orEmpty()
+    val r = last.receipt
+    val speaker = r?.tool?.substringBefore('+')?.let { team.sopa.boar.plugins.AnswerTools.speaker(it) }
+    val next = remember(last.id, last.text, r) {
+        val pt = team.sopa.boar.engine.routing.QueryContext.isPortugueseQuestion(question)
+        // Off until adam reads the table (KeepGoing.FOLLOW_UPS); only the packs' cited articles, never the user's files.
+        val follow = if (!team.sopa.boar.engine.chat.KeepGoing.FOLLOW_UPS) emptyList() else team.sopa.boar.engine.chat.FollowUps.pick(question,
+            last.sources.mapIndexed { i, s -> team.sopa.boar.engine.chat.FollowUps.Source(s.title, s.body, last.text.contains("[${i + 1}]"), fromPack = s.source?.contains(" — ") == true) }, pt)
+        team.sopa.boar.engine.chat.KeepGoing.of(team.sopa.boar.engine.chat.KeepGoing.Answer(
+            broken = last.error != null || last.stopped || last.timedOut,
+            instant = r?.tool != null && r.tokens == 0, canBypass = speaker?.canBypass == true,
+            style = r?.style, deepResearch = r?.path == "deep", cut = last.cutAt != null, keptShort = r?.styleNote != null,
+            hasSources = last.sources.isNotEmpty()), follow)
+    }
+    if (next.step == null && next.followUps.isEmpty()) return
+    val shape = RoundedCornerShape(20.dp, 20.dp, 8.dp, 20.dp)
+    val label = t("native.chat.keepGoing")
+    val groupLabel = t("native.chat.kgGroup")
+    Column(Modifier.fillMaxWidth().semantics { contentDescription = groupLabel }, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = Boar.type["mono.xs"], color = c.textDim)
+        @Composable fun Faint(spoken: String, onClick: () -> Unit, onHold: (() -> Unit)? = null, content: @Composable () -> Unit) {
+            val border = c.borderDefault
+            Box(Modifier.widthIn(max = 320.dp).heightIn(min = 48.dp).clip(shape).background(c.bgCardHover.copy(alpha = 0.35f))
+                .drawBehind {
+                    val o = androidx.compose.ui.graphics.Outline.Generic(androidx.compose.ui.graphics.Path().apply {
+                        addRoundRect(androidx.compose.ui.geometry.RoundRect(0f, 0f, size.width, size.height,
+                            androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()),
+                            androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(20.dp.toPx())))
+                    })
+                    drawPath(o.path, border, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
+                }
+                .combinedClickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick, onLongClick = onHold)
+                .semantics(mergeDescendants = true) { contentDescription = spoken }
+                .padding(horizontal = 14.dp, vertical = 9.dp), contentAlignment = Alignment.CenterStart) { content() }
+        }
+        next.step?.let { step ->
+            val verb = when (step) {
+                team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeper")
+                team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> t("native.chat.kgContinue")
+                team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearch")
+                team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAsk")
+            }
+            val rungs = if (step == team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR) listOf(speaker?.let { t(it.titleKey) } ?: "", t("native.chat.kgBoar"))
+                else listOf(t("native.chat.kgQuick"), t("native.chat.kgDetailed"), t("native.chat.kgResearchRung"))
+            val done = team.sopa.boar.engine.chat.KeepGoing.rungsDone(step)
+            val spoken = when (step) {
+                team.sopa.boar.engine.chat.KeepGoing.Step.DEEPER -> t("native.chat.kgDeeperSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.CONTINUE -> t("native.chat.kgContinueSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.RESEARCH -> t("native.chat.kgResearchSpoken")
+                team.sopa.boar.engine.chat.KeepGoing.Step.ASK_BOAR -> t("native.chat.kgAskSpoken", "name" to (speaker?.let { t(it.titleKey) } ?: ""))
+            }
+            Faint(spoken, onClick = { onStep(step) }) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    VerbText(verb)
+                    if (team.sopa.boar.engine.chat.KeepGoing.showsLadder(step)) Text(rungs.mapIndexed { i, n -> (if (i < done) "● " else "○ ") + n }.joinToString("  ›  "), style = Boar.type["mono.xs"], color = c.textDim)
+                }
+            }
+        }
+        next.followUps.forEach { q ->
+            Faint(t("native.chat.kgFollowSpoken", "q" to q), onClick = { onAsk(q) }, onHold = { onFill(q) }) {
+                Text(q, style = Boar.type.body, color = c.textSecondary)
+            }
+        }
+    }
+}
+
+/** The verb's look without its own touch target (inside a bubble, which is the target). */
+@Composable
+private fun VerbText(label: String) {
+    val line = Boar.colors.textMuted
+    Text(label, style = Boar.type.body, color = Boar.colors.textMuted, fontWeight = FontWeight.Bold, modifier = Modifier.drawBehind {
+        val y = size.height - 1.dp.toPx()
+        drawLine(line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(),
+            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(1.5.dp.toPx(), 3.dp.toPx())), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    })
+}
+
 @Composable
 internal fun ActionButton(glyph: String?, label: String, art: Int? = null, onClick: () -> Unit) {
     val c = Boar.colors
@@ -775,11 +944,13 @@ internal fun ActionButton(glyph: String?, label: String, art: Int? = null, onCli
 }
 
 @Composable
-internal fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, onClick: () -> Unit) {
+internal fun FooterButton(glyph: String, label: String?, on: Boolean, onColor: Color, onBg: Color, onBorder: Color, description: String? = null, onClick: () -> Unit) {
     val c = Boar.colors
     Row(
         Modifier.clip(RoundedCornerShape(4.dp)).background(if (on) onBg else c.bgSubtle).border(1.dp, if (on) onBorder else c.borderSubtle, RoundedCornerShape(4.dp))
-            .clickable(onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp),
+            .clickable(onClick = onClick).padding(horizontal = 7.dp, vertical = 3.dp)
+            // What TalkBack says for a symbol-only button (UX review B1): "Copy the answer", not "white square".
+            .then(if (description != null) Modifier.spokenAs(description) else Modifier),
         horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(glyph, fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold, color = if (on) onColor else c.textDim)
@@ -795,45 +966,81 @@ private fun Badge(text: String) {
 }
 
 /**
- * The input bar (styles.inputContainer / input / sendBtn / stopBtn): the answer style on the left (opens the style
- * sheet), the mic inside the field on the right (VoiceInputButton.tsx), send or stop.
+ * The chat's input bar: the shared [PromptBar] (Designer uses the same one) with the answer style on the left (opens the
+ * style sheet), the chat's placeholder, and Send that queues while BOAR answers.
  */
 @Composable
 private fun InputBar(text: String, onText: (String) -> Unit, answering: Boolean, onSend: () -> Unit, onStop: () -> Unit, voiceEnabled: Boolean, toneId: String, toneIcon: String, stopping: Boolean, deepResearch: Boolean = false, onOpenStyles: () -> Unit) {
     val c = Boar.colors
-    Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
-    // Tight gaps, full-size buttons: the field gets the room, and the round buttons keep a 48 dp tap target.
-    Row(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(Modifier.size(48.dp).clip(CircleShape).background(c.bgInput).border(1.dp, c.borderDefault, CircleShape).clickable(onClick = onOpenStyles), contentAlignment = Alignment.Center) {
-            team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp, description = t("native.a11y.style"))
+    // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
+    PromptBar(text, onText, answering, onSend, onStop, voiceEnabled,
+        placeholder = t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), onLeft = onOpenStyles,
+        left = { team.sopa.boar.ui.StyleIcon(toneId, toneIcon, 22.dp, description = t("native.a11y.style")) },
+        stopping = stopping, highlight = deepResearch, placeholderColor = if (deepResearch) c.frontierText else null)
+}
+
+/** The questions waiting their turn, above the input: "Waiting 1 · …" with ✕ each, and Clear queue. */
+@Composable
+private fun QueueStrip(queued: List<team.sopa.boar.chat.QueuedPrompt>, onRemove: (Long) -> Unit, onClear: () -> Unit, onMerge: () -> Unit) {
+    val c = Boar.colors
+    Column(Modifier.fillMaxWidth().background(c.bgCardElevated).padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(t("native.chat.queueNote"), style = Boar.type.subtext, color = c.textMuted, modifier = Modifier.weight(1f))
+            // Icons (adam, Nov 12): merge the waiting questions into one (two or more), and clear the queue.
+            if (queued.size >= 2) Text("⇉", style = Boar.type.title, color = c.textAccentCyan,
+                modifier = Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable(onClickLabel = t("native.chat.mergeQueue"), onClick = onMerge).padding(6.dp))
+            team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_delete, 20.dp, c.textMuted,
+                Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable(onClickLabel = t("native.chat.clearQueue"), onClick = onClear).padding(6.dp), t("native.chat.clearQueue"))
         }
-        // A pill on one line; a rounded box once the question wraps (a pill's ends cut into the text).
-        var lines by remember { mutableStateOf(1) }
-        val fieldShape = if (lines > 1) RoundedCornerShape(16.dp) else RoundedCornerShape(50)
-        // Deep Research on: the field's border in the mode's color and its own placeholder, right where you type.
-        Row(Modifier.weight(1f).clip(fieldShape).background(c.bgInput).border(if (deepResearch) 1.5.dp else 1.dp, if (deepResearch) c.frontierBadgeBorder else c.borderDefault, fieldShape)
-            .padding(start = 18.dp, end = if (voiceEnabled) 6.dp else 18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f).padding(vertical = 12.dp)) {
-                val style = Boar.type.body.copy(fontSize = 14.sp, color = c.textPrimary)
-                if (text.isEmpty()) Text(t(if (deepResearch) "native.chat.deepResearchPlaceholder" else "chatScreen.inputPlaceholder"), style = style, color = if (deepResearch) c.frontierText else c.textDim,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                BasicTextField(text, onText, textStyle = style, cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth(), maxLines = 5,
-                    onTextLayout = { lines = it.lineCount })
+        queued.forEachIndexed { i, q ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Just the hourglass and the place in line (adam, Nov 12): "⏳ 1", not "Waiting 1" on every row.
+                Text("⏳ ${i + 1}", style = Boar.type["mono.xs"], color = c.textAccentEmerald, fontWeight = FontWeight.Bold)
+                Text(q.text, style = Boar.type.caption, color = c.textSecondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Text("✕", style = Boar.type["mono.xs"], color = c.textDim, modifier = Modifier.minimumInteractiveComponentSize().clip(CircleShape).clickable { onRemove(q.id) }.padding(6.dp))
             }
-            if (voiceEnabled) MicButton(text, onText, enabled = !answering, size = 34.dp)
         }
-        val canSend = text.isNotBlank() && !answering
-        val bg = if (answering) c.crimson600 else if (canSend) c.emerald600 else c.borderElevated
-        // After Stop, the button pulses until the answer really ends: a library search or a chunk of prompt finishes first.
-        val transition = rememberInfiniteTransition(label = "stopping")
-        val blink by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween<Float>(500), RepeatMode.Reverse), label = "pulse")
-        val pulse = if (stopping) blink else 1f
-        Box(
-            Modifier.size(48.dp).alpha(if (answering || canSend) pulse else 0.35f).clip(CircleShape).background(bg).clickable(enabled = answering || canSend) { if (answering) onStop() else onSend() },
-            contentAlignment = Alignment.Center,
-        ) { if (answering) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_stop, 18.dp, Color.White, description = t("native.a11y.stop")) else team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_send, 20.dp, Color.White, description = t("native.a11y.send")) }
     }
 }
 
 /** Runs [ask] once per install on Android 13+, when BOAR may not post notifications yet (issue #91). */
 private fun askNotificationsOnce(ctx: android.content.Context, ask: () -> Unit) = team.sopa.boar.app.NotificationAsk.once(ctx, ask)
+
+/** One spoken label for the whole button, in place of its symbol. */
+private fun Modifier.spokenAs(label: String): Modifier =
+    this.then(Modifier.clearAndSetSemantics { contentDescription = label; role = androidx.compose.ui.semantics.Role.Button })
+
+/**
+ * The chat's scroll for the open chat, kept while BOAR runs: back from the reader (or another page), the same answer is
+ * in view instead of the end of the chat (adam, Nov 12). At the end already: nothing kept, it follows as before.
+ */
+internal object ChatScroll {
+    private var session: String? = null
+    private var at: Pair<Int, Int>? = null
+
+    fun save(sessionId: String?, index: Int, offset: Int, notAtEnd: Boolean) {
+        session = sessionId
+        at = if (notAtEnd) index to offset else null
+    }
+
+    fun restore(sessionId: String?): Pair<Int, Int>? = at.takeIf { sessionId != null && sessionId == session }.also { at = null }
+}
+
+/**
+ * Before a new chat deletes the oldest one under the user's limit (adam, Nov 15: "warn before deleting when a user has
+ * set a limit"; t9 0110 item 2): which chat goes, and keeping them all as the first choice. Back closes it.
+ */
+@Composable
+private fun PruneNoteDialog(n: team.sopa.boar.chat.PruneNote, onKeepAll: () -> Unit, onDelete: () -> Unit, onCancel: () -> Unit) {
+    val c = Boar.colors
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(t("native.chat.prune.title")) },
+        text = { Text(team.sopa.boar.plugins.UserData.withPluginsLine(
+            if (n.more > 0) t("native.chat.prune.textMore", "max" to n.max, "title" to n.title, "more" to n.more) else t("native.chat.prune.text", "max" to n.max, "title" to n.title),
+            t("native.chat.prune.plugins"))) },
+        confirmButton = { androidx.compose.material3.TextButton(onKeepAll) { Text(t("native.chat.prune.keepAll")) } },
+        dismissButton = { androidx.compose.material3.TextButton(onDelete) { Text(t("native.chat.prune.delete"), color = c.crimson400) } },
+        containerColor = c.bgCard, titleContentColor = c.textHeading, textContentColor = c.textSecondary,
+    )
+}

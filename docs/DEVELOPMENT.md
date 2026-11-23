@@ -64,8 +64,8 @@ the key in `~/.gradle/gradle.properties` (AGENTS.md › Signing):
 
 ```bash
 cd android-native
-./gradlew assembleRelease -Pboar.evalSharing=true -Pboar.versionName=2.0.0-rc1
-adb install -r app/build/outputs/apk/release/app-release.apk   # application id team.sopa.aoair
+./gradlew assembleRelease -Pboar.evalSharing=true
+adb install -r app/build/outputs/apk/release/boar-*.apk   # application id team.sopa.aoair
 ```
 
 A debug-signed release build has the same application id but a different key, so Android won't

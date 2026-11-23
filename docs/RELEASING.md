@@ -1,8 +1,8 @@
 # Releasing the Android APK
 
 Release APKs of the native app (`android-native/`) are built locally, on the machine that
-holds the release key, and checked before upload. The 2.0.0 candidates are published as
-GitHub pre-releases: `v2.0.0-rc1`, then `rc2` or `rc3` at most if needed.
+holds the release key, and checked before upload. The 2.0.0 candidates were published as
+GitHub pre-releases (`v2.0.0-rc1`, `v2.0.0-rc2`); `v2.0.0` is a release.
 
 The flow: changes land on `fullnative-dev` through pull requests. A release is a pull request
 from `fullnative-dev` into `main`, then the tag on `main` and the GitHub release. `v2.0.0` becomes
@@ -31,14 +31,15 @@ models.
 
 1. **Version.** `versionCode` in `android-native/app/build.gradle.kts` must be higher than
    the last published release, or the APK won't install over it (2.0.0-rc1 is
-   `versionCode` 4, 2.0.0-rc2 is 5). The version name comes from the build command.
+   `versionCode` 4, 2.0.0-rc2 is 5, 2.0.0 is 8). The version name is 2.0.0 unless the build
+   command gives another, and the release APK is named after it (`boar-2.0.0.apk`).
 
 2. **Build.** No `.env` with `EVAL_SHARING=true`: the release has no Share button and never
    contacts the results server.
 
    ```bash
    cd android-native
-   ./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
+   ./gradlew assembleRelease -Pboar.experimentalFeatures=true
    ./gradlew --stop
    ```
 
@@ -46,7 +47,7 @@ models.
    `7cf514f9ab8253cbd78eb7d112d66fd05c2ad27e6fc987bf8f3276a7eedf1f01`:
 
    ```bash
-   apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+   apksigner verify --print-certs app/build/outputs/apk/release/boar-2.0.0.apk
    ```
 
    `scripts/check-release-apk.sh <apk>` checks the same signer, the application id
@@ -55,8 +56,8 @@ models.
 4. **Name it and hash it.**
 
    ```bash
-   cp app/build/outputs/apk/release/app-release.apk boar-v2.0.0-rc1-arm64.apk
-   sha256sum boar-v2.0.0-rc1-arm64.apk > boar-v2.0.0-rc1-arm64.apk.sha256
+   cp app/build/outputs/apk/release/boar-2.0.0.apk boar-v2.0.0-arm64.apk
+   sha256sum boar-v2.0.0-arm64.apk > boar-v2.0.0-arm64.apk.sha256
    ```
 
 5. **Install it on a phone over the previous release** (no uninstall), and check that
@@ -67,13 +68,13 @@ models.
    and hash them as in step 4:
 
    ```bash
-   BOAR_VERSION_NAME=2.0.0-rc1 scripts/build-offline-apk.sh release
-   BOAR_VERSION_NAME=2.0.0-rc1 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0 scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
    # -> build/boar-offline.apk, build/boar-offline-qwen3-4b-instruct-2507-q4km.apk
-   cp build/boar-offline.apk boar-v2.0.0-rc1-offline-arm64.apk
-   cp build/boar-offline-qwen3-4b-instruct-2507-q4km.apk boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
-   sha256sum boar-v2.0.0-rc1-offline-arm64.apk > boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   sha256sum boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk > boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
+   cp build/boar-offline.apk boar-v2.0.0-offline-arm64.apk
+   cp build/boar-offline-qwen3-4b-instruct-2507-q4km.apk boar-v2.0.0-offline-qwen3-4b-arm64.apk
+   sha256sum boar-v2.0.0-offline-arm64.apk > boar-v2.0.0-offline-arm64.apk.sha256
+   sha256sum boar-v2.0.0-offline-qwen3-4b-arm64.apk > boar-v2.0.0-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    Check each with `scripts/check-release-apk.sh` (its default mode: the offline APK is
@@ -85,18 +86,18 @@ models.
    (`cr review --agent --base main`), run a CodeRabbit Deep Scan on the release pull request,
    and fix what holds up before tagging.
 
-6. **Tag and publish as a pre-release.**
+6. **Tag and publish.**
 
    ```bash
-   git tag v2.0.0-rc1 <commit>
-   git push origin v2.0.0-rc1
-   gh release create v2.0.0-rc1 --prerelease --title "BOAR 2.0.0-rc1" \
-     boar-v2.0.0-rc1-arm64.apk boar-v2.0.0-rc1-arm64.apk.sha256 \
-     boar-v2.0.0-rc1-offline-arm64.apk boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
+   git tag v2.0.0 <commit>
+   git push origin v2.0.0
+   gh release create v2.0.0 --title "BOAR 2.0.0" \
+     boar-v2.0.0-arm64.apk boar-v2.0.0-arm64.apk.sha256 \
+     boar-v2.0.0-offline-arm64.apk boar-v2.0.0-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-qwen3-4b-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    The Hugging Face upload needs a login with write access to `BOAR-App` (`hf auth login`);

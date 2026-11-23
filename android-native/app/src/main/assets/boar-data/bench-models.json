@@ -1,0 +1,26 @@
+{
+  "about": "Models only the bench runs (DeviceEvalRunner.installedModels; BenchModels.kt). Never in setup, tiers, onboarding, the Model Catalog or the chat: none of them reads this file, and Catalog.parse drops a testOnly entry. The app never downloads these: copy the file over USB to Android/data/<package>/files/<filename> (adb push, any build) or files/<filename> (run-as, a debuggable build). Qwen3-0.6B: t9 0443 and 0452 (unsloth's Q4_K_M, the 1.7B's source and quant), the same shape as qwen3-1.7b-q4km in catalog.json without its answer tier.",
+  "models": [
+    {
+      "id": "qwen3-0.6b-q4km",
+      "kind": "llm",
+      "label": "Qwen3-0.6B (Q4_K_M)",
+      "displayName": "Qwen3 0.6B",
+      "filename": "models/qwen3-0.6b-q4km.gguf",
+      "sizeBytes": 396705472,
+      "sha256": "ac2d97712095a558e31573f62f466a3f9d93990898b0ec79d7c974c1780d524a",
+      "sourceUrl": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/50968a4468ef4233ed78cd7c3de230dd1d61a56b/Qwen3-0.6B-Q4_K_M.gguf",
+      "license": "Apache-2.0",
+      "description": "0.6B dense, thinking off. A bench test of a third tier for phones with less memory (t9 0443); not offered to users.",
+      "required": false,
+      "hidden": true,
+      "testOnly": true,
+      "capabilities": {
+        "roles": [
+          "fast"
+        ],
+        "usesChatTemplate": true
+      }
+    }
+  ]
+}

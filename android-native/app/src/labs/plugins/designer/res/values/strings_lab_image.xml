@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_image_title" formatted="false">Designer</string>
+    <string name="native_labs_image_noEngine" formatted="false">This build has no image engine.</string>
+    <string name="native_labs_image_needModel" formatted="false">The image model (SDXS-512, 683 MB) isn\'t on the phone yet. Download it once with internet; after that, drawing works offline. Its license (CreativeML Open RAIL++-M) rules out some uses, such as harming or harassing people, misleading content meant to harm, and medical advice: huggingface.co/IDKiro/sdxs-512-0.9</string>
+    <string name="native_labs_image_download" formatted="false">Download (683 MB)</string>
+    <string name="native_labs_image_downloading" formatted="false">Downloading… {{pct}}%</string>
+    <string name="native_labs_image_style_engraving" formatted="false">Engraving</string>
+    <string name="native_labs_image_style_scientific" formatted="false">Scientific</string>
+    <string name="native_labs_image_placeholder" formatted="false">What should I draw?</string>
+    <string name="native_labs_image_generate" formatted="false">Draw</string>
+    <string name="native_labs_image_phase_loading" formatted="false">Loading the model…</string>
+    <string name="native_labs_image_phase_drawing" formatted="false">Drawing…</string>
+    <string name="native_labs_image_phase_decoding" formatted="false">Finishing the picture…</string>
+    <string name="native_labs_image_delete" formatted="false">Delete</string>
+    <string name="native_labs_image_body" formatted="false">Draws a picture from a few words, on this phone.</string>
+    <string name="native_labs_image_fromChat" formatted="false">↳ From your last chat: “{{title}}”</string>
+    <string name="native_labs_image_illustrateNotReady" formatted="false">To illustrate answers, download the image model in Plugins → Designer.</string>
+    <string name="native_labs_image_illustrateChoosing" formatted="false">Choosing what to draw…</string>
+    <string name="native_labs_image_illustrateDrawing" formatted="false">Drawing: {{subject}}…</string>
+    <string name="native_labs_image_illustrate" formatted="false">Illustrate this answer</string>
+    <string name="native_labs_image_illustrateAgain" formatted="false">Draw it again</string>
+    <string name="native_labs_image_illustrateRunning" formatted="false">Drawing…</string>
+    <string name="native_labs_image_managerCount" formatted="false">{{count}} images · {{mb}} MB</string>
+    <string name="native_labs_image_selectAll" formatted="false">Select all</string>
+    <string name="native_labs_image_selectNone" formatted="false">Clear</string>
+    <string name="native_labs_image_managerNote" formatted="false">Images made in Plugins stay in Plugins. Tap to select, then delete.</string>
+    <string name="native_labs_image_managerEmpty" formatted="false">No images yet.</string>
+    <string name="native_labs_image_deleteSelected" formatted="false">Delete {{count}}</string>
+    <string name="native_labs_image_deleteConfirm" formatted="false">Delete {{count}} images for good?</string>
+    <string name="native_labs_image_style_photo" formatted="false">Photo</string>
+    <string name="native_labs_image_style_cyber" formatted="false">Cyberpunk</string>
+    <string name="native_labs_image_style_none" formatted="false">None</string>
+    <string name="native_labs_image_style_solarpunk" formatted="false">Solarpunk</string>
+    <string name="native_labs_image_style_y2k" formatted="false">Y2K</string>
+    <string name="native_labs_image_style_lofi" formatted="false">Lo-fi</string>
+    <string name="native_labs_image_style_watercolor" formatted="false">Watercolor</string>
+    <string name="native_labs_image_showPage" formatted="false">Show {{n}} more</string>
+    <string name="native_labs_image_shape_square" formatted="false">Square</string>
+    <string name="native_labs_image_shape_portrait" formatted="false">Portrait</string>
+    <string name="native_labs_image_shape_banner" formatted="false">Wide</string>
+    <string name="native_labs_image_illustrateNeedsModel" formatted="false">Illustrate (download the drawing model in Plugins, Designer, first)</string>
+    <string name="native_labs_image_removeModel" formatted="false">Remove the image model (683 MB)</string>
+    <string name="native_labs_image_removeConfirm" formatted="false">Remove the image model? Your drawings stay. To draw again, BOAR downloads it once more (683 MB, internet once).</string>
+    <string name="native_labs_image_remove" formatted="false">Remove</string>
+    <string name="native_labs_image_drawFailed" formatted="false">The drawing stopped before it finished. Try again.</string>
+    <string name="native_labs_image_lowMemory" formatted="false">Not enough free memory to draw now. Close other apps, or free BOAR\'s memory, and try again.</string>
+    <string name="native_labs_image_seed" formatted="false">seed {{seed}}</string>
+    <string name="native_labs_image_downloadFailed" formatted="false">The download stopped. Check the connection and try again.</string>
+    <string name="native_labs_image_refused" formatted="false">Designer doesn\'t draw that.</string>
+    <string name="native_labs_image_sheetTitle" formatted="false">ILLUSTRATE THIS ANSWER</string>
+    <string name="native_labs_image_styleLabel" formatted="false">Style</string>
+    <string name="native_labs_image_remember" formatted="false">Remember as the default</string>
+    <string name="native_labs_image_reset" formatted="false">Reset</string>
+    <string name="native_labs_image_drawPicked" formatted="false">Draw · {{style}}, {{size}}</string>
+    <string name="native_labs_image_details" formatted="false">Details</string>
+    <string name="native_labs_image_how" formatted="false">• Draws one illustration at a time on this phone, offline, from a few words and a style.\n• Under an answer, 🎨 Illustrate this answer picks what to draw from it.\n• Some subjects are refused.\n• Images made here stay here; All › under the picture manages or deletes them.</string>
+    <string name="native_labs_image_shapeLabel" formatted="false">Shape</string>
+    <string name="native_labs_image_styleHint" formatted="false">Tap the selected style again for no style.</string>
+    <string name="native_labs_image_styleHintNone" formatted="false">No style: your words are the whole prompt.</string>
+    <string name="native_labs_image_emptyCanvas" formatted="false">Type a subject and tap Draw to fill this shape.</string>
+    <string name="native_labs_image_noModelTitle" formatted="false">Designer needs its model</string>
+    <string name="native_labs_image_noModelCaption" formatted="false">The model is not on this phone yet.</string>
+    <string name="native_labs_image_all" formatted="false">All {{count}} ›</string>
+    <string name="native_labs_image_next" formatted="false">Next: {{style}}</string>
+    <string name="native_labs_image_infoButton" formatted="false">Picture details and actions</string>
+    <string name="native_labs_image_fullButton" formatted="false">View full screen</string>
+    <string name="native_labs_image_infoTitle" formatted="false">This picture</string>
+    <string name="native_labs_image_words" formatted="false">Words</string>
+    <string name="native_labs_image_time" formatted="false">Time</string>
+    <string name="native_labs_image_drawAgain" formatted="false">Draw again</string>
+    <string name="native_labs_image_drawAgainNote" formatted="false">replaces this one</string>
+    <string name="native_labs_image_variations" formatted="false">4 variations</string>
+    <string name="native_labs_image_variationsTime" formatted="false">~{{s}} s</string>
+    <string name="native_labs_image_variationsNote" formatted="false">same words, four layouts</string>
+    <string name="native_labs_image_variationOf" formatted="false">Drawing {{n}} of {{total}}…</string>
+    <string name="native_labs_image_variationsPick" formatted="false">Tap one to see it on its own.</string>
+    <string name="native_labs_image_variationOpen" formatted="false">Show variation {{n}}</string>
+    <string name="native_labs_image_menu" formatted="false">Designer menu</string>
+    <string name="native_labs_image_drawings" formatted="false">Drawings</string>
+    <string name="native_labs_image_allDrawings" formatted="false">All drawings ({{count}})</string>
+    <string name="native_labs_image_settingsTitle" formatted="false">Designer settings</string>
+    <string name="native_labs_image_waitSketch" formatted="false">Sketch</string>
+    <string name="native_labs_image_qualityLabel" formatted="false">Quality</string>
+    <string name="native_labs_image_quality_low" formatted="false">Low</string>
+    <string name="native_labs_image_quality_medium" formatted="false">Medium</string>
+    <string name="native_labs_image_quality_high" formatted="false">High</string>
+    <string name="native_labs_image_qualityLong_low" formatted="false">Low quality</string>
+    <string name="native_labs_image_qualityLong_medium" formatted="false">Medium quality</string>
+    <string name="native_labs_image_qualityLong_high" formatted="false">High quality</string>
+    <string name="native_labs_image_qualitySeconds" formatted="false">{{level}} · ~{{s}} s</string>
+    <string name="native_labs_image_shapeQuality" formatted="false">{{shape}}, {{quality}}</string>
+    <string name="native_labs_image_qualityHint" formatted="false">Higher quality draws a bigger picture and takes longer. Seconds are this phone\'s own average.</string>
+    <string name="native_labs_image_qualityHintUntimed" formatted="false">Higher quality draws a bigger picture and takes longer. {{level}} isn\'t timed on this phone yet: its seconds show after the first drawing at it.</string>
+</resources>

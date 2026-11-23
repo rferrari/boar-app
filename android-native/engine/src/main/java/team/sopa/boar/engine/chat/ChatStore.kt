@@ -59,6 +59,10 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
         listOf(sessionId),
     ) { ChatMessageRecord(it.string(0)!!, it.string(1)!!, it.string(2)!!, open(it.string(3)!!), it.long(4), it.string(5), it.string(6)?.let(::open)) }
 
+    /** One message's meta, opened; null when it has none (Cards reads and merges its card there, adam Nov 14). */
+    fun messageMeta(messageId: String): String? =
+        db.query("SELECT meta FROM chat_message_meta WHERE message_id = ?", listOf(messageId)) { it.string(0) }.firstOrNull()?.let(::open)
+
     fun setMessageMeta(messageId: String, meta: String) {
         db.execute("INSERT OR REPLACE INTO chat_message_meta (message_id, meta) VALUES (?, ?)", listOf(messageId, seal(meta)))
     }
@@ -129,8 +133,28 @@ class ChatStore(private val db: SqlDatabase, private val now: () -> Long = Syste
     }
 
     /** Keeps the [maxSessions] most recently used sessions. */
-    fun prune(maxSessions: Int) {
+    /**
+     * Keeps the newest [maxSessions] chats. [beforeDelete] gets each older chat's id first, while its messages can
+     * still be read: what the plugins made for its answers is erased there too (validator P-1).
+     */
+    /**
+     * The chats a new one would push out under a limit of [maxSessions], oldest first; none when every chat is kept (0)
+     * or there is room (adam, Nov 15: "warn before deleting when a user has set a limit"; t9 0110 item 2).
+     */
+    fun pushedOutByNew(maxSessions: Int): List<ChatSession> =
+        if (maxSessions <= 0) emptyList() else listSessions().drop(maxSessions - 1).asReversed()
+
+    /**
+     * The chats a lower limit of [maxSessions] would delete, oldest first (validator R-A4: lowering the limit deleted
+     * without a word). None for 0 (keep all) or when they fit.
+     */
+    fun pushedOutAt(maxSessions: Int): List<ChatSession> =
+        if (maxSessions <= 0) emptyList() else listSessions().drop(maxSessions).asReversed()
+
+    /** 0 keeps every chat (the default since Nov 15). */
+    fun prune(maxSessions: Int, beforeDelete: (String) -> Unit = {}) {
         if (maxSessions <= 0) return
-        db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }.forEach(::deleteSession)
+        db.query("SELECT id FROM chat_sessions ORDER BY updated_at DESC LIMIT -1 OFFSET ?", listOf(maxSessions)) { it.string(0)!! }
+            .forEach { id -> runCatching { beforeDelete(id) }; deleteSession(id) }
     }
 }

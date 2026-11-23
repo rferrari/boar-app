@@ -22,4 +22,6 @@ data class AnswerRef(
     val tool: String? = null,
     /** Why it was answered short ("health", "seed"), from the receipt. */
     val styleNote: String? = null,
+    /** The passages the answer was written from: title to passage text, in the answer's [n] order. */
+    val passages: List<Pair<String, String>> = emptyList(),
 )

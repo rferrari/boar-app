@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_labs_canvas_title" formatted="false">Cards</string>
+    <string name="native_labs_canvas_body" formatted="false">Turns part of an answer into a chart, table, checklist or key facts.</string>
+    <string name="native_labs_canvas_example" formatted="false">From an answer about the highest mountains:</string>
+    <string name="native_labs_canvas_exampleTitle" formatted="false">Highest mountains</string>
+    <string name="native_labs_canvas_make_card" formatted="false">Create a card</string>
+    <string name="native_labs_canvas_making" formatted="false">Making a card…</string>
+    <string name="native_labs_canvas_underAnswer" formatted="false">The card is under the answer</string>
+    <string name="native_labs_canvas_nothingHere" formatted="false">Nothing to draw here</string>
+    <string name="native_labs_canvas_askModel" formatted="false">Ask BOAR to make one · slower</string>
+    <string name="native_labs_canvas_found_chart" formatted="false">A chart of {{count}} numbers</string>
+    <string name="native_labs_canvas_found_table" formatted="false">A table of {{count}} rows</string>
+    <string name="native_labs_canvas_found_steps" formatted="false">A checklist of {{count}} steps</string>
+    <string name="native_labs_canvas_found_facts" formatted="false">{{count}} key facts</string>
+    <string name="native_labs_canvas_found_compare2" formatted="false">Two things compared</string>
+    <string name="native_labs_canvas_found_compare3" formatted="false">Three things compared</string>
+    <string name="native_labs_canvas_found_compare4" formatted="false">Four things compared</string>
+    <string name="native_labs_canvas_found_or" formatted="false">{{first}}, or {{second}}</string>
+    <string name="native_labs_canvas_fromAnswer" formatted="false">from this answer</string>
+    <string name="native_labs_canvas_byModel" formatted="false">made by the model · checked against the answer</string>
+    <string name="native_labs_canvas_remove" formatted="false">Remove the card</string>
+    <string name="native_labs_canvas_doneCount" formatted="false">{{done}} of {{total}} done · kept with this chat</string>
+    <string name="native_labs_canvas_makingVisual" formatted="false">📊 BOAR is reading the answer to make a card…</string>
+    <string name="native_labs_canvas_noModel" formatted="false">No answer model is loaded. Ask something first, then try again.</string>
+    <string name="native_labs_canvas_failed" formatted="false">The model stopped before it finished. Try again.</string>
+    <string name="native_labs_canvas_noCard" formatted="false">The model didn\'t write a card BOAR can draw. Try again; bigger models do better.</string>
+    <string name="native_labs_canvas_nothing" formatted="false">The model found nothing in this answer worth a card.</string>
+    <string name="native_labs_canvas_invented" formatted="false">The card had a number that isn\'t in the answer, so BOAR dropped it.</string>
+    <string name="native_labs_canvas_ungrounded" formatted="false">The card named something that isn\'t in the answer, so BOAR dropped it.</string>
+    <string name="native_labs_canvas_unpaired" formatted="false">A number on the card belongs to another item in the answer, so BOAR dropped it.</string>
+    <string name="native_labs_canvas_refused" formatted="false">Refused: {{what}} (not in the answer)</string>
+    <string name="native_labs_canvas_showReply" formatted="false">Show what the model wrote</string>
+    <string name="native_labs_canvas_hideReply" formatted="false">Hide what the model wrote</string>
+    <string name="native_labs_canvas_leftOut" formatted="false">⚠ Left out, not in the answer, the earlier answers or the sources: {{what}}. Check the sources before trusting this card.</string>
+    <string name="native_labs_canvas_view_bars" formatted="false">Bars</string>
+    <string name="native_labs_canvas_view_line" formatted="false">Line</string>
+    <string name="native_labs_canvas_view_pie" formatted="false">Pie</string>
+    <string name="native_labs_canvas_view_table" formatted="false">Table</string>
+    <string name="native_labs_canvas_view_checklist" formatted="false">Steps</string>
+    <string name="native_labs_canvas_view_facts" formatted="false">Facts</string>
+    <string name="native_labs_canvas_view_compare" formatted="false">Side by side</string>
+    <string name="native_labs_canvas_tryHint" formatted="false">Ask one of these, then tap 🧩 under the answer.</string>
+    <string name="native_labs_canvas_example1" formatted="false">What are the three highest mountains, and how tall is each?</string>
+    <string name="native_labs_canvas_example2" formatted="false">How do you purify water in the wild, step by step?</string>
+    <string name="native_labs_canvas_how" formatted="false">• Under any answer, open 🧩. The Cards row already says what it can draw: \"A chart of 3 numbers\", \"A checklist of 5 steps\".\n• Create a card draws it at once, from the answer\'s own text, with no second model run: a chart, a table, a checklist, a comparison or key facts.\n• The card sits under the answer. When more than one shape fits, switch between them; a pie only for parts of a whole, a line only for years in order.\n• Tick the steps of a checklist; the ticks are kept with the chat.\n• Add to Press takes the card along with the answer, into the PDF and the Markdown.\n• Nothing to draw? Ask BOAR to make one. It is slower, and its card is still checked against the answer: a number or name that isn\'t there is left out.\n• Nothing for health or seed-phrase questions.</string>
+    <string name="native_labs_canvas_busy" formatted="false">A chat answer is being written. Try again when it ends.</string>
+</resources>

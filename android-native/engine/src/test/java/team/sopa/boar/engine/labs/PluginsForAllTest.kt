@@ -1,0 +1,46 @@
+package team.sopa.boar.engine.labs
+
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/** adam, 23 Nov: "plugins for all before 2.0" (t9 1725): the Plugins list and its switches in every profile. */
+class PluginsForAllTest {
+    private val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+    private val settings = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
+
+    @Test fun `the menu entry, the list's route and its way back don't depend on the profile`() {
+        assertTrue(hooks.contains("fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn) listOf(\"labs\" to \"native.labs.drawer\") else emptyList()"))
+        assertTrue(hooks.contains("fun handles(route: String) = LabPrefs.labsOn && (route == \"labs\" || route == TILES || route.startsWith(\"lab:\"))"))
+        assertTrue(!hooks.contains("LabPrefs.proProfile"))
+        // The header sheet's "Manage plugins" and the "is off" line lead to the list in every profile.
+        val sheet = hooks.substringAfter("fun HeaderBadges(").substringBefore("\n    }\n")
+        assertTrue(sheet.contains("native.labs.manage") && !sheet.contains("proProfile"))
+        assertTrue(java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText().contains("onReadPlugin = { _ -> onOpenRoute(\"labs\") }"))
+    }
+
+    @Test fun `Settings opens the list in every profile, Boar Labs' own settings stay Pro`() {
+        val experimental = settings.substringAfter("private fun ExperimentalSection(").substringBefore("\n}\n")
+        assertTrue(experimental.contains("if (shown(SettingsPart.LABS_SETTINGS)) team.sopa.boar.labs.LabHooks.SettingsRow()"))
+        assertTrue(experimental.contains("        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t(\"native.labs.openList\")) { onOpen(\"labs\") }"))
+        assertTrue(LabDefaults.managementShown(team.sopa.boar.engine.settings.UserProfile.PRO))
+    }
+
+    @Test fun `turning Cohazard off asks first, whatever the profile`() {
+        // No profile in the rule: the list's switch and the page's both ask.
+        assertTrue(PluginReach.asksBeforeOff("cohazard", turningOn = false) && !PluginReach.asksBeforeOff("cohazard", turningOn = true))
+        val labs = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
+        assertTrue(Regex("PluginReach.asksBeforeOff\\(lab.id, v\\)").findAll(labs).count() >= 3)
+    }
+
+    @Test fun `the guide and the profile notes say plugins are in every profile, EN and PT`() {
+        val en = java.io.File("../app/src/main/assets/boar-guide/en.md").readText()
+        val pt = java.io.File("../app/src/main/assets/boar-guide/pt.md").readText()
+        assertTrue(en.contains("In every profile, open Plugins in the menu") && !en.contains("In the Pro profile, open Plugins") && !en.contains("can be switched off only in Pro"))
+        assertTrue(pt.contains("Em qualquer perfil, abra Plugins no menu") && !pt.contains("No perfil Pro, abra Plugins") && !pt.contains("só pode ser desligado no Pro"))
+        for (d in listOf("values", "values-pt")) {
+            val x = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
+            val labsOn = Regex("name=\"native_settings_profile_labsOn\" formatted=\"false\">([^<]*)<").find(x)!!.groupValues[1]
+            assertTrue("$d: $labsOn", !labsOn.contains("Pro"))
+        }
+    }
+}
