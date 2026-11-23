@@ -168,8 +168,8 @@ First launch shows a one-time setup that downloads:
 - a knowledge package: Encyclopedia (with the Wikipedia Vital Articles pack, about 164 MB,
   from the GitHub release `knowledge-pack-v1`) when it fits in the free space, else Essential.
 
-While it downloads, a "While you wait" card opens a BOAR tour (also in Settings → Start
-over → See the tour). The app is gated behind this download. After it, BOAR
+While it downloads, a "While you wait" card opens a BOAR tour. The app is gated behind
+this download. After it, BOAR
 works without a network connection. Models are stored in the app's `files/` folder.
 
 ## Before pushing: CodeRabbit review

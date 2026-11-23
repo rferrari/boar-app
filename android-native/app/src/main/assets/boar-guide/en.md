@@ -95,7 +95,7 @@ BOAR runs on the phone: questions, answers, files and chats stay there. It conta
 Close BOAR, in the menu, frees the memory the model uses and closes the app; if an answer is still being written, it asks first. By default, BOAR also frees the model as soon as you leave the app and no answer is running, so other apps have room: Settings → Advanced tweaks → Free memory when I leave BOAR.
 
 ## Starting over
-Settings → Start over has: Run setup again, See the tour, Reset settings, and Erase everything. Reset settings puts the theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults and opens setup; models, packs, chats, PIN and language stay. Erase everything deletes models, packs, your files, all chats, settings and the PIN, closes BOAR, and the next launch starts setup; it can't be undone.
+Settings → Start over has: Run setup again, Reset settings, and Erase everything. Reset settings puts the theme, answer style, Deep Research, Advanced tweaks and display options back to their defaults and opens setup; models, packs, chats, PIN and language stay. Erase everything deletes models, packs, your files, all chats, settings and the PIN, closes BOAR, and the next launch starts setup; it can't be undone.
 
 ## About BOAR
 Tap the BOAR mark at the top of the menu for About BOAR: the version, the project's links and the credits.

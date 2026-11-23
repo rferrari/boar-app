@@ -143,7 +143,6 @@ Settings → Start over has:
 
 - **Run setup again**: back into first-run setup to change the model or the
   knowledge package, without losing anything else.
-- **See the tour**: the BOAR tour again.
 - **Reset settings**: theme, answer style, Deep Research, Advanced tweaks and display
   options back to their defaults, then setup opens; models, packs, chats, PIN and
   language stay.

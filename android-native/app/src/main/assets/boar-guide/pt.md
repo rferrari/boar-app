@@ -95,7 +95,7 @@ O BOAR roda no celular: perguntas, respostas, arquivos e conversas ficam nele. E
 Fechar o BOAR, no menu, libera a memória que o modelo usa e fecha o app; se uma resposta ainda estiver sendo escrita, ele pergunta antes. Por padrão, o BOAR também libera o modelo assim que você sai do app e nenhuma resposta está rodando, para sobrar espaço para os outros apps: Configurações → Ajustes avançados → Liberar memória quando eu sair do BOAR.
 
 ## Recomeçar
-Configurações → Recomeçar tem: Rodar a configuração de novo, Ver o tour, Redefinir configurações e Apagar tudo. Redefinir configurações volta tema, estilo de resposta, Pesquisa Profunda, Ajustes avançados e opções de exibição ao padrão e abre a configuração inicial; modelos, pacotes, conversas, PIN e idioma ficam. Apagar tudo apaga modelos, pacotes, seus arquivos, todas as conversas, as configurações e o PIN, fecha o BOAR, e a próxima abertura começa a configuração; não dá para desfazer.
+Configurações → Recomeçar tem: Rodar a configuração de novo, Redefinir configurações e Apagar tudo. Redefinir configurações volta tema, estilo de resposta, Pesquisa Profunda, Ajustes avançados e opções de exibição ao padrão e abre a configuração inicial; modelos, pacotes, conversas, PIN e idioma ficam. Apagar tudo apaga modelos, pacotes, seus arquivos, todas as conversas, as configurações e o PIN, fecha o BOAR, e a próxima abertura começa a configuração; não dá para desfazer.
 
 ## Sobre o BOAR
 Toque na marca do BOAR no topo do menu para abrir Sobre o BOAR: a versão, os links do projeto e os créditos.
