@@ -86,7 +86,8 @@ fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
     val icon by vault.icon.collectAsState()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.vault.boar"), style = Boar.type.caption, color = c.textSecondary, fontWeight = FontWeight.SemiBold)
-        // A few (AvatarStrip), then the last box opens the page with all of them (adam, 23 Nov: as Designer's "All N").
+        // A few (AvatarStrip), then the last box opens the page with all of them (adam, 23 Nov: as Designer's "All N"),
+        // without a count: some are still locked.
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             for (id in team.sopa.boar.engine.vault.AvatarStrip.pick(state.unlocked, TruffleArt.byId.keys, icon)) {
                 if (id == null) Avatar(R.drawable.boar, "BOAR", icon == null) { vault.equip(null) }
@@ -94,7 +95,7 @@ fun AvatarPicker(vault: TruffleVault, onOpenVault: () -> Unit) {
             }
             Box(Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(c.bgCard).border(1.dp, c.borderDefault, RoundedCornerShape(12.dp))
                 .clickable(onClickLabel = t("native.vault.title"), onClick = onOpenVault), contentAlignment = Alignment.Center) {
-                Text(t("native.vault.allTile", "count" to Vault.RULES.size), style = Boar.type.caption, color = c.textPrimary, maxLines = 1)
+                Text(t("native.vault.allTile"), style = Boar.type.caption, color = c.textPrimary, maxLines = 1)
             }
         }
         Text(t(if (TruffleVault.LAUNCHER_ICONS) "native.vault.iconNoteLauncher" else "native.vault.iconNote"), style = Boar.type.subtext, color = c.textMuted)

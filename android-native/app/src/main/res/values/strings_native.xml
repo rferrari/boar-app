@@ -260,7 +260,7 @@
     <string name="native_vault_intro" formatted="false">You unlock avatars by using BOAR. Everything is counted on this phone and never leaves it.</string>
     <string name="native_vault_card" formatted="false">{{n}} of {{total}} avatars unlocked</string>
     <string name="native_vault_open" formatted="false">Open Boar Avatars →</string>
-    <string name="native_vault_boar" formatted="false">Boar</string>
+    <string name="native_vault_boar" formatted="false">Boar Avatar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
     <string name="native_vault_iconNote" formatted="false">Changes the boar in the chat and the menu.</string>
     <string name="native_vault_iconNoteLauncher" formatted="false">Changes the boar in the chat now, and the app icon when you leave BOAR.</string>
@@ -856,5 +856,5 @@
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens per second, at the top of the chat while BOAR writes.</string>
     <string name="native_labs_switchRow" formatted="false">{{name}} on</string>
     <string name="native_labs_switchRowNote" formatted="false">Off, it stays here to switch on again.</string>
-    <string name="native_vault_allTile" formatted="false">All {{count}} ›</string>
+    <string name="native_vault_allTile" formatted="false">All ›</string>
 </resources>

@@ -25,6 +25,11 @@ class AvatarStripTest {
         val vault = java.io.File("../app/src/main/java/team/sopa/boar/ui/appearance/VaultScreen.kt").readText()
         val picker = vault.substringAfter("fun AvatarPicker(").substringBefore("\n}\n")
         assertTrue(picker.contains("AvatarStrip.pick(state.unlocked, TruffleArt.byId.keys, icon)") && picker.contains("onClick = onOpenVault"))
-        for (d in listOf("values", "values-pt")) assertTrue(d, java.io.File("../app/src/main/res/$d/strings_native.xml").readText().contains("name=\"native_vault_allTile\""))
+        // adam, 23 Nov: "list it as Boar Avatar", and "All" without a count (some are locked).
+        for ((d, label, all) in listOf(Triple("values", "Boar Avatar", "All ›"), Triple("values-pt", "Avatar do Boar", "Todos ›"))) {
+            val x = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
+            assertTrue(d, x.contains("name=\"native_vault_boar\" formatted=\"false\">$label<") && x.contains("name=\"native_vault_allTile\" formatted=\"false\">$all<"))
+        }
+        assertTrue(picker.contains("t(\"native.vault.allTile\")"))
     }
 }

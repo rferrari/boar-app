@@ -260,7 +260,7 @@
     <string name="native_vault_intro" formatted="false">Você libera avatares usando o BOAR. Tudo é contado neste celular e nunca sai dele.</string>
     <string name="native_vault_card" formatted="false">{{n}} de {{total}} avatares liberados</string>
     <string name="native_vault_open" formatted="false">Abrir Avatares do Boar →</string>
-    <string name="native_vault_boar" formatted="false">Boar</string>
+    <string name="native_vault_boar" formatted="false">Avatar do Boar</string>
     <string name="native_vault_default" formatted="false">BOAR</string>
     <string name="native_vault_iconNote" formatted="false">Muda o Boar da conversa e do menu.</string>
     <string name="native_vault_iconNoteLauncher" formatted="false">Muda o Boar da conversa agora, e o ícone do app quando você sai do BOAR.</string>
@@ -856,5 +856,5 @@
     <string name="native_settings_liveSpeedNote" formatted="false">Tokens por segundo, no topo da conversa enquanto o BOAR escreve.</string>
     <string name="native_labs_switchRow" formatted="false">{{name}} ligado</string>
     <string name="native_labs_switchRowNote" formatted="false">Desligado, continua aqui para ligar de novo.</string>
-    <string name="native_vault_allTile" formatted="false">Todos {{count}} ›</string>
+    <string name="native_vault_allTile" formatted="false">Todos ›</string>
 </resources>
