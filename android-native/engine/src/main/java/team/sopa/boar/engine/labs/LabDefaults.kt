@@ -21,6 +21,12 @@ object LabDefaults {
     val PENDING_ALPHA: Set<String> = setOf("compass", "lunar", "guard")
 
     /**
+     * Deprecated plugins (adam, 23 Nov: Polyglot): the code stays, but they are out of the Plugins list and off for
+     * everyone, a switch flipped before included: hidden but on, nobody could switch them off.
+     */
+    val DEPRECATED: Set<String> = setOf("polyglot")
+
+    /**
      * The labs an update switched on: default-on labs the user never switched (no stored choice), in [ON]'s order of
      * [ids]. The one-time update note names them, so nobody finds a lab on without being told.
      */

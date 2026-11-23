@@ -177,7 +177,7 @@ object LabRegistry {
     private val hidden: Set<String> = BuildConfig.LABS_HIDE.split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
     /** In the grid's order: live, then beta, then under review, then classified; plugin.properties order within each. */
-    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden }.sortedBy {
+    val visible: List<LabPlugin> get() = ALL.filter { it.id !in hidden && it.id !in team.sopa.boar.engine.labs.LabDefaults.DEPRECATED }.sortedBy {
         when (it.status) { LabStatus.LIVE -> 0; LabStatus.BETA -> 1; LabStatus.ALPHA -> 2; LabStatus.REVIEW -> 3; LabStatus.CLASSIFIED -> 4 }
     }
 

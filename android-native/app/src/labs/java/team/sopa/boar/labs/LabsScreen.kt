@@ -426,8 +426,9 @@ fun LabsList(onOpen: (String) -> Unit, onTiles: () -> Unit, onClose: () -> Unit)
 private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
     val c = Boar.colors
     val on = LabPrefs.enabled(lab.id)
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (on) c.emeraldBgSubtle else c.bgCard)
-        .border(1.dp, if (on) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(10.dp)).clickable { onOpen("lab:${lab.id}") }.padding(10.dp),
+    // One look, on or off: the switch says which (adam, 23 Nov).
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(c.bgCard)
+        .border(1.dp, c.borderSubtle, RoundedCornerShape(10.dp)).clickable { onOpen("lab:${lab.id}") }.padding(10.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         LabArt(lab, locked = false)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

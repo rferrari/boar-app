@@ -66,7 +66,6 @@ Os Plugins são um conjunto de experimentos. No perfil Pro, abra Plugins no menu
 - Fatos: um dado sobre um país, cidade, montanha, rio, monumento ou prêmio, de uma tabela da Wikidata.
 - Cohazard: uma resposta fixa de segurança sobre monóxido de carbono ao usar aparelhos a combustível em lugar fechado.
 - Distância: a distância entre duas cidades, e quanto tempo a pé, de bicicleta ou de carro, como estimativa.
-- Polyglot: avisa na hora quando você pergunta numa língua que o BOAR ainda não fala.
 - Designer: desenha uma ilustração a partir de poucas palavras, offline. Baixa o modelo de desenho (683 MB) na primeira vez.
 - Press: junte respostas numa cesta e compile tudo num PDF ou arquivo Markdown.
 - Canvas: pelo 🧩 embaixo de uma resposta, Criar um cartão: o modelo escolhe um gráfico de barras, linha ou pizza, uma tabela, passos, uma comparação ou fatos principais, a partir da resposta, de respostas anteriores da conversa e das fontes da resposta, e o BOAR desenha. Todo número precisa estar em uma delas; o que não estiver fica de fora e é listado. Troque os mesmos dados entre barras, linha, pizza e tabela, copie ou abra em tela cheia. Embaixo do cartão, Tornar interativo cria uma pequena página interativa a partir da resposta; demora mais.
