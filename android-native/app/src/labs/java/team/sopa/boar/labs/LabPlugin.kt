@@ -279,7 +279,9 @@ object LabPrefs {
     }
 
     /** [fromPage]: the switch at the top of the plugin's own page; an off plugin from there stays listed (PluginReach). */
-    fun setEnabled(id: String, on: Boolean, fromPage: Boolean = false) {
+    fun setEnabled(id: String, on: Boolean, fromPage: Boolean = false, confirmed: Boolean = false) {
+        // A safety plugin goes off only after its question (PluginReach.allowsSet; rememberSafetyOff passes confirmed).
+        if (!team.sopa.boar.engine.labs.PluginReach.allowsSet(id, on, confirmed)) return
         team.sopa.boar.app.DebugLog.settingChanged("labs.enabled.$id", enabled(id), on)
         switches[id] = on
         val off = team.sopa.boar.engine.labs.PluginReach.offFromPageAfter(offFromPage(), id, on, fromPage)

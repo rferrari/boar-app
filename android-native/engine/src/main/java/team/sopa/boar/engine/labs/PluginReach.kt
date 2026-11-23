@@ -16,6 +16,13 @@ object PluginReach {
     /** Turning a safety plugin off asks first ("Turn off the carbon monoxide safety card?"), from its page or the list. */
     fun asksBeforeOff(id: String, turningOn: Boolean): Boolean = !turningOn && id in SAFETY
 
+    /**
+     * Whether a switch may take effect: a safety plugin goes off only once the question was answered ([confirmed]).
+     * LabPrefs.setEnabled applies it, so a switch that forgets to ask can't turn Cohazard off (validator F-R1: setup's
+     * list did it with one tap).
+     */
+    fun allowsSet(id: String, on: Boolean, confirmed: Boolean): Boolean = !asksBeforeOff(id, on) || confirmed
+
     /** The plugins switched off from their pages after a switch: on leaves the set, off from a page joins it. */
     fun offFromPageAfter(set: Set<String>, id: String, on: Boolean, fromPage: Boolean): Set<String> =
         if (on) set - id else if (fromPage) set + id else set

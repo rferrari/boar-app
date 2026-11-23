@@ -166,7 +166,9 @@ object LabHooks {
                     }
                     androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.${lab.id}.body"), style = type.subtext, color = c.textSecondary)
                 }
-                androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { LabPrefs.setEnabled(lab.id, it) },
+                // The question before a safety plugin goes off, as everywhere else (validator F-R1).
+                val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, confirmed = true) }
+                androidx.compose.material3.Switch(LabPrefs.enabled(lab.id), { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v) },
                     colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
             }
         }

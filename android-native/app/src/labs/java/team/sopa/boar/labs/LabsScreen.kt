@@ -173,7 +173,7 @@ fun PluginPageSwitch(lab: LabPlugin) {
     val c = Boar.colors
     val on = LabPrefs.enabled(lab.id)
     val label = t("native.labs.pageSwitch", "name" to t("native.labs.${lab.id}.title"))
-    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true, confirmed = true) }
     androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true) },
         modifier = Modifier.semantics { contentDescription = label },
         colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
@@ -186,7 +186,7 @@ fun PluginPageSwitch(lab: LabPlugin) {
 @Composable
 fun PluginSwitchRow(lab: LabPlugin) {
     val on = LabPrefs.enabled(lab.id)
-    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
+    val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true, confirmed = true) }
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.switchRow", "name" to t("native.labs.${lab.id}.title")), t("native.labs.switchRowNote"), on) { v ->
         if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true)
     }
@@ -436,7 +436,7 @@ private fun LabRow(lab: LabPlugin, onOpen: (String) -> Unit) {
             }
             Text(t("native.labs.${lab.id}.body"), style = Boar.type.caption, color = c.textMuted, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         }
-        val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false) }
+        val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, confirmed = true) }
         androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v) },
             colors = androidx.compose.material3.SwitchDefaults.colors(checkedTrackColor = c.emerald500, checkedThumbColor = c.textInverse))
     }
