@@ -19,7 +19,9 @@ object TableLines {
             if (ROW.matches(lines[i]) && i + 1 < lines.size && SEP.matches(lines[i + 1])) {
                 var j = i + 2
                 while (j < lines.size && ROW.matches(lines[j])) {
-                    val cells = lines[j].trim().trim('|').split('|').map { it.trim() }.filter { it.isNotEmpty() }
+                    // An empty cell keeps its place as "—" (validator P-C5: a blank result read as the range).
+                    val raw = lines[j].trim().trim('|').split('|').map { it.trim() }
+                    val cells = if (raw.all { it.isEmpty() }) emptyList() else raw.map { it.ifEmpty { "—" } }
                     if (cells.isNotEmpty()) out += when (cells.size) {
                         1 -> cells[0]
                         2 -> "${cells[0]}: ${cells[1]}"

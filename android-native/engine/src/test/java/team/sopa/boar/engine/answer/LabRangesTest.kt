@@ -49,3 +49,34 @@ class LabRangesTest {
         assertTrue(vm.contains("if (personal && PersonalFiles.asksSummary(q))") && vm.contains("team.sopa.boar.engine.answer.LabRanges.note(c.body, ptQ)"))
     }
 }
+
+/** Validator 04:25 (t9 0435): never guess a direction when the numbers or units don't line up. */
+class LabRangesSafetyTest {
+    private fun m(v: String, r: String, ctx: String = "") = LabRanges.mark(v, r, ctx)
+
+    @Test fun `a thousands mark the file doesn't explain leaves the row unmarked (P-C1)`() {
+        for ((v, r) in listOf("1.250 mg/dL" to "abaixo de 150", "1,250 mg/dL" to "below 150", "1.500" to "< 200", "2.000" to "até 200",
+            "1.350 ng/mL" to "30 - 400", "1.200" to "acima de 30")) assertNull("$v | $r", m(v, r))
+        // Plain decimals still read: 6,5 against 4,0 a 7,0.
+        org.junit.Assert.assertEquals(LabRanges.Mark.WITHIN, m("6,5", "4,0 a 7,0"))
+    }
+
+    @Test fun `a value on an inclusive bound is within it (P-C2)`() {
+        for (r in listOf("≤190", "<= 190", "até 190", "up to 190")) org.junit.Assert.assertEquals(r, LabRanges.Mark.WITHIN, m("190", r))
+        for (r in listOf("≥ 40", ">=40", "pelo menos 40", "at least 40")) org.junit.Assert.assertEquals(r, LabRanges.Mark.WITHIN, m("40", r))
+        org.junit.Assert.assertEquals(LabRanges.Mark.ABOVE, m("190", "below 190"))
+        org.junit.Assert.assertEquals(LabRanges.Mark.BELOW, m("40", "above 40"))
+    }
+
+    @Test fun `a unit against a range without one is marked only when the header names it (P-C3)`() {
+        assertNull(m("6,5 mmol/L", "abaixo de 190"))
+        assertNull(m("5,4 mmol/L", "70 - 99"))
+        org.junit.Assert.assertEquals(LabRanges.Mark.WITHIN, m("98 mg/dL", "70 - 99", "| Exame | Resultado | Referência (mg/dL) |"))
+        val table = "| Exam | Result | Reference (mg/dL) |\n|---|---|---|\n| Glucose | 98 mg/dL | 70 - 99 |\n| Cholesterol | 6,5 mmol/L | below 190 |"
+        org.junit.Assert.assertEquals(listOf("Glucose"), LabRanges.rows(table).map { it.name })
+    }
+
+    @Test fun `an empty cell keeps its place in a table shown as lines (P-C5)`() {
+        org.junit.Assert.assertEquals("Glicose: — (70 - 99 mg/dL)", TableLines.of("| Exame | Resultado | Referência |\n|---|---|---|\n| Glicose | | 70 - 99 mg/dL |"))
+    }
+}
