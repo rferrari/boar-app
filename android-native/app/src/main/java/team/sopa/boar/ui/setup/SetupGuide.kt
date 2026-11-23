@@ -110,7 +110,7 @@ internal fun SetupGuidePage(state: SetupState, vm: SetupViewModel, themeId: Stri
 @Composable
 private fun ProgressStrip(state: SetupState, onDetails: () -> Unit) {
     val c = Boar.colors
-    val p = tourProgress(state)
+    val p = setupProgress(state)
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (p.problem) c.amberBgSubtle else c.bgCard)
         .border(1.dp, if (p.problem) c.amberBorder else c.borderSubtle, RoundedCornerShape(12.dp)).clickable(onClick = onDetails).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -161,7 +161,7 @@ private fun LookPage(services: BoarServices, themeId: String?, onTheme: (String)
     var scale by remember { mutableStateOf(services.settings.fontScale) }
     Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; onFontScale(it) }
     // Below the chips, so a tap repaints the example right under the finger (as the tour's theme card).
-    team.sopa.boar.ui.tour.TourPreview("theme")
+    ThemePreview()
 }
 
 /**

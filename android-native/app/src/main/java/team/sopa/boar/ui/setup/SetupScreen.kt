@@ -523,7 +523,7 @@ fun currentLanguage(saved: String?): String = saved ?: LocalConfiguration.curren
 
 /** The tour's top line, from the same numbers as the download screen: bytes while files arrive, then the index. */
 @Composable
-internal fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgress {
+internal fun setupProgress(state: SetupState): SetupProgress {
     val downloading = !state.allPresent
     val fraction = if (downloading) (if (state.totalBytes > 0) state.doneBytes.toFloat() / state.totalBytes else 0f)
         else if (state.indexTotal > 0) state.indexDone.toFloat() / state.indexTotal else if (state.finished) 1f else 0f
@@ -536,5 +536,8 @@ internal fun tourProgress(state: SetupState): team.sopa.boar.ui.tour.TourProgres
         downloading -> t("native.tour.lineDownloading", "pct" to (fraction * 100).toInt()) + eta
         else -> t("native.tour.lineIndexing", "done" to state.indexDone, "total" to state.indexTotal) + eta
     }
-    return team.sopa.boar.ui.tour.TourProgress(line, fraction, state.finished, problem)
+    return SetupProgress(line, fraction, state.finished, problem)
 }
+
+/** The download's line under setup's guide pages: what it's doing, how far, done, or a problem. */
+data class SetupProgress(val line: String, val fraction: Float, val ready: Boolean, val problem: Boolean = false)
