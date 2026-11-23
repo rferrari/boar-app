@@ -177,7 +177,7 @@ size, checksum and license. The knowledge base and packs are Wikipedia-derived, 
   [releases page](https://github.com/rferrari/boar-app/releases), check it against its
   `.sha256` file and install it ([README.md](../README.md), "Install").
 - First launch downloads about 2.7 GB on a 12 GB phone, or about 1.3 GB below that, so
-  the total time depends on the connection. A tour runs while it downloads. The
+  the total time depends on the connection. Setup's guide pages run while it downloads. The
   install-to-first-answer time hasn't been measured with a stopwatch.
 
 ### 14. Assets or download instructions: PASS

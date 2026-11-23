@@ -8,7 +8,7 @@ Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.e
 **Settings → Experimental → Plugins** starts on, and each lab has an on/off switch in the Plugins list and on its
 page. A lab is off unless it is in the default-on list (`engine/.../labs/LabDefaults.kt`, `ON`): only LIVE or BETA labs
 go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. Plugins' own places (the
-menu item, the list, setup's Labs page, the tour card, its settings) show in the Pro profile only; a lab that is on
+menu item, the list, setup's Labs page, its settings) show in the Pro profile only; a lab that is on
 works in every profile. A build without the flag has none of this.
 
 A release build (any build whose tasks aren't all Debug or Devtest, or `-Pboar.labs.released=true`) includes only the labs listed in

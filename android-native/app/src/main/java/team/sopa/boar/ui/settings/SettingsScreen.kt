@@ -330,7 +330,7 @@ private fun RecoverySection(services: BoarServices, prefs: DisplayPrefs, onSetup
         Text(t("modelSetupScreen.recovery.wizardTitle"), style = Boar.type.titleSm, color = c.textHeading)
         Text(t("modelSetupScreen.recovery.wizardDesc"), style = Boar.type.subtext, color = c.textSecondary)
         LinkButton(t("modelSetupScreen.recovery.wizardButton"), onClick = onSetup)
-        // No "See the tour" here since 23 Nov (adam): the tour is setup's "While you wait" card.
+        // No "See the tour" since 23 Nov (adam): the longer setup guide replaced the tour, which nothing opens now.
         // Defaults back without the multi-GB re-download "Clear all data" costs.
         Text(t("native.settings.resetTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(top = 8.dp))
         Text(t("native.settings.resetDesc"), style = Boar.type.subtext, color = c.textSecondary)

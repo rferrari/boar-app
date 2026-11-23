@@ -1,17 +1,15 @@
 # Using BOAR
 
-How to use BOAR 2.0 (the native Android app): the tour, answer styles, Deep Research,
+How to use BOAR 2.0 (the native Android app): setup, answer styles, Deep Research,
 sources, Plugins, the PIN, your own documents, more models, and recovering from a
 bad model load.
 
-## The tour
+## Setup
 
 Setup downloads the answer model, the search model and, when there is room, the
-Wikipedia Vital Articles pack. While it downloads, a "While you wait" card opens a
-short BOAR tour: themes, answer styles, Deep Research, sources, your library and
-documents, models, the PIN, Plugins and adaptive routing. Each page says where the
-feature lives. See it again any time in Settings → Start over → See
-the tour.
+Wikipedia Vital Articles pack. While it downloads, it walks you through BOAR's main
+choices, one page each: the look, answer styles, your own files, the PIN, notifications,
+privacy and plugins.
 
 ## How BOAR answers
 

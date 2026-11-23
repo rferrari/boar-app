@@ -47,7 +47,7 @@ believe: [MANIFESTO.md](MANIFESTO.md).
    `knowledge-pack-v1` release). The answer model is Qwen3 4B (about 2.5 GB) on 12 GB phones
    (Android reports 10 GB or more) and Qwen3 1.7B (about 1.1 GB) below that. If the phone is
    short on space, setup offers a smaller package without the Vital Articles pack. While it
-   downloads, you can take a short BOAR tour.
+   downloads, setup walks you through BOAR's main choices.
 
 No internet at all, not even once? The release also has an **offline APK**
 (`boar-…-offline-arm64.apk`, about 2 GB) with Qwen3 1.7B, the search model, the Vital Articles
