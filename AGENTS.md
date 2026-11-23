@@ -61,14 +61,15 @@ git clone --recursive https://github.com/rferrari/boar-app.git
 cd boar-app
 git submodule update --init          # only if you cloned without --recursive
 cd android-native
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
-# -> app/build/outputs/apk/release/app-release.apk
-adb install -r app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease -Pboar.experimentalFeatures=true
+# -> app/build/outputs/apk/release/boar-2.0.0.apk
+adb install -r app/build/outputs/apk/release/boar-2.0.0.apk
 ./gradlew --stop                     # don't leave the Gradle daemon running
 ```
 
-Without `-Pboar.versionName` the version is `2.0.0-dev`. The 2.0.0 releases are built with
-`-Pboar.experimentalFeatures=true` (Boar Labs included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5. About
+Without `-Pboar.versionName` the version is `2.0.0`, and the release APK is named after the version
+(`boar-<versionName>.apk`). The 2.0.0 releases are built with `-Pboar.experimentalFeatures=true` (Boar Labs
+included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5, 2.0.0 has 8. About
 shows the version, the git commit and the build date.
 
 Other build types:
@@ -118,7 +119,7 @@ environment, or as a Gradle property with `-P`.
 A Labs build that installs beside the normal BOAR:
 
 ```bash
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.labs.released=false -Pboar.versionName=2.0.0-rc1
+./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.appIdSuffix=.labs -Pboar.labs.released=false
 ```
 
 ## Boar Labs engines

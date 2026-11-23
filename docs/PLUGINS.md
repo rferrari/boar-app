@@ -238,7 +238,7 @@ Delete files even if they can't be read, and reset any state the lab keeps in me
 ```bash
 cd android-native
 ./gradlew :app:assembleRelease -Pboar.experimentalFeatures=true   # add -Pboar.allowDebugLog=true for the debug log
-adb install -r app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/boar-*.apk
 ```
 
 On the phone, check that Settings → Experimental → Plugins is on, then open the menu → Plugins ⚛️ → your lab.

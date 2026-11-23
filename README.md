@@ -88,8 +88,8 @@ NDK 27.1.12297006 and CMake 3.22.1, and JDK 17.
 ```bash
 git clone --recursive https://github.com/rferrari/boar-app.git
 cd boar-app/android-native
-./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
-# -> app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease -Pboar.experimentalFeatures=true
+# -> app/build/outputs/apk/release/boar-2.0.0.apk
 ```
 
 Without the release key the APK is debug-signed. That is fine for your own phone.

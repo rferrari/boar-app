@@ -135,10 +135,10 @@ android {
         minSdk = 26
         targetSdk = 36
         // 2.0.0-rc2 was 5; the X6's Mesh test build used 6. rc3 is 7, so it installs over both and keeps the models.
-        versionCode = 7
+        versionCode = 8
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
-        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0-dev"
+        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0"
         val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
         val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
         buildConfigField("String", "GIT_SHA", "\"${gitSha}${if (gitDirty) "+" else ""}\"")
@@ -183,6 +183,15 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     // Instrumented tests run against the throwaway devtest install (./gradlew :app:assembleDevtestAndroidTest).
     testBuildType = "devtest"
+    // The release APK is named after its version: boar-2.0.0.apk (t9 1725); a test build's name carries its own
+    // -Pboar.versionName (boar-2.0.0-rc3-dev-allNN.apk).
+    @Suppress("DEPRECATION")
+    applicationVariants.all {
+        val variant = this
+        if (variant.buildType.name == "release") outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "boar-${variant.versionName}.apk"
+        }
+    }
     packaging { jniLibs { useLegacyPackaging = true } }
     if (truffleLauncherIcons) {
         // Merged over main for every build type: the launcher entry moves to the aliases.

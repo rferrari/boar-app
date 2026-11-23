@@ -96,14 +96,14 @@ jobs:
           ./gradlew --no-daemon :app:assembleRelease -Pboar.experimentalFeatures=true ${VERSION_NAME:+-Pboar.versionName=$VERSION_NAME}
 
       - name: Check package, versionCode and signer
-        run: scripts/check-release-apk.sh android-native/app/build/outputs/apk/release/app-release.apk
+        run: scripts/check-release-apk.sh android-native/app/build/outputs/apk/release/boar-*.apk
 
       - name: Name it as the release does
         env:
           APK: ${{ steps.version.outputs.apk }}
         run: |
           mkdir -p out
-          mv android-native/app/build/outputs/apk/release/app-release.apk "out/$APK"
+          mv android-native/app/build/outputs/apk/release/boar-*.apk "out/$APK"
           (cd out && sha256sum "$APK" > "$APK.sha256" && cat "$APK.sha256")
 
       - name: Remove the key

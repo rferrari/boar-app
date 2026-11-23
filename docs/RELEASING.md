@@ -31,14 +31,15 @@ models.
 
 1. **Version.** `versionCode` in `android-native/app/build.gradle.kts` must be higher than
    the last published release, or the APK won't install over it (2.0.0-rc1 is
-   `versionCode` 4, 2.0.0-rc2 is 5). The version name comes from the build command.
+   `versionCode` 4, 2.0.0-rc2 is 5, 2.0.0 is 8). The version name is 2.0.0 unless the build
+   command gives another, and the release APK is named after it (`boar-2.0.0.apk`).
 
 2. **Build.** No `.env` with `EVAL_SHARING=true`: the release has no Share button and never
    contacts the results server.
 
    ```bash
    cd android-native
-   ./gradlew assembleRelease -Pboar.experimentalFeatures=true -Pboar.versionName=2.0.0-rc1
+   ./gradlew assembleRelease -Pboar.experimentalFeatures=true
    ./gradlew --stop
    ```
 
@@ -46,7 +47,7 @@ models.
    `7cf514f9ab8253cbd78eb7d112d66fd05c2ad27e6fc987bf8f3276a7eedf1f01`:
 
    ```bash
-   apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+   apksigner verify --print-certs app/build/outputs/apk/release/boar-2.0.0.apk
    ```
 
    `scripts/check-release-apk.sh <apk>` checks the same signer, the application id
@@ -55,8 +56,8 @@ models.
 4. **Name it and hash it.**
 
    ```bash
-   cp app/build/outputs/apk/release/app-release.apk boar-v2.0.0-rc1-arm64.apk
-   sha256sum boar-v2.0.0-rc1-arm64.apk > boar-v2.0.0-rc1-arm64.apk.sha256
+   cp app/build/outputs/apk/release/boar-2.0.0.apk boar-v2.0.0-arm64.apk
+   sha256sum boar-v2.0.0-arm64.apk > boar-v2.0.0-arm64.apk.sha256
    ```
 
 5. **Install it on a phone over the previous release** (no uninstall), and check that
