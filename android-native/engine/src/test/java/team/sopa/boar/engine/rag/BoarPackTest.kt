@@ -92,6 +92,18 @@ class BoarPackTest {
             assertFalse(q, BoarPack.aboutBoar(q))
     }
 
+    // Validator P-D1 (t9 0435): the FAQ said Succinct & Direct was the default; the code and the guide say Thorough & Detailed.
+    @Test fun `the FAQ and the guide name the code's default answer style, EN and PT`() {
+        val id = Regex("DEFAULT_PERSONALITY_ID = \"(\\w+)\"").find(java.io.File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText())!!.groupValues[1]
+        val names = mapOf("detailed" to ("Thorough & Detailed" to "Completo e detalhado"), "succinct" to ("Succinct & Direct" to "Sucinto e direto")).getValue(id)
+        val styles = all.filter { it.id.contains("-faq-") && (it.title.contains("way BOAR answers") || it.title.contains("jeito de o BOAR")) }
+        val en = styles.single { it.lang == "en" }.body; val pt = styles.single { it.lang == "pt" }.body
+        assertTrue(en, en.contains("${names.first} explains in depth and is the default"))
+        assertTrue(pt, pt.contains("${names.second} explica com mais profundidade e é o padrão"))
+        assertTrue(guides.getValue("en").contains("${names.first}: full explanations. This is the default."))
+        assertTrue(guides.getValue("pt").contains(Regex("${names.second}: explicações completas. É o padrão.", RegexOption.IGNORE_CASE)))
+    }
+
     @Test fun `the guide's list of plugins that start on is LabDefaults ON`() {
         val title = { id: String -> java.io.File("../app/src/labs").walk().filter { it.name.endsWith(".xml") && it.parentFile.name == "values" }
             .firstNotNullOfOrNull { Regex("name=\"native_labs_${id}_title\" formatted=\"false\">([^<]+)<").find(it.readText())?.groupValues?.get(1) } ?: id }
