@@ -602,11 +602,10 @@ private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) ->
         }
         // Pro only, as in Advanced tweaks before (t9 0450).
         if (shown(SettingsPart.TWEAKS)) MovedToExperimental(services, technical, shown(SettingsPart.TECHNICAL_DETAILS), onTechnical)
-        if (shown(SettingsPart.LABS_SETTINGS)) {
-            team.sopa.boar.labs.LabHooks.SettingsRow()
-            // Pro → Boar Labs: the compact list with a switch per lab (rc3).
-            if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
-        }
+        // Boar Labs' own settings (the master switch, the waiting animation) stay Pro's.
+        if (shown(SettingsPart.LABS_SETTINGS)) team.sopa.boar.labs.LabHooks.SettingsRow()
+        // The list with a switch per plugin, in every profile (t9 1725).
+        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
     }
 }
 

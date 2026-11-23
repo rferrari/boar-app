@@ -104,18 +104,15 @@ object LabHooks {
     }
 
     /** route to label key; empty while Labs is off. */
-    // rc3: the menu item, the list and the tiles are Pro's; a lab's own page (lab:<id>, from its header badge) opens in
-    // every profile, since an enabled lab keeps working everywhere.
-    fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn && LabPrefs.proProfile) listOf("labs" to "native.labs.drawer") else emptyList()
+    // The menu item, the list and the tiles in every profile (adam, 23 Nov: "plugins for all before 2.0"; t9 1725).
+    fun drawerItems(): List<Pair<String, String>> = if (LabPrefs.labsOn) listOf("labs" to "native.labs.drawer") else emptyList()
 
-    fun handles(route: String) = LabPrefs.labsOn && ((route == "labs" || route == TILES) && LabPrefs.proProfile || route.startsWith("lab:"))
+    fun handles(route: String) = LabPrefs.labsOn && (route == "labs" || route == TILES || route.startsWith("lab:"))
 
-    /** Where Back goes from a Labs route: the tiles and a lab's page back to the list on Pro, else to the chat. */
-    fun backFrom(route: String): String = when {
-        route == "labs" -> "chat"
-        route == TILES -> "labs"
-        LabPrefs.proProfile -> "labs"
-        else -> "chat"
+    /** Where Back goes from a Labs route: the list back to the chat, the tiles and a lab's page back to the list. */
+    fun backFrom(route: String): String = when (route) {
+        "labs" -> "chat"
+        else -> "labs"
     }
 
     /** The old tile grid, kept one tap away from the list (its classified tiles still answer to taps). */
@@ -387,8 +384,8 @@ object LabHooks {
                         trailing = { androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.offTag"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textMuted) }) {
                         open = false; go("lab:${lab.id}") }
                 }
-                // Turning labs on and off is Pro's (the list in the menu).
-                if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.manage") + " ›", style = team.sopa.boar.ui.theme.Boar.type.body,
+                // The list with every switch, in every profile (t9 1725).
+                androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.manage") + " ›", style = team.sopa.boar.ui.theme.Boar.type.body,
                     color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     modifier = androidx.compose.ui.Modifier.clickable { open = false; go("labs") }.padding(horizontal = 8.dp, vertical = 10.dp))
             }

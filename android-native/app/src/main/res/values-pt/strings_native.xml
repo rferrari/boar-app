@@ -674,7 +674,7 @@
     <string name="native_settings_profile_proNote" formatted="false">Tudo, mais Ajustes avançados, detalhes técnicos e as configurações dos Plugins. Abaixo do Pro, eles voltam para o Automático; suas escolhas voltam quando você escolhe o Pro de novo (Redefinir configurações as apaga).</string>
     <string name="native_settings_profile_updated" formatted="false">Novo nesta versão: perfis. O BOAR escolheu {{profile}} pelas suas configurações. Mude quando quiser.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Os detalhes técnicos (a velocidade ao vivo no topo da conversa, os detalhes de desempenho da resposta, as barras de memória e armazenamento do menu) agora ficam no Pro.</string>
-    <string name="native_settings_profile_labsOn" formatted="false">Estes plugins agora estão ligados: {{labs}}. Desligue nos Plugins, no perfil Pro.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">Estes plugins agora estão ligados: {{labs}}. Desligue nos Plugins, no menu.</string>
     <string name="native_settings_languageVoice" formatted="false">Idioma e voz</string>
     <string name="native_voice_followsApp" formatted="false">A voz escuta no idioma do app. Um celular sem esse pacote de fala escuta no idioma dele.</string>
     <string name="native_voice_followsPhone" formatted="false">A voz escuta no idioma de fala do seu celular.</string>
@@ -716,7 +716,7 @@
     <string name="native_settings_profile_simpleShort" formatted="false">Iniciante: configure o essencial.</string>
     <string name="native_settings_profile_explorerShort" formatted="false">Explorador: descubra mais recursos.</string>
     <string name="native_settings_profile_proShort" formatted="false">Pro: ajustes avançados.</string>
-    <string name="native_settings_profile_downNote" formatted="false">Plugins e Ajustes avançados pausam abaixo do Pro. Suas configurações ficam salvas.</string>
+    <string name="native_settings_profile_downNote" formatted="false">Ajustes avançados e configurações de plugin pausam abaixo do Pro. Suas configurações ficam salvas.</string>
     <string name="native_drawer_searchChats" formatted="false">Buscar conversas</string>
     <string name="native_drawer_group_today" formatted="false">Hoje</string>
     <string name="native_drawer_group_yesterday" formatted="false">Ontem</string>

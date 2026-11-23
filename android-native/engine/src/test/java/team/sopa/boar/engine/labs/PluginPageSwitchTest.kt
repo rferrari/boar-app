@@ -15,7 +15,7 @@ class PluginPageSwitchTest {
         // the first row of the gear's sheet (PluginSwitchRow, same rules). Other pages: at the end of the header block.
         assertTrue(scaffold.contains("actions = { if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } else PluginPageSwitch(lab) }"))
         val row = labs.substringAfter("fun PluginSwitchRow(").substringBefore("\n}\n")
-        assertTrue(row.contains("PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)") && row.contains("PluginReach.asksBeforeOff(lab.id, v)") && row.contains("fromPage = true"))
+        assertTrue(row.contains("PluginReach.asksBeforeOff(lab.id, v)") && row.contains("fromPage = true"))
         val press = java.io.File("../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer/PressScreen.kt").readText().substringAfter("private fun SettingsSheet(").substringBefore("\n}\n")
         val designer = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText().substringAfter("private fun SettingsSheet(").substringBefore("\n}\n")
         assertTrue(press.contains("team.sopa.boar.labs.PluginSwitchRow(lab)") && designer.contains("team.sopa.boar.labs.PluginSwitchRow(ImageGenLab)"))
@@ -24,7 +24,8 @@ class PluginPageSwitchTest {
         assertTrue(sw.contains("LabPrefs.enabled(lab.id)") && sw.contains("LabPrefs.setEnabled(lab.id, v, fromPage = true)") && sw.contains("contentDescription = label"))
         // Golden change (validator Q-B1, t9 0115): tied to the profile for safety plugins only, through PluginReach
         // (PluginReachTest has the behaviour); every other plugin's switch shows in every profile.
-        assertTrue(sw.contains("PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)") && sw.contains("PluginReach.asksBeforeOff(lab.id, v)"))
+        // Golden change (t9 1725): no profile rule; the question before a safety plugin goes off, in every profile.
+        assertTrue(!sw.contains("pageSwitchShown") && sw.contains("PluginReach.asksBeforeOff(lab.id, v)"))
     }
 
     @Test fun `below Pro, Settings says where the switch is, in EN and PT`() {

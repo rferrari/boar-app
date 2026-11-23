@@ -12,9 +12,9 @@ class PluginCloseTest {
     @Test fun `a plugin page's close goes to the chat, its back to the previous page`() {
         val hooks = read("labs/java/team/sopa/boar/labs/LabHooks.kt")
         assertTrue(hooks.contains("LabScaffold(lab, onExit = { go(\"chat\") }) { go(backFrom(route)) }"))
-        // Back from a plugin opened via the Plugins list (Pro) lands in the list; below Pro in the chat.
-        val back = hooks.substringAfter("fun backFrom(route: String): String = when {").substringBefore("}")
-        assertTrue(back.contains("LabProfileCheck".let { "LabPrefs.proProfile -> \"labs\"" }) && back.contains("else -> \"chat\""))
+        // Golden change (t9 1725): back from a plugin lands in the Plugins list in every profile; from the list, the chat.
+        val back = hooks.substringAfter("fun backFrom(route: String): String = when (route) {").substringBefore("}")
+        assertTrue(back.contains("\"labs\" -> \"chat\"") && back.contains("else -> \"labs\""))
         val labs = read("labs/java/team/sopa/boar/labs/LabsScreen.kt")
         // Both kinds of plugin page (full-page Press and Designer, and the others) pass it to the shared header.
         assertTrue(Regex("onExit = onExit").findAll(labs).count() == 2)

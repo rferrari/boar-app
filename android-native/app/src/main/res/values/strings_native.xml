@@ -674,7 +674,7 @@
     <string name="native_settings_profile_proNote" formatted="false">Everything, plus Advanced tweaks, technical details and plugin settings. Below Pro, these go back to Auto; your choices return when you pick Pro again (Reset settings clears them).</string>
     <string name="native_settings_profile_updated" formatted="false">New in this version: profiles. BOAR picked {{profile}} from your settings. Change it any time.</string>
     <string name="native_settings_profile_updatedBelowPro" formatted="false">Technical details (live speed at the top of the chat, the answer\'s performance details, the menu\'s memory and storage bars) are now in Pro.</string>
-    <string name="native_settings_profile_labsOn" formatted="false">These plugins are now on: {{labs}}. Turn them off in Plugins, in the Pro profile.</string>
+    <string name="native_settings_profile_labsOn" formatted="false">These plugins are now on: {{labs}}. Turn them off in Plugins, in the menu.</string>
     <string name="native_settings_languageVoice" formatted="false">Language and voice</string>
     <string name="native_voice_followsApp" formatted="false">Voice listens in the app\'s language. A phone without that speech pack listens in its own language.</string>
     <string name="native_voice_followsPhone" formatted="false">Voice listens in your phone\'s speech language.</string>
@@ -716,7 +716,7 @@
     <string name="native_settings_profile_simpleShort" formatted="false">Starter: set up the essentials.</string>
     <string name="native_settings_profile_explorerShort" formatted="false">Explorer: discover more features.</string>
     <string name="native_settings_profile_proShort" formatted="false">Pro: advanced settings and tweaks.</string>
-    <string name="native_settings_profile_downNote" formatted="false">Plugins and Advanced tweaks pause below Pro. Your settings are kept.</string>
+    <string name="native_settings_profile_downNote" formatted="false">Advanced tweaks and plugin settings pause below Pro. Your settings are kept.</string>
     <string name="native_drawer_searchChats" formatted="false">Search chats</string>
     <string name="native_drawer_group_today" formatted="false">Today</string>
     <string name="native_drawer_group_yesterday" formatted="false">Yesterday</string>

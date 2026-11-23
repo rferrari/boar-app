@@ -7,9 +7,9 @@ Labs only exist in builds made with `EXPERIMENTAL_FEATURES=true` (the repo's `.e
 `-Pboar.experimentalFeatures=true`). The 2.0.0 releases are built that way. In those builds the master switch
 **Settings → Experimental → Plugins** starts on, and each lab has an on/off switch in the Plugins list and on its
 page. A lab is off unless it is in the default-on list (`engine/.../labs/LabDefaults.kt`, `ON`): only LIVE or BETA labs
-go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. Plugins' own places (the
-menu item, the list, setup's Labs page, its settings) show in the Pro profile only; a lab that is on
-works in every profile. A build without the flag has none of this.
+go there, which `LabDefaultsTest` checks. A switch the user flipped stays as they set it. The menu item and the list
+show in every profile (adam, 23 Nov); Boar Labs' own settings (the master switch, the waiting animation) are Pro's. A
+lab that is on works in every profile. A build without the flag has none of this.
 
 A release build (any build whose tasks aren't all Debug or Devtest, or `-Pboar.labs.released=true`) includes only the labs listed in
 `android-native/app/src/labs/released.txt`, each with the engine tests that cover it (`id: TestClass TestClass`); its

@@ -198,8 +198,8 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.messages, key = { it.id }) { m -> Bubble(m, state, onRate, onReuse = { input = it; onReused() }, onRedo = onRedo, onRetry = onRetry, onAskModel = onAskModel, onReadSource = onReadSource,
-                        // "Lunar is off": the Plugins list in Pro (its switch), else the plugin's page.
-                        onReadPlugin = { id -> onOpenRoute(if (team.sopa.boar.labs.LabPrefs.proProfile) "labs" else "lab:$id") }, onSkipTyping = onSkipTyping,
+                        // "Lunar is off": the Plugins list, with its switch (every profile since t9 1725).
+                        onReadPlugin = { _ -> onOpenRoute("labs") }, onSkipTyping = onSkipTyping,
                         onOpenPlugin = { id -> onOpenRoute("lab:$id") }) }
                     // "Keep going" under the latest answer, outside its card, on the user's side (t9 0235): not while BOAR
                     // answers or questions wait, gone when the input has text or a newer answer arrives.

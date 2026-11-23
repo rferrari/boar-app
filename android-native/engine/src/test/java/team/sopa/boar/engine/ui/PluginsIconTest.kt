@@ -19,8 +19,9 @@ class PluginsIconTest {
         assertTrue(icon.contains("go(\"lab:\${lab.id}\")"))
     }
 
-    @Test fun `managing labs stays in Pro`() {
-        assertTrue(icon.contains("if (LabPrefs.proProfile) androidx.compose.material3.Text(team.sopa.boar.ui.t(\"native.labs.manage\")"))
+    // Golden change (adam, 23 Nov: "plugins for all before 2.0"; t9 1725): Manage plugins in every profile.
+    @Test fun `managing plugins is in every profile`() {
+        assertTrue(icon.contains("androidx.compose.material3.Text(team.sopa.boar.ui.t(\"native.labs.manage\")") && !icon.contains("if (LabPrefs.proProfile)"))
     }
 
     @Test fun `no lab draws its own header badge, and no count on the icon unless a lab asks for it`() {

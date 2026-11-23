@@ -7,14 +7,11 @@ package team.sopa.boar.engine.labs
  * could go that way with one tap. Pure, so the decisions are tested as behaviour, not as source strings.
  */
 object PluginReach {
-    /** Plugins that deliver a safety card: on below Pro; off only in Pro, after a question. */
-    val SAFETY: Set<String> = setOf("cohazard")
-
     /**
-     * The page's on/off switch: every plugin's in Pro; below Pro a safety plugin's only while it is off (so it can come
-     * back on, never go).
+     * Plugins that deliver a safety card. Since the Plugins list is in every profile (adam, 23 Nov; t9 1725) their switch
+     * is too: turning one off asks first, in every profile, from the list or its page; no profile rule any more.
      */
-    fun pageSwitchShown(id: String, on: Boolean, pro: Boolean): Boolean = pro || id !in SAFETY || !on
+    val SAFETY: Set<String> = setOf("cohazard")
 
     /** Turning a safety plugin off asks first ("Turn off the carbon monoxide safety card?"), from its page or the list. */
     fun asksBeforeOff(id: String, turningOn: Boolean): Boolean = !turningOn && id in SAFETY

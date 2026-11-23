@@ -7,13 +7,12 @@ import org.junit.Test
 
 /** Validator Q-B1 (t9 0115): an off plugin stays one tap away, and Cohazard can't be lost with one tap below Pro. */
 class PluginReachTest {
-    @Test fun `below Pro, Cohazard's page has no off switch, but an off Cohazard can come back on`() {
-        assertFalse(PluginReach.pageSwitchShown("cohazard", on = true, pro = false))
-        assertTrue(PluginReach.pageSwitchShown("cohazard", on = false, pro = false))
-        assertTrue(PluginReach.pageSwitchShown("cohazard", on = true, pro = true))
-        // Every other plugin keeps its page switch in every profile (A-5).
-        for (pro in listOf(true, false)) for (on in listOf(true, false)) assertTrue(PluginReach.pageSwitchShown("calc", on, pro))
-        assertTrue("cohazard" in LabDefaults.ON)
+    // Golden change (adam, 23 Nov: "plugins for all before 2.0"; t9 1725): no profile rule for Cohazard's switch any more;
+    // every switch shows in every profile, and turning Cohazard off asks first wherever it is (below).
+    @Test fun `every plugin's switch shows in every profile, Cohazard's too`() {
+        val labs = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabsScreen.kt").readText()
+        assertTrue(!labs.contains("pageSwitchShown") && !labs.contains("LabPrefs.proProfile"))
+        assertTrue("cohazard" in LabDefaults.ON && "cohazard" in PluginReach.SAFETY)
     }
 
     @Test fun `turning Cohazard off asks first, turning it on or any other plugin off does not`() {

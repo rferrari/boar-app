@@ -121,7 +121,7 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
     val c = Boar.colors
     if (lab.fullPage) {
         val name = t("native.labs.${lab.id}.title")
-        Shell(name, onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
+        Shell(name, onClose, backTo = t("native.labs.title"), full = true, subtitle = lab.pageSubtitle(), onExit = onExit,
             // A page with a gear keeps only the gear: its on/off is the first row of the gear's sheet (adam, 16 Nov; t9 0450).
             actions = { if (lab.hasSettings) PluginSettingsGear(name) { PluginSettings.open = lab.id } else PluginPageSwitch(lab) }) {
             if (lab.status == LabStatus.REVIEW) Text(t("native.labs.${lab.id}.review"), style = Boar.type.body, color = c.amber400, modifier = Modifier.padding(12.dp))
@@ -132,7 +132,7 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
     // The lab's own header in place of the "Boar Labs" bar: its picture, name, description and status, Done back to the
     // grid, and the on/off switch, all in one block; the page below is the lab's.
     // Back names where it goes: the Plugins list in Pro, the chat below Pro (LabHooks.backFrom).
-    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = if (LabPrefs.proProfile) t("native.labs.title") else t("native.nav.chat"), onExit = onExit, header = {
+    Shell(t("native.labs.${lab.id}.title"), onClose, backTo = t("native.labs.title"), onExit = onExit, header = {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             lab.shownArt?.let { r -> androidx.compose.foundation.Image(androidx.compose.ui.res.painterResource(r), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 ?: Text(lab.emoji, fontSize = 36.sp)
@@ -172,8 +172,6 @@ fun LabScaffold(lab: LabPlugin, onExit: (() -> Unit)? = null, onClose: () -> Uni
 fun PluginPageSwitch(lab: LabPlugin) {
     val c = Boar.colors
     val on = LabPrefs.enabled(lab.id)
-    // Q-B1: below Pro a safety plugin (Cohazard) shows its switch only while it's off, to come back on.
-    if (!team.sopa.boar.engine.labs.PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)) return
     val label = t("native.labs.pageSwitch", "name" to t("native.labs.${lab.id}.title"))
     val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
     androidx.compose.material3.Switch(on, { v -> if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true) },
@@ -188,7 +186,6 @@ fun PluginPageSwitch(lab: LabPlugin) {
 @Composable
 fun PluginSwitchRow(lab: LabPlugin) {
     val on = LabPrefs.enabled(lab.id)
-    if (!team.sopa.boar.engine.labs.PluginReach.pageSwitchShown(lab.id, on, LabPrefs.proProfile)) return
     val confirm = rememberSafetyOff(lab.id) { LabPrefs.setEnabled(lab.id, false, fromPage = true) }
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.switchRow", "name" to t("native.labs.${lab.id}.title")), t("native.labs.switchRowNote"), on) { v ->
         if (team.sopa.boar.engine.labs.PluginReach.asksBeforeOff(lab.id, v)) confirm() else LabPrefs.setEnabled(lab.id, v, fromPage = true)
