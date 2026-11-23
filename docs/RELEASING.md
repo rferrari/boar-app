@@ -1,8 +1,8 @@
 # Releasing the Android APK
 
 Release APKs of the native app (`android-native/`) are built locally, on the machine that
-holds the release key, and checked before upload. The 2.0.0 candidates are published as
-GitHub pre-releases: `v2.0.0-rc1`, then `rc2` or `rc3` at most if needed.
+holds the release key, and checked before upload. The 2.0.0 candidates were published as
+GitHub pre-releases (`v2.0.0-rc1`, `v2.0.0-rc2`); `v2.0.0` is a release.
 
 The flow: changes land on `fullnative-dev` through pull requests. A release is a pull request
 from `fullnative-dev` into `main`, then the tag on `main` and the GitHub release. `v2.0.0` becomes
@@ -68,13 +68,13 @@ models.
    and hash them as in step 4:
 
    ```bash
-   BOAR_VERSION_NAME=2.0.0-rc1 scripts/build-offline-apk.sh release
-   BOAR_VERSION_NAME=2.0.0-rc1 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0 scripts/build-offline-apk.sh release
+   BOAR_VERSION_NAME=2.0.0 BOAR_OFFLINE_MODEL=qwen3-4b-instruct-2507-q4km scripts/build-offline-apk.sh release
    # -> build/boar-offline.apk, build/boar-offline-qwen3-4b-instruct-2507-q4km.apk
-   cp build/boar-offline.apk boar-v2.0.0-rc1-offline-arm64.apk
-   cp build/boar-offline-qwen3-4b-instruct-2507-q4km.apk boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
-   sha256sum boar-v2.0.0-rc1-offline-arm64.apk > boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   sha256sum boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk > boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
+   cp build/boar-offline.apk boar-v2.0.0-offline-arm64.apk
+   cp build/boar-offline-qwen3-4b-instruct-2507-q4km.apk boar-v2.0.0-offline-qwen3-4b-arm64.apk
+   sha256sum boar-v2.0.0-offline-arm64.apk > boar-v2.0.0-offline-arm64.apk.sha256
+   sha256sum boar-v2.0.0-offline-qwen3-4b-arm64.apk > boar-v2.0.0-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    Check each with `scripts/check-release-apk.sh` (its default mode: the offline APK is
@@ -86,18 +86,18 @@ models.
    (`cr review --agent --base main`), run a CodeRabbit Deep Scan on the release pull request,
    and fix what holds up before tagging.
 
-6. **Tag and publish as a pre-release.**
+6. **Tag and publish.**
 
    ```bash
-   git tag v2.0.0-rc1 <commit>
-   git push origin v2.0.0-rc1
-   gh release create v2.0.0-rc1 --prerelease --title "BOAR 2.0.0-rc1" \
-     boar-v2.0.0-rc1-arm64.apk boar-v2.0.0-rc1-arm64.apk.sha256 \
-     boar-v2.0.0-rc1-offline-arm64.apk boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-arm64.apk.sha256
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk
-   hf upload BOAR-App/boar-offline boar-v2.0.0-rc1-offline-qwen3-4b-arm64.apk.sha256
+   git tag v2.0.0 <commit>
+   git push origin v2.0.0
+   gh release create v2.0.0 --title "BOAR 2.0.0" \
+     boar-v2.0.0-arm64.apk boar-v2.0.0-arm64.apk.sha256 \
+     boar-v2.0.0-offline-arm64.apk boar-v2.0.0-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-arm64.apk.sha256
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-qwen3-4b-arm64.apk
+   hf upload BOAR-App/boar-offline boar-v2.0.0-offline-qwen3-4b-arm64.apk.sha256
    ```
 
    The Hugging Face upload needs a login with write access to `BOAR-App` (`hf auth login`);

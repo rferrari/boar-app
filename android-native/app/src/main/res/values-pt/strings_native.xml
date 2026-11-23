@@ -626,7 +626,7 @@
     <string name="native_setupGuide_labs_sub" formatted="false">Ferramentas extras no menu e nas respostas. Algumas já vêm ligadas: ligue as outras que quiser.</string>
     <string name="native_setupGuide_labs_beta" formatted="false">Beta: testados em celulares</string>
     <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: no começo, menos testados</string>
-    <string name="native_setupGuide_labs_note" formatted="false">Os plugins não deixam as respostas mais lentas. O Designer carrega o próprio modelo, então usa memória extra enquanto desenha. Todos ficam em Configurações → Experimental → Plugins.</string>
+    <string name="native_setupGuide_labs_note" formatted="false">Ligue ou desligue quando quiser em Plugins, no menu. O Designer carrega o próprio modelo e usa memória extra enquanto desenha, e enquanto Cartões ou Press escreve com o modelo, uma pergunta espera por ele.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Quase lá</string>
     <string name="native_setupGuide_ready_sub" formatted="false">O BOAR abre assim que o download e o índice terminarem.</string>
     <string name="native_setupGuide_ready_choices" formatted="false">Suas escolhas</string>

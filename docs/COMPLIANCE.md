@@ -168,7 +168,7 @@ size, checksum and license. The knowledge base and packs are Wikipedia-derived, 
 
 ### 12. Real hardware at submission: PARTIAL
 - 2.0 builds run on the Lab device 12 GB (X6) and the Lab device 8 GB (October 2026).
-- Still to record here: a smoke test of the published v2.0.0-rc1 APK (its SHA-256
+- Still to record here: a smoke test of the published v2.0.0 APK (its SHA-256
   matching the release) on a lab device: clean install, setup, one answer.
 - History: the v1.0.0 APK was smoke-tested on the Lab device 12 GB (X6) on 2026-09-25.
 
@@ -193,8 +193,8 @@ and not released.
   screenshot and links submitted to poidh.
 
 ### 18. Submitted version matches the repository: OPEN
-- To check at claim time: the tag `v2.0.0-rc1` (or the final candidate) exists, its
-  GitHub pre-release holds the APK and its `.sha256`, and the APK is signed with the
+- To check at claim time: the tag `v2.0.0` exists, its
+  GitHub release holds the APK and its `.sha256`, and the APK is signed with the
   release key (`apksigner verify --print-certs`, signer `7cf514f9…`;
   [RELEASING.md](RELEASING.md)).
 - History: [v1.0.0](https://github.com/rferrari/boar-app/releases/tag/v1.0.0), the 1.x

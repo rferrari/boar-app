@@ -15,6 +15,11 @@ BOAR R&D (r4to) — https://github.com/r4topunk
   engine/src/main/java/team/sopa/boar/engine/routing/QueryContext.kt is ported from src/routing/context.ts
   (PR #85); health questions answer in Succinct because of it.
 
+BOAR FAQ — https://github.com/rferrari/boar-faq-quiz
+  MIT License, Copyright (c) 2026 BOAR contributors. The FAQ was written by Amandita (@AAmandita_) from her Zebra
+  Talks interview with the BOAR team. Its entries, checked and corrected for 2.0.0, are in
+  app/src/main/assets/boar-faq/faq.json; BOAR answers questions about itself from them (BoarPack).
+
 llama.cpp / ggml — https://github.com/ggml-org/llama.cpp
   MIT License, Copyright (c) 2023-2026 The ggml authors. Git submodule under engine/src/main/cpp/llama.cpp.
 

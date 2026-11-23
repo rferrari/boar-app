@@ -7,9 +7,11 @@
 // budget stops the job before it's exceeded.
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SHARED = process.env.BOAR_SHARED_DATA ?? "/Users/r4to/Script/boar/shared-data";
+// The shared cache and spend log: BOAR_SHARED_DATA, else build/shared-data in this repo (gitignored).
+const SHARED = process.env.BOAR_SHARED_DATA ?? join(dirname(fileURLToPath(import.meta.url)), "..", "..", "build", "shared-data");
 const CACHE = join(SHARED, "jev-cache");
 const SPEND = join(SHARED, "jev-spend.jsonl");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

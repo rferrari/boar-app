@@ -38,8 +38,7 @@ believe: [MANIFESTO.md](MANIFESTO.md).
 ## Install
 
 1. Download the APK from the [releases page](https://github.com/rferrari/boar-app/releases)
-   (any 64-bit ARM phone, Android 8 or newer). Version 2.0.0-rc1 is a pre-release, a release
-   candidate for 2.0.0.
+   (any 64-bit ARM phone, Android 8 or newer). The current release is 2.0.0.
 2. Check it against the `.sha256` file next to it, then open it on the phone or run
    `adb install <file>.apk`.
 3. On first launch, setup downloads three things: the answer model, the search model

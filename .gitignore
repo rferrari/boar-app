@@ -58,3 +58,5 @@ android-native/app/src/labs/plugins/*/jniLibs/
 .claude/
 .agents/
 skills-lock.json
+# the jev cache and spend log (scripts/lib/jev.mjs; BOAR_SHARED_DATA overrides)
+build/shared-data/

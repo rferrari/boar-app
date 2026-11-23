@@ -626,7 +626,7 @@
     <string name="native_setupGuide_labs_sub" formatted="false">Extra tools in the menu and under answers. Some start on: switch on the others you want.</string>
     <string name="native_setupGuide_labs_beta" formatted="false">Beta: tested on phones</string>
     <string name="native_setupGuide_labs_alpha" formatted="false">Alpha: early, less tested</string>
-    <string name="native_setupGuide_labs_note" formatted="false">Plugins don\'t slow the answers. Designer loads its own model, so it uses extra memory while it draws. All of them are in Settings → Experimental → Plugins.</string>
+    <string name="native_setupGuide_labs_note" formatted="false">Switch them on or off any time in Plugins, in the menu. Designer loads its own model and uses extra memory while it draws, and while Cards or Press is writing with the model, a question waits for it.</string>
     <string name="native_setupGuide_ready_title" formatted="false">Almost there</string>
     <string name="native_setupGuide_ready_sub" formatted="false">BOAR opens as soon as the download and the index are done.</string>
     <string name="native_setupGuide_ready_choices" formatted="false">Your choices</string>

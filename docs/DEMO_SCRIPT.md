@@ -8,7 +8,7 @@ checked against a measured run.
 
 ## Before filming
 
-1. Install the exact release build you'll submit, 2.0.0-rc1 or later
+1. Install the exact release build you'll submit, 2.0.0
    ([RELEASING.md](RELEASING.md)).
 2. Have the recommended models for the phone downloaded (Settings → Reasoning Models →
    Open the model catalog). On a 12 GB phone: Qwen3 4B and LFM2.5 8B. Under 12 GB:
