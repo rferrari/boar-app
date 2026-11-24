@@ -20,6 +20,7 @@
 <p align="center">
   <a href="https://github.com/rferrari/boar-app/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/rferrari/boar-app?include_prereleases&color=FF7A3D" /></a>
   <img alt="Android" src="https://img.shields.io/badge/platform-Android-FFB547" />
+  <a href="https://github.com/sopa-agency/boar-ios-app"><img alt="iOS and macOS: boar-ios-app" src="https://img.shields.io/badge/iOS%20%26%20macOS-boar--ios--app-FFB547" /></a>
   <img alt="Works offline" src="https://img.shields.io/badge/works-offline-17110D" />
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/github/license/rferrari/boar-app" /></a>
 </p>
@@ -39,8 +40,8 @@ believe: [MANIFESTO.md](MANIFESTO.md).
 
 1. Download the APK from the [releases page](https://github.com/rferrari/boar-app/releases)
    (any 64-bit ARM phone, Android 8 or newer). The current release is 2.0.0.
-2. Check it against the `.sha256` file next to it, then open it on the phone or run
-   `adb install <file>.apk`.
+2. Check it against `SHA256SUMS`, next to it on the release (`sha256sum -c SHA256SUMS`), then
+   open it on the phone or run `adb install boar-2.0.0.apk`.
 3. On first launch, setup downloads three things: the answer model, the search model
    (BGE Small) and the Wikipedia Vital Articles pack (about 164 MB, from the
    `knowledge-pack-v1` release). The answer model is Qwen3 4B (about 2.5 GB) on 12 GB phones
@@ -48,12 +49,12 @@ believe: [MANIFESTO.md](MANIFESTO.md).
    short on space, setup offers a smaller package without the Vital Articles pack. While it
    downloads, setup walks you through BOAR's main choices.
 
-No internet at all, not even once? The release also has an **offline APK**
-(`boar-…-offline-arm64.apk`, about 2 GB) with Qwen3 1.7B, the search model, the Vital Articles
-pack and Designer's drawing model inside. It unpacks them on first launch and never needs the
-network. A Qwen3 4B one (about 3.4 GB, for 12 GB phones) is on
-[Hugging Face](https://huggingface.co/BOAR-App/boar-offline), with the 1.7B one; you can also
-build your own with another model ([USING.md](docs/USING.md#build-your-own)).
+No internet at all, not even once? 2.0.0 has no offline APK. The last ones are 2.0.0-rc2's, on
+[Hugging Face](https://huggingface.co/BOAR-App/boar-offline): an **offline APK** with the
+model, the search model, the Vital Articles pack and Designer's drawing model inside, which
+unpacks them on first launch and never needs the network (Qwen3 1.7B, about 2 GB, or Qwen3 4B,
+about 3.4 GB, for 12 GB phones). You can also build your own from the current code, with
+another model if you like ([USING.md](docs/USING.md#build-your-own)).
 
 After setup, chat, search and sources work without a connection. The network permission
 stays for things you start yourself: more models, packs, or searching Hugging Face for
@@ -62,22 +63,23 @@ other GGUF models.
 If you have BOAR 1.x (the Expo app) installed, an official release installs over it and
 keeps your models.
 
-The APK has no Google Play Services dependencies. The rc1 previews were tested on a Pixel 8a
-with GrapheneOS.
+The APK has no Google Play Services dependencies. 2.0.0-rc1 was tested on a Pixel 8a with
+GrapheneOS.
 
 ## Which branch?
 
 | You want to… | Branch | What's there |
 |---|---|---|
-| Build or change the Android app | **`main`** | The native app (Kotlin, llama.cpp). The current APK is built from it. |
-| Ship a phone that never goes online | `feat/offline-bundle` | `main` plus models packed inside the APK: `scripts/build-offline-apk.sh` |
-| Send a pull request | `fullnative-dev` | Native development line; changes land here before `main` |
-| Work on iOS or the cross-platform app | `expo`, `ios` | BOAR 1.x, Expo / React Native (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
-| Write a Boar Lab or plugin | `fullnative-dev` | One plugin folder, then a PR into `fullnative-dev`: [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Build or change the Android app | **`main`** | The native app (Kotlin, llama.cpp). 2.0.0 is built from it. |
+| Send a pull request | a branch off `main` | `feat/…`, `fix/…`, `docs/…`, then a pull request into `main` |
+| Write a Boar Lab or plugin | a branch off `main` | One plugin folder, then a pull request into `main`: [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Use BOAR on iPhone or Mac | [sopa-agency/boar-ios-app](https://github.com/sopa-agency/boar-ios-app) | Its own repository: SwiftUI and llama.cpp, kept in step with the Android work |
+| Ship a phone that never goes online | `feat/offline-bundle` | The offline APK's packaging (`scripts/build-offline-apk.sh`), at 2.0.0-rc2, not updated since |
+| Find BOAR 1.x | `expo`, `ios` | The Expo / React Native app (tag `expo-final`), including the routing and facts work of PR #85. Parked. |
 | Try other inference engines | `experimental-engines`, `experimental-laya` | Parked experiments, with their measurements |
 
-`main` holds what's released; `fullnative-dev` is where development happens. Branch from `fullnative-dev`,
-and open your pull request against it.
+`main` holds the current code and the releases. Branch from `main`, and open your pull request
+against it.
 
 ## Build from source
 
@@ -97,14 +99,20 @@ Exact commands, build flags, signing and tests: [AGENTS.md](AGENTS.md).
 
 ## Boar Labs
 
-Boar Labs is a set of experiments that exist only in builds made with
-`EXPERIMENTAL_FEATURES=true`, as the 2.0.0 releases are. Each lab is one plugin folder under
-`android-native/app/src/labs/plugins/`. Boar Labs starts on (Settings → Experimental). The
-quick-answer labs (Calculator, Facts, Cohazard, Distance, Polyglot, all beta) and Boar Vitals
-start on. The alpha labs start off: Guard, Press, Designer, Big Boar, Nomad and Lunar. Boar
-Wisp is in review. Some run their own engine: Big Boar (Qwen3.6 35B, 12.3 GB, read from
-storage), Boar Wisp (colibri) and Boar Designer (image generation with stable-diffusion.cpp).
-A build without the flag has none of this. How a lab is made: [docs/PLUGINS.md](docs/PLUGINS.md).
+Boar Labs, the plugins, exists only in builds made with `EXPERIMENTAL_FEATURES=true`, as 2.0.0
+is. Each plugin is one folder under `android-native/app/src/labs/plugins/`; a release build
+carries the ones listed in `android-native/app/src/labs/released.txt`, each with its tests.
+
+- Start on: Vitals, Designer, Press, Calculator, Distance, Facts, Cohazard and Cards.
+- Start off: Nomad, Lunar and Guard.
+- Polyglot is deprecated: its code stays, but it is off and not in the list.
+- Big Boar and Boar Wisp, which run their own engines, are left out of a release build. Designer
+  draws on the phone with stable-diffusion.cpp.
+
+The Plugins list, with a switch for each plugin, is in the menu in every profile. Turning off
+Cohazard, the carbon monoxide safety card, asks first. Boar Labs' own switch is in Settings →
+Experimental (Pro). A build without the flag has none of this. How a plugin is made:
+[docs/PLUGINS.md](docs/PLUGINS.md).
 
 ## Docs
 

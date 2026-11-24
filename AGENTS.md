@@ -31,17 +31,14 @@ branch and the tag `expo-final`.
 
 ## Branches and releases
 
-- **`fullnative-dev`** is where development happens. Branch from it (`feat/…`, `fix/…`,
-  `docs/…`) and open your pull request against it.
-- **`main`** holds what's released. It changes only through a release pull request from
-  `fullnative-dev`, after the checks in [docs/RELEASING.md](docs/RELEASING.md).
-- **An urgent fix for a released build:** fix it on `fullnative-dev` first, then cherry-pick that
-  commit onto a branch from `main` and open a pull request against `main`. Never fix `main` alone,
-  or the next release would undo the fix.
-- Branch from the branch you'll merge into: a branch made from `main` drags `main`'s history
-  into a `fullnative-dev` pull request.
-- `feat/offline-bundle` is `fullnative-dev` plus the offline APK's packaging; rebase it before
-  each release. `expo` and `ios` are parked; `fullnative` is retired (tag `archive/fullnative`).
+- **`main`** is where development happens and what's released (since 2.0.0). Branch from it
+  (`feat/…`, `fix/…`, `docs/…`) and open your pull request against it. A release is a tag on
+  `main`, after the checks in [docs/RELEASING.md](docs/RELEASING.md).
+- `feat/offline-bundle` is the offline APK's packaging, still at 2.0.0-rc2; rebase it on `main`
+  before building an offline APK. `expo` and `ios` hold BOAR 1.x, parked (tag `expo-final`);
+  `fullnative` is retired (tag `archive/fullnative`).
+- The iPhone and Mac app is its own repository:
+  [sopa-agency/boar-ios-app](https://github.com/sopa-agency/boar-ios-app).
 
 ## Prerequisites
 
@@ -179,11 +176,11 @@ Run a local CodeRabbit review before every `git push`, in addition to the tests:
 
 ```bash
 cr doctor                          # once: CLI installed and signed in
-cr review --agent --base fullnative-dev   # this branch against the dev branch, structured findings
+cr review --agent --base main     # this branch against main, structured findings
 cr review --agent --uncommitted    # or only what isn't committed yet
 ```
 
-`cr review --base fullnative-dev` gives the same review (use `--base main` for a release pull request) with readable output. A review can take several
+`cr review --base main` gives the same review with readable output. A review can take several
 minutes, so run it in the background. Check each finding against the current code before
 acting on it: fix the ones that hold up, and note in one line why you skipped the others.
 Re-run once after fixing, not in a loop.
