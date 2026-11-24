@@ -34,7 +34,6 @@ branch and the tag `expo-final`.
 - **`main`** is where development happens and what's released (since 2.0.0). Branch from it
   (`feat/…`, `fix/…`, `docs/…`) and open your pull request against it. A release is a tag on
   `main`, after the checks in [docs/RELEASING.md](docs/RELEASING.md).
-- `fullnative-dev` is no longer used.
 - `feat/offline-bundle` is the offline APK's packaging, still at 2.0.0-rc2; rebase it on `main`
   before building an offline APK. `expo` and `ios` hold BOAR 1.x, parked (tag `expo-final`);
   `fullnative` is retired (tag `archive/fullnative`).

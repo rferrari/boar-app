@@ -4,9 +4,8 @@ Release APKs of the native app (`android-native/`) are built locally, on the mac
 holds the release key, and checked before upload. The 2.0.0 candidates were published as
 GitHub pre-releases (`v2.0.0-rc1`, `v2.0.0-rc2`); `v2.0.0` is a release.
 
-The flow: changes land on `main` through pull requests (since 2.0.0; `fullnative-dev` is no longer
-used). A release is the tag on `main` and the GitHub release; `v2.0.0` became the Latest release
-when it was tagged.
+The flow: changes land on `main` through pull requests. A release is the tag on `main` and the
+GitHub release; `v2.0.0` became the Latest release when it was tagged.
 
 ## Once: the key
 
