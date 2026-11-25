@@ -11,7 +11,8 @@ class MessageQueueWiringTest {
     private val bar = java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/PromptBar.kt").readText()
 
     @Test fun `a question sent while answering waits, at most five`() {
-        assertTrue(vm.contains("if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {\n            if (queue.add(q)) publishQueue() else showToast(\"native.chat.queueFull\")"))
+        // Behind the prune note too (BOAR-68).
+        assertTrue(vm.contains("if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty() || prunedQuestion != null))) {\n            if (queue.add(q)) publishQueue() else showToast(\"native.chat.queueFull\")"))
         assertTrue(vm.contains("private val queue = team.sopa.boar.engine.chat.PromptQueue()"))
     }
 
