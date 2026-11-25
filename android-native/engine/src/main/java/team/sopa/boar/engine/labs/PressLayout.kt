@@ -42,7 +42,8 @@ object PressLayout {
         is Block.Answer -> true
         is Block.Note -> b.text.isNotBlank()
         is Block.Paragraph -> b.text.isNotBlank()
-        is Block.Bullets -> b.text.isNotBlank()
+        // Marker-only text ("-\n*") is an empty list too (CodeRabbit).
+        is Block.Bullets -> b.items.isNotEmpty()
         else -> false
     }
 

@@ -9,7 +9,7 @@ class PressPortBugsTest {
     private val photo = Block.Picture("ph", PressDoc.Kind.PHOTO, "/p.jpg", place = PressDoc.Place.LEFT)
 
     @Test fun `an empty paragraph, list or note after a side photo goes below it, where it can be tapped`() {
-        for (empty in listOf(Block.Paragraph("e", " "), Block.Bullets("e", ""), Block.Note("e", ""))) {
+        for (empty in listOf(Block.Paragraph("e", " "), Block.Bullets("e", ""), Block.Bullets("e", "-\n*\n•"), Block.Note("e", ""))) {
             val plan = PressLayout.plan(listOf(photo, empty))
             assertEquals(listOf(PressLayout.Item.Beside(photo, null, true), PressLayout.Item.Single(empty)), plan)
         }
