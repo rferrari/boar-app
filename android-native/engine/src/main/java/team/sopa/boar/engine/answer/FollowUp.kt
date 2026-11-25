@@ -109,9 +109,6 @@ object FollowUp {
         return Plan()
     }
 
-    /** The question leans on the earlier conversation: it points back, is a short one with no name of its own, or asks for more. */
-    fun isFollowUp(query: String, history: ConversationHistory?): Boolean = plan(query, history) != Plan()
-
     /**
      * The passages the fallback found that share at least one of the question's own content words (stemmed, as
      * retrieval does): a question that found nothing because of a typo ("what is a moonsoon", after a greenhouse-effect

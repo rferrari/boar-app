@@ -69,10 +69,24 @@ class StagedTopicSwitchTest {
         assertFalse(model.prompts[1].contains("Russia"))
     }
 
+    private fun runFound(q: String, model: Model, found: (String) -> List<Chunk>) = runBlocking {
+        StagedAnswer({ s, _ -> found(s) }, { "explanation" }, { false })
+            .answer(StagedRequest(q, "You are BOAR.", "Keep it short.", "Be thorough.", 512, countries), { model }, { false }).toList()
+    }
+
     @Test fun `a follow-up keeps the earlier turns in its details`() {
         val model = Model("eos", "A capital do Brasil é Brasília [1].", "Mais [1].")
-        run("e a capital?", countries, model, listOf(brazil))
+        // Its own words find nothing; the earlier question's do.
+        runFound("e a capital?", model) { s -> if ("Brazil" in s) listOf(brazil) else emptyList() }
         assertEquals(2, model.prompts.size)
         assertTrue(model.prompts[1].contains("Russia is larger in area"))
+    }
+
+    @Test fun `a short new topic that finds its own sources leaves the earlier turns out (CodeRabbit)`() {
+        val model = Model("eos", "Plants make sugar from light [1].", "More [1].")
+        val leaf = Chunk("p1", "photosynthesis", "Photosynthesis", "Photosynthesis turns light, water and CO2 into sugar.")
+        runFound("what is photosynthesis?", model) { s -> if ("photosynthesis" in s && "Brazil" !in s) listOf(leaf) else emptyList() }
+        assertEquals(2, model.prompts.size)
+        assertFalse(model.prompts[1].contains("Russia"))
     }
 }

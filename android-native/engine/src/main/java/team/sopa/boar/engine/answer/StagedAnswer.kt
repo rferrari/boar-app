@@ -103,10 +103,13 @@ class StagedAnswer(
         var sources: List<Chunk> = emptyList()
         var keyFacts: List<KeyFact> = emptyList()
         var retrievalMs: Double? = null
+        // The question found sources with its own words (not the earlier question's): it is on its own topic.
+        var foundOwn = false
         if (!retrievalIrrelevant(task)) {
             emit(StagedEvent.Step(StagedStep.SOURCES))
             val found = FollowUp.search(req.query, req.history, { c: Chunk -> "${c.title} ${c.body}" }) { retrieve(it, AnswerPipeline.ANSWER_CONTEXT_CHUNKS) }
             sources = Compress.forAnswer(found.searchedFor, found.chunks, task).chunks
+            foundOwn = found.searchedFor == req.query && found.chunks.isNotEmpty()
             keyFacts = keyFacts(found.searchedFor, sources)
             retrievalMs = now()
             times = times.copy(sourcesMs = retrievalMs)
@@ -146,8 +149,10 @@ class StagedAnswer(
         // BOAR-78 (F3, 25 Nov): "quanto e 20% de 300" after a Brazil/Russia question wrote its details on Brazil and
         // Russia, the earlier turns being the only material. A question on its own topic (not a follow-up, by the same
         // rule the search uses) gets details from the intro alone; with no sources and an intro that ended by itself,
-        // the intro is the answer. An intro cut at its cap (code, a translation) still goes on.
-        val ownTopic = !FollowUp.isFollowUp(req.query, req.history)
+        // the intro is the answer. An intro cut at its cap (code, a translation) still goes on. A short question with no
+        // name of its own ("what is photosynthesis?") is a follow-up only when its own words found nothing (CodeRabbit).
+        val plan = FollowUp.plan(req.query, req.history)
+        val ownTopic = plan.direct == null && (plan.fallback == null || foundOwn)
         val introEnded = metrics?.stopReason != "length"
         if (req.detailsReminder != null && introText.isNotEmpty() && !fullAnswer && !shouldStop() && !(ownTopic && sources.isEmpty() && introEnded)) {
             if (sources.isNotEmpty()) {
