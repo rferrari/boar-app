@@ -413,9 +413,13 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(loadNote = null) }
     }
 
+    /** Counts chat switches: a load started in one chat doesn't send its held question into another (CodeRabbit). */
+    @Volatile private var chatEpoch = 0
+
     private fun userLoad(modelId: String) {
         val note = _state.value.loadNote
         val held = heldQuestion.also { heldQuestion = null }
+        val epoch = chatEpoch
         _state.update { it.copy(loadNote = null, loadingKey = "chatScreen.mountingWeights") }
         val previous = preloading
         preloading = safeScope.launch(Dispatchers.Default) {
@@ -425,8 +429,14 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 refreshModel()
                 // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
                 _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
+                // Another chat opened while it loaded: the held question goes, said once (BOAR-68b), and what was set
+                // for it too; the queue went with the switch.
+                if (held != null && chatEpoch != epoch) {
+                    dropOnce()
+                    team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.queueDroppedSwitch", "count" to 1))
+                }
                 // The held question keeps its place: first, before any that waited behind it.
-                if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
+                else if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
                 // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
                 else if (loaded) runNext(fresh = true)
                 // A failed load: the held question went, and what was set for it goes too, or the next typed question
@@ -558,7 +568,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun newChat() {
         if (job?.isActive == true) return
-        if (_state.value.sessionId != null) dropWaitingForSwitch()
+        if (_state.value.sessionId != null) { chatEpoch++; dropWaitingForSwitch() }
         _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
     }
 
@@ -616,7 +626,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openSession(id: String) {
         if (job?.isActive == true) return
-        if (_state.value.sessionId != id) dropWaitingForSwitch()
+        if (_state.value.sessionId != id) { chatEpoch++; dropWaitingForSwitch() }
         safeScope.launch {
             val msgs = runCatching {
                 withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->

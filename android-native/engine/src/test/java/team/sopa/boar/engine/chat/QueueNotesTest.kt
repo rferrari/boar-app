@@ -33,8 +33,17 @@ class QueueNotesTest {
         assertTrue(drop.contains("prunedQuestion = null"))
         assertTrue(drop.contains("native.chat.queueDroppedSwitch"))
         // Staying in the same chat keeps them.
-        assertTrue(fn("openSession").contains("if (_state.value.sessionId != id) dropWaitingForSwitch()"))
+        assertTrue(fn("openSession").contains("if (_state.value.sessionId != id) { chatEpoch++; dropWaitingForSwitch() }"))
         assertFalse(fn("newChat").contains("if (_state.value.sessionId == null) dropWaitingForSwitch()"))
+    }
+
+    @Test fun `a chat switch during the model load drops the held question instead of sending it to the other chat`() {
+        assertTrue(fn("newChat").contains("chatEpoch++"))
+        assertTrue(fn("openSession").contains("chatEpoch++"))
+        val load = fn("userLoad")
+        assertTrue(load.contains("val epoch = chatEpoch"))
+        val drop = load.indexOf("if (held != null && chatEpoch != epoch)")
+        assertTrue(drop >= 0 && drop < load.indexOf("send(held, null, fromQueue = true"))
     }
 
     @Test fun `each toast is in English and Portuguese`() {
