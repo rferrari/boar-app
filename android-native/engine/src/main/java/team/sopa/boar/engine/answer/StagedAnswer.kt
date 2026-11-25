@@ -143,7 +143,13 @@ class StagedAnswer(
         }
 
         val details = StringBuilder()
-        if (req.detailsReminder != null && introText.isNotEmpty() && !fullAnswer && !shouldStop()) {
+        // BOAR-78 (F3, 25 Nov): "quanto e 20% de 300" after a Brazil/Russia question wrote its details on Brazil and
+        // Russia, the earlier turns being the only material. A question on its own topic (not a follow-up, by the same
+        // rule the search uses) gets details from the intro alone; with no sources and an intro that ended by itself,
+        // the intro is the answer. An intro cut at its cap (code, a translation) still goes on.
+        val ownTopic = !FollowUp.isFollowUp(req.query, req.history)
+        val introEnded = metrics?.stopReason != "length"
+        if (req.detailsReminder != null && introText.isNotEmpty() && !fullAnswer && !shouldStop() && !(ownTopic && sources.isEmpty() && introEnded)) {
             if (sources.isNotEmpty()) {
                 emit(StagedEvent.Step(StagedStep.RESEARCH))
                 val added = moreSources(req.query, introText, sources)
@@ -155,8 +161,10 @@ class StagedAnswer(
             }
             if (!shouldStop()) {
                 emit(StagedEvent.Step(StagedStep.DETAILS))
-                // The intro stays in the conversation as the model's own turn, so the details go on from it.
-                val history = ConversationHistory(req.history?.summary, req.history?.turns.orEmpty() +
+                // The intro stays in the conversation as the model's own turn, so the details go on from it; earlier
+                // turns only for a follow-up.
+                val earlier = req.history.takeUnless { ownTopic }
+                val history = ConversationHistory(earlier?.summary, earlier?.turns.orEmpty() +
                     ConversationTurn("user", req.query) + ConversationTurn("assistant", introText))
                 metrics = generate(session, prompt(session, DETAILS_ASK, sources, req.systemPrompt, history, req.detailsReminder, req.enableThinking, languageOf = req.query), req.maxTokens) { piece ->
                     if (times.detailsFirstMs == null) times = times.copy(detailsFirstMs = now())
