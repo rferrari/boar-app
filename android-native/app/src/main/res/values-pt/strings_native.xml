@@ -711,6 +711,8 @@
     <string name="native_a11y_rateDown" formatted="false">Resposta ruim</string>
     <string name="native_a11y_pluginActions" formatted="false">Plugins para esta resposta</string>
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} perguntas na fila foram descartadas: elas também precisam desse modelo.</string>
+    <string name="native_chat_queueDroppedPrune" formatted="false">{{count}} perguntas na fila foram descartadas: a conversa nova não foi começada.</string>
+    <string name="native_chat_queueDroppedSwitch" formatted="false">{{count}} perguntas na fila foram descartadas: eram da conversa que você deixou.</string>
     <string name="native_chat_mergeQueue" formatted="false">Juntar numa só pergunta</string>
     <string name="native_nav_chat" formatted="false">Conversa</string>
     <string name="native_settings_profile_simpleShort" formatted="false">Iniciante: configure o essencial.</string>

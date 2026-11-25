@@ -711,6 +711,8 @@
     <string name="native_a11y_rateDown" formatted="false">Bad answer</string>
     <string name="native_a11y_pluginActions" formatted="false">Plugins for this answer</string>
     <string name="native_chat_queueDroppedNote" formatted="false">{{count}} waiting questions were dropped: they need that model too.</string>
+    <string name="native_chat_queueDroppedPrune" formatted="false">{{count}} waiting questions were dropped: the new chat was not started.</string>
+    <string name="native_chat_queueDroppedSwitch" formatted="false">{{count}} waiting questions were dropped: they were asked in the chat you left.</string>
     <string name="native_chat_mergeQueue" formatted="false">Merge into one question</string>
     <string name="native_nav_chat" formatted="false">Chat</string>
     <string name="native_settings_profile_simpleShort" formatted="false">Starter: set up the essentials.</string>
