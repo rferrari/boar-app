@@ -415,26 +415,27 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Counts chat switches: a load started in one chat doesn't send its held question into another (CodeRabbit). */
     @Volatile private var chatEpoch = 0
+    /** The held question a load is under way for: a chat switch drops it, and its options, at the switch. */
+    @Volatile private var loadHeld: String? = null
 
     private fun userLoad(modelId: String) {
         val note = _state.value.loadNote
         val held = heldQuestion.also { heldQuestion = null }
         val epoch = chatEpoch
+        loadHeld = held
         _state.update { it.copy(loadNote = null, loadingKey = "chatScreen.mountingWeights") }
         val previous = preloading
         preloading = safeScope.launch(Dispatchers.Default) {
             previous?.join()
             val loaded = runCatching { services.host.load(modelId) }.getOrNull() != null
             withContext(Dispatchers.Main) {
+                if (chatEpoch == epoch) loadHeld = null
                 refreshModel()
                 // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
                 _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
-                // Another chat opened while it loaded: the held question goes, said once (BOAR-68b), and what was set
-                // for it too; the queue went with the switch.
-                if (held != null && chatEpoch != epoch) {
-                    dropOnce()
-                    team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.queueDroppedSwitch", "count" to 1))
-                }
+                // Another chat opened while it loaded: the switch already dropped the held question and its options
+                // (BOAR-68b); this stale load touches nothing a newer question may have set (CodeRabbit).
+                if (held != null && chatEpoch != epoch) Unit
                 // The held question keeps its place: first, before any that waited behind it.
                 else if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
                 // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
@@ -1174,8 +1175,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * was asked in or not at all, so the held and waiting questions go, said once. The notes stay about the model.
      */
     private fun dropWaitingForSwitch() {
-        val held = listOfNotNull(heldQuestion, prunedQuestion?.first).size
+        val held = listOfNotNull(heldQuestion, prunedQuestion?.first, loadHeld).size
         if (held == 0 && queue.isEmpty()) return
+        loadHeld = null
         heldQuestion = null
         prunedQuestion = null
         pruneAccepted = false

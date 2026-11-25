@@ -42,8 +42,18 @@ class QueueNotesTest {
         assertTrue(fn("openSession").contains("chatEpoch++"))
         val load = fn("userLoad")
         assertTrue(load.contains("val epoch = chatEpoch"))
-        val drop = load.indexOf("if (held != null && chatEpoch != epoch)")
+        val drop = load.indexOf("if (held != null && chatEpoch != epoch) Unit")
         assertTrue(drop >= 0 && drop < load.indexOf("send(held, null, fromQueue = true"))
+    }
+
+    @Test fun `the switch drops the loading question's options, and the stale load leaves a newer question's alone (CodeRabbit)`() {
+        assertTrue(fn("userLoad").contains("loadHeld = held"))
+        val drop = fn("dropWaitingForSwitch")
+        assertTrue(drop.contains("listOfNotNull(heldQuestion, prunedQuestion?.first, loadHeld)"))
+        assertTrue(drop.contains("dropOnce()"))
+        // The stale completion clears nothing shared.
+        val stale = fn("userLoad").substringAfter("if (held != null && chatEpoch != epoch)").substringBefore("\n")
+        assertFalse(stale.contains("dropOnce"))
     }
 
     @Test fun `each toast is in English and Portuguese`() {
