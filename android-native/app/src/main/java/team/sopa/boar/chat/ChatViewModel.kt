@@ -569,7 +569,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun newChat() {
         if (job?.isActive == true) return
-        if (_state.value.sessionId != null) { chatEpoch++; dropWaitingForSwitch() }
+        // From a saved chat, or a blank one whose first question waits for the model load or a note: "New chat" leaves
+        // it, so it isn't asked later in the new one (CodeRabbit on PR 124).
+        if (_state.value.sessionId != null || loadHeld != null || heldQuestion != null || prunedQuestion != null) { chatEpoch++; dropWaitingForSwitch() }
         _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
     }
 

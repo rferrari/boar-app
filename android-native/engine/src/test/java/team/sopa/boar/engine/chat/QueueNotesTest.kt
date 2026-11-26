@@ -64,6 +64,12 @@ class QueueNotesTest {
         assertTrue(guard >= 0 && guard < next.indexOf("queue.next()"))
     }
 
+    @Test fun `new chat drops a question held for the model load even in a chat with no session (CodeRabbit on PR 124)`() {
+        val nc = fn("newChat")
+        assertTrue(nc.contains("loadHeld != null"))
+        assertTrue(nc.contains("heldQuestion != null"))
+    }
+
     @Test fun `each toast is in English and Portuguese`() {
         for (res in listOf("values", "values-pt")) {
             val xml = java.io.File("../app/src/main/res/$res/strings_native.xml").readText()
