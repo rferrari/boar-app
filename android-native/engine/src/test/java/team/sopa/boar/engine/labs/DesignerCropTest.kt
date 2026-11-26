@@ -83,4 +83,15 @@ class DesignerCropTest {
             for (k in listOf("crop", "cropNote", "cropFree", "cropSave", "cropFailed")) assertTrue("$d $k", s.contains("name=\"native_labs_image_$k\""))
         }
     }
+
+    @Test fun `the guide, Designer's How it works and its README say square and Crop (BOAR-88)`() {
+        val assets = "../app/src/main/assets/boar-guide"
+        assertTrue(java.io.File("$assets/en.md").readText().contains("Crop saves a wide or tall copy"))
+        assertTrue(java.io.File("$assets/pt.md").readText().contains("Recortar salva uma cópia larga ou alta"))
+        val dir = "../app/src/labs/plugins/designer"
+        assertTrue(java.io.File("$dir/res/values/strings_lab_image.xml").readText().contains("• Every drawing is square; Crop saves a wide or tall copy and keeps the drawing."))
+        assertTrue(java.io.File("$dir/res/values-pt/strings_lab_image.xml").readText().contains("• Todo desenho é quadrado; Recortar salva uma cópia larga ou alta e mantém o desenho."))
+        val readme = java.io.File("$dir/README.md").readText()
+        assertTrue(readme.contains("## Size and crop") && readme.contains("512x512 only"))
+    }
 }

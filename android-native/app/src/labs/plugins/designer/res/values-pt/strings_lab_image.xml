@@ -54,7 +54,7 @@
     <string name="native_labs_image_reset" formatted="false">Redefinir</string>
     <string name="native_labs_image_drawPicked" formatted="false">Desenhar · {{style}}</string>
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
-    <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
+    <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Todo desenho é quadrado; Recortar salva uma cópia larga ou alta e mantém o desenho.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
     <string name="native_labs_image_styleHint" formatted="false">Toque de novo no estilo escolhido para ficar sem estilo.</string>
     <string name="native_labs_image_styleHintNone" formatted="false">Sem estilo: suas palavras são o pedido inteiro.</string>
     <string name="native_labs_image_emptyCanvas" formatted="false">Digite um tema e toque em Desenhar.</string>
