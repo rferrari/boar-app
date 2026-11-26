@@ -286,7 +286,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
             onSend = { vm.generate(subject); keyboard?.hide(); focus.clearFocus() }, onStop = { vm.cancel() }, voiceEnabled = voiceEnabled,
             placeholder = t("native.labs.image.placeholder"), onLeft = { if (!busy) menu = true }, leftLabel = menuLabel,
             left = { team.sopa.boar.labs.PluginMenuIcon(menuLabel, tint = if (!busy) c.textHeading else c.textDim) },
-            sendIcon = team.sopa.boar.R.drawable.ic_designer_draw, sendLabel = t("native.labs.image.generate"), queues = false, enabled = ready)
+            sendLabel = t("native.labs.image.generate"), queues = false, enabled = ready)
     }
     tool?.let { which -> ToolSheet(which, onClose = { tool = null }) {
         when (which) { Tool.STYLE -> StyleSection(state, vm) }

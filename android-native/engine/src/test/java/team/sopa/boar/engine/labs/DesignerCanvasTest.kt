@@ -93,7 +93,8 @@ class DesignerCanvasTest {
         val canvas = screen.substringAfter("fun DesignerCanvasScreen(").substringBefore("\n}\n")
         assertTrue(canvas.contains("team.sopa.boar.ui.chat.PromptBar(subject, { subject = it }, answering = busy,"))
         assertTrue(canvas.contains("onSend = { vm.generate(subject); keyboard?.hide(); focus.clearFocus() }, onStop = { vm.cancel() }, voiceEnabled = voiceEnabled"))
-        assertTrue(canvas.contains("sendIcon = team.sopa.boar.R.drawable.ic_designer_draw, sendLabel = t(\"native.labs.image.generate\"), queues = false, enabled = ready"))
+        // The chat's own send icon, not a pencil (adam, 26 Nov); it still says Draw to TalkBack.
+        assertTrue(canvas.contains("sendLabel = t(\"native.labs.image.generate\"), queues = false, enabled = ready") && !canvas.contains("sendIcon ="))
         assertTrue(canvas.contains("placeholder = t(\"native.labs.image.placeholder\")") && canvas.contains("settings.voiceInputEnabled"))
         // Its own copy is gone: one bar for both.
         assertTrue(!screen.contains("private fun PromptBar(") && !screen.contains("BasicTextField("))
