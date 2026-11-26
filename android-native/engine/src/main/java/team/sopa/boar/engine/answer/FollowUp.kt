@@ -109,7 +109,6 @@ object FollowUp {
         return Plan()
     }
 
-    /** Runs [find] (the text to search → its chunks) with the follow-up rule. */
     /**
      * The passages the fallback found that share at least one of the question's own content words (stemmed, as
      * retrieval does): a question that found nothing because of a typo ("what is a moonsoon", after a greenhouse-effect

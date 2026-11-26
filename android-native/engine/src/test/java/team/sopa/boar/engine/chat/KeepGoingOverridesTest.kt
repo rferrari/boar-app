@@ -28,7 +28,8 @@ class KeepGoingOverridesTest {
         val drop = body("dropOnce")
         for (v in listOf("stepOnce = null", "styleOnce = null", "deepOnce = null", "skipToolsOnce = false", "bypassed = null")) assertTrue(v, drop.contains(v))
         // Loading the model instead sends the held question with its overrides: userLoad doesn't drop them.
-        // Only the failed load drops them (R-A5); a load that works sends the held question with them.
+        // Only the failed load drops them (R-A5); a chat switch during the load drops them at the switch
+        // (dropWaitingForSwitch, BOAR-68); a load that works in the same chat sends the held question with them.
         assertEquals(1, Regex("dropOnce\\(\\)").findAll(body("userLoad")).count())
         assertTrue(body("userLoad").contains("if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)"))
     }

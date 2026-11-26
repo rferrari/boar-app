@@ -383,17 +383,22 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         resumePruned()
     }
 
-    /** The prune note closed: the question goes, unasked, with what was set for it (as dismissLoadNote). */
+    /**
+     * The prune note closed: the question goes, unasked, with what was set for it (as dismissLoadNote). Questions that
+     * waited behind it go too, said once: each would start the same new chat and ask again (BOAR-68).
+     */
     fun pruneCancel() {
         prunedQuestion = null
         dropOnce()
         _state.update { it.copy(pruneNote = null) }
+        dropQueue("native.chat.queueDroppedPrune")
     }
 
+    /** The held question keeps its place, first, before any sent while the note asked (BOAR-68); they follow it. */
     private fun resumePruned() {
         val held = prunedQuestion.also { prunedQuestion = null }
         _state.update { it.copy(pruneNote = null) }
-        if (held != null) send(held.first, held.second) else pruneAccepted = false
+        if (held != null) send(held.first, held.second, fromQueue = true, serviceUp = false) else { pruneAccepted = false; runNext(fresh = true) }
     }
 
     /** The held-back model whose note the user closed: not shown again for it in this run. */
@@ -408,20 +413,31 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(loadNote = null) }
     }
 
+    /** Counts chat switches: a load started in one chat doesn't send its held question into another (CodeRabbit). */
+    @Volatile private var chatEpoch = 0
+    /** The held question a load is under way for: a chat switch drops it, and its options, at the switch. */
+    @Volatile private var loadHeld: String? = null
+
     private fun userLoad(modelId: String) {
         val note = _state.value.loadNote
         val held = heldQuestion.also { heldQuestion = null }
+        val epoch = chatEpoch
+        loadHeld = held
         _state.update { it.copy(loadNote = null, loadingKey = "chatScreen.mountingWeights") }
         val previous = preloading
         preloading = safeScope.launch(Dispatchers.Default) {
             previous?.join()
             val loaded = runCatching { services.host.load(modelId) }.getOrNull() != null
             withContext(Dispatchers.Main) {
+                if (chatEpoch == epoch) loadHeld = null
                 refreshModel()
                 // A load that returned without a model (not a closed app): the note comes back, so the user can still choose.
                 _state.update { it.copy(loadingKey = null, loadNote = if (loaded) null else note) }
+                // Another chat opened while it loaded: the switch already dropped the held question and its options
+                // (BOAR-68b); this stale load touches nothing a newer question may have set (CodeRabbit).
+                if (held != null && chatEpoch != epoch) Unit
                 // The held question keeps its place: first, before any that waited behind it.
-                if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
+                else if (loaded && held != null) send(held, null, fromQueue = true, serviceUp = false)
                 // Loaded with nothing held: questions waiting behind the note start now (validator Q-3).
                 else if (loaded) runNext(fresh = true)
                 // A failed load: the held question went, and what was set for it goes too, or the next typed question
@@ -553,6 +569,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun newChat() {
         if (job?.isActive == true) return
+        // From a saved chat, or a blank one whose first question waits for the model load or a note: "New chat" leaves
+        // it, so it isn't asked later in the new one (CodeRabbit on PR 124).
+        if (_state.value.sessionId != null || loadHeld != null || heldQuestion != null || prunedQuestion != null) { chatEpoch++; dropWaitingForSwitch() }
         _state.update { it.copy(sessionId = null, messages = emptyList(), error = null, suggestions = pickIdeas()) }
     }
 
@@ -610,6 +629,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun openSession(id: String) {
         if (job?.isActive == true) return
+        if (_state.value.sessionId != id) { chatEpoch++; dropWaitingForSwitch() }
         safeScope.launch {
             val msgs = runCatching {
                 withContext(Dispatchers.IO) { services.chats.messages(id) }.map { r ->
@@ -743,10 +763,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         if (q.isEmpty()) return
         // While an answer runs, or between its end and the next waiting question's start, or while questions wait: the
         // question joins the end of the queue, so nothing jumps it (validator Q-2).
-        if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty()))) {
+        // Behind the prune note too: the held question goes first once it is answered (BOAR-68).
+        if (job?.isActive == true || (!fromQueue && (handoff || !queue.isEmpty() || prunedQuestion != null))) {
             if (queue.add(q)) publishQueue() else showToast("native.chat.queueFull")
             // Waiting with nothing running (behind a note the user answered): start the oldest one now.
-            if (job?.isActive != true && !handoff && _state.value.loadNote == null) runNext(fresh = true)
+            if (job?.isActive != true && !handoff && _state.value.loadNote == null && prunedQuestion == null) runNext(fresh = true)
             return
         }
         // The user's model may not fit, or closed the app last time: the note asks first, and the question waits.
@@ -1132,6 +1153,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * notification up (a start after the load note), so the question starts it as a typed one does.
      */
     private fun runNext(fresh: Boolean) {
+        // The prune note is asking: the queue waits for its answer (resumePruned runs it, pruneCancel drops it), or a
+        // waiting question would skip the note and its answer would prune the chats it listed (CodeRabbit on PR 124).
+        if (prunedQuestion != null) return
         val next = queue.next()
         if (next == null) { if (!fresh) team.sopa.boar.app.AnswerService.stop(getApplication()); return }
         publishQueue()
@@ -1141,11 +1165,30 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** The load note closed, or the model didn't load: the waiting questions need that model too, so they go, said once. */
-    private fun dropQueueWithNote() {
-        if (queue.isEmpty()) return
-        val n = queue.size
+    private fun dropQueueWithNote() = dropQueue("native.chat.queueDroppedNote")
+
+    /** The waiting questions go, and the toast [key] says how many and why ([extra]: held questions dropped with them). */
+    private fun dropQueue(key: String, extra: Int = 0) {
+        val n = queue.size + extra
+        if (n == 0) return
         queue.clear(); publishQueue()
-        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), "native.chat.queueDroppedNote", "count" to n))
+        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.I18n.t(getApplication(), key, "count" to n))
+    }
+
+    /**
+     * Another chat opened, or a new one, while questions waited behind a note (BOAR-68): a question runs in the chat it
+     * was asked in or not at all, so the held and waiting questions go, said once. The notes stay about the model.
+     */
+    private fun dropWaitingForSwitch() {
+        val held = listOfNotNull(heldQuestion, prunedQuestion?.first, loadHeld).size
+        if (held == 0 && queue.isEmpty()) return
+        loadHeld = null
+        heldQuestion = null
+        prunedQuestion = null
+        pruneAccepted = false
+        dropOnce()
+        _state.update { it.copy(pruneNote = null) }
+        dropQueue("native.chat.queueDroppedSwitch", held)
     }
 
     private val queue = team.sopa.boar.engine.chat.PromptQueue()

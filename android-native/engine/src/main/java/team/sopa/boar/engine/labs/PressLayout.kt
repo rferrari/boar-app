@@ -33,8 +33,19 @@ object PressLayout {
         data class Beside(val picture: Block.Picture, val text: Block?, val left: Boolean) : Item
     }
 
-    /** Text that may flow beside a picture; a heading (and another picture) never does. */
-    fun flows(b: Block?) = b is Block.Answer || b is Block.Note || b is Block.Paragraph || b is Block.Bullets
+    /**
+     * Text that may flow beside a picture; a heading (and another picture) never does, nor an empty paragraph, list or
+     * note (BOAR-79, Biel's iOS port: beside the picture it was invisible and couldn't be tapped, yet took the side). It
+     * goes below the picture at the full width, where its hint shows and a tap edits it.
+     */
+    fun flows(b: Block?) = when (b) {
+        is Block.Answer -> true
+        is Block.Note -> b.text.isNotBlank()
+        is Block.Paragraph -> b.text.isNotBlank()
+        // Marker-only text ("-\n*") is an empty list too (CodeRabbit).
+        is Block.Bullets -> b.items.isNotEmpty()
+        else -> false
+    }
 
     fun plan(blocks: List<Block>): List<Item> {
         val out = mutableListOf<Item>()
