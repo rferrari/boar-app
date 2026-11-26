@@ -731,7 +731,9 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             // One Draw button, with what's picked here (adam, Nov 12): the defaults are the one-tap row in the plugins sheet.
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it.key) }, style, sideways = true) { style = it }
+            // Tapping the selected style again leaves no style, as on the Designer page (BOAR-88): the words alone.
+            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it.key) }, style, sideways = true) { style = if (it == style) ImageLab.Style.NONE else it }
+            Text(t(if (style == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 androidx.compose.material3.Checkbox(keep, { keep = it })
                 Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })

@@ -34,6 +34,15 @@ class IllustrateSheetTest {
         assertTrue(body.contains("val size = ImageLab.defaultCanvas()"))
     }
 
+    @Test fun `tapping the selected style again leaves no style, as on the Designer page (BOAR-88)`() {
+        val body = sheet.substringBefore("private fun SheetButton(")
+        assertTrue(body.contains("style, sideways = true) { style = if (it == style) ImageLab.Style.NONE else it }"))
+        // The same hint as Designer's Style sheet says how, and what no style means.
+        assertTrue(body.contains("if (style == ImageLab.Style.NONE) \"native.labs.image.styleHintNone\" else \"native.labs.image.styleHint\""))
+        // "Remember" keeps None too: the next one-tap Illustrate draws the words alone.
+        assertTrue(lab.contains("Style.entries.firstOrNull { it.key == k }") && lab.contains("NONE(\"none\", \"{s}\")"))
+    }
+
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/labs/plugins/designer/res/$d").listFiles()!!.joinToString("") { it.readText() }
