@@ -56,6 +56,14 @@ class QueueNotesTest {
         assertFalse(stale.contains("dropOnce"))
     }
 
+    @Test fun `nothing leaves the queue while the prune note asks (CodeRabbit on PR 124)`() {
+        // A load with nothing held ends in runNext; a question behind an open prune note must not start (it would skip
+        // the note, and its answer would prune the chats the note listed before the user agreed).
+        val next = fn("runNext")
+        val guard = next.indexOf("if (prunedQuestion != null) return")
+        assertTrue(guard >= 0 && guard < next.indexOf("queue.next()"))
+    }
+
     @Test fun `each toast is in English and Portuguese`() {
         for (res in listOf("values", "values-pt")) {
             val xml = java.io.File("../app/src/main/res/$res/strings_native.xml").readText()

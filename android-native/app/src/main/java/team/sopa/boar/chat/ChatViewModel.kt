@@ -1151,6 +1151,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
      * notification up (a start after the load note), so the question starts it as a typed one does.
      */
     private fun runNext(fresh: Boolean) {
+        // The prune note is asking: the queue waits for its answer (resumePruned runs it, pruneCancel drops it), or a
+        // waiting question would skip the note and its answer would prune the chats it listed (CodeRabbit on PR 124).
+        if (prunedQuestion != null) return
         val next = queue.next()
         if (next == null) { if (!fresh) team.sopa.boar.app.AnswerService.stop(getApplication()); return }
         publishQueue()
