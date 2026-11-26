@@ -7,102 +7,85 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
-import team.sopa.boar.engine.labs.DesignerCanvas.Quality
-import team.sopa.boar.engine.labs.DesignerCanvas.Shape
 import team.sopa.boar.engine.labs.DesignerCanvas.Size
 import team.sopa.boar.engine.labs.DesignerCanvas.Stop
 
-/** Designer's canvas (adam's mock-up, Nov 12-13): shape and quality instead of pixels, the default, the drawer, the shared input bar, the variations. */
+/** Designer's canvas (adam's mock-up, Nov 12-13; 512 only since BOAR-88, Nov 26): the default, the tools, the shared input bar, the variations. */
 class DesignerCanvasTest {
     private val dir = "../app/src/labs/plugins/designer"
     private fun src(name: String) = java.io.File("$dir/java/team/sopa/boar/labs/designer/$name").readText()
     private fun strings(d: String) = java.io.File("$dir/res/$d/strings_lab_image.xml").readText()
 
-    @Test fun `Low, Medium and High are the three sizes of each shape`() {
-        val expect = mapOf(
-            Shape.SQUARE to listOf(Size(384, 384), Size(512, 512), Size(640, 640)),
-            Shape.PORTRAIT to listOf(Size(320, 448), Size(384, 512), Size(448, 640)),
-            Shape.WIDE to listOf(Size(576, 256), Size(640, 320), Size(768, 320)),
-        )
-        for ((shape, sizes) in expect) assertEquals(shape.name, sizes, Quality.entries.map { DesignerCanvas.size(shape, it) })
-        // Nine sizes offered, each its own shape and quality back.
-        assertEquals(9, DesignerCanvas.OFFERED.size)
-        for (s in DesignerCanvas.OFFERED) assertEquals(s, DesignerCanvas.size(s.shape, s.quality))
-        assertEquals(listOf("low", "medium", "high"), Quality.entries.map { it.key })
+    @Test fun `Designer draws only at the model's own size, 512 by 512 (BOAR-88)`() {
+        // t9 on the F3, Nov 26: 640 drew two mouths and a three-eared mouse, 448x640 a distorted face; 512 was clean.
+        assertEquals(Size(512, 512), DesignerCanvas.SIZE)
+        assertEquals(listOf(Size(512, 512)), DesignerCanvas.OFFERED)
+        assertEquals(DesignerCanvas.SIZE, DesignerCanvas.DEFAULT)
+        assertEquals("512", DesignerCanvas.SIZE.key)
+        // The lab and the runner draw only that: no shape or quality picks left to reach sd-cli.
+        val lab = src("ImageLab.kt")
+        assertTrue(lab.contains("val CANVASES = DesignerCanvas.OFFERED.map { Canvas(it.w, it.h) }"))
+        assertTrue(!lab.contains("fun setShape(") && !lab.contains("fun setQuality("))
+        assertTrue(!lab.contains("DesignerCanvas.Quality") && !lab.contains("DesignerCanvas.Shape"))
     }
 
-    @Test fun `migration both ways - Fast is Medium, Slow is High, and every saved size keeps its own level`() {
-        assertEquals(Quality.MEDIUM, DesignerCanvas.fromSpeed("fast")); assertEquals(Quality.HIGH, DesignerCanvas.fromSpeed("Slow")); assertNull(DesignerCanvas.fromSpeed("x"))
-        // What the Fast/Slow build saved (the middle and the largest sizes) reads back as Medium and High.
-        assertEquals(Quality.MEDIUM, DesignerCanvas.migrate("512")!!.quality); assertEquals(Quality.HIGH, DesignerCanvas.migrate("640")!!.quality)
-        assertEquals(Quality.MEDIUM, DesignerCanvas.migrate("384x512")!!.quality); assertEquals(Quality.HIGH, DesignerCanvas.migrate("768x320")!!.quality)
-        // The smallest sizes, saved before Nov 13, are Low again, not moved.
-        assertEquals(Size(384, 384), DesignerCanvas.migrate("384")); assertEquals(Quality.LOW, DesignerCanvas.migrate("320x448")!!.quality)
-        assertEquals(Size(576, 256), DesignerCanvas.migrate("576x256"))
-        for (s in DesignerCanvas.OFFERED) assertEquals(s, DesignerCanvas.migrate(s.key))
-        // A size that is none of the nine becomes Medium of its shape.
-        assertEquals(Size(640, 320), DesignerCanvas.migrate("1024x400")); assertEquals(Size(384, 512), DesignerCanvas.migrate("100x900"))
+    @Test fun `any saved size migrates to 512, silently - old drawings keep their own size and time`() {
+        for (k in listOf("384", "512", "640", "320x448", "384x512", "448x640", "576x256", "640x320", "768x320", "1024x400"))
+            assertEquals(k, Size(512, 512), DesignerCanvas.migrate(k))
         assertNull(DesignerCanvas.migrate(null)); assertNull(DesignerCanvas.migrate("")); assertNull(DesignerCanvas.migrate("big"))
-        // Nothing saved, or something unreadable: Square, Medium.
         assertEquals(null to DesignerCanvas.DEFAULT, DesignerCanvas.loadDefault { null })
-        assertEquals(Size(512, 512), DesignerCanvas.DEFAULT)
-        assertEquals(Size(512, 512), DesignerCanvas.loadDefault { k -> if (k == DesignerCanvas.SIZE_PREF) "nonsense" else null }.second)
-        assertEquals(Size(384, 384), DesignerCanvas.loadDefault { k -> if (k == DesignerCanvas.SIZE_PREF) "384" else null }.second)
+        for (k in listOf("640", "384x512", "nonsense")) assertEquals(Size(512, 512), DesignerCanvas.loadDefault { key -> if (key == DesignerCanvas.SIZE_PREF) k else null }.second)
+        // A saved style carries over.
+        assertEquals("photo", DesignerCanvas.loadDefault { key -> if (key == DesignerCanvas.STYLE_PREF) "photo" else "640" }.first)
+        // An old drawing's own size is still read from its name (its picture opens at its shape, its time average stays per size).
+        assertEquals(Size(448, 640), DesignerCanvas.parse("448x640")); assertEquals(DesignerCanvas.Shape.PORTRAIT, Size(448, 640).shape)
+        val lab = src("ImageLab.kt")
+        assertTrue(lab.contains("fun canvasOf(image: File): Canvas?") && lab.contains("\"image.times.\${size.key}\""))
     }
 
-    @Test fun `the default keeps style, shape and quality together, and is read back the same`() {
-        for (s in DesignerCanvas.OFFERED) {
-            val prefs = HashMap<String, String>()
-            DesignerCanvas.saveDefault(prefs::put, "watercolor", s)
-            assertEquals("watercolor" to s, DesignerCanvas.loadDefault(prefs::get))
-        }
+    @Test fun `the default is the style, saved with the one size`() {
         val prefs = HashMap<String, String>()
-        DesignerCanvas.saveDefault(prefs::put, "cyber", Size(576, 256))
-        assertEquals("576x256", prefs[DesignerCanvas.SIZE_PREF])
-        // The app saves and reads through these, under its old keys (a default saved before carries over).
+        DesignerCanvas.saveDefault(prefs::put, "watercolor")
+        assertEquals("watercolor", prefs[DesignerCanvas.STYLE_PREF]); assertEquals("512", prefs[DesignerCanvas.SIZE_PREF])
+        assertEquals("watercolor" to Size(512, 512), DesignerCanvas.loadDefault(prefs::get))
         assertEquals("image.style", DesignerCanvas.STYLE_PREF); assertEquals("image.size", DesignerCanvas.SIZE_PREF)
         val lab = src("ImageLab.kt")
-        assertTrue(lab.contains("DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)"))
-        assertTrue(lab.contains("DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second"))
-        assertTrue(lab.substringAfter("fun setDefaults() {").substringBefore("\n    }").contains("ImageLab.setDefaults(s.style, s.size)"))
-        // No "★ Default" (adam, Nov 14): every pick is the default at once. Shape keeps the quality and Quality keeps the shape.
+        assertTrue(lab.contains("DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key)"))
+        assertTrue(lab.contains("fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }"))
         val screen = src("ImageLabScreen.kt")
         assertTrue(!screen.contains("native.labs.image.default") && !screen.contains("★"))
-        assertTrue(lab.contains("fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }"))
-        assertTrue(lab.contains("fun setShape(shape: DesignerCanvas.Shape) { setSize(ImageLab.Canvas.of(shape, _state.value.size.quality)); setDefaults() }"))
-        assertTrue(lab.contains("fun setQuality(quality: DesignerCanvas.Quality) { setSize(ImageLab.Canvas.of(_state.value.size.shape, quality)); setDefaults() }"))
         // Showing an old drawing puts its recipe on the canvas, not in the default.
         assertTrue(!lab.substringAfter("fun show(f: File) {").substringBefore("\n    }").contains("setDefaults"))
     }
 
-    @Test fun `the caption is style, shape and this phone's seconds, else the quality`() {
-        assertEquals("Engraving · Square · 9 s", DesignerCanvas.caption("Engraving", "Square", 9, "Low quality"))
-        assertEquals("Lo-fi · Wide · Low quality", DesignerCanvas.caption("Lo-fi", "Wide", null, "Low quality"))
+    @Test fun `the caption keeps the style and this phone's seconds only (BOAR-88)`() {
+        assertEquals("Engraving · 9 s", DesignerCanvas.caption("Engraving", 9))
+        assertEquals("Lo-fi", DesignerCanvas.caption("Lo-fi", null))
         assertEquals(40, DesignerCanvas.variationsSeconds(10)); assertNull(DesignerCanvas.variationsSeconds(null))
-        assertTrue(src("ImageLabScreen.kt").contains("DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), qualityLong(shown.quality))"))
+        assertTrue(src("ImageLabScreen.kt").contains("DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), ImageLab.expectedSeconds(shown))"))
     }
 
-    @Test fun `no rail and no drawer - Style, Shape and Quality are toolbar tools, each its own sheet titled once`() {
-        assertEquals(listOf("style", "shape", "quality"), DesignerCanvas.Section.entries.map { it.key })
+    @Test fun `the toolbar has Style - Shape and Quality are gone (BOAR-88)`() {
+        assertEquals("style", DesignerCanvas.Section.entries.first().key)
+        assertTrue(DesignerCanvas.Section.entries.none { it.key == "shape" || it.key == "quality" })
         val screen = src("ImageLabScreen.kt")
-        // adam, Nov 14: "Style, Shape, Quality on the toolbar… each opens its small sheet, titled once".
-        assertTrue(!screen.contains("DesignerDrawer") && screen.contains("team.sopa.boar.labs.PluginToolbar(3)"))
-        for (t in listOf("ic_designer_style", "ic_designer_shape", "ic_designer_quality")) assertTrue(t, screen.contains("team.sopa.boar.R.drawable.$t"))
+        assertTrue(!screen.contains("DesignerDrawer") && screen.contains("team.sopa.boar.labs.PluginToolbar(DesignerCanvas.Section.entries.size)"))
+        assertTrue(screen.contains("team.sopa.boar.R.drawable.ic_designer_style"))
+        for (gone in listOf("ic_designer_shape", "ic_designer_quality", "ShapeSection(", "QualitySection(", "Tool.SHAPE", "Tool.QUALITY", "qualityLong(", "shapeQuality(", "qualityLabel("))
+            assertTrue(gone, !screen.contains(gone))
         assertTrue(screen.contains("t(\"native.labs.image.styleLabel\") + \": \" + styleName(state.style.key)"))
         val sheet = screen.substringAfter("private fun ToolSheet(").substringBefore("\n}\n")
         assertTrue(sheet.contains("team.sopa.boar.labs.PluginSheetTitle(t(tool.titleKey))") && Regex("Text\\(").findAll(sheet).count() == 0)
-        assertTrue(screen.contains("Tool.STYLE -> StyleSection(state, vm); Tool.SHAPE -> ShapeSection(state, vm); Tool.QUALITY -> QualitySection(state, vm)"))
         for (gone in listOf("fun Rail(", "Tray(", "DesignerCanvas.Tool")) assertTrue(gone, !screen.contains(gone))
         for (d in listOf("values", "values-pt")) {
-            for (k in listOf("section_style", "section_shape", "section_quality", "drawer", "default")) assertTrue("$d $k", !strings(d).contains("name=\"native_labs_image_$k\""))
+            for (k in listOf("section_style", "section_shape", "section_quality", "drawer", "default", "qualityLabel", "quality_low", "qualityLong_high",
+                    "qualitySeconds", "shapeQuality", "qualityHint", "qualityHintUntimed", "shapeLabel")) assertTrue("$d $k", !strings(d).contains("name=\"native_labs_image_$k\""))
             assertTrue(d, !strings(d).contains("native_labs_image_tool_"))
         }
-        // Hidden by adam on Nov 13: no Seed, Edit or More anywhere on the page.
         for (gone in listOf("tool.seed", "tool.edit", "tool.more", "seedKeep", "seedNew", "setSeedLocked(")) assertTrue(gone, !screen.contains(gone))
-        // The Shape section has only the shapes; the levels are in the Quality section.
-        val shape = screen.substringAfter("private fun ShapeSection(").substringBefore("\n}\n")
-        assertTrue(!shape.contains("Quality.entries") && shape.contains("DesignerCanvas.Shape.entries"))
-        assertTrue(screen.substringAfter("private fun QualitySection(").substringBefore("\n}\n").contains("DesignerCanvas.Quality.entries"))
+        // The i sheet keeps words, style and time; no shape or quality line.
+        val info = screen.substringAfter("private fun InfoSheet(").substringBefore("\n}\n")
+        assertTrue(!info.contains("shapeLabel") && !info.contains("qualityLabel") && info.contains("native.labs.image.time"))
     }
 
     @Test fun `Designer's bottom is the chat's own input bar - voice, Draw that becomes Stop, the same rest after a send`() {
@@ -128,14 +111,6 @@ class DesignerCanvasTest {
         assertTrue(canvas.indexOf("FromChatButton(title)") in 0 until canvas.indexOf("team.sopa.boar.ui.chat.PromptBar("))
     }
 
-    @Test fun `the quality hint says not timed only for the picked level when it isn't timed`() {
-        val tray = src("ImageLabScreen.kt").substringAfter("private fun QualitySection(").substringBefore("\n}\n")
-        assertTrue(tray.contains("if (ImageLab.expectedSeconds(state.size) != null) t(\"native.labs.image.qualityHint\")"))
-        assertTrue(tray.contains("t(\"native.labs.image.qualityHintUntimed\", \"level\" to qualityLong(state.size.quality))"))
-        for (d in listOf("values", "values-pt")) assertTrue(d, Regex("native_labs_image_qualityHintUntimed\"[^>]*>[^<]*\\{\\{level}}").containsMatchIn(strings(d)))
-        assertTrue(strings("values").contains(">Higher quality draws a bigger picture and takes longer. Seconds are this phone\\'s own average.<"))
-    }
-
     @Test fun `no pixel numbers in Designer's strings, English and Portuguese`() {
         val px = Regex("\\d+\\s*[x×]\\s*\\d+|\\d+\\s*px\\b")
         for (d in listOf("values", "values-pt")) for (m in Regex("<string name=\"([^\"]+)\"[^>]*>(.*?)</string>", RegexOption.DOT_MATCHES_ALL).findAll(strings(d)))
@@ -143,7 +118,6 @@ class DesignerCanvasTest {
         // Nor built in code: the pixel label is gone, the screen says sizes with the shape and quality words.
         val lab = src("ImageLab.kt"); val screen = src("ImageLabScreen.kt")
         assertTrue(!lab.contains("val label") && !screen.contains(".label") && !screen.contains("\" px"))
-        assertTrue(screen.contains("t(\"native.labs.image.shapeQuality\""))
     }
 
     @Test fun `variations are drawn one by one and stop on the first failure, keeping what was drawn`() = runBlocking {
@@ -197,16 +171,13 @@ class DesignerCanvasTest {
         val screen = src("ImageLabScreen.kt")
         val sheet = screen.substringAfter("private fun InfoSheet(").substringBefore("\n}\n")
         assertTrue(sheet.contains("vm.regenerate()") && sheet.contains("vm.variations()") && sheet.contains("vm.delete(f)"))
-        for (k in listOf("words", "styleLabel", "shapeLabel", "qualityLabel", "time")) assertTrue(k, sheet.contains("native.labs.image.$k"))
-        // Shape and Quality on separate lines.
-        assertTrue(sheet.contains("Fact(t(\"native.labs.image.shapeLabel\"), shapeName(it.shape)); Fact(t(\"native.labs.image.qualityLabel\"), qualityName(it.quality))"))
+        for (k in listOf("words", "styleLabel", "time")) assertTrue(k, sheet.contains("native.labs.image.$k"))
         assertTrue(!Regex("share|photos|ACTION_SEND|MediaStore", RegexOption.IGNORE_CASE).containsMatchIn(sheet))
         for (d in listOf("values", "values-pt")) assertTrue(d, !strings(d).contains("native_labs_image_share"))
     }
 
     @Test fun `new and changed strings in English and Portuguese`() {
-        val keys = listOf("menu", "drawings", "allDrawings", "shapeLabel", "qualityLabel", "quality_low", "quality_medium",
-            "quality_high", "qualityLong_low", "qualityLong_medium", "qualityLong_high", "qualitySeconds", "shapeQuality", "qualityHint", "qualityHintUntimed",
+        val keys = listOf("menu", "drawings", "allDrawings",
             "styleHint", "styleHintNone", "emptyCanvas", "noModelTitle", "noModelCaption",
             "all", "next", "infoButton", "fullButton", "infoTitle", "words", "time", "drawAgain", "drawAgainNote", "variations", "variationsTime",
             "variationsNote", "variationOf", "variationsPick", "variationOpen", "settingsTitle", "waitSketch", "shape_banner", "placeholder")

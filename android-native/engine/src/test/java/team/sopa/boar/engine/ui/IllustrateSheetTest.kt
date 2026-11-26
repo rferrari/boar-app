@@ -3,7 +3,7 @@ package team.sopa.boar.engine.ui
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** t9, Nov 10: Illustrate asks style and size (Pro), one tap draws with the defaults, the pick can be kept and reset. */
+/** t9, Nov 10: Illustrate asks the style (only the style since BOAR-88), one tap draws with the defaults, the pick can be kept and reset. */
 class IllustrateSheetTest {
     private val screen = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
     private val lab = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLab.kt").readText()
@@ -22,21 +22,22 @@ class IllustrateSheetTest {
         assertTrue(sheet.contains("Illustrator.start(ctx, a, notReady, style, size)"))
     }
 
-    @Test fun `the pick is kept only when asked, and reset goes back to Engraving, Square, Medium`() {
-        // Style, shape and quality together, as "★ Default" on the canvas.
-        assertTrue(sheet.contains("if (keep) ImageLab.setDefaults(style, size)"))
-        assertTrue(lab.contains("fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Quality.MEDIUM))"))
+    @Test fun `the pick is kept only when asked, and reset goes back to Engraving`() {
+        assertTrue(sheet.contains("if (keep) ImageLab.setDefaults(style)"))
+        assertTrue(lab.contains("fun resetDefaults() = setDefaults(Style.ENGRAVING)"))
     }
 
-    @Test fun `the sheet says shape and quality in words, like the canvas, never pixels`() {
-        assertTrue(sheet.contains("DesignerCanvas.Shape.entries.map { it to shapeName(it) }") && sheet.contains("DesignerCanvas.Quality.entries.map { it to qualityLabel("))
-        assertTrue(sheet.contains("\"size\" to shapeQuality(size)") && !sheet.contains(".label"))
+    @Test fun `the sheet has no shape or quality, it draws at 512 (BOAR-88)`() {
+        val body = sheet.substringBefore("private fun SheetButton(")
+        assertTrue(!body.contains("Shape.entries") && !body.contains("Quality") && !body.contains("shapeLabel") && !body.contains(".label"))
+        assertTrue(body.contains("t(\"native.labs.image.drawPicked\", \"style\" to styleName(style.key))"))
+        assertTrue(body.contains("val size = ImageLab.defaultCanvas()"))
     }
 
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/labs/plugins/designer/res/$d").listFiles()!!.joinToString("") { it.readText() }
-            for (k in listOf("sheetTitle", "styleLabel", "shapeLabel", "qualityLabel", "remember", "reset", "drawPicked"))
+            for (k in listOf("sheetTitle", "styleLabel", "remember", "reset", "drawPicked"))
                 assertTrue("$d $k", s.contains("name=\"native_labs_image_$k\""))
         }
     }

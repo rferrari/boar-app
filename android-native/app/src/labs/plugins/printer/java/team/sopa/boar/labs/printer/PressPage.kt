@@ -105,10 +105,7 @@ class PressPage(
             square = I18n.t(ctx, "native.labs.printer.rSquare"),
             portrait = I18n.t(ctx, "native.labs.printer.rPortrait"),
             wide = I18n.t(ctx, "native.labs.printer.rWide"),
-            low = I18n.t(ctx, "native.labs.printer.rLow"),
             ownFile = I18n.t(ctx, "native.labs.printer.rOwnFile"),
-            medium = I18n.t(ctx, "native.labs.printer.rMedium"),
-            high = I18n.t(ctx, "native.labs.printer.rHigh"),
             // Designer's own name for the style when this build has it; else the key, capitalised.
             styleName = { k ->
                 val key = "native.labs.image.style.$k"

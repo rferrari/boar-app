@@ -17,8 +17,8 @@ class All29FollowupsTest {
         assertTrue(d.contains("rememberModalBottomSheetState(skipPartiallyExpanded = true)") && d.contains("sheetState = sheet"))
         assertTrue(d.contains("val live = sheet.targetValue != androidx.compose.material3.SheetValue.Hidden"))
         assertTrue(d.contains("if (!live) Box(Modifier.matchParentSize().pointerInput(Unit)") && d.contains("it.consume()"))
-        // Opened from the toolbar only.
-        assertEquals(3, Regex("\\{ tool = Tool\\.").findAll(s).count())
+        // Opened from the toolbar only: Style is the one tool sheet left (BOAR-88).
+        assertEquals(1, Regex("\\{ tool = Tool\\.").findAll(s).count())
     }
 
     @Test fun `each quick action has a concrete target`() {

@@ -42,28 +42,22 @@ object ImageLab {
     fun deleteDrawing(image: java.io.File) { image.delete(); recipeFile(image).delete() }
 
     /**
-     * A drawing's size in pixels, sides in multiples of 64. Only sd-cli, the file name and the recipe see the numbers: the
-     * screen says its shape (Square, Portrait, Wide) and its quality (Low, Medium, High), DesignerCanvas (adam, Nov 12-13).
+     * A drawing's size in pixels. New drawings are 512x512 (BOAR-88); an older one or a crop has its own, read from its
+     * file name. Only sd-cli, the file name and the recipe see the numbers: the screen never shows them.
      */
     data class Canvas(val w: Int, val h: Int) {
         val size: DesignerCanvas.Size get() = DesignerCanvas.Size(w, h)
         /** "512" for a square (the key older saves and times used), "384x512" otherwise. */
         val key: String get() = size.key
-        val shape: DesignerCanvas.Shape get() = size.shape
-        val quality: DesignerCanvas.Quality get() = size.quality
         companion object {
             /** Any saved key, as it is. */
             fun of(key: String?): Canvas? = DesignerCanvas.parse(key)?.let { Canvas(it.w, it.h) }
-            fun of(shape: DesignerCanvas.Shape, quality: DesignerCanvas.Quality): Canvas = DesignerCanvas.size(shape, quality).let { Canvas(it.w, it.h) }
-            /** A saved key as a size the screen offers: each of the nine keeps its own level, any other becomes Medium. */
+            /** A saved key as the size Designer draws at now: 512 (DesignerCanvas.migrate). */
             fun offered(key: String?): Canvas? = DesignerCanvas.migrate(key)?.let { Canvas(it.w, it.h) }
         }
     }
 
-    /**
-     * What the screen offers (adam, Nov 12): per shape, Low, Medium and High quality, its three sizes. Square 384, 512
-     * and 640, portrait 320×448, 384×512 and 448×640, wide 576×256, 640×320 and 768×320 (13 s on the X6, Oct 16).
-     */
+    /** What Designer draws at: 512x512 only, the model's own size (BOAR-88). */
     val CANVASES = DesignerCanvas.OFFERED.map { Canvas(it.w, it.h) }
 
     /** The size a saved drawing was drawn at, from its file name ("…-512.png", "…-384x512.png"); null for an odd name. */
@@ -99,14 +93,14 @@ object ImageLab {
     /** The user's pick ("★ Default"), else engraving. */
     fun defaultStyle(): Style = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).first?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
 
-    /** The user's shape and quality ("★ Default" saves them with the style), else Square, Medium. */
+    /** The size every drawing is made at: 512 (a saved 640 or 384x512 reads as 512, DesignerCanvas.migrate). */
     fun defaultCanvas(): Canvas = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second.let { Canvas(it.w, it.h) }
 
-    /** "★ Default" in Designer and "Remember" in Illustrate: style, shape and quality together, for both. */
-    fun setDefaults(style: Style, canvas: Canvas) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)
+    /** The style picked in Designer and "Remember" in Illustrate: the default for both. */
+    fun setDefaults(style: Style) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key)
 
-    /** Reset in Illustrate's sheet: back to Engraving, Square, Medium. */
-    fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Quality.MEDIUM))
+    /** Reset in Illustrate's sheet: back to Engraving. */
+    fun resetDefaults() = setDefaults(Style.ENGRAVING)
 
     private const val TIMES_KEPT = 10
 
@@ -144,7 +138,7 @@ data class ImageLabState(
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultSize: ImageLab.Canvas = ImageLab.CANVASES.first(),
-    /** The shape and quality picked in the Shape and Quality trays: always one the screen offers. */
+    /** The size the next drawing is made at: 512 (BOAR-88). */
     val size: ImageLab.Canvas = ImageLab.CANVASES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -221,18 +215,14 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Every Style, Shape or Quality pick is the default at once (adam, Nov 14: "lets hide this default, and the default
+     * Every Style pick is the default at once (adam, Nov 14: "lets hide this default, and the default
      * become [the] setup [the] user did"): the next visit and the one-tap 🎨 Illustrate use the last pick. Showing an old
      * drawing (show) puts its recipe on the canvas without changing the default.
      */
     fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }
-    fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c, error = null) }
-    /** Shape keeps the quality, Quality keeps the shape: the canvas reshapes at once. */
-    fun setShape(shape: DesignerCanvas.Shape) { setSize(ImageLab.Canvas.of(shape, _state.value.size.quality)); setDefaults() }
-    fun setQuality(quality: DesignerCanvas.Quality) { setSize(ImageLab.Canvas.of(_state.value.size.shape, quality)); setDefaults() }
 
     /**
-     * Shows [f] and puts back what it was drawn from (style, shape and quality, seed) when it has a recipe; the screen fills
+     * Shows [f] and puts back what it was drawn from (style, seed) when it has a recipe; the screen fills
      * the subject.
      */
     fun show(f: File) {
@@ -301,10 +291,10 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** The style, shape and quality Illustrate (in the chat) and a new Designer session use: saved on every pick. */
+    /** The style Illustrate (in the chat) and a new Designer session use: saved on every pick. */
     fun setDefaults() {
         val s = _state.value
-        ImageLab.setDefaults(s.style, s.size)
+        ImageLab.setDefaults(s.style)
         _state.update { it.copy(defaultStyle = s.style, defaultSize = s.size) }
     }
 

@@ -105,9 +105,6 @@ object PressReceipt {
         val square: String = "square",
         val portrait: String = "portrait",
         val wide: String = "wide",
-        val low: String = "low quality",
-        val medium: String = "medium quality",
-        val high: String = "high quality",
         /** A user's own file in the Sources section: its name never prints (validator R-A1). */
         val ownFile: String = "Your own file",
         val styleName: (String) -> String = { k -> k.replaceFirstChar { it.titlecase(Locale.ROOT) } },
@@ -127,10 +124,9 @@ object PressReceipt {
     fun drawingText(d: Drawing, l: Labels): String = listOfNotNull(
         l.designer,
         d.style?.takeIf { it.isNotBlank() }?.let(l.styleName),
-        // Shape and quality in words, as Designer says them; no pixel numbers (t9 0620/0625, quality t9 0421).
-        d.shape?.let { s -> (when (s) { Shape.SQUARE -> l.square; Shape.PORTRAIT -> l.portrait; Shape.WIDE -> l.wide }) +
-            (if (d.width > 0 && d.height > 0) ", " + when (DesignerCanvas.Size(d.width, d.height).quality) {
-                DesignerCanvas.Quality.LOW -> l.low; DesignerCanvas.Quality.MEDIUM -> l.medium; DesignerCanvas.Quality.HIGH -> l.high } else "") },
+        // The shape in words, no pixel numbers (t9 0620/0625). No quality since BOAR-88: Designer draws at 512 only, and
+        // a wide or tall drawing is a crop of it.
+        d.shape?.let { s -> when (s) { Shape.SQUARE -> l.square; Shape.PORTRAIT -> l.portrait; Shape.WIDE -> l.wide } },
         d.seed?.let { l.seed.replace("{{seed}}", it.toString()) },
     ).joinToString(" · ")
 

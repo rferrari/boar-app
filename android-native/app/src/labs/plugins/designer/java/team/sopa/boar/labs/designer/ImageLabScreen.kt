@@ -189,7 +189,6 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
                     if (style != null && style != ImageLab.Style.NONE) Text(t("native.labs.image.style.${style.key}"), style = Boar.type.caption, color = c.textAccentCyan)
                     Text(listOfNotNull(
                         style?.prompt(st.subject) ?: st.subject,
-                        st.size?.let { ImageLab.Canvas.of(it) }?.let { shapeQuality(it) },
                         st.seed?.let { t("native.labs.image.seed", "seed" to it) },
                         st.seconds?.let { String.format(Locale.US, "%.1f s", it) },
                     ).joinToString(" · "), style = Boar.type["mono.xs"], color = c.textDim)
@@ -203,25 +202,13 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
 @Composable
 private fun shapeName(shape: DesignerCanvas.Shape) = t("native.labs.image.shape.${shape.key}")
 
-/** "Low", "Medium", "High": the Quality tray's pills and the "i" sheet. */
-@Composable
-private fun qualityName(q: DesignerCanvas.Quality) = t("native.labs.image.quality.${q.key}")
-
-/** "Low quality": the caption before a level is timed, and inside other words. */
-@Composable
-private fun qualityLong(q: DesignerCanvas.Quality) = t("native.labs.image.qualityLong.${q.key}")
-
-/** "Square, low quality": a size in words, never in pixels (Illustrate, the media manager, the answer card). */
-@Composable
-private fun shapeQuality(c: ImageLab.Canvas) = t("native.labs.image.shapeQuality", "shape" to shapeName(c.shape), "quality" to qualityLong(c.quality).lowercase(Locale.getDefault()))
-
 @Composable
 private fun styleName(key: String?) = t("native.labs.image.style.${key ?: "none"}")
 
 /**
- * The canvas, in the plugin page pattern (adam, Nov 14): the picture fills the space under the header at the picked
- * shape, with one caption line under it (the status line); the shelf (the latest drawings and "From your last chat" as a
- * button); the toolbar, Style, Shape and Quality, each its own small sheet; and the chat's own input bar, whose left round
+ * The canvas, in the plugin page pattern (adam, Nov 14): the picture fills the space under the header, square (512 only,
+ * BOAR-88), with one caption line under it (the status line); the shelf (the latest drawings and "From your last chat" as
+ * a button); the toolbar (Style; each tool its own small sheet); and the chat's own input bar, whose left round
  * button is the ⋯ menu (the drawings) and whose right one draws (Stop while drawing). Settings: the header's gear.
  */
 @Composable
@@ -264,12 +251,10 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
             // Kept above the bar (adam, Nov 12), as a button since Nov 14: a tap puts the chat's words in the field.
             state.lastChat?.takeIf { subject.isBlank() && !busy && ready }?.let { title -> FromChatButton(title) { subject = title } }
         }
-        // The toolbar: Style, Shape, Quality, from the left, each saying its current value (adam, Nov 14).
-        team.sopa.boar.labs.PluginToolbar(3) { size ->
+        // The toolbar, from the left, each tool saying its current value (adam, Nov 14). No Shape or Quality (BOAR-88).
+        team.sopa.boar.labs.PluginToolbar(DesignerCanvas.Section.entries.size) { size ->
             val can = ready && !busy
             team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_style, t("native.labs.image.styleLabel") + ": " + styleName(state.style.key), enabled = can, size = size) { tool = Tool.STYLE }
-            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_shape, t("native.labs.image.shapeLabel") + ": " + shapeName(state.size.shape), enabled = can, size = size) { tool = Tool.SHAPE }
-            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_quality, t("native.labs.image.qualityLabel") + ": " + qualityName(state.size.quality), enabled = can, size = size) { tool = Tool.QUALITY }
         }
         val menuLabel = t("native.labs.image.menu")
         // The chat's bar, shared (team.sopa.boar.ui.chat.PromptBar): Draw never queues, so it is Stop all the while it draws.
@@ -280,7 +265,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
             sendIcon = team.sopa.boar.R.drawable.ic_designer_draw, sendLabel = t("native.labs.image.generate"), queues = false, enabled = ready)
     }
     tool?.let { which -> ToolSheet(which, onClose = { tool = null }) {
-        when (which) { Tool.STYLE -> StyleSection(state, vm); Tool.SHAPE -> ShapeSection(state, vm); Tool.QUALITY -> QualitySection(state, vm) }
+        when (which) { Tool.STYLE -> StyleSection(state, vm) }
     } }
     if (menu) DesignerMenu(state, onShow = { f -> menu = false; showFile(f) }, onAll = { menu = false; onManage() }) { menu = false }
     if (info) state.image?.let { f -> InfoSheet(f, state, vm) { info = false } } ?: run { info = false }
@@ -288,7 +273,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     if (settings) SettingsSheet(state, vm) { settings = false }
 }
 
-/** The canvas's one line: "Style · Shape · N s" (this phone's average at that size, else "Low quality"), or what's happening. */
+/** The canvas's one line: "Style · N s" (this phone's average at 512; the style alone until timed), or what's happening. */
 @Composable
 private fun caption(state: ImageLabState, ready: Boolean): String {
     state.error?.let { return it }
@@ -299,11 +284,11 @@ private fun caption(state: ImageLabState, ready: Boolean): String {
         else t("native.labs.image.phase.${state.phase}")
     if (v != null) return t("native.labs.image.variationsPick")
     val shown = state.image?.let { ImageLab.canvasOf(it) }
-    return if (shown != null && shownFits(state)) DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), shapeName(shown.shape), ImageLab.expectedSeconds(shown), qualityLong(shown.quality))
-    else DesignerCanvas.caption(styleName(state.style.key), shapeName(state.size.shape), null, qualityLong(state.size.quality))
+    return if (shown != null && shownFits(state)) DesignerCanvas.caption(styleName(state.recipe?.style ?: state.style.key), ImageLab.expectedSeconds(shown))
+    else DesignerCanvas.caption(styleName(state.style.key), ImageLab.expectedSeconds(state.size))
 }
 
-/** The shown picture has the picked shape and quality. */
+/** A picture is shown (any drawing, an old size or a crop too: the next one is drawn at 512). */
 private fun shownFits(state: ImageLabState): Boolean =
     state.image?.let { ImageLab.canvasOf(it) }?.let { ImageLab.Canvas.offered(it.key) } == state.size
 
@@ -370,8 +355,6 @@ private fun CanvasArt(state: ImageLabState, vm: ImageLabViewModel, ready: Boolea
                                 .background(Color(0xB3080A18), RoundedCornerShape(50)).padding(horizontal = 9.dp, vertical = 3.dp))
                     }
                     Art.Empty -> EmptyFrame(frame) {
-                        Text(shapeName(state.size.shape) + " · " + qualityLong(state.size.quality),
-                            style = Boar.type.body, color = c.textSecondary, textAlign = TextAlign.Center)
                         Text(t("native.labs.image.emptyCanvas"), style = Boar.type.caption, color = c.textMuted, textAlign = TextAlign.Center)
                     }
                 }
@@ -421,13 +404,13 @@ private fun HistoryStrip(state: ImageLabState, onShow: (File) -> Unit, onManage:
     }
 }
 
-/** Designer's three tools (adam, Nov 14), each with its own small sheet. */
-private enum class Tool(val titleKey: String) { STYLE("native.labs.image.styleLabel"), SHAPE("native.labs.image.shapeLabel"), QUALITY("native.labs.image.qualityLabel") }
+/** Designer's tools (adam, Nov 14), each with its own small sheet. */
+private enum class Tool(val titleKey: String) { STYLE("native.labs.image.styleLabel") }
 
 /**
  * A tool's sheet: its title once (adam, Nov 14: "do not repeat… shape shape, style style"), then its picks; every pick
  * applies at once and is the default (ImageLabViewModel.setStyle). Fully open or closed, never half: half open put the
- * Quality chips over the input bar, so a tap meant for the field could pick a quality (the F3, Nov 12). While it closes,
+ * (then) Quality chips over the input bar, so a tap meant for the field could pick a quality (the F3, Nov 12). While it closes,
  * its chips take no taps.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -485,7 +468,7 @@ private fun DesignerMenu(state: ImageLabState, onShow: (File) -> Unit, onAll: ()
                     Picture(f, Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)), thumb = true)
                     Column(Modifier.weight(1f)) {
                         Text(r?.subject ?: f.nameWithoutExtension, style = Boar.type.body, color = if (on) c.emerald500 else c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        ImageLab.canvasOf(f)?.let { size -> Text(styleName(r?.style) + " · " + shapeName(size.shape), style = Boar.type.caption, color = c.textMuted, maxLines = 1) }
+                        ImageLab.canvasOf(f)?.let { size -> Text(styleName(r?.style) + " · " + shapeName(size.size.shape), style = Boar.type.caption, color = c.textMuted, maxLines = 1) }
                     }
                     if (on) Text("✓", style = Boar.type.body, color = c.emerald500, fontWeight = FontWeight.Bold)
                 }
@@ -537,49 +520,6 @@ private fun StyleSwatch(key: String, modifier: Modifier) {
     }
 }
 
-/** Shape: Square, Portrait and Wide as frames, nothing else (quality is its own section); the canvas reshapes at once. */
-@Composable
-private fun ShapeSection(state: ImageLabState, vm: ImageLabViewModel) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Bottom) {
-        for (shape in DesignerCanvas.Shape.entries) {
-            val on = shape == state.size.shape
-            val (fw, fh) = when (shape) { DesignerCanvas.Shape.SQUARE -> 34 to 34; DesignerCanvas.Shape.PORTRAIT -> 28 to 38; DesignerCanvas.Shape.WIDE -> 52 to 24 }
-            val name = shapeName(shape)
-            Column(Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { vm.setShape(shape) }.padding(horizontal = 10.dp, vertical = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Box(Modifier.size(fw.dp, fh.dp).background(if (on) c.emeraldBgSubtle else Color.Transparent, RoundedCornerShape(3.dp))
-                    .border(2.dp, if (on) c.emerald400 else c.textMuted, RoundedCornerShape(3.dp)))
-                Text(name, style = Boar.type.caption, color = if (on) c.textAccentEmerald else c.textMuted)
-            }
-        }
-    }
-}
-
-/**
- * Quality: Low, Medium and High, the three sizes of the picked shape, each with this phone's own seconds once measured.
- * The hint speaks of the picked level only: "not timed yet" never sits beside a level that shows its seconds (F3, Nov 13).
- * No pixel numbers.
- */
-@Composable
-private fun QualitySection(state: ImageLabState, vm: ImageLabViewModel) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) {
-        for (q in DesignerCanvas.Quality.entries) {
-            val size = ImageLab.Canvas.of(state.size.shape, q)
-            Pill(qualityLabel(size), selected = state.size == size) { vm.setQuality(q) }
-        }
-    }
-    val hint = if (ImageLab.expectedSeconds(state.size) != null) t("native.labs.image.qualityHint")
-        else t("native.labs.image.qualityHintUntimed", "level" to qualityLong(state.size.quality))
-    Text(hint, style = Boar.type.caption, color = c.textMuted)
-}
-
-/** "Medium", or "High · ~14 s" once this phone has drawn at that size. */
-@Composable
-private fun qualityLabel(size: ImageLab.Canvas): String =
-    ImageLab.expectedSeconds(size)?.let { t("native.labs.image.qualitySeconds", "level" to qualityName(size.quality), "s" to it) } ?: qualityName(size.quality)
-
 @Composable
 private fun Pill(label: String, selected: Boolean = false, primary: Boolean = false, onClick: () -> Unit) {
     val c = Boar.colors
@@ -591,7 +531,7 @@ private fun Pill(label: String, selected: Boolean = false, primary: Boolean = fa
 }
 
 /**
- * The "i" sheet: what the picture was drawn with (words, style, shape and speed, time), then Draw again (replaces it),
+ * The "i" sheet: what the picture was drawn with (words, style, time), then Draw again (replaces it),
  * 4 variations and Delete. Nothing leaves the plugin: no Share or Save to Photos (adam, Nov 13).
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -608,7 +548,6 @@ private fun InfoSheet(f: File, state: ImageLabState, vm: ImageLabViewModel, onCl
             Text(t("native.labs.image.infoTitle"), style = Boar.type.titleSm, color = c.textHeading, modifier = Modifier.padding(bottom = 6.dp))
             (r?.subject ?: state.subject)?.let { Fact(t("native.labs.image.words"), it) }
             Fact(t("native.labs.image.styleLabel"), styleName(r?.style ?: state.style.key))
-            drawnAt?.let { Fact(t("native.labs.image.shapeLabel"), shapeName(it.shape)); Fact(t("native.labs.image.qualityLabel"), qualityName(it.quality)) }
             seconds?.let { Fact(t("native.labs.image.time"), "$it s") }
             Spacer(Modifier.height(6.dp))
             if (state.subject != null) {
@@ -739,8 +678,8 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
         viewing?.takeIf { it in picked && it.isFile }?.let { f ->
             Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
             ImageLab.recipeOf(f)?.let { r ->
-                // Shape and speed in words: no pixel numbers on screen (Nov 13).
-                Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${ImageLab.Canvas.of(r.size)?.let { shapeQuality(it) } ?: ""} · ${t("native.labs.image.seed", "seed" to r.seed)}",
+                // No pixel numbers on screen (Nov 13).
+                Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${t("native.labs.image.seed", "seed" to r.seed)}",
                     style = Boar.type["mono.xs"], color = c.textDim)
             }
         }
@@ -776,9 +715,8 @@ private fun Busy(label: String) = Row(verticalAlignment = Alignment.CenterVertic
 }
 
 /**
- * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style, a shape and a quality to pick (the canvas's words, Nov 13: no
- * pixel numbers), one Draw button that uses them, and "Remember" to keep them as the next default. Reset goes back to
- * Engraving, Square, Medium.
+ * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style to pick (only the style since BOAR-88: it draws at 512), one
+ * Draw button that uses it, and "Remember" to keep it as the next default. Reset goes back to Engraving.
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -787,25 +725,21 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
     val ctx = LocalContext.current
     val notReady = t("native.labs.image.illustrateNotReady")
     var style by remember { mutableStateOf(ImageLab.defaultStyle()) }
-    var shape by remember { mutableStateOf(ImageLab.defaultCanvas().shape) }
-    var quality by remember { mutableStateOf(ImageLab.defaultCanvas().quality) }
     var keep by remember { mutableStateOf(false) }
-    val size = ImageLab.Canvas.of(shape, quality)
+    val size = ImageLab.defaultCanvas()
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             // One Draw button, with what's picked here (adam, Nov 12): the defaults are the one-tap row in the plugins sheet.
             team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it.key) }, style, sideways = true) { style = it }
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.shapeLabel"), DesignerCanvas.Shape.entries.map { it to shapeName(it) }, shape, sideways = true) { shape = it }
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.qualityLabel"), DesignerCanvas.Quality.entries.map { it to qualityLabel(ImageLab.Canvas.of(shape, it)) }, quality, sideways = true) { quality = it }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 androidx.compose.material3.Checkbox(keep, { keep = it })
                 Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })
                 Text(t("native.labs.image.reset"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { ImageLab.resetDefaults(); style = ImageLab.defaultStyle(); shape = ImageLab.defaultCanvas().shape; quality = ImageLab.defaultCanvas().quality }.padding(6.dp))
+                    modifier = Modifier.clickable { ImageLab.resetDefaults(); style = ImageLab.defaultStyle() }.padding(6.dp))
             }
-            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style.key), "size" to shapeQuality(size)), primary = true) {
-                if (keep) ImageLab.setDefaults(style, size)
+            SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style.key)), primary = true) {
+                if (keep) ImageLab.setDefaults(style)
                 onClose(); Illustrator.start(ctx, a, notReady, style, size)
             }
         }
