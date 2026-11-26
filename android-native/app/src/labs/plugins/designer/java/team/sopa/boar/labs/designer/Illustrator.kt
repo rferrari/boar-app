@@ -97,7 +97,7 @@ object Illustrator {
     }
 
     /** Draws [subject] for answer [a]: Drawing, then Done with the picture (or Failed); shared by Illustrate and "draw me…". */
-    private suspend fun drawInto(ctx: Context, a: AnswerRef, subject: String, style: ImageLab.Style, canvas: ImageLab.Canvas) {
+    private suspend fun drawInto(ctx: Context, a: AnswerRef, subject: String, style: ImageLab.Style, canvas: ImageLab.Canvas, onDone: () -> Unit = {}) {
         status[a.id] = Status.Drawing(subject, style.key)
         runCatching { SdRunner.draw(ctx, subject, style, canvas) }
             .onSuccess { d ->
@@ -106,6 +106,7 @@ object Illustrator {
                 if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }
                 fresh.add(a.id)
                 status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
+                onDone()
             }
             .onFailure { if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.drawFailed")) }
         jobs.remove(a.id)
@@ -136,7 +137,9 @@ object Illustrator {
             // The time the translation took, not the words (they are the user's).
             android.util.Log.i("BoarLabs", "draw request ${a.id}: lang=${ask.lang} english=${english != null} ms=${(System.nanoTime() - started) / 1_000_000}")
             if (status[a.id] !is Status.Choosing) return@launch
-            drawInto(ctx, a, team.sopa.boar.engine.routing.ImageSafety.safeSubject(english ?: ask.subject), style, canvas)
+            // The receipt counts it all: the English subject and the drawing (it said 0.0 s, adam on the F3).
+            drawInto(ctx, a, team.sopa.boar.engine.routing.ImageSafety.safeSubject(english ?: ask.subject), style, canvas,
+                onDone = { team.sopa.boar.plugins.AnswerReceipts.addTime(a.id, (System.nanoTime() - started) / 1e6, "drawing") })
         }
     }
 

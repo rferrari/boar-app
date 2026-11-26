@@ -60,6 +60,7 @@
     <string name="native_receipt_style_custom" formatted="false">Personalizado</string>
     <string name="native_receipt_path_staged" formatted="false">Resposta em etapas</string>
     <string name="native_receipt_stages" formatted="false">Etapas</string>
+    <string name="native_receipt_drawing" formatted="false">Desenho</string>
     <string name="native_receipt_stage_sources" formatted="false">fontes</string>
     <string name="native_receipt_stage_introFirst" formatted="false">primeira palavra</string>
     <string name="native_receipt_stage_detailsFirst" formatted="false">detalhes</string>

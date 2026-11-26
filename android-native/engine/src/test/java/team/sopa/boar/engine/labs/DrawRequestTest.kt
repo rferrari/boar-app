@@ -103,4 +103,18 @@ class DrawRequestTest {
         assertTrue(java.io.File("$app/main/assets/boar-guide/en.md").readText().contains("A chat message that starts with \"draw me…\" is drawn by Designer."))
         assertTrue(java.io.File("$app/main/assets/boar-guide/pt.md").readText().contains("Uma mensagem que começa com \"desenhe…\" é desenhada pelo Designer."))
     }
+
+    @Test fun `the answer's receipt counts the drawing, not only the instant reply (adam, F3)`() {
+        val app = "../app/src"
+        val ill = java.io.File("$app/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val asked = ill.substringAfter("fun drawAsked(").substringBefore("\n    }\n")
+        // From the request's start (the English subject included) to the picture, added once the drawing is done.
+        assertTrue(asked.contains("val started = System.nanoTime()") && asked.contains("onDone = { team.sopa.boar.plugins.AnswerReceipts.addTime(a.id, (System.nanoTime() - started) / 1e6, \"drawing\") }"))
+        val vm = java.io.File("$app/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
+        val hook = vm.substringAfter("team.sopa.boar.plugins.AnswerReceipts.addTime = ").substringBefore("\n        }\n")
+        // Saved in the answer's meta (a reopened chat shows it) and on screen at once; the total and the stage both.
+        assertTrue(hook.contains("totalMs = r.totalMs + ms") && hook.contains("stages = r.stages.orEmpty() + (stage to ms)"))
+        assertTrue(hook.contains("chats.setMessageMeta(id,") && hook.contains("it.copy(receipt = updated)"))
+        assertTrue(vm.contains("team.sopa.boar.plugins.AnswerReceipts.addTime = team.sopa.boar.plugins.AnswerReceipts.NONE"))
+    }
 }
