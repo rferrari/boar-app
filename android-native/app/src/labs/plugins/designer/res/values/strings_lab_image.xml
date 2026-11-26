@@ -80,4 +80,9 @@
     <string name="native_labs_image_allDrawings" formatted="false">All drawings ({{count}})</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Designer settings</string>
     <string name="native_labs_image_waitSketch" formatted="false">Sketch</string>
+    <string name="native_labs_image_crop" formatted="false">Crop</string>
+    <string name="native_labs_image_cropNote" formatted="false">Saves the frame as a copy. The drawing stays as it is.</string>
+    <string name="native_labs_image_cropFree" formatted="false">Free</string>
+    <string name="native_labs_image_cropSave" formatted="false">Save copy</string>
+    <string name="native_labs_image_cropFailed" formatted="false">Couldn\'t save the crop.</string>
 </resources>

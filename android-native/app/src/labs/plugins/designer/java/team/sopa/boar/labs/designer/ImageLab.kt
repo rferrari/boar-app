@@ -15,6 +15,7 @@ import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.AssetStore
 import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.labs.DesignerCanvas
+import team.sopa.boar.engine.labs.DesignerCrop
 import java.io.File
 
 /**
@@ -247,7 +248,8 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
         if (refused(subject)) { regenerating = false; return }
         val s = _state.value
-        val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating }
+        // A crop's copy is never replaced: Draw again on it draws a new 512 picture and keeps the crop (BOAR-88).
+        val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating && !DesignerCrop.isCrop(it.name) }
         regenerating = false
         // The old picture goes: its frame shows the drawing in progress until the new one arrives.
         _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null, variations = null) }
@@ -320,6 +322,32 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
         regenerating = true
         generate(subject)
+    }
+
+    /**
+     * Crop (BOAR-88): [r] of [f], in its own pixels, saved as a COPY in the same folder (so it is in the gallery and can go
+     * to Press like any drawing), with the original's recipe beside it; the original stays. The copy is shown after.
+     */
+    fun crop(f: File, r: DesignerCrop.Rect) {
+        if (_state.value.phase != null) return
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val copy = withContext(Dispatchers.IO) {
+                runCatching {
+                    val src = android.graphics.BitmapFactory.decodeFile(f.path) ?: error("unreadable")
+                    try {
+                        val cut = android.graphics.Bitmap.createBitmap(src, r.x, r.y, r.w, r.h)
+                        val out = File(f.parentFile, DesignerCrop.fileName(System.currentTimeMillis(), ImageLab.recipeOf(f)?.style, r))
+                        out.outputStream().use { cut.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                        if (cut !== src) cut.recycle()
+                        ImageLab.recipeOf(f)?.let { ImageLab.writeRecipe(out, it.copy(size = "${r.w}x${r.h}")) }
+                        out
+                    } finally { src.recycle() }
+                }.getOrNull()
+            }
+            refresh()
+            if (copy != null) show(copy) else _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(app, "native.labs.image.cropFailed")) }
+        }
     }
 
     fun delete(f: File) {

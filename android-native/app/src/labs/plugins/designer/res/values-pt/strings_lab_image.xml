@@ -80,4 +80,9 @@
     <string name="native_labs_image_allDrawings" formatted="false">Todos os desenhos ({{count}})</string>
     <string name="native_labs_image_settingsTitle" formatted="false">Configurações do Designer</string>
     <string name="native_labs_image_waitSketch" formatted="false">Esboço</string>
+    <string name="native_labs_image_crop" formatted="false">Recortar</string>
+    <string name="native_labs_image_cropNote" formatted="false">Salva o quadro como uma cópia. O desenho fica como está.</string>
+    <string name="native_labs_image_cropFree" formatted="false">Livre</string>
+    <string name="native_labs_image_cropSave" formatted="false">Salvar cópia</string>
+    <string name="native_labs_image_cropFailed" formatted="false">Não deu para salvar o recorte.</string>
 </resources>

@@ -208,7 +208,7 @@ private fun styleName(key: String?) = t("native.labs.image.style.${key ?: "none"
 /**
  * The canvas, in the plugin page pattern (adam, Nov 14): the picture fills the space under the header, square (512 only,
  * BOAR-88), with one caption line under it (the status line); the shelf (the latest drawings and "From your last chat" as
- * a button); the toolbar (Style; each tool its own small sheet); and the chat's own input bar, whose left round
+ * a button); the toolbar (Style in its own small sheet, Crop on its own screen); and the chat's own input bar, whose left round
  * button is the ⋯ menu (the drawings) and whose right one draws (Stop while drawing). Settings: the header's gear.
  */
 @Composable
@@ -222,6 +222,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     var info by rememberSaveable { mutableStateOf(false) }
     var full by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf(false) }
+    var crop by rememberSaveable { mutableStateOf(false) }
     val busy = state.phase != null
     val ready = state.engineFound && state.modelPresent
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
@@ -255,6 +256,8 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
         team.sopa.boar.labs.PluginToolbar(DesignerCanvas.Section.entries.size) { size ->
             val can = ready && !busy
             team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_style, t("native.labs.image.styleLabel") + ": " + styleName(state.style.key), enabled = can, size = size) { tool = Tool.STYLE }
+            // Crop the shown picture into a copy (BOAR-88); only here, not in the chat's drawer.
+            team.sopa.boar.labs.PluginTool(team.sopa.boar.R.drawable.ic_designer_crop, t("native.labs.image.crop"), enabled = can && state.image != null && state.variations == null, size = size) { crop = true }
         }
         val menuLabel = t("native.labs.image.menu")
         // The chat's bar, shared (team.sopa.boar.ui.chat.PromptBar): Draw never queues, so it is Stop all the while it draws.
@@ -271,6 +274,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     if (info) state.image?.let { f -> InfoSheet(f, state, vm) { info = false } } ?: run { info = false }
     if (full) state.image?.let { f -> FullView(f) { full = false } } ?: run { full = false }
     if (settings) SettingsSheet(state, vm) { settings = false }
+    if (crop) state.image?.let { f -> CropScreen(f, state.recipe?.style ?: state.style.key, onSave = { r -> crop = false; vm.crop(f, r) }) { crop = false } } ?: run { crop = false }
 }
 
 /** The canvas's one line: "Style · N s" (this phone's average at 512; the style alone until timed), or what's happening. */

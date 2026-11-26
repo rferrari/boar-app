@@ -60,8 +60,8 @@ object DesignerCanvas {
     /** The line under the picture: "Engraving · 9 s", with this phone's own average at 512; the style alone until timed. */
     fun caption(style: String, seconds: Int?): String = style + (seconds?.let { " · $it s" } ?: "")
 
-    /** Designer's toolbar, above the input bar (adam, Nov 14; Shape and Quality gone with BOAR-88). */
-    enum class Section(val key: String) { STYLE("style") }
+    /** Designer's toolbar, above the input bar (adam, Nov 14): Style, and Crop (BOAR-88) in place of Shape and Quality. */
+    enum class Section(val key: String) { STYLE("style"), CROP("crop") }
 
     /** How many "4 variations" draws. */
     const val VARIATIONS = 4
