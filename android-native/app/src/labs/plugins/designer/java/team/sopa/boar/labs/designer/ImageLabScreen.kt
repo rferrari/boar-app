@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import team.sopa.boar.engine.labs.DesignerCanvas
+import team.sopa.boar.engine.labs.DrawRequest
 import team.sopa.boar.ui.PackIcon
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
@@ -87,6 +88,24 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         if (scope == team.sopa.boar.plugins.UserData.Scope.EVERYTHING) SdRunner.outDir(context).listFiles().orEmpty().forEach { it.delete() }
     }
     override fun eraseAnswers(context: android.content.Context, answerIds: List<String>) = Illustrator.eraseAnswers(context, answerIds)
+
+    /** "Draw me a mouse wearing a shirt", "desenhe um gato" (adam, 26 Nov): Designer answers in the chat (DrawRequest). */
+    override fun recognizes(query: String) = DrawRequest.parse(query) != null
+
+    /**
+     * A message that starts with a draw request: refused (ImageSafety), "get the model first", or "Drawing …" with the
+     * request kept for the answer's card, which draws it (AnswerExtra). "Ask BOAR" under it sends the words to the model.
+     */
+    override val answerTool: team.sopa.boar.plugins.AnswerTool = team.sopa.boar.plugins.AnswerTool { query, _ ->
+        val ask = DrawRequest.parse(query)
+        val ctx = team.sopa.boar.labs.LabPrefs.appContext
+        when {
+            ask == null -> null
+            team.sopa.boar.engine.routing.ImageSafety.blocked(ask.subject) -> team.sopa.boar.plugins.ToolResult.Instant(DrawRequest.TOOL_REFUSED, DrawRequest.refused(ask.lang))
+            ctx == null || !SdRunner.ready(ctx) -> team.sopa.boar.plugins.ToolResult.Instant(DrawRequest.TOOL_NO_MODEL, DrawRequest.noModel(ask.lang))
+            else -> { Illustrator.ask(query, ask); team.sopa.boar.plugins.ToolResult.Instant(DrawRequest.TOOL, DrawRequest.drawing(ask.lang, ask.subject)) }
+        }
+    }
 
     override val emoji = "🎨"
     override val art = team.sopa.boar.R.drawable.truffle_retrowave
@@ -157,6 +176,8 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         val c = Boar.colors
         val ctx = LocalContext.current
         if (Illustrator.asking == a.id) IllustrateSheet(a) { Illustrator.asking = null }
+        // "Draw me…" answered by Designer: the drawing starts under its answer, once (a reopened chat doesn't redraw it).
+        if (a.tool == DrawRequest.TOOL) androidx.compose.runtime.LaunchedEffect(a.id) { Illustrator.takeAsk(a.question)?.let { Illustrator.drawAsked(ctx, a, it) } }
         when (val st = Illustrator.status(ctx, a.id)) {
             null -> {}
             Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))

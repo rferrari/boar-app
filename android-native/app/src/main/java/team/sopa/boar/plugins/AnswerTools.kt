@@ -31,6 +31,13 @@ object AnswerTools {
     /** The first tool with something to say; one that throws is skipped, as a search stage is. */
     fun run(query: String, history: List<ConversationTurn>): ToolResult? =
         LabTools.first(runCatching { tools() }.getOrDefault(emptyList())) { it.run(query, history) }
+            ?: runCatching { offAnswer(query) }.getOrNull()
+
+    /**
+     * What a switched-off plugin says for a request only it can do, instead of the model making it up: "draw me a cat" with
+     * Designer off gets one line on where to switch it on (adam, 26 Nov). Null: the model answers. Set by Labs.
+     */
+    @Volatile var offAnswer: (query: String) -> ToolResult? = { null }
 
     /**
      * Who wrote an instant answer, from its receipt's tool id: a Labs plugin speaks as itself in the chat (its name and art

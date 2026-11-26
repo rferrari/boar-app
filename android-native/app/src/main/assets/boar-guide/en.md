@@ -66,7 +66,7 @@ Plugins are extra tools in the menu and under answers. In every profile, open Pl
 - Facts: one fact about a country, city, mountain, river, landmark or award, from a Wikidata table.
 - Cohazard: a fixed carbon monoxide safety answer for running fuel-burning devices indoors.
 - Distance: how far apart two cities are, and how long to walk, cycle or drive it, as an estimate.
-- Designer: draws an illustration from a few words, offline. It downloads its drawing model (683 MB) the first time. Every drawing is square; Crop saves a wide or tall copy and keeps the drawing.
+- Designer: draws an illustration from a few words, offline. It downloads its drawing model (683 MB) the first time. Every drawing is square; Crop saves a wide or tall copy. A chat message that starts with "draw me…" is drawn by Designer.
 - Press: collect answers into a basket and compile them into a PDF or a Markdown file.
 - Canvas: from 🧩 under an answer, Create a card: the model picks a bar, line or pie chart, a table, steps, a comparison or key facts, from the answer, earlier answers in the chat and the answer's sources, and BOAR draws it. Every number must be in one of those; anything that isn't is left out and listed. Switch the same data between bars, line, pie and table, copy it, or open it full screen. Under the card, Make it interactive builds a small interactive page from the answer; it takes longer.
 - Nomad: a compass from the phone's sensors, offline, no location needed.
