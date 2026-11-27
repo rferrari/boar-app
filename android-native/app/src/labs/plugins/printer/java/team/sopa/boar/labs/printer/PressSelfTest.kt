@@ -115,5 +115,22 @@ internal object PressSelfTest {
             answer(12, "Tide pools", ANSWER),
             picture(tall, 13).copy(place = PressDoc.Place.LEFT),
         )),
+        // The same document before and after a layout change (t9 0735: lines per page, pages): four long answers in
+        // paragraphs, one with a list, one followed by a drawing.
+        "spacing" to project("Spacing basket", listOf(
+            answer(21, "How did the Roman aqueducts carry water?", PARAS),
+            answer(22, "What should a hiking first-aid kit hold?", PARAS.substringBefore("\n\n") + "\n\n" + KIT + "\n\n" + PARAS.substringAfterLast("\n\n")),
+            answer(23, "Why do leaves change colour in autumn?", PARAS),
+            picture(square, 23, "A drawing after the third answer"),
+            answer(24, "How does a lighthouse lens work?", PARAS + "\n\n" + PARAS.substringBefore("\n\n")),
+        )),
     )
+
+    /** Five paragraphs of about 70 words each: the long answer of the spacing basket. */
+    private val PARAS = (1..5).joinToString("\n\n") { p ->
+        "Paragraph $p. " + (1..9).joinToString(" ") { "The engineers measured each slope with care, and the water moved slowly downhill over long distances." }.take(430) + "."
+    }
+
+    /** A list with blank lines between its items, as models often write them. */
+    private val KIT = (1..8).joinToString("\n\n") { "- Item $it: a short line about what it is for" }
 }
