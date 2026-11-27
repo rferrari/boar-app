@@ -44,6 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -536,20 +538,21 @@ private fun StyleSection(state: ImageLabState, vm: ImageLabViewModel) {
  * the answer's ✎ sheet (adam, 27 Nov: "same component"). Tapping the selected one again gives [ImageLab.Style.NONE].
  */
 @Composable
-private fun StyleTiles(selected: ImageLab.Style, onPick: (ImageLab.Style) -> Unit) {
+private fun StyleTiles(current: ImageLab.Style, onPick: (ImageLab.Style) -> Unit) {
     val c = Boar.colors
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }) { s ->
-            val on = s == selected
+            val on = s == current
             val name = styleName(s.key)
-            Column(Modifier.width(72.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { onPick(if (on) ImageLab.Style.NONE else s) },
+            // Selected is said, not only shown by the green border (CodeRabbit).
+            Column(Modifier.width(72.dp).clip(RoundedCornerShape(8.dp)).semantics { selected = on }.clickable(onClickLabel = name) { onPick(if (on) ImageLab.Style.NONE else s) },
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 StyleSwatch(s.key, Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)).border(2.dp, if (on) c.emerald400 else Color.Transparent, RoundedCornerShape(8.dp)))
                 Text(name, style = Boar.type.caption, color = if (on) c.textAccentEmerald else c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
-    Text(t(if (selected == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
+    Text(t(if (current == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
 }
 
 /** A style's tile, for now its paper and ink (Sketch.palette) with a sun and two hills: no picture assets yet. */

@@ -26,4 +26,9 @@ class DesignerLastStyleTest {
             assertFalse(d, x.contains("native_labs_image_remember\"") || x.contains("native_labs_image_reset\""))
         }
     }
+
+    @Test fun `TalkBack hears which style tile is selected, not only its colour (CodeRabbit)`() {
+        val tiles = section("private fun StyleTiles(")
+        assertTrue(tiles.contains(".semantics { selected = on }.clickable(onClickLabel = name)"))
+    }
 }
