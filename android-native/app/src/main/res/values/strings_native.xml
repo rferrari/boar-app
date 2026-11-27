@@ -822,4 +822,6 @@
     <string name="native_settings_plugins" formatted="false">Plugins</string>
     <string name="native_settings_customSetup" formatted="false">Chat setup: custom, from Evaluation</string>
     <string name="native_settings_customSetupReset" formatted="false">Reset to Auto</string>
+    <string name="native_models_evaluationTitle" formatted="false">Evaluation (for builders)</string>
+    <string name="native_models_evaluationSubtitle" formatted="false">Test models on this phone and find the setup that fits it.</string>
 </resources>

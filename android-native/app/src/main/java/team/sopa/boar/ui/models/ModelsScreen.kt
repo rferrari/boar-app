@@ -57,7 +57,7 @@ import team.sopa.boar.ui.theme.track
 
 /** The models and knowledge catalog (ModelCatalogScreen.tsx with CatalogItemCard.tsx's layout and styles). */
 @Composable
-fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onBack: () -> Unit) {
+fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onEvaluation: () -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
@@ -90,6 +90,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
             }
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
+            item { EvaluationCard(onEvaluation) }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     ChipRow(t("native.models.sort"), listOf(
@@ -330,6 +331,32 @@ fun DiscoverGgufCard(onBrowse: () -> Unit) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(t("native.browse.discoverTitle"), style = Boar.type.titleSm, color = c.textAccentCyan)
             Text(t("native.browse.discoverSubtitle"), style = Boar.type.subtext, color = c.textSecondary)
+        }
+        team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_right, 22.dp, c.textAccentCyan)
+    }
+}
+
+/**
+ * "Evaluation (for builders)", under Discover GGUF models with the same look (2.1.0, BOAR-81): Evaluation and its Device
+ * setup moved out of Settings; builders find them with the models they test.
+ */
+@Composable
+fun EvaluationCard(onOpen: () -> Unit) {
+    val c = Boar.colors
+    val outline = c.cyan400
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.cyanBgSubtle)
+            .drawBehind {
+                drawRoundRect(outline, cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx(),
+                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()))))
+            }
+            .clickable(onClick = onOpen).padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(t("native.models.evaluationTitle"), style = Boar.type.titleSm, color = c.textAccentCyan)
+            Text(t("native.models.evaluationSubtitle"), style = Boar.type.subtext, color = c.textSecondary)
         }
         team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_chevron_right, 22.dp, c.textAccentCyan)
     }

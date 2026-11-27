@@ -822,4 +822,6 @@
     <string name="native_settings_plugins" formatted="false">Plugins</string>
     <string name="native_settings_customSetup" formatted="false">Ajuste da conversa: personalizado, da Avaliação</string>
     <string name="native_settings_customSetupReset" formatted="false">Voltar ao Automático</string>
+    <string name="native_models_evaluationTitle" formatted="false">Avaliação (para desenvolvedores)</string>
+    <string name="native_models_evaluationSubtitle" formatted="false">Teste modelos neste celular e encontre o ajuste que serve para ele.</string>
 </resources>

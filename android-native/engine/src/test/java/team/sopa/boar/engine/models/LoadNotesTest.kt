@@ -17,6 +17,7 @@ class LoadNotesTest {
         val vm = File("../app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
         assertTrue(vm.contains("LoadNotes.stillAbout(note.modelId, services.activeModel()?.id)"))
         val main = File("../app/src/main/java/team/sopa/boar/MainActivity.kt").readText()
-        assertTrue(main.contains("ModelsScreen(modelsState, models, onBrowse = { screen = \"browse\" }) { vm.refreshModel()"))
+        // The catalog's back still refreshes the chat's model (the Evaluation card added in 2.1.0 changes nothing there).
+        assertTrue(main.contains("onEvaluation = { evalFrom = \"models\"; screen = \"evaluation\" }) { vm.refreshModel()"))
     }
 }
