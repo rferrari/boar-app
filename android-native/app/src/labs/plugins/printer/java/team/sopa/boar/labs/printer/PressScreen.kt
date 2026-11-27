@@ -120,7 +120,6 @@ import java.io.File
  */
 private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT, SETTINGS }
 
-private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -191,17 +190,15 @@ internal fun PressScreen(lab: LabPlugin) {
         }
     }
 
-    /** Save PDF: one tap, the printing animation, then Android's Save as. */
+    /** Save PDF: one tap, then Android's Save as as soon as the PDF is built (no printing animation, adam 27 Nov). */
     fun savePdf() {
         if (compiling || project.blocks.isEmpty()) return
         compiling = true
         scope.launch {
             val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
-            val started = System.currentTimeMillis()
             val ok = withContext(Dispatchers.IO) {
                 runCatching { PdfCompiler.compile(out, PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date)) { PressPictures.fileOf(ctx, project.id, it) } }
             }
-            delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
             compiling = false
             ok.onSuccess { draft = out; saveAs.launch(slug(project.name) + ".pdf") }.onFailure { Toasts.show(it.message ?: "PDF") }
         }
@@ -400,16 +397,6 @@ internal fun PressScreen(lab: LabPlugin) {
                     }
                 }
             }
-        }
-    }
-
-    // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
-    if (compiling) androidx.compose.ui.window.Dialog(
-        onDismissRequest = {},
-        properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-    ) {
-        Box(Modifier.background(c.bgCard, RoundedCornerShape(16.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(16.dp)).padding(24.dp)) {
-            PrintingAnimation()
         }
     }
 }
@@ -1165,32 +1152,6 @@ private fun ReceiptView(page: PressPage, s: PaperScale) {
         Box(Modifier.width(s.dp(48f)).height(1.dp).background(Color(Paper.RULE)))
         Spacer(Modifier.height(s.dp(8f)))
         page.footer.forEach { Text(it, style = s.footer, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = s.dp(2f))) }
-    }
-}
-
-/** A sheet feeding out of the printer, its lines printing top to bottom, for the length of a print run. */
-@Composable
-private fun PrintingAnimation() {
-    val c = Boar.colors
-    val feed = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) { feed.animateTo(1f, androidx.compose.animation.core.tween(PRINT_MS.toInt(), easing = androidx.compose.animation.core.LinearEasing)) }
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(160.dp, 44.dp).background(c.bgCardElevated, RoundedCornerShape(10.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.BottomCenter) {
-            Box(Modifier.size(8.dp).align(Alignment.TopEnd).padding(1.dp).background(if ((feed.value * 12).toInt() % 2 == 0) c.emerald400 else c.emeraldBgSubtle, RoundedCornerShape(4.dp)))
-            Box(Modifier.size(120.dp, 4.dp).background(Color.Black, RoundedCornerShape(2.dp)))
-        }
-        val sheetH = 150.dp * feed.value
-        Box(Modifier.size(112.dp, sheetH).background(Color.White).padding(horizontal = 10.dp, vertical = 8.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                val lines = (feed.value * 14).toInt()
-                repeat(lines) { i ->
-                    val w = when { i == 0 -> 0.7f; i % 5 == 4 -> 0.45f; else -> 0.92f - (i % 3) * 0.08f }
-                    Box(Modifier.fillMaxWidth(w).size(width = 0.dp, height = if (i == 0) 5.dp else 3.dp).background(if (i == 0) Color(0xFF1D1D1F) else Color(0xFF888888), RoundedCornerShape(1.dp)))
-                }
-            }
-        }
-        Text(t("native.labs.printer.compiling"), style = Boar.type.caption, color = c.textAccentEmerald, modifier = Modifier.padding(top = 10.dp))
     }
 }
 
