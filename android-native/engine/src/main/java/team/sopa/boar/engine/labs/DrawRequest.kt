@@ -76,6 +76,13 @@ object DrawRequest {
         Lang.ES -> "Designer puede dibujar esto. Actívalo en Plugins (menú › Plugins) y vuelve a pedirlo."
     }
 
+    /** Boar Labs itself is off: Plugins isn't in the menu, so the switch to name first is Boar Labs, in Settings. */
+    fun offLabs(lang: Lang): String = when (lang) {
+        Lang.EN -> "Designer can draw this. Turn on Boar Labs in Settings › Advanced tweaks › Experimental, then Designer in Plugins."
+        Lang.PT -> "O Designer pode desenhar isso. Ligue o Boar Labs em Configurações › Ajustes avançados › Experimental e depois o Designer em Plugins."
+        Lang.ES -> "Designer puede dibujar esto. Activa Boar Labs en Ajustes › Ajustes avanzados › Experimental y luego Designer en Plugins."
+    }
+
     /** Designer is on, its drawing model isn't downloaded. */
     fun noModel(lang: Lang): String = when (lang) {
         Lang.EN -> "Designer can draw this once its drawing model (683 MB) is on the phone: open Designer in Plugins to download it."

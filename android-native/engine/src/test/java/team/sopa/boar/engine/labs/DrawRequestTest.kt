@@ -117,4 +117,12 @@ class DrawRequestTest {
         assertTrue(hook.contains("chats.setMessageMeta(id,") && hook.contains("it.copy(receipt = updated)"))
         assertTrue(vm.contains("team.sopa.boar.plugins.AnswerReceipts.addTime = team.sopa.boar.plugins.AnswerReceipts.NONE"))
     }
+
+    @Test fun `with Boar Labs off, the line says to turn it on first - Plugins isn't in the menu then (CodeRabbit on PR 125)`() {
+        for (lang in Lang.entries) assertTrue("$lang", DrawRequest.offLabs(lang) != DrawRequest.off(lang) && DrawRequest.offLabs(lang).length < 200)
+        assertTrue(DrawRequest.offLabs(Lang.EN).contains("Boar Labs") && DrawRequest.offLabs(Lang.EN).contains("Settings › Advanced tweaks"))
+        assertTrue(DrawRequest.offLabs(Lang.PT).contains("Configurações › Ajustes avançados"))
+        val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
+        assertTrue(hooks.contains("if (!LabPrefs.labsOn) team.sopa.boar.engine.labs.DrawRequest.offLabs(it.lang) else team.sopa.boar.engine.labs.DrawRequest.off(it.lang)"))
+    }
 }

@@ -91,7 +91,9 @@ object LabHooks {
         // "here is your image" (adam, 26 Nov). Only in a build that has Designer.
         team.sopa.boar.plugins.AnswerTools.offAnswer = { q ->
             if (LabRegistry.ALL.none { it.id == "image" } || (LabPrefs.labsOn && LabPrefs.enabled("image"))) null
-            else team.sopa.boar.engine.labs.DrawRequest.parse(q)?.let { team.sopa.boar.plugins.ToolResult.Instant(team.sopa.boar.engine.labs.DrawRequest.TOOL_OFF, team.sopa.boar.engine.labs.DrawRequest.off(it.lang)) }
+            // Boar Labs off hides Plugins from the menu: the line names the Boar Labs switch first (CodeRabbit on PR 125).
+            else team.sopa.boar.engine.labs.DrawRequest.parse(q)?.let { team.sopa.boar.plugins.ToolResult.Instant(team.sopa.boar.engine.labs.DrawRequest.TOOL_OFF,
+                if (!LabPrefs.labsOn) team.sopa.boar.engine.labs.DrawRequest.offLabs(it.lang) else team.sopa.boar.engine.labs.DrawRequest.off(it.lang)) }
         }
         // Staged answers are core since Nov 12: AnswerModes.staged reads the setting (BoarServices), not a lab.
         team.sopa.boar.plugins.AnswerModes.ownsSources = { LabRegistry.active.any { it.ownsSources } }
