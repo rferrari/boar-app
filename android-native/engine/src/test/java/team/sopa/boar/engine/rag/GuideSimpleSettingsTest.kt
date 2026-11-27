@@ -45,4 +45,14 @@ class GuideSimpleSettingsTest {
         assertFalse(using.contains("Settings → Experimental") || using.contains("Settings → How BOAR answers") || using.contains("Advanced tweaks"))
         assertTrue(using.contains("Model Catalog → Evaluation (for builders) → Device setup"))
     }
+
+    @Test fun `asking where the advanced settings are searches the guide, EN and PT`() {
+        // On the emulator, "Where are the advanced settings?" didn't count as a question about BOAR, so the guide wasn't
+        // searched and the model guessed "the app's settings menu".
+        for (q in listOf("Where are the advanced settings?", "where are advanced settings", "Onde ficam as configurações avançadas?",
+                "onde estão as configuracoes avancadas", "What is Device setup?", "o que são os ajustes do aparelho?"))
+            assertTrue(q, BoarPack.aboutBoar(q))
+        // Generic words alone still don't.
+        for (q in listOf("what are the settings of a sonata?", "advanced mathematics books")) assertFalse(q, BoarPack.aboutBoar(q))
+    }
 }
