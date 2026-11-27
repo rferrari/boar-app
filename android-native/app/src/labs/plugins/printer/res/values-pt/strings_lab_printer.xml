@@ -8,7 +8,6 @@
     <string name="native_labs_printer_howTo" formatted="false">Traga respostas de uma conversa: embaixo de uma resposta, abra os plugins e toque em Adicionar ao Press. Ou adicione um título, uma nota, uma foto ou um desenho.</string>
     <string name="native_labs_printer_noImages" formatted="false">Nenhum desenho ainda. Faça alguns no Designer e escolha aqui.</string>
     <string name="native_labs_printer_compile" formatted="false">Salvar PDF</string>
-    <string name="native_labs_printer_compiling" formatted="false">Imprimindo…</string>
     <string name="native_labs_printer_madeWith" formatted="false">Feito offline com o BOAR · {{date}}</string>
     <string name="native_labs_printer_footer" formatted="false">compilado offline com o BOAR</string>
     <string name="native_labs_printer_inBasket" formatted="false">Em {{project}} (toque para tirar)</string>
@@ -129,4 +128,16 @@
     <string name="native_labs_printer_allProjects" formatted="false">Todos os projetos ({{count}})</string>
     <string name="native_labs_printer_searchProjects" formatted="false">Buscar projetos</string>
     <string name="native_labs_printer_noProjects" formatted="false">Nenhum projeto com esse nome.</string>
+    <string name="native_labs_printer_font" formatted="false">Fonte</string>
+    <string name="native_labs_printer_font_serif" formatted="false">Serifa</string>
+    <string name="native_labs_printer_font_sans" formatted="false">Sem serifa</string>
+    <string name="native_labs_printer_font_mono" formatted="false">Mono</string>
+    <string name="native_labs_printer_pageNumbers" formatted="false">Números de página</string>
+    <string name="native_labs_printer_pageFooter" formatted="false">Rodapé em todas as páginas</string>
+    <string name="native_labs_printer_pageFooterNote" formatted="false">Uma linha fina e o nome do projeto no pé de cada página do PDF.</string>
+    <string name="native_labs_printer_pageFoot" formatted="false">Página {{n}}</string>
+    <string name="native_labs_printer_size_small" formatted="false">Pequena</string>
+    <string name="native_labs_printer_size_medium" formatted="false">Média</string>
+    <string name="native_labs_printer_size_large" formatted="false">Grande</string>
+    <string name="native_labs_printer_sizeNext" formatted="false">Toque para o próximo tamanho.</string>
 </resources>

@@ -160,10 +160,11 @@ class PressPicturesTest {
 
     @Test fun `the PDF and the paper use the same plan and widths`() {
         val dir = "../app/src/labs/plugins/printer/java/team/sopa/boar/labs/printer"
-        for (f in listOf("PdfCompiler.kt", "PressScreen.kt")) {
-            val src = File("$dir/$f").readText()
-            assertTrue(f, src.contains("PressLayout.plan(") && src.contains("PressLayout.sideWidth(Paper.INNER)") && src.contains("PressLayout.besideWidth(Paper.INNER)"))
-        }
+        // The side widths follow the picture's size (adam, 27 Nov), the same in both.
+        val pdf = File("$dir/PdfCompiler.kt").readText()
+        assertTrue(pdf.contains("PressLayout.plan(") && pdf.contains("PressLayout.sideWidth(Paper.INNER, size)") && pdf.contains("PressLayout.besideWidth(Paper.INNER, f.size)"))
+        val screen = File("$dir/PressScreen.kt").readText()
+        assertTrue(screen.contains("PressLayout.plan(") && screen.contains("PressLayout.sideWidth(Paper.INNER, pic.size)") && screen.contains("PressLayout.besideWidth(Paper.INNER, pic.size)"))
         assertTrue(File("$dir/PressScreen.kt").readText().contains("PressLayout.linesBeside("))
         // The PDF ends the flow before the next block (a heading included).
         assertTrue(File("$dir/PdfCompiler.kt").readText().contains("p.endBeside()"))

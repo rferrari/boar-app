@@ -101,6 +101,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import team.sopa.boar.R
 import team.sopa.boar.engine.labs.PressDoc
+import team.sopa.boar.engine.labs.PressSpacing
 import team.sopa.boar.engine.labs.PressDoc.Block
 import team.sopa.boar.engine.labs.PressLayout
 import team.sopa.boar.engine.labs.PressReceipt
@@ -119,7 +120,6 @@ import java.io.File
  */
 private enum class Sheet { PROJECTS, ALL_PROJECTS, ADD, DRAWINGS, EDIT, SETTINGS }
 
-private const val PRINT_MS = 1800L
 /** The selection's gold, from the mock-up. */
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -190,17 +190,19 @@ internal fun PressScreen(lab: LabPlugin) {
         }
     }
 
-    /** Save PDF: one tap, the printing animation, then Android's Save as. */
+    /** Save PDF: one tap, then Android's Save as as soon as the PDF is built (no printing animation, adam 27 Nov). */
     fun savePdf() {
         if (compiling || project.blocks.isEmpty()) return
         compiling = true
         scope.launch {
-            val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
-            val started = System.currentTimeMillis()
+            // Its own draft: Press left and reopened mid-export can't have two builds write one file (CodeRabbit); drafts
+            // older than an hour go.
+            val dir = File(ctx.cacheDir, "print").apply { mkdirs() }
+            withContext(Dispatchers.IO) { dir.listFiles { f -> f.name.startsWith("draft-") && f.lastModified() < System.currentTimeMillis() - 3_600_000 }?.forEach { it.delete() } }
+            val out = withContext(Dispatchers.IO) { File.createTempFile("draft-", ".pdf", dir) }
             val ok = withContext(Dispatchers.IO) {
                 runCatching { PdfCompiler.compile(out, PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date)) { PressPictures.fileOf(ctx, project.id, it) } }
             }
-            delay((PRINT_MS - (System.currentTimeMillis() - started)).coerceAtLeast(0))
             compiling = false
             ok.onSuccess { draft = out; saveAs.launch(slug(project.name) + ".pdf") }.onFailure { Toasts.show(it.message ?: "PDF") }
         }
@@ -306,6 +308,7 @@ internal fun PressScreen(lab: LabPlugin) {
             onEdit = { if (editing == selected) editing = null else sheet = Sheet.EDIT },
             onCaption = { editing = if (editing == selected) null else selected },
             onPlace = { place -> PressStore.change { it.place(project.blocks[i].id, place) } },
+            onSize = { size -> PressStore.change { it.resize(project.blocks[i].id, size) } },
             onRemove = {
                 val b = project.blocks[i]
                 val pid = project.id
@@ -401,16 +404,6 @@ internal fun PressScreen(lab: LabPlugin) {
             }
         }
     }
-
-    // Printing: a modal in the middle of the screen, over everything, until the Save-as opens.
-    if (compiling) androidx.compose.ui.window.Dialog(
-        onDismissRequest = {},
-        properties = androidx.compose.ui.window.DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-    ) {
-        Box(Modifier.background(c.bgCard, RoundedCornerShape(16.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(16.dp)).padding(24.dp)) {
-            PrintingAnimation()
-        }
-    }
 }
 
 private fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(48).ifEmpty { "boar-document" }
@@ -425,7 +418,7 @@ private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Bo
 
 @Composable
 private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onCaption: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
-                      onRemove: () -> Unit, onClose: () -> Unit) {
+                      onRemove: () -> Unit, onClose: () -> Unit, onSize: (PressDoc.PicSize) -> Unit = {}) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -446,10 +439,22 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
                 }
                 val next = when (b.place) { PressDoc.Place.LEFT -> PressDoc.Place.CENTER; PressDoc.Place.CENTER -> PressDoc.Place.RIGHT; else -> PressDoc.Place.LEFT }
                 IconAction(icon, t("native.labs.printer.$key") + ". " + t("native.labs.printer.placeNext"), on = true) { onPlace(next) }
+                // Its size (adam, 27 Nov): one button, each tap the next size, its letter on it.
+                val nextSize = PressDoc.PicSize.entries[(b.size.ordinal + 1) % PressDoc.PicSize.entries.size]
+                SizeAction(b.size, t("native.labs.printer.size_${b.size.key}") + ". " + t("native.labs.printer.sizeNext")) { onSize(nextSize) }
             }
             IconAction(R.drawable.lab_printer_ic_remove, t("native.labs.printer.remove"), danger = true, onClick = onRemove)
             IconAction(R.drawable.lab_printer_ic_close, t("native.labs.printer.close"), onClick = onClose)
         }
+    }
+}
+
+/** The picture's size as a letter in the action bar (S, M, L): a tap goes to the next one. */
+@Composable
+private fun SizeAction(size: PressDoc.PicSize, label: String, onClick: () -> Unit) {
+    val c = Boar.colors
+    Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClickLabel = label, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
+        Text(size.key.take(1).uppercase(), style = Boar.type.body, fontWeight = FontWeight.Bold, color = c.emerald500)
     }
 }
 
@@ -724,6 +729,10 @@ private fun SettingsSheet(lab: LabPlugin, showBreaks: Boolean, o: PressReceipt.O
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSources"), t("native.labs.printer.showSourcesNote"), o.sources) { onOptions(o.copy(sources = it)) }
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showModels"), null, o.models) { onOptions(o.copy(models = it, speed = it && o.speed)) }
     if (o.models) team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSpeed"), null, o.speed) { onOptions(o.copy(speed = it)) }
+    // The document's font and each page's foot (adam, 27 Nov).
+    team.sopa.boar.ui.models.ChipRow(t("native.labs.printer.font"), team.sopa.boar.engine.labs.PressFont.entries.map { it to t("native.labs.printer.font_${it.key}") }, o.font) { onOptions(o.copy(font = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageNumbers"), null, o.pageNumbers) { onOptions(o.copy(pageNumbers = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageFooter"), t("native.labs.printer.pageFooterNote"), o.pageFooter) { onOptions(o.copy(pageFooter = it)) }
     Text(t("native.labs.printer.madeAlways"), style = Boar.type.caption, color = Boar.colors.textMuted, modifier = Modifier.padding(top = 10.dp))
     // About this plugin lives here, not in the menu (adam, Nov 14). Press has no How it works text.
     Spacer(Modifier.height(8.dp))
@@ -772,11 +781,19 @@ private fun Picture(f: File, scale: ContentScale) {
 
 // ---- The paper ----
 
+/** The picked font on screen, as PdfCompiler.typefaceOf prints it. */
+private fun familyOf(font: team.sopa.boar.engine.labs.PressFont): FontFamily = when (font) {
+    team.sopa.boar.engine.labs.PressFont.SERIF -> FontFamily.Serif
+    team.sopa.boar.engine.labs.PressFont.SANS -> FontFamily.SansSerif
+    team.sopa.boar.engine.labs.PressFont.MONO -> FontFamily.Monospace
+}
+
 /** The paper's type at its scale: [Paper]'s points times the page's pixels per point, as text sizes that ignore the font scale. */
-private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.unit.Density) {
+private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.unit.Density, family: FontFamily = FontFamily.Serif) {
     fun sp(pt: Float): TextUnit = with(density) { (pt * pxPerPt).toSp() }
     fun dp(pt: Float): Dp = with(density) { (pt * pxPerPt).toDp() }
-    private val serif = FontFamily.Serif
+    /** The document's font (Press settings): what the PDF prints with (PdfCompiler.typefaceOf). */
+    private val serif = family
     private val sans = FontFamily.SansSerif
     private fun style(size: Float, family: FontFamily = serif, bold: Boolean = false, italic: Boolean = false, color: Int = Paper.INK, line: Float = 1.25f) =
         TextStyle(fontFamily = family, fontSize = sp(size), lineHeight = sp(size * line), color = Color(color),
@@ -806,7 +823,7 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
     val project = page.project
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
-        val s = remember(maxWidth, density) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density) }
+        val s = remember(maxWidth, density, page.options.font) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density, familyOf(page.options.font)) }
         val measurer = rememberTextMeasurer()
         val pageLabel = t("native.labs.printer.page", "n" to "{{n}}")
         // Each block's top and height on the paper (px), by the ids PdfCompiler.pageStarts uses.
@@ -905,7 +922,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
                 b.shownQuestion?.let { Text(it.trim(), style = s.question, modifier = Modifier.padding(top = s.dp(3f))) }
                 Spacer(Modifier.height(s.dp(3f)))
                 if (editing) EditField(b.text, s.body, false, onFreshUsed) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
-                else Text(page.answerText(b), style = s.body)
+                else Paragraphs(page.answerText(b), s)
                 page.refsLine(b)?.let { Text(it, style = s.refs, modifier = Modifier.padding(top = s.dp(4f))) }
                 b.card?.let { PaperCard(it, page, s) }
             }
@@ -913,7 +930,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
             is Block.Paragraph ->
                 if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.paragraphHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
                 else if (b.text.isBlank()) Text(t("native.labs.printer.paragraphHint"), style = s.body.copy(color = HINT))
-                else Text(b.text.trim(), style = s.body)
+                else Paragraphs(b.text.trim(), s)
             is Block.Bullets ->
                 if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.listHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
                 else if (b.items.isEmpty()) Text(t("native.labs.printer.listHint"), style = s.body.copy(color = HINT))
@@ -922,7 +939,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
             is Block.Divider -> Box(Modifier.fillMaxWidth().height(s.dp(14f)), contentAlignment = Alignment.Center) {
                 Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
             }
-            is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER, editing, fresh, onFreshUsed, center = true)
+            is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER * b.size.center, editing, fresh, onFreshUsed, center = true)
             is Block.Unknown -> {}
         }
     }
@@ -951,7 +968,8 @@ private fun PictureContent(b: Block.Picture, projectId: String, s: PaperScale, m
     val ctx = LocalContext.current
     val file = remember(b.file, projectId) { PressPictures.fileOf(ctx, projectId, b) }
     val (pw, ph) = if (b.width > 0 && b.height > 0) b.width to b.height else 1 to 1
-    val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, maxW, Paper.PICTURE_MAX_H)
+    // A centred picture's height cap follows its size, as in the PDF; beside the text it keeps the page's cap.
+    val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, maxW, if (center) Paper.PICTURE_MAX_H * b.size.center else Paper.PICTURE_MAX_H)
     Column(Modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth(), contentAlignment = if (center) Alignment.Center else if (b.place == PressDoc.Place.LEFT) Alignment.CenterStart else Alignment.CenterEnd) {
             if (file != null) Box(Modifier.size(s.dp(w), s.dp(h)).background(Color(0xFFEEEEEE))) { Picture(file, ContentScale.Fit) }
@@ -969,18 +987,25 @@ private fun PictureContent(b: Block.Picture, projectId: String, s: PaperScale, m
     }
 }
 
+/** A text paragraph by paragraph, as the PDF lays it out (PressSpacing): a small gap between them, not an empty line. */
+@Composable
+private fun Paragraphs(text: String, s: PaperScale) = Column(verticalArrangement = Arrangement.spacedBy(s.dp(Paper.PARA_GAP))) {
+    PressSpacing.paragraphs(text).forEach { Text(it, style = s.body) }
+}
+
 /** A piece of a text block, for the flow beside a picture: its text, its style, the space above it. */
 private data class Piece(val text: String, val style: TextStyle, val gap: Float)
 
 private fun pieces(b: Block, page: PressPage, s: PaperScale): List<Piece> = when (b) {
-    is Block.Answer -> listOfNotNull(
-        Piece(PressPageText.oneLine(b.shownHeading), s.heading, 0f),
-        b.shownQuestion?.let { Piece(it.trim(), s.question, 3f) },
-        Piece(page.answerText(b), s.body, 3f),
-        page.refsLine(b)?.let { Piece(it, s.refs, 4f) },
-    )
+    is Block.Answer -> buildList {
+        add(Piece(PressPageText.oneLine(b.shownHeading), s.heading, 0f))
+        b.shownQuestion?.let { add(Piece(it.trim(), s.question, 3f)) }
+        // Paragraph by paragraph, as the PDF: a small gap between them, not an empty line (t9 0735).
+        PressSpacing.paragraphs(page.answerText(b)).forEachIndexed { i, para -> add(Piece(para, s.body, if (i == 0) 3f else Paper.PARA_GAP)) }
+        page.refsLine(b)?.let { add(Piece(it, s.refs, 4f)) }
+    }
     is Block.Note -> listOf(Piece(b.text, s.note, 0f))
-    is Block.Paragraph -> listOf(Piece(b.text.trim(), s.body, 0f))
+    is Block.Paragraph -> PressSpacing.paragraphs(b.text.trim()).mapIndexed { i, para -> Piece(para, s.body, if (i == 0) 0f else Paper.PARA_GAP) }
     is Block.Bullets -> listOf(Piece(PressDoc.bulleted(b.text), s.body, 0f))
     else -> emptyList()
 }
@@ -996,7 +1021,7 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
     val pic = item.picture
     val text = item.text
     val density = LocalDensity.current
-    val side = PressLayout.sideWidth(Paper.INNER)
+    val side = PressLayout.sideWidth(Paper.INNER, pic.size)
     val (pw, ph) = if (pic.width > 0 && pic.height > 0) pic.width to pic.height else 1 to 1
     var picH by remember(pic.id) { mutableStateOf(with(density) { s.dp(team.sopa.boar.engine.labs.PictureFit.within(pw, ph, side, Paper.PICTURE_MAX_H).second).toPx() }) }
     val picture = @Composable {
@@ -1021,7 +1046,7 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
         return
     }
     val measurer = rememberTextMeasurer()
-    val widthPx = with(density) { s.dp(PressLayout.besideWidth(Paper.INNER) - indent).roundToPx() }
+    val widthPx = with(density) { s.dp(PressLayout.besideWidth(Paper.INNER, pic.size) - indent).roundToPx() }
     val room = picH + with(density) { s.dp(8f).toPx() }
     val beside = mutableListOf<Piece>()
     val below = mutableListOf<Piece>()
@@ -1157,32 +1182,6 @@ private fun ReceiptView(page: PressPage, s: PaperScale) {
         Box(Modifier.width(s.dp(48f)).height(1.dp).background(Color(Paper.RULE)))
         Spacer(Modifier.height(s.dp(8f)))
         page.footer.forEach { Text(it, style = s.footer, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = s.dp(2f))) }
-    }
-}
-
-/** A sheet feeding out of the printer, its lines printing top to bottom, for the length of a print run. */
-@Composable
-private fun PrintingAnimation() {
-    val c = Boar.colors
-    val feed = remember { androidx.compose.animation.core.Animatable(0f) }
-    LaunchedEffect(Unit) { feed.animateTo(1f, androidx.compose.animation.core.tween(PRINT_MS.toInt(), easing = androidx.compose.animation.core.LinearEasing)) }
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(160.dp, 44.dp).background(c.bgCardElevated, RoundedCornerShape(10.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.BottomCenter) {
-            Box(Modifier.size(8.dp).align(Alignment.TopEnd).padding(1.dp).background(if ((feed.value * 12).toInt() % 2 == 0) c.emerald400 else c.emeraldBgSubtle, RoundedCornerShape(4.dp)))
-            Box(Modifier.size(120.dp, 4.dp).background(Color.Black, RoundedCornerShape(2.dp)))
-        }
-        val sheetH = 150.dp * feed.value
-        Box(Modifier.size(112.dp, sheetH).background(Color.White).padding(horizontal = 10.dp, vertical = 8.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                val lines = (feed.value * 14).toInt()
-                repeat(lines) { i ->
-                    val w = when { i == 0 -> 0.7f; i % 5 == 4 -> 0.45f; else -> 0.92f - (i % 3) * 0.08f }
-                    Box(Modifier.fillMaxWidth(w).size(width = 0.dp, height = if (i == 0) 5.dp else 3.dp).background(if (i == 0) Color(0xFF1D1D1F) else Color(0xFF888888), RoundedCornerShape(1.dp)))
-                }
-            }
-        }
-        Text(t("native.labs.printer.compiling"), style = Boar.type.caption, color = c.textAccentEmerald, modifier = Modifier.padding(top = 10.dp))
     }
 }
 
