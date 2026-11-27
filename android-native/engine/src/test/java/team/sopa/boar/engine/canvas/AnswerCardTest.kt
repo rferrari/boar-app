@@ -106,7 +106,7 @@ class AnswerCardTest {
         assertTrue(AnswerCard.markdown(AnswerCard(Shape.TABLE, "", AnswerCard.Body.Table(listOf("a|b"), listOf(listOf("x"))))).startsWith("| a\\|b |"))
     }
 
-    @Test fun `a model's card - negatives as a table, no answer marks, and gone when Press edits the text (R-E1, R-E2, R-E3)`() {
+    @Test fun `a model's card - negatives as a table, no answer marks, and kept when Press edits the text (R-E1, R-E2, adam 27 Nov)`() {
         val cold = Visual.Series("Coldest", Visual.SeriesKind.BARS, "°C", listOf("Oymyakon [1]" to -67.0, "Yakutsk" to 5.0))
         val c = AnswerCard.ofVisual(cold, emptyList(), "t")
         assertEquals(Shape.TABLE, c.shape)
@@ -114,11 +114,12 @@ class AnswerCardTest {
         val steps = AnswerCard.ofVisual(Visual.Steps("Boil [2]", listOf("Boil the water [1]", "Let it cool [1, 2]")), emptyList(), "t")
         assertEquals(listOf("Boil the water", "Let it cool"), (steps.body as AnswerCard.Body.Steps).items)
         assertEquals("Boil", steps.title)
-        // Press: "Use the new text" drops the card (it showed the old text's figures).
+        // Press: an edit of the text keeps the card (adam, 27 Nov: he removed the table from the text to keep only the card,
+        // and the card went too); the answer is marked edited, as the receipt says.
         val a = team.sopa.boar.engine.labs.PressDoc.Block.Answer("a", "Chat", "Q?", "Everest 8,849 m, K2 8,611 m.", emptyList(), 1, null, null, card = c)
         val lib = team.sopa.boar.engine.labs.PressDoc.Library("p", listOf(team.sopa.boar.engine.labs.PressDoc.Project("p", "P", 1, listOf(a))))
         val edited = lib.editText("a", team.sopa.boar.engine.labs.PressDoc.Field.TEXT, "Mountains are tall.").current.blocks.single() as team.sopa.boar.engine.labs.PressDoc.Block.Answer
-        assertEquals(null, edited.card)
+        assertEquals(c, edited.card)
         assertTrue(edited.edited)
     }
 }

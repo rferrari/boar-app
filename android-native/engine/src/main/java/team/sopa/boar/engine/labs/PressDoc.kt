@@ -191,8 +191,9 @@ object PressDoc {
                 b is Block.Paragraph -> b.copy(text = value)
                 b is Block.Bullets -> b.copy(text = value)
                 b is Block.Answer && field == Field.HEADING -> b.copy(heading = if (value.trim() == b.question.trim()) "" else value)
-                // The card showed the old text's figures: it goes with the edit, as `edited` tells the receipt (R-E3).
-                b is Block.Answer -> if (value == b.text) b else b.copy(text = value, edited = true, card = null)
+                // The card stays (adam, 27 Nov: he took the table out of the text to keep only the card, and the card went
+                // too; replaces validator R-E3); `edited` tells the receipt the text was changed.
+                b is Block.Answer -> if (value == b.text) b else b.copy(text = value, edited = true)
                 b is Block.Picture && field == Field.CAPTION -> b.copy(caption = value)
                 else -> b
             }
