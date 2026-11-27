@@ -222,6 +222,8 @@ object Illustrator {
         jobs.clear()
         status.values.forEach { (it as? Status.Done)?.file?.let(ImageLab::deleteDrawing) }
         status.clear()
+        // A "draw me…" not drawn yet holds the user's words: they go too (CodeRabbit on PR 125).
+        asked.clear()
         File(ctx.filesDir, "labs/illustrations.json").delete()
     }
 

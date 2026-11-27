@@ -131,4 +131,9 @@ class DrawRequestTest {
         assertEquals("uma onça\nna floresta", DrawRequest.parse("desenhe uma onça\nna floresta")?.subject)
         assertNull(DrawRequest.parse("what is this?\ndraw me a cat"))
     }
+
+    @Test fun `erasing everything forgets requests not drawn yet (CodeRabbit on PR 125)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        assertTrue(ill.substringAfter("fun eraseAll(ctx: Context) {").substringBefore("\n    }\n").contains("asked.clear()"))
+    }
 }
