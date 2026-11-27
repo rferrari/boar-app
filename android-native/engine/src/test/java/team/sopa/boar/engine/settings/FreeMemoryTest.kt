@@ -30,7 +30,6 @@ class FreeMemoryTest {
     @Test fun `on and Auto by default, and Reset settings restores both`() {
         val f = Files.createTempDirectory("boar-settings").toFile().resolve("settings.json")
         val s = AppSettings(f)
-        s.userProfile = UserProfile.PRO  // the free-memory delay is an Advanced tweak: Pro only
         assertTrue(s.freeMemoryInBackground)
         assertNull(s.freeMemoryAfterMinutes)
         s.freeMemoryInBackground = false

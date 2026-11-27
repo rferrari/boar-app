@@ -81,7 +81,7 @@ object BoarPack {
 
     /**
      * A question about BOAR itself, EN or PT (t9 0225 item 3): BOAR named, the app itself, or a feature only BOAR has a
-     * name for. Generic words alone ("models", "offline", "battery") don't count: "models of the atom" isn't about BOAR.
+     * name for. "Advanced settings" too (2.1.0): they moved to Evaluation, and the guide says where. Generic words alone ("models", "offline", "battery") don't count: "models of the atom" isn't about BOAR.
      */
     fun aboutBoar(query: String): Boolean = BOAR.containsMatchIn(query) || APP.containsMatchIn(query) || FEATURE.containsMatchIn(query) || PIN.containsMatchIn(query)
 
@@ -90,7 +90,7 @@ object BoarPack {
     private val BOAR = Regex("""$B\$?boar$E""", RegexOption.IGNORE_CASE)
     private val APP = Regex("""$B(?:this app|the app|this application|o app|este app|esse app|o aplicativo|este aplicativo|esse aplicativo)$E""", RegexOption.IGNORE_CASE)
     private val FEATURE = Regex(
-        """$B(?:local files|arquivos locais|personal files|deep research|pesquisa profunda|knowledge packs?|pacotes? de conhecimento|boar labs|answer styles?|estilos? de resposta|model catalog|cat[áa]logo de modelos|boarverse|boar avatars?|starter profile|perfil iniciante|succinct & direct|thorough & detailed|sucinto e direto|completo e detalhado|my data|meus dados|telemetry|telemetria)$E""",
+        """$B(?:local files|arquivos locais|personal files|deep research|pesquisa profunda|knowledge packs?|pacotes? de conhecimento|boar labs|answer styles?|estilos? de resposta|model catalog|cat[áa]logo de modelos|boarverse|boar avatars?|starter profile|perfil iniciante|succinct & direct|thorough & detailed|sucinto e direto|completo e detalhado|my data|meus dados|telemetry|telemetria|advanced settings|configura[çc][õo]es avan[çc]adas|device setup|ajustes do aparelho)$E""",
         RegexOption.IGNORE_CASE,
     )
     /** The app's PIN, written as such (not "pin a message"). */

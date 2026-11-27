@@ -500,6 +500,13 @@ class BoarServices private constructor(private val context: Context) {
     val isModelBusy: Boolean get() = modelBusy()
 
     /** Stops every answer, title and summary and waits up to [timeoutMs] for them to end; true when nothing runs. Blocking. */
+    /**
+     * An engine setting changed (Device setup, Settings' Reset to Auto): the model reloads with it on the next answer.
+     * An answer being written stops first (validator Q-5). In the services' own scope, so leaving the page that made the
+     * change doesn't cancel it (CodeRabbit on 2.1.0).
+     */
+    fun reloadForTweaks() { lifeScope.launch { if (stopAnswersAndWait()) host.unload() } }
+
     fun stopAnswersAndWait(timeoutMs: Long = 15_000): Boolean {
         stoppers.forEach { runCatching { it() } }
         val until = android.os.SystemClock.elapsedRealtime() + timeoutMs
@@ -597,9 +604,12 @@ class BoarServices private constructor(private val context: Context) {
 
         fun get(context: Context): BoarServices = instance ?: synchronized(this) {
             instance ?: run {
-                // The CPU build is chosen once per process, from the user's tweak (Auto by default).
                 val app = context.applicationContext
-                BoarEngine.init(app.applicationInfo.nativeLibraryDir, AppSettings(File(app.filesDir, "settings.json")).engineTweaks.cpuBuild)
+                // 2.1.0 (BOAR-81): the profiles retire first, before anything reads a setting (the CPU build here, the debug
+                // log and the chat's model below): a value a profile paused never acts, even once (CodeRabbit).
+                val settings = AppSettings(File(app.filesDir, "settings.json")).also { it.retireProfiles() }
+                // The CPU build is chosen once per process, from the user's tweak (Auto by default).
+                BoarEngine.init(app.applicationInfo.nativeLibraryDir, settings.engineTweaks.cpuBuild)
                 BoarServices(app).also { instance = it; DebugLog.init(app, it.settings); it.lifeScope.launch { it.syncBoarPack() } }
             }
         }

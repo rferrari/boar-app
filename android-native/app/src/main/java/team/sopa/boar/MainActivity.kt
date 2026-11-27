@@ -141,9 +141,6 @@ class MainActivity : ComponentActivity() {
         // A PIN set or removed in Settings protects the screen now, not only after BOAR next pauses.
         services.pinLock.onChange = { runOnUiThread { applySecure() } }
         team.sopa.boar.labs.LabHooks.init(this)
-        // An install from before profiles (rc2) gets its profile once, from its tweaks and its labs (UserProfile.forUpdate).
-        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyChosenOn(), boarverseOn = services.vault.enabled.value)
-        team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(services.settings.userProfile)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }
@@ -191,6 +188,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
     var screen by rememberSaveable { mutableStateOf(if (setup.ready() && !setup.unfinished && !SetupViewModel.running) "chat" else "setup") }
     // The source a "Read the whole article" opened (SourceReaderScreen): kept across rotation, as the screen is.
     var readDoc by rememberSaveable { mutableStateOf("") }
+    // Where Evaluation was opened from: Back returns there (the Model Catalog's card, or the menu in builder builds).
+    var evalFrom by rememberSaveable { mutableStateOf("chat") }
     var readTitle by rememberSaveable { mutableStateOf("") }
     var readBody by rememberSaveable { mutableStateOf("") }
     // A plugin page's Try row: a new chat that asks it, or the question in the input box to edit (adam, Nov 12). Set before
@@ -261,7 +260,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val models: ModelsViewModel = viewModel()
         val modelsState by models.state.collectAsState()
         BackHandler { vm.refreshModel(); services.checkVault(); screen = "chat" }
-        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }) { vm.refreshModel(); services.checkVault(); screen = "chat" }
+        ModelsScreen(modelsState, models, onBrowse = { screen = "browse" }, onEvaluation = { evalFrom = "models"; screen = "evaluation" }) { vm.refreshModel(); services.checkVault(); screen = "chat" }
         return
     }
     if (screen == "browse") {
@@ -290,8 +289,8 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         // A run takes many minutes: the screen stays on, and back does nothing until it ends (as Done hides).
         val view = LocalView.current
         DisposableEffect(evalState.running) { view.keepScreenOn = evalState.running; onDispose { view.keepScreenOn = false } }
-        BackHandler { if (!evalState.running) { vm.refreshModel(); screen = "chat" } }
-        EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null) { vm.refreshModel(); screen = "chat" }
+        BackHandler { if (!evalState.running) { vm.refreshModel(); screen = evalFrom } }
+        EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null, deviceSetup = { team.sopa.boar.ui.eval.DeviceSetup(services) }) { vm.refreshModel(); screen = evalFrom }
         return
     }
     if (screen == "vault") {
@@ -367,9 +366,9 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
                         DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
                     ).let { items ->
-                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
+                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it is in the Model Catalog (its card, 2.1.0).
                         if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
-                        else items.take(2) + DrawerItem("evaluation", t("evaluation.title")) { go { screen = "evaluation" } } + items.drop(2)
+                        else items.take(2) + DrawerItem("evaluation", t("evaluation.title")) { go { evalFrom = "chat"; screen = "evaluation" } } + items.drop(2)
                     }.let { items ->
                         // Boar Labs, then Settings, then Close BOAR last (Oct 18); About opens from the BOAR mark at the top.
                         val labs = team.sopa.boar.labs.LabHooks.drawerItems().map { (route, label) -> DrawerItem(route, t(label)) { go { screen = route } } }

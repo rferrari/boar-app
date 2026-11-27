@@ -59,14 +59,14 @@ cd boar-app
 git submodule update --init          # only if you cloned without --recursive
 cd android-native
 ./gradlew assembleRelease -Pboar.experimentalFeatures=true
-# -> app/build/outputs/apk/release/boar-2.0.0.apk
-adb install -r app/build/outputs/apk/release/boar-2.0.0.apk
+# -> app/build/outputs/apk/release/boar-2.1.0.apk
+adb install -r app/build/outputs/apk/release/boar-2.1.0.apk
 ./gradlew --stop                     # don't leave the Gradle daemon running
 ```
 
-Without `-Pboar.versionName` the version is `2.0.0`, and the release APK is named after the version
+Without `-Pboar.versionName` the version is `2.1.0`, and the release APK is named after the version
 (`boar-<versionName>.apk`). The 2.0.0 releases are built with `-Pboar.experimentalFeatures=true` (Boar Labs
-included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5, 2.0.0 has 8. About
+included); 2.0.0-rc1 has `versionCode` 4, 2.0.0-rc2 has 5, 2.0.0 has 8, 2.1.0 has 9. About
 shows the version, the git commit and the build date.
 
 Other build types:

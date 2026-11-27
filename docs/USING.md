@@ -13,8 +13,7 @@ privacy and plugins.
 
 ## How BOAR answers
 
-Pick a style with the style button next to where you type, or in Settings → How BOAR
-answers:
+Pick a style with the style button next to where you type:
 
 - **Thorough & Detailed**, the default: full explanations.
 - **Succinct & Direct**: quick replies.
@@ -29,8 +28,7 @@ the passage. The receipt shows the model, the speed and the time.
 
 ## Deep Research
 
-Deep Research is for big questions. Turn it on in Settings → How BOAR answers, or from
-the style button in the chat. When it is on, the chat glows and the 🔬 lights up.
+Deep Research is for big questions. Turn it on from the style button in the chat. When it is on, the chat glows and the 🔬 lights up.
 
 - BOAR breaks the question into at most 3 smaller questions, searches the library for
   each, then writes one answer. These steps run one after another on the same model, so
@@ -52,7 +50,7 @@ button.
 ## Plugins
 
 Plugins is a set of experiments, in builds made with the experimental flag (the 2.0.0
-releases are). Find it in Settings → Experimental → Plugins, and in the menu.
+and 2.1.0 releases are). Find it in Settings → Plugins, and in the menu.
 
 - Plugins starts on. If one lab misbehaves, switch it off there. If you can, open an
   issue on GitHub.
@@ -72,7 +70,8 @@ How a lab is made, and the order in which BOAR asks tools, checks and models:
 
 ## Adaptive routing
 
-Settings → How BOAR answers → Adaptive routing. It is off by default and experimental.
+Model Catalog → Evaluation (for builders) → Device setup → Answering → Adaptive routing.
+It is off by default and experimental.
 When on, BOAR picks which of your installed models answers each question. It helps only
 when you have more than one model. It does not check answers against the sources.
 
@@ -141,7 +140,7 @@ Settings → Start over has:
 
 - **Run setup again**: back into first-run setup to change the model or the
   knowledge package, without losing anything else.
-- **Reset settings**: theme, answer style, Deep Research, Advanced tweaks and display
+- **Reset settings**: theme, answer style, Deep Research, the engine settings and display
   options back to their defaults, then setup opens; models, packs, chats, PIN and
   language stay.
 - **Erase everything**: clears all of BOAR's data on the phone (models, the knowledge

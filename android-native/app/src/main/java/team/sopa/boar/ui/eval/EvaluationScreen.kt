@@ -68,7 +68,7 @@ private fun JsonObject.list(k: String) = (this[k] as? JsonArray)?.mapNotNull { (
 
 /** Runs the fixed evaluation set against the chosen models (EvaluationScreen.tsx). Results save as they come. */
 @Composable
-fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: Boolean, onClose: () -> Unit) {
+fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: Boolean, deviceSetup: (@Composable () -> Unit)? = null, onClose: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -82,6 +82,8 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
     val canRun = !state.running && !chatBusy && chosen > 0 && state.configs != null && (byHand || state.plan != null)
     var confirmDelete by remember { mutableStateOf<String?>(null) }
     var savedOpen by remember { mutableStateOf(true) }
+    // Device setup (2.1.0, BOAR-81): the builders' rows from Settings, folded until opened.
+    var setupOpen by remember { mutableStateOf(false) }
     val export: (String) -> Unit = { format -> scope.launch { vm.exportIntent(format)?.let(ctx::startActivity) } }
 
     Column(Modifier.fillMaxSize().background(c.bgSurface).statusBarsPadding().navigationBarsPadding()) {
@@ -97,6 +99,11 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             // A saved run opened from the list: its rows and scorecard below, as right after it ran.
             state.opened?.let { run ->
                 item { OpenedBar(run, onClose = { vm.closeOpened() }, onDelete = { confirmDelete = run.runId }) }
+            }
+            // Device setup (BOAR-81): not while a run is going, whose model an engine change would unload (CodeRabbit).
+            if (deviceSetup != null && !state.running) {
+                item { SectionToggle(t("native.eval.deviceSetup"), setupOpen) { setupOpen = !setupOpen } }
+                if (setupOpen) item { deviceSetup() }
             }
             if (state.opened == null) item { PresetSection(state, vm) }
             if (state.opened == null && byHand) item {

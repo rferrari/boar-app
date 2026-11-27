@@ -1,6 +1,5 @@
 package team.sopa.boar.engine.labs
 
-import team.sopa.boar.engine.settings.UserProfile
 
 /**
  * Which Boar Labs start on (rc3, adam, Nov 10), replacing rc2's "every lab starts off". A lab the user never switched
@@ -40,10 +39,4 @@ object LabDefaults {
 
     /** The switch a lab shows: the user's own choice when there is one, else the default. */
     fun switchOf(id: String, stored: Boolean?): Boolean = stored ?: (id in ON)
-
-    /**
-     * Boar Labs' own places (the menu item, the list, the setup page, the tour card, its settings) are Pro's. A lab
-     * that is on keeps working in every profile: its rows under answers and its header badge are not gated.
-     */
-    fun managementShown(profile: UserProfile): Boolean = profile == UserProfile.PRO
 }

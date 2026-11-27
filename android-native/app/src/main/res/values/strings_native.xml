@@ -318,8 +318,6 @@
     <string name="native_vault_section" formatted="false">Boarverse</string>
     <string name="native_vault_experimental" formatted="false">Boarverse</string>
     <string name="native_vault_experimentalNote" formatted="false">Unlock boar avatars as you use BOAR and wear them in the chat; some unlock new themes.</string>
-    <string name="native_settings_experimental" formatted="false">Experimental</string>
-    <string name="native_settings_experimentalNote" formatted="false">Extra tools in the menu and under answers. Each one can be switched on or off. Some start on; switch on the others you want in Plugins. If one misbehaves, switch it off and, if you can, open an issue on GitHub.</string>
     <string name="native_browse_discoverTitle" formatted="false">Discover GGUF models</string>
     <string name="native_debugLog_title" formatted="false">Debug log</string>
     <string name="native_debugLog_note" formatted="false">Keeps a file on this phone of how BOAR uses it: memory, battery, temperature, CPU speed, model loads, answer speed, downloads and crashes. Never what you ask or what BOAR answers. Nothing is sent: save the file and share it yourself. Uses a little battery.</string>
@@ -345,8 +343,6 @@
     <string name="native_models_engineTag" formatted="false">{{engine}} engine · streams from storage</string>
     <string name="native_models_placeOverUsb" formatted="false">Copy it over USB (Plugins → {{engine}})</string>
     <string name="native_models_selectUseEngine" formatted="false">Select &amp; Use · {{engine}} engine</string>
-    <string name="native_tweaks_evaluation" formatted="false">Evaluation (for builders)</string>
-    <string name="native_tweaks_evaluationNote" formatted="false">Run BOAR\'s evaluation set on this phone and submit the report. Builds for builders also show it in the menu.</string>
     <string name="native_models_cancelDownload" formatted="false">Cancel</string>
     <string name="native_models_sort" formatted="false">Sort</string>
     <string name="native_models_sortSmart" formatted="false">Smart</string>
@@ -568,7 +564,6 @@
     <!-- Settings: a folded section's one-line summary (SettingsScreen.Section) -->
     <string name="native_settings_summary_on" formatted="false">on</string>
     <string name="native_settings_summary_off" formatted="false">off</string>
-    <string name="native_settings_summary_deep" formatted="false">Deep Research {{state}}</string>
     <string name="native_settings_summary_noPacks" formatted="false">Built-in library</string>
     <string name="native_settings_summary_knowledge" formatted="false">{{packs}} · {{count}} of your collections</string>
     <string name="native_settings_summary_memory" formatted="false">Keeps {{max}} chats</string>
@@ -666,16 +661,6 @@
     <string name="native_a11y_backspace" formatted="false">Delete digit</string>
     <string name="native_a11y_done" formatted="false">Done</string>
     <string name="native_a11y_back" formatted="false">Back</string>
-    <string name="native_settings_profile_title" formatted="false">Profile</string>
-    <string name="native_settings_profile_simple" formatted="false">Starter</string>
-    <string name="native_settings_profile_simpleNote" formatted="false">Just the essentials: language, look, PIN, models and starting over.</string>
-    <string name="native_settings_profile_explorer" formatted="false">Explorer</string>
-    <string name="native_settings_profile_explorerNote" formatted="false">Starter, plus how BOAR answers, knowledge, chats, voice and Boarverse.</string>
-    <string name="native_settings_profile_pro" formatted="false">Pro</string>
-    <string name="native_settings_profile_proNote" formatted="false">Everything, plus Advanced tweaks, technical details and plugin settings. Below Pro, these go back to Auto; your choices return when you pick Pro again (Reset settings clears them).</string>
-    <string name="native_settings_profile_updated" formatted="false">New in this version: profiles. BOAR picked {{profile}} from your settings. Change it any time.</string>
-    <string name="native_settings_profile_updatedBelowPro" formatted="false">Technical details (live speed at the top of the chat, the answer\'s performance details, the menu\'s memory and storage bars) are now in Pro.</string>
-    <string name="native_settings_profile_labsOn" formatted="false">These plugins are now on: {{labs}}. Turn them off in Plugins, in the menu.</string>
     <string name="native_settings_languageVoice" formatted="false">Language and voice</string>
     <string name="native_voice_followsApp" formatted="false">Voice listens in the app\'s language. A phone without that speech pack listens in its own language.</string>
     <string name="native_voice_followsPhone" formatted="false">Voice listens in your phone\'s speech language.</string>
@@ -716,10 +701,6 @@
     <string name="native_chat_queueDroppedSwitch" formatted="false">{{count}} waiting questions were dropped: they were asked in the chat you left.</string>
     <string name="native_chat_mergeQueue" formatted="false">Merge into one question</string>
     <string name="native_nav_chat" formatted="false">Chat</string>
-    <string name="native_settings_profile_simpleShort" formatted="false">Starter: set up the essentials.</string>
-    <string name="native_settings_profile_explorerShort" formatted="false">Explorer: discover more features.</string>
-    <string name="native_settings_profile_proShort" formatted="false">Pro: advanced settings and tweaks.</string>
-    <string name="native_settings_profile_downNote" formatted="false">Advanced tweaks and plugin settings pause below Pro. Your settings are kept.</string>
     <string name="native_drawer_searchChats" formatted="false">Search chats</string>
     <string name="native_drawer_group_today" formatted="false">Today</string>
     <string name="native_drawer_group_yesterday" formatted="false">Yesterday</string>
@@ -801,7 +782,6 @@
     <string name="native_settings_lower_text" formatted="false">Keeping {{max}} chats deletes “{{title}}”.</string>
     <string name="native_settings_lower_textMore" formatted="false">Keeping {{max}} chats deletes “{{title}}” and {{more}} more.</string>
     <string name="native_settings_lower_delete" formatted="false">Delete them</string>
-    <string name="native_settings_experimentalNoteBelowPro" formatted="false">Extra tools in the menu and under answers. Each one can be switched on or off.</string>
     <string name="native_labs_pageSwitch" formatted="false">{{name}} on or off</string>
     <string name="native_labs_headerSheetOff" formatted="false">OFF</string>
     <string name="native_labs_offTag" formatted="false">Off</string>
@@ -813,4 +793,16 @@
     <string name="native_labs_switchRow" formatted="false">{{name}} on</string>
     <string name="native_labs_switchRowNote" formatted="false">Off, it stays here to switch on again.</string>
     <string name="native_vault_allTile" formatted="false">All ›</string>
+    <string name="native_eval_deviceSetup" formatted="false">Device setup</string>
+    <string name="native_eval_deviceSetupNote" formatted="false">How BOAR runs on this phone. The engine settings apply to the chat from its next answer.</string>
+    <string name="native_deviceSetup_engine" formatted="false">Engine</string>
+    <string name="native_deviceSetup_answering" formatted="false">Answering</string>
+    <string name="native_deviceSetup_memory" formatted="false">Memory</string>
+    <string name="native_deviceSetup_diagnostics" formatted="false">Diagnostics</string>
+    <string name="native_settings_chats" formatted="false">Chats</string>
+    <string name="native_settings_plugins" formatted="false">Plugins</string>
+    <string name="native_settings_customSetup" formatted="false">Chat setup: custom, from Evaluation</string>
+    <string name="native_settings_customSetupReset" formatted="false">Reset to Auto</string>
+    <string name="native_models_evaluationTitle" formatted="false">Evaluation (for builders)</string>
+    <string name="native_models_evaluationSubtitle" formatted="false">Test models on this phone and find the setup that fits it.</string>
 </resources>

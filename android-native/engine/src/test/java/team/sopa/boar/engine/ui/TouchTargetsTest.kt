@@ -14,11 +14,4 @@ class TouchTargetsTest {
         // The toolbar shares its width out in cells of 48 dp or more, and scrolls only when it can't.
         assertTrue(chrome.contains("val scrolls = cell < TOUCH_MIN") && chrome.contains("val touch = if (scrolls) TOUCH_MIN else cell"))
     }
-
-    @Test fun `the profile pills are 48 dp, selectable, and say which is selected`() {
-        val pills = settings.substringAfter("private fun ProfilePills(").substringBefore("\n}\n")
-        assertTrue(pills.contains("Modifier.selectableGroup()"))
-        assertTrue(pills.contains("Box(Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp)"))
-        assertTrue(pills.contains(".selectable(selected = on, role = androidx.compose.ui.semantics.Role.Tab)"))
-    }
 }

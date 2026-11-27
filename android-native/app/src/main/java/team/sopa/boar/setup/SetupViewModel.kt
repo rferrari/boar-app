@@ -201,7 +201,8 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** The guide's pages for this setup: no PIN page when a PIN was set before it started. */
-    private fun guidePages() = SetupGuide.pages(team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && team.sopa.boar.engine.labs.LabDefaults.managementShown(services.settings.userProfile), services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies())
+    // No Boar Labs page in setup: as a fresh install (Starter) saw it before profiles went (2.1.0, BOAR-81).
+    private fun guidePages() = SetupGuide.pages(false, services.pinLock.isSet, team.sopa.boar.app.NotificationAsk.applies())
 
     fun guideNext() = setGuide(_state.value.guidePage + 1)
     fun guideBack() = setGuide(_state.value.guidePage - 1)

@@ -134,11 +134,12 @@ android {
         manifestPlaceholders["appLabel"] = if (appIdSuffix != null) "BOAR Labs" else "@string/app_name"
         minSdk = 26
         targetSdk = 36
-        // 2.0.0-rc2 was 5; the X6's Mesh test build used 6. rc3 is 7, so it installs over both and keeps the models.
-        versionCode = 8
+        // 2.0.0-rc2 was 5; the X6's Mesh test build used 6. rc3 is 7, 2.0.0 is 8; 2.1.0 is 9, so it installs over 2.0.0
+        // and keeps the models.
+        versionCode = 9
         // The release name comes from the build (-Pboar.versionName=2.0.0 for a release), the commit and date from git, so
         // About always says exactly which code this APK is.
-        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.0.0"
+        versionName = (findProperty("boar.versionName") as String?)?.takeIf { it.isNotBlank() } ?: "2.1.0"
         val gitSha = runCatching { providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim() }.getOrNull().orEmpty()
         val gitDirty = runCatching { providers.exec { commandLine("git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=all"); isIgnoreExitValue = true }.standardOutput.asText.get().isNotBlank() }.getOrDefault(false)
         buildConfigField("String", "GIT_SHA", "\"${gitSha}${if (gitDirty) "+" else ""}\"")
