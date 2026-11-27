@@ -15,8 +15,8 @@ class DesignerGalleryActionsTest {
         val marker = "private fun MediaManager("
         assertTrue(screen.contains(marker))
         val manager = screen.substringAfter(marker).substringBefore("\n}\n")
-        assertTrue(manager.contains("onInfo: (File) -> Unit") && manager.contains("RoundOverlay(team.sopa.boar.R.drawable.ic_info, t(\"native.labs.image.infoButton\")) { onInfo(f) }"))
-        assertTrue(screen.contains("MediaManager(state.gallery, vm, onInfo = { f -> vm.show(f); infoNext = true; managing = false }) { managing = false }"))
+        assertTrue(manager.contains("onInfo: ((File) -> Unit)?") && manager.contains("onInfo?.let { open -> RoundOverlay(team.sopa.boar.R.drawable.ic_info, t(\"native.labs.image.infoButton\")) { open(f) } }"))
+        assertTrue(screen.contains("MediaManager(state.gallery, vm, onInfo = if (state.phase == null) { f -> vm.show(f); infoNext = true; managing = false } else null) { managing = false }"))
         val canvas = screen.substringAfter("fun DesignerCanvasScreen(").substringBefore("\n}\n")
         assertTrue(canvas.contains("androidx.compose.runtime.LaunchedEffect(openInfo) { if (openInfo) { info = true; onInfoOpened() } }"))
     }
@@ -29,5 +29,10 @@ class DesignerGalleryActionsTest {
         val canvas = screen.substringAfter("fun DesignerCanvasScreen(").substringBefore("\n}\n")
         assertTrue(canvas.contains("t(\"native.labs.image.deleteOneConfirm\")") && canvas.contains("vm.delete(f)"))
         for (d in listOf("values", "values-pt")) assertTrue(d, strings(d).contains("name=\"native_labs_image_deleteOneConfirm\""))
+    }
+
+    @Test fun `while Designer draws, All drawings has no i button - showing a drawing then would drop the variations made so far (CodeRabbit)`() {
+        assertTrue(screen.contains("onInfo = if (state.phase == null) {"))
+        assertTrue(!screen.contains("MediaManager(state.gallery, vm, onInfo = { f -> vm.show(f)"))
     }
 }

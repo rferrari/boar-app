@@ -144,7 +144,9 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             androidx.activity.compose.BackHandler { managing = false }
             // The media manager as it was; the full page doesn't scroll, so it brings its own scroll and margin.
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 24.dp)) {
-                MediaManager(state.gallery, vm, onInfo = { f -> vm.show(f); infoNext = true; managing = false }) { managing = false }
+                // No ⓘ while a drawing or the variations are being made: showing another drawing would drop the variations
+                // made so far from the grid (CodeRabbit). It comes back when the run ends.
+                MediaManager(state.gallery, vm, onInfo = if (state.phase == null) { f -> vm.show(f); infoNext = true; managing = false } else null) { managing = false }
             }
         } else DesignerCanvasScreen(state, vm, openInfo = infoNext, onInfoOpened = { infoNext = false }) { managing = true }
     }
@@ -680,7 +682,7 @@ private fun Thumbs(files: List<File>, columns: Int, selected: Set<File>, onTap: 
 
 /** Every image on this phone: select and delete. Nothing leaves the lab, so no share or export. */
 @Composable
-private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onInfo: (File) -> Unit = {}, onBack: () -> Unit) {
+private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onInfo: ((File) -> Unit)? = null, onBack: () -> Unit) {
     val c = Boar.colors
     var picked by remember { mutableStateOf(setOf<File>()) }
     var confirm by remember { mutableStateOf(false) }
@@ -716,7 +718,7 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onInfo: (File
             Box(Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp))) {
                 Picture(f, Modifier.fillMaxSize())
                 Box(Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
-                    RoundOverlay(team.sopa.boar.R.drawable.ic_info, t("native.labs.image.infoButton")) { onInfo(f) }
+                    onInfo?.let { open -> RoundOverlay(team.sopa.boar.R.drawable.ic_info, t("native.labs.image.infoButton")) { open(f) } }
                 }
             }
             ImageLab.recipeOf(f)?.let { r ->
