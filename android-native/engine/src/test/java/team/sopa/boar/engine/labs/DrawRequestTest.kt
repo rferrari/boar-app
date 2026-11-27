@@ -142,4 +142,11 @@ class DrawRequestTest {
         val asked = ill.substringAfter("fun drawAsked(").substringBefore("\n    }\n")
         assertTrue(asked.contains("if (ask.lang != DrawRequest.Lang.EN && !a.chatBusy)"))
     }
+
+    @Test fun `a receipt that can't be saved never touches the answer running now (CodeRabbit on PR 125)`() {
+        val vm = java.io.File("../app/src/main/java/team/sopa/boar/chat/ChatViewModel.kt").readText()
+        val hook = vm.substringAfter("team.sopa.boar.plugins.AnswerReceipts.addTime = ").substringBefore("\n        }\n")
+        // Caught where it happens: safeScope's handler would reset the current answer's state.
+        assertTrue(hook.contains("runCatching {") && hook.contains(".onFailure { e -> android.util.Log.w(\"BoarChat\", \"receipt time not saved: \${e.javaClass.simpleName}\") }"))
+    }
 }
