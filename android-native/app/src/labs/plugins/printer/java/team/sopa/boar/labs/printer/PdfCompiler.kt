@@ -93,7 +93,7 @@ object PdfCompiler {
                 p.keepRoom(Paper.HEADING * 1.4f + Paper.BODY * 3)
                 p.text(PressPageText.oneLine(b.shownHeading), serif(Paper.HEADING, bold = true), after = 3f)
                 b.shownQuestion?.let { p.text(it.trim(), serif(Paper.QUESTION, italic = true, color = Paper.MUTED), after = 3f) }
-                p.text(page.answerText(b), serif(Paper.BODY), after = 4f, spacing = Paper.PDF_SPACING)
+                p.paragraphs(page.answerText(b), serif(Paper.BODY), after = 4f, spacing = Paper.PDF_SPACING)
                 page.refsLine(b)?.let { p.text(it, sans(Paper.REFS, color = Paper.META), after = 0f) }
                 // The card after the answer's own lines, as on the paper (beside a picture too, where it goes below it).
                 b.card?.let { card(p, page, it) }
@@ -101,8 +101,8 @@ object PdfCompiler {
             }
             is Block.Note -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.NOTE, italic = true, color = Paper.MUTED), after = Paper.GAP,
                 spacing = Paper.PDF_SPACING, indent = 12f)
-            is Block.Paragraph -> if (b.text.isNotBlank()) p.text(b.text.trim(), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
-            is Block.Bullets -> if (b.items.isNotEmpty()) p.text(team.sopa.boar.engine.labs.PressDoc.bulleted(b.text), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
+            is Block.Paragraph -> if (b.text.isNotBlank()) p.paragraphs(b.text.trim(), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
+            is Block.Bullets -> if (b.items.isNotEmpty()) p.paragraphs(team.sopa.boar.engine.labs.PressDoc.bulleted(b.text), serif(Paper.BODY), after = Paper.GAP, spacing = Paper.PDF_SPACING)
             is Block.Divider -> { p.gap(4f); p.rule(); p.gap(Paper.GAP - 10f) }
             is Block.Picture, is Block.Unknown -> {}
         }
@@ -286,6 +286,13 @@ object PdfCompiler {
                 if (f != null && layout.getLineBottom(last) <= room) { y = maxOf(y, f.bottom); float = null } else newPage()
             }
             y += after
+        }
+
+        /** [s] paragraph by paragraph (PressSpacing): a small gap between them, not an empty line; [after] after the last. */
+        fun paragraphs(s: String, paint: TextPaint, after: Float, spacing: Float) {
+            val ps = team.sopa.boar.engine.labs.PressSpacing.paragraphs(s)
+            if (ps.isEmpty()) { y += after; return }
+            ps.forEachIndexed { i, para -> text(para, paint, after = if (i == ps.lastIndex) after else Paper.PARA_GAP, spacing = spacing) }
         }
 
         /** Ends the text beside a picture: what follows starts below it, at the full width. */

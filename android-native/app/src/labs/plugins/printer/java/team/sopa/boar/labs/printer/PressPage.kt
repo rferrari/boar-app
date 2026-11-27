@@ -18,24 +18,31 @@ object Paper {
     const val M = 40f
     val INNER = W - 2 * M
 
-    const val TITLE = 30f
-    const val DATE = 11.5f
-    const val HEADING = 21f
-    const val QUESTION = 15f
-    const val BODY = 16f
-    /** Line height over font size, on the screen; the PDF's StaticLayout gets the same height through [PDF_SPACING]. */
-    const val LINE = 1.4f
-    const val PDF_SPACING = 1.2f
-    const val REFS = 12f
-    const val NOTE = 15f
-    const val CAPTION = 13f
-    const val RECEIPT = 11.5f
-    const val RECEIPT_TITLE = 12.5f
+    // A 12 pt body since t9 0735 (adam, 27 Nov: a page read thin, about 29 lines at 16 pt; he picked 12 pt), the rest
+    // scaled with it (about three quarters), margins and page as they were.
+    const val TITLE = 23f
+    const val DATE = 9f
+    const val HEADING = 15.5f
+    const val QUESTION = 11.5f
+    const val BODY = 12f
+    /**
+     * Line height over font size, on the screen; the PDF's StaticLayout gets the same height through [PDF_SPACING]:
+     * measured 16 pt per line for the 12 pt body (emulator, t9 0735), so 16 / 12.
+     */
+    const val LINE = 1.333f
+    const val PDF_SPACING = 1.15f
+    /** Between two paragraphs of a text: a small gap, not a whole empty line (PressSpacing). */
+    const val PARA_GAP = 6f
+    const val REFS = 9f
+    const val NOTE = 11.5f
+    const val CAPTION = 10f
+    const val RECEIPT = 9f
+    const val RECEIPT_TITLE = 9.5f
     const val RECEIPT_LABEL_W = 80f
-    const val FOOT = 11f
+    const val FOOT = 8.5f
     /** The document's footer: small, light, centered (adam, Nov 13: it read as part of the document). */
-    const val FOOTER = 8.5f
-    const val GAP = 14f
+    const val FOOTER = 7.5f
+    const val GAP = 10f
     /** The tallest a picture gets: about half a page. */
     const val PICTURE_MAX_H = 380f
 
@@ -52,8 +59,8 @@ object Paper {
     const val BAR = 0xFF6B7080.toInt()
     const val BAR_TRACK = 0xFFE8EAF0.toInt()
     /** A card's text: a little smaller than the answer's. */
-    const val CARD = 13f
-    const val CARD_TITLE = 14f
+    const val CARD = 10f
+    const val CARD_TITLE = 10.5f
 }
 
 /** One project as it prints: the date, the receipt and the words, the same for the paper, the PDF and the Markdown. */

@@ -101,6 +101,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import team.sopa.boar.R
 import team.sopa.boar.engine.labs.PressDoc
+import team.sopa.boar.engine.labs.PressSpacing
 import team.sopa.boar.engine.labs.PressDoc.Block
 import team.sopa.boar.engine.labs.PressLayout
 import team.sopa.boar.engine.labs.PressReceipt
@@ -905,7 +906,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
                 b.shownQuestion?.let { Text(it.trim(), style = s.question, modifier = Modifier.padding(top = s.dp(3f))) }
                 Spacer(Modifier.height(s.dp(3f)))
                 if (editing) EditField(b.text, s.body, false, onFreshUsed) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
-                else Text(page.answerText(b), style = s.body)
+                else Paragraphs(page.answerText(b), s)
                 page.refsLine(b)?.let { Text(it, style = s.refs, modifier = Modifier.padding(top = s.dp(4f))) }
                 b.card?.let { PaperCard(it, page, s) }
             }
@@ -913,7 +914,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
             is Block.Paragraph ->
                 if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.paragraphHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
                 else if (b.text.isBlank()) Text(t("native.labs.printer.paragraphHint"), style = s.body.copy(color = HINT))
-                else Text(b.text.trim(), style = s.body)
+                else Paragraphs(b.text.trim(), s)
             is Block.Bullets ->
                 if (editing) EditField(b.text, s.body, fresh, onFreshUsed, placeholder = t("native.labs.printer.listHint")) { v -> PressStore.change { it.editText(b.id, PressDoc.Field.TEXT, v) } }
                 else if (b.items.isEmpty()) Text(t("native.labs.printer.listHint"), style = s.body.copy(color = HINT))
@@ -969,18 +970,25 @@ private fun PictureContent(b: Block.Picture, projectId: String, s: PaperScale, m
     }
 }
 
+/** A text paragraph by paragraph, as the PDF lays it out (PressSpacing): a small gap between them, not an empty line. */
+@Composable
+private fun Paragraphs(text: String, s: PaperScale) = Column(verticalArrangement = Arrangement.spacedBy(s.dp(Paper.PARA_GAP))) {
+    PressSpacing.paragraphs(text).forEach { Text(it, style = s.body) }
+}
+
 /** A piece of a text block, for the flow beside a picture: its text, its style, the space above it. */
 private data class Piece(val text: String, val style: TextStyle, val gap: Float)
 
 private fun pieces(b: Block, page: PressPage, s: PaperScale): List<Piece> = when (b) {
-    is Block.Answer -> listOfNotNull(
-        Piece(PressPageText.oneLine(b.shownHeading), s.heading, 0f),
-        b.shownQuestion?.let { Piece(it.trim(), s.question, 3f) },
-        Piece(page.answerText(b), s.body, 3f),
-        page.refsLine(b)?.let { Piece(it, s.refs, 4f) },
-    )
+    is Block.Answer -> buildList {
+        add(Piece(PressPageText.oneLine(b.shownHeading), s.heading, 0f))
+        b.shownQuestion?.let { add(Piece(it.trim(), s.question, 3f)) }
+        // Paragraph by paragraph, as the PDF: a small gap between them, not an empty line (t9 0735).
+        PressSpacing.paragraphs(page.answerText(b)).forEachIndexed { i, para -> add(Piece(para, s.body, if (i == 0) 3f else Paper.PARA_GAP)) }
+        page.refsLine(b)?.let { add(Piece(it, s.refs, 4f)) }
+    }
     is Block.Note -> listOf(Piece(b.text, s.note, 0f))
-    is Block.Paragraph -> listOf(Piece(b.text.trim(), s.body, 0f))
+    is Block.Paragraph -> PressSpacing.paragraphs(b.text.trim()).mapIndexed { i, para -> Piece(para, s.body, if (i == 0) 0f else Paper.PARA_GAP) }
     is Block.Bullets -> listOf(Piece(PressDoc.bulleted(b.text), s.body, 0f))
     else -> emptyList()
 }
