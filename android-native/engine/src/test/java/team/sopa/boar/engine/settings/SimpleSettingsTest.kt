@@ -52,4 +52,10 @@ class SimpleSettingsTest {
             assertTrue("$d $k", strings(d).contains("name=\"$k\""))
         assertTrue(strings("values").contains(">Chat setup: custom, from Evaluation<"))
     }
+
+    @Test fun `resetting a custom CPU build says it applies after a restart (CodeRabbit re-run)`() {
+        val custom = settings.substringAfter("private fun CustomSetupLine(").substringBefore("\n}\n")
+        assertTrue(custom.contains("if (tweaks.cpuBuild != team.sopa.boar.engine.CpuVariants.AUTO) team.sopa.boar.ui.Toasts.show(restart)"))
+        assertTrue(custom.contains("val restart = t(\"native.tweaks.appliesRestart\")"))
+    }
 }

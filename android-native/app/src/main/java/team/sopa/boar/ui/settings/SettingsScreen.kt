@@ -169,12 +169,15 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
 private fun CustomSetupLine(services: BoarServices) {
     val c = Boar.colors
     var tweaks by remember { mutableStateOf(services.settings.engineTweaks) }
+    val restart = t("native.tweaks.appliesRestart")
     if (tweaks.isAuto) return
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.amberBgSubtle).border(1.dp, c.amberBorder, RoundedCornerShape(12.dp))
         .padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(t("native.settings.customSetup"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
         Text(t("native.settings.customSetupReset"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
             modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable {
+                // The CPU build is chosen once per launch: going back to Auto there takes a restart, said now (CodeRabbit).
+                if (tweaks.cpuBuild != team.sopa.boar.engine.CpuVariants.AUTO) team.sopa.boar.ui.Toasts.show(restart)
                 services.settings.engineTweaks = EngineTweaks(); tweaks = EngineTweaks()
                 // As a change in Device setup: the model reloads with Auto on the next answer, after one being written.
                 services.reloadForTweaks()
