@@ -86,4 +86,5 @@
     <string name="native_labs_image_cropFree" formatted="false">Free</string>
     <string name="native_labs_image_cropSave" formatted="false">Save copy</string>
     <string name="native_labs_image_cropFailed" formatted="false">Couldn\'t save the crop.</string>
+    <string name="native_labs_image_deleteOneConfirm" formatted="false">Delete this drawing? It can\'t be undone.</string>
 </resources>

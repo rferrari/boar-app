@@ -86,4 +86,5 @@
     <string name="native_labs_image_cropFree" formatted="false">Livre</string>
     <string name="native_labs_image_cropSave" formatted="false">Salvar cópia</string>
     <string name="native_labs_image_cropFailed" formatted="false">Não deu para salvar o recorte.</string>
+    <string name="native_labs_image_deleteOneConfirm" formatted="false">Apagar este desenho? Não dá para desfazer.</string>
 </resources>

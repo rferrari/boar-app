@@ -136,15 +136,17 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
             onDispose { view.keepScreenOn = false }
         }
         var managing by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+        // ⓘ on a drawing in All drawings: back on the canvas with it, its sheet open (adam, 27 Nov).
+        var infoNext by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
         // Back while drawing stops the drawing (or the variations), as before the canvas.
         if (state.phase != null) androidx.activity.compose.BackHandler { vm.cancel() }
         if (managing) {
             androidx.activity.compose.BackHandler { managing = false }
             // The media manager as it was; the full page doesn't scroll, so it brings its own scroll and margin.
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp).padding(bottom = 24.dp)) {
-                MediaManager(state.gallery, vm) { managing = false }
+                MediaManager(state.gallery, vm, onInfo = { f -> vm.show(f); infoNext = true; managing = false }) { managing = false }
             }
-        } else DesignerCanvasScreen(state, vm) { managing = true }
+        } else DesignerCanvasScreen(state, vm, openInfo = infoNext, onInfoOpened = { infoNext = false }) { managing = true }
     }
 
     /** 🎨 in the answer's 🧩 sheet: Illustrator picks what to draw and draws it below the answer. */
@@ -233,7 +235,7 @@ private fun styleName(key: String?) = t("native.labs.image.style.${key ?: "none"
  * button is the ⋯ menu (the drawings) and whose right one draws (Stop while drawing). Settings: the header's gear.
  */
 @Composable
-fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: () -> Unit) {
+fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, openInfo: Boolean = false, onInfoOpened: () -> Unit = {}, onManage: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     var subject by rememberSaveable { mutableStateOf("") }
@@ -244,6 +246,8 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     var full by rememberSaveable { mutableStateOf(false) }
     var settings by rememberSaveable { mutableStateOf(false) }
     var crop by rememberSaveable { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(openInfo) { if (openInfo) { info = true; onInfoOpened() } }
     val busy = state.phase != null
     val ready = state.engineFound && state.modelPresent
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
@@ -259,7 +263,7 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.weight(1f).fillMaxWidth().background(c.bgSubtle).padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CanvasArt(state, vm, ready, busy, onInfo = { info = true }, onFull = { full = true }, onShow = showFile)
+                CanvasArt(state, vm, ready, busy, onInfo = { info = true }, onFull = { full = true }, onDelete = { deleting = true }, onShow = showFile)
             }
             // The status line: nothing to tap (the gear is in the header since Nov 14).
             Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -293,6 +297,12 @@ fun DesignerCanvasScreen(state: ImageLabState, vm: ImageLabViewModel, onManage: 
     } }
     if (menu) DesignerMenu(state, onShow = { f -> menu = false; showFile(f) }, onAll = { menu = false; onManage() }) { menu = false }
     if (info) state.image?.let { f -> InfoSheet(f, state, vm) { info = false } } ?: run { info = false }
+    // The picture's delete button asks first (adam, 27 Nov).
+    if (deleting) state.image?.let { f ->
+        androidx.compose.material3.AlertDialog({ deleting = false }, text = { Text(t("native.labs.image.deleteOneConfirm")) },
+            confirmButton = { androidx.compose.material3.TextButton({ deleting = false; vm.delete(f) }) { Text(t("native.labs.image.delete"), color = c.crimson400) } },
+            dismissButton = { androidx.compose.material3.TextButton({ deleting = false }) { Text(t("common.cancel")) } })
+    } ?: run { deleting = false }
     if (full) state.image?.let { f -> FullView(f) { full = false } } ?: run { full = false }
     if (settings) SettingsSheet(state, vm) { settings = false }
     if (crop) state.image?.let { f -> CropScreen(f, state.recipe?.style ?: state.style.key, onSave = { r -> crop = false; vm.crop(f, r) }) { crop = false } } ?: run { crop = false }
@@ -325,7 +335,7 @@ private sealed interface Art {
 }
 
 @Composable
-private fun CanvasArt(state: ImageLabState, vm: ImageLabViewModel, ready: Boolean, busy: Boolean, onInfo: () -> Unit, onFull: () -> Unit, onShow: (File) -> Unit) {
+private fun CanvasArt(state: ImageLabState, vm: ImageLabViewModel, ready: Boolean, busy: Boolean, onInfo: () -> Unit, onFull: () -> Unit, onDelete: () -> Unit, onShow: (File) -> Unit) {
     val c = Boar.colors
     val frame = Modifier.aspectRatio(state.size.w.toFloat() / state.size.h)
     when {
@@ -370,6 +380,7 @@ private fun CanvasArt(state: ImageLabState, vm: ImageLabViewModel, ready: Boolea
                     is Art.Shown -> Box(Modifier.aspectRatio(aspectOf(a.file)).clip(RoundedCornerShape(6.dp))) {
                         Picture(a.file, Modifier.fillMaxSize())
                         Row(Modifier.align(Alignment.BottomEnd).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            RoundOverlay(team.sopa.boar.R.drawable.ic_delete, t("native.labs.image.delete"), onDelete)
                             RoundOverlay(team.sopa.boar.R.drawable.ic_info, t("native.labs.image.infoButton"), onInfo)
                             RoundOverlay(team.sopa.boar.R.drawable.ic_designer_full, t("native.labs.image.fullButton"), onFull)
                         }
@@ -669,7 +680,7 @@ private fun Thumbs(files: List<File>, columns: Int, selected: Set<File>, onTap: 
 
 /** Every image on this phone: select and delete. Nothing leaves the lab, so no share or export. */
 @Composable
-private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () -> Unit) {
+private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onInfo: (File) -> Unit = {}, onBack: () -> Unit) {
     val c = Boar.colors
     var picked by remember { mutableStateOf(setOf<File>()) }
     var confirm by remember { mutableStateOf(false) }
@@ -701,7 +712,13 @@ private fun MediaManager(files: List<File>, vm: ImageLabViewModel, onBack: () ->
         }
         // The selected drawing in full, at its own shape, with what it was drawn from.
         viewing?.takeIf { it in picked && it.isFile }?.let { f ->
-            Picture(f, Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp)))
+            // ⓘ on it, as on the canvas: Draw again, 4 variations, Delete (adam, 27 Nov).
+            Box(Modifier.fillMaxWidth().aspectRatio(aspectOf(f)).clip(RoundedCornerShape(10.dp))) {
+                Picture(f, Modifier.fillMaxSize())
+                Box(Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
+                    RoundOverlay(team.sopa.boar.R.drawable.ic_info, t("native.labs.image.infoButton")) { onInfo(f) }
+                }
+            }
             ImageLab.recipeOf(f)?.let { r ->
                 // No pixel numbers on screen (Nov 13).
                 Text("${r.subject} · ${t("native.labs.image.style.${r.style}")} · ${t("native.labs.image.seed", "seed" to r.seed)}",
