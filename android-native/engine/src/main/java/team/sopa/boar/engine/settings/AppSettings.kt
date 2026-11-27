@@ -51,14 +51,16 @@ class AppSettings(private val file: File) {
      * 2.1.0 has no profiles (BOAR-81): every value counts as stored. Run once at launch, so nobody's behaviour changes
      * silently: below Pro the seven Pro values were paused (read as defaults), so they go; on Pro, or on an install from
      * before profiles (everything counted then), they stay, and technical details, on by Pro's default, are written on
-     * when nothing is stored. A fresh install (no model chosen yet) gets the new default: technical details off. A file
+     * when nothing is stored. A fresh install (nothing stored yet) gets the new default: technical details off. A file
      * that couldn't be read is left as it is.
      */
     fun retireProfiles() {
         if (profilesRetired || loadFailed) return
         // The profile 2.0.0 stored: "simple" (Starter), "explorer" or "pro"; none on a fresh install or one from before profiles.
         val profile = str(PROFILE_KEY)
-        val fresh = profile == null && activeModelId("llm") == null
+        // Fresh: nothing stored at all. Not "no model chosen": an install from before profiles may have its settings and no
+        // active model, and had technical details on (CodeRabbit).
+        val fresh = profile == null && data.isEmpty()
         update {
             when {
                 fresh -> {}

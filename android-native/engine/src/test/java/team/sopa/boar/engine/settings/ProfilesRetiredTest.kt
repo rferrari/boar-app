@@ -106,4 +106,10 @@ class ProfilesRetiredTest {
         val retire = get.indexOf("AppSettings(File(app.filesDir, \"settings.json\")).also { it.retireProfiles() }")
         assertTrue(retire >= 0 && retire < get.indexOf("BoarEngine.init(") && retire < get.indexOf("BoarServices(app)"))
     }
+
+    @Test fun `an install from before profiles with settings but no model chosen keeps technical details on (CodeRabbit)`() {
+        val f = install(null, allPro = false, model = false)
+        AppSettings(f).retireProfiles()
+        assertTrue(AppSettings(f).showLiveStats)
+    }
 }
