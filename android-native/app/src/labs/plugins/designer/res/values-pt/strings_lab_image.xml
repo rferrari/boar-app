@@ -12,6 +12,7 @@
     <string name="native_labs_image_phase_loading" formatted="false">Carregando o modelo…</string>
     <string name="native_labs_image_phase_drawing" formatted="false">Desenhando…</string>
     <string name="native_labs_image_phase_decoding" formatted="false">Finalizando a imagem…</string>
+    <string name="native_labs_image_phase_saving" formatted="false">Salvando a cópia…</string>
     <string name="native_labs_image_delete" formatted="false">Apagar</string>
     <string name="native_labs_image_body" formatted="false">Desenha uma imagem com poucas palavras, no celular.</string>
     <string name="native_labs_image_fromChat" formatted="false">↳ Da sua última conversa: “{{title}}”</string>

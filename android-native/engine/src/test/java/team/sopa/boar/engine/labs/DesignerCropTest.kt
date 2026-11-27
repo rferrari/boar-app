@@ -106,4 +106,14 @@ class DesignerCropTest {
         repeat(30) { w = DesignerCrop.resize(w, 0, 1, Ratio.WIDE, 512, 512) }
         assertTrue("$w", w.h >= 200)
     }
+
+    @Test fun `saving a crop keeps Designer busy until the copy shows, so a drawing can't race it (CodeRabbit on PR 125)`() {
+        val dir = "../app/src/labs/plugins/designer"
+        val lab = java.io.File("$dir/java/team/sopa/boar/labs/designer/ImageLab.kt").readText()
+        val crop = lab.substringAfter("fun crop(").substringBefore("\n    }\n")
+        assertTrue(crop.contains("_state.update { it.copy(phase = \"saving\", error = null) }") && crop.contains("job = viewModelScope.launch"))
+        // Stopped (Back, Stop) while it saved: nothing is shown; done: the copy shows and Designer is free again.
+        assertTrue(crop.contains("if (!isActive) return@launch") && crop.contains("_state.update { it.copy(phase = null) }"))
+        for (d in listOf("values", "values-pt")) assertTrue(d, java.io.File("$dir/res/$d/strings_lab_image.xml").readText().contains("name=\"native_labs_image_phase_saving\""))
+    }
 }

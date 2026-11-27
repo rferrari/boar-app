@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import team.sopa.boar.app.BoarServices
@@ -331,7 +332,9 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     fun crop(f: File, r: DesignerCrop.Rect) {
         if (_state.value.phase != null) return
         val app = getApplication<Application>()
-        viewModelScope.launch {
+        // Busy until the copy shows: Draw can't start meanwhile and be replaced by a late copy (CodeRabbit on PR 125).
+        _state.update { it.copy(phase = "saving", error = null) }
+        job = viewModelScope.launch {
             val copy = withContext(Dispatchers.IO) {
                 runCatching {
                     val src = android.graphics.BitmapFactory.decodeFile(f.path) ?: error("unreadable")
@@ -345,7 +348,10 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
                     } finally { src.recycle() }
                 }.getOrNull()
             }
+            // Stopped (Back, Stop) while it saved: the copy stays in the drawings, the canvas isn't changed under the user.
+            if (!isActive) return@launch
             refresh()
+            _state.update { it.copy(phase = null) }
             if (copy != null) show(copy) else _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(app, "native.labs.image.cropFailed")) }
         }
     }
