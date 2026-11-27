@@ -29,7 +29,10 @@ object DrawRequest {
     /** "draw me…", "sketch me…", "paint me…". */
     private val EN_ME = Regex("^(?:draw|sketch|paint)\\s+(?:me|us)\\s+(.+)$", O)
     /** "draw a…", "draw an…", unless it's "draw a conclusion" and the like. */
-    private val EN_A = Regex("^draw\\s+((?:a|an)\\s+(\\p{L}+).*)$", O)
+    // The word after "a" may start with a digit ("draw a 3D cube", CodeRabbit).
+    private val EN_A = Regex("^draw\\s+((?:a|an)\\s+([\\p{L}\\p{N}]+).*)$", O)
+    /** The first word after an article: what [NOT_A_PICTURE] is checked on ("draw me a bath"). */
+    private val FIRST_NOUN = Regex("^(?:(?:a|an|the)\\s+)?([\\p{L}\\p{N}]+)", O)
     private val NOT_A_PICTURE = setOf("conclusion", "conclusions", "distinction", "comparison", "parallel", "blank", "breath", "card", "lesson",
         "line", "crowd", "salary", "inference", "analogy", "contrast", "veil", "bath", "check", "cheque", "lot", "tie", "draw", "bead", "sword", "gun", "pistol")
 
@@ -48,7 +51,9 @@ object DrawRequest {
         EN_OF.find(t)?.let { return ask(it.groupValues[1], Lang.EN) }
         PT_OF.find(t)?.let { m -> return ask(article(m.groupValues[1].lowercase(), m.groupValues[2]), Lang.PT) }
         ES_OF.find(t)?.let { m -> return ask((if (m.groupValues[1].lowercase() == "del") "el " else "") + m.groupValues[2], Lang.ES) }
-        EN_ME.find(t)?.let { return ask(it.groupValues[1], Lang.EN) }
+        // "draw me a bath" runs a bath: the same exclusions as "draw a…" (CodeRabbit).
+        EN_ME.find(t)?.let { m -> val w = FIRST_NOUN.find(m.groupValues[1].trim())?.groupValues?.get(1)?.lowercase()
+            return if (w in NOT_A_PICTURE) null else ask(m.groupValues[1], Lang.EN) }
         EN_A.find(t)?.let { m -> return if (m.groupValues[2].lowercase() in NOT_A_PICTURE) null else ask(m.groupValues[1], Lang.EN) }
         PT_DRAW.find(t)?.let { return ask(it.groupValues[1], Lang.PT) }
         ES_DRAW.find(t)?.let { return ask(it.groupValues[1], Lang.ES) }

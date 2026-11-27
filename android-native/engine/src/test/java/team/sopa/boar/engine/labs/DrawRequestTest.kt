@@ -149,4 +149,16 @@ class DrawRequestTest {
         // Caught where it happens: safeScope's handler would reset the current answer's state.
         assertTrue(hook.contains("runCatching {") && hook.contains(".onFailure { e -> android.util.Log.w(\"BoarChat\", \"receipt time not saved: \${e.javaClass.simpleName}\") }"))
     }
+
+    @Test fun `a subject may start with a digit (CodeRabbit)`() {
+        assertEquals(DrawRequest.Ask("a 3D cube", Lang.EN), DrawRequest.parse("draw a 3D cube"))
+        assertEquals("a cat", DrawRequest.parse("draw a cat")?.subject)
+    }
+
+    @Test fun `draw me a bath is not a picture either (CodeRabbit)`() {
+        assertNull(DrawRequest.parse("draw me a bath"))
+        assertNull(DrawRequest.parse("Draw me a conclusion from this"))
+        assertEquals("a cat", DrawRequest.parse("draw me a cat")?.subject)
+        assertEquals("the moon", DrawRequest.parse("draw me the moon")?.subject)
+    }
 }
