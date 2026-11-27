@@ -168,10 +168,26 @@ object Illustrator {
         "no quotes, no punctuation at the end.\n\nExamples:\num gato de chapéu -> a cat wearing a hat\nun perro con gafas -> a dog with glasses"
 
     /** [subject] in English, from the chat model; null when no model answers in time or it says nothing usable. */
-    private suspend fun englishSubject(ctx: Context, subject: String): String? = kotlinx.coroutines.withTimeoutOrNull(30_000) {
-        val session = BoarServices.get(ctx).activeSession() ?: return@withTimeoutOrNull null
-        val r = SessionEngine(session).generate(TRANSLATE, subject.take(200), nPredict = 32, temperature = 0.1f, timeoutMs = null, onToken = null)
-        clean(r.text)
+    private suspend fun englishSubject(ctx: Context, subject: String): String? = withChatModel(ctx) { session ->
+        kotlinx.coroutines.withTimeoutOrNull(30_000) {
+            clean(SessionEngine(session).generate(TRANSLATE, subject.take(200), nPredict = 32, temperature = 0.1f, timeoutMs = null, onToken = null).text)
+        }
+    }
+
+    /**
+     * [block] with the chat's model held for Designer, as Press does (validator G-4, CodeRabbit): checked and claimed in one
+     * step, so a chat answer, title or preload can't start in between, and let go when [block] ends. Null when the
+     * model is busy or not loaded: the caller keeps the user's own words.
+     */
+    private suspend fun <T> withChatModel(ctx: Context, block: suspend (team.sopa.boar.engine.TextModel) -> T?): T? {
+        val services = BoarServices.get(ctx)
+        if (!services.claimModelForLab()) return null
+        try {
+            val session = services.activeSession(forLab = true) ?: return null
+            return block(session)
+        } finally {
+            services.releaseModelForLab()
+        }
     }
 
     /** ✕ under the answer: the drawing goes, and one still being made is stopped (SdRunner stops sd-cli on cancel). */
@@ -214,14 +230,14 @@ object Illustrator {
         "QUESTION: when is the monsoon in India -> heavy monsoon rain over green rice fields"
 
     /**
-     * A few words from the chat model; null when no model is loaded, it says nothing usable, or it doesn't answer in
+     * A few words from the chat model; null when the model is busy or not loaded, it says nothing usable, or it doesn't answer in
      * time. No session.cancel(): the chat's own title or summary may be the one holding the model, and it must finish.
      */
-    private suspend fun subjectFromModel(ctx: Context, a: AnswerRef): String? = kotlinx.coroutines.withTimeoutOrNull(30_000) {
-        val session = BoarServices.get(ctx).activeSession() ?: return@withTimeoutOrNull null
-        val user = "QUESTION: ${a.question.take(300)}\n\nANSWER EXCERPT: ${a.text.take(400)}"
-        val r = SessionEngine(session).generate(SYSTEM, user, nPredict = 28, temperature = 0.2f, timeoutMs = null, onToken = null)
-        clean(r.text)
+    private suspend fun subjectFromModel(ctx: Context, a: AnswerRef): String? = withChatModel(ctx) { session ->
+        kotlinx.coroutines.withTimeoutOrNull(30_000) {
+            val user = "QUESTION: ${a.question.take(300)}\n\nANSWER EXCERPT: ${a.text.take(400)}"
+            clean(SessionEngine(session).generate(SYSTEM, user, nPredict = 28, temperature = 0.2f, timeoutMs = null, onToken = null).text)
+        }
     }
 
     /** The first line, without labels, quotes or a trailing period; 2 to 14 words. */

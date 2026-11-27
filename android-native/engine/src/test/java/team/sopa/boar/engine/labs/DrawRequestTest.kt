@@ -214,4 +214,19 @@ class DrawRequestTest {
         val screen = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
         assertTrue(screen.contains("Illustrator.takeAsk(ctx, a.id, a.question)"))
     }
+
+    @Test fun `Designer claims the chat model before it asks it for words, and lets it go after (CodeRabbit)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val marker = "private suspend fun <T> withChatModel("
+        assertTrue(ill.contains(marker))
+        val claim = ill.substringAfter(marker).substringBefore("\n    }\n")
+        assertTrue(claim.contains("if (!services.claimModelForLab()) return null"))
+        assertTrue(claim.contains("services.activeSession(forLab = true)"))
+        assertTrue(claim.contains("} finally {") && claim.contains("services.releaseModelForLab()"))
+        for (fn in listOf("private suspend fun englishSubject(", "private suspend fun subjectFromModel(")) {
+            assertTrue(fn, ill.contains(fn))
+            val body = ill.substringAfter(fn).substringBefore("\n    }\n")
+            assertTrue(fn, body.contains("withChatModel(ctx)") && !body.contains("activeSession()"))
+        }
+    }
 }
