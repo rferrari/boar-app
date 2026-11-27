@@ -31,10 +31,11 @@ class PluginsForAllTest {
         assertTrue(Regex("PluginReach.asksBeforeOff\\(lab.id, v\\)").findAll(labs).count() >= 3)
     }
 
-    @Test fun `the guide and the profile notes say plugins are in every profile, EN and PT`() {
+    @Test fun `the guide says plugins are for everyone, EN and PT`() {
         val en = java.io.File("../app/src/main/assets/boar-guide/en.md").readText()
         val pt = java.io.File("../app/src/main/assets/boar-guide/pt.md").readText()
-        assertTrue(en.contains("In every profile, open Plugins in the menu") && !en.contains("In the Pro profile, open Plugins") && !en.contains("can be switched off only in Pro"))
-        assertTrue(pt.contains("Em qualquer perfil, abra Plugins no menu") && !pt.contains("No perfil Pro, abra Plugins") && !pt.contains("só pode ser desligado no Pro"))
+        // No profiles since 2.1.0: the guide says Plugins is in the menu, for everyone.
+        assertTrue(en.contains("Open Plugins in the menu") && !en.contains("profile") && !en.contains("can be switched off only in Pro"))
+        assertTrue(pt.contains("Abra Plugins no menu") && !pt.contains("perfil") && !pt.contains("só pode ser desligado no Pro"))
     }
 }
