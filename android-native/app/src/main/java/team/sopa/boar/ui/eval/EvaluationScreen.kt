@@ -100,8 +100,11 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
             state.opened?.let { run ->
                 item { OpenedBar(run, onClose = { vm.closeOpened() }, onDelete = { confirmDelete = run.runId }) }
             }
-            item { SectionToggle(t("native.eval.deviceSetup"), setupOpen) { setupOpen = !setupOpen } }
-            if (setupOpen) item { deviceSetup() }
+            // Device setup (BOAR-81): not while a run is going, whose model an engine change would unload (CodeRabbit).
+            if (!state.running) {
+                item { SectionToggle(t("native.eval.deviceSetup"), setupOpen) { setupOpen = !setupOpen } }
+                if (setupOpen) item { deviceSetup() }
+            }
             if (state.opened == null) item { PresetSection(state, vm) }
             if (state.opened == null && byHand) item {
                 SectionToggle(t("native.eval.modelsTitle", "chosen" to chosen, "count" to configs.orEmpty().size), modelsOpen) { modelsOpen = !modelsOpen }

@@ -42,4 +42,12 @@ class DeviceSetupTest {
                     "native_deviceSetup_memory", "native_deviceSetup_diagnostics")) assertTrue("$d $k", x.contains("name=\"$k\""))
         }
     }
+
+    @Test fun `not while a run is going - an engine change would unload the model it uses (CodeRabbit)`() {
+        val eval = java.io.File("$app/java/team/sopa/boar/ui/eval/EvaluationScreen.kt").readText()
+        val marker = "// Device setup (BOAR-81): not while a run is going"
+        assertTrue(eval.contains(marker))
+        val block = eval.substringAfter(marker).substringBefore("if (state.opened == null) item { PresetSection(state, vm) }")
+        assertTrue(block.contains("if (!state.running) {") && block.contains("if (setupOpen) item { deviceSetup() }"))
+    }
 }
