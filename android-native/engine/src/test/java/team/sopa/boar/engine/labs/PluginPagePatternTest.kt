@@ -51,7 +51,7 @@ class PluginPagePatternTest {
         // 320 dp phone with seven tools the row scrolls instead of shrinking the targets under 48 dp.
         assertTrue(bar.contains("horizontalArrangement = Arrangement.Start") && bar.contains(".coerceAtMost(TOOL_MAX)"))
         assertTrue(bar.contains("val scrolls = cell < TOUCH_MIN") && bar.contains("if (scrolls) Modifier.horizontalScroll("))
-        assertTrue(press.contains("team.sopa.boar.labs.PluginToolbar(ADD_BUTTONS)") && designer.contains("team.sopa.boar.labs.PluginToolbar(3)"))
+        assertTrue(press.contains("team.sopa.boar.labs.PluginToolbar(ADD_BUTTONS)") && designer.contains("team.sopa.boar.labs.PluginToolbar(DesignerCanvas.Section.entries.size)"))
         // "From your last chat" is a button now.
         assertTrue(designer.contains("FromChatButton(title) { subject = title }"))
     }
@@ -65,6 +65,6 @@ class PluginPagePatternTest {
     @Test fun `no Default anywhere in Designer and every pick saves it`() {
         assertTrue(!designer.contains("★") && !designer.contains("native.labs.image.default"))
         val vm = read("labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLab.kt")
-        assertEquals(3, Regex("\\); setDefaults\\(\\) }|\\}; setDefaults\\(\\) }").findAll(vm).count())
+        assertEquals(1, Regex("\\); setDefaults\\(\\) }|\\}; setDefaults\\(\\) }").findAll(vm).count())
     }
 }

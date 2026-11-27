@@ -233,6 +233,21 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val stopper: () -> Unit = { stopAll() }
 
     init {
+        // A plugin's work after the answer was saved (Designer drawing "draw me…"): its time joins the answer's receipt,
+        // saved in the answer's meta (a reopened chat shows it) and on screen at once (adam, F3, 26 Nov).
+        team.sopa.boar.plugins.AnswerReceipts.addTime = { id, ms, stage ->
+            safeScope.launch(Dispatchers.IO) {
+                // Caught here: safeScope's handler would reset the answer running now, not this earlier one's (CodeRabbit).
+                runCatching {
+                    val chats = services.chats
+                    val o = Json.parseToJsonElement(chats.messageMeta(id) ?: return@launch).jsonObject
+                    val r = o["receipt"]?.jsonObject?.let { Receipt.fromJson(it) } ?: return@launch
+                    val updated = r.copy(totalMs = r.totalMs + ms, stages = r.stages.orEmpty() + (stage to ms))
+                    chats.setMessageMeta(id, JsonObject(o + ("receipt" to updated.toJson())).toString())
+                    _state.update { s -> s.copy(messages = s.messages.map { if (it.id == id) it.copy(receipt = updated) else it }) }
+                }.onFailure { e -> android.util.Log.w("BoarChat", "receipt time not saved: ${e.javaClass.simpleName}") }
+            }
+        }
         refreshModel()
         refreshTone()
         watchConnectivity(app)
@@ -258,6 +273,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        team.sopa.boar.plugins.AnswerReceipts.addTime = team.sopa.boar.plugins.AnswerReceipts.NONE
         services.removeBusyCheck(busy)
         services.removeStopper(stopper)
         services.removeForegroundHook(onForeground)

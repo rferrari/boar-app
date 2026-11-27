@@ -1,5 +1,6 @@
 package team.sopa.boar.labs.designer
 
+import team.sopa.boar.engine.labs.DrawRequest
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import android.content.Context
@@ -91,17 +92,101 @@ object Illustrator {
             val subject = team.sopa.boar.engine.routing.ImageSafety.safeSubject(fromModel?.takeIf { !repeated } ?: fallback(a))
             // No question or answer text in the log: only whether the model picked the subject.
             android.util.Log.i("BoarLabs", "illustrate ${a.id}: from model=${fromModel != null} repeated=$repeated")
-            status[a.id] = Status.Drawing(subject, style.key)
-            runCatching { SdRunner.draw(ctx, subject, style, canvas) }
-                .onSuccess { d ->
-                    // Forgotten (✕) while it drew: the result has no answer to go to.
-                    // The picture and its recipe go together (validator N-3: the recipe stayed).
-                    if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }
-                    fresh.add(a.id)
-            status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
-                }
-                .onFailure { if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.drawFailed")) }
-            jobs.remove(a.id)
+            drawInto(ctx, a, subject, style, canvas)
+        }
+    }
+
+    /** Draws [subject] for answer [a]: Drawing, then Done with the picture (or Failed); shared by Illustrate and "draw me…". */
+    private suspend fun drawInto(ctx: Context, a: AnswerRef, subject: String, style: ImageLab.Style, canvas: ImageLab.Canvas, onDone: () -> Unit = {}) {
+        status[a.id] = Status.Drawing(subject, style.key)
+        runCatching { SdRunner.draw(ctx, subject, style, canvas) }
+            .onSuccess { d ->
+                // Forgotten (✕) while it drew: the result has no answer to go to.
+                // The picture and its recipe go together (validator N-3: the recipe stayed).
+                if (status[a.id] !is Status.Drawing) { ImageLab.deleteDrawing(d.file); return@onSuccess }
+                fresh.add(a.id)
+                status[a.id] = Status.Done(d.file, subject, d.seconds, style.key, canvas.key, d.seed); save()
+                onDone()
+            }
+            .onFailure { if (status[a.id] is Status.Drawing) status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.drawFailed")) }
+        jobs.remove(a.id)
+    }
+
+    /** "Draw me…" in the chat (DrawRequest): Designer's tool keeps the request by its question, the answer's card takes it once. */
+    private val asked = java.util.concurrent.ConcurrentHashMap<String, DrawRequest.Ask>()
+
+    fun ask(question: String, request: DrawRequest.Ask) { asked[question.trim()] = request }
+
+    /**
+     * Answers that already took a request, kept in labs/draw-asks.txt: an older answer with the same question, composed
+     * again when the chat scrolls, never takes a newer answer's request (CodeRabbit). One id per line.
+     */
+    private val took = mutableSetOf<String>()
+
+    private fun tookFile(ctx: Context) = File(ctx.filesDir, "labs/draw-asks.txt")
+
+    /**
+     * The request for [question], once, for the answer [answerId]: a chat reopened later doesn't draw it again (✕ stays
+     * ✕), and an answer that took one before, or has a drawing, takes none.
+     */
+    @Synchronized
+    fun takeAsk(ctx: Context, answerId: String, question: String): DrawRequest.Ask? {
+        load(ctx)
+        if (answerId in took || status[answerId] != null) return null
+        val r = asked.remove(question.trim()) ?: return null
+        took += answerId
+        runCatching { tookFile(ctx).apply { parentFile?.mkdirs() }.appendText(answerId + "\n") }
+        return r
+    }
+
+    /**
+     * Draws what was asked in the chat under its answer [a], with Illustrate's gates: one drawing at a time, enough free
+     * memory, ImageSafety on the subject (checked before the answer too). SDXS reads English, so a Portuguese or Spanish
+     * subject is put in English first by the chat model (a few seconds; its own words if no model answers).
+     */
+    fun drawAsked(ctx: Context, a: AnswerRef, ask: DrawRequest.Ask, style: ImageLab.Style = ImageLab.defaultStyle(), canvas: ImageLab.Canvas = ImageLab.defaultCanvas()) {
+        load(ctx)
+        if (status[a.id] != null) return
+        if (busy()) { status[a.id] = Status.Failed(DrawRequest.busy(ask.lang)); return }
+        if (!enoughMemory(ctx)) { status[a.id] = Status.Failed(team.sopa.boar.ui.I18n.t(ctx, "native.labs.image.lowMemory")); return }
+        status[a.id] = Status.Choosing
+        jobs[a.id] = scope.launch {
+            val started = System.nanoTime()
+            // Not while the chat answers (as Illustrate): the two would share its session. Its own words are drawn then.
+            val english = if (ask.lang != DrawRequest.Lang.EN && !a.chatBusy) runCatching { englishSubject(ctx, ask.subject) }.getOrNull() else null
+            // The time the translation took, not the words (they are the user's).
+            android.util.Log.i("BoarLabs", "draw request ${a.id}: lang=${ask.lang} english=${english != null} ms=${(System.nanoTime() - started) / 1_000_000}")
+            // Stopped meanwhile (✕, erased): nothing is drawn, as start does (runCatching keeps the cancel, CodeRabbit).
+            if (!kotlinx.coroutines.currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch
+            // The receipt counts it all: the English subject and the drawing (it said 0.0 s, adam on the F3).
+            drawInto(ctx, a, team.sopa.boar.engine.routing.ImageSafety.safeSubject(english ?: ask.subject), style, canvas,
+                onDone = { team.sopa.boar.plugins.AnswerReceipts.addTime(a.id, (System.nanoTime() - started) / 1e6, "drawing") })
+        }
+    }
+
+    private const val TRANSLATE = "Translate the description of a picture into English. Reply with the English words only, 2 to 12 words, " +
+        "no quotes, no punctuation at the end.\n\nExamples:\num gato de chapéu -> a cat wearing a hat\nun perro con gafas -> a dog with glasses"
+
+    /** [subject] in English, from the chat model; null when no model answers in time or it says nothing usable. */
+    private suspend fun englishSubject(ctx: Context, subject: String): String? = withChatModel(ctx) { session ->
+        kotlinx.coroutines.withTimeoutOrNull(30_000) {
+            clean(SessionEngine(session).generate(TRANSLATE, subject.take(200), nPredict = 32, temperature = 0.1f, timeoutMs = null, onToken = null).text)
+        }
+    }
+
+    /**
+     * [block] with the chat's model held for Designer, as Press does (validator G-4, CodeRabbit): checked and claimed in one
+     * step, so a chat answer, title or preload can't start in between, and let go when [block] ends. Null when the
+     * model is busy or not loaded: the caller keeps the user's own words.
+     */
+    private suspend fun <T> withChatModel(ctx: Context, block: suspend (team.sopa.boar.engine.TextModel) -> T?): T? {
+        val services = BoarServices.get(ctx)
+        if (!services.claimModelForLab()) return null
+        try {
+            val session = services.activeSession(forLab = true) ?: return null
+            return block(session)
+        } finally {
+            services.releaseModelForLab()
         }
     }
 
@@ -145,14 +230,14 @@ object Illustrator {
         "QUESTION: when is the monsoon in India -> heavy monsoon rain over green rice fields"
 
     /**
-     * A few words from the chat model; null when no model is loaded, it says nothing usable, or it doesn't answer in
+     * A few words from the chat model; null when the model is busy or not loaded, it says nothing usable, or it doesn't answer in
      * time. No session.cancel(): the chat's own title or summary may be the one holding the model, and it must finish.
      */
-    private suspend fun subjectFromModel(ctx: Context, a: AnswerRef): String? = kotlinx.coroutines.withTimeoutOrNull(30_000) {
-        val session = BoarServices.get(ctx).activeSession() ?: return@withTimeoutOrNull null
-        val user = "QUESTION: ${a.question.take(300)}\n\nANSWER EXCERPT: ${a.text.take(400)}"
-        val r = SessionEngine(session).generate(SYSTEM, user, nPredict = 28, temperature = 0.2f, timeoutMs = null, onToken = null)
-        clean(r.text)
+    private suspend fun subjectFromModel(ctx: Context, a: AnswerRef): String? = withChatModel(ctx) { session ->
+        kotlinx.coroutines.withTimeoutOrNull(30_000) {
+            val user = "QUESTION: ${a.question.take(300)}\n\nANSWER EXCERPT: ${a.text.take(400)}"
+            clean(SessionEngine(session).generate(SYSTEM, user, nPredict = 28, temperature = 0.2f, timeoutMs = null, onToken = null).text)
+        }
     }
 
     /** The first line, without labels, quotes or a trailing period; 2 to 14 words. */
@@ -174,6 +259,10 @@ object Illustrator {
         jobs.clear()
         status.values.forEach { (it as? Status.Done)?.file?.let(ImageLab::deleteDrawing) }
         status.clear()
+        // A "draw me…" not drawn yet holds the user's words: they go too (CodeRabbit on PR 125).
+        asked.clear()
+        took.clear()
+        tookFile(ctx).delete()
         File(ctx.filesDir, "labs/illustrations.json").delete()
     }
 
@@ -181,6 +270,7 @@ object Illustrator {
     private fun load(ctx: Context) {
         if (store != null) return
         val f = File(ctx.filesDir, "labs/illustrations.json").also { store = it }
+        runCatching { took += tookFile(ctx).readLines().filter { it.isNotBlank() } }
         runCatching {
             val o = JSONObject(f.readText())
             o.keys().forEach { id ->

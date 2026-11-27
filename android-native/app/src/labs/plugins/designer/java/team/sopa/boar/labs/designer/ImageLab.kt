@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import team.sopa.boar.app.BoarServices
@@ -15,6 +16,7 @@ import team.sopa.boar.engine.models.AssetKind
 import team.sopa.boar.engine.models.AssetStore
 import team.sopa.boar.engine.models.CatalogAsset
 import team.sopa.boar.engine.labs.DesignerCanvas
+import team.sopa.boar.engine.labs.DesignerCrop
 import java.io.File
 
 /**
@@ -42,28 +44,22 @@ object ImageLab {
     fun deleteDrawing(image: java.io.File) { image.delete(); recipeFile(image).delete() }
 
     /**
-     * A drawing's size in pixels, sides in multiples of 64. Only sd-cli, the file name and the recipe see the numbers: the
-     * screen says its shape (Square, Portrait, Wide) and its quality (Low, Medium, High), DesignerCanvas (adam, Nov 12-13).
+     * A drawing's size in pixels. New drawings are 512x512 (BOAR-88); an older one or a crop has its own, read from its
+     * file name. Only sd-cli, the file name and the recipe see the numbers: the screen never shows them.
      */
     data class Canvas(val w: Int, val h: Int) {
         val size: DesignerCanvas.Size get() = DesignerCanvas.Size(w, h)
         /** "512" for a square (the key older saves and times used), "384x512" otherwise. */
         val key: String get() = size.key
-        val shape: DesignerCanvas.Shape get() = size.shape
-        val quality: DesignerCanvas.Quality get() = size.quality
         companion object {
             /** Any saved key, as it is. */
             fun of(key: String?): Canvas? = DesignerCanvas.parse(key)?.let { Canvas(it.w, it.h) }
-            fun of(shape: DesignerCanvas.Shape, quality: DesignerCanvas.Quality): Canvas = DesignerCanvas.size(shape, quality).let { Canvas(it.w, it.h) }
-            /** A saved key as a size the screen offers: each of the nine keeps its own level, any other becomes Medium. */
+            /** A saved key as the size Designer draws at now: 512 (DesignerCanvas.migrate). */
             fun offered(key: String?): Canvas? = DesignerCanvas.migrate(key)?.let { Canvas(it.w, it.h) }
         }
     }
 
-    /**
-     * What the screen offers (adam, Nov 12): per shape, Low, Medium and High quality, its three sizes. Square 384, 512
-     * and 640, portrait 320×448, 384×512 and 448×640, wide 576×256, 640×320 and 768×320 (13 s on the X6, Oct 16).
-     */
+    /** What Designer draws at: 512x512 only, the model's own size (BOAR-88). */
     val CANVASES = DesignerCanvas.OFFERED.map { Canvas(it.w, it.h) }
 
     /** The size a saved drawing was drawn at, from its file name ("…-512.png", "…-384x512.png"); null for an odd name. */
@@ -99,14 +95,14 @@ object ImageLab {
     /** The user's pick ("★ Default"), else engraving. */
     fun defaultStyle(): Style = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).first?.let { k -> Style.entries.firstOrNull { it.key == k } } ?: Style.ENGRAVING
 
-    /** The user's shape and quality ("★ Default" saves them with the style), else Square, Medium. */
+    /** The size every drawing is made at: 512 (a saved 640 or 384x512 reads as 512, DesignerCanvas.migrate). */
     fun defaultCanvas(): Canvas = DesignerCanvas.loadDefault(team.sopa.boar.labs.LabPrefs::string).second.let { Canvas(it.w, it.h) }
 
-    /** "★ Default" in Designer and "Remember" in Illustrate: style, shape and quality together, for both. */
-    fun setDefaults(style: Style, canvas: Canvas) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key, canvas.size)
+    /** The style picked in Designer and "Remember" in Illustrate: the default for both. */
+    fun setDefaults(style: Style) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key)
 
-    /** Reset in Illustrate's sheet: back to Engraving, Square, Medium. */
-    fun resetDefaults() = setDefaults(Style.ENGRAVING, Canvas.of(DesignerCanvas.Shape.SQUARE, DesignerCanvas.Quality.MEDIUM))
+    /** Reset in Illustrate's sheet: back to Engraving. */
+    fun resetDefaults() = setDefaults(Style.ENGRAVING)
 
     private const val TIMES_KEPT = 10
 
@@ -144,7 +140,7 @@ data class ImageLabState(
     val style: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultStyle: ImageLab.Style = ImageLab.Style.ENGRAVING,
     val defaultSize: ImageLab.Canvas = ImageLab.CANVASES.first(),
-    /** The shape and quality picked in the Shape and Quality trays: always one the screen offers. */
+    /** The size the next drawing is made at: 512 (BOAR-88). */
     val size: ImageLab.Canvas = ImageLab.CANVASES.first(),
     /** "loading", "drawing", "decoding" while sd-cli runs; null when idle. */
     val phase: String? = null,
@@ -221,18 +217,14 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Every Style, Shape or Quality pick is the default at once (adam, Nov 14: "lets hide this default, and the default
+     * Every Style pick is the default at once (adam, Nov 14: "lets hide this default, and the default
      * become [the] setup [the] user did"): the next visit and the one-tap 🎨 Illustrate use the last pick. Showing an old
      * drawing (show) puts its recipe on the canvas without changing the default.
      */
     fun setStyle(s: ImageLab.Style) { _state.update { it.copy(style = s) }; setDefaults() }
-    fun setSize(c: ImageLab.Canvas) = _state.update { it.copy(size = c, error = null) }
-    /** Shape keeps the quality, Quality keeps the shape: the canvas reshapes at once. */
-    fun setShape(shape: DesignerCanvas.Shape) { setSize(ImageLab.Canvas.of(shape, _state.value.size.quality)); setDefaults() }
-    fun setQuality(quality: DesignerCanvas.Quality) { setSize(ImageLab.Canvas.of(_state.value.size.shape, quality)); setDefaults() }
 
     /**
-     * Shows [f] and puts back what it was drawn from (style, shape and quality, seed) when it has a recipe; the screen fills
+     * Shows [f] and puts back what it was drawn from (style, seed) when it has a recipe; the screen fills
      * the subject.
      */
     fun show(f: File) {
@@ -257,7 +249,8 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         if (subject.isBlank() || _state.value.phase != null || SdRunner.engine(getApplication()) == null) return
         if (refused(subject)) { regenerating = false; return }
         val s = _state.value
-        val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating }
+        // A crop's copy is never replaced: Draw again on it draws a new 512 picture and keeps the crop (BOAR-88).
+        val replacing = s.image?.takeIf { s.subject == subject.trim() && regenerating && !DesignerCrop.isCrop(it.name) }
         regenerating = false
         // The old picture goes: its frame shows the drawing in progress until the new one arrives.
         _state.update { it.copy(phase = "loading", error = null, seconds = null, image = null, variations = null) }
@@ -301,10 +294,10 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** The style, shape and quality Illustrate (in the chat) and a new Designer session use: saved on every pick. */
+    /** The style Illustrate (in the chat) and a new Designer session use: saved on every pick. */
     fun setDefaults() {
         val s = _state.value
-        ImageLab.setDefaults(s.style, s.size)
+        ImageLab.setDefaults(s.style)
         _state.update { it.copy(defaultStyle = s.style, defaultSize = s.size) }
     }
 
@@ -330,6 +323,42 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
         }
         regenerating = true
         generate(subject)
+    }
+
+    /**
+     * Crop (BOAR-88): [r] of [f], in its own pixels, saved as a COPY in the same folder (so it is in the gallery and can go
+     * to Press like any drawing), with the original's recipe beside it; the original stays. The copy is shown after.
+     */
+    fun crop(f: File, r: DesignerCrop.Rect) {
+        if (_state.value.phase != null) return
+        val app = getApplication<Application>()
+        // Busy until the copy shows: Draw can't start meanwhile and be replaced by a late copy (CodeRabbit on PR 125).
+        _state.update { it.copy(phase = "saving", error = null) }
+        job = viewModelScope.launch {
+            val copy = withContext(Dispatchers.IO) {
+                runCatching {
+                    val src = android.graphics.BitmapFactory.decodeFile(f.path) ?: error("unreadable")
+                    try {
+                        val cut = android.graphics.Bitmap.createBitmap(src, r.x, r.y, r.w, r.h)
+                        val out = File(f.parentFile, DesignerCrop.fileName(System.currentTimeMillis(), ImageLab.recipeOf(f)?.style, r))
+                        // Written aside and renamed when complete: a failed save leaves no half picture in the gallery (CodeRabbit).
+                        val tmp = File(out.path + ".part")
+                        try {
+                            tmp.outputStream().use { check(cut.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
+                            check(tmp.renameTo(out))
+                        } catch (e: Throwable) { tmp.delete(); throw e }
+                        if (cut !== src) cut.recycle()
+                        ImageLab.recipeOf(f)?.let { ImageLab.writeRecipe(out, it.copy(size = "${r.w}x${r.h}")) }
+                        out
+                    } finally { src.recycle() }
+                }.getOrNull()
+            }
+            // Stopped (Back, Stop) while it saved: the copy stays in the drawings, the canvas isn't changed under the user.
+            if (!isActive) return@launch
+            refresh()
+            _state.update { it.copy(phase = null) }
+            if (copy != null) show(copy) else _state.update { it.copy(error = team.sopa.boar.ui.I18n.t(app, "native.labs.image.cropFailed")) }
+        }
     }
 
     fun delete(f: File) {

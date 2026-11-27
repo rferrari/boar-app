@@ -60,6 +60,7 @@
     <string name="native_receipt_style_custom" formatted="false">Custom</string>
     <string name="native_receipt_path_staged" formatted="false">Staged answer</string>
     <string name="native_receipt_stages" formatted="false">Steps</string>
+    <string name="native_receipt_drawing" formatted="false">Drawing</string>
     <string name="native_receipt_stage_sources" formatted="false">sources</string>
     <string name="native_receipt_stage_introFirst" formatted="false">first word</string>
     <string name="native_receipt_stage_detailsFirst" formatted="false">details</string>

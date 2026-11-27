@@ -48,6 +48,7 @@ object LabHooks {
                 tool.startsWith("lunar-") -> "lunar"
                 tool.startsWith("compass-") -> "compass"
                 tool.startsWith("vitals-") -> "pulse"
+                tool.startsWith("designer-") -> "image"
                 else -> null
             }
             // Each speaks by its tile's name, so the chat and the switch to turn it off say the same thing.
@@ -85,6 +86,14 @@ object LabHooks {
         // A question for a plugin that's switched off: name it under the answer (only with Plugins on; Nov 12).
         team.sopa.boar.plugins.AnswerTools.offPlugin = { q ->
             if (!LabPrefs.labsOn) null else LabRegistry.visible.mapNotNull(LabRegistry::opened).firstOrNull { !LabPrefs.enabled(it.id) && it.recognizes(q) }?.id
+        }
+        // "Draw me…" with Designer off (or Boar Labs off): one line on where to switch it on, never the model's made-up
+        // "here is your image" (adam, 26 Nov). Only in a build that has Designer.
+        team.sopa.boar.plugins.AnswerTools.offAnswer = { q ->
+            if (LabRegistry.ALL.none { it.id == "image" } || (LabPrefs.labsOn && LabPrefs.enabled("image"))) null
+            // Boar Labs off hides Plugins from the menu: the line names the Boar Labs switch first (CodeRabbit on PR 125).
+            else team.sopa.boar.engine.labs.DrawRequest.parse(q)?.let { team.sopa.boar.plugins.ToolResult.Instant(team.sopa.boar.engine.labs.DrawRequest.TOOL_OFF,
+                if (!LabPrefs.labsOn) team.sopa.boar.engine.labs.DrawRequest.offLabs(it.lang) else team.sopa.boar.engine.labs.DrawRequest.off(it.lang)) }
         }
         // Staged answers are core since Nov 12: AnswerModes.staged reads the setting (BoarServices), not a lab.
         team.sopa.boar.plugins.AnswerModes.ownsSources = { LabRegistry.active.any { it.ownsSources } }

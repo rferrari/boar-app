@@ -751,7 +751,9 @@ private fun receiptRows(r: Receipt): List<Pair<String, String>> {
         mode?.let { t("native.receipt.mode") to it },
         r.retrievalMs?.let { t("chat.receipt.search") to ReceiptFormat.seconds(it) },
         // A staged answer: when each step showed up, from the question.
-        r.stages?.let { st -> t("native.receipt.stages") to listOf("sources", "introFirst", "detailsFirst").mapNotNull { k -> st[k]?.let { t("native.receipt.stage.$k") + " " + ReceiptFormat.seconds(it) } }.joinToString(" · ") },
+        r.stages?.let { st -> t("native.receipt.stages") to listOf("sources", "introFirst", "detailsFirst").mapNotNull { k -> st[k]?.let { t("native.receipt.stage.$k") + " " + ReceiptFormat.seconds(it) } }.joinToString(" · ") }?.takeIf { it.second.isNotEmpty() },
+        // A plugin's work after the answer (Designer's drawing for "draw me…"), counted in the total too.
+        r.stages?.get("drawing")?.let { t("native.receipt.drawing") to ReceiptFormat.seconds(it) },
         r.prefillMs?.let { t("chat.receipt.prefill") to ReceiptFormat.seconds(it) },
         r.contextTokens?.let { t("chat.receipt.context") to count(it) },
         t("chat.receipt.start") to ReceiptFormat.seconds(r.ttftMs),

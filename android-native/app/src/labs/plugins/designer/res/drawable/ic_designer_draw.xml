@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Designer's Draw button (Nov 13): a pencil. Stroke style like res/drawable/ic_info.xml; tinted where it's drawn. -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path android:pathData="M5,19l3.5,-1l9.8,-9.8a1.8,1.8 0,0 0,-2.5 -2.5L6,15.5L5,19z" android:strokeWidth="2" android:strokeColor="#FFFFFFFF" android:fillColor="#00000000" android:strokeLineCap="round" android:strokeLineJoin="round" />
-</vector>
