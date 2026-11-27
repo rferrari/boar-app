@@ -48,8 +48,6 @@ import team.sopa.boar.engine.KvType
 import team.sopa.boar.engine.LazyMode
 import team.sopa.boar.engine.LoadMode
 import team.sopa.boar.engine.settings.AppSettings
-import team.sopa.boar.engine.settings.SettingsPart
-import team.sopa.boar.engine.settings.UserProfile
 import team.sopa.boar.ui.t
 import team.sopa.boar.ui.theme.Boar
 
@@ -62,8 +60,9 @@ interface DisplayPrefs {
 }
 
 /**
- * Settings (port of ModelSetupScreen.tsx's sections that the native app has so far: tone, memory, display, language),
- * plus Advanced tweaks: every engine knob, Auto by default.
+ * Settings, one simple page for everyone (2.1.0, BOAR-81): how BOAR looks and speaks, the chats it keeps, who can open
+ * it, its plugins, recovery and About. No profiles. How BOAR answers is the chat's style button; the builders' rows
+ * (engine knobs, answer length, memory, diagnostics) are in Evaluation › Device setup, from the Model Catalog.
  */
 @Composable
 fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) -> Unit, onSetup: () -> Unit, onOpen: (String) -> Unit = {}, onBack: () -> Unit) {
@@ -74,40 +73,54 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     val onPin: (String) -> Unit = { flow -> SettingsMemory.keep = true; onPin(flow) }
     val c = Boar.colors
     val s = services.settings
-    // rc3 profiles: each section (or row) shows from its profile on (SettingsPart). Pro's values count only in Pro.
-    var profile by remember { mutableStateOf(s.userProfile) }
-    fun shown(part: SettingsPart) = part.shownIn(profile)
-    var tech by remember { mutableStateOf(s.showLiveStats) }
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding()) {
-        // The profile pills sit in the header (adam, Nov 13); what a pick gives, and what pauses going down, are toasts.
-        val shorts = UserProfile.entries.associateWith { t("native.settings.profile.${it.key}Short") }
-        val downNote = t("native.settings.profile.downNote")
-        val pick: (UserProfile) -> Unit = { p ->
-            val down = p.ordinal < profile.ordinal
-            profile = p; s.userProfile = p; tech = s.showLiveStats
-            team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(p)
-            team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.Toasts.Toast(shorts.getValue(p) + if (down) " $downNote" else "", millis = if (down) 4_500 else 2_800))
-        }
-        ProfileUpdateToast(services, profile)
-        team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack,
-            actions = if (shown(SettingsPart.PROFILE)) ({ ProfilePills(profile, pick) }) else null)
+        team.sopa.boar.ui.PageHeader(t("modelSetupScreen.header.title"), onBack)
         val scroll = rememberScrollState(SettingsMemory.scroll)
         androidx.compose.runtime.DisposableEffect(Unit) { onDispose { SettingsMemory.scroll = scroll.value } }
         Column(Modifier.fillMaxWidth().verticalScroll(scroll).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // The agreed order (Oct 14): answering, what BOAR knows, how it looks and speaks, who can open it, then the
-            // technical corner. Hardware telemetry is a technical detail, shown with Advanced tweaks → Show technical details.
-            if (shown(SettingsPart.TONE)) ToneSection(services)
-            // Models and Knowledge are in the menu (Model Catalog, Knowledge): not repeated here (rc3, slice 5).
-            if (shown(SettingsPart.MEMORY)) Section(t("modelSetupScreen.sections.memory"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
+            // The chat's engine setup isn't Auto (set in Evaluation): said here, with the way back (BOAR-81).
+            CustomSetupLine(services)
+            val avatarsOn by services.vault.enabled.collectAsState()
+            Section(t("modelSetupScreen.sections.displayTheme"), team.sopa.boar.R.drawable.ic_settings_display, summary = {
+                val theme = team.sopa.boar.ui.theme.Themes.byId(s.themeId)
+                "${theme.icon} ${theme.name} · " + t("native.settings.${s.fontScale}")
+            }) {
+                var theme by remember { mutableStateOf(s.themeId) }
+                team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
+                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
+                // Boar Avatars live here, a few with the last box opening them all (adam, 23 Nov): no section of their own.
+                if (avatarsOn) team.sopa.boar.ui.appearance.AvatarPicker(services.vault) { onOpen("vault") }
+                var scale by remember { mutableStateOf(s.fontScale) }
+                Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
+                var orientation by remember { mutableStateOf(s.screenOrientation) }
+                Choices(t("native.settings.orientation"), listOf("auto", "portrait", "landscape").map { it to t("native.settings.orientation.$it") }, orientation) {
+                    orientation = it; s.screenOrientation = it; prefs.setOrientation(it)
+                }
+                var haptics by remember { mutableStateOf(s.hapticsEnabled) }
+                SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
+                // The live tok/s while BOAR answers, off by default (adam, 16 Nov).
+                var speed by remember { mutableStateOf(s.showLiveSpeed) }
+                SwitchRow(t("native.settings.liveSpeed"), t("native.settings.liveSpeedNote"), speed) { speed = it; s.showLiveSpeed = it }
+                // Boarverse: Boar Avatars to unlock and wear, off by default (from Experimental, BOAR-81).
+                if (team.sopa.boar.appearance.TruffleVault.SWITCH_SHOWN) SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
+            }
+            // Language and voice in one section (adam: "both has only 1 option each"). Voice listens in the app's language.
+            Section(t("native.settings.languageVoice"), team.sopa.boar.R.drawable.ic_settings_language, summary = {
+                (when (s.languageId) { "en" -> "English"; "pt" -> "Português"; else -> "System" }) +
+                    " · " + t("native.settings.summary.voice", "state" to onOff(s.voiceInputEnabled))
+            }) {
+                var lang by remember { mutableStateOf(s.languageId ?: "system") }
+                Choices(null, listOf("system" to "System", "en" to "English", "pt" to "Português"), lang) { lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id) }
+                VoiceRows(services, lang)
+            }
+            Section(t("native.settings.chats"), team.sopa.boar.R.drawable.ic_settings_memory, summary = {
                 if (s.maxSavedSessions <= 0) t("native.settings.summary.memoryAll") else t("native.settings.summary.memory", "max" to s.maxSavedSessions)
             }) {
                 var auto by remember { mutableStateOf(s.autoSummarize) }
                 SwitchRow(t("memorySettings.autoSummarizeLabel"), t("memorySettings.autoSummarizeValue"), auto) { auto = it; s.autoSummarize = it }
                 var titles by remember { mutableStateOf(s.autoGenerateTitles) }
                 SwitchRow(t("memorySettings.autoTitlesLabel"), t("memorySettings.autoTitlesValue"), titles) { titles = it; s.autoGenerateTitles = it }
-                // No "Ask before deleting a chat" since Nov 12: deleting has Undo instead.
-                var turns by remember { mutableStateOf(s.historyTurnThreshold) }
-                Choices(t("memorySettings.turnsBeforeSummarizing"), listOf(4, 6, 8, 12).map { it to "$it" }, turns) { turns = it; s.historyTurnThreshold = it }
+                // No "Ask before deleting a chat" since Nov 12: deleting has Undo instead. Turns before summarising: Device setup.
                 var max by remember { mutableStateOf(s.maxSavedSessions) }
                 // A limit under the chats there are asks first, naming the oldest (validator R-A4; adam, Nov 15: "ok").
                 var lowering by remember { mutableStateOf<Pair<Int, List<team.sopa.boar.engine.chat.ChatSession>>?>(null) }
@@ -133,44 +146,10 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
                 }
                 ClearChats(services)
             }
-            val avatarsOn by services.vault.enabled.collectAsState()
-            if (shown(SettingsPart.THEME) || shown(SettingsPart.TEXT_SIZE)) Section(t("modelSetupScreen.sections.displayTheme"), team.sopa.boar.R.drawable.ic_settings_display, summary = {
-                val theme = team.sopa.boar.ui.theme.Themes.byId(s.themeId)
-                "${theme.icon} ${theme.name} · " + t("native.settings.${s.fontScale}")
-            }) {
-                var theme by remember { mutableStateOf(s.themeId) }
-                if (shown(SettingsPart.THEME)) team.sopa.boar.ui.appearance.ThemePicker(services.vault, theme,
-                    onTheme = { theme = it; s.themeId = it; prefs.setTheme(it); services.vault.record { f -> f.copy(themeChanged = true) } })
-                // Boar Avatars live here now, a few with the last box opening them all (adam, 23 Nov): no section of their own.
-                if (avatarsOn && shown(SettingsPart.AVATARS)) team.sopa.boar.ui.appearance.AvatarPicker(services.vault) { onOpen("vault") }
-                var scale by remember { mutableStateOf(s.fontScale) }
-                if (shown(SettingsPart.TEXT_SIZE)) Choices(t("native.settings.textSize"), listOf("compact", "standard", "large").map { it to t("native.settings.$it") }, scale) { scale = it; s.fontScale = it; prefs.setFontScale(it) }
-                var orientation by remember { mutableStateOf(s.screenOrientation) }
-                if (shown(SettingsPart.ORIENTATION)) Choices(t("native.settings.orientation"), listOf("auto", "portrait", "landscape").map { it to t("native.settings.orientation.$it") }, orientation) {
-                    orientation = it; s.screenOrientation = it; prefs.setOrientation(it)
-                }
-                var haptics by remember { mutableStateOf(s.hapticsEnabled) }
-                if (shown(SettingsPart.HAPTICS)) SwitchRow(t("interfaceSettings.hapticFeedbackLabel"), t("native.interfaceSettings.hapticFeedbackValue"), haptics) { haptics = it; s.hapticsEnabled = it }
-                // The live tok/s while BOAR answers, off by default, in every profile (adam, 16 Nov).
-                var speed by remember { mutableStateOf(s.showLiveSpeed) }
-                SwitchRow(t("native.settings.liveSpeed"), t("native.settings.liveSpeedNote"), speed) { speed = it; s.showLiveSpeed = it }
-            }
-            // Language and voice in one section (adam: "both has only 1 option each"): the language for everyone, the voice
-            // rows from Explorer. Voice listens in the app's language (VoiceInput).
-            if (shown(SettingsPart.LANGUAGE)) Section(t("native.settings.languageVoice"), team.sopa.boar.R.drawable.ic_settings_language, summary = {
-                (when (s.languageId) { "en" -> "English"; "pt" -> "Português"; else -> "System" }) +
-                    if (shown(SettingsPart.VOICE)) " · " + t("native.settings.summary.voice", "state" to onOff(s.voiceInputEnabled)) else ""
-            }) {
-                var lang by remember { mutableStateOf(s.languageId ?: "system") }
-                Choices(null, listOf("system" to "System", "en" to "English", "pt" to "Português"), lang) { lang = it; val id = it.takeIf { v -> v != "system" }; s.languageId = id; prefs.setLanguage(id) }
-                if (shown(SettingsPart.VOICE)) VoiceRows(services, lang)
-            }
-            if (shown(SettingsPart.SECURITY)) SecuritySection(services, onPin)
-            if (tech && shown(SettingsPart.TELEMETRY)) TelemetrySection(services)
-            if (shown(SettingsPart.TWEAKS)) TweaksSection(services, tech, shown(SettingsPart.TECHNICAL_DETAILS), { tech = it }, onOpen)
-            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES && SettingsPart.experimentalShownIn(profile)) ExperimentalSection(services, ::shown, onOpen, tech) { tech = it }
-            if (shown(SettingsPart.RECOVERY)) RecoverySection(services, prefs, onSetup)
-            // The last row, in every profile: About BOAR (also on the BOAR mark in the menu).
+            SecuritySection(services, onPin)
+            if (team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) PluginsSection(onOpen)
+            RecoverySection(services, prefs, onSetup)
+            // The last row: About BOAR (also on the BOAR mark in the menu).
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Boar.colors.bgCard).clickable { onOpen("about") }.padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Like the sections' rows: the pack's icon in the heading colour, the name, the chevron (adam, Nov 12).
@@ -182,31 +161,36 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
     }
 }
 
-/** Hardware telemetry, in Settings until 2.1.0's step 3 (its rows are in Evaluation › Device setup › Diagnostics now). */
+/**
+ * "Chat setup: custom, from Evaluation" with Reset to Auto: only when the chat's engine setup isn't Auto (set in
+ * Evaluation › Device setup), so a researcher is never left on a bad setup without seeing it (BOAR-81).
+ */
 @Composable
-private fun TelemetrySection(services: BoarServices) =
-    Section(t("modelSetupScreen.sections.telemetry"), team.sopa.boar.R.drawable.ic_settings_hardware) { team.sopa.boar.ui.eval.TelemetryRows(services) }
-
-/** Advanced tweaks, in Settings until 2.1.0's step 3 (Evaluation › Device setup › Engine now). */
-@Composable
-private fun TweaksSection(services: BoarServices, technical: Boolean, technicalShown: Boolean, onTechnical: (Boolean) -> Unit, onOpen: (String) -> Unit) {
-    Section(t("native.tweaks.title"), team.sopa.boar.R.drawable.ic_settings_tweaks) {
-        team.sopa.boar.ui.eval.EngineRows(services)
-        if (!team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) MovedToExperimental(services, technical, technicalShown, onTechnical)
-        LinkButton(t("native.tweaks.evaluation")) { onOpen("evaluation") }
-        Note(t("native.tweaks.evaluationNote"))
-        if (team.sopa.boar.app.DebugLog.available) team.sopa.boar.ui.eval.DebugLogRows()
+private fun CustomSetupLine(services: BoarServices) {
+    val c = Boar.colors
+    val scope = rememberCoroutineScope()
+    var tweaks by remember { mutableStateOf(services.settings.engineTweaks) }
+    if (tweaks.isAuto) return
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.amberBgSubtle).border(1.dp, c.amberBorder, RoundedCornerShape(12.dp))
+        .padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(t("native.settings.customSetup"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f))
+        Text(t("native.settings.customSetupReset"), style = Boar.type.body, color = c.textAccentEmerald, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable {
+                services.settings.engineTweaks = EngineTweaks(); tweaks = EngineTweaks()
+                // As a change in Device setup: the model reloads with Auto on the next answer, after one being written.
+                scope.launch(kotlinx.coroutines.Dispatchers.Default) { if (services.stopAnswersAndWait()) services.host.unload() }
+            }.padding(horizontal = 8.dp, vertical = 8.dp))
     }
 }
 
-/** Staged quotes, Free memory, technical details: in Settings until 2.1.0's step 3 (Device setup now). */
+/** Settings › Plugins (BOAR-81): what plugins are, the Boar Labs switch with its own settings, and the plugins list. */
 @Composable
-private fun MovedToExperimental(services: BoarServices, technical: Boolean, technicalShown: Boolean, onTechnical: (Boolean) -> Unit) {
-    val s = services.settings
-    var stagedOn by remember { mutableStateOf(s.stagedQuotes) }
-    if (SettingsPart.STAGED_QUOTES.shownIn(s.userProfile)) SwitchRow(t("native.tweaks.stagedQuotes"), t("native.tweaks.stagedQuotesNote"), stagedOn) { stagedOn = it; s.stagedQuotes = it }
-    team.sopa.boar.ui.eval.MemoryRows(services)
-    if (technicalShown) SwitchRow(t("native.tweaks.technicalDetails"), t("native.tweaks.technicalDetailsNote"), technical) { s.showLiveStats = it; onTechnical(it) }
+private fun PluginsSection(onOpen: (String) -> Unit) {
+    Section(t("native.settings.plugins"), team.sopa.boar.R.drawable.ic_settings_experimental) {
+        // The Boar Labs switch, its note adam's line ("Extra tools in the menu and under answers…"), then (when on) restart after a crash, the waiting animation and the storage limit.
+        team.sopa.boar.labs.LabHooks.SettingsRow()
+        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
+    }
 }
 
 /** VoiceSettings.tsx: the mic in the chat, and whether this phone has an on-device recognizer. */
@@ -322,104 +306,9 @@ internal fun LinkButton(label: String, danger: Boolean = false, onClick: () -> U
             .background(if (danger) c.crimsonBgSubtle else c.bgCard).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 10.dp))
 }
 
-@Composable
-private fun ToneSection(services: BoarServices) {
-    val s = services.settings
-    val personalities = services.personalities
-    Section(t("modelSetupScreen.sections.tone"), team.sopa.boar.R.drawable.ic_settings_tone, startOpen = true, summary = {
-        val id = s.personalityId ?: personalities.defaultId
-        "${t("personalities.$id.label")} · " + t("native.settings.summary.deep", "state" to onOff(s.deepResearchMode))
-    }) {
-        var id by remember { mutableStateOf(s.personalityId ?: personalities.defaultId) }
-        // One row per style, its icon first (the chat's style button shows the same), so none sits alone on a wrapped line.
-        for (p in personalities.personalities.filter { it.id != "custom" || BoarServices.SHOW_CUSTOM_STYLE }) {
-            StyleRow(p.id, p.icon, t("personalities.${p.id}.label"), t("personalities.${p.id}.description"), p.id == id) { id = p.id; s.personalityId = p.id }
-        }
-        if (id == "custom" && BoarServices.SHOW_CUSTOM_STYLE) {
-            var prompt by remember { mutableStateOf(s.customSystemPrompt ?: "") }
-            Field(prompt, t("personalitySettings.customPromptPlaceholder")) { prompt = it; s.customSystemPrompt = it }
-        }
-        var tokens by remember { mutableStateOf(s.maxTokensChoice) }
-        var deep by remember { mutableStateOf(s.deepResearchMode) }
-        val auto = AppSettings.autoMaxTokens(id, deep)
-        Choices(t("personalitySettings.maxOutputTokens"),
-            listOf<Pair<Int?, String>>(null to "${t("native.tweaks.auto")} ($auto)") + personalities.maxTokensOptions.map { it to "$it" },
-            tokens) { tokens = it; s.maxTokensChoice = it }
-        Note(t("personalitySettings.maxOutputTokensNote"))
-        SwitchRow(t("personalitySettings.deepResearchTitle"), t("personalitySettings.deepResearchNote"), deep) { deep = it; s.deepResearchMode = it }
-    }
-}
 
-/**
- * Settings → Profile (rc3): Starter (id SIMPLE), Explorer or Pro, each with one plain sentence. After an update gave the user a
- * profile, it opens once with a note saying which one and why.
- */
-/**
- * The profile as three small pills in the Settings header (adam, Nov 13; at the top of the page since Nov 12), the current
- * one filled, one tap to switch. The caption and the "pauses below Pro" line are toasts now (SettingsScreen's pick).
- */
-@Composable
-private fun ProfilePills(profile: UserProfile, onPick: (UserProfile) -> Unit) {
-    val c = Boar.colors
-    // A 48 dp touch area around each small pill, and a selected state TalkBack says (validator A-4: about 28 dp, the
-    // current one only "disabled").
-    Row(Modifier.selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-        for (p in UserProfile.entries) {
-            val on = p == profile
-            Box(Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp)
-                .selectable(selected = on, role = androidx.compose.ui.semantics.Role.Tab) { if (!on) onPick(p) }
-                .padding(horizontal = 2.dp), contentAlignment = Alignment.Center) {
-                Text(t("native.settings.profile.${p.key}"), style = Boar.type.caption, color = if (on) c.textInverse else c.textPrimary, maxLines = 1,
-                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier.clip(RoundedCornerShape(50)).background(if (on) c.emerald600 else c.bgCard)
-                        .border(1.dp, if (on) c.emerald600 else c.borderDefault, RoundedCornerShape(50))
-                        .padding(horizontal = 8.dp, vertical = 5.dp))
-            }
-        }
-    }
-}
 
-/** After an update that moved the profile, its note shows once, as a toast on opening Settings (adam, Nov 13: no notes on the page). */
-@Composable
-private fun ProfileUpdateToast(services: BoarServices, profile: UserProfile) {
-    val s = services.settings
-    val note = remember { s.profileNotePending }
-    if (!note) return
-    val updatedLabs = remember { team.sopa.boar.labs.LabPrefs.turnedOnByUpdate() }
-    val text = listOfNotNull(
-        t("native.settings.profile.updated", "profile" to t("native.settings.profile.${profile.key}")) +
-            if (profile != UserProfile.PRO) " " + t("native.settings.profile.updatedBelowPro") else "",
-        updatedLabs.takeIf { it.isNotEmpty() }?.let { l -> t("native.settings.profile.labsOn", "labs" to l.map { t("native.labs.$it.title") }.joinToString(", ")) },
-    ).joinToString(" ")
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        s.profileNotePending = false
-        team.sopa.boar.ui.Toasts.show(team.sopa.boar.ui.Toasts.Toast(text, millis = 7_000))
-    }
-}
 
-/** Features being tested, in their own section so they're easy to find: only in EXPERIMENTAL_FEATURES builds, each off by default. */
-@Composable
-private fun ExperimentalSection(services: BoarServices, shown: (SettingsPart) -> Boolean, onOpen: (String) -> Unit, technical: Boolean, onTechnical: (Boolean) -> Unit) {
-    Section(t("native.settings.experimental"), team.sopa.boar.R.drawable.ic_settings_experimental) {
-        // Below Pro there is no plugin list here: the note says where the switch is (validator A-5; adam, Nov 15).
-        Note(t(if (shown(SettingsPart.LABS_SETTINGS)) "native.settings.experimentalNote" else "native.settings.experimentalNoteBelowPro"))
-        // Adaptive routing is experimental (Oct 21): here, with the other features being tested, off by default. First: it was BOAR's first experiment (adam, Nov 10).
-        val s = services.settings
-        var adaptive by remember { mutableStateOf(s.adaptiveRoutingEnabled) }
-        if (shown(SettingsPart.ADAPTIVE_ROUTING)) SwitchRow(t("native.settings.adaptiveTitle"), t("native.settings.adaptiveNote"), adaptive) { adaptive = it; s.adaptiveRoutingEnabled = it }
-        // Boarverse: Boar Avatars to unlock and wear, off by default (back Oct 24; TruffleVault.SWITCH_SHOWN).
-        if (team.sopa.boar.appearance.TruffleVault.SWITCH_SHOWN && shown(SettingsPart.BOARVERSE_SWITCH)) {
-            val avatarsOn by services.vault.enabled.collectAsState()
-            SwitchRow(t("native.vault.experimental"), t("native.vault.experimentalNote"), avatarsOn) { services.vault.setEnabled(it) }
-        }
-        // Pro only, as in Advanced tweaks before (t9 0450).
-        if (shown(SettingsPart.TWEAKS)) MovedToExperimental(services, technical, shown(SettingsPart.TECHNICAL_DETAILS), onTechnical)
-        // Boar Labs' own settings (the master switch, the waiting animation) stay Pro's.
-        if (shown(SettingsPart.LABS_SETTINGS)) team.sopa.boar.labs.LabHooks.SettingsRow()
-        // The list with a switch per plugin, in every profile (t9 1725).
-        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t("native.labs.openList")) { onOpen("labs") }
-    }
-}
 
 /**
  * Every section folds (Oct 24): How BOAR answers starts open, the rest folded with a one-line [summary] of what they're
@@ -434,21 +323,6 @@ internal fun Section(title: String, icon: Int? = null, startOpen: Boolean = fals
     team.sopa.boar.ui.BoarSection(title, open, { open = !open }, if (open) null else summary?.invoke(), icon, iconTint) { content() }
 }
 
-/** An answer style as a row of the list: icon, name and what it does; the chosen one marked. */
-@Composable
-private fun StyleRow(id: String, icon: String, label: String, description: String, selected: Boolean, onPick: () -> Unit) {
-    val c = Boar.colors
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(if (selected) c.emeraldBgSubtle else c.bgSubtle)
-        .border(if (selected) 2.dp else 1.dp, if (selected) c.emeraldBorder else c.borderSubtle, RoundedCornerShape(12.dp))
-        .clickable(onClick = onPick).padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        team.sopa.boar.ui.StyleIcon(id, icon, 24.dp)
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(label, style = Boar.type.body, color = c.textHeading, fontWeight = FontWeight.SemiBold)
-            Text(description, style = Boar.type.subtext, color = c.textSecondary)
-        }
-        if (selected) team.sopa.boar.ui.PackIcon(team.sopa.boar.R.drawable.ic_check, 22.dp, c.textAccentEmerald)
-    }
-}
 
 @Composable
 private fun onOff(on: Boolean) = t(if (on) "native.settings.summary.on" else "native.settings.summary.off")
@@ -486,14 +360,6 @@ internal fun SwitchRow(label: String, note: String?, checked: Boolean, onChange:
 @Composable
 internal fun Note(text: String) = Text(text, style = Boar.type.subtext, color = Boar.colors.textMuted)
 
-@Composable
-private fun Field(value: String, placeholder: String, onChange: (String) -> Unit) {
-    val c = Boar.colors
-    androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().background(c.bgInput, RoundedCornerShape(8.dp)).border(1.dp, c.borderDefault, RoundedCornerShape(8.dp)).padding(10.dp)) {
-        if (value.isEmpty()) Text(placeholder, style = Boar.type.body, color = c.textDim)
-        BasicTextField(value, onChange, textStyle = Boar.type.body.copy(color = c.textPrimary), cursorBrush = SolidColor(c.emerald500), modifier = Modifier.fillMaxWidth())
-    }
-}
 
 /**
  * Where Settings was when it opened another page: its scroll and the sections open. [keep] is set by that page's link;

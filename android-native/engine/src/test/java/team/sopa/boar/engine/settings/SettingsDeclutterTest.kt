@@ -44,14 +44,11 @@ class SettingsDeclutterTest {
         assertTrue(AppSettings(Files.createTempDirectory("boar-free2").toFile().resolve("settings.json")).freeMemoryInBackground)
     }
 
-    @Test fun `language and voice are one section, voice from Explorer`() {
-        val section = settings.substring(settings.indexOf("shown(SettingsPart.LANGUAGE)")).let { it.substring(0, it.indexOf("shown(SettingsPart.SECURITY)")) }
-        assertTrue(section.contains("native.settings.languageVoice"))
-        assertTrue(section.contains("if (shown(SettingsPart.VOICE)) VoiceRows("))
+    @Test fun `language and voice are one section, for everyone`() {
+        val section = settings.substring(settings.indexOf("t(\"native.settings.languageVoice\")")).let { it.substring(0, it.indexOf("t(\"native.settings.chats\")")) }
+        assertTrue(section.contains("VoiceRows(services, lang)"))
         assertFalse(settings.contains("VoiceSection("))
         assertTrue(settings.substring(settings.indexOf("private fun VoiceRows(")).contains("voiceInputEnabled = it"))
-        assertEquals(UserProfile.SIMPLE, SettingsPart.LANGUAGE.from)
-        assertEquals(UserProfile.EXPLORER, SettingsPart.VOICE.from)
     }
 
     @Test fun `voice listens in the app's language`() {

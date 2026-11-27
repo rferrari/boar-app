@@ -818,4 +818,8 @@
     <string name="native_deviceSetup_answering" formatted="false">Respostas</string>
     <string name="native_deviceSetup_memory" formatted="false">Memória</string>
     <string name="native_deviceSetup_diagnostics" formatted="false">Diagnóstico</string>
+    <string name="native_settings_chats" formatted="false">Conversas</string>
+    <string name="native_settings_plugins" formatted="false">Plugins</string>
+    <string name="native_settings_customSetup" formatted="false">Ajuste da conversa: personalizado, da Avaliação</string>
+    <string name="native_settings_customSetupReset" formatted="false">Voltar ao Automático</string>
 </resources>

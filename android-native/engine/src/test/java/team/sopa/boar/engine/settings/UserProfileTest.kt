@@ -47,14 +47,6 @@ class UserProfileTest {
         assertTrue(SettingsPart.experimentalShownIn(UserProfile.PRO))
     }
 
-    @Test fun `every part is wired into the Settings screen`() {
-        val screen = File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
-        for (part in SettingsPart.entries) assertTrue("SettingsPart.${part.name} is not used in SettingsScreen.kt", screen.contains("SettingsPart.${part.name}"))
-        assertTrue(screen.contains("SettingsPart.experimentalShownIn"))
-    }
-
-    // ── Fresh install and update ──
-
     @Test fun `a fresh install starts on Simple, quietly`() {
         val f = file(null)
         val s = AppSettings(f)

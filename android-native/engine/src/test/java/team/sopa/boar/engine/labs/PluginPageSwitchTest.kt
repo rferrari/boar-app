@@ -28,14 +28,6 @@ class PluginPageSwitchTest {
         assertTrue(!sw.contains("pageSwitchShown") && sw.contains("PluginReach.asksBeforeOff(lab.id, v)"))
     }
 
-    @Test fun `below Pro, Settings says where the switch is, in EN and PT`() {
-        assertTrue(settings.contains("if (shown(SettingsPart.LABS_SETTINGS)) \"native.settings.experimentalNote\" else \"native.settings.experimentalNoteBelowPro\""))
-        for (d in listOf("values", "values-pt")) {
-            val x = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
-            for (k in listOf("native_settings_experimentalNoteBelowPro", "native_labs_pageSwitch")) assertTrue("$d $k", x.contains("name=\"$k\""))
-        }
-    }
-
     @Test fun `adam's plugins note, and no test-status words in Settings, EN and PT`() {
         val en = "Extra tools in the menu and under answers. Each one can be switched on or off."
         val pt = "Ferramentas extras no menu e nas respostas. Podem ser ligadas ou desligadas."

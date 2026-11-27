@@ -18,11 +18,10 @@ class PluginsForAllTest {
         assertTrue(java.io.File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText().contains("onReadPlugin = { _ -> onOpenRoute(\"labs\") }"))
     }
 
-    @Test fun `Settings opens the list in every profile, Boar Labs' own settings stay Pro`() {
-        val experimental = settings.substringAfter("private fun ExperimentalSection(").substringBefore("\n}\n")
-        assertTrue(experimental.contains("if (shown(SettingsPart.LABS_SETTINGS)) team.sopa.boar.labs.LabHooks.SettingsRow()"))
-        assertTrue(experimental.contains("        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t(\"native.labs.openList\")) { onOpen(\"labs\") }"))
-        assertTrue(LabDefaults.managementShown(team.sopa.boar.engine.settings.UserProfile.PRO))
+    @Test fun `Settings › Plugins has Boar Labs' own settings and opens the list, for everyone (2_1_0)`() {
+        val plugins = settings.substringAfter("private fun PluginsSection(").substringBefore("\n}\n")
+        assertTrue(plugins.contains("team.sopa.boar.labs.LabHooks.SettingsRow()"))
+        assertTrue(plugins.contains("        if (team.sopa.boar.labs.LabPrefs.labsOn) LinkButton(t(\"native.labs.openList\")) { onOpen(\"labs\") }"))
     }
 
     @Test fun `turning Cohazard off asks first, whatever the profile`() {
