@@ -304,6 +304,7 @@ internal fun PressScreen(lab: LabPlugin) {
             onEdit = { if (editing == selected) editing = null else sheet = Sheet.EDIT },
             onCaption = { editing = if (editing == selected) null else selected },
             onPlace = { place -> PressStore.change { it.place(project.blocks[i].id, place) } },
+            onSize = { size -> PressStore.change { it.resize(project.blocks[i].id, size) } },
             onRemove = {
                 val b = project.blocks[i]
                 val pid = project.id
@@ -413,7 +414,7 @@ private fun IconAction(icon: Int, label: String, enabled: Boolean = true, on: Bo
 
 @Composable
 private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove: (Int) -> Unit, onEdit: () -> Unit, onCaption: () -> Unit, onPlace: (PressDoc.Place) -> Unit,
-                      onRemove: () -> Unit, onClose: () -> Unit) {
+                      onRemove: () -> Unit, onClose: () -> Unit, onSize: (PressDoc.PicSize) -> Unit = {}) {
     val c = Boar.colors
     Column(Modifier.fillMaxWidth().background(c.bgSurface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(c.borderDefault))
@@ -434,10 +435,22 @@ private fun ActionBar(b: Block, index: Int, count: Int, editing: Boolean, onMove
                 }
                 val next = when (b.place) { PressDoc.Place.LEFT -> PressDoc.Place.CENTER; PressDoc.Place.CENTER -> PressDoc.Place.RIGHT; else -> PressDoc.Place.LEFT }
                 IconAction(icon, t("native.labs.printer.$key") + ". " + t("native.labs.printer.placeNext"), on = true) { onPlace(next) }
+                // Its size (adam, 27 Nov): one button, each tap the next size, its letter on it.
+                val nextSize = PressDoc.PicSize.entries[(b.size.ordinal + 1) % PressDoc.PicSize.entries.size]
+                SizeAction(b.size, t("native.labs.printer.size_${b.size.key}") + ". " + t("native.labs.printer.sizeNext")) { onSize(nextSize) }
             }
             IconAction(R.drawable.lab_printer_ic_remove, t("native.labs.printer.remove"), danger = true, onClick = onRemove)
             IconAction(R.drawable.lab_printer_ic_close, t("native.labs.printer.close"), onClick = onClose)
         }
+    }
+}
+
+/** The picture's size as a letter in the action bar (S, M, L): a tap goes to the next one. */
+@Composable
+private fun SizeAction(size: PressDoc.PicSize, label: String, onClick: () -> Unit) {
+    val c = Boar.colors
+    Box(Modifier.size(44.dp).clip(CircleShape).clickable(onClickLabel = label, role = Role.Button, onClick = onClick), contentAlignment = Alignment.Center) {
+        Text(size.key.take(1).uppercase(), style = Boar.type.body, fontWeight = FontWeight.Bold, color = c.emerald500)
     }
 }
 
@@ -922,7 +935,7 @@ private fun BlockView(b: Block, page: PressPage, s: PaperScale, selected: Boolea
             is Block.Divider -> Box(Modifier.fillMaxWidth().height(s.dp(14f)), contentAlignment = Alignment.Center) {
                 Box(Modifier.fillMaxWidth().height(1.dp).background(Color(Paper.RULE)))
             }
-            is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER, editing, fresh, onFreshUsed, center = true)
+            is Block.Picture -> PictureContent(b, project.id, s, Paper.INNER * b.size.center, editing, fresh, onFreshUsed, center = true)
             is Block.Unknown -> {}
         }
     }
@@ -951,7 +964,8 @@ private fun PictureContent(b: Block.Picture, projectId: String, s: PaperScale, m
     val ctx = LocalContext.current
     val file = remember(b.file, projectId) { PressPictures.fileOf(ctx, projectId, b) }
     val (pw, ph) = if (b.width > 0 && b.height > 0) b.width to b.height else 1 to 1
-    val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, maxW, Paper.PICTURE_MAX_H)
+    // A centred picture's height cap follows its size, as in the PDF; beside the text it keeps the page's cap.
+    val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(pw, ph, maxW, if (center) Paper.PICTURE_MAX_H * b.size.center else Paper.PICTURE_MAX_H)
     Column(Modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth(), contentAlignment = if (center) Alignment.Center else if (b.place == PressDoc.Place.LEFT) Alignment.CenterStart else Alignment.CenterEnd) {
             if (file != null) Box(Modifier.size(s.dp(w), s.dp(h)).background(Color(0xFFEEEEEE))) { Picture(file, ContentScale.Fit) }
@@ -1003,7 +1017,7 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
     val pic = item.picture
     val text = item.text
     val density = LocalDensity.current
-    val side = PressLayout.sideWidth(Paper.INNER)
+    val side = PressLayout.sideWidth(Paper.INNER, pic.size)
     val (pw, ph) = if (pic.width > 0 && pic.height > 0) pic.width to pic.height else 1 to 1
     var picH by remember(pic.id) { mutableStateOf(with(density) { s.dp(team.sopa.boar.engine.labs.PictureFit.within(pw, ph, side, Paper.PICTURE_MAX_H).second).toPx() }) }
     val picture = @Composable {
@@ -1028,7 +1042,7 @@ private fun BesideView(item: PressLayout.Item.Beside, page: PressPage, s: PaperS
         return
     }
     val measurer = rememberTextMeasurer()
-    val widthPx = with(density) { s.dp(PressLayout.besideWidth(Paper.INNER) - indent).roundToPx() }
+    val widthPx = with(density) { s.dp(PressLayout.besideWidth(Paper.INNER, pic.size) - indent).roundToPx() }
     val room = picH + with(density) { s.dp(8f).toPx() }
     val beside = mutableListOf<Piece>()
     val below = mutableListOf<Piece>()

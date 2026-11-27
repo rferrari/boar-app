@@ -65,10 +65,10 @@ object PressLayout {
     }
 
     /** A side picture's box width in a column of [inner] points. */
-    fun sideWidth(inner: Float) = inner * SIDE
+    fun sideWidth(inner: Float, size: PressDoc.PicSize = PressDoc.PicSize.LARGE) = inner * size.side
 
     /** The text's width beside a side picture. */
-    fun besideWidth(inner: Float) = inner - sideWidth(inner) - GUTTER
+    fun besideWidth(inner: Float, size: PressDoc.PicSize = PressDoc.PicSize.LARGE) = inner - sideWidth(inner, size) - GUTTER
 
     /**
      * How many lines go beside a picture [height] tall: those whose top is above the picture's bottom ([lineTops] from the

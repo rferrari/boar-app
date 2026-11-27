@@ -40,6 +40,15 @@ object PressDoc {
         companion object { fun of(s: String?) = entries.firstOrNull { it.name.equals(s, true) } ?: CENTER }
     }
 
+    /**
+     * A picture's size on the page (adam, 27 Nov: "small medium big … its one size only"): [center] its share of the
+     * column when centred, [side] when text flows beside it (PressLayout). Large is how every picture printed before.
+     */
+    enum class PicSize(val key: String, val center: Float, val side: Float) {
+        SMALL("small", 0.4f, 0.3f), MEDIUM("medium", 0.65f, 0.38f), LARGE("large", 1f, PressLayout.SIDE);
+        companion object { fun of(s: String?) = entries.firstOrNull { it.key == s } ?: LARGE }
+    }
+
     sealed interface Block {
         val id: String
 
@@ -99,6 +108,7 @@ object PressDoc {
             val recipe: Recipe? = null,
             val width: Int = 0,
             val height: Int = 0,
+            val size: PicSize = PicSize.LARGE,
         ) : Block
 
         /** A block written by a newer BOAR: not shown, kept as it is. */
@@ -202,6 +212,9 @@ object PressDoc {
         /** A picture's place: centered at the full width, or left / right with the next text beside it (phase 2). */
         fun place(blockId: String, place: Place) = mapBlock(blockId) { b -> if (b is Block.Picture) b.copy(place = place) else b }
 
+        /** A picture's size: small, medium or large (adam, 27 Nov). */
+        fun resize(blockId: String, size: PicSize) = mapBlock(blockId) { b -> if (b is Block.Picture) b.copy(size = size) else b }
+
         /**
          * The user saw [projectId] (Show, or left the page): its new answers are seen, and it moves up the short list,
          * which is by last seen or made ([shortList], adam Nov 12). With no new answers it still counts as seen (BOAR-79,
@@ -268,7 +281,7 @@ object PressDoc {
         is Block.Picture -> JsonObject(linkedMapOf(
             "type" to JsonPrimitive("picture"), "id" to JsonPrimitive(b.id), "kind" to JsonPrimitive(b.kind.name.lowercase()), "file" to JsonPrimitive(b.file),
             "caption" to JsonPrimitive(b.caption), "place" to JsonPrimitive(b.place.name.lowercase()), "answerId" to str(b.answerId),
-            "width" to JsonPrimitive(b.width), "height" to JsonPrimitive(b.height),
+            "width" to JsonPrimitive(b.width), "height" to JsonPrimitive(b.height), "size" to JsonPrimitive(b.size.key),
             "recipe" to (b.recipe?.let { r -> JsonObject(linkedMapOf("subject" to str(r.subject), "style" to str(r.style), "size" to str(r.size),
                 "seed" to (r.seed?.let { JsonPrimitive(it) } ?: JsonNull))) } ?: JsonNull),
         ))
@@ -303,7 +316,7 @@ object PressDoc {
                 o.s("model"), o.d("tokPerSec"), o.s("heading").orEmpty(), o.b("edited") ?: false, team.sopa.boar.engine.canvas.AnswerCard.fromJson(o["card"]))
             "picture" -> Block.Picture(id, if (o.s("kind") == "photo") Kind.PHOTO else Kind.DRAWING, o.s("file") ?: return null, o.s("caption").orEmpty(),
                 Place.of(o.s("place")), o.s("answerId"), (o["recipe"] as? JsonObject)?.let { r -> Recipe(r.s("subject"), r.s("style"), r.s("size"), r.l("seed")) },
-                (o.l("width") ?: 0).toInt(), (o.l("height") ?: 0).toInt())
+                (o.l("width") ?: 0).toInt(), (o.l("height") ?: 0).toInt(), PicSize.of(o.s("size")))
             else -> Block.Unknown(id, o)
         }
     }

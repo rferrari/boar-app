@@ -139,4 +139,8 @@
     <string name="native_labs_printer_pageFooter" formatted="false">Rodapé em todas as páginas</string>
     <string name="native_labs_printer_pageFooterNote" formatted="false">Uma linha fina e o nome do projeto no pé de cada página do PDF.</string>
     <string name="native_labs_printer_pageFoot" formatted="false">Página {{n}}</string>
+    <string name="native_labs_printer_size_small" formatted="false">Pequena</string>
+    <string name="native_labs_printer_size_medium" formatted="false">Média</string>
+    <string name="native_labs_printer_size_large" formatted="false">Grande</string>
+    <string name="native_labs_printer_sizeNext" formatted="false">Toque para o próximo tamanho.</string>
 </resources>

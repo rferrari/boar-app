@@ -74,14 +74,14 @@ object PdfCompiler {
                     p.begin(b.id)
                     if (b is Block.Picture) fileOf(b)?.let { f ->
                         // Empty captions don't print.
-                        p.picture(f, caption(b))
+                        p.picture(f, caption(b), b.size)
                         p.gap(Paper.GAP)
                     } else block(p, page, b)
                 }
                 is PressLayout.Item.Beside -> {
                     val f = fileOf(item.picture)
                     p.begin(item.picture.id)
-                    if (f != null) p.sidePicture(f, item.left, caption(item.picture))
+                    if (f != null) p.sidePicture(f, item.left, caption(item.picture), item.picture.size)
                     item.text?.let { p.begin(it.id); block(p, page, it) }
                     // What follows (a heading above all) starts below the picture.
                     p.endBeside()
@@ -260,7 +260,7 @@ object PdfCompiler {
         }
 
         /** A side picture's region: the text beside it is narrower until [bottom]; [left] puts the picture on the left. */
-        private class Beside(val left: Boolean, val bottom: Float)
+        private class Beside(val left: Boolean, val bottom: Float, val size: team.sopa.boar.engine.labs.PressDoc.PicSize)
         private var float: Beside? = null
 
         /** Starts a new page unless [h] points still fit on this one (a heading never ends a page alone); not beside a picture. */
@@ -282,8 +282,8 @@ object PdfCompiler {
             while (rest.isNotEmpty()) {
                 canvas // a page exists
                 val f = float?.takeIf { y < it.bottom }
-                val column = if (f != null) PressLayout.besideWidth(Paper.INNER) else Paper.INNER
-                val x0 = if (f != null && f.left) Paper.M + PressLayout.sideWidth(Paper.INNER) + PressLayout.GUTTER else Paper.M
+                val column = if (f != null) PressLayout.besideWidth(Paper.INNER, f.size) else Paper.INNER
+                val x0 = if (f != null && f.left) Paper.M + PressLayout.sideWidth(Paper.INNER, f.size) + PressLayout.GUTTER else Paper.M
                 val width = (column - indent).toInt()
                 val layout = StaticLayout.Builder.obtain(rest, 0, rest.length, paint, width)
                     .setAlignment(if (center) Layout.Alignment.ALIGN_CENTER else Layout.Alignment.ALIGN_NORMAL).setLineSpacing(0f, spacing).build()
@@ -330,12 +330,12 @@ object PdfCompiler {
          * A picture on the left or right, PressLayout.sideWidth of the column, its caption under it in the same width; the
          * text that follows goes beside it ([text]).
          */
-        fun sidePicture(file: File, left: Boolean, caption: Pair<String, TextPaint>?) {
+        fun sidePicture(file: File, left: Boolean, caption: Pair<String, TextPaint>?, size: team.sopa.boar.engine.labs.PressDoc.PicSize = team.sopa.boar.engine.labs.PressDoc.PicSize.LARGE) {
             endBeside()
-            val (bmp, size) = bitmapOrSize(file) ?: return
+            val (bmp, dims) = bitmapOrSize(file) ?: return
             try {
-                val box = PressLayout.sideWidth(Paper.INNER)
-                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(size.first, size.second, box, Paper.PICTURE_MAX_H)
+                val box = PressLayout.sideWidth(Paper.INNER, size)
+                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(dims.first, dims.second, box, Paper.PICTURE_MAX_H)
                 val cap = caption?.let { (s, paint) -> StaticLayout.Builder.obtain(s, 0, s.length, paint, box.toInt()).setLineSpacing(0f, 1.1f).build() }
                 val total = h + (cap?.let { it.height + 4f } ?: 0f)
                 canvas
@@ -345,7 +345,7 @@ object PdfCompiler {
                 val px = if (left) x else x + box - w
                 bmp?.let { canvas.drawBitmap(it, null, RectF(px, y, px + w, y + h), Paint(Paint.FILTER_BITMAP_FLAG)) }
                 cap?.let { c -> canvas.save(); canvas.translate(x, y + h + 4f); c.draw(canvas); canvas.restore() }
-                float = Beside(left, y + total + 8f)
+                float = Beside(left, y + total + 8f, size)
             } finally {
                 bmp?.recycle()
             }
@@ -369,11 +369,11 @@ object PdfCompiler {
         }
 
         /** A picture centered at the column's width in its own shape, no taller than half a page; its caption under it. */
-        fun picture(file: File, caption: Pair<String, TextPaint>?) {
+        fun picture(file: File, caption: Pair<String, TextPaint>?, size: team.sopa.boar.engine.labs.PressDoc.PicSize = team.sopa.boar.engine.labs.PressDoc.PicSize.LARGE) {
             endBeside()
-            val (bmp, size) = bitmapOrSize(file) ?: return
+            val (bmp, px) = bitmapOrSize(file) ?: return
             try {
-                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(size.first, size.second, Paper.INNER, Paper.PICTURE_MAX_H)
+                val (w, h) = team.sopa.boar.engine.labs.PictureFit.within(px.first, px.second, Paper.INNER * size.center, Paper.PICTURE_MAX_H * size.center)
                 canvas
                 if (bottom - y < h + (if (caption != null) 24f else 0f)) newPage()
                 val left = (Paper.W - w) / 2

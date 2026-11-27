@@ -118,6 +118,16 @@ internal object PressSelfTest {
             answer(12, "Tide pools", ANSWER),
             picture(tall, 13).copy(place = PressDoc.Place.LEFT),
         )),
+        // Pictures small, medium and large (adam, 27 Nov), centred and beside text.
+        "sizes" to project("Picture sizes", listOf(
+            picture(square, 31, "Small").copy(size = PressDoc.PicSize.SMALL),
+            picture(square, 32, "Medium").copy(size = PressDoc.PicSize.MEDIUM),
+            picture(square, 33, "Large").copy(size = PressDoc.PicSize.LARGE),
+            picture(tall, 34, "Small, left").copy(place = PressDoc.Place.LEFT, size = PressDoc.PicSize.SMALL),
+            answer(31, "Beside a small picture", ANSWER + "\n\n" + ANSWER),
+            picture(tall, 35, "Medium, right").copy(place = PressDoc.Place.RIGHT, size = PressDoc.PicSize.MEDIUM),
+            answer(32, "Beside a medium picture", ANSWER + "\n\n" + ANSWER),
+        )),
         // The same document before and after a layout change (t9 0735: lines per page, pages): four long answers in
         // paragraphs, one with a list, one followed by a drawing.
         "spacing" to project("Spacing basket", listOf(

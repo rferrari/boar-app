@@ -139,4 +139,8 @@
     <string name="native_labs_printer_pageFooter" formatted="false">Footer on every page</string>
     <string name="native_labs_printer_pageFooterNote" formatted="false">A thin line and the project\'s name at the foot of each PDF page.</string>
     <string name="native_labs_printer_pageFoot" formatted="false">Page {{n}}</string>
+    <string name="native_labs_printer_size_small" formatted="false">Small</string>
+    <string name="native_labs_printer_size_medium" formatted="false">Medium</string>
+    <string name="native_labs_printer_size_large" formatted="false">Large</string>
+    <string name="native_labs_printer_sizeNext" formatted="false">Tap for the next size.</string>
 </resources>
