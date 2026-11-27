@@ -147,7 +147,12 @@ object PressReceipt {
      * What a document prints besides its blocks, from Press settings (adam, Nov 14: "the toggle pages button become a
      * settings… the date below title, sources on end of doc, models, speed… made with boar keep always on").
      */
-    data class Options(val date: Boolean = true, val sources: Boolean = true, val models: Boolean = true, val speed: Boolean = false)
+    /**
+     * [font]: the document's font; [pageNumbers]: "Page N" at the foot of each PDF page (on, as Press always printed a
+     * number); [pageFooter]: a light rule and the project's name at the foot of each page (off), as adam's sample PDF.
+     */
+    data class Options(val date: Boolean = true, val sources: Boolean = true, val models: Boolean = true, val speed: Boolean = false,
+                       val font: PressFont = PressFont.SERIF, val pageNumbers: Boolean = true, val pageFooter: Boolean = false)
 
     /** The Sources section at the end: one line per source, by its [n], with the pack it came from ("Wikipedia"). */
     fun sourceLines(r: Receipt, o: Options, ownFile: String = Labels().ownFile): List<String> =

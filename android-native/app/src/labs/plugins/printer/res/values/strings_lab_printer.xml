@@ -131,4 +131,12 @@
     <string name="native_labs_printer_allProjects" formatted="false">All projects ({{count}})</string>
     <string name="native_labs_printer_searchProjects" formatted="false">Search projects</string>
     <string name="native_labs_printer_noProjects" formatted="false">No project with that name.</string>
+    <string name="native_labs_printer_font" formatted="false">Font</string>
+    <string name="native_labs_printer_font_serif" formatted="false">Serif</string>
+    <string name="native_labs_printer_font_sans" formatted="false">Sans</string>
+    <string name="native_labs_printer_font_mono" formatted="false">Mono</string>
+    <string name="native_labs_printer_pageNumbers" formatted="false">Page numbers</string>
+    <string name="native_labs_printer_pageFooter" formatted="false">Footer on every page</string>
+    <string name="native_labs_printer_pageFooterNote" formatted="false">A thin line and the project\'s name at the foot of each PDF page.</string>
+    <string name="native_labs_printer_pageFoot" formatted="false">Page {{n}}</string>
 </resources>

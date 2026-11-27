@@ -49,7 +49,19 @@ object PdfCompiler {
         return try { Pager(doc, dry = true).also { layout(it, page, fileOf) }.starts } finally { doc.close() }
     }
 
+    /** The picked font's face for this layout (PressFont), per thread: a compile and a dry run may overlap. */
+    private val face = ThreadLocal<Typeface>()
+
+    /** The phone's own faces: Noto Serif, Roboto, and the monospace one. */
+    fun typefaceOf(font: team.sopa.boar.engine.labs.PressFont): Typeface = when (font) {
+        team.sopa.boar.engine.labs.PressFont.SERIF -> Typeface.SERIF
+        team.sopa.boar.engine.labs.PressFont.SANS -> Typeface.SANS_SERIF
+        team.sopa.boar.engine.labs.PressFont.MONO -> Typeface.MONOSPACE
+    }
+
     private fun layout(p: Pager, page: PressPage, fileOf: (Block.Picture) -> File?) {
+            face.set(typefaceOf(page.options.font))
+            p.foot = Foot(page.options.pageFooter, page.options.pageNumbers, page.project.name.trim(), page.pageLabel)
             p.begin(TITLE)
             p.text(page.project.name.trim().ifEmpty { " " }, serif(Paper.TITLE, bold = true), after = 4f)
             if (page.options.date) p.text(page.date.uppercase(), sans(Paper.DATE, color = Paper.DATE_INK), after = Paper.GAP + 4f)
@@ -179,7 +191,7 @@ object PdfCompiler {
     private fun serif(size: Float, bold: Boolean = false, italic: Boolean = false, color: Int = Paper.INK) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = size
         this.color = color
-        typeface = Typeface.create(Typeface.SERIF, when { bold && italic -> Typeface.BOLD_ITALIC; bold -> Typeface.BOLD; italic -> Typeface.ITALIC; else -> Typeface.NORMAL })
+        typeface = Typeface.create(face.get() ?: Typeface.SERIF, when { bold && italic -> Typeface.BOLD_ITALIC; bold -> Typeface.BOLD; italic -> Typeface.ITALIC; else -> Typeface.NORMAL })
     }
 
     private fun sans(size: Float, bold: Boolean = false, color: Int = Paper.INK) = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -187,6 +199,9 @@ object PdfCompiler {
         this.color = color
         typeface = Typeface.create(Typeface.SANS_SERIF, if (bold) Typeface.BOLD else Typeface.NORMAL)
     }
+
+    /** Each page's foot: [line] a light rule and [text] on the left; [numbers] [label] ("Page {{n}}") on the right. */
+    private class Foot(val line: Boolean, val numbers: Boolean, val text: String, val label: String)
 
     /** [dry]: lay out only (pageStarts): pictures are measured from their size, nothing is decoded. */
     private class Pager(val doc: PdfDocument, val dry: Boolean) {
@@ -198,6 +213,9 @@ object PdfCompiler {
 
         /** The block being laid out now; a page that starts inside it is recorded with how far into it. */
         fun begin(id: String) { unit = id; unitTop = y; unitDone = 0f }
+
+        /** What each page's foot shows (Press settings). */
+        var foot = Foot(false, true, "", "Page {{n}}")
 
         /** A picture's pixel size: decoded for the PDF, read from the file's header in a dry run. */
         fun bitmapOrSize(file: File): Pair<android.graphics.Bitmap?, Pair<Int, Int>>? {
@@ -229,8 +247,15 @@ object PdfCompiler {
         }
 
         private fun finishPage(pg: PdfDocument.Page) {
-            val num = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 8f; color = Paper.FOOT_INK; textAlign = Paint.Align.CENTER }
-            pg.canvas.drawText("$n", Paper.W / 2f, Paper.H - Paper.M / 2, num)
+            // As adam's sample PDF (27 Nov): a light rule, the footer text on the left and "Page N" on the right, 7.5 pt.
+            val c = pg.canvas
+            val base = Paper.H - Paper.M / 2
+            val ink = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = Paper.PAGE_FOOT; color = Paper.FOOT_INK; typeface = Typeface.SANS_SERIF }
+            if (foot.line) {
+                c.drawLine(Paper.M, base - Paper.PAGE_FOOT - 5f, Paper.W - Paper.M, base - Paper.PAGE_FOOT - 5f, Paint().apply { color = Paper.RULE; strokeWidth = 0.6f })
+                if (foot.text.isNotEmpty()) c.drawText(android.text.TextUtils.ellipsize(foot.text, ink, Paper.INNER * 0.7f, android.text.TextUtils.TruncateAt.END).toString(), Paper.M, base, ink)
+            }
+            if (foot.numbers) c.drawText(foot.label.replace("{{n}}", "$n"), Paper.W - Paper.M, base, TextPaint(ink).apply { textAlign = Paint.Align.RIGHT })
             doc.finishPage(pg)
         }
 

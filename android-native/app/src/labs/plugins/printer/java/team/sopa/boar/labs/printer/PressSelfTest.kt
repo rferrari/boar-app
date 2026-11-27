@@ -30,7 +30,10 @@ internal object PressSelfTest {
         team.sopa.boar.engine.labs.PressFiles.copyInto(PressStore.dir(ctx), "selftest-Sides", PHOTO) { out -> wide.inputStream().use { it.copyTo(out) } }
         var ok = 0; var fail = 0
         for ((name, project) in projects(square, tall, wide)) {
-            val page = PressPage.of(ctx, project)
+            // adb args "font=sans;footer=on" try the Press settings without changing the user's (adam, 27 Nov).
+            val opts = PressPage.options().let { d -> d.copy(font = team.sopa.boar.engine.labs.PressFont.of(args["font"] ?: d.font.key),
+                pageFooter = args["footer"]?.let { it == "on" } ?: d.pageFooter) }
+            val page = PressPage.of(ctx, project, options = opts)
             val out = File(dir, "$name.pdf")
             runCatching {
                 PdfCompiler.compile(out, page) { PressPictures.fileOf(ctx, project.id, it) }

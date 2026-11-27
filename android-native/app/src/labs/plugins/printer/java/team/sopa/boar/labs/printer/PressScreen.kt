@@ -712,6 +712,10 @@ private fun SettingsSheet(lab: LabPlugin, showBreaks: Boolean, o: PressReceipt.O
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSources"), t("native.labs.printer.showSourcesNote"), o.sources) { onOptions(o.copy(sources = it)) }
     team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showModels"), null, o.models) { onOptions(o.copy(models = it, speed = it && o.speed)) }
     if (o.models) team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.showSpeed"), null, o.speed) { onOptions(o.copy(speed = it)) }
+    // The document's font and each page's foot (adam, 27 Nov).
+    team.sopa.boar.ui.models.ChipRow(t("native.labs.printer.font"), team.sopa.boar.engine.labs.PressFont.entries.map { it to t("native.labs.printer.font_${it.key}") }, o.font) { onOptions(o.copy(font = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageNumbers"), null, o.pageNumbers) { onOptions(o.copy(pageNumbers = it)) }
+    team.sopa.boar.ui.settings.SwitchRow(t("native.labs.printer.pageFooter"), t("native.labs.printer.pageFooterNote"), o.pageFooter) { onOptions(o.copy(pageFooter = it)) }
     Text(t("native.labs.printer.madeAlways"), style = Boar.type.caption, color = Boar.colors.textMuted, modifier = Modifier.padding(top = 10.dp))
     // About this plugin lives here, not in the menu (adam, Nov 14). Press has no How it works text.
     Spacer(Modifier.height(8.dp))
@@ -760,11 +764,19 @@ private fun Picture(f: File, scale: ContentScale) {
 
 // ---- The paper ----
 
+/** The picked font on screen, as PdfCompiler.typefaceOf prints it. */
+private fun familyOf(font: team.sopa.boar.engine.labs.PressFont): FontFamily = when (font) {
+    team.sopa.boar.engine.labs.PressFont.SERIF -> FontFamily.Serif
+    team.sopa.boar.engine.labs.PressFont.SANS -> FontFamily.SansSerif
+    team.sopa.boar.engine.labs.PressFont.MONO -> FontFamily.Monospace
+}
+
 /** The paper's type at its scale: [Paper]'s points times the page's pixels per point, as text sizes that ignore the font scale. */
-private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.unit.Density) {
+private class PaperScale(val pxPerPt: Float, val density: androidx.compose.ui.unit.Density, family: FontFamily = FontFamily.Serif) {
     fun sp(pt: Float): TextUnit = with(density) { (pt * pxPerPt).toSp() }
     fun dp(pt: Float): Dp = with(density) { (pt * pxPerPt).toDp() }
-    private val serif = FontFamily.Serif
+    /** The document's font (Press settings): what the PDF prints with (PdfCompiler.typefaceOf). */
+    private val serif = family
     private val sans = FontFamily.SansSerif
     private fun style(size: Float, family: FontFamily = serif, bold: Boolean = false, italic: Boolean = false, color: Int = Paper.INK, line: Float = 1.25f) =
         TextStyle(fontFamily = family, fontSize = sp(size), lineHeight = sp(size * line), color = Color(color),
@@ -794,7 +806,7 @@ private fun PaperView(page: PressPage, starts: List<PdfCompiler.PageStart>, sele
     val project = page.project
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
-        val s = remember(maxWidth, density) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density) }
+        val s = remember(maxWidth, density, page.options.font) { PaperScale(with(density) { maxWidth.toPx() } / Paper.W, density, familyOf(page.options.font)) }
         val measurer = rememberTextMeasurer()
         val pageLabel = t("native.labs.printer.page", "n" to "{{n}}")
         // Each block's top and height on the paper (px), by the ids PdfCompiler.pageStarts uses.
