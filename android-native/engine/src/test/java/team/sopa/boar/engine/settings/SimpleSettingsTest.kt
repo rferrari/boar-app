@@ -46,7 +46,7 @@ class SimpleSettingsTest {
     @Test fun `a chat setup that isn't Auto shows one line, with Reset to Auto`() {
         val custom = settings.substringAfter("private fun CustomSetupLine(").substringBefore("\n}\n")
         assertTrue(custom.contains("if (tweaks.isAuto) return") && custom.contains("t(\"native.settings.customSetup\")"))
-        assertTrue(custom.contains("services.settings.engineTweaks = EngineTweaks()") && custom.contains("if (services.stopAnswersAndWait()) services.host.unload()"))
+        assertTrue(custom.contains("services.settings.engineTweaks = EngineTweaks()") && custom.contains("services.reloadForTweaks()") && !custom.contains("rememberCoroutineScope"))
         assertTrue(page.contains("CustomSetupLine(services)"))
         for (d in listOf("values", "values-pt")) for (k in listOf("native_settings_customSetup", "native_settings_customSetupReset", "native_settings_chats", "native_settings_plugins"))
             assertTrue("$d $k", strings(d).contains("name=\"$k\""))

@@ -16,7 +16,10 @@ class FinalGateTest {
         assertTrue(remove.indexOf("services.stopAnswersAndWait()") in 0 until remove.indexOf("services.host.unload()"))
         // The engine's knobs moved to Evaluation › Device setup (2.1.0).
         val tweaks = java.io.File("../app/src/main/java/team/sopa/boar/ui/eval/DeviceSetup.kt").readText()
-        assertTrue(tweaks.contains("if (services.stopAnswersAndWait()) services.host.unload()"))
+        // Through the services' own scope, so leaving the page doesn't cancel it (CodeRabbit on 2.1.0).
+        assertTrue(tweaks.contains("services.reloadForTweaks()"))
+        val services = java.io.File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText()
+        assertTrue(services.contains("fun reloadForTweaks() { lifeScope.launch { if (stopAnswersAndWait()) host.unload() } }"))
         val eval = java.io.File("../app/src/main/java/team/sopa/boar/eval/EvaluationViewModel.kt").readText()
         assertTrue(eval.contains("check(services.stopAnswersAndWait()) { \"an answer is still being written\" }\n                services.host.unload()"))
     }

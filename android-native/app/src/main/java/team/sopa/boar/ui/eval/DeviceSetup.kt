@@ -98,7 +98,6 @@ internal fun MemoryRows(services: BoarServices) {
 @Composable
 internal fun EngineRows(services: BoarServices) {
     val s = services.settings
-    val scope = rememberCoroutineScope()
     var tw by remember { mutableStateOf(s.engineTweaks) }
     val topology = services.topology
     val resolved = tw.resolve(topology, services.totalRamBytes)
@@ -111,7 +110,7 @@ internal fun EngineRows(services: BoarServices) {
         // The model reloads with the new settings on the next answer.
         // An answer being written stops first, so the unload doesn't cut it mid-sentence (validator Q-5).
         // Still answering after the wait: the model stays loaded and picks the new settings up on its next load (validator).
-        scope.launch(kotlinx.coroutines.Dispatchers.Default) { if (services.stopAnswersAndWait()) services.host.unload() }
+        services.reloadForTweaks()
     }
     val autoLabel = t("native.tweaks.auto")
     @Composable fun autoOf(value: Any) = t("native.tweaks.autoValue", "value" to value)

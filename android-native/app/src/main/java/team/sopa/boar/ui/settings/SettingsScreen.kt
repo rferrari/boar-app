@@ -168,7 +168,6 @@ fun SettingsScreen(services: BoarServices, prefs: DisplayPrefs, onPin: (String) 
 @Composable
 private fun CustomSetupLine(services: BoarServices) {
     val c = Boar.colors
-    val scope = rememberCoroutineScope()
     var tweaks by remember { mutableStateOf(services.settings.engineTweaks) }
     if (tweaks.isAuto) return
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.amberBgSubtle).border(1.dp, c.amberBorder, RoundedCornerShape(12.dp))
@@ -178,7 +177,7 @@ private fun CustomSetupLine(services: BoarServices) {
             modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable {
                 services.settings.engineTweaks = EngineTweaks(); tweaks = EngineTweaks()
                 // As a change in Device setup: the model reloads with Auto on the next answer, after one being written.
-                scope.launch(kotlinx.coroutines.Dispatchers.Default) { if (services.stopAnswersAndWait()) services.host.unload() }
+                services.reloadForTweaks()
             }.padding(horizontal = 8.dp, vertical = 8.dp))
     }
 }

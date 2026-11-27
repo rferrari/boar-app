@@ -33,7 +33,7 @@ class DeviceSetupTest {
         val main = java.io.File("$app/java/team/sopa/boar/MainActivity.kt").readText()
         assertTrue(main.contains("deviceSetup = { team.sopa.boar.ui.eval.DeviceSetup(services) }"))
         // The engine rows still apply to the chat on its next answer (2.1.0; try-first is 2.2.0).
-        assertTrue(setup.contains("services.host.unload()") && setup.contains("t(\"native.tweaks.appliesNext\")"))
+        assertTrue(setup.contains("services.reloadForTweaks()") && setup.contains("t(\"native.tweaks.appliesNext\")"))
     }
 
     @Test fun `its words are in English and Portuguese`() {
