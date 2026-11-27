@@ -207,7 +207,8 @@ class DrawRequestTest {
         val take = ill.substringAfter(marker).substringBefore("\n    }\n")
         // An answer takes at most one request, ever (kept on disk), and only while it has no drawing of its own.
         assertTrue(take.contains("if (answerId in took || status[answerId] != null) return null"))
-        assertTrue(take.indexOf("took += answerId") > take.indexOf("asked.remove(question.trim())"))
+        val removed = take.indexOf("asked.remove(question.trim())")
+        assertTrue(removed >= 0 && take.indexOf("took += answerId") > removed)
         assertTrue(ill.substringAfter("private fun load(ctx: Context) {").substringBefore("\n    }\n").contains("tookFile(ctx)"))
         assertTrue(ill.substringAfter("fun eraseAll(ctx: Context) {").substringBefore("\n    }\n").contains("took.clear()"))
         val screen = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
