@@ -116,4 +116,11 @@ class DesignerCropTest {
         assertTrue(crop.contains("if (!isActive) return@launch") && crop.contains("_state.update { it.copy(phase = null) }"))
         for (d in listOf("values", "values-pt")) assertTrue(d, java.io.File("$dir/res/$d/strings_lab_image.xml").readText().contains("name=\"native_labs_image_phase_saving\""))
     }
+
+    @Test fun `the crop preview fits both the width and the height it is given (CodeRabbit on PR 125)`() {
+        val crop = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/CropScreen.kt").readText()
+        // A tall copy (288x512) in a short area: fitted to the smaller of the two ratios, not stretched past the area.
+        assertTrue(crop.contains("val fit = minOf(constraints.maxWidth / imgW.toFloat(), constraints.maxHeight / imgH.toFloat())"))
+        assertTrue(crop.contains("val scale = 1f / fit") && !crop.contains("fillMaxWidth().aspectRatio(imgW.toFloat() / imgH)"))
+    }
 }

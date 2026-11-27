@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -72,10 +72,14 @@ internal fun CropScreen(f: File, styleKey: String?, onSave: (DesignerCrop.Rect) 
         Column(Modifier.fillMaxSize().background(Color.Black).statusBarsPadding().navigationBarsPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(t("native.labs.image.crop"), style = Boar.type.titleSm, color = Color.White)
             Text(t("native.labs.image.cropNote"), style = Boar.type.caption, color = Color.White.copy(alpha = 0.7f))
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(imgW.toFloat() / imgH)) {
-                    // Picture pixels per screen pixel.
-                    val scale = imgW / constraints.maxWidth.toFloat()
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                // The largest size with the picture's ratio inside both limits: a tall copy (288x512) in a short area fits by
+                // its height instead of overflowing it (CodeRabbit on PR 125).
+                val fit = minOf(constraints.maxWidth / imgW.toFloat(), constraints.maxHeight / imgH.toFloat())
+                // Picture pixels per screen pixel.
+                val scale = 1f / fit
+                val density = LocalDensity.current
+                Box(Modifier.size(with(density) { (imgW * fit).toDp() }, with(density) { (imgH * fit).toDp() })) {
                     bmp?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds) }
                     Canvas(Modifier.fillMaxSize().pointerInput(ratio, scale) {
                         var resizing = false
