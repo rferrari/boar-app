@@ -5,8 +5,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import team.sopa.boar.engine.settings.AppSettings
-import team.sopa.boar.engine.settings.SettingsPart
-import team.sopa.boar.engine.settings.UserProfile
 
 /** Staged answers became core on Nov 12 (adam): a setting, on by default, Pro's switch, the old plugin switch migrated. */
 class StagedCoreTest {
@@ -25,8 +23,8 @@ class StagedCoreTest {
         assertNull(StagedMigration.settingFrom(null))
     }
 
-    @Test fun `the switch is Pro's, the plugin and its manifest line are gone, the chat reads the setting`() {
-        assertEquals(UserProfile.PRO, SettingsPart.STAGED_QUOTES.from)
+    @Test fun `the switch is in Device setup, the plugin and its manifest line are gone, the chat reads the setting`() {
+        assertTrue(java.io.File("../app/src/main/java/team/sopa/boar/ui/eval/DeviceSetup.kt").readText().contains("s.stagedQuotes = it"))
         assertTrue(!java.io.File("../app/src/labs/plugins/staged").exists())
         assertTrue(!java.io.File("../app/src/labs/released.txt").readText().contains("staged:"))
         val services = java.io.File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText()

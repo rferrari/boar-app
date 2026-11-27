@@ -206,12 +206,11 @@ object LabPrefs {
         if (prefs != null) return
         appContext = context.applicationContext
         val p = context.applicationContext.getSharedPreferences("labs", Context.MODE_PRIVATE).also { prefs = it }
-        // The master switch first: chosenOn below counts a lab only while Boar Labs is on.
+        // The master switch first.
         on.value = p.getBoolean("labs.on", true)  // the Labs build opens with Boar Labs on
         // rc3: the labs on adam's list start on, the rest off (LabDefaults); a switch the user flipped stays as they set it.
         // A leaked classified lab with code stays unlocked (ClassifiedLab.inner).
         val stored = LabRegistry.ALL.associate { it.id to if (p.contains("enabled.${it.id}")) p.getBoolean("enabled.${it.id}", false) else null }
-        chosenOn = team.sopa.boar.engine.labs.LabDefaults.userChoseOn(labsOn, stored.values)
         LabRegistry.ALL.forEach {
             val stored = stored[it.id]
             switches[it.id] = team.sopa.boar.engine.labs.LabDefaults.switchOf(it.id, stored)
@@ -242,25 +241,6 @@ object LabPrefs {
         get() = wait.value
         set(v) { wait.value = v; prefs?.edit()?.putString("waitAnimation", v)?.apply() }
     private val wait = androidx.compose.runtime.mutableStateOf(WAIT_TRAIL)
-
-    /**
-     * The user switched a lab on themselves (not a default): an rc2 install that used Boar Labs becomes Pro
-     * (UserProfile.forUpdate). Default-on labs don't count, or every update would become Pro.
-     */
-    fun anyChosenOn() = chosenOn
-
-    /** Default-on labs this install never switched itself: on because of the update (LabDefaults.turnedOnByUpdate). */
-    fun turnedOnByUpdate(): List<String> {
-        val p = prefs ?: return emptyList()
-        if (!labsOn) return emptyList()
-        return team.sopa.boar.engine.labs.LabDefaults.turnedOnByUpdate(LabRegistry.visible.map { it.id }) { id ->
-            if (p.contains("enabled.$id")) p.getBoolean("enabled.$id", false) else null
-        }
-    }
-    private var chosenOn = false
-
-    /** The user is on Pro: Boar Labs' own places (menu, list, setup page, tour card) show (LabDefaults.managementShown). */
-    var proProfile by androidx.compose.runtime.mutableStateOf(false)
 
     /** Classified labs the user declassified with ten taps (the Labs easter egg); kept across launches. */
     private val reveals = mutableStateMapOf<String, Boolean>()

@@ -34,13 +34,11 @@ class SettingsDeclutterTest {
         assertEquals(0, Regex("freeMemoryInBackground = ").findAll(settings).count())
     }
 
-    @Test fun `free memory stays in effect below Pro, the exception to Pro's rule`() {
+    @Test fun `free memory is on by default and holds when switched off`() {
         val f = Files.createTempDirectory("boar-free").toFile().resolve("settings.json")
         val s = AppSettings(f)
-        s.userProfile = UserProfile.PRO
         s.freeMemoryInBackground = false
-        s.userProfile = UserProfile.SIMPLE
-        assertFalse(s.freeMemoryInBackground)
+        assertFalse(AppSettings(f).freeMemoryInBackground)
         assertTrue(AppSettings(Files.createTempDirectory("boar-free2").toFile().resolve("settings.json")).freeMemoryInBackground)
     }
 

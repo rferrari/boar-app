@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import team.sopa.boar.engine.settings.UserProfile
 import java.io.File
 
 class LabDefaultsTest {
@@ -100,9 +99,4 @@ class LabDefaultsTest {
         assertFalse(LabDefaults.userChoseOn(true, listOf(null, false)))
     }
 
-    @Test fun `only Pro manages labs`() {
-        assertFalse(LabDefaults.managementShown(UserProfile.SIMPLE))
-        assertFalse(LabDefaults.managementShown(UserProfile.EXPLORER))
-        assertTrue(LabDefaults.managementShown(UserProfile.PRO))
-    }
 }

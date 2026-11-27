@@ -141,11 +141,8 @@ class MainActivity : ComponentActivity() {
         // A PIN set or removed in Settings protects the screen now, not only after BOAR next pauses.
         services.pinLock.onChange = { runOnUiThread { applySecure() } }
         team.sopa.boar.labs.LabHooks.init(this)
-        // An install from before profiles (rc2) gets its profile once, from its tweaks and its labs (UserProfile.forUpdate).
-        services.settings.settleProfile(anyLabOn = team.sopa.boar.labs.LabPrefs.anyChosenOn(), boarverseOn = services.vault.enabled.value)
-        // 2.1.0 (BOAR-81): profiles gate nothing any more; once, the values a profile paused go, the rest stay in effect.
+        // 2.1.0 (BOAR-81): no profiles; once, the values a profile paused go, the rest stay in effect.
         services.settings.retireProfiles()
-        team.sopa.boar.labs.LabPrefs.proProfile = team.sopa.boar.engine.labs.LabDefaults.managementShown(services.settings.userProfile)
         // A new process has no chat key yet; a recreated activity (rotation, font size) in the same process keeps it.
         if (services.pinLock.isSet && services.chats.cipher == team.sopa.boar.engine.security.PlainCipher) locked.value = true
         kotlin.concurrent.thread(name = "vault") { services.checkVault() }

@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import team.sopa.boar.engine.settings.AppSettings
-import team.sopa.boar.engine.settings.UserProfile
 import java.io.File
 import java.nio.file.Files
 

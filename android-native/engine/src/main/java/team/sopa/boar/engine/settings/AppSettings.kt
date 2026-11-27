@@ -35,9 +35,6 @@ class AppSettings(private val file: File) {
     /** False when settings.json is there but couldn't be read: a one-time migration then waits, writing nothing (validator S-3). */
     val readable: Boolean get() = !loadFailed
 
-    /** The profile settled for a file that couldn't be read: kept for this run only, never written over the file. */
-    @Volatile private var unsavedProfile: UserProfile? = null
-
     /** Told after each saved change: the key, its old and new value (null when unset). The app's debug log listens. */
     @Volatile var onChange: ((key: String, old: JsonElement?, new: JsonElement?) -> Unit)? = null
 
@@ -45,43 +42,7 @@ class AppSettings(private val file: File) {
         // Executive Summary became Personal Files (rc1): a saved Summary opens in Detailed, the default, not in a style
         // that answers only from the user's files.
         if (str("personalityId") == RETIRED_SUMMARY_STYLE) update { put("personalityId", JsonPrimitive("detailed")) }
-        // No profile is written here: settleProfile does it once the labs are known (an install whose settings.json is
-        // missing may still have a lab on), and a file that could not be read is left as it is.
     }
-
-    /** Settings → Profile. Simple until set; see [UserProfile]. */
-    var userProfile: UserProfile
-        get() = UserProfile.of(str(PROFILE_KEY)) ?: unsavedProfile ?: UserProfile.DEFAULT
-        set(v) = set(PROFILE_KEY, JsonPrimitive(v.key))
-
-    /** False on an install from before profiles until [settleProfile] runs. */
-    val profileSettled: Boolean get() = UserProfile.of(str(PROFILE_KEY)) != null || unsavedProfile != null
-
-    /**
-     * Gives the install its profile, once, at launch after the labs are loaded: from what is stored, not from the
-     * effective values ([UserProfile.forUpdate]). A fresh install (nothing saved, no lab switched on) gets Simple
-     * quietly; an install from before profiles (rc2) gets a one-time note on the Profile row ([profileNotePending]).
-     * [anyLabOn]: a lab the user switched on; [boarverseOn]: Boarverse is on (both kept outside settings.json).
-     */
-    fun settleProfile(anyLabOn: Boolean, boarverseOn: Boolean = false): UserProfile {
-        if (profileSettled) return userProfile
-        // Fresh: setup never finished (no answer model chosen yet), no lab, no Boarverse. Every rc2 install has a model.
-        val fresh = activeModelId("llm") == null && !anyLabOn && !boarverseOn
-        val proChanged = !storedTweaks.isAuto || bool("adaptiveRoutingEnabled") == true || int("freeMemoryAfterMinutes") != null ||
-            bool("showDrawerStats") == true || bool("debugLogEnabled") == true || anyLabOn ||
-            // Sources above the answer is a Pro setting too: kept for a user who picked it (CodeRabbit).
-            (str("sourcesLayout") ?: SOURCES_TODAY) != SOURCES_TODAY
-        val explorerChanged = boarverseOn || EXPLORER_CHANGES.any { (key, isDefault) -> data[key]?.let { it !is JsonNull && !isDefault(it) } == true }
-        val p = UserProfile.forUpdate(proChanged, explorerChanged)
-        // A file that couldn't be read is left for recovery: the profile holds for this run, and the next setting the
-        // user changes writes the file as before.
-        if (loadFailed) { unsavedProfile = p; return p }
-        update { put(PROFILE_KEY, JsonPrimitive(p.key)); if (!fresh) put("profileNotePending", JsonPrimitive(true)) }
-        return p
-    }
-
-    /** Settings shows a one-time note on the Profile row after an update gave the user a profile. */
-    var profileNotePending: Boolean get() = bool("profileNotePending") ?: false; set(v) = set("profileNotePending", v.takeIf { it }?.let(::JsonPrimitive))
 
     /** The one-time 2.1.0 migration ran ([retireProfiles]): profiles no longer gate any value. */
     val profilesRetired: Boolean get() = bool(PROFILES_RETIRED) ?: false
@@ -95,14 +56,17 @@ class AppSettings(private val file: File) {
      */
     fun retireProfiles() {
         if (profilesRetired || loadFailed) return
-        val profile = UserProfile.of(str(PROFILE_KEY))
+        // The profile 2.0.0 stored: "simple" (Starter), "explorer" or "pro"; none on a fresh install or one from before profiles.
+        val profile = str(PROFILE_KEY)
         val fresh = profile == null && activeModelId("llm") == null
         update {
             when {
                 fresh -> {}
-                profile != null && profile != UserProfile.PRO -> PAUSED_PRO_KEYS.forEach { remove(it) }
+                profile != null && profile != "pro" -> PAUSED_PRO_KEYS.forEach { remove(it) }
                 else -> if (this["showLiveStats"] == null) put("showLiveStats", JsonPrimitive(true))
             }
+            // The profile and its one-time note go too: nothing reads them now.
+            remove(PROFILE_KEY); remove("profileNotePending")
             put(PROFILES_RETIRED, JsonPrimitive(true))
         }
     }
@@ -177,6 +141,7 @@ class AppSettings(private val file: File) {
             "hidePromptIdeas", "autoSummarize", "historyTurnThreshold", "maxSavedSessions", "autoGenerateTitles", "confirmChatDelete",
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout", "stagedQuotes",
         )
+        /** Where 2.0.0 kept the profile; read once by [retireProfiles], then removed. */
         const val PROFILE_KEY = "userProfile"
         const val PROFILES_RETIRED = "profilesRetired"
         /** What 2.0.0 read as defaults below Pro (its Pro gate); [retireProfiles] clears them there. */
@@ -184,22 +149,6 @@ class AppSettings(private val file: File) {
         const val SOURCES_TODAY = "today"
         const val SOURCES_ABOVE = "above"
 
-        /**
-         * Settings Explorer shows, each with what its default looks like: one stored away from its default means the
-         * user changed it, so an rc2 install with it becomes Explorer at least ([settleProfile]).
-         */
-        private val EXPLORER_CHANGES: List<Pair<String, (JsonElement) -> Boolean>> = listOf(
-            "personalityId" to { v -> (v as? JsonPrimitive)?.contentOrNull in setOf(null, "detailed") },
-            "maxTokens" to { _ -> false },
-            "screenOrientation" to { v -> (v as? JsonPrimitive)?.contentOrNull == DEFAULT_ORIENTATION },
-            "hapticsEnabled" to { v -> (v as? JsonPrimitive)?.booleanOrNull != true },
-            "voiceInputEnabled" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
-            "autoSummarize" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
-            "autoGenerateTitles" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
-            "confirmChatDelete" to { v -> (v as? JsonPrimitive)?.booleanOrNull != false },
-            "historyTurnThreshold" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, 6) },
-            "maxSavedSessions" to { v -> (v as? JsonPrimitive)?.intOrNull in setOf(null, KEEP_ALL_CHATS, 10) },
-        )
         /** [maxSavedSessions]: every chat is kept. */
         const val KEEP_ALL_CHATS = 0
         const val MODEL_LAST_USED = "modelLastUsedAt"

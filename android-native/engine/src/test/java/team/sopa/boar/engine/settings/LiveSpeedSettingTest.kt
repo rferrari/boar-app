@@ -12,8 +12,6 @@ class LiveSpeedSettingTest {
         assertEquals(false, s.showLiveSpeed)
         s.showLiveSpeed = true
         assertEquals(true, AppSettings(f).showLiveSpeed)
-        // Not tied to Pro, unlike the technical details.
-        for (p in UserProfile.entries) { s.userProfile = p; assertEquals(p.name, true, s.showLiveSpeed) }
         s.resetPreferences()
         assertEquals(false, s.showLiveSpeed)
         f.delete()
