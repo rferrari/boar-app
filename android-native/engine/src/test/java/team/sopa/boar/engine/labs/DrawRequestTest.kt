@@ -125,4 +125,10 @@ class DrawRequestTest {
         val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
         assertTrue(hooks.contains("if (!LabPrefs.labsOn) team.sopa.boar.engine.labs.DrawRequest.offLabs(it.lang) else team.sopa.boar.engine.labs.DrawRequest.off(it.lang)"))
     }
+
+    @Test fun `a subject over two lines is still a draw request (CodeRabbit on PR 125)`() {
+        assertEquals(DrawRequest.Ask("a cat\nwearing a red hat", Lang.EN), DrawRequest.parse("draw me a cat\nwearing a red hat"))
+        assertEquals("uma onça\nna floresta", DrawRequest.parse("desenhe uma onça\nna floresta")?.subject)
+        assertNull(DrawRequest.parse("what is this?\ndraw me a cat"))
+    }
 }

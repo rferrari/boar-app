@@ -18,7 +18,8 @@ object DrawRequest {
     const val TOOL_NO_MODEL = "designer-no-model"
     const val TOOL_REFUSED = "designer-refused"
 
-    private val O = setOf(RegexOption.IGNORE_CASE)
+    // DOT_MATCHES_ALL: a subject may run over lines ("draw me a cat\nwearing a hat"); the ^ anchor stays the message start.
+    private val O = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
     private val POLITE = Regex("^(?:please|pls|por favor|porfa)[,!\\s]+", O)
     private val POLITE_END = Regex("[,\\s]+(?:please|por favor)$", O)
 
