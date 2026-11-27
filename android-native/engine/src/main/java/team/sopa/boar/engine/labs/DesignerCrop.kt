@@ -36,7 +36,12 @@ object DesignerCrop {
         val maxW = imgW - r.x
         val maxH = imgH - r.y
         if (ratio == Ratio.FREE) return r.copy(w = (r.w + dw).coerceIn(minOf(MIN_SIDE, maxW), maxW), h = (r.h + dh).coerceIn(minOf(MIN_SIDE, maxH), maxH))
-        val wanted = if (kotlin.math.abs(dw) >= kotlin.math.abs(dh)) r.w + dw else (r.h + dh) * ratio.w / ratio.h
+        // From the height: rounded away from the current size, or a 1 px drag rounds back to it and a tall frame never grows
+        // under the finger (CodeRabbit on PR 125).
+        val wanted = if (kotlin.math.abs(dw) >= kotlin.math.abs(dh)) r.w + dw else {
+            val num = (r.h + dh) * ratio.w
+            if (dh > 0) (num + ratio.h - 1) / ratio.h else num / ratio.h
+        }
         // Both sides at least MIN_SIDE: the short one decides how narrow it can get.
         val minW = maxOf(MIN_SIDE, (MIN_SIDE * ratio.w + ratio.h - 1) / ratio.h)
         var w = wanted.coerceIn(minOf(minW, maxW), maxW)

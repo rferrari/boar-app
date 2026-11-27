@@ -94,4 +94,16 @@ class DesignerCropTest {
         val readme = java.io.File("$dir/README.md").readText()
         assertTrue(readme.contains("## Size and crop") && readme.contains("512x512 only"))
     }
+
+    @Test fun `a ratio frame grows and shrinks one pixel at a time too (CodeRabbit on PR 125)`() {
+        // A tall 180x320 frame dragged down 1 px at a time: each step used to round back to the same size.
+        var r = Rect(0, 0, 180, 320)
+        repeat(40) { r = DesignerCrop.resize(r, 0, 1, Ratio.TALL, 512, 512) }
+        assertTrue("$r", r.h >= 350 && kotlin.math.abs(r.w * 16 - r.h * 9) < 16)
+        repeat(40) { r = DesignerCrop.resize(r, 0, -1, Ratio.TALL, 512, 512) }
+        assertTrue("$r", r.h <= 330)
+        var w = Rect(0, 0, 320, 180)
+        repeat(30) { w = DesignerCrop.resize(w, 0, 1, Ratio.WIDE, 512, 512) }
+        assertTrue("$w", w.h >= 200)
+    }
 }
