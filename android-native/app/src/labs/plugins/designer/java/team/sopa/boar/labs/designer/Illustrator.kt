@@ -133,7 +133,8 @@ object Illustrator {
         status[a.id] = Status.Choosing
         jobs[a.id] = scope.launch {
             val started = System.nanoTime()
-            val english = if (ask.lang != DrawRequest.Lang.EN) runCatching { englishSubject(ctx, ask.subject) }.getOrNull() else null
+            // Not while the chat answers (as Illustrate): the two would share its session. Its own words are drawn then.
+            val english = if (ask.lang != DrawRequest.Lang.EN && !a.chatBusy) runCatching { englishSubject(ctx, ask.subject) }.getOrNull() else null
             // The time the translation took, not the words (they are the user's).
             android.util.Log.i("BoarLabs", "draw request ${a.id}: lang=${ask.lang} english=${english != null} ms=${(System.nanoTime() - started) / 1_000_000}")
             if (status[a.id] !is Status.Choosing) return@launch

@@ -136,4 +136,10 @@ class DrawRequestTest {
         val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
         assertTrue(ill.substringAfter("fun eraseAll(ctx: Context) {").substringBefore("\n    }\n").contains("asked.clear()"))
     }
+
+    @Test fun `the English subject never asks the chat model while it answers (CodeRabbit on PR 125)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val asked = ill.substringAfter("fun drawAsked(").substringBefore("\n    }\n")
+        assertTrue(asked.contains("if (ask.lang != DrawRequest.Lang.EN && !a.chatBusy)"))
+    }
 }
