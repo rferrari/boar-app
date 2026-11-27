@@ -368,7 +368,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
                         DrawerItem("models", t("modelCatalogScreen.title")) { go { screen = "models" } },
                         DrawerItem("close", t("native.drawer.close")) { go { if (state.answeringId != null) confirmClose = true else closeBoar() } },
                     ).let { items ->
-                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it's in Settings → Advanced tweaks.
+                        // Evaluation is for builders (SHOW_EVAL_IN_MENU); otherwise it is in the Model Catalog (its card, 2.1.0).
                         if (!team.sopa.boar.BuildConfig.SHOW_EVAL_IN_MENU) items
                         else items.take(2) + DrawerItem("evaluation", t("evaluation.title")) { go { evalFrom = "chat"; screen = "evaluation" } } + items.drop(2)
                     }.let { items ->
