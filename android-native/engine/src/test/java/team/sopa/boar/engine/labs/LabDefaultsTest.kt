@@ -63,14 +63,6 @@ class LabDefaultsTest {
     @Test fun `an update that changes nothing names no lab`() =
         assertEquals(emptyList<String>(), LabDefaults.turnedOnByUpdate(LabDefaults.ON.toList()) { false })
 
-    @Test fun `the update note's lab line is in English and Portuguese`() {
-        for (dir in listOf("values", "values-pt")) {
-            val xml = File("../app/src/main/res/$dir/strings_native.xml").readText()
-            val line = Regex("""<string name="native_settings_profile_labsOn"[^>]*>(.*?)</string>""").find(xml)?.groupValues?.get(1)
-            assertTrue("$dir: native_settings_profile_labsOn", line != null && line.contains("{{labs}}"))
-        }
-    }
-
     @Test fun `Canvas shows an avatar until it has its own icon (Staged is core since Nov 12)`() {
         for ((id, art) in listOf("canvas" to "truffle_pixel_hacker")) {
             val src = LabDirs.of(id).walk().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }

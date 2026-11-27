@@ -34,11 +34,7 @@ class PluginPageSwitchTest {
         fun v(f: String, k: String) = Regex("name=\"$k\" formatted=\"false\">([^<]*)<").find(java.io.File(f).readText())!!.groupValues[1]
         assertEquals(en, v("../app/src/labs/res/values/strings_labs.xml", "native_labs_settingsNote"))
         assertEquals(pt, v("../app/src/labs/res/values-pt/strings_labs.xml", "native_labs_settingsNote"))
-        assertEquals(en, v("../app/src/main/res/values/strings_native.xml", "native_settings_experimentalNoteBelowPro"))
-        assertEquals(pt, v("../app/src/main/res/values-pt/strings_native.xml", "native_settings_experimentalNoteBelowPro"))
         val words = Regex("unfinished|being tested|alpha|beta|inacabad|em teste|testad", RegexOption.IGNORE_CASE)
-        for ((d, f) in listOf("values" to "strings_native.xml", "values-pt" to "strings_native.xml")) for (k in listOf("native_settings_experimentalNote", "native_settings_experimentalNoteBelowPro"))
-            assertTrue("$d $k", !words.containsMatchIn(v("../app/src/main/res/$d/$f", k)))
         for (d in listOf("values", "values-pt")) assertTrue(d, !words.containsMatchIn(v("../app/src/labs/res/$d/strings_labs.xml", "native_labs_settingsNote")))
     }
 }

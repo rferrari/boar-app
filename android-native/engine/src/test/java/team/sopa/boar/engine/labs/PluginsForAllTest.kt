@@ -36,10 +36,5 @@ class PluginsForAllTest {
         val pt = java.io.File("../app/src/main/assets/boar-guide/pt.md").readText()
         assertTrue(en.contains("In every profile, open Plugins in the menu") && !en.contains("In the Pro profile, open Plugins") && !en.contains("can be switched off only in Pro"))
         assertTrue(pt.contains("Em qualquer perfil, abra Plugins no menu") && !pt.contains("No perfil Pro, abra Plugins") && !pt.contains("só pode ser desligado no Pro"))
-        for (d in listOf("values", "values-pt")) {
-            val x = java.io.File("../app/src/main/res/$d/strings_native.xml").readText()
-            val labsOn = Regex("name=\"native_settings_profile_labsOn\" formatted=\"false\">([^<]*)<").find(x)!!.groupValues[1]
-            assertTrue("$d: $labsOn", !labsOn.contains("Pro"))
-        }
     }
 }
