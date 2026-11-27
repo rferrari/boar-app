@@ -341,7 +341,12 @@ class ImageLabViewModel(app: Application) : AndroidViewModel(app) {
                     try {
                         val cut = android.graphics.Bitmap.createBitmap(src, r.x, r.y, r.w, r.h)
                         val out = File(f.parentFile, DesignerCrop.fileName(System.currentTimeMillis(), ImageLab.recipeOf(f)?.style, r))
-                        out.outputStream().use { cut.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+                        // Written aside and renamed when complete: a failed save leaves no half picture in the gallery (CodeRabbit).
+                        val tmp = File(out.path + ".part")
+                        try {
+                            tmp.outputStream().use { check(cut.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)) }
+                            check(tmp.renameTo(out))
+                        } catch (e: Throwable) { tmp.delete(); throw e }
                         if (cut !== src) cut.recycle()
                         ImageLab.recipeOf(f)?.let { ImageLab.writeRecipe(out, it.copy(size = "${r.w}x${r.h}")) }
                         out

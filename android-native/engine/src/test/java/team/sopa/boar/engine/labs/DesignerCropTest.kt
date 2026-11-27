@@ -71,7 +71,9 @@ class DesignerCropTest {
         assertTrue(screen.contains("enabled = can && state.image != null && state.variations == null"))
         val crop = lab.substringAfter("fun crop(").substringBefore("\n    }\n")
         assertTrue(crop.contains("DesignerCrop.fileName(") && crop.contains("Bitmap.createBitmap(") && crop.contains("ImageLab.writeRecipe("))
-        assertTrue(!crop.contains("deleteDrawing") && !crop.contains(".delete()"))
+        // The original is never deleted; only an unfinished copy is (written as .part, renamed when complete, CodeRabbit).
+        assertTrue(!crop.contains("deleteDrawing") && !crop.contains("f.delete()"))
+        assertTrue(crop.contains("val tmp = File(out.path + \".part\")") && crop.contains("check(tmp.renameTo(out))") && crop.contains("tmp.delete()"))
         // Draw again on a crop draws a new 512 picture and keeps the crop.
         assertTrue(lab.contains("!DesignerCrop.isCrop(it.name)"))
         val cropScreen = java.io.File("$dir/java/team/sopa/boar/labs/designer/CropScreen.kt").readText()
