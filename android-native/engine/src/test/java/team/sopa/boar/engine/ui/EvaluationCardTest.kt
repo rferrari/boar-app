@@ -11,7 +11,9 @@ class EvaluationCardTest {
     @Test fun `the catalog has the card right under Discover GGUF models, same look`() {
         val list = models.substringAfter("fun ModelsScreen(").substringBefore("\n}\n")
         val discover = list.indexOf("item { HfCta(onBrowse) }")
-        assertTrue(discover >= 0 && list.indexOf("item { EvaluationCard(onEvaluation) }") == list.indexOf("\n", discover) + 1 + "            ".length)
+        // Only with a route to open: a card that can't navigate never shows (CodeRabbit).
+        assertTrue(models.contains("onEvaluation: (() -> Unit)? = null"))
+        assertTrue(discover >= 0 && list.indexOf("onEvaluation?.let { open -> item { EvaluationCard(open) } }") == list.indexOf("\n", discover) + 1 + "            ".length)
         val card = models.substringAfter("fun EvaluationCard(").substringBefore("\n}\n")
         assertTrue(card.contains("t(\"native.models.evaluationTitle\")") && card.contains("t(\"native.models.evaluationSubtitle\")") && card.contains("dashPathEffect"))
         for ((d, title, sub) in listOf(Triple("values", "Evaluation (for builders)", "Test models on this phone and find the setup that fits it."),

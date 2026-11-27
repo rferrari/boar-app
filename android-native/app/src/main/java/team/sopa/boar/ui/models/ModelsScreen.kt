@@ -57,7 +57,7 @@ import team.sopa.boar.ui.theme.track
 
 /** The models and knowledge catalog (ModelCatalogScreen.tsx with CatalogItemCard.tsx's layout and styles). */
 @Composable
-fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onEvaluation: () -> Unit = {}, onBack: () -> Unit) {
+fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit = {}, onEvaluation: (() -> Unit)? = null, onBack: () -> Unit) {
     val c = Boar.colors
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(c.bgTerminal).statusBarsPadding().navigationBarsPadding().imePadding()) {
@@ -90,7 +90,7 @@ fun ModelsScreen(state: ModelsState, vm: ModelsViewModel, onBrowse: () -> Unit =
             }
             // More models first: today Hugging Face, later other providers.
             item { HfCta(onBrowse) }
-            item { EvaluationCard(onEvaluation) }
+            onEvaluation?.let { open -> item { EvaluationCard(open) } }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     ChipRow(t("native.models.sort"), listOf(

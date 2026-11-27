@@ -27,7 +27,8 @@ class DeviceSetupTest {
 
     @Test fun `Evaluation shows it folded, and the app hands it the services`() {
         val eval = java.io.File("$app/java/team/sopa/boar/ui/eval/EvaluationScreen.kt").readText()
-        assertTrue(eval.contains("deviceSetup: @Composable () -> Unit = {}"))
+        // No slot, no toggle: an empty Device setup never shows (CodeRabbit).
+        assertTrue(eval.contains("deviceSetup: (@Composable () -> Unit)? = null"))
         assertTrue(eval.contains("var setupOpen by remember { mutableStateOf(false) }") && eval.contains("if (setupOpen) item { deviceSetup() }"))
         val main = java.io.File("$app/java/team/sopa/boar/MainActivity.kt").readText()
         assertTrue(main.contains("deviceSetup = { team.sopa.boar.ui.eval.DeviceSetup(services) }"))
@@ -48,6 +49,6 @@ class DeviceSetupTest {
         val marker = "// Device setup (BOAR-81): not while a run is going"
         assertTrue(eval.contains(marker))
         val block = eval.substringAfter(marker).substringBefore("if (state.opened == null) item { PresetSection(state, vm) }")
-        assertTrue(block.contains("if (!state.running) {") && block.contains("if (setupOpen) item { deviceSetup() }"))
+        assertTrue(block.contains("if (deviceSetup != null && !state.running) {") && block.contains("if (setupOpen) item { deviceSetup() }"))
     }
 }

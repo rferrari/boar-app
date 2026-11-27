@@ -53,7 +53,7 @@ class RowHomesTest {
         Triple("Boarverse switch", display, "t(\"native.vault.experimental\")"),
         Triple("Boar Labs switch and waiting animation", plugins, "team.sopa.boar.labs.LabHooks.SettingsRow()"),
         Triple("Plugins list link", plugins, "t(\"native.labs.openList\")"),
-        Triple("Evaluation link: catalog card", models, "item { EvaluationCard(onEvaluation) }"),
+        Triple("Evaluation link: catalog card", models, "item { EvaluationCard(open) }"),
         Triple("Evaluation link: menu in builder builds", main, "DrawerItem(\"evaluation\", t(\"evaluation.title\"))"),
     )
 

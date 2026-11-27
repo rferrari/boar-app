@@ -68,7 +68,7 @@ private fun JsonObject.list(k: String) = (this[k] as? JsonArray)?.mapNotNull { (
 
 /** Runs the fixed evaluation set against the chosen models (EvaluationScreen.tsx). Results save as they come. */
 @Composable
-fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: Boolean, deviceSetup: @Composable () -> Unit = {}, onClose: () -> Unit) {
+fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: Boolean, deviceSetup: (@Composable () -> Unit)? = null, onClose: () -> Unit) {
     val c = Boar.colors
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -101,7 +101,7 @@ fun EvaluationScreen(state: EvaluationState, vm: EvaluationViewModel, chatBusy: 
                 item { OpenedBar(run, onClose = { vm.closeOpened() }, onDelete = { confirmDelete = run.runId }) }
             }
             // Device setup (BOAR-81): not while a run is going, whose model an engine change would unload (CodeRabbit).
-            if (!state.running) {
+            if (deviceSetup != null && !state.running) {
                 item { SectionToggle(t("native.eval.deviceSetup"), setupOpen) { setupOpen = !setupOpen } }
                 if (setupOpen) item { deviceSetup() }
             }
