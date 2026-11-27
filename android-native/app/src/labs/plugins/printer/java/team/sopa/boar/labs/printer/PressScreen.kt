@@ -195,7 +195,11 @@ internal fun PressScreen(lab: LabPlugin) {
         if (compiling || project.blocks.isEmpty()) return
         compiling = true
         scope.launch {
-            val out = File(File(ctx.cacheDir, "print").apply { mkdirs() }, "draft.pdf")
+            // Its own draft: Press left and reopened mid-export can't have two builds write one file (CodeRabbit); drafts
+            // older than an hour go.
+            val dir = File(ctx.cacheDir, "print").apply { mkdirs() }
+            withContext(Dispatchers.IO) { dir.listFiles { f -> f.name.startsWith("draft-") && f.lastModified() < System.currentTimeMillis() - 3_600_000 }?.forEach { it.delete() } }
+            val out = withContext(Dispatchers.IO) { File.createTempFile("draft-", ".pdf", dir) }
             val ok = withContext(Dispatchers.IO) {
                 runCatching { PdfCompiler.compile(out, PressPage.of(ctx, PressReceipt.scrubOwnFiles(project, labels.ownFile), date)) { PressPictures.fileOf(ctx, project.id, it) } }
             }

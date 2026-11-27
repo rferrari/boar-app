@@ -20,4 +20,10 @@ class PressNoPrintAnimationTest {
     @Test fun `its string is gone, English and Portuguese`() {
         for (d in listOf("values", "values-pt")) assertTrue(d, !java.io.File("$dir/res/$d/strings_lab_printer.xml").readText().contains("name=\"native_labs_printer_compiling\""))
     }
+
+    @Test fun `each export writes its own draft, so two can't overwrite each other (CodeRabbit)`() {
+        val save = screen.substringAfter("fun savePdf() {").substringBefore("\n    }\n")
+        assertTrue(save.contains("File.createTempFile(\"draft-\", \".pdf\", dir)") && !save.contains("\"draft.pdf\""))
+        assertTrue(save.contains("dir.listFiles { f -> f.name.startsWith(\"draft-\") && f.lastModified() < System.currentTimeMillis() - 3_600_000 }"))
+    }
 }
