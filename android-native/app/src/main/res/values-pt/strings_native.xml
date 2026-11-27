@@ -812,4 +812,10 @@
     <string name="native_labs_switchRow" formatted="false">{{name}} ligado</string>
     <string name="native_labs_switchRowNote" formatted="false">Desligado, continua aqui para ligar de novo.</string>
     <string name="native_vault_allTile" formatted="false">Todos ›</string>
+    <string name="native_eval_deviceSetup" formatted="false">Ajustes do aparelho</string>
+    <string name="native_eval_deviceSetupNote" formatted="false">Como o BOAR roda neste celular. Os ajustes do motor valem para a conversa a partir da próxima resposta.</string>
+    <string name="native_deviceSetup_engine" formatted="false">Motor</string>
+    <string name="native_deviceSetup_answering" formatted="false">Respostas</string>
+    <string name="native_deviceSetup_memory" formatted="false">Memória</string>
+    <string name="native_deviceSetup_diagnostics" formatted="false">Diagnóstico</string>
 </resources>

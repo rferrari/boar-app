@@ -14,7 +14,8 @@ class FinalGateTest {
         val models = java.io.File("../app/src/main/java/team/sopa/boar/models/ModelsViewModel.kt").readText()
         val remove = models.substringAfter("fun remove(a: CatalogAsset)").substringBefore("\n    fun ")
         assertTrue(remove.indexOf("services.stopAnswersAndWait()") in 0 until remove.indexOf("services.host.unload()"))
-        val tweaks = java.io.File("../app/src/main/java/team/sopa/boar/ui/settings/SettingsScreen.kt").readText()
+        // The engine's knobs moved to Evaluation › Device setup (2.1.0).
+        val tweaks = java.io.File("../app/src/main/java/team/sopa/boar/ui/eval/DeviceSetup.kt").readText()
         assertTrue(tweaks.contains("if (services.stopAnswersAndWait()) services.host.unload()"))
         val eval = java.io.File("../app/src/main/java/team/sopa/boar/eval/EvaluationViewModel.kt").readText()
         assertTrue(eval.contains("check(services.stopAnswersAndWait()) { \"an answer is still being written\" }\n                services.host.unload()"))

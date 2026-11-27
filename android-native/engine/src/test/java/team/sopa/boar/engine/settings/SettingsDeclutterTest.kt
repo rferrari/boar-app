@@ -28,14 +28,10 @@ class SettingsDeclutterTest {
 
     // Golden change (adam, 16 Nov; t9 0450): Staged quotes, Free memory and Show technical details moved to Experimental
     // (Pro); a build without Boar Labs keeps them in Advanced tweaks. One place writes each.
-    @Test fun `free memory, staged quotes and technical details are in Experimental for Pro, in Advanced without Boar Labs`() {
-        assertEquals(1, Regex("freeMemoryInBackground = ").findAll(settings).count())
-        val moved = settings.substring(settings.indexOf("private fun MovedToExperimental(")).let { it.substring(0, it.indexOf("\n}\n")) }
-        for (w in listOf("freeMemoryInBackground = ", "freeMemoryAfterMinutes = ", "s.stagedQuotes = ", "s.showLiveStats = ")) assertTrue(w, moved.contains(w))
-        val experimental = settings.substring(settings.indexOf("private fun ExperimentalSection(")).let { it.substring(0, it.indexOf("\n}\n")) }
-        assertTrue(experimental.contains("if (shown(SettingsPart.TWEAKS)) MovedToExperimental("))
-        val tweaks = settings.substring(settings.indexOf("private fun TweaksSection(")).let { it.substring(0, it.indexOf("\n}\n")) }
-        assertTrue(tweaks.contains("if (!team.sopa.boar.BuildConfig.EXPERIMENTAL_FEATURES) MovedToExperimental("))
+    @Test fun `free memory, staged quotes and technical details are in Evaluation's Device setup, once each (2_1_0)`() {
+        val setup = java.io.File("../app/src/main/java/team/sopa/boar/ui/eval/DeviceSetup.kt").readText()
+        for (w in listOf("freeMemoryInBackground = ", "freeMemoryAfterMinutes = ", "s.stagedQuotes = ", "s.showLiveStats = ")) assertEquals(w, 1, Regex(Regex.escape(w)).findAll(setup).count())
+        assertEquals(0, Regex("freeMemoryInBackground = ").findAll(settings).count())
     }
 
     @Test fun `free memory stays in effect below Pro, the exception to Pro's rule`() {

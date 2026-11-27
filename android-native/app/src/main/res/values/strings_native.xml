@@ -812,4 +812,10 @@
     <string name="native_labs_switchRow" formatted="false">{{name}} on</string>
     <string name="native_labs_switchRowNote" formatted="false">Off, it stays here to switch on again.</string>
     <string name="native_vault_allTile" formatted="false">All ›</string>
+    <string name="native_eval_deviceSetup" formatted="false">Device setup</string>
+    <string name="native_eval_deviceSetupNote" formatted="false">How BOAR runs on this phone. The engine settings apply to the chat from its next answer.</string>
+    <string name="native_deviceSetup_engine" formatted="false">Engine</string>
+    <string name="native_deviceSetup_answering" formatted="false">Answering</string>
+    <string name="native_deviceSetup_memory" formatted="false">Memory</string>
+    <string name="native_deviceSetup_diagnostics" formatted="false">Diagnostics</string>
 </resources>

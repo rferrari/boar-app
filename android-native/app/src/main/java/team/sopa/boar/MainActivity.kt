@@ -293,7 +293,7 @@ private fun App(services: BoarServices, prefs: DisplayPrefs, vm: ChatViewModel =
         val view = LocalView.current
         DisposableEffect(evalState.running) { view.keepScreenOn = evalState.running; onDispose { view.keepScreenOn = false } }
         BackHandler { if (!evalState.running) { vm.refreshModel(); screen = "chat" } }
-        EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null) { vm.refreshModel(); screen = "chat" }
+        EvaluationScreen(evalState, eval, chatBusy = state.answeringId != null, deviceSetup = { team.sopa.boar.ui.eval.DeviceSetup(services) }) { vm.refreshModel(); screen = "chat" }
         return
     }
     if (screen == "vault") {
