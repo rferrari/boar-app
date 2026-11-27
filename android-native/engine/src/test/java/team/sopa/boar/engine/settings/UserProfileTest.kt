@@ -180,34 +180,6 @@ class UserProfileTest {
 
     // ── Lowered profile: Pro's values read as defaults below Pro, and come back with Pro ──
 
-    @Test fun `below Pro the tweaks read as Auto and come back with Pro`() {
-        val f = file(null)
-        val s = AppSettings(f)
-        s.userProfile = UserProfile.PRO
-        val tweaks = EngineTweaks(threads = 6, kvCache = KvType.Q8_0)
-        s.engineTweaks = tweaks
-        s.adaptiveRoutingEnabled = true
-        s.freeMemoryAfterMinutes = 10
-        s.showDrawerStats = true
-        s.showLiveStats = true
-        for (lower in listOf(UserProfile.SIMPLE, UserProfile.EXPLORER)) {
-            s.userProfile = lower
-            assertTrue(s.engineTweaks.isAuto)
-            assertFalse(s.adaptiveRoutingEnabled)
-            assertNull(s.freeMemoryAfterMinutes)
-            assertFalse(s.showDrawerStats)
-            assertFalse(s.showLiveStats)
-            assertFalse(s.debugLogEnabled)
-        }
-        s.userProfile = UserProfile.PRO
-        val back = AppSettings(f)
-        assertEquals(tweaks, back.engineTweaks)
-        assertTrue(back.adaptiveRoutingEnabled)
-        assertEquals(10, back.freeMemoryAfterMinutes)
-        assertTrue(back.showDrawerStats)
-        assertTrue(back.showLiveStats)
-    }
-
     @Test fun `lowering the profile doesn't touch what everyone sees`() {
         val s = AppSettings(file(null))
         s.userProfile = UserProfile.PRO

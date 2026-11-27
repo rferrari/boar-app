@@ -13,16 +13,12 @@ class SourcesLayoutTest {
     private val chat = File("../app/src/main/java/team/sopa/boar/ui/chat/ChatScreen.kt").readText()
     private val above = File("../app/src/main/java/team/sopa/boar/ui/chat/SourcesAbove.kt").readText()
 
-    @Test fun `the layout is today by default and above only in Pro`() {
+    @Test fun `the layout is today by default, above when stored (no profile gates it since 2_1_0)`() {
         val f = Files.createTempDirectory("boar-layout").toFile().resolve("settings.json")
         val s = AppSettings(f)
-        s.userProfile = UserProfile.PRO
         assertEquals(AppSettings.SOURCES_TODAY, s.sourcesLayout)
         s.sourcesLayout = AppSettings.SOURCES_ABOVE
         assertEquals(AppSettings.SOURCES_ABOVE, AppSettings(f).sourcesLayout)
-        s.userProfile = UserProfile.EXPLORER
-        assertEquals(AppSettings.SOURCES_TODAY, s.sourcesLayout)
-        s.userProfile = UserProfile.PRO
         s.resetPreferences()
         assertEquals(AppSettings.SOURCES_TODAY, AppSettings(f).sourcesLayout)
     }

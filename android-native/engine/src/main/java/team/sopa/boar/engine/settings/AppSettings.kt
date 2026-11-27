@@ -83,12 +83,29 @@ class AppSettings(private val file: File) {
     /** Settings shows a one-time note on the Profile row after an update gave the user a profile. */
     var profileNotePending: Boolean get() = bool("profileNotePending") ?: false; set(v) = set("profileNotePending", v.takeIf { it }?.let(::JsonPrimitive))
 
+    /** The one-time 2.1.0 migration ran ([retireProfiles]): profiles no longer gate any value. */
+    val profilesRetired: Boolean get() = bool(PROFILES_RETIRED) ?: false
+
     /**
-     * Pro's settings (Advanced tweaks, adaptive routing, technical details, the debug log) count only in Pro: below it
-     * they read as their defaults, and what is stored stays for when the user comes back to Pro. An install not settled
-     * yet keeps rc2's behavior.
+     * 2.1.0 has no profiles (BOAR-81): every value counts as stored. Run once at launch, so nobody's behaviour changes
+     * silently: below Pro the seven Pro values were paused (read as defaults), so they go; on Pro, or on an install from
+     * before profiles (everything counted then), they stay, and technical details, on by Pro's default, are written on
+     * when nothing is stored. A fresh install (no model chosen yet) gets the new default: technical details off. A file
+     * that couldn't be read is left as it is.
      */
-    private val proActive: Boolean get() = !profileSettled || userProfile == UserProfile.PRO
+    fun retireProfiles() {
+        if (profilesRetired || loadFailed) return
+        val profile = UserProfile.of(str(PROFILE_KEY))
+        val fresh = profile == null && activeModelId("llm") == null
+        update {
+            when {
+                fresh -> {}
+                profile != null && profile != UserProfile.PRO -> PAUSED_PRO_KEYS.forEach { remove(it) }
+                else -> if (this["showLiveStats"] == null) put("showLiveStats", JsonPrimitive(true))
+            }
+            put(PROFILES_RETIRED, JsonPrimitive(true))
+        }
+    }
 
     /** Every key as stored, for the debug log's header. */
     fun snapshot(): Map<String, JsonElement> = data
@@ -161,6 +178,9 @@ class AppSettings(private val file: File) {
             "freeMemoryInBackground", "freeMemoryAfterMinutes", "modelCatalogSort", "modelCatalogFilter", "sourcesLayout", "stagedQuotes",
         )
         const val PROFILE_KEY = "userProfile"
+        const val PROFILES_RETIRED = "profilesRetired"
+        /** What 2.0.0 read as defaults below Pro (its Pro gate); [retireProfiles] clears them there. */
+        val PAUSED_PRO_KEYS = listOf("engineTweaks", "adaptiveRoutingEnabled", "showLiveStats", "freeMemoryAfterMinutes", "sourcesLayout", "showDrawerStats", "debugLogEnabled")
         const val SOURCES_TODAY = "today"
         const val SOURCES_ABOVE = "above"
 
@@ -229,7 +249,7 @@ class AppSettings(private val file: File) {
     var ratingNoteShown: Boolean get() = bool("ratingNoteShown") ?: false; set(v) = set("ratingNoteShown", JsonPrimitive(v))
     /** Run Boar Run's heat and battery card was shown and accepted once: picking it again doesn't ask. */
     var runPresetWarned: Boolean get() = bool("runPresetWarned") ?: false; set(v) = set("runPresetWarned", JsonPrimitive(v))
-    var adaptiveRoutingEnabled: Boolean get() = proActive && (bool("adaptiveRoutingEnabled") ?: false); set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
+    var adaptiveRoutingEnabled: Boolean get() = bool("adaptiveRoutingEnabled") ?: false; set(v) = set("adaptiveRoutingEnabled", JsonPrimitive(v))
 
     /**
      * Staged answers, a core feature since Nov 12 (adam): the sources' quotes before the answer. On by default; the switch
@@ -250,9 +270,9 @@ class AppSettings(private val file: File) {
      * Advanced tweaks → Show technical details (the Expo app's live-stats key): off, the chat shows the short receipt
      * only; on, the receipt's details, live tok/s in the header, the menu's memory and storage bars, Hardware telemetry.
      */
-    // On by default: the bounty's judges and early users want the numbers (time to first word, speed, memory).
-    // Below Pro the technical details stay out of sight (rc3 profiles).
-    var showLiveStats: Boolean get() = proActive && (bool("showLiveStats") ?: true); set(v) = set("showLiveStats", JsonPrimitive(v))
+    // Off by default since 2.1.0 (BOAR-81): a researcher's chat stays clean; builders turn it on in Evaluation › Device
+    // setup › Diagnostics. Pro installs kept theirs on ([retireProfiles]).
+    var showLiveStats: Boolean get() = bool("showLiveStats") ?: false; set(v) = set("showLiveStats", JsonPrimitive(v))
 
     /** Display & theme → the live speed (tok/s) in the chat's header while BOAR answers; off by default (adam, 16 Nov), in every profile. */
     var showLiveSpeed: Boolean get() = bool("showLiveSpeed") ?: false; set(v) = set("showLiveSpeed", JsonPrimitive(v))
@@ -260,7 +280,7 @@ class AppSettings(private val file: File) {
     /** Settings → Free memory when I leave BOAR (on by default): see [FreeMemory]. */
     var freeMemoryInBackground: Boolean get() = bool("freeMemoryInBackground") ?: true; set(v) = set("freeMemoryInBackground", JsonPrimitive(v))
     /** Advanced tweaks → Free memory after, in minutes (0 = immediately); null is Auto ([FreeMemory.AUTO_SECONDS], in seconds). */
-    var freeMemoryAfterMinutes: Int? get() = if (proActive) int("freeMemoryAfterMinutes") else null; set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
+    var freeMemoryAfterMinutes: Int? get() = int("freeMemoryAfterMinutes"); set(v) = set("freeMemoryAfterMinutes", v?.let(::JsonPrimitive))
 
     /** DEFAULT_MEMORY_SETTINGS when unset. */
     var autoSummarize: Boolean get() = bool("autoSummarize") ?: true; set(v) = set("autoSummarize", JsonPrimitive(v))
@@ -280,18 +300,18 @@ class AppSettings(private val file: File) {
      * Advanced tweaks → Sources layout (an experiment to compare on the phone, adam, Nov 10): "today" (the list under
      * the answer) or "above" (B+: the sources open above it). Pro's, like the other tweaks: below Pro it reads "today".
      */
-    var sourcesLayout: String get() = if (proActive) str("sourcesLayout") ?: SOURCES_TODAY else SOURCES_TODAY
+    var sourcesLayout: String get() = str("sourcesLayout") ?: SOURCES_TODAY
         set(v) = set("sourcesLayout", v.takeIf { it != SOURCES_TODAY }?.let(::JsonPrimitive))
 
     /** Advanced tweaks → the menu's memory and storage bars (builds with ALLOW_DRAWER_STATS): off, a clean menu. */
-    var showDrawerStats: Boolean get() = proActive && (bool("showDrawerStats") ?: false); set(v) = set("showDrawerStats", JsonPrimitive(v))
+    var showDrawerStats: Boolean get() = bool("showDrawerStats") ?: false; set(v) = set("showDrawerStats", JsonPrimitive(v))
 
     /** Advanced tweaks → Debug log (native only, builds with ALLOW_DEBUG_LOG): off until the user turns it on. */
-    var debugLogEnabled: Boolean get() = proActive && (bool("debugLogEnabled") ?: false); set(v) = set("debugLogEnabled", JsonPrimitive(v))
+    var debugLogEnabled: Boolean get() = bool("debugLogEnabled") ?: false; set(v) = set("debugLogEnabled", JsonPrimitive(v))
 
     /** Advanced tweaks (native only); all Auto when unset or unreadable. */
     var engineTweaks: EngineTweaks
-        get() = if (proActive) storedTweaks else EngineTweaks()
+        get() = storedTweaks
         set(v) = set("engineTweaks", if (v.isAuto) null else json.parseToJsonElement(v.toJson()))
 
     private val storedTweaks: EngineTweaks get() = EngineTweaks.fromJson(data["engineTweaks"]?.toString())
