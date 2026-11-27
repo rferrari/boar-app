@@ -21,6 +21,8 @@ object DesignerCrop {
         var w = imgW
         var h = imgW * ratio.h / ratio.w
         if (h > imgH) { h = imgH; w = imgH * ratio.w / ratio.h }
+        // Never empty, even for a tiny picture (a 3x1 crop of a crop, CodeRabbit).
+        w = w.coerceIn(1, imgW.coerceAtLeast(1)); h = h.coerceIn(1, imgH.coerceAtLeast(1))
         return Rect((imgW - w) / 2, (imgH - h) / 2, w, h)
     }
 

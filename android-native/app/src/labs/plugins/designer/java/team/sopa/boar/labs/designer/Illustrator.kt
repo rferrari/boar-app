@@ -137,7 +137,8 @@ object Illustrator {
             val english = if (ask.lang != DrawRequest.Lang.EN && !a.chatBusy) runCatching { englishSubject(ctx, ask.subject) }.getOrNull() else null
             // The time the translation took, not the words (they are the user's).
             android.util.Log.i("BoarLabs", "draw request ${a.id}: lang=${ask.lang} english=${english != null} ms=${(System.nanoTime() - started) / 1_000_000}")
-            if (status[a.id] !is Status.Choosing) return@launch
+            // Stopped meanwhile (✕, erased): nothing is drawn, as start does (runCatching keeps the cancel, CodeRabbit).
+            if (!kotlinx.coroutines.currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch
             // The receipt counts it all: the English subject and the drawing (it said 0.0 s, adam on the F3).
             drawInto(ctx, a, team.sopa.boar.engine.routing.ImageSafety.safeSubject(english ?: ask.subject), style, canvas,
                 onDone = { team.sopa.boar.plugins.AnswerReceipts.addTime(a.id, (System.nanoTime() - started) / 1e6, "drawing") })

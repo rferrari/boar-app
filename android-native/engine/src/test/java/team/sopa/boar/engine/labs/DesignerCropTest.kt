@@ -125,4 +125,8 @@ class DesignerCropTest {
         assertTrue(crop.contains("val fit = minOf(constraints.maxWidth / imgW.toFloat(), constraints.maxHeight / imgH.toFloat())"))
         assertTrue(crop.contains("val scale = 1f / fit") && !crop.contains("fillMaxWidth().aspectRatio(imgW.toFloat() / imgH)"))
     }
+
+    @Test fun `a tiny picture never gets an empty frame (CodeRabbit)`() {
+        for (r in Ratio.entries) { val f = DesignerCrop.initial(r, 3, 1); assertTrue("$r $f", f.w >= 1 && f.h >= 1 && f.x + f.w <= 3 && f.y + f.h <= 1) }
+    }
 }

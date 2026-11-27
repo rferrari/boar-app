@@ -161,4 +161,10 @@ class DrawRequestTest {
         assertEquals("a cat", DrawRequest.parse("draw me a cat")?.subject)
         assertEquals("the moon", DrawRequest.parse("draw me the moon")?.subject)
     }
+
+    @Test fun `a stopped translation draws nothing (CodeRabbit)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val asked = ill.substringAfter("fun drawAsked(").substringBefore("\n    }\n")
+        assertTrue(asked.contains("if (!kotlinx.coroutines.currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch"))
+    }
 }
