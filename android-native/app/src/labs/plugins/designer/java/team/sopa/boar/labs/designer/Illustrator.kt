@@ -117,8 +117,27 @@ object Illustrator {
 
     fun ask(question: String, request: DrawRequest.Ask) { asked[question.trim()] = request }
 
-    /** The request for [question], once: a chat reopened later doesn't draw it again (✕ stays ✕). */
-    fun takeAsk(question: String): DrawRequest.Ask? = asked.remove(question.trim())
+    /**
+     * Answers that already took a request, kept in labs/draw-asks.txt: an older answer with the same question, composed
+     * again when the chat scrolls, never takes a newer answer's request (CodeRabbit). One id per line.
+     */
+    private val took = mutableSetOf<String>()
+
+    private fun tookFile(ctx: Context) = File(ctx.filesDir, "labs/draw-asks.txt")
+
+    /**
+     * The request for [question], once, for the answer [answerId]: a chat reopened later doesn't draw it again (✕ stays
+     * ✕), and an answer that took one before, or has a drawing, takes none.
+     */
+    @Synchronized
+    fun takeAsk(ctx: Context, answerId: String, question: String): DrawRequest.Ask? {
+        load(ctx)
+        if (answerId in took || status[answerId] != null) return null
+        val r = asked.remove(question.trim()) ?: return null
+        took += answerId
+        runCatching { tookFile(ctx).apply { parentFile?.mkdirs() }.appendText(answerId + "\n") }
+        return r
+    }
 
     /**
      * Draws what was asked in the chat under its answer [a], with Illustrate's gates: one drawing at a time, enough free
@@ -226,6 +245,8 @@ object Illustrator {
         status.clear()
         // A "draw me…" not drawn yet holds the user's words: they go too (CodeRabbit on PR 125).
         asked.clear()
+        took.clear()
+        tookFile(ctx).delete()
         File(ctx.filesDir, "labs/illustrations.json").delete()
     }
 
@@ -233,6 +254,7 @@ object Illustrator {
     private fun load(ctx: Context) {
         if (store != null) return
         val f = File(ctx.filesDir, "labs/illustrations.json").also { store = it }
+        runCatching { took += tookFile(ctx).readLines().filter { it.isNotBlank() } }
         runCatching {
             val o = JSONObject(f.readText())
             o.keys().forEach { id ->

@@ -199,4 +199,18 @@ class DrawRequestTest {
         assertNull(DrawRequest.parse("draw the line between weather and climate"))
         assertNull(DrawRequest.parse("draw a line under this"))
     }
+
+    @Test fun `an older answer with the same question never takes a newer draw request (CodeRabbit)`() {
+        val ill = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/Illustrator.kt").readText()
+        val marker = "fun takeAsk(ctx: Context, answerId: String, question: String): DrawRequest.Ask?"
+        assertTrue(ill.contains(marker))
+        val take = ill.substringAfter(marker).substringBefore("\n    }\n")
+        // An answer takes at most one request, ever (kept on disk), and only while it has no drawing of its own.
+        assertTrue(take.contains("if (answerId in took || status[answerId] != null) return null"))
+        assertTrue(take.indexOf("took += answerId") > take.indexOf("asked.remove(question.trim())"))
+        assertTrue(ill.substringAfter("private fun load(ctx: Context) {").substringBefore("\n    }\n").contains("tookFile(ctx)"))
+        assertTrue(ill.substringAfter("fun eraseAll(ctx: Context) {").substringBefore("\n    }\n").contains("took.clear()"))
+        val screen = java.io.File("../app/src/labs/plugins/designer/java/team/sopa/boar/labs/designer/ImageLabScreen.kt").readText()
+        assertTrue(screen.contains("Illustrator.takeAsk(ctx, a.id, a.question)"))
+    }
 }

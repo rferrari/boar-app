@@ -181,7 +181,7 @@ object ImageGenLab : team.sopa.boar.labs.LabPlugin {
         val ctx = LocalContext.current
         if (Illustrator.asking == a.id) IllustrateSheet(a) { Illustrator.asking = null }
         // "Draw me…" answered by Designer: the drawing starts under its answer, once (a reopened chat doesn't redraw it).
-        if (a.tool == DrawRequest.TOOL) androidx.compose.runtime.LaunchedEffect(a.id) { Illustrator.takeAsk(a.question)?.let { Illustrator.drawAsked(ctx, a, it) } }
+        if (a.tool == DrawRequest.TOOL) androidx.compose.runtime.LaunchedEffect(a.id) { Illustrator.takeAsk(ctx, a.id, a.question)?.let { Illustrator.drawAsked(ctx, a, it) } }
         when (val st = Illustrator.status(ctx, a.id)) {
             null -> {}
             Illustrator.Status.Choosing -> Busy(t("native.labs.image.illustrateChoosing"))
