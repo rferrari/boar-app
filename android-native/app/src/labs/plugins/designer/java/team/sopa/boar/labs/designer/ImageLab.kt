@@ -101,9 +101,6 @@ object ImageLab {
     /** The style picked in Designer and "Remember" in Illustrate: the default for both. */
     fun setDefaults(style: Style) = DesignerCanvas.saveDefault(team.sopa.boar.labs.LabPrefs::putString, style.key)
 
-    /** Reset in Illustrate's sheet: back to Engraving. */
-    fun resetDefaults() = setDefaults(Style.ENGRAVING)
-
     private const val TIMES_KEPT = 10
 
     /** A finished drawing's time, tap to picture (model load included), kept per size: the last [TIMES_KEPT]. */

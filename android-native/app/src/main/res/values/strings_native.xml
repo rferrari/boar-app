@@ -204,8 +204,8 @@
     <string name="native_browse_sizeAny" formatted="false">Any</string>
     <string name="native_browse_sort" formatted="false">Sort</string>
     <string name="native_browse_sortTrending" formatted="false">Trending</string>
-    <string name="native_browse_sortDownloads" formatted="false">Most downloaded</string>
-    <string name="native_browse_sortLikes" formatted="false">Most liked</string>
+    <string name="native_browse_sortDownloads" formatted="false">Downloads</string>
+    <string name="native_browse_sortLikes" formatted="false">Likes</string>
     <string name="native_browse_sortNewest" formatted="false">Newest</string>
     <string name="native_browse_empty" formatted="false">No GGUF text models match.</string>
     <string name="native_browse_errorOffline" formatted="false">No connection. Searching Hugging Face needs the internet; the models on this phone still work.</string>

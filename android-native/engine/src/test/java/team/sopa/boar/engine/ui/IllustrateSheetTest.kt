@@ -22,11 +22,6 @@ class IllustrateSheetTest {
         assertTrue(sheet.contains("Illustrator.start(ctx, a, notReady, style, size)"))
     }
 
-    @Test fun `the pick is kept only when asked, and reset goes back to Engraving`() {
-        assertTrue(sheet.contains("if (keep) ImageLab.setDefaults(style)"))
-        assertTrue(lab.contains("fun resetDefaults() = setDefaults(Style.ENGRAVING)"))
-    }
-
     @Test fun `the sheet has no shape or quality, it draws at 512 (BOAR-88)`() {
         val body = sheet.substringBefore("private fun SheetButton(")
         assertTrue(!body.contains("Shape.entries") && !body.contains("Quality") && !body.contains("shapeLabel") && !body.contains(".label"))
@@ -36,17 +31,16 @@ class IllustrateSheetTest {
 
     @Test fun `tapping the selected style again leaves no style, as on the Designer page (BOAR-88)`() {
         val body = sheet.substringBefore("private fun SheetButton(")
-        assertTrue(body.contains("style, sideways = true) { style = if (it == style) ImageLab.Style.NONE else it }"))
-        // The same hint as Designer's Style sheet says how, and what no style means.
-        assertTrue(body.contains("if (style == ImageLab.Style.NONE) \"native.labs.image.styleHintNone\" else \"native.labs.image.styleHint\""))
-        // "Remember" keeps None too: the next one-tap Illustrate draws the words alone.
+        // The Designer page's own tiles (adam, 27 Nov), with its hint on how, and what no style means.
+        assertTrue(body.contains("StyleTiles(style) { style = it }"))
+        // The style drawn with is kept, None too: the next one-tap Illustrate draws the words alone.
         assertTrue(lab.contains("Style.entries.firstOrNull { it.key == k }") && lab.contains("NONE(\"none\", \"{s}\")"))
     }
 
     @Test fun `strings in English and Portuguese`() {
         for (d in listOf("values", "values-pt")) {
             val s = java.io.File("../app/src/labs/plugins/designer/res/$d").listFiles()!!.joinToString("") { it.readText() }
-            for (k in listOf("sheetTitle", "styleLabel", "remember", "reset", "drawPicked"))
+            for (k in listOf("sheetTitle", "styleLabel", "drawPicked"))
                 assertTrue("$d $k", s.contains("name=\"native_labs_image_$k\""))
         }
     }

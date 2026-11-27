@@ -10,7 +10,9 @@ class PluginsSmallsTest {
     private val hooks = java.io.File("../app/src/labs/java/team/sopa/boar/labs/LabHooks.kt").readText()
 
     @Test fun `Designer's sheet scrolls the styles sideways, no shapes or qualities (BOAR-88)`() {
-        assertTrue(image.contains("style, sideways = true)") && !image.contains("shape, sideways = true)") && !image.contains("quality, sideways = true)"))
+        // The styles are the Designer page's tiles in a sideways row (LazyRow) since adam, 27 Nov.
+        assertTrue(image.substringAfter("private fun StyleTiles(").substringBefore("\n}\n").contains("LazyRow("))
+        assertTrue(!image.contains("shape, sideways = true)") && !image.contains("quality, sideways = true)"))
     }
 
     @Test fun `under a drawing only i and x, the rest inside i`() {
