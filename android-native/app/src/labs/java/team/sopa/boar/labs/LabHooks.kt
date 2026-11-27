@@ -376,7 +376,8 @@ object LabHooks {
                 shown.forEach { lab ->
                     SheetRow(lab.shownArt, lab.emoji, team.sopa.boar.ui.t("native.labs.${lab.id}.title"), team.sopa.boar.ui.t("native.labs.${lab.id}.body"), lab.status, true,
                         trailing = counts[lab.id]?.takeIf { it > 0 }?.let { n -> { androidx.compose.material3.Text(lab.headerCountLabel(n), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"],
-                            color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) } }) { open = false; go("lab:${lab.id}") }
+                            color = c.textAccentEmerald, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } }) { open = false; go("lab:${lab.id}") }
                 }
                 // Off, each one tap from its page and its switch (Q-B1).
                 if (off.isNotEmpty()) androidx.compose.material3.Text(team.sopa.boar.ui.t("native.labs.headerSheetOff"), style = team.sopa.boar.ui.theme.Boar.type["mono.xs"], color = c.textDim,
@@ -424,7 +425,8 @@ object LabHooks {
                 line?.let { androidx.compose.material3.Text(it, style = team.sopa.boar.ui.theme.Boar.type.caption, color = c.textMuted, maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
             }
-            trailing?.invoke()
+            // At most half the name's room, so the plugin's name always shows (adam, 27 Nov: "5 in <project>…" hid "Press").
+            trailing?.let { t -> androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.weight(0.5f, fill = false)) { t() } }
         }
     }
 
