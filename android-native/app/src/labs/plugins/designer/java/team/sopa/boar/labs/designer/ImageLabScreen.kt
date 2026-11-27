@@ -528,19 +528,28 @@ private const val MENU_RECENT = 3
 /** Style: the real styles as a carousel of small tiles; tapping the selected one again leaves no style. */
 @Composable
 private fun StyleSection(state: ImageLabState, vm: ImageLabViewModel) {
+    StyleTiles(state.style) { vm.setStyle(it) }
+}
+
+/**
+ * The styles as small tiles, each with its little drawing, and the hint under them: the Designer page's Style sheet and
+ * the answer's ✎ sheet (adam, 27 Nov: "same component"). Tapping the selected one again gives [ImageLab.Style.NONE].
+ */
+@Composable
+private fun StyleTiles(selected: ImageLab.Style, onPick: (ImageLab.Style) -> Unit) {
     val c = Boar.colors
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }) { s ->
-            val on = s == state.style
+            val on = s == selected
             val name = styleName(s.key)
-            Column(Modifier.width(72.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { vm.setStyle(if (on) ImageLab.Style.NONE else s) },
+            Column(Modifier.width(72.dp).clip(RoundedCornerShape(8.dp)).clickable(onClickLabel = name) { onPick(if (on) ImageLab.Style.NONE else s) },
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 StyleSwatch(s.key, Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)).border(2.dp, if (on) c.emerald400 else Color.Transparent, RoundedCornerShape(8.dp)))
                 Text(name, style = Boar.type.caption, color = if (on) c.textAccentEmerald else c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
-    Text(t(if (state.style == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
+    Text(t(if (selected == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
 }
 
 /** A style's tile, for now its paper and ink (Sketch.palette) with a sun and two hills: no picture assets yet. */
@@ -759,8 +768,9 @@ private fun Busy(label: String) = Row(verticalAlignment = Alignment.CenterVertic
 }
 
 /**
- * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style to pick (only the style since BOAR-88: it draws at 512), one
- * Draw button that uses it, and "Remember" to keep it as the next default. Reset goes back to Engraving.
+ * Illustrate's sheet, opened by ✎ (adam, Nov 12): a style to pick (only the style since BOAR-88: it draws at 512) and one
+ * Draw button that uses it. The style drawn with is always the next default, as on the Designer page (adam, 27 Nov: only
+ * the styles, as the page's tiles; no "Remember", no Reset).
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -769,23 +779,15 @@ private fun IllustrateSheet(a: team.sopa.boar.plugins.AnswerRef, onClose: () -> 
     val ctx = LocalContext.current
     val notReady = t("native.labs.image.illustrateNotReady")
     var style by remember { mutableStateOf(ImageLab.defaultStyle()) }
-    var keep by remember { mutableStateOf(false) }
     val size = ImageLab.defaultCanvas()
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onClose, containerColor = c.bgCardElevated) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(t("native.labs.image.sheetTitle"), style = Boar.type["mono.xs"], color = c.textDim, fontWeight = FontWeight.Bold)
             // One Draw button, with what's picked here (adam, Nov 12): the defaults are the one-tap row in the plugins sheet.
-            // Tapping the selected style again leaves no style, as on the Designer page (BOAR-88): the words alone.
-            team.sopa.boar.ui.models.ChipRow(t("native.labs.image.styleLabel"), ImageLab.Style.entries.filter { it != ImageLab.Style.NONE }.map { it to styleName(it.key) }, style, sideways = true) { style = if (it == style) ImageLab.Style.NONE else it }
-            Text(t(if (style == ImageLab.Style.NONE) "native.labs.image.styleHintNone" else "native.labs.image.styleHint"), style = Boar.type.caption, color = c.textMuted)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                androidx.compose.material3.Checkbox(keep, { keep = it })
-                Text(t("native.labs.image.remember"), style = Boar.type.body, color = c.textPrimary, modifier = Modifier.weight(1f).clickable { keep = !keep })
-                Text(t("native.labs.image.reset"), style = Boar.type["mono.xs"], color = c.textAccentCyan, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { ImageLab.resetDefaults(); style = ImageLab.defaultStyle() }.padding(6.dp))
-            }
+            // The Designer page's tiles (adam, 27 Nov); tapping the selected style again leaves no style (BOAR-88).
+            StyleTiles(style) { style = it }
             SheetButton(t("native.labs.image.drawPicked", "style" to styleName(style.key)), primary = true) {
-                if (keep) ImageLab.setDefaults(style)
+                ImageLab.setDefaults(style)
                 onClose(); Illustrator.start(ctx, a, notReady, style, size)
             }
         }

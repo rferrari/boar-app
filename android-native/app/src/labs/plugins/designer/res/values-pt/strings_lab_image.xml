@@ -51,8 +51,6 @@
     <string name="native_labs_image_refused" formatted="false">O Designer não desenha isso.</string>
     <string name="native_labs_image_sheetTitle" formatted="false">ILUSTRAR ESTA RESPOSTA</string>
     <string name="native_labs_image_styleLabel" formatted="false">Estilo</string>
-    <string name="native_labs_image_remember" formatted="false">Lembrar como padrão</string>
-    <string name="native_labs_image_reset" formatted="false">Redefinir</string>
     <string name="native_labs_image_drawPicked" formatted="false">Desenhar · {{style}}</string>
     <string name="native_labs_image_details" formatted="false">Detalhes</string>
     <string name="native_labs_image_how" formatted="false">• Desenha uma ilustração por vez neste celular, offline, com poucas palavras e um estilo.\n• Embaixo de uma resposta, 🎨 Ilustrar esta resposta escolhe o que desenhar a partir dela.\n• Todo desenho é quadrado; Recortar salva uma cópia larga ou alta e mantém o desenho.\n• Alguns temas são recusados.\n• As imagens feitas aqui ficam aqui; Todas › embaixo da imagem gerencia ou apaga.</string>
