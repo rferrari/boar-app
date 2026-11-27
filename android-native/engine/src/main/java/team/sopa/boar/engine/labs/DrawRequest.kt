@@ -42,6 +42,9 @@ object DrawRequest {
     private val NOT_A_PICTURE = setOf("conclusion", "conclusions", "distinction", "comparison", "parallel", "blank", "breath", "card", "lesson",
         "line", "crowd", "salary", "inference", "analogy", "contrast", "veil", "bath", "check", "cheque", "lot", "tie", "draw", "bead", "sword", "gun", "pistol")
 
+    /** "a line drawing of a cat": a listed first word ("line") is no exclusion when a picture is named right after it (CodeRabbit). */
+    private val NAMES_PICTURE = Regex("^(?:(?:a|an|the)\\s+)?[\\p{L}\\p{N}]+\\s+(?:$NOUN_EN|drawings|pictures|images|sketches|portraits)\\b", O)
+
     /** "desenhe…", "desenha pra mim…". */
     private val PT_DRAW = Regex("^(?:desenhe|desenha|desenhe-me)(?:\\s+(?:pra|para)\\s+mim|\\s+me)?[,:]?\\s+(.+)$", O)
     /** "gere/crie/faça uma imagem de…", "um desenho do…". */
@@ -69,8 +72,8 @@ object DrawRequest {
         ES_SHOWING.find(t)?.let { return ask(it.groupValues[1], Lang.ES) }
         // "draw me a bath" runs a bath: the same exclusions as "draw a…" (CodeRabbit).
         EN_ME.find(t)?.let { m -> val w = FIRST_NOUN.find(m.groupValues[1].trim())?.groupValues?.get(1)?.lowercase()
-            return if (w in NOT_A_PICTURE) null else ask(m.groupValues[1], Lang.EN) }
-        EN_A.find(t)?.let { m -> return if (m.groupValues[2].lowercase() in NOT_A_PICTURE) null else ask(m.groupValues[1], Lang.EN) }
+            return if (w in NOT_A_PICTURE && !NAMES_PICTURE.containsMatchIn(m.groupValues[1])) null else ask(m.groupValues[1], Lang.EN) }
+        EN_A.find(t)?.let { m -> return if (m.groupValues[2].lowercase() in NOT_A_PICTURE && !NAMES_PICTURE.containsMatchIn(m.groupValues[1])) null else ask(m.groupValues[1], Lang.EN) }
         PT_DRAW.find(t)?.let { return ask(it.groupValues[1], Lang.PT) }
         ES_DRAW.find(t)?.let { return ask(it.groupValues[1], Lang.ES) }
         return null

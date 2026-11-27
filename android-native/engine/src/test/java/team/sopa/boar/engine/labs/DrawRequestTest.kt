@@ -191,4 +191,12 @@ class DrawRequestTest {
         for (text in listOf("create an image with Python", "generate an image", "create an image:", "crie uma imagem com Python"))
             assertNull(text, DrawRequest.parse(text))
     }
+
+    @Test fun `a listed word is no exclusion when the request names a picture, as in a line drawing (CodeRabbit)`() {
+        assertEquals(DrawRequest.Ask("a line drawing of a cat", Lang.EN), DrawRequest.parse("draw me a line drawing of a cat"))
+        assertEquals("a line sketch of a horse", DrawRequest.parse("draw a line sketch of a horse")?.subject)
+        assertNull(DrawRequest.parse("draw me a bath"))
+        assertNull(DrawRequest.parse("draw the line between weather and climate"))
+        assertNull(DrawRequest.parse("draw a line under this"))
+    }
 }
