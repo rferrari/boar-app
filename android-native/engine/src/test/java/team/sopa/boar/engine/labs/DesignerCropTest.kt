@@ -129,4 +129,14 @@ class DesignerCropTest {
     @Test fun `a tiny picture never gets an empty frame (CodeRabbit)`() {
         for (r in Ratio.entries) { val f = DesignerCrop.initial(r, 3, 1); assertTrue("$r $f", f.w >= 1 && f.h >= 1 && f.x + f.w <= 3 && f.y + f.h <= 1) }
     }
+
+    @Test fun `a ratio frame on a tiny picture keeps both sides at least one pixel when resized (CodeRabbit)`() {
+        for ((ratio, w, h) in listOf(Triple(DesignerCrop.Ratio.TALL, 3, 1), Triple(DesignerCrop.Ratio.WIDE, 1, 3))) {
+            val r = DesignerCrop.initial(ratio, w, h)
+            for ((dw, dh) in listOf(0 to -1, -1 to 0, 1 to 1, 0 to 5)) {
+                val out = DesignerCrop.resize(r, dw, dh, ratio, w, h)
+                assertTrue("$ratio $dw $dh -> $out", out.w >= 1 && out.h >= 1 && out.x + out.w <= w && out.y + out.h <= h)
+            }
+        }
+    }
 }

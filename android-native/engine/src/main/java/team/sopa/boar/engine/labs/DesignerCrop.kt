@@ -49,7 +49,8 @@ object DesignerCrop {
         var w = wanted.coerceIn(minOf(minW, maxW), maxW)
         var h = w * ratio.h / ratio.w
         if (h > maxH) { h = maxH; w = h * ratio.w / ratio.h }
-        return r.copy(w = w, h = h)
+        // A tiny picture (a 3x1 crop of a crop) can round a side to 0: both stay at least 1 px, inside it (CodeRabbit).
+        return r.copy(w = w.coerceIn(1, maxW.coerceAtLeast(1)), h = h.coerceIn(1, maxH.coerceAtLeast(1)))
     }
 
     /** "<time>-<style>-crop-<w>x<h>.png": ImageLab.canvasOf reads its size from the name, as for any drawing. */
