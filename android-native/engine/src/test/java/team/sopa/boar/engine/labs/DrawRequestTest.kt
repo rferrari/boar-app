@@ -167,4 +167,28 @@ class DrawRequestTest {
         val asked = ill.substringAfter("fun drawAsked(").substringBefore("\n    }\n")
         assertTrue(asked.contains("if (!kotlinx.coroutines.currentCoroutineContext().let { it[kotlinx.coroutines.Job]?.isActive ?: true } || status[a.id] !is Status.Choosing) return@launch"))
     }
+
+    @Test fun `create or generate an image takes a colon, showing, depicting or with a thing, not only of (adam)`() {
+        val fires = listOf(
+            "generate an image: a cat on a roof" to ("a cat on a roof" to Lang.EN),
+            "Create an image showing a red fox in the snow" to ("a red fox in the snow" to Lang.EN),
+            "generate a picture depicting the moon over the sea" to ("the moon over the sea" to Lang.EN),
+            "create an image with a dog on a beach" to ("a dog on a beach" to Lang.EN),
+            "generate image of a lighthouse" to ("a lighthouse" to Lang.EN),
+            "create image: two owls" to ("two owls" to Lang.EN),
+            "gere uma imagem: um gato no telhado" to ("um gato no telhado" to Lang.PT),
+            "crie uma imagem com um cachorro na praia" to ("um cachorro na praia" to Lang.PT),
+            "crie uma imagem mostrando uma onça" to ("uma onça" to Lang.PT),
+            "genera una imagen con un perro en la playa" to ("un perro en la playa" to Lang.ES),
+            "crea una imagen: un barco" to ("un barco" to Lang.ES),
+        )
+        for ((text, want) in fires) {
+            val ask = DrawRequest.parse(text)
+            assertEquals(text, want.first, ask?.subject)
+            assertEquals(text, want.second, ask?.lang)
+        }
+        // A tool after "with", or nothing to draw, stays with the model.
+        for (text in listOf("create an image with Python", "generate an image", "create an image:", "crie uma imagem com Python"))
+            assertNull(text, DrawRequest.parse(text))
+    }
 }

@@ -26,6 +26,12 @@ object DrawRequest {
     private const val NOUN_EN = "(?:image|picture|drawing|illustration|painting|photo|sketch|portrait)"
     /** "create an image of…", "make me a drawing of…", "paint a picture of…". */
     private val EN_OF = Regex("^(?:create|generate|make|produce|render|paint|draw)\\s+(?:me\\s+|us\\s+)?(?:an?\\s+)?$NOUN_EN\\s+of\\s+(.+)$", O)
+    /**
+     * "generate an image: a cat", "create an image showing a fox", "…depicting…", "…with a dog on a beach" (adam). After
+     * "with" only a thing with an article: "create an image with Python" is a how-to, so it stays with the model.
+     */
+    private val EN_SHOWING = Regex("^(?:create|generate|make|produce|render)\\s+(?:me\\s+|us\\s+)?(?:an?\\s+)?$NOUN_EN" +
+        "(?:\\s*:\\s*|\\s+(?:showing|depicting|that shows)\\s+|\\s+with\\s+(?=(?:an?|the|some|two|three)\\s))(.+)$", O)
     /** "draw me…", "sketch me…", "paint me…". */
     private val EN_ME = Regex("^(?:draw|sketch|paint)\\s+(?:me|us)\\s+(.+)$", O)
     /** "draw a…", "draw an…", unless it's "draw a conclusion" and the like. */
@@ -40,10 +46,17 @@ object DrawRequest {
     private val PT_DRAW = Regex("^(?:desenhe|desenha|desenhe-me)(?:\\s+(?:pra|para)\\s+mim|\\s+me)?[,:]?\\s+(.+)$", O)
     /** "gere/crie/faça uma imagem de…", "um desenho do…". */
     private val PT_OF = Regex("^(?:gere|gera|crie|cria|faça|faca|faz)(?:\\s+(?:pra|para)\\s+mim)?\\s+(?:uma|um)\\s+(?:imagem|figura|ilustração|ilustracao|desenho|foto|pintura)\\s+(de|do|da|dos|das)\\s+(.+)$", O)
+    /** "gere uma imagem: um gato", "crie uma imagem com um cachorro…", "…mostrando…": "com" only before an article. */
+    private val PT_SHOWING = Regex("^(?:gere|gera|crie|cria|faça|faca|faz)(?:\\s+(?:pra|para)\\s+mim)?\\s+(?:uma|um)\\s+(?:imagem|figura|ilustração|ilustracao|desenho|foto|pintura)" +
+        "(?:\\s*:\\s*|\\s+mostrando\\s+|\\s+com\\s+(?=(?:um|uma|o|a|os|as|dois|duas)\\s))(.+)$", O)
     /** "dibuja…", "dibújame…" (not "pinta…": "pinta la pared" is about a wall). */
     private val ES_DRAW = Regex("^(?:dibuja|dibújame|dibujame|dibuje|dibújeme|píntame|pintame)(?:\\s+me)?[,:]?\\s+(.+)$", O)
     /** "genera/crea/haz una imagen de…". */
     private val ES_OF = Regex("^(?:genera|crea|haz|hazme)\\s+(?:una|un)\\s+(?:imagen|ilustración|ilustracion|dibujo|foto|pintura)\\s+(de|del)\\s+(.+)$", O)
+
+    /** "genera una imagen con un perro…", "crea una imagen: un barco", "…mostrando…": "con" only before an article. */
+    private val ES_SHOWING = Regex("^(?:genera|crea|haz|hazme)\\s+(?:una|un)\\s+(?:imagen|ilustración|ilustracion|dibujo|foto|pintura)" +
+        "(?:\\s*:\\s*|\\s+mostrando\\s+|\\s+con\\s+(?=(?:un|una|el|la|los|las|dos)\\s))(.+)$", O)
 
     /** The request at the start of [text], or null when it isn't one. */
     fun parse(text: String): Ask? {
@@ -51,6 +64,9 @@ object DrawRequest {
         EN_OF.find(t)?.let { return ask(it.groupValues[1], Lang.EN) }
         PT_OF.find(t)?.let { m -> return ask(article(m.groupValues[1].lowercase(), m.groupValues[2]), Lang.PT) }
         ES_OF.find(t)?.let { m -> return ask((if (m.groupValues[1].lowercase() == "del") "el " else "") + m.groupValues[2], Lang.ES) }
+        EN_SHOWING.find(t)?.let { return ask(it.groupValues[1], Lang.EN) }
+        PT_SHOWING.find(t)?.let { return ask(it.groupValues[1], Lang.PT) }
+        ES_SHOWING.find(t)?.let { return ask(it.groupValues[1], Lang.ES) }
         // "draw me a bath" runs a bath: the same exclusions as "draw a…" (CodeRabbit).
         EN_ME.find(t)?.let { m -> val w = FIRST_NOUN.find(m.groupValues[1].trim())?.groupValues?.get(1)?.lowercase()
             return if (w in NOT_A_PICTURE) null else ask(m.groupValues[1], Lang.EN) }
