@@ -597,9 +597,12 @@ class BoarServices private constructor(private val context: Context) {
 
         fun get(context: Context): BoarServices = instance ?: synchronized(this) {
             instance ?: run {
-                // The CPU build is chosen once per process, from the user's tweak (Auto by default).
                 val app = context.applicationContext
-                BoarEngine.init(app.applicationInfo.nativeLibraryDir, AppSettings(File(app.filesDir, "settings.json")).engineTweaks.cpuBuild)
+                // 2.1.0 (BOAR-81): the profiles retire first, before anything reads a setting (the CPU build here, the debug
+                // log and the chat's model below): a value a profile paused never acts, even once (CodeRabbit).
+                val settings = AppSettings(File(app.filesDir, "settings.json")).also { it.retireProfiles() }
+                // The CPU build is chosen once per process, from the user's tweak (Auto by default).
+                BoarEngine.init(app.applicationInfo.nativeLibraryDir, settings.engineTweaks.cpuBuild)
                 BoarServices(app).also { instance = it; DebugLog.init(app, it.settings); it.lifeScope.launch { it.syncBoarPack() } }
             }
         }

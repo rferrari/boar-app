@@ -100,8 +100,10 @@ class ProfilesRetiredTest {
         assertFalse(src.contains("proActive"))
     }
 
-    @Test fun `the app runs it at launch`() {
-        val main = java.io.File("../app/src/main/java/team/sopa/boar/MainActivity.kt").readText()
-        assertTrue(main.contains("services.settings.retireProfiles()"))
+    @Test fun `the app runs it before anything reads a setting - the CPU build, the debug log (CodeRabbit)`() {
+        val services = java.io.File("../app/src/main/java/team/sopa/boar/app/BoarServices.kt").readText()
+        val get = services.substringAfter("fun get(context: Context): BoarServices").substringBefore("\n        }\n")
+        val retire = get.indexOf("AppSettings(File(app.filesDir, \"settings.json\")).also { it.retireProfiles() }")
+        assertTrue(retire >= 0 && retire < get.indexOf("BoarEngine.init(") && retire < get.indexOf("BoarServices(app)"))
     }
 }
